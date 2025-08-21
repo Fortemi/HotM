@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import { listen } from '@tauri-apps/api/event';
 import './App.css';
 
 const API_BASE = 'http://127.0.0.1:53211/api/v1';
@@ -27,11 +28,24 @@ function App() {
   const [isLoading, setIsLoading] = useState(false);
   const [showRevised, setShowRevised] = useState(true);
   const [serverStatus, setServerStatus] = useState<{ ok: boolean; message?: string } | null>(null);
+  const newNoteTextareaRef = useRef<HTMLTextAreaElement>(null);
 
   // Check server health on mount
   useEffect(() => {
     checkServerHealth();
     loadRecentNotes();
+    
+    // Listen for tray events to focus new note
+    const unlisten = listen('focus-new-note', () => {
+      if (newNoteTextareaRef.current) {
+        newNoteTextareaRef.current.focus();
+        newNoteTextareaRef.current.scrollIntoView({ behavior: 'smooth' });
+      }
+    });
+
+    return () => {
+      unlisten.then(fn => fn());
+    };
   }, []);
 
   const checkServerHealth = async () => {
@@ -131,9 +145,10 @@ function App() {
         <aside className="sidebar">
           <div className="note-create">
             <textarea
+              ref={newNoteTextareaRef}
               value={newNoteContent}
               onChange={(e) => setNewNoteContent(e.target.value)}
-              placeholder="Write a new note..."
+              placeholder="Write a new note... (Ctrl+Alt+H)"
               rows={4}
             />
             <button onClick={createNote} disabled={isLoading || !serverStatus?.ok}>
