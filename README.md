@@ -14,31 +14,22 @@ Status
 - Current prototype: Python + FastAPI local-only server (see Quickstart below).
 - v1 plan: Tauri (Rust + React/TypeScript) Windows app with Microsoft DocumentDB (PostgreSQL-compatible with JSONB + pgvector), local Ollama, MCP server, hybrid semantic search, and background pipelines. See `docs/02-architecture.md`.
 
-Quickstart (current prototype)
-- Install Python 3.11+
-- Install dependencies:
+Quickstart (current server + UI)
+- Database: set `DATABASE_URL` (PostgreSQL/DocumentDB) and ensure `vector` extension.
+- One command to run the server (pulls Ollama models if available):
 
 ```bash
-python -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
+export DATABASE_URL=postgres://user:pass@localhost:5432/hotm_dev
+./scripts/dev_server.sh
 ```
 
-- (Optional) Install Ollama and pull models:
+- UI (dev):
 
 ```bash
-# See: https://ollama.com
-ollama pull gpt-oss:20b
-ollama pull nomic-embed-text
+cd ui
+npm install
+npm run dev
 ```
-
-- Run the server:
-
-```bash
-./scripts/dev.sh
-```
-
-- Open http://localhost:8000/docs for API docs (prototype).
 
 Documentation
 - `docs/01-vision.md` — Product vision and goals
