@@ -5,25 +5,27 @@ This document describes the v1 architecture that centers NLP-driven revision, su
 ## High-Level
 - Client/UI: Tauri + React/TypeScript with Windows 11 visual style (Mica/Acrylic, rounded corners)
 - Core service: Rust (Tokio) inside the Tauri backend
-- Storage: SQLite with FTS5 for keyword search; vector index via SQLite extension (sqlite-vec/sqlite_hnsw) or embedded HNSW
+- Storage: Microsoft DocumentDB (PostgreSQL-compatible) with JSONB documents and relational tables; full-text via tsvector/GIN and vectors via pgvector (HNSW). SQLite (FTS5 + vectors) remains as a minimal dev fallback.
 - NLP runtime: Ollama on `localhost` (generation model `gpt-oss:20b`; embeddings `nomic-embed-text`)
 - Background workers: async jobs for ingest, revise, tag, embed, link, reindex
 - API: Local HTTP + WebSocket events; OpenAPI at `/openapi.json`
 - MCP server: In-process, exposing deterministic tools that the UI calls
 - Security: Local-only by default; optional encryption-at-rest (Windows DPAPI) and audit log
 
-## Data Model (SQLite)
-The full schema is in `docs/04-data-model.sql`. Key tables:
+## Data Model
+See `docs/04-data-model-pg.sql` for the PostgreSQL/DocumentDB schema.
+
+Key relations and document fields:
 - `note`, `note_original` (immutable text), `note_revised_current`, `note_revision` (history)
 - `provenance_edge` for revision inputs and external sources
 - `link` for dynamic intra-note and external links
 - `tag`, `note_tag`, `collection`
-- `note_fts` FTS5 index across original and revised content, plus tags
-- `embedding` for chunked vectors (stored via SQLite vector extension)
+- `note_revised_current.tsv` materialized tsvector across original, revised, and tags (GIN indexed)
+- `embedding.vector` pgvector column for chunked embeddings (HNSW/IVF index)
 - `activity_log` for analytics and auditability
 
 ## Search
-- Hybrid retrieval: FTS5 BM25 + vector ANN; fuse via Reciprocal Rank Fusion; optional local cross-encoder re-ranking
+- Hybrid retrieval: PostgreSQL FTS (tsvector/tsquery) + pgvector ANN; fuse via Reciprocal Rank Fusion; optional local cross-encoder re-ranking
 - Filters: `tag:`, `collection:`, `before:`/`after:`, `source:`
 
 ## NLP Pipelines
@@ -49,7 +51,7 @@ Base: `http://127.0.0.1:53211/api/v1`
 
 ## Packaging and Startup
 - Tauri bundler produces MSI, registers tray and global shortcut; optional launch at login
-- First-run: check Ollama, pull models, run DB migrations, test vector extension; fall back to embedded HNSW
+- First-run: check Ollama, pull models, apply Postgres migrations, verify `vector` extension; seed indexes
 
 ## Telemetry and Privacy
 - Default: no outbound network beyond localhost Ollama and optional favicon fetch for known URLs; optional updates can be disabled

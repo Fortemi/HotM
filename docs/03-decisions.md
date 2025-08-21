@@ -3,20 +3,19 @@
 ## ADR-001: Platform and Framework (v1)
 - Decision: Tauri (Rust backend + React/TypeScript UI)
 - Status: Accepted
-- Rationale: Native Windows 11 UX (tray, global hotkeys) with small footprint; Rust provides robust async, SQLite access, and background workers.
+- Rationale: Native Windows 11 UX (tray, global hotkeys) with small footprint; Rust provides robust async, PostgreSQL access, and background workers.
 
 ## ADR-002: Storage Engine
-- Decision: SQLite with FTS5 and vector index (sqlite-vec/sqlite_hnsw). Immutable originals + revised view + revision history.
+- Decision: Microsoft DocumentDB (PostgreSQL-compatible) with JSONB + relational tables; pgvector for embeddings; tsvector/GIN for FTS.
 - Status: Accepted
-- Rationale: Single-file DB, rich indexing, local durability. Schema supports provenance and analytics.
+- Rationale: Document-centric flexibility with relational rigor; Windows-first packaging; stronger backup/DR options; Postgres ecosystem (extensions, tooling).
 
 ## ADR-003: NLP Runtime
 - Decision: Ollama on localhost. Models: `gpt-oss:20b` for generation, `nomic-embed-text` for embeddings.
 - Status: Accepted
 - Rationale: Local-only privacy, reproducible pipelines, easy model management.
 
-## ADR-004: Search Strategy
-- Decision: Hybrid search (FTS5 BM25 + vector ANN) with RRF fusion and optional cross-encoder rerank.
+- Decision: Hybrid search (PostgreSQL FTS + pgvector ANN) with RRF fusion and optional cross-encoder rerank.
 - Status: Accepted
 - Rationale: Combines precision of keyword with recall of semantic search.
 

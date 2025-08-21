@@ -7,7 +7,7 @@ Principles
 - Revised view is the default: concise, linked, and navigable
 - All data is stored with UTC timestamps, displayed in system local time
 - NLP is local-only via Ollama; no external calls
-- Fast, indexed, hybrid search across content and metadata
+- Fast, indexed, hybrid search across content and metadata (PostgreSQL FTS + pgvector)
 - Interactions map to deterministic MCP tools for auditability
 
 What you get

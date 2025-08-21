@@ -1,5 +1,5 @@
 System
-Re-rank and fuse FTS5 and vector results using Reciprocal Rank Fusion. Optionally apply a lightweight local cross-encoder if available.
+Re-rank and fuse PostgreSQL FTS (tsvector/tsquery) and vector results (pgvector) using Reciprocal Rank Fusion. Optionally apply a lightweight local cross-encoder if available.
 
 Inputs
 - query
