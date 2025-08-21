@@ -1,8 +1,9 @@
 use tauri::{
     tray::{TrayIconBuilder}, 
-    Manager, WindowEvent,
+    Manager, WindowEvent, AppHandle,
 };
 use tauri::menu::{MenuBuilder, MenuItemBuilder};
+use tauri_plugin_global_shortcut::{GlobalShortcutExt, Shortcut};
 
 // Create a Hall of the Mind icon programmatically (purple gradient with "HM" monogram)
 fn create_default_icon() -> tauri::image::Image<'static> {
@@ -42,29 +43,35 @@ fn create_default_icon() -> tauri::image::Image<'static> {
     tauri::image::Image::new_owned(pixels, SIZE, SIZE)
 }
 
-#[cfg_attr(mobile, tauri::mobile_entry_point)]
-pub fn run() {
-    // Enable console output for debugging in release builds
-    #[cfg(windows)]
-    {
-        use std::io::Write;
-        let _ = std::fs::create_dir_all("C:\\temp");
-        let log_file = std::fs::OpenOptions::new()
-            .create(true)
-            .append(true)
-            .open("C:\\temp\\hotm_startup.log");
-        
-        if let Ok(mut file) = log_file {
-            let _ = writeln!(file, "HotM starting at: {:?}", std::time::SystemTime::now());
+// Toggle window visibility
+fn toggle_window_visibility(app: &AppHandle) {
+    if let Some(window) = app.get_webview_window("main") {
+        if window.is_visible().unwrap_or(false) {
+            let _ = window.hide();
+        } else {
+            let _ = window.show();
+            let _ = window.set_focus();
         }
     }
+}
+
+#[cfg_attr(mobile, tauri::mobile_entry_point)]
+pub fn run() {
+    // Check for command line arguments
+    let args: Vec<String> = std::env::args().collect();
+    let start_minimized = args.contains(&"--minimized".to_string()) || 
+                         args.contains(&"/minimized".to_string());
     
     println!("HotM: Starting Tauri application...");
+    if start_minimized {
+        println!("HotM: Starting in minimized mode");
+    }
     
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_shell::init())
         .plugin(tauri_plugin_notification::init())
+        .plugin(tauri_plugin_global_shortcut::Builder::new().build())
         .on_window_event(|window, event| {
             println!("HotM: Window event: {:?}", event);
             match event {
@@ -77,24 +84,26 @@ pub fn run() {
                 _ => {}
             }
         })
-        .setup(|app| {
+        .setup(move |app| {
             println!("HotM: Running setup...");
-            // Log to file on Windows
-            #[cfg(windows)]
-            {
-                use std::io::Write;
-                if let Ok(mut file) = std::fs::OpenOptions::new()
-                    .create(true)
-                    .append(true)
-                    .open("C:\\temp\\hotm_startup.log") 
-                {
-                    let _ = writeln!(file, "Creating tray menu...");
-                }
+            
+            // Register global hotkey (Ctrl+Alt+H)
+            let app_handle_hotkey = app.handle().clone();
+            let hotkey = Shortcut::new(Some(tauri_plugin_global_shortcut::Modifiers::CONTROL | 
+                                           tauri_plugin_global_shortcut::Modifiers::ALT), 
+                                       tauri_plugin_global_shortcut::Code::KeyH);
+            
+            match app.global_shortcut().on_shortcut(hotkey, move |_app_handle, _event, _shortcut| {
+                println!("HotM: Hotkey pressed (Ctrl+Alt+H)");
+                toggle_window_visibility(&app_handle_hotkey);
+            }) {
+                Ok(_) => println!("HotM: Global hotkey registered (Ctrl+Alt+H)"),
+                Err(e) => println!("HotM: Failed to register hotkey: {}", e),
             }
             
             // Create tray menu
             println!("HotM: Creating menu items...");
-            let show = MenuItemBuilder::with_id("show", "Show HotM").build(app)?;
+            let show = MenuItemBuilder::with_id("show", "Show Hall of the Mind").build(app)?;
             let hide = MenuItemBuilder::with_id("hide", "Hide").build(app)?;
             let quit = MenuItemBuilder::with_id("quit", "Quit").build(app)?;
             
@@ -143,19 +152,16 @@ pub fn run() {
                 })
                 .build(app)?;
             
-            println!("HotM: Setup complete!");
-            
-            #[cfg(windows)]
-            {
-                use std::io::Write;
-                if let Ok(mut file) = std::fs::OpenOptions::new()
-                    .create(true)
-                    .append(true)
-                    .open("C:\\temp\\hotm_startup.log") 
-                {
-                    let _ = writeln!(file, "Setup complete, app should be running");
+            // If started with --minimized, hide the window
+            if start_minimized {
+                if let Some(window) = app.get_webview_window("main") {
+                    println!("HotM: Hiding window for minimized start");
+                    let _ = window.hide();
                 }
             }
+            
+            println!("HotM: Setup complete!");
+            println!("HotM: Press Ctrl+Alt+H to show/hide the window");
             
             Ok(())
         })

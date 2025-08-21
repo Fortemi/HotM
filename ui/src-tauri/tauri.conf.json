@@ -20,7 +20,8 @@
         "resizable": true,
         "visible": true,
         "skipTaskbar": false,
-        "center": true
+        "center": true,
+        "focus": true
       }
     ],
     "security": {
