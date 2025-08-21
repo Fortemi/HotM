@@ -24,6 +24,13 @@ async fn main() -> anyhow::Result<()> {
         .route("/api/v1/notes/:id", get(routes::notes::get_note))
         .route("/api/v1/notes/:id/revised", put(routes::notes::put_revised))
         .route("/api/v1/search", get(routes::search::search))
+        .route("/api/v1/semantic", post(routes::search::semantic))
+        .route("/api/v1/tags", post(routes::taxonomy::create_tag))
+        .route("/api/v1/notes/:id/tags", put(routes::taxonomy::put_note_tags))
+        .route("/api/v1/collections", post(routes::taxonomy::create_collection))
+        .route("/api/v1/notes/:id/collection", put(routes::taxonomy::put_note_collection))
+        .route("/api/v1/notes/:id/links", post(routes::links::post_link))
+        .route("/api/v1/notes/:id/provenance", get(routes::provenance::get_provenance))
         .with_state(state);
 
     let addr: SocketAddr = "127.0.0.1:53211".parse().unwrap();

@@ -53,6 +53,7 @@ Project Layout (prototype)
 - `data/` — Local data (notes)
 - `docs/` — Architecture, decisions, and roadmap
 - `scripts/` — Utilities for dev and ops
+- `server/` — Rust Axum API server (DocumentDB/Postgres)
 
 Privacy
 - All data and NLP run locally by default. Optional encryption-at-rest and audit log are planned for v1.

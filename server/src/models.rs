@@ -53,3 +53,44 @@ pub struct SearchResponse { pub hits: Vec<SearchHit> }
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct SearchHit { pub note_id: Uuid, pub score: f32, pub snippet: Option<String> }
+
+// Tags
+#[derive(Serialize, Deserialize)]
+pub struct PutNoteTagsRequest { pub add: Option<Vec<String>>, pub remove: Option<Vec<String>> }
+#[derive(Serialize, Deserialize)]
+pub struct PutNoteTagsResponse { pub tags: Vec<String> }
+
+#[derive(Serialize, Deserialize)]
+pub struct CreateTagRequest { pub name: String }
+#[derive(Serialize, Deserialize)]
+pub struct CreateTagResponse { pub name: String }
+
+// Collections
+#[derive(Serialize, Deserialize)]
+pub struct CreateCollectionRequest { pub name: String, pub description: Option<String> }
+#[derive(Serialize, Deserialize)]
+pub struct CreateCollectionResponse { pub collectionId: Uuid }
+#[derive(Serialize, Deserialize)]
+pub struct PutNoteCollectionRequest { pub collectionId: Uuid }
+#[derive(Serialize, Deserialize)]
+pub struct PutNoteCollectionResponse { pub collectionId: Uuid }
+
+// Links
+#[derive(Serialize, Deserialize)]
+pub struct PostLinkRequest { pub toNoteId: Option<Uuid>, pub toUrl: Option<String>, pub kind: String, pub score: Option<f32> }
+#[derive(Serialize, Deserialize)]
+pub struct PostLinkResponse { pub linkId: Uuid }
+
+// Semantic
+#[derive(Serialize, Deserialize)]
+pub struct SemanticRequest { pub text: String }
+#[derive(Serialize, Deserialize)]
+pub struct SemanticResponse { pub similar: Vec<SearchHit> }
+
+// Provenance (simplified)
+#[derive(Serialize, Deserialize)]
+pub struct ProvenanceEdge { pub id: Uuid, pub revision_id: Uuid, pub source_note_id: Option<Uuid>, pub source_url: Option<String>, pub relation: String, pub created_at_utc: DateTime<Utc> }
+#[derive(Serialize, Deserialize)]
+pub struct RevisionNode { pub id: Uuid, pub parent_revision_id: Option<Uuid>, pub created_at_utc: DateTime<Utc> }
+#[derive(Serialize, Deserialize)]
+pub struct ProvenanceResponse { pub revisions: Vec<RevisionNode>, pub edges: Vec<ProvenanceEdge> }

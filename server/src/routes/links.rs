@@ -1,0 +1,12 @@
+use axum::{extract::{State, Path}, Json};
+use uuid::Uuid;
+use crate::{db::AppState, models::*};
+
+pub async fn post_link(State(state): State<AppState>, Path(id): Path<Uuid>, Json(req): Json<PostLinkRequest>) -> Result<Json<PostLinkResponse>, axum::http::StatusCode> {
+    let link_id = Uuid::new_v4();
+    sqlx::query!(
+        "INSERT INTO link (id, from_note_id, to_note_id, to_url, kind, score, created_at_utc) VALUES ($1, $2, $3, $4, $5, COALESCE($6, 0.9), NOW())",
+        link_id, id, req.toNoteId, req.toUrl, req.kind, req.score
+    ).execute(&state.pool).await.map_err(|_| axum::http::StatusCode::INTERNAL_SERVER_ERROR)?;
+    Ok(Json(PostLinkResponse{ linkId: link_id }))
+}
