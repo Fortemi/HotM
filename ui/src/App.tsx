@@ -21,7 +21,6 @@ interface SearchResult {
 
 function App() {
   const [notes, setNotes] = useState<Note[]>([]);
-  const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   const [selectedNote, setSelectedNote] = useState<Note | null>(null);
   const [newNoteContent, setNewNoteContent] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
@@ -94,7 +93,6 @@ function App() {
       const response = await fetch(`${API_BASE}/search?q=${encodeURIComponent(searchQuery)}`);
       if (response.ok) {
         const data = await response.json();
-        setSearchResults(data.results);
         setNotes(data.results.map((r: SearchResult) => r.note));
       }
     } catch (error) {
