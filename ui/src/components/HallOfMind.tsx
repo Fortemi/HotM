@@ -37,7 +37,9 @@ import {
   BookOpen,
   CheckCircle,
   AlertCircle,
-  XCircle
+  XCircle,
+  RefreshCw,
+  Loader2
 } from "lucide-react";
 import { api, NoteFull } from "@/services/api";
 
@@ -94,24 +96,28 @@ export function HallOfMind() {
   const loadExistingNotes = async () => {
     try {
       setIsLoading(true);
-      // Try to load the test note we created
-      const testNoteId = "66a8e5c6-d5f8-4b3d-a197-2e7ff207fcc7";
-      try {
-        const note = await api.getNote(testNoteId);
-        const simpleNote: Note = {
-          id: note.note.id,
-          title: note.original.content.substring(0, 50) + "...",
-          content: note.original.content,
-          revised_content: note.revised.content,
-          createdAt: note.note.created_at_utc,
-          updatedAt: note.note.updated_at_utc,
-          tags: note.tags,
-          starred: false
-        };
-        setNotes([simpleNote]);
-        savedNotes.current.set(note.note.id, note);
-      } catch (e) {
-        // Note doesn't exist, that's ok
+      const existingNotes = await api.getRecentNotes();
+      
+      if (existingNotes.length > 0) {
+        const simpleNotes = existingNotes.map(note => {
+          // Store the full note data
+          savedNotes.current.set(note.note.id, note);
+          
+          // Create simplified version for UI
+          return {
+            id: note.note.id,
+            title: note.original.content.split('\n')[0].substring(0, 50) || "Untitled",
+            content: note.original.content,
+            revised_content: note.revised.content,
+            createdAt: note.note.created_at_utc,
+            updatedAt: note.note.updated_at_utc,
+            tags: note.tags,
+            starred: false
+          };
+        });
+        setNotes(simpleNotes);
+        console.log(`Loaded ${simpleNotes.length} notes from server`);
+      } else {
         console.log("No existing notes found");
       }
     } catch (error) {
@@ -238,23 +244,41 @@ export function HallOfMind() {
               </div>
             </div>
             {/* Server Status */}
-            <div className="mt-2 flex items-center gap-2 text-xs">
-              {serverStatus?.ok ? (
-                <>
-                  <CheckCircle className="h-3 w-3 text-green-500" />
-                  <span className="text-green-600 dark:text-green-400">API Connected</span>
-                </>
-              ) : serverStatus === null ? (
-                <>
-                  <AlertCircle className="h-3 w-3 text-yellow-500" />
-                  <span className="text-yellow-600 dark:text-yellow-400">Connecting...</span>
-                </>
-              ) : (
-                <>
-                  <XCircle className="h-3 w-3 text-red-500" />
-                  <span className="text-red-600 dark:text-red-400">Offline Mode</span>
-                </>
-              )}
+            <div className="mt-2 flex items-center justify-between">
+              <div className="flex items-center gap-2 text-xs">
+                {serverStatus?.ok ? (
+                  <>
+                    <CheckCircle className="h-3 w-3 text-green-500" />
+                    <span className="text-green-600 dark:text-green-400">API Connected</span>
+                  </>
+                ) : serverStatus === null ? (
+                  <>
+                    <AlertCircle className="h-3 w-3 text-yellow-500" />
+                    <span className="text-yellow-600 dark:text-yellow-400">Connecting...</span>
+                  </>
+                ) : (
+                  <>
+                    <XCircle className="h-3 w-3 text-red-500" />
+                    <span className="text-red-600 dark:text-red-400">Offline Mode</span>
+                  </>
+                )}
+              </div>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-6 w-6"
+                onClick={() => {
+                  checkServerHealth();
+                  loadExistingNotes();
+                }}
+                disabled={isLoading}
+              >
+                {isLoading ? (
+                  <Loader2 className="h-3 w-3 animate-spin" />
+                ) : (
+                  <RefreshCw className="h-3 w-3" />
+                )}
+              </Button>
             </div>
           </SidebarHeader>
           
@@ -313,24 +337,32 @@ export function HallOfMind() {
             <Separator className="my-2" />
 
             <SidebarGroup>
-              <SidebarGroupLabel>Your Notes</SidebarGroupLabel>
+              <SidebarGroupLabel>
+                Your Notes {notes.length > 0 && `(${filteredNotes.length})`}
+              </SidebarGroupLabel>
               <ScrollArea className="h-[400px]">
                 <SidebarMenu>
-                  {filteredNotes.map((note) => (
-                    <SidebarMenuItem key={note.id}>
-                      <SidebarMenuButton
-                        onClick={() => {
-                          setSelectedNote(note);
-                          setNoteContent(note.content);
-                        }}
-                        className={selectedNote?.id === note.id ? "bg-accent" : ""}
-                      >
-                        <BookOpen className="h-4 w-4" />
-                        <span className="flex-1 truncate">{note.title}</span>
-                        {note.starred && <Star className="h-3 w-3 fill-yellow-500 text-yellow-500" />}
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  ))}
+                  {filteredNotes.length === 0 ? (
+                    <div className="p-4 text-center text-sm text-muted-foreground">
+                      {isLoading ? "Loading notes..." : "No notes yet. Create your first note above!"}
+                    </div>
+                  ) : (
+                    filteredNotes.map((note) => (
+                      <SidebarMenuItem key={note.id}>
+                        <SidebarMenuButton
+                          onClick={() => {
+                            setSelectedNote(note);
+                            setNoteContent(note.content);
+                          }}
+                          className={selectedNote?.id === note.id ? "bg-accent" : ""}
+                        >
+                          <BookOpen className="h-4 w-4" />
+                          <span className="flex-1 truncate">{note.title}</span>
+                          {note.starred && <Star className="h-3 w-3 fill-yellow-500 text-yellow-500" />}
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    ))
+                  )}
                 </SidebarMenu>
               </ScrollArea>
             </SidebarGroup>

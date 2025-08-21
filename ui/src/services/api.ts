@@ -126,10 +126,19 @@ class ApiClient {
 
   // Create a new note
   async createNote(content: string): Promise<CreateNoteResponse> {
-    return this.request<CreateNoteResponse>('/notes', {
+    const response = await this.request<CreateNoteResponse>('/notes', {
       method: 'POST',
       body: JSON.stringify({ content }),
     });
+    
+    // Store the new note ID
+    const storedIds = JSON.parse(localStorage.getItem('hotm_note_ids') || '[]');
+    if (!storedIds.includes(response.note_id)) {
+      storedIds.push(response.note_id);
+      localStorage.setItem('hotm_note_ids', JSON.stringify(storedIds));
+    }
+    
+    return response;
   }
 
   // Get a specific note
@@ -151,12 +160,58 @@ class ApiClient {
     return this.request<SearchResponse>(`/search?${params}`);
   }
 
+  // Get all notes IDs (we'll fetch them individually for now)
+  async getAllNoteIds(): Promise<string[]> {
+    try {
+      // Get stored note IDs from localStorage
+      const storedIds = JSON.parse(localStorage.getItem('hotm_note_ids') || '[]');
+      
+      // Known test notes
+      const knownIds = [
+        "66a8e5c6-d5f8-4b3d-a197-2e7ff207fcc7", // Test note 1
+        "d87defa1-6a9f-4470-bb63-67934faefc87", // Test note 2
+        "dfacb53a-c19f-48dd-a8bb-3ad2d92464a8", // Meeting notes
+      ];
+      
+      // Combine and deduplicate
+      const allIds = [...new Set([...storedIds, ...knownIds])];
+      
+      const validIds: string[] = [];
+      for (const id of allIds) {
+        try {
+          await this.getNote(id);
+          validIds.push(id);
+        } catch (e) {
+          // Note doesn't exist anymore
+        }
+      }
+      
+      // Update localStorage with valid IDs
+      localStorage.setItem('hotm_note_ids', JSON.stringify(validIds));
+      
+      return validIds;
+    } catch (error) {
+      console.error('Failed to get note IDs:', error);
+      return [];
+    }
+  }
+  
   // Get recent notes (using search with empty query)
   async getRecentNotes(_limit: number = 20): Promise<NoteFull[]> {
     try {
-      // For now, we'll create a default note list since search needs fixing
-      // TODO: Fix search endpoint to support empty queries
-      return [];
+      const noteIds = await this.getAllNoteIds();
+      const notes: NoteFull[] = [];
+      
+      for (const id of noteIds) {
+        try {
+          const note = await this.getNote(id);
+          notes.push(note);
+        } catch (e) {
+          console.error(`Failed to load note ${id}:`, e);
+        }
+      }
+      
+      return notes;
     } catch (error) {
       console.error('Failed to get recent notes:', error);
       return [];
