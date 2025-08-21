@@ -13,21 +13,42 @@ $ui = Join-Path $root 'ui'
 Write-Host '== Building HotM MSI =='
 
 # Ensure prerequisites
+function Add-ToPath([string]$dir) {
+  if (Test-Path $dir) {
+    if (-not ($env:PATH -split ';' | Where-Object { $_ -ieq $dir })) {
+      $env:PATH = "$dir;" + $env:PATH
+    }
+  }
+}
+
 if (-not (Get-Command npm -ErrorAction SilentlyContinue)) {
   Write-Host 'Node.js not found. Installing via winget...'
   winget install -e --id OpenJS.NodeJS.LTS --silent --accept-package-agreements --accept-source-agreements | Out-Null
+  # Try to add common Node paths for this session
+  Add-ToPath "$env:ProgramFiles\nodejs"
+  Add-ToPath "$env:LOCALAPPDATA\Programs\nodejs"
+  Add-ToPath "$env:APPDATA\npm"
 }
 if (-not (Get-Command rustup -ErrorAction SilentlyContinue)) {
   Write-Host 'Rustup not found. Installing via winget...'
   winget install -e --id Rustlang.Rustup --silent --accept-package-agreements --accept-source-agreements | Out-Null
+  # Cargo bin path for current session
+  Add-ToPath "$env:USERPROFILE\.cargo\bin"
 }
 if (-not (Get-Command candle.exe -ErrorAction SilentlyContinue)) {
   Write-Host 'WiX Toolset not found. Installing via winget...'
   winget install -e --id WiXToolset.WiXToolset --silent --accept-package-agreements --accept-source-agreements | Out-Null
+  # Add common WiX bin paths for this session
+  Add-ToPath "$env:ProgramFiles(x86)\WiX Toolset v3.14\bin"
+  Add-ToPath "$env:ProgramFiles\WiX Toolset v3.14\bin"
 }
 if (-not (Get-Command msedgewebview2.exe -ErrorAction SilentlyContinue)) {
   Write-Host 'Installing Microsoft Edge WebView2 Runtime...'
   winget install -e --id Microsoft.EdgeWebView2Runtime --silent --accept-package-agreements --accept-source-agreements | Out-Null
+}
+if (-not (Get-Command vs_BuildTools.exe -ErrorAction SilentlyContinue)) {
+  Write-Host 'Installing Microsoft Visual Studio 2022 Build Tools...'
+  winget install -e --id Microsoft.VisualStudio.2022.BuildTools --silent --accept-package-agreements --accept-source-agreements | Out-Null
 }
 
 Push-Location $ui
