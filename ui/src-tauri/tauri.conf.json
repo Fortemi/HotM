@@ -33,9 +33,7 @@
     "targets": "all",
     "windows": {
       "wix": {
-        "language": "en-US",
-        "dialogImagePath": "../icons/icon.png",
-        "bannerPath": "../icons/icon.png"
+        "language": "en-US"
       },
       "allowDowngrades": false
     },

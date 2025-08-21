@@ -188,6 +188,11 @@ $pen.Dispose()
 $pathBrush.Dispose()
 $centerPath.Dispose()
 
+# Create icon.icns for macOS (copy from icon.png for now)
+if (!(Test-Path (Join-Path $iconsDir "icon.icns"))) {
+    Copy-Item (Join-Path $iconsDir "icon.png") (Join-Path $iconsDir "icon.icns") -Force
+}
+
 Write-Host ""
 Write-Host "Hall of the Mind icons created successfully!" -ForegroundColor Green
 Write-Host "Purple gradient theme with HM monogram" -ForegroundColor Cyan

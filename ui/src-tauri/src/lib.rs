@@ -1,9 +1,8 @@
 use tauri::{
     tray::{TrayIconBuilder}, 
-    Manager, WindowEvent, AppHandle,
+    Manager, WindowEvent,
 };
 use tauri::menu::{MenuBuilder, MenuItemBuilder};
-use tauri_plugin_global_shortcut::{GlobalShortcutExt};
 
 // Create a Hall of the Mind icon programmatically (purple gradient with "HM" monogram)
 fn create_default_icon() -> tauri::image::Image<'static> {
@@ -43,17 +42,6 @@ fn create_default_icon() -> tauri::image::Image<'static> {
     tauri::image::Image::new_owned(pixels, SIZE, SIZE)
 }
 
-// Toggle window visibility
-fn toggle_window_visibility(app: &AppHandle) {
-    if let Some(window) = app.get_webview_window("main") {
-        if window.is_visible().unwrap_or(false) {
-            let _ = window.hide();
-        } else {
-            let _ = window.show();
-            let _ = window.set_focus();
-        }
-    }
-}
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
