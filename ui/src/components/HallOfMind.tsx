@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { 
   SidebarProvider, 
   Sidebar, 
@@ -34,8 +34,12 @@ import {
   Moon,
   Sun,
   Sparkles,
-  BookOpen
+  BookOpen,
+  CheckCircle,
+  AlertCircle,
+  XCircle
 } from "lucide-react";
+import { api, NoteFull } from "@/services/api";
 
 interface Note {
   id: string;
@@ -45,52 +49,159 @@ interface Note {
   updatedAt: string;
   tags: string[];
   starred: boolean;
+  revised_content?: string;
 }
 
 export function HallOfMind() {
-  const [notes, setNotes] = useState<Note[]>([
-    {
-      id: "1",
-      title: "Welcome to Hall of the Mind",
-      content: "Your thoughts deserve a beautiful space. This is where ideas come to life.",
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      tags: ["welcome", "getting-started"],
-      starred: true
-    }
-  ]);
-  const [selectedNote, setSelectedNote] = useState<Note | null>(notes[0]);
-  const [noteContent, setNoteContent] = useState(notes[0]?.content || "");
+  const [notes, setNotes] = useState<Note[]>([]);
+  const [selectedNote, setSelectedNote] = useState<Note | null>(null);
+  const [noteContent, setNoteContent] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [isDarkMode, setIsDarkMode] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
+  const [serverStatus, setServerStatus] = useState<{
+    ok: boolean;
+    message?: string;
+  } | null>(null);
+  const [newNoteContent, setNewNoteContent] = useState("");
+  const savedNotes = useRef<Map<string, NoteFull>>(new Map());
+
+  // Check server health and load initial notes
+  useEffect(() => {
+    checkServerHealth();
+    loadExistingNotes();
+  }, []);
 
   useEffect(() => {
     // Set initial dark mode
     document.documentElement.classList.toggle("dark", isDarkMode);
   }, [isDarkMode]);
 
+  const checkServerHealth = async () => {
+    try {
+      const health = await api.checkHealth();
+      setServerStatus({ ok: health.ok });
+      console.log("Server health:", health);
+    } catch (error) {
+      console.error("Server health check failed:", error);
+      setServerStatus({ 
+        ok: false, 
+        message: "Cannot connect to HotM server" 
+      });
+    }
+  };
+
+  const loadExistingNotes = async () => {
+    try {
+      setIsLoading(true);
+      // Try to load the test note we created
+      const testNoteId = "66a8e5c6-d5f8-4b3d-a197-2e7ff207fcc7";
+      try {
+        const note = await api.getNote(testNoteId);
+        const simpleNote: Note = {
+          id: note.note.id,
+          title: note.original.content.substring(0, 50) + "...",
+          content: note.original.content,
+          revised_content: note.revised.content,
+          createdAt: note.note.created_at_utc,
+          updatedAt: note.note.updated_at_utc,
+          tags: note.tags,
+          starred: false
+        };
+        setNotes([simpleNote]);
+        savedNotes.current.set(note.note.id, note);
+      } catch (e) {
+        // Note doesn't exist, that's ok
+        console.log("No existing notes found");
+      }
+    } catch (error) {
+      console.error("Failed to load notes:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const toggleTheme = () => {
     setIsDarkMode(!isDarkMode);
     document.documentElement.classList.toggle("dark");
   };
 
-  const createNewNote = () => {
-    const newNote: Note = {
-      id: Date.now().toString(),
-      title: "Untitled Note",
-      content: "",
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      tags: [],
-      starred: false
-    };
-    setNotes([newNote, ...notes]);
-    setSelectedNote(newNote);
-    setNoteContent("");
+  const createNewNote = async () => {
+    if (!newNoteContent.trim()) {
+      // Create an empty local note if no content
+      const newNote: Note = {
+        id: Date.now().toString(),
+        title: "Untitled Note",
+        content: "",
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        tags: [],
+        starred: false
+      };
+      setNotes([newNote, ...notes]);
+      setSelectedNote(newNote);
+      setNoteContent("");
+      return;
+    }
+    
+    try {
+      setIsLoading(true);
+      const response = await api.createNote(newNoteContent);
+      console.log("Note created:", response);
+      
+      // Fetch the full note details
+      const fullNote = await api.getNote(response.note_id);
+      savedNotes.current.set(fullNote.note.id, fullNote);
+      
+      // Add to our notes list
+      const simpleNote: Note = {
+        id: fullNote.note.id,
+        title: fullNote.original.content.substring(0, 50) + "...",
+        content: fullNote.original.content,
+        revised_content: fullNote.revised.content,
+        createdAt: fullNote.note.created_at_utc,
+        updatedAt: fullNote.note.updated_at_utc,
+        tags: fullNote.tags,
+        starred: false
+      };
+      
+      setNotes([simpleNote, ...notes]);
+      setSelectedNote(simpleNote);
+      setNoteContent(simpleNote.content);
+      setNewNoteContent("");
+    } catch (error) {
+      console.error("Failed to create note:", error);
+      alert("Failed to create note. Check if the server is running.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const saveNote = () => {
-    if (selectedNote) {
+  const saveNote = async () => {
+    if (!selectedNote) return;
+    
+    // Check if this is a server-backed note
+    if (savedNotes.current.has(selectedNote.id)) {
+      try {
+        setIsLoading(true);
+        await api.updateRevision(selectedNote.id, noteContent, "Manual edit");
+        
+        // Update local state
+        const updatedNotes = notes.map(note => 
+          note.id === selectedNote.id 
+            ? { ...note, content: noteContent, revised_content: noteContent, updatedAt: new Date().toISOString() }
+            : note
+        );
+        setNotes(updatedNotes);
+        console.log("Note saved successfully");
+      } catch (error) {
+        console.error("Failed to save note:", error);
+        alert("Failed to save note. Check if the server is running.");
+      } finally {
+        setIsLoading(false);
+      }
+    } else {
+      // Local-only note
       const updatedNotes = notes.map(note => 
         note.id === selectedNote.id 
           ? { ...note, content: noteContent, updatedAt: new Date().toISOString() }
@@ -126,19 +237,50 @@ export function HallOfMind() {
                 <p className="text-xs text-muted-foreground">Your personal sanctuary</p>
               </div>
             </div>
+            {/* Server Status */}
+            <div className="mt-2 flex items-center gap-2 text-xs">
+              {serverStatus?.ok ? (
+                <>
+                  <CheckCircle className="h-3 w-3 text-green-500" />
+                  <span className="text-green-600 dark:text-green-400">API Connected</span>
+                </>
+              ) : serverStatus === null ? (
+                <>
+                  <AlertCircle className="h-3 w-3 text-yellow-500" />
+                  <span className="text-yellow-600 dark:text-yellow-400">Connecting...</span>
+                </>
+              ) : (
+                <>
+                  <XCircle className="h-3 w-3 text-red-500" />
+                  <span className="text-red-600 dark:text-red-400">Offline Mode</span>
+                </>
+              )}
+            </div>
           </SidebarHeader>
           
           <SidebarContent>
             <SidebarGroup>
               <SidebarGroupContent>
-                <div className="px-3 py-2">
+                <div className="px-3 py-2 space-y-2">
+                  <Textarea 
+                    placeholder="Quick capture... (Ctrl+Enter to save)"
+                    value={newNoteContent}
+                    onChange={(e) => setNewNoteContent(e.target.value)}
+                    className="min-h-[80px] resize-none text-sm"
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && e.ctrlKey) {
+                        createNewNote();
+                      }
+                    }}
+                  />
                   <Button 
                     onClick={createNewNote}
                     className="w-full justify-start gap-2"
                     variant="default"
+                    disabled={isLoading || (!serverStatus?.ok && !!newNoteContent.trim())}
                   >
                     <Plus className="h-4 w-4" />
-                    New Note
+                    {newNoteContent.trim() ? 'Save to Server' : 'New Local Note'}
                   </Button>
                 </div>
               </SidebarGroupContent>
@@ -237,9 +379,10 @@ export function HallOfMind() {
                   size="sm"
                   onClick={saveNote}
                   className="gap-2"
+                  disabled={isLoading || (!!selectedNote && savedNotes.current.has(selectedNote.id) && !serverStatus?.ok)}
                 >
                   <Save className="h-4 w-4" />
-                  Save
+                  {isLoading ? 'Saving...' : 'Save'}
                 </Button>
               </div>
             </div>

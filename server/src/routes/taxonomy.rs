@@ -28,10 +28,10 @@ pub async fn put_note_tags(State(state): State<AppState>, Path(id): Path<Uuid>, 
 pub async fn create_collection(State(state): State<AppState>, Json(req): Json<CreateCollectionRequest>) -> Result<Json<CreateCollectionResponse>, axum::http::StatusCode> {
     let id = Uuid::new_v4();
     sqlx::query!("INSERT INTO collection (id, name, description) VALUES ($1, $2, $3)", id, req.name, req.description).execute(&state.pool).await.map_err(|_| axum::http::StatusCode::INTERNAL_SERVER_ERROR)?;
-    Ok(Json(CreateCollectionResponse { collectionId: id }))
+    Ok(Json(CreateCollectionResponse { collection_id: id }))
 }
 
 pub async fn put_note_collection(State(state): State<AppState>, Path(id): Path<Uuid>, Json(req): Json<PutNoteCollectionRequest>) -> Result<Json<PutNoteCollectionResponse>, axum::http::StatusCode> {
-    sqlx::query!("UPDATE note SET collection_id = $1 WHERE id = $2", req.collectionId, id).execute(&state.pool).await.map_err(|_| axum::http::StatusCode::INTERNAL_SERVER_ERROR)?;
-    Ok(Json(PutNoteCollectionResponse{ collectionId: req.collectionId }))
+    sqlx::query!("UPDATE note SET collection_id = $1 WHERE id = $2", req.collection_id, id).execute(&state.pool).await.map_err(|_| axum::http::StatusCode::INTERNAL_SERVER_ERROR)?;
+    Ok(Json(PutNoteCollectionResponse{ collection_id: req.collection_id }))
 }

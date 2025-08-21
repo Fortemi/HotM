@@ -41,12 +41,12 @@ pub struct NoteFull {
 #[derive(Serialize, Deserialize)]
 pub struct CreateNoteRequest { pub content: String, pub format: Option<String>, pub source: Option<String> }
 #[derive(Serialize, Deserialize)]
-pub struct CreateNoteResponse { pub noteId: Uuid }
+pub struct CreateNoteResponse { pub note_id: Uuid }
 
 #[derive(Serialize, Deserialize)]
 pub struct PutRevisedRequest { pub content: String, pub rationale: Option<String> }
 #[derive(Serialize, Deserialize)]
-pub struct PutRevisedResponse { pub revisionId: Uuid, pub revisedContent: String }
+pub struct PutRevisedResponse { pub revision_id: Uuid, pub revised_content: String }
 
 #[derive(Serialize, Deserialize)]
 pub struct SearchResponse { pub hits: Vec<SearchHit> }
@@ -69,17 +69,17 @@ pub struct CreateTagResponse { pub name: String }
 #[derive(Serialize, Deserialize)]
 pub struct CreateCollectionRequest { pub name: String, pub description: Option<String> }
 #[derive(Serialize, Deserialize)]
-pub struct CreateCollectionResponse { pub collectionId: Uuid }
+pub struct CreateCollectionResponse { pub collection_id: Uuid }
 #[derive(Serialize, Deserialize)]
-pub struct PutNoteCollectionRequest { pub collectionId: Uuid }
+pub struct PutNoteCollectionRequest { pub collection_id: Uuid }
 #[derive(Serialize, Deserialize)]
-pub struct PutNoteCollectionResponse { pub collectionId: Uuid }
+pub struct PutNoteCollectionResponse { pub collection_id: Uuid }
 
 // Links
 #[derive(Serialize, Deserialize)]
-pub struct PostLinkRequest { pub toNoteId: Option<Uuid>, pub toUrl: Option<String>, pub kind: String, pub score: Option<f32> }
+pub struct PostLinkRequest { pub to_note_id: Option<Uuid>, pub to_url: Option<String>, pub kind: String, pub score: Option<f32> }
 #[derive(Serialize, Deserialize)]
-pub struct PostLinkResponse { pub linkId: Uuid }
+pub struct PostLinkResponse { pub link_id: Uuid }
 
 // Semantic
 #[derive(Serialize, Deserialize)]

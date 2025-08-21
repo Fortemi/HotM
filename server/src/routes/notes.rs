@@ -6,7 +6,7 @@ pub async fn create_note(State(state): State<AppState>, Json(req): Json<CreateNo
     let format = req.format.unwrap_or_else(|| "markdown".to_string());
     let source = req.source.unwrap_or_else(|| "manual".to_string());
     let id = db::insert_note(&state, &req.content, &format, &source).await.map_err(|_| axum::http::StatusCode::INTERNAL_SERVER_ERROR)?;
-    Ok(Json(CreateNoteResponse{ noteId: id }))
+    Ok(Json(CreateNoteResponse{ note_id: id }))
 }
 
 pub async fn get_note(State(state): State<AppState>, Path(id): Path<Uuid>) -> Result<Json<NoteFull>, axum::http::StatusCode> {
@@ -16,5 +16,5 @@ pub async fn get_note(State(state): State<AppState>, Path(id): Path<Uuid>) -> Re
 
 pub async fn put_revised(State(state): State<AppState>, Path(id): Path<Uuid>, Json(req): Json<PutRevisedRequest>) -> Result<Json<PutRevisedResponse>, axum::http::StatusCode> {
     let rev = db::update_revised(&state, id, &req.content, req.rationale.as_deref()).await.map_err(|_| axum::http::StatusCode::INTERNAL_SERVER_ERROR)?;
-    Ok(Json(PutRevisedResponse{ revisionId: rev, revisedContent: req.content }))
+    Ok(Json(PutRevisedResponse{ revision_id: rev, revised_content: req.content }))
 }

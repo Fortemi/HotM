@@ -21,6 +21,7 @@ async fn main() -> anyhow::Result<()> {
     let state = AppState::connect(&database_url).await?;
 
     let app = Router::new()
+        .route("/api/v1", get(routes::health::api_info))
         .route("/api/v1/health", get(routes::health::health))
         .route("/api/v1/notes", post(routes::notes::create_note))
         .route("/api/v1/notes/:id", get(routes::notes::get_note))
