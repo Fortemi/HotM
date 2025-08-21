@@ -18,7 +18,7 @@
         "decorations": true,
         "transparent": false,
         "resizable": true,
-        "visible": false,
+        "visible": true,
         "skipTaskbar": false,
         "center": true
       }
