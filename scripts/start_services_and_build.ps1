@@ -20,13 +20,21 @@ Add-ToPath "$env:APPDATA\npm"
 # Pull latest source (optional)
 try { git pull } catch { Write-Host 'git pull skipped/failed (continuing)' }
 
-# Load .env if present to get DATABASE_URL
+# Load .env or prompt for DATABASE_URL once
 $db = $null
 if (Test-Path '.env') {
   $line = Select-String -Path .env -Pattern '^DATABASE_URL=' -SimpleMatch | Select-Object -First 1
   if ($line) { $db = ($line.ToString().Split('=')[1]).Trim() }
 }
-if (-not $db) { Write-Host 'DATABASE_URL not found in .env; server bootstrap may prompt/fail.' }
+if (-not $db) {
+  $db = Read-Host 'Enter DATABASE_URL (postgres://user:pass@host:5432/db)'
+  if ($db) {
+    # Append to .env for future runs
+    Add-Content -Path '.env' -Value "`nDATABASE_URL=$db"
+  } else {
+    Write-Host 'DATABASE_URL not provided; server may fail to start.'
+  }
+}
 
 # Start server via bootstrap (best-effort). Runs in background PowerShell.
 try {

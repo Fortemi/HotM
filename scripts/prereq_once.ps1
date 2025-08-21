@@ -27,18 +27,15 @@ Add-ToPath "$env:USERPROFILE\.cargo\bin"
 Add-ToPath "$env:ProgramFiles(x86)\WiX Toolset v3.14\bin"
 Add-ToPath "$env:ProgramFiles\WiX Toolset v3.14\bin"
 
-# Backup existing UI if present
-$stamp = Get-Date -Format 'yyyyMMdd_HHmmss'
+# Scaffold only if missing
 if (Test-Path 'ui') {
-  $bak = "ui_bak_$stamp"
-  Write-Host "Backing up ./ui -> $bak"
-  Rename-Item ui $bak
+  Write-Host 'ui/ already exists. Skipping scaffold.'
+} else {
+  # Official scaffold (React + TS)
+  Write-Host '== Scaffolding official Tauri UI (React+TS) into ./ui =='
+  if (-not (Get-Command npx -ErrorAction SilentlyContinue)) { throw 'npx not found in PATH (restart shell after Node install)'; }
+  npx create-tauri-app@latest ui --template react-ts --yes
 }
-
-# Official scaffold (React + TS)
-Write-Host '== Scaffolding official Tauri UI (React+TS) into ./ui =='
-if (-not (Get-Command npx -ErrorAction SilentlyContinue)) { throw 'npx not found in PATH (restart shell after Node install)'; }
-npx create-tauri-app@latest ui --template react-ts --yes
 
 # Install deps
 Push-Location ui
