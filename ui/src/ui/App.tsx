@@ -14,6 +14,7 @@ export default function App() {
   const [q, setQ] = useState('')
   const [hits, setHits] = useState<SearchHit[]>([])
   const [note, setNote] = useState<Note | null>(null)
+  const [tab, setTab] = useState<'revised'|'original'|'prov'>('revised')
   const [content, setContent] = useState('')
   const [creating, setCreating] = useState(false)
 
@@ -70,10 +71,14 @@ export default function App() {
 
         {note && (
           <div style={{ marginTop: 24 }}>
-            <h3>Revised</h3>
-            <div style={{ whiteSpace: 'pre-wrap', border: '1px solid #eee', padding: 12 }}>{note.revised.content}</div>
-            <h4 style={{ marginTop: 16 }}>Original</h4>
-            <div style={{ whiteSpace: 'pre-wrap', border: '1px solid #eee', padding: 12 }}>{note.original.content}</div>
+            <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
+              <button onClick={() => setTab('revised')} disabled={tab==='revised'}>Revised</button>
+              <button onClick={() => setTab('original')} disabled={tab==='original'}>Original</button>
+              <button onClick={() => setTab('prov')} disabled={tab==='prov'}>Provenance</button>
+            </div>
+            {tab==='revised' && <div style={{ whiteSpace: 'pre-wrap', border: '1px solid #eee', padding: 12 }}>{note.revised.content}</div>}
+            {tab==='original' && <div style={{ whiteSpace: 'pre-wrap', border: '1px solid #eee', padding: 12 }}>{note.original.content}</div>}
+            {tab==='prov' && <Provenance id={note.note.id} />}
           </div>
         )}
       </div>
