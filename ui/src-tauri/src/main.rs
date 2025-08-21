@@ -1,8 +1,25 @@
 use tauri::{Manager, tray::TrayIconBuilder, menu::{Menu, MenuItem}, global_shortcut::Shortcut};
+use std::process::Command;
+use std::time::Duration;
+
+fn ensure_server_running() {
+  // naive check: GET /health; if fails, try to start via scripts/bootstrap_windows.ps1
+  let client = reqwest::blocking::Client::new();
+  if let Ok(resp) = client.get("http://127.0.0.1:53211/api/v1/health").send() {
+    if resp.status().is_success() { return; }
+  }
+  // Attempt to start server (PowerShell required)
+  let _ = Command::new("powershell")
+    .args(["-NoProfile", "-ExecutionPolicy", "Bypass", "-File", ".\\scripts\\bootstrap_windows.ps1"]) // uses defaults/DATABASE_URL from .env
+    .spawn();
+  std::thread::sleep(Duration::from_secs(3));
+}
 
 fn main() {
   tauri::Builder::default()
     .setup(|app| {
+      // Best-effort kick server
+      ensure_server_running();
       // Tray icon
       let _tray = TrayIconBuilder::new()
         .icon(app.default_window_icon().unwrap().clone())

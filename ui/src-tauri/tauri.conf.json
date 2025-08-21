@@ -14,6 +14,16 @@
   "bundle": {
     "active": true,
     "targets": ["msi"],
-    "windows": { "wix": { "enableElevatedUpdateTask": false } }
+    "windows": {
+      "wix": {
+        "enableElevatedUpdateTask": false,
+        "fragmentPaths": [],
+        "componentGroupRefs": [],
+        "componentRefs": [],
+        "variables": {
+          "InstallDir": "HotM"
+        }
+      }
+    }
   }
 }
