@@ -7,7 +7,7 @@ $root = Split-Path -Parent $PSScriptRoot
 Set-Location $root
 
 function Add-ToPath([string]$dir) {
-  if (Test-Path $dir -and -not (($env:PATH -split ';') -contains $dir)) {
+  if ((Test-Path $dir) -and -not (($env:PATH -split ';') -contains $dir)) {
     $env:PATH = "$dir;$env:PATH"
   }
 }
