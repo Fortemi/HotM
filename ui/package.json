@@ -13,7 +13,8 @@
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "@tauri-apps/api": "2.4.0",
-    "@tauri-apps/plugin-opener": "2.2.3"
+    "@tauri-apps/plugin-opener": "2.2.3",
+    "@tauri-apps/plugin-global-shortcut": "2.0.0"
   },
   "devDependencies": {
     "@types/react": "^19.1.8",

@@ -2,6 +2,7 @@ use tauri::{
     AppHandle, CustomMenuItem, Manager, SystemTray, SystemTrayEvent, SystemTrayMenu,
     SystemTrayMenuItem, WindowEvent,
 };
+use tauri_plugin_global_shortcut::GlobalShortcutExt;
 
 #[tauri::command]
 fn show_main_window(app: AppHandle) {
@@ -42,6 +43,7 @@ pub fn run() {
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_shell::init())
         .plugin(tauri_plugin_notification::init())
+        .plugin(tauri_plugin_global_shortcut::Builder::new().build())
         .system_tray(system_tray)
         .on_system_tray_event(|app, event| match event {
             SystemTrayEvent::LeftClick { .. } => {
@@ -92,35 +94,29 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![show_main_window, hide_main_window])
         .setup(|app| {
             // Register global hotkey Ctrl+Alt+H
-            #[cfg(not(target_os = "linux"))]
-            {
-                use tauri::GlobalShortcutManager;
-                let app_handle = app.handle();
-                let mut shortcut_manager = app.global_shortcut_manager();
-                
-                shortcut_manager
-                    .register("Ctrl+Alt+H", move || {
-                        if let Some(window) = app_handle.get_window("main") {
-                            if window.is_visible().unwrap() {
-                                window.hide().unwrap();
-                            } else {
-                                window.show().unwrap();
-                                window.set_focus().unwrap();
-                                window.emit("focus-new-note", ()).unwrap();
-                            }
-                        }
-                    })
-                    .unwrap();
-            }
+            let app_handle = app.handle();
+            let window = app.get_window("main").unwrap();
+            
+            // Clone for the closure
+            let window_clone = window.clone();
+            
+            app_handle.global_shortcut().register("Ctrl+Alt+H", move || {
+                if window_clone.is_visible().unwrap() {
+                    window_clone.hide().unwrap();
+                } else {
+                    window_clone.show().unwrap();
+                    window_clone.set_focus().unwrap();
+                    window_clone.emit("focus-new-note", ()).unwrap();
+                }
+            }).unwrap();
 
             // Start with window hidden (tray only)
-            if let Some(window) = app.get_window("main") {
-                window.hide().unwrap();
-            }
+            window.hide().unwrap();
 
             // Show notification that app is running
-            #[cfg(not(target_os = "linux"))]
+            #[cfg(target_os = "windows")]
             {
+                use tauri_plugin_notification::NotificationExt;
                 app.notification()
                     .builder()
                     .title("HotM")
