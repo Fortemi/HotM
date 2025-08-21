@@ -7,12 +7,14 @@ use sha2::{Sha256, Digest};
 use hex;
 
 const DEFAULT_EMBED_MODEL: &str = "nomic-embed-text";
+const DEFAULT_GEN_MODEL: &str = "gpt-oss:20b";
 
 #[derive(Clone)]
 pub struct AppState {
     pub pool: Pool<Postgres>,
     pub embed_model: String,
     pub ollama_base: String,
+    pub gen_model: String,
 }
 
 impl AppState {
@@ -26,8 +28,9 @@ impl AppState {
             sqlx::migrate!("server/migrations").run(&pool).await?;
         }
         let embed_model = std::env::var("OLLAMA_EMBED_MODEL").unwrap_or_else(|_| DEFAULT_EMBED_MODEL.to_string());
+        let gen_model = std::env::var("OLLAMA_GEN_MODEL").unwrap_or_else(|_| DEFAULT_GEN_MODEL.to_string());
         let ollama_base = std::env::var("OLLAMA_BASE").unwrap_or_else(|_| "http://127.0.0.1:11434".to_string());
-        Ok(Self { pool, embed_model, ollama_base })
+        Ok(Self { pool, embed_model, ollama_base, gen_model })
     }
 }
 
