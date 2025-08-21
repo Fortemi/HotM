@@ -12,7 +12,23 @@ $ui = Join-Path $root 'ui'
 
 Write-Host '== Building HotM MSI =='
 
-if (-not (Get-Command npm -ErrorAction SilentlyContinue)) { throw 'npm not found. Install Node.js LTS via winget.' }
+# Ensure prerequisites
+if (-not (Get-Command npm -ErrorAction SilentlyContinue)) {
+  Write-Host 'Node.js not found. Installing via winget...'
+  winget install -e --id OpenJS.NodeJS.LTS --silent --accept-package-agreements --accept-source-agreements | Out-Null
+}
+if (-not (Get-Command rustup -ErrorAction SilentlyContinue)) {
+  Write-Host 'Rustup not found. Installing via winget...'
+  winget install -e --id Rustlang.Rustup --silent --accept-package-agreements --accept-source-agreements | Out-Null
+}
+if (-not (Get-Command candle.exe -ErrorAction SilentlyContinue)) {
+  Write-Host 'WiX Toolset not found. Installing via winget...'
+  winget install -e --id WiXToolset.WiXToolset --silent --accept-package-agreements --accept-source-agreements | Out-Null
+}
+if (-not (Get-Command msedgewebview2.exe -ErrorAction SilentlyContinue)) {
+  Write-Host 'Installing Microsoft Edge WebView2 Runtime...'
+  winget install -e --id Microsoft.EdgeWebView2Runtime --silent --accept-package-agreements --accept-source-agreements | Out-Null
+}
 
 Push-Location $ui
 if (-not (Test-Path 'package-lock.json')) { npm install } else { npm ci }
