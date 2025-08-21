@@ -1,0 +1,187 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "HotM Local API",
+    "version": "v1",
+    "description": "Local-only API for HotM notes system. All timestamps are UTC ISO-8601; UI displays local time."
+  },
+  "servers": [
+    { "url": "http://127.0.0.1:53211/api/v1" }
+  ],
+  "paths": {
+    "/health": {
+      "get": {
+        "operationId": "health",
+        "summary": "Health check",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {"schema": {"$ref": "#/components/schemas/Health"}}
+            }
+          }
+        }
+      }
+    },
+    "/notes": {
+      "post": {
+        "operationId": "createNote",
+        "summary": "Create note",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {"schema": {"$ref": "#/components/schemas/CreateNoteRequest"}}
+          }
+        },
+        "responses": {
+          "200": {"description": "Created", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/CreateNoteResponse"}}}}
+        }
+      }
+    },
+    "/notes/{id}": {
+      "get": {
+        "operationId": "getNote",
+        "summary": "Get note with original and revised",
+        "parameters": [
+          {"name": "id", "in": "path", "required": true, "schema": {"type": "string"}}
+        ],
+        "responses": {
+          "200": {"description": "OK", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/GetNoteResponse"}}}},
+          "404": {"description": "Not found"}
+        }
+      }
+    },
+    "/notes/{id}/revised": {
+      "put": {
+        "operationId": "putRevised",
+        "summary": "Update revised content and create new revision",
+        "parameters": [
+          {"name": "id", "in": "path", "required": true, "schema": {"type": "string"}}
+        ],
+        "requestBody": {"required": true, "content": {"application/json": {"schema": {"$ref": "#/components/schemas/PutRevisedRequest"}}}},
+        "responses": {"200": {"description": "OK", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/PutRevisedResponse"}}}}}
+      }
+    },
+    "/notes/{id}/provenance": {
+      "get": {
+        "operationId": "getProvenance",
+        "summary": "Get provenance graph for note",
+        "parameters": [
+          {"name": "id", "in": "path", "required": true, "schema": {"type": "string"}}
+        ],
+        "responses": {"200": {"description": "OK", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ProvenanceResponse"}}}}}
+      }
+    },
+    "/notes/{id}/links": {
+      "post": {
+        "operationId": "postLink",
+        "summary": "Create link from note to another note or external URL",
+        "parameters": [
+          {"name": "id", "in": "path", "required": true, "schema": {"type": "string"}}
+        ],
+        "requestBody": {"required": true, "content": {"application/json": {"schema": {"$ref": "#/components/schemas/PostLinkRequest"}}}},
+        "responses": {"200": {"description": "OK", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/PostLinkResponse"}}}}}
+      }
+    },
+    "/search": {
+      "get": {
+        "operationId": "search",
+        "summary": "Hybrid/FTS/Vector search with filters",
+        "parameters": [
+          {"name": "q", "in": "query", "required": true, "schema": {"type": "string"}},
+          {"name": "mode", "in": "query", "schema": {"type": "string", "enum": ["hybrid", "fts", "vector"], "default": "hybrid"}},
+          {"name": "filters", "in": "query", "schema": {"type": "string", "description": "e.g., tag:project collection:work before:2025-08-01"}}
+        ],
+        "responses": {"200": {"description": "OK", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/SearchResponse"}}}}}
+      }
+    },
+    "/semantic": {
+      "post": {
+        "operationId": "semanticSimilar",
+        "summary": "Vector similarity against embeddings",
+        "requestBody": {"required": true, "content": {"application/json": {"schema": {"$ref": "#/components/schemas/SemanticRequest"}}}},
+        "responses": {"200": {"description": "OK", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/SemanticResponse"}}}}}
+      }
+    },
+    "/collections": {
+      "post": {
+        "operationId": "createCollection",
+        "summary": "Create collection",
+        "requestBody": {"required": true, "content": {"application/json": {"schema": {"$ref": "#/components/schemas/CreateCollectionRequest"}}}},
+        "responses": {"200": {"description": "OK", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/CreateCollectionResponse"}}}}}
+      }
+    },
+    "/notes/{id}/collection": {
+      "put": {
+        "operationId": "putNoteCollection",
+        "summary": "Assign collection to note",
+        "parameters": [
+          {"name": "id", "in": "path", "required": true, "schema": {"type": "string"}}
+        ],
+        "requestBody": {"required": true, "content": {"application/json": {"schema": {"$ref": "#/components/schemas/PutNoteCollectionRequest"}}}},
+        "responses": {"200": {"description": "OK", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/PutNoteCollectionResponse"}}}}}
+      }
+    },
+    "/tags": {
+      "post": {
+        "operationId": "createTag",
+        "summary": "Create tag",
+        "requestBody": {"required": true, "content": {"application/json": {"schema": {"$ref": "#/components/schemas/CreateTagRequest"}}}},
+        "responses": {"200": {"description": "OK", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/CreateTagResponse"}}}}}
+      }
+    },
+    "/notes/{id}/tags": {
+      "put": {
+        "operationId": "putNoteTags",
+        "summary": "Add/remove tags on note",
+        "parameters": [
+          {"name": "id", "in": "path", "required": true, "schema": {"type": "string"}}
+        ],
+        "requestBody": {"required": true, "content": {"application/json": {"schema": {"$ref": "#/components/schemas/PutNoteTagsRequest"}}}},
+        "responses": {"200": {"description": "OK", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/PutNoteTagsResponse"}}}}}
+      }
+    },
+    "/chat": {
+      "post": {
+        "operationId": "chat",
+        "summary": "Chat/command interface; returns messages or actions",
+        "requestBody": {"required": true, "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ChatRequest"}}}},
+        "responses": {"200": {"description": "OK", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ChatResponse"}}}}}
+      }
+    },
+    "/stats": {
+      "get": {
+        "operationId": "stats",
+        "summary": "Usage and activity stats",
+        "responses": {"200": {"description": "OK", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Stats"}}}}}
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Health": {"type": "object", "properties": {"ok": {"type": "boolean"}, "ollama": {"type": "boolean"}}},
+      "CreateNoteRequest": {"type": "object", "required": ["content"], "properties": {"content": {"type": "string"}, "format": {"type": "string", "default": "markdown"}, "source": {"type": "string", "default": "manual"}}},
+      "CreateNoteResponse": {"type": "object", "properties": {"noteId": {"type": "string"}}},
+      "GetNoteResponse": {"type": "object", "properties": {"note": {"type": "object"}, "original": {"type": "object"}, "revised": {"type": "object"}, "tags": {"type": "array", "items": {"type": "string"}}, "links": {"type": "array", "items": {"type": "object"}}, "timestampsUTC": {"type": "object"}}},
+      "PutRevisedRequest": {"type": "object", "required": ["content"], "properties": {"content": {"type": "string"}, "rationale": {"type": "string"}}},
+      "PutRevisedResponse": {"type": "object", "properties": {"revisionId": {"type": "string"}, "revisedContent": {"type": "string"}}},
+      "ProvenanceResponse": {"type": "object", "properties": {"graph": {"type": "object"}}},
+      "PostLinkRequest": {"type": "object", "properties": {"toNoteId": {"type": "string"}, "toUrl": {"type": "string"}, "kind": {"type": "string"}, "score": {"type": "number"}}},
+      "PostLinkResponse": {"type": "object", "properties": {"linkId": {"type": "string"}}},
+      "SearchResponse": {"type": "object", "properties": {"hits": {"type": "array", "items": {"type": "object"}}}},
+      "SemanticRequest": {"type": "object", "required": ["text"], "properties": {"text": {"type": "string"}}},
+      "SemanticResponse": {"type": "object", "properties": {"similar": {"type": "array", "items": {"type": "object"}}}},
+      "CreateCollectionRequest": {"type": "object", "required": ["name"], "properties": {"name": {"type": "string"}, "description": {"type": "string"}}},
+      "CreateCollectionResponse": {"type": "object", "properties": {"collectionId": {"type": "string"}}},
+      "PutNoteCollectionRequest": {"type": "object", "required": ["collectionId"], "properties": {"collectionId": {"type": "string"}}},
+      "PutNoteCollectionResponse": {"type": "object", "properties": {"collectionId": {"type": "string"}}},
+      "CreateTagRequest": {"type": "object", "required": ["name"], "properties": {"name": {"type": "string"}}},
+      "CreateTagResponse": {"type": "object", "properties": {"name": {"type": "string"}}},
+      "PutNoteTagsRequest": {"type": "object", "properties": {"add": {"type": "array", "items": {"type": "string"}}, "remove": {"type": "array", "items": {"type": "string"}}}},
+      "PutNoteTagsResponse": {"type": "object", "properties": {"tags": {"type": "array", "items": {"type": "string"}}}},
+      "ChatRequest": {"type": "object", "required": ["input"], "properties": {"input": {"type": "string"}, "context": {"type": "object"}}},
+      "ChatResponse": {"type": "object", "properties": {"messages": {"type": "array", "items": {"type": "object"}}, "actions": {"type": "array", "items": {"type": "object"}}}},
+      "Stats": {"type": "object", "properties": {"counts": {"type": "object"}, "activity": {"type": "array", "items": {"type": "object"}}, "topTags": {"type": "array", "items": {"type": "string"}}, "recents": {"type": "array", "items": {"type": "object"}}}}
+    }
+  }
+}
