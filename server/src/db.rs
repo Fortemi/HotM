@@ -63,8 +63,10 @@ pub async fn insert_note(state: &AppState, content: &str, format: &str, source: 
 
     tx.commit().await?;
 
-    // Compute and store embeddings for the revised content
-    embed_note(&self_from_state(state), note_id, content).await?;
+    // Compute and store embeddings for the revised content (best-effort)
+    if let Err(err) = embed_note(&self_from_state(state), note_id, content).await {
+        tracing::warn!(%note_id, error = %format!("{}", err), "embedding failed; continuing without vectors");
+    }
     Ok(note_id)
 }
 
@@ -147,8 +149,10 @@ pub async fn update_revised(state: &AppState, note_id: Uuid, content: &str, rati
 
     tx.commit().await?;
 
-    // Re-embed current content
-    embed_note(&self_from_state(state), note_id, content).await?;
+    // Re-embed current content (best-effort)
+    if let Err(err) = embed_note(&self_from_state(state), note_id, content).await {
+        tracing::warn!(%note_id, error = %format!("{}", err), "embedding failed; continuing without vectors");
+    }
     Ok(revision_id)
 }
 
