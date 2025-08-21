@@ -12,8 +12,8 @@
   "dependencies": {
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
-    "@tauri-apps/api": "^2",
-    "@tauri-apps/plugin-opener": "^2"
+    "@tauri-apps/api": "2.4.0",
+    "@tauri-apps/plugin-opener": "2.2.3"
   },
   "devDependencies": {
     "@types/react": "^19.1.8",
@@ -21,6 +21,6 @@
     "@vitejs/plugin-react": "^4.6.0",
     "typescript": "~5.8.3",
     "vite": "^7.0.4",
-    "@tauri-apps/cli": "^2"
+    "@tauri-apps/cli": "2.4.0"
   }
 }
