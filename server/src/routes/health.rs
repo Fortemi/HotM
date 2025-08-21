@@ -3,7 +3,7 @@ use serde::Serialize;
 use crate::db::AppState;
 
 #[derive(Serialize)]
-struct Health { ok: bool, ollama: bool, db: bool, vector: bool }
+pub struct Health { pub ok: bool, pub ollama: bool, pub db: bool, pub vector: bool }
 
 pub async fn health(state: axum::extract::State<AppState>) -> Json<Health> {
     // Ollama ping

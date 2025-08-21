@@ -36,10 +36,9 @@ async fn main() -> anyhow::Result<()> {
         .with_state(state);
 
     let addr: SocketAddr = "127.0.0.1:53211".parse().unwrap();
+    let listener = tokio::net::TcpListener::bind(&addr).await?;
     tracing::info!(%addr, "HotM server listening");
-    axum::Server::bind(&addr)
-        .serve(app.into_make_service())
-        .await?;
+    axum::serve(listener, app).await?;
 
     Ok(())
 }

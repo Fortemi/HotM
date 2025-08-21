@@ -1,7 +1,6 @@
 use axum::{extract::{State, Query}, Json};
 use serde::Deserialize;
 use crate::{db, db::AppState, models::*};
-use axum::Json;
 use uuid::Uuid;
 
 #[derive(Deserialize)]
@@ -14,15 +13,15 @@ pub async fn search(State(state): State<AppState>, Query(params): Query<SearchPa
         "fts" => {
             let hits = db::search_fts_filtered(&state, &params.q, filters, 25).await.map_err(|_| axum::http::StatusCode::INTERNAL_SERVER_ERROR)?;
             Ok(Json(SearchResponse{ hits }))
-        }
-        , "vector" => {
+        },
+        "vector" => {
             let vecs = crate::ollama::embed_texts(vec![params.q.clone()], &state.embed_model)
                 .await.map_err(|_| axum::http::StatusCode::INTERNAL_SERVER_ERROR)?;
             let query_vec = vecs.into_iter().next().unwrap_or_else(|| vec![0.0_f32; 768]);
             let hits = db::search_vector_filtered(&state, query_vec, filters, 25).await.map_err(|_| axum::http::StatusCode::INTERNAL_SERVER_ERROR)?;
             Ok(Json(SearchResponse{ hits }))
-        }
-        , _ => {
+        },
+        _ => {
             // hybrid: fts + vector + RRF
             let vecs = crate::ollama::embed_texts(vec![params.q.clone()], &state.embed_model)
                 .await.map_err(|_| axum::http::StatusCode::INTERNAL_SERVER_ERROR)?;
@@ -44,7 +43,7 @@ pub async fn semantic(State(state): State<AppState>, Json(req): Json<SemanticReq
     Ok(Json(SemanticResponse { similar: hits }))
 }
 
-fn rrf_fuse(mut a: Vec<SearchHit>, mut b: Vec<SearchHit>, limit: usize) -> Vec<SearchHit> {
+fn rrf_fuse(a: Vec<SearchHit>, b: Vec<SearchHit>, limit: usize) -> Vec<SearchHit> {
     use std::collections::HashMap;
     let mut rank_a: HashMap<Uuid, usize> = HashMap::new();
     let mut rank_b: HashMap<Uuid, usize> = HashMap::new();

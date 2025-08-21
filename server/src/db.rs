@@ -1,7 +1,6 @@
-use sqlx::{Pool, Postgres};
+use sqlx::{Pool, Postgres, Row};
 use uuid::Uuid;
 use chrono::{DateTime, Utc};
-use serde::{Deserialize, Serialize};
 use crate::models::*;
 use sha2::{Sha256, Digest};
 use hex;
@@ -23,10 +22,8 @@ impl AppState {
             .max_connections(10)
             .connect(url)
             .await?;
-        // Optionally run migrations if present
-        if std::path::Path::new("server/migrations").exists() {
-            sqlx::migrate!("server/migrations").run(&pool).await?;
-        }
+        // Run migrations
+        sqlx::migrate!().run(&pool).await?;
         let embed_model = std::env::var("OLLAMA_EMBED_MODEL").unwrap_or_else(|_| DEFAULT_EMBED_MODEL.to_string());
         let gen_model = std::env::var("OLLAMA_GEN_MODEL").unwrap_or_else(|_| DEFAULT_GEN_MODEL.to_string());
         let ollama_base = std::env::var("OLLAMA_BASE").unwrap_or_else(|_| "http://127.0.0.1:11434".to_string());
@@ -245,28 +242,44 @@ pub async fn embed_note(state: &AppState, note_id: Uuid, content: &str) -> anyho
 
     let mut tx = state.pool.begin().await?;
     for (i, vec) in vectors.into_iter().enumerate() {
-        sqlx::query!(
-            "INSERT INTO embedding (id, note_id, chunk_index, text, vector, model) VALUES ($1, $2, $3, $4, $5, $6)",
-            Uuid::new_v4(), note_id, i as i32, chunks[i], pgvector::Vector::from(vec), state.embed_model
-        ).execute(&mut *tx).await?;
+        // Use runtime query for pgvector type
+        sqlx::query(
+            "INSERT INTO embedding (id, note_id, chunk_index, text, vector, model) VALUES ($1, $2, $3, $4, $5, $6)"
+        )
+        .bind(Uuid::new_v4())
+        .bind(note_id)
+        .bind(i as i32)
+        .bind(&chunks[i])
+        .bind(pgvector::Vector::from(vec))
+        .bind(&state.embed_model)
+        .execute(&mut *tx).await?;
     }
     tx.commit().await?;
     Ok(())
 }
 
 pub async fn search_vector(state: &AppState, query_vec: Vec<f32>, limit: i64) -> anyhow::Result<Vec<SearchHit>> {
-    let rows = sqlx::query!(
+    // Use runtime query for pgvector type
+    let rows = sqlx::query(
         r#"
         SELECT e.note_id AS note_id,
                1.0 - (e.vector <=> $1::vector) AS score
         FROM embedding e
         ORDER BY e.vector <=> $1::vector
         LIMIT $2
-        "#,
-        pgvector::Vector::from(query_vec),
-        limit
-    ).fetch_all(&state.pool).await?;
-    Ok(rows.into_iter().map(|r| SearchHit { note_id: r.note_id, score: r.score.unwrap_or(0.0) as f32, snippet: None }).collect())
+        "#
+    )
+    .bind(pgvector::Vector::from(query_vec))
+    .bind(limit)
+    .fetch_all(&state.pool).await?;
+    
+    let mut results = Vec::new();
+    for row in rows {
+        let note_id: Uuid = row.try_get("note_id")?;
+        let score: f32 = row.try_get("score")?;
+        results.push(SearchHit { note_id, score, snippet: None });
+    }
+    Ok(results)
 }
 
 pub async fn search_vector_filtered(state: &AppState, query_vec: Vec<f32>, filters: Option<&str>, limit: i64) -> anyhow::Result<Vec<SearchHit>> {

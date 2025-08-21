@@ -1,0 +1,43 @@
+version: '3.8'
+
+services:
+  # For local development, we'll use PostgreSQL with pgvector
+  # DocumentDB is PostgreSQL-compatible, so this will work
+  # In production, you'd use actual Azure Cosmos DB for PostgreSQL/DocumentDB
+  postgres:
+    image: pgvector/pgvector:pg16
+    container_name: hotm-documentdb-dev
+    environment:
+      POSTGRES_USER: hotm
+      POSTGRES_PASSWORD: hotm_dev_pass
+      POSTGRES_DB: hotm_dev
+    ports:
+      - "5432:5432"
+    volumes:
+      - documentdb_data:/var/lib/postgresql/data
+      # Mount initialization script if needed
+      # - ./init-documentdb.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U hotm"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    command: >
+      postgres
+      -c shared_preload_libraries='vector'
+      -c max_connections=100
+      -c shared_buffers=256MB
+
+  ollama:
+    image: ollama/ollama:latest
+    container_name: hotm-ollama-dev
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    profiles:
+      - with-ollama
+
+volumes:
+  documentdb_data:
+  ollama_data:
