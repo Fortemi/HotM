@@ -53,6 +53,11 @@ if (-not (Get-Command vs_BuildTools.exe -ErrorAction SilentlyContinue)) {
 
 Push-Location $ui
 if (-not (Test-Path 'package-lock.json')) { npm install } else { npm ci }
+# Ensure Tauri Rust crate versions are refreshed (avoid old lockfile)
+if (Test-Path 'src-tauri\Cargo.lock') { Remove-Item 'src-tauri\Cargo.lock' -Force }
+Push-Location 'src-tauri'
+if (Get-Command cargo -ErrorAction SilentlyContinue) { cargo update }
+Pop-Location
 # Build MSI via Tauri
 npm run build
 
