@@ -1,13 +1,29 @@
 [package]
 name = "hotm-ui"
 version = "0.1.0"
+description = "HotM - Local-first notes and analysis tool"
+authors = ["HotM Team"]
 edition = "2021"
 
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[lib]
+# The `_lib` suffix may seem redundant but it is necessary
+# to make the lib name unique and wouldn't conflict with the bin name.
+# This seems to be only an issue on Windows, see https://github.com/rust-lang/cargo/issues/8519
+name = "hotm_ui_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
 [build-dependencies]
-tauri-build = { version = "2.4.0" }
+tauri-build = { version = "2", features = [] }
 
 [dependencies]
-tauri = { version = "2.4.0", features = ["tray-icon", "global-shortcut", "shell-open"] }
+tauri = { version = "2", features = ["tray-icon"] }
+tauri-plugin-opener = "2"
+tauri-plugin-shell = "2"
+tauri-plugin-notification = "2"
 serde = { version = "1", features = ["derive"] }
-dotenvy = "0.15"
+serde_json = "1"
 reqwest = { version = "0.12", features = ["json"] }
+tokio = { version = "1", features = ["full"] }
+

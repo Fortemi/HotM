@@ -1,21 +1,7 @@
-HotM UI (Tauri + React)
+# Tauri + React + Typescript
 
-Run (dev)
-- Start the server: see `server/README.md`
-- In this folder:
+This template should help get you started developing with Tauri, React and Typescript in Vite.
 
-```bash
-npm install
-npm run dev
-```
+## Recommended IDE Setup
 
-Build MSI
-- Ensure Rust toolchain and Tauri prerequisites installed (Windows 11)
-- In this folder:
-
-```bash
-npm run build
-```
-
-Global Hotkey
-- Ctrl+Alt+H toggles the main window.
+- [VS Code](https://code.visualstudio.com/) + [Tauri](https://marketplace.visualstudio.com/items?itemName=tauri-apps.tauri-vscode) + [rust-analyzer](https://marketplace.visualstudio.com/items?itemName=rust-lang.rust-analyzer)
