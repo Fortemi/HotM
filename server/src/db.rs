@@ -172,6 +172,43 @@ pub async fn search_fts(state: &AppState, q: &str, limit: i64) -> anyhow::Result
     Ok(rows.into_iter().map(|r| SearchHit { note_id: r.note_id, score: r.score.unwrap_or(0.0), snippet: r.snippet }).collect())
 }
 
+pub async fn search_fts_filtered(state: &AppState, q: &str, filters: Option<&str>, limit: i64) -> anyhow::Result<Vec<SearchHit>> {
+    // Basic filter parser: tag:foo, collection:uuid
+    let mut base = String::from(
+        "SELECT n.id as note_id, ts_rank(nrc.tsv, plainto_tsquery('english', $1)) AS score, substring(nrc.content for 200) AS snippet FROM note_revised_current nrc JOIN note n ON n.id = nrc.note_id WHERE nrc.tsv @@ plainto_tsquery('english', $1)"
+    );
+    let mut args: Vec<(i32, String)> = Vec::new();
+    let mut idx = 2;
+    if let Some(f) = filters {
+        for token in f.split_whitespace() {
+            if let Some(rest) = token.strip_prefix("tag:") {
+                base.push_str(&format!(" AND n.id IN (SELECT note_id FROM note_tag WHERE tag_name = ${})", idx));
+                args.push((idx, rest.to_string()));
+                idx += 1;
+            } else if let Some(rest) = token.strip_prefix("collection:") {
+                base.push_str(&format!(" AND n.collection_id = ${}", idx));
+                args.push((idx, rest.to_string()));
+                idx += 1;
+            }
+        }
+    }
+    base.push_str(&format!(" ORDER BY score DESC LIMIT ${}", idx));
+    // Build query dynamically; sqlx doesn't support variadic bind easily in macro; use QueryBuilder instead
+    let mut qb = sqlx::QueryBuilder::new(base);
+    qb.push_bind(q);
+    for (_i, v) in args { qb.push_bind(v); }
+    qb.push_bind(limit);
+    let rows = qb.build().fetch_all(&state.pool).await?;
+    let mut out = Vec::new();
+    for row in rows {
+        let note_id: Uuid = row.try_get("note_id")?;
+        let score: Option<f32> = row.try_get::<Option<f32>, _>("score")?;
+        let snippet: Option<String> = row.try_get("snippet")?;
+        out.push(SearchHit { note_id, score: score.unwrap_or(0.0), snippet });
+    }
+    Ok(out)
+}
+
 // Helper to get a clone of AppState (for internal calls)
 fn self_from_state(state: &AppState) -> AppState { state.clone() }
 
@@ -223,4 +260,38 @@ pub async fn search_vector(state: &AppState, query_vec: Vec<f32>, limit: i64) ->
         limit
     ).fetch_all(&state.pool).await?;
     Ok(rows.into_iter().map(|r| SearchHit { note_id: r.note_id, score: r.score.unwrap_or(0.0) as f32, snippet: None }).collect())
+}
+
+pub async fn search_vector_filtered(state: &AppState, query_vec: Vec<f32>, filters: Option<&str>, limit: i64) -> anyhow::Result<Vec<SearchHit>> {
+    let mut base = String::from(
+        "SELECT e.note_id AS note_id, 1.0 - (e.vector <=> $1::vector) AS score FROM embedding e JOIN note n ON n.id = e.note_id WHERE TRUE"
+    );
+    let mut args: Vec<(i32, String)> = Vec::new();
+    let mut idx = 2;
+    if let Some(f) = filters {
+        for token in f.split_whitespace() {
+            if let Some(rest) = token.strip_prefix("tag:") {
+                base.push_str(&format!(" AND e.note_id IN (SELECT note_id FROM note_tag WHERE tag_name = ${})", idx));
+                args.push((idx, rest.to_string()));
+                idx += 1;
+            } else if let Some(rest) = token.strip_prefix("collection:") {
+                base.push_str(&format!(" AND n.collection_id = ${}", idx));
+                args.push((idx, rest.to_string()));
+                idx += 1;
+            }
+        }
+    }
+    base.push_str(&format!(" ORDER BY e.vector <=> $1::vector ASC LIMIT ${}", idx));
+    let mut qb = sqlx::QueryBuilder::new(base);
+    qb.push_bind(pgvector::Vector::from(query_vec));
+    for (_i, v) in args { qb.push_bind(v); }
+    qb.push_bind(limit);
+    let rows = qb.build().fetch_all(&state.pool).await?;
+    let mut out = Vec::new();
+    for row in rows {
+        let note_id: Uuid = row.try_get("note_id")?;
+        let score: Option<f32> = row.try_get::<Option<f32>, _>("score")?;
+        out.push(SearchHit { note_id, score: score.unwrap_or(0.0), snippet: None });
+    }
+    Ok(out)
 }
