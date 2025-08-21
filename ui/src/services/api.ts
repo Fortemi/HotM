@@ -1,6 +1,7 @@
 // API Service for Hall of the Mind
 
-const API_BASE = 'http://127.0.0.1:53211/api/v1';
+// Use localhost which works from both WSL and Windows
+const API_BASE = 'http://localhost:53211/api/v1';
 
 // Backend API types
 interface NoteMeta {
@@ -93,9 +94,34 @@ class ApiClient {
     }
   }
 
-  // Health check
+  // Health check with retry logic
   async checkHealth(): Promise<HealthResponse> {
-    return this.request<HealthResponse>('/health');
+    try {
+      return await this.request<HealthResponse>('/health');
+    } catch (error) {
+      console.log('Trying alternative API endpoints...');
+      // Try different endpoints in case of connection issues
+      const alternativeEndpoints = [
+        'http://127.0.0.1:53211/api/v1',
+        'http://0.0.0.0:53211/api/v1',
+      ];
+      
+      for (const endpoint of alternativeEndpoints) {
+        try {
+          const response = await fetch(`${endpoint}/health`, {
+            method: 'GET',
+            headers: { 'Content-Type': 'application/json' },
+          });
+          if (response.ok) {
+            console.log(`Connected via ${endpoint}`);
+            return await response.json();
+          }
+        } catch (e) {
+          console.log(`Failed to connect to ${endpoint}`);
+        }
+      }
+      throw error;
+    }
   }
 
   // Create a new note

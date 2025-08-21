@@ -2,6 +2,7 @@ use axum::{Router};
 use axum::routing::{get, post, put};
 use hotm_server::{db::AppState, routes};
 use std::net::SocketAddr;
+use tower_http::cors::{CorsLayer, Any};
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
 #[tokio::main]
@@ -20,6 +21,12 @@ async fn main() -> anyhow::Result<()> {
 
     let state = AppState::connect(&database_url).await?;
 
+    // Configure CORS to allow requests from Tauri app
+    let cors = CorsLayer::new()
+        .allow_origin(Any)
+        .allow_methods(Any)
+        .allow_headers(Any);
+
     let app = Router::new()
         .route("/api/v1", get(routes::health::api_info))
         .route("/api/v1/health", get(routes::health::health))
@@ -34,9 +41,10 @@ async fn main() -> anyhow::Result<()> {
         .route("/api/v1/notes/:id/collection", put(routes::taxonomy::put_note_collection))
         .route("/api/v1/notes/:id/links", post(routes::links::post_link))
         .route("/api/v1/notes/:id/provenance", get(routes::provenance::get_provenance))
-        .with_state(state);
+        .with_state(state)
+        .layer(cors);
 
-    let addr: SocketAddr = "127.0.0.1:53211".parse().unwrap();
+    let addr: SocketAddr = "0.0.0.0:53211".parse().unwrap();
     let listener = tokio::net::TcpListener::bind(&addr).await?;
     tracing::info!(%addr, "HotM server listening");
     axum::serve(listener, app).await?;
