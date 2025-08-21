@@ -1,15 +1,20 @@
 HotM — Personal Notes, Interaction, and Analysis
 
-A highly personal, local-first notes and analysis tool designed to be easy to manage and modify. Runs entirely on your machine, with optional local LLM support via Ollama.
+HotM is a local-first notes and analysis tool. It keeps your original content immutable, presents a revised/summarized view by default, and uses local NLP to enrich, organize, and search your knowledge — all on your machine.
 
-Features (initial scope)
-- Local-first storage using plain Markdown files in `data/notes/`
-- Fast API server with simple HTTP endpoints
-- Full-text search via SQLite FTS5
-- Optional local LLM integration (summarize, extract, tag)
-- Minimal dependencies; easy to hack and extend
+Key goals
+- Immutable originals; default revised view with dynamic links
+- UTC timestamps for storage; display in system local time
+- Local-only NLP via Ollama (generation: `gpt-oss:20b`, embeddings: `nomic-embed-text`)
+- Fast hybrid search: SQLite FTS5 + vector index (HNSW)
+- Tasteful Windows 11 UX (tray app, global hotkey Ctrl+Alt+H)
+- Standard local API and an MCP server; UI actions map to MCP tools
 
-Quickstart
+Status
+- Current prototype: Python + FastAPI with local storage and basic FTS5 search (see Quickstart below).
+- v1 plan: Tauri (Rust + React/TypeScript) Windows app with SQLite (FTS5 + vectors), local Ollama, MCP server, hybrid semantic search, and background pipelines. See `docs/02-architecture.md`.
+
+Quickstart (current prototype)
 - Install Python 3.11+
 - Install dependencies:
 
@@ -19,11 +24,11 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-- (Optional) Install Ollama and pull a model:
+- (Optional) Install Ollama and pull models:
 
 ```bash
 # See: https://ollama.com
-ollama pull mistral
+ollama pull gpt-oss:20b
 ollama pull nomic-embed-text
 ```
 
@@ -33,15 +38,20 @@ ollama pull nomic-embed-text
 ./scripts/dev.sh
 ```
 
-- Open http://localhost:8000/docs for API docs.
+- Open http://localhost:8000/docs for API docs (prototype).
 
-Project Layout
+Documentation
+- `docs/01-vision.md` — Product vision and goals
+- `docs/02-architecture.md` — Architecture overview (v1 plan)
+- `docs/03-decisions.md` — ADRs
+- `docs/04-data-model.sql` — SQLite schema (v1)
+
+Project Layout (prototype)
 - `app/` — FastAPI app and modules
 - `app/llm/` — Local LLM client wrappers
 - `data/` — Local data (notes, database)
 - `docs/` — Architecture, decisions, and roadmap
 - `scripts/` — Utilities for dev and ops
 
-Notes
-- This repo prefers incremental, readable code with the least moving parts.
-- All data stays local by default. LLM calls are to your local Ollama.
+Privacy
+- All data and NLP run locally by default. Optional encryption-at-rest and audit log are planned for v1.

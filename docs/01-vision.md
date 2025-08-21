@@ -1,19 +1,21 @@
 # Vision
 
-HotM is a personal, local-first notes, interaction, and analysis tool. It prioritizes:
+HotM is your local-first notes, interaction, and analysis hub. The system makes NLP central while preserving the original, user-authored content for record keeping.
 
-- Simplicity: plain Markdown for notes; minimal infra
-- Local ownership: all data lives on your machine
-- Hackability: understandable code, easy to modify quickly
-- Optional AI: local LLMs via Ollama for summarization and analysis
+Principles
+- Original content is immutable and always accessible
+- Revised view is the default: concise, linked, and navigable
+- All data is stored with UTC timestamps, displayed in system local time
+- NLP is local-only via Ollama; no external calls
+- Fast, indexed, hybrid search across content and metadata
+- Interactions map to deterministic MCP tools for auditability
 
-Initial Goals
-- Text note capture and organization
-- Full-text search over notes
-- LLM-assisted summarization and tagging (local only)
-- REST API that can be wired into other tools
+What you get
+- Quick capture anywhere (tray + global hotkey)
+- Automatic revision, summarization, tagging, linking
+- Provenance view showing how revisions were produced
+- Powerful command palette for analytics, review, and editing
 
-Non-Goals (for now)
-- Cloud sync
-- Multi-user authentication
-- Heavy frontends; start with API-first
+Out of scope (v1)
+- Cloud sync and multi-user auth
+- Third-party hosted LLMs

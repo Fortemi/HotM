@@ -1,42 +1,64 @@
 # Architecture Overview
 
+This document describes the v1 architecture that centers NLP-driven revision, summarization, and dynamic linking while preserving immutable originals.
+
 ## High-Level
-- API service (`FastAPI`) exposes endpoints for notes CRUD, search, and LLM utilities
-- Storage is local filesystem for raw notes and SQLite for metadata/search
-- LLM integration via Ollama local HTTP API
+- Client/UI: Tauri + React/TypeScript with Windows 11 visual style (Mica/Acrylic, rounded corners)
+- Core service: Rust (Tokio) inside the Tauri backend
+- Storage: SQLite with FTS5 for keyword search; vector index via SQLite extension (sqlite-vec/sqlite_hnsw) or embedded HNSW
+- NLP runtime: Ollama on `localhost` (generation model `gpt-oss:20b`; embeddings `nomic-embed-text`)
+- Background workers: async jobs for ingest, revise, tag, embed, link, reindex
+- API: Local HTTP + WebSocket events; OpenAPI at `/openapi.json`
+- MCP server: In-process, exposing deterministic tools that the UI calls
+- Security: Local-only by default; optional encryption-at-rest (Windows DPAPI) and audit log
 
-## Components
-- API: `app/main.py`, routers in `app/routers/*`
-- Storage:
-  - Markdown notes under `data/notes/`
-  - SQLite database at `data/hotm.sqlite3` using FTS5 for search
-- LLM:
-  - `app/llm/ollama_client.py` for generation and embeddings
+## Data Model (SQLite)
+The full schema is in `docs/04-data-model.sql`. Key tables:
+- `note`, `note_original` (immutable text), `note_revised_current`, `note_revision` (history)
+- `provenance_edge` for revision inputs and external sources
+- `link` for dynamic intra-note and external links
+- `tag`, `note_tag`, `collection`
+- `note_fts` FTS5 index across original and revised content, plus tags
+- `embedding` for chunked vectors (stored via SQLite vector extension)
+- `activity_log` for analytics and auditability
 
-## Data Model (initial)
-- Note
-  - `id` (UUID string)
-  - `title`
-  - `path` (filesystem path)
-  - `tags` (comma-separated or JSON list)
-  - `created_at`, `updated_at`
-- Search Index
-  - FTS5 virtual table over `title` and `content`
+## Search
+- Hybrid retrieval: FTS5 BM25 + vector ANN; fuse via Reciprocal Rank Fusion; optional local cross-encoder re-ranking
+- Filters: `tag:`, `collection:`, `before:`/`after:`, `source:`
 
-## API (initial)
-- `POST /notes` create a note (title, content, tags)
-- `GET /notes/{id}` read
-- `PUT /notes/{id}` update
-- `DELETE /notes/{id}` delete
-- `GET /search?q=` full-text search
-- `POST /llm/summarize` summarize note content
+## NLP Pipelines
+- On create/import: normalize → chunk → summarize/revise → extract tags/entities → suggest collection → detect links → write revision + provenance → compute embeddings → update indexes
+- On edit: diff → regenerate revised content and summary → selective link refresh
+- On search: hybrid retrieval with filters
 
-## Rationale
-- Keep raw notes as Markdown for durability and manual edits
-- Use SQLite to avoid complex infra and enable fast search
-- Keep LLM local via Ollama for privacy and control
+## API (v1)
+Base: `http://127.0.0.1:53211/api/v1`
+- Notes: `POST /notes`, `GET /notes/{id}`, `PUT /notes/{id}/revised`, provenance and linking endpoints
+- Search: `GET /search` (mode `hybrid|fts|vector`), `POST /semantic`
+- Collections/Tags: CRUD + assignment
+- Analytics/Chat: `POST /chat` for command interface, `GET /stats`
+- System: `GET /health`, `GET/PUT /config`; WS `/events` for progress and streams
 
-## Future Options
-- Web UI with HTMX/Alpine for minimal JS
-- Sync via Git or Syncthing
-- Import/export from Obsidian, Bear, etc.
+## MCP server (tools)
+- `create_note`, `get_note`, `revise_note`, `search_notes`, `link_notes`, `link_external`, `get_provenance`, `set_tags`, `set_collection`, `analytics_query`, `export_notes`, `health_check`
+
+## UX (Windows 11)
+- Tray app + global shortcut Ctrl+Alt+H; compact overlay with command palette, recent notes, note view (Revised/Original/Provenance tabs), and assistant panel
+- Quick capture and immediate revised view once background pipeline completes
+- Inline dynamic link chips with previews; confidence threshold controls visibility
+
+## Packaging and Startup
+- Tauri bundler produces MSI, registers tray and global shortcut; optional launch at login
+- First-run: check Ollama, pull models, run DB migrations, test vector extension; fall back to embedded HNSW
+
+## Telemetry and Privacy
+- Default: no outbound network beyond localhost Ollama and optional favicon fetch for known URLs; optional updates can be disabled
+
+## Implementation plan (v1)
+- Foundation (Tauri app, schema, vector extension wiring)
+- Ollama integration (health, generation, embeddings)
+- NLP pipeline jobs with progress events
+- Core UI (capture, revised/original toggle, provenance, command palette, links)
+- MCP server toolset and routing from UI
+- Hybrid search with filters
+- Settings (models, performance, privacy, shortcuts, API/MCP)
