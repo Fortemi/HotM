@@ -1,8 +1,9 @@
 use tauri::{
     tray::{TrayIconBuilder}, 
-    Manager, WindowEvent,
+    Manager, WindowEvent, AppHandle,
 };
 use tauri::menu::{MenuBuilder, MenuItemBuilder};
+use tauri_plugin_global_shortcut::GlobalShortcutExt;
 
 // Create a Hall of the Mind icon programmatically (purple gradient with "HM" monogram)
 fn create_default_icon() -> tauri::image::Image<'static> {
@@ -55,11 +56,34 @@ pub fn run() {
         println!("HotM: Starting in minimized mode");
     }
     
+    // Build the global shortcut plugin with handler
+    println!("HotM: Setting up global hotkey handler");
+    
+    let shortcut_plugin = tauri_plugin_global_shortcut::Builder::new()
+        .with_handler(move |app, _shortcut, event| {
+            // Handle hotkey events
+            if event.state == tauri_plugin_global_shortcut::ShortcutState::Pressed {
+                println!("HotM: Hotkey pressed - toggling window");
+                
+                if let Some(window) = app.get_webview_window("main") {
+                    if window.is_visible().unwrap_or(false) {
+                        println!("HotM: Hiding window");
+                        let _ = window.hide();
+                    } else {
+                        println!("HotM: Showing window");
+                        let _ = window.show();
+                        let _ = window.set_focus();
+                    }
+                }
+            }
+        })
+        .build();
+    
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_shell::init())
         .plugin(tauri_plugin_notification::init())
-        .plugin(tauri_plugin_global_shortcut::Builder::new().build())
+        .plugin(shortcut_plugin)
         .on_window_event(|window, event| {
             println!("HotM: Window event: {:?}", event);
             match event {
@@ -75,11 +99,11 @@ pub fn run() {
         .setup(move |app| {
             println!("HotM: Running setup...");
             
-            // Register global hotkey (Ctrl+Alt+H) - will toggle on key press (not hold)
-            println!("HotM: Setting up global hotkey (Ctrl+Alt+H)...");
-            
-            // For now, we'll rely on tray menu for toggle until we fix the hotkey API usage
-            // The hotkey plugin API has changed and needs proper implementation
+            // Register the global hotkey
+            match app.global_shortcut().register("CommandOrControl+Alt+H") {
+                Ok(_) => println!("HotM: Global hotkey (Ctrl+Alt+H) registered successfully"),
+                Err(e) => println!("HotM: Failed to register hotkey: {}", e),
+            }
             
             // Create tray menu
             println!("HotM: Creating menu items...");
