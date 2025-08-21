@@ -37,11 +37,6 @@
         "dialogImagePath": "../icons/icon.png",
         "bannerPath": "../icons/icon.png"
       },
-      "nsis": {
-        "displayLanguageSelector": false,
-        "installerIcon": "../icons/icon.ico",
-        "installMode": "perUser"
-      },
       "allowDowngrades": false
     },
     "icon": [

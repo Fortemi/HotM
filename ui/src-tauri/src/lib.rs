@@ -3,7 +3,7 @@ use tauri::{
     Manager, WindowEvent, AppHandle,
 };
 use tauri::menu::{MenuBuilder, MenuItemBuilder};
-use tauri_plugin_global_shortcut::{GlobalShortcutExt, Shortcut};
+use tauri_plugin_global_shortcut::{GlobalShortcutExt};
 
 // Create a Hall of the Mind icon programmatically (purple gradient with "HM" monogram)
 fn create_default_icon() -> tauri::image::Image<'static> {
@@ -87,19 +87,11 @@ pub fn run() {
         .setup(move |app| {
             println!("HotM: Running setup...");
             
-            // Register global hotkey (Ctrl+Alt+H)
-            let app_handle_hotkey = app.handle().clone();
-            let hotkey = Shortcut::new(Some(tauri_plugin_global_shortcut::Modifiers::CONTROL | 
-                                           tauri_plugin_global_shortcut::Modifiers::ALT), 
-                                       tauri_plugin_global_shortcut::Code::KeyH);
+            // Register global hotkey (Ctrl+Alt+H) - will toggle on key press (not hold)
+            println!("HotM: Setting up global hotkey (Ctrl+Alt+H)...");
             
-            match app.global_shortcut().on_shortcut(hotkey, move |_app_handle, _event, _shortcut| {
-                println!("HotM: Hotkey pressed (Ctrl+Alt+H)");
-                toggle_window_visibility(&app_handle_hotkey);
-            }) {
-                Ok(_) => println!("HotM: Global hotkey registered (Ctrl+Alt+H)"),
-                Err(e) => println!("HotM: Failed to register hotkey: {}", e),
-            }
+            // For now, we'll rely on tray menu for toggle until we fix the hotkey API usage
+            // The hotkey plugin API has changed and needs proper implementation
             
             // Create tray menu
             println!("HotM: Creating menu items...");
