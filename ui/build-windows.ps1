@@ -43,8 +43,13 @@ if (Test-Path $msiPath) {
     Write-Host "To install:" -ForegroundColor Yellow
     Write-Host "1. Double-click the MSI file" -ForegroundColor White
     Write-Host "2. Follow the installation wizard" -ForegroundColor White
-    Write-Host "3. Find 'HotM' in your Start Menu" -ForegroundColor White
+    Write-Host "3. Find 'Hall of the Mind' in your Start Menu" -ForegroundColor White
     Write-Host "4. Pin to taskbar for easy access" -ForegroundColor White
+    Write-Host ""
+    Write-Host "After installation:" -ForegroundColor Yellow
+    Write-Host "• Press Ctrl+Alt+H to show/hide the app" -ForegroundColor White
+    Write-Host "• Run .\setup-startup.ps1 to add to Windows startup" -ForegroundColor White
+    Write-Host "• Or run configure-startup.bat for guided setup" -ForegroundColor White
     
     # Open the folder containing the MSI
     explorer.exe (Split-Path $msiPath)
