@@ -1,119 +1,112 @@
 use tauri::{
-    AppHandle, CustomMenuItem, Manager, SystemTray, SystemTrayEvent, SystemTrayMenu,
-    SystemTrayMenuItem, WindowEvent,
+    tray::{TrayIconBuilder, TrayIconEvent}, 
+    Manager, WindowEvent, Emitter,
 };
-use tauri_plugin_global_shortcut::GlobalShortcutExt;
-
-#[tauri::command]
-fn show_main_window(app: AppHandle) {
-    if let Some(window) = app.get_window("main") {
-        window.show().unwrap();
-        window.set_focus().unwrap();
-    }
-}
-
-#[tauri::command]
-fn hide_main_window(app: AppHandle) {
-    if let Some(window) = app.get_window("main") {
-        window.hide().unwrap();
-    }
-}
-
-fn create_tray_menu() -> SystemTrayMenu {
-    let show = CustomMenuItem::new("show".to_string(), "Show HotM");
-    let hide = CustomMenuItem::new("hide".to_string(), "Hide");
-    let new_note = CustomMenuItem::new("new_note".to_string(), "New Note (Ctrl+Alt+H)");
-    let quit = CustomMenuItem::new("quit".to_string(), "Quit");
-
-    SystemTrayMenu::new()
-        .add_item(show)
-        .add_item(hide)
-        .add_native_item(SystemTrayMenuItem::Separator)
-        .add_item(new_note)
-        .add_native_item(SystemTrayMenuItem::Separator)
-        .add_item(quit)
-}
+use tauri::menu::{MenuBuilder, MenuItemBuilder};
+use tauri_plugin_global_shortcut::{GlobalShortcutExt, ShortcutState};
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-    let tray_menu = create_tray_menu();
-    let system_tray = SystemTray::new().with_menu(tray_menu);
-
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_shell::init())
         .plugin(tauri_plugin_notification::init())
         .plugin(tauri_plugin_global_shortcut::Builder::new().build())
-        .system_tray(system_tray)
-        .on_system_tray_event(|app, event| match event {
-            SystemTrayEvent::LeftClick { .. } => {
-                if let Some(window) = app.get_window("main") {
-                    if window.is_visible().unwrap() {
-                        window.hide().unwrap();
-                    } else {
-                        window.show().unwrap();
-                        window.set_focus().unwrap();
-                    }
-                }
-            }
-            SystemTrayEvent::MenuItemClick { id, .. } => match id.as_str() {
-                "show" => {
-                    if let Some(window) = app.get_window("main") {
-                        window.show().unwrap();
-                        window.set_focus().unwrap();
-                    }
-                }
-                "hide" => {
-                    if let Some(window) = app.get_window("main") {
-                        window.hide().unwrap();
-                    }
-                }
-                "new_note" => {
-                    if let Some(window) = app.get_window("main") {
-                        window.show().unwrap();
-                        window.set_focus().unwrap();
-                        // Emit event to frontend to focus new note input
-                        window.emit("focus-new-note", ()).unwrap();
-                    }
-                }
-                "quit" => {
-                    std::process::exit(0);
-                }
-                _ => {}
-            },
-            _ => {}
-        })
-        .on_window_event(|event| match event.event() {
+        .on_window_event(|window, event| match event {
             WindowEvent::CloseRequested { api, .. } => {
                 // Instead of closing, hide the window
-                event.window().hide().unwrap();
+                window.hide().unwrap();
                 api.prevent_close();
             }
             _ => {}
         })
-        .invoke_handler(tauri::generate_handler![show_main_window, hide_main_window])
         .setup(|app| {
+            let handle = app.handle().clone();
+            
+            // Create tray menu
+            let show = MenuItemBuilder::with_id("show", "Show HotM").build(app)?;
+            let hide = MenuItemBuilder::with_id("hide", "Hide").build(app)?;
+            let new_note = MenuItemBuilder::with_id("new_note", "New Note (Ctrl+Alt+H)").build(app)?;
+            let quit = MenuItemBuilder::with_id("quit", "Quit").build(app)?;
+            
+            let menu = MenuBuilder::new(app)
+                .items(&[&show, &hide, &new_note, &quit])
+                .build()?;
+            
+            // Create system tray
+            let _ = TrayIconBuilder::new()
+                .menu(&menu)
+                .tooltip("HotM - Notes & Analysis")
+                .on_tray_icon_event(move |tray, event| {
+                    match event {
+                        TrayIconEvent::Click {
+                            button: tauri::tray::MouseButton::Left,
+                            button_state: tauri::tray::MouseButtonState::Up,
+                            ..
+                        } => {
+                            let app = tray.app_handle();
+                            if let Some(window) = app.get_webview_window("main") {
+                                if window.is_visible().unwrap_or(false) {
+                                    let _ = window.hide();
+                                } else {
+                                    let _ = window.show();
+                                    let _ = window.set_focus();
+                                }
+                            }
+                        }
+                        _ => {}
+                    }
+                })
+                .on_menu_event(move |app, event| match event.id.as_ref() {
+                    "show" => {
+                        if let Some(window) = app.get_webview_window("main") {
+                            let _ = window.show();
+                            let _ = window.set_focus();
+                        }
+                    }
+                    "hide" => {
+                        if let Some(window) = app.get_webview_window("main") {
+                            let _ = window.hide();
+                        }
+                    }
+                    "new_note" => {
+                        if let Some(window) = app.get_webview_window("main") {
+                            let _ = window.show();
+                            let _ = window.set_focus();
+                            let _ = window.emit("focus-new-note", ());
+                        }
+                    }
+                    "quit" => {
+                        std::process::exit(0);
+                    }
+                    _ => {}
+                })
+                .build(app)?;
+            
             // Register global hotkey Ctrl+Alt+H
-            let app_handle = app.handle();
-            let window = app.get_window("main").unwrap();
+            let window = app.get_webview_window("main").unwrap();
             
-            // Clone for the closure
+            // Register the shortcut
+            handle.global_shortcut().register("Ctrl+Alt+H")?;
+            
+            // Set up listener for the shortcut
             let window_clone = window.clone();
-            
-            app_handle.global_shortcut().register("Ctrl+Alt+H", move || {
-                if window_clone.is_visible().unwrap() {
-                    window_clone.hide().unwrap();
-                } else {
-                    window_clone.show().unwrap();
-                    window_clone.set_focus().unwrap();
-                    window_clone.emit("focus-new-note", ()).unwrap();
+            handle.global_shortcut().on_shortcut("Ctrl+Alt+H", move |_app, _shortcut, event| {
+                if event.state == ShortcutState::Pressed {
+                    if window_clone.is_visible().unwrap_or(false) {
+                        let _ = window_clone.hide();
+                    } else {
+                        let _ = window_clone.show();
+                        let _ = window_clone.set_focus();
+                        let _ = window_clone.emit("focus-new-note", ());
+                    }
                 }
-            }).unwrap();
+            })?;
 
             // Start with window hidden (tray only)
-            window.hide().unwrap();
+            window.hide()?;
 
-            // Show notification that app is running
+            // Show notification that app is running (Windows only)
             #[cfg(target_os = "windows")]
             {
                 use tauri_plugin_notification::NotificationExt;
@@ -121,8 +114,7 @@ pub fn run() {
                     .builder()
                     .title("HotM")
                     .body("HotM is running in the system tray. Press Ctrl+Alt+H to open.")
-                    .show()
-                    .unwrap();
+                    .show()?;
             }
 
             Ok(())
