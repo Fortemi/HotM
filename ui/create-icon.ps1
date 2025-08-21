@@ -3,9 +3,14 @@ Add-Type -AssemblyName System.Drawing
 
 Write-Host "Creating Hall of the Mind icons..." -ForegroundColor Cyan
 
+# Get the script's directory
+$scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Definition
+$iconsDir = Join-Path $scriptDir "src-tauri\icons"
+
 # Ensure icons directory exists
-if (!(Test-Path "src-tauri\icons")) {
-    New-Item -ItemType Directory -Path "src-tauri\icons" -Force
+if (!(Test-Path $iconsDir)) {
+    Write-Host "Creating icons directory at: $iconsDir" -ForegroundColor Yellow
+    New-Item -ItemType Directory -Path $iconsDir -Force | Out-Null
 }
 
 # Create a 512x512 bitmap for the main icon
@@ -76,8 +81,9 @@ for ($i = 0; $i -lt 8; $i++) {
 }
 
 # Save as PNG
-$pngPath = "src-tauri\icons\icon.png"
+$pngPath = Join-Path $iconsDir "icon.png"
 $bitmap.Save($pngPath, [System.Drawing.Imaging.ImageFormat]::Png)
+Write-Host "Created: $pngPath" -ForegroundColor Green
 
 # Create different sizes with proper quality
 $sizes = @(32, 128, 256)
@@ -87,7 +93,9 @@ foreach ($size in $sizes) {
     $g.SmoothingMode = [System.Drawing.Drawing2D.SmoothingMode]::AntiAlias
     $g.InterpolationMode = [System.Drawing.Drawing2D.InterpolationMode]::HighQualityBicubic
     $g.DrawImage($bitmap, 0, 0, $size, $size)
-    $resized.Save("src-tauri\icons\${size}x${size}.png", [System.Drawing.Imaging.ImageFormat]::Png)
+    $sizePath = Join-Path $iconsDir "${size}x${size}.png"
+    $resized.Save($sizePath, [System.Drawing.Imaging.ImageFormat]::Png)
+    Write-Host "Created: $sizePath" -ForegroundColor Green
     
     if ($size -eq 128) {
         # Create @2x version
@@ -97,7 +105,9 @@ foreach ($size in $sizes) {
         $g2x.SmoothingMode = [System.Drawing.Drawing2D.SmoothingMode]::AntiAlias
         $g2x.InterpolationMode = [System.Drawing.Drawing2D.InterpolationMode]::HighQualityBicubic
         $g2x.DrawImage($bitmap, 0, 0, $size2x, $size2x)
-        $resized2x.Save("src-tauri\icons\${size}x${size}@2x.png", [System.Drawing.Imaging.ImageFormat]::Png)
+        $size2xPath = Join-Path $iconsDir "${size}x${size}@2x.png"
+        $resized2x.Save($size2xPath, [System.Drawing.Imaging.ImageFormat]::Png)
+        Write-Host "Created: $size2xPath" -ForegroundColor Green
         $g2x.Dispose()
         $resized2x.Dispose()
     }
@@ -159,7 +169,9 @@ foreach ($data in $imageDatas) {
 
 # Save ICO file
 $icoBytes = $memoryStream.ToArray()
-[System.IO.File]::WriteAllBytes("src-tauri\icons\icon.ico", $icoBytes)
+$icoPath = Join-Path $iconsDir "icon.ico"
+[System.IO.File]::WriteAllBytes($icoPath, $icoBytes)
+Write-Host "Created: $icoPath" -ForegroundColor Green
 
 $writer.Dispose()
 $memoryStream.Dispose()
@@ -170,11 +182,12 @@ $bitmap.Dispose()
 $brush.Dispose()
 $textBrush.Dispose()
 $font.Dispose()
+$fontM.Dispose()
+$brushM.Dispose()
+$pen.Dispose()
+$pathBrush.Dispose()
+$centerPath.Dispose()
 
-Write-Host "Icon created successfully!" -ForegroundColor Green
-Write-Host "Files created:" -ForegroundColor Yellow
-Write-Host "  - src-tauri\icons\icon.png"
-Write-Host "  - src-tauri\icons\32x32.png"
-Write-Host "  - src-tauri\icons\128x128.png"
-Write-Host "  - src-tauri\icons\128x128@2x.png"
-Write-Host "  - src-tauri\icons\icon.ico"
+Write-Host ""
+Write-Host "Hall of the Mind icons created successfully!" -ForegroundColor Green
+Write-Host "Purple gradient theme with HM monogram" -ForegroundColor Cyan
