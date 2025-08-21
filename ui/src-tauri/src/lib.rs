@@ -4,29 +4,36 @@ use tauri::{
 };
 use tauri::menu::{MenuBuilder, MenuItemBuilder};
 
-// Create a default icon programmatically (blue gradient with white "H")
+// Create a Hall of the Mind icon programmatically (purple gradient with "HM" monogram)
 fn create_default_icon() -> tauri::image::Image<'static> {
     const SIZE: u32 = 32;
     let mut pixels = Vec::with_capacity((SIZE * SIZE * 4) as usize);
     
     for y in 0..SIZE {
         for x in 0..SIZE {
-            // Create a blue gradient background
-            let gradient = (y as f32 / SIZE as f32 * 50.0) as u8;
-            let r = 41 + gradient;
-            let g = 128 + gradient;
-            let b = 185 + gradient;
+            // Create a purple-to-indigo gradient background
+            let diagonal_gradient = ((x + y) as f32 / (SIZE * 2) as f32 * 80.0) as u8;
+            let r = 76 + diagonal_gradient;  // Deep purple to lighter
+            let g = 41 + diagonal_gradient;
+            let b = 145 + diagonal_gradient;
             
-            // Draw a simple "H" in the center
-            let is_h = (x >= 8 && x <= 10 && y >= 6 && y <= 26) || // Left vertical
-                      (x >= 22 && x <= 24 && y >= 6 && y <= 26) || // Right vertical
-                      (x >= 8 && x <= 24 && y >= 14 && y <= 17); // Horizontal bar
+            // Draw "HM" monogram for Hall of the Mind
+            // H on the left
+            let is_h = (x >= 5 && x <= 7 && y >= 8 && y <= 24) ||   // H left vertical
+                      (x >= 11 && x <= 13 && y >= 8 && y <= 24) ||  // H right vertical
+                      (x >= 5 && x <= 13 && y >= 15 && y <= 17);    // H horizontal
             
-            if is_h {
-                // White for the "H"
+            // M on the right
+            let is_m = (x >= 16 && x <= 18 && y >= 8 && y <= 24) ||  // M left vertical
+                      (x >= 19 && x <= 20 && y >= 10 && y <= 16) ||  // M middle valley
+                      (x >= 21 && x <= 22 && y >= 10 && y <= 16) ||  // M middle peak
+                      (x >= 24 && x <= 26 && y >= 8 && y <= 24);     // M right vertical
+            
+            if is_h || is_m {
+                // White for the letters
                 pixels.extend_from_slice(&[255, 255, 255, 255]);
             } else {
-                // Blue gradient for background
+                // Purple gradient for background
                 pixels.extend_from_slice(&[r, g, b, 255]);
             }
         }
@@ -110,7 +117,7 @@ pub fn run() {
             let _tray = TrayIconBuilder::new()
                 .icon(icon)
                 .menu(&menu)
-                .tooltip("HotM - Notes & Analysis")
+                .tooltip("Hall of the Mind")
                 .on_menu_event(move |_app, event| {
                     println!("HotM: Tray menu event: {}", event.id.as_ref());
                     match event.id.as_ref() {

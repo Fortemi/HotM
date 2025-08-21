@@ -1,5 +1,7 @@
-# PowerShell script to create a simple icon for HotM
+# PowerShell script to create distinctive Hall of the Mind icons
 Add-Type -AssemblyName System.Drawing
+
+Write-Host "Creating Hall of the Mind icons..." -ForegroundColor Cyan
 
 # Ensure icons directory exists
 if (!(Test-Path "src-tauri\icons")) {
@@ -17,24 +19,61 @@ $graphics.SmoothingMode = [System.Drawing.Drawing2D.SmoothingMode]::AntiAlias
 $graphics.TextRenderingHint = [System.Drawing.Text.TextRenderingHint]::AntiAliasGridFit
 $graphics.InterpolationMode = [System.Drawing.Drawing2D.InterpolationMode]::HighQualityBicubic
 
-# Fill background with a gradient blue
+# Create a purple-to-indigo gradient for "mind" theme
 $rect = New-Object System.Drawing.Rectangle(0, 0, $width, $height)
 $brush = New-Object System.Drawing.Drawing2D.LinearGradientBrush(
     $rect,
-    [System.Drawing.Color]::FromArgb(41, 128, 185),  # Darker blue
-    [System.Drawing.Color]::FromArgb(52, 152, 219),  # Lighter blue
-    [System.Drawing.Drawing2D.LinearGradientMode]::Vertical
+    [System.Drawing.Color]::FromArgb(76, 41, 145),   # Deep purple
+    [System.Drawing.Color]::FromArgb(99, 102, 241),  # Indigo blue
+    [System.Drawing.Drawing2D.LinearGradientMode]::Diagonal
 )
 $graphics.FillRectangle($brush, $rect)
 
-# Draw "H" in white with better scaling
-$fontSize = [int]($width * 0.45)  # Scale font size with icon size
-$font = New-Object System.Drawing.Font("Segoe UI", $fontSize, [System.Drawing.FontStyle]::Bold)
+# Add a subtle radial glow effect in the center
+$centerPath = New-Object System.Drawing.Drawing2D.GraphicsPath
+$centerRect = New-Object System.Drawing.Rectangle(($width * 0.2), ($height * 0.2), ($width * 0.6), ($height * 0.6))
+$centerPath.AddEllipse($centerRect)
+$pathBrush = New-Object System.Drawing.Drawing2D.PathGradientBrush($centerPath)
+$pathBrush.CenterColor = [System.Drawing.Color]::FromArgb(80, 147, 112, 219)  # Semi-transparent light purple
+$pathBrush.SurroundColors = @([System.Drawing.Color]::FromArgb(0, 147, 112, 219))  # Transparent at edges
+$graphics.FillPath($pathBrush, $centerPath)
+
+# Draw stylized "HM" monogram in white
+$fontSize = [int]($width * 0.35)
+$font = New-Object System.Drawing.Font("Segoe UI Light", $fontSize, [System.Drawing.FontStyle]::Regular)
 $textBrush = New-Object System.Drawing.SolidBrush([System.Drawing.Color]::White)
+
+# Draw "H" slightly to the left
 $stringFormat = New-Object System.Drawing.StringFormat
 $stringFormat.Alignment = [System.Drawing.StringAlignment]::Center
 $stringFormat.LineAlignment = [System.Drawing.StringAlignment]::Center
-$graphics.DrawString("H", $font, $textBrush, ($width/2), ($height/2), $stringFormat)
+$graphics.DrawString("H", $font, $textBrush, ($width * 0.38), ($height * 0.5), $stringFormat)
+
+# Draw "M" slightly to the right with overlap
+$fontM = New-Object System.Drawing.Font("Segoe UI Light", ($fontSize * 0.8), [System.Drawing.FontStyle]::Regular)
+$brushM = New-Object System.Drawing.SolidBrush([System.Drawing.Color]::FromArgb(230, 255, 255, 255))  # Slightly transparent
+$graphics.DrawString("M", $fontM, $brushM, ($width * 0.62), ($height * 0.5), $stringFormat)
+
+# Add a subtle brain/neural network pattern overlay
+$pen = New-Object System.Drawing.Pen([System.Drawing.Color]::FromArgb(40, 255, 255, 255), 1)
+$random = New-Object System.Random
+
+# Draw some connection lines to suggest neural pathways
+for ($i = 0; $i -lt 8; $i++) {
+    $x1 = $random.Next($width * 0.2, $width * 0.8)
+    $y1 = $random.Next($height * 0.2, $height * 0.8)
+    $x2 = $random.Next($width * 0.2, $width * 0.8)
+    $y2 = $random.Next($height * 0.2, $height * 0.8)
+    
+    # Draw subtle connecting lines
+    $graphics.DrawLine($pen, $x1, $y1, $x2, $y2)
+    
+    # Draw small nodes at connection points
+    $nodeBrush = New-Object System.Drawing.SolidBrush([System.Drawing.Color]::FromArgb(60, 255, 255, 255))
+    $graphics.FillEllipse($nodeBrush, $x1 - 3, $y1 - 3, 6, 6)
+    $graphics.FillEllipse($nodeBrush, $x2 - 3, $y2 - 3, 6, 6)
+    $nodeBrush.Dispose()
+}
 
 # Save as PNG
 $pngPath = "src-tauri\icons\icon.png"
