@@ -2,6 +2,20 @@
 Write-Host "Building HotM Windows Installer..." -ForegroundColor Cyan
 Write-Host ""
 
+# Generate icons if they don't exist or if create-icon.ps1 is newer
+$iconPath = "src-tauri\icons\icon.ico"
+$scriptPath = "create-icon.ps1"
+
+if (!(Test-Path $iconPath) -or ((Get-Item $scriptPath).LastWriteTime -gt (Get-Item $iconPath -ErrorAction SilentlyContinue).LastWriteTime)) {
+    Write-Host "Generating application icons..." -ForegroundColor Yellow
+    & .\create-icon.ps1
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "Warning: Icon generation failed, continuing with default icons" -ForegroundColor Yellow
+    }
+} else {
+    Write-Host "Icons already up to date, skipping generation" -ForegroundColor Gray
+}
+
 # Check if npm packages are installed
 if (-not (Test-Path "node_modules")) {
     Write-Host "Installing dependencies..." -ForegroundColor Yellow

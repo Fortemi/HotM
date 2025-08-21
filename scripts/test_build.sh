@@ -18,6 +18,8 @@ echo ""
 # Test UI TypeScript build
 echo "2. Testing UI TypeScript build..."
 cd ../ui
+# Generate icons first (will use Node.js version on Linux)
+npm run generate-icons
 npm run build
 echo "✅ UI TypeScript build successful"
 echo ""
