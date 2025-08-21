@@ -37,6 +37,8 @@ Documentation
 - `docs/03-decisions.md` — ADRs
 - `docs/04-data-model-pg.sql` — PostgreSQL/DocumentDB schema (v1)
 - `docs/05-storage-documentdb.md` — Storage rationale and setup
+ - `docs/06-first-run.md` — First-run checklist
+ - `docs/07-packaging-windows.md` — Windows packaging guide
 
 Project Layout (prototype)
 - `app/` — FastAPI app and modules
@@ -45,6 +47,10 @@ Project Layout (prototype)
 - `docs/` — Architecture, decisions, and roadmap
 - `scripts/` — Utilities for dev and ops
 - `server/` — Rust Axum API server (DocumentDB/Postgres)
+ - `ui/` — Tauri + React desktop UI
+
+Environment
+- Copy `.env.example` to `.env` and adjust `DATABASE_URL`.
 
 Privacy
 - All data and NLP run locally by default. Optional encryption-at-rest and audit log are planned for v1.
