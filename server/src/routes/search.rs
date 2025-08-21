@@ -13,18 +13,10 @@ pub async fn search(State(state): State<AppState>, Query(params): Query<SearchPa
 }
 
 pub async fn semantic(State(state): State<AppState>, Json(req): Json<SemanticRequest>) -> Result<Json<SemanticResponse>, axum::http::StatusCode> {
-    // Simple vector similarity against embeddings table (requires pgvector index)
-    let rows = sqlx::query!(
-        r#"
-        SELECT e.note_id AS note_id,
-               1.0 - (e.vector <=> $1::vector) AS score
-        FROM embedding e
-        ORDER BY e.vector <=> $1::vector
-        LIMIT 25
-        "#,
-        pgvector::Vector::from(vec![0.0_f32; 768])  -- placeholder until embeddings are computed
-    ).fetch_all(&state.pool).await.map_err(|_| axum::http::StatusCode::INTERNAL_SERVER_ERROR)?;
-
-    let hits: Vec<SearchHit> = rows.into_iter().map(|r| SearchHit{ note_id: r.note_id, score: r.score.unwrap_or(0.0) as f32, snippet: None }).collect();
+    // Get embedding for the input text
+    let vecs = crate::ollama::embed_texts(vec![req.text.clone()], &state.embed_model)
+        .await.map_err(|_| axum::http::StatusCode::INTERNAL_SERVER_ERROR)?;
+    let query_vec = vecs.into_iter().next().unwrap_or_else(|| vec![0.0_f32; 768]);
+    let hits = crate::db::search_vector(&state, query_vec, 25).await.map_err(|_| axum::http::StatusCode::INTERNAL_SERVER_ERROR)?;
     Ok(Json(SemanticResponse { similar: hits }))
 }
