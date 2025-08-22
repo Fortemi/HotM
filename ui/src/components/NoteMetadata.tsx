@@ -21,6 +21,7 @@ interface NoteMetadataProps {
   links?: any[];
   starred?: boolean;
   archived?: boolean;
+  onTagClick?: (tag: string) => void;
 }
 
 export function NoteMetadata({ 
@@ -29,7 +30,8 @@ export function NoteMetadata({
   tags = [], 
   links = [],
   starred = false,
-  archived = false
+  archived = false,
+  onTagClick
 }: NoteMetadataProps) {
   // Parse AI metadata if it exists
   const parsedAiMetadata = aiMetadata || {};
@@ -56,7 +58,12 @@ export function NoteMetadata({
               </div>
               <div className="flex flex-wrap gap-1 mb-4">
                 {tags.map((tag, idx) => (
-                  <Badge key={idx} variant="outline">
+                  <Badge 
+                    key={idx} 
+                    variant="outline"
+                    className={onTagClick ? "cursor-pointer hover:bg-accent" : ""}
+                    onClick={() => onTagClick && onTagClick(tag)}
+                  >
                     {tag}
                   </Badge>
                 ))}
@@ -74,7 +81,12 @@ export function NoteMetadata({
               </div>
               <div className="flex flex-wrap gap-1 mb-4">
                 {parsedAiMetadata.categories.map((cat: string, idx: number) => (
-                  <Badge key={idx} variant="secondary">
+                  <Badge 
+                    key={idx} 
+                    variant="secondary"
+                    className={onTagClick ? "cursor-pointer hover:bg-accent" : ""}
+                    onClick={() => onTagClick && onTagClick(cat)}
+                  >
                     {cat}
                   </Badge>
                 ))}
@@ -91,7 +103,11 @@ export function NoteMetadata({
               </div>
               <div className="flex flex-wrap gap-1 mb-4">
                 {parsedAiMetadata.topics.map((topic: string, idx: number) => (
-                  <Badge key={idx}>
+                  <Badge 
+                    key={idx}
+                    className={onTagClick ? "cursor-pointer hover:bg-accent" : ""}
+                    onClick={() => onTagClick && onTagClick(topic)}
+                  >
                     {topic}
                   </Badge>
                 ))}
@@ -205,7 +221,12 @@ export function NoteMetadata({
                 <span className="text-sm font-semibold mb-2 block">Keywords</span>
                 <div className="flex flex-wrap gap-1">
                   {parsedAiMetadata.keywords.map((keyword: string, idx: number) => (
-                    <Badge key={idx} variant="secondary" className="text-xs">
+                    <Badge 
+                      key={idx} 
+                      variant="secondary" 
+                      className={`text-xs ${onTagClick ? "cursor-pointer hover:bg-accent" : ""}`}
+                      onClick={() => onTagClick && onTagClick(keyword)}
+                    >
                       {keyword}
                     </Badge>
                   ))}

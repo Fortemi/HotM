@@ -67,6 +67,7 @@ export function HallOfMind() {
   const [revisedContent, setRevisedContent] = useState("");
   const [editingRevised, setEditingRevised] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [searchMode, setSearchMode] = useState<"local" | "fts" | "semantic" | "hybrid">("local");
   const [isDarkMode, setIsDarkMode] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [serverStatus, setServerStatus] = useState<{
@@ -402,10 +403,87 @@ export function HallOfMind() {
     }
   };
 
-  const filteredNotes = notes.filter(note =>
-    note.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    note.content.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  // Perform server search when query changes
+  const performSearch = async (query: string) => {
+    if (!query || query.length < 2) {
+      setSearchMode("local");
+      return;
+    }
+
+    // Check for special search patterns
+    if (query.startsWith('#')) {
+      // Tag search
+      const tag = query.substring(1).trim();
+      if (tag) {
+        try {
+          const results = await api.searchNotes(query, "fts");
+          if (results && results.length > 0) {
+            // Map search results to our note format
+            const searchNotes = results.map((hit: any) => ({
+              id: hit.note_id,
+              title: hit.snippet?.split('\n')[0] || "Search result",
+              content: hit.snippet || "",
+              revised_content: null,
+              createdAt: new Date().toISOString(),
+              updatedAt: new Date().toISOString(),
+              tags: [],
+              starred: false
+            }));
+            setNotes(searchNotes);
+            setSearchMode("fts");
+          }
+        } catch (error) {
+          console.error("Search failed:", error);
+        }
+      }
+    } else if (query.length >= 3) {
+      // Regular search - use hybrid mode for best results
+      try {
+        const results = await api.searchNotes(query, "hybrid");
+        if (results && results.length > 0) {
+          const searchNotes = results.map((hit: any) => ({
+            id: hit.note_id,
+            title: hit.snippet?.split('\n')[0] || "Search result",
+            content: hit.snippet || "",
+            revised_content: null,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+            tags: [],
+            starred: false
+          }));
+          setNotes(searchNotes);
+          setSearchMode("hybrid");
+        }
+      } catch (error) {
+        console.error("Search failed:", error);
+        setSearchMode("local");
+      }
+    } else {
+      setSearchMode("local");
+    }
+  };
+
+  // Debounced search effect
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (searchQuery && searchQuery.length >= 2) {
+        performSearch(searchQuery);
+      } else if (!searchQuery) {
+        // Reset to all notes when search is cleared
+        loadExistingNotes();
+        setSearchMode("local");
+      }
+    }, 300); // 300ms debounce
+
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
+  const filteredNotes = searchMode === "local" 
+    ? notes.filter(note =>
+        note.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        note.content.toLowerCase().includes(searchQuery.toLowerCase())
+      )
+    : notes; // When in search mode, notes are already filtered from server
 
   return (
     <SidebarProvider defaultOpen={true}>
@@ -863,6 +941,10 @@ export function HallOfMind() {
                       links={fullNote?.links || []}
                       starred={fullNote?.note?.starred}
                       archived={fullNote?.note?.archived}
+                      onTagClick={(tag) => {
+                        // Search for the tag
+                        setSearchQuery(`#${tag}`);
+                      }}
                     />
                   </TabsContent>
                 </Tabs>

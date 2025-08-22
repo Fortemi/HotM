@@ -18,21 +18,51 @@ pub async fn search(State(state): State<AppState>, Query(params): Query<SearchPa
             })?;
             Ok(Json(SearchResponse{ notes: hits }))
         },
-        "vector" => {
-            let vecs = crate::ollama::embed_texts(vec![params.q.clone()], &state.embed_model)
-                .await.map_err(|_| axum::http::StatusCode::INTERNAL_SERVER_ERROR)?;
+        "vector" | "semantic" => {
+            let vecs = match crate::ollama::embed_texts(vec![params.q.clone()], &state.embed_model).await {
+                Ok(v) => v,
+                Err(e) => {
+                    tracing::warn!("Embedding failed, falling back to FTS: {}", e);
+                    // Fall back to FTS if embedding fails
+                    let hits = db::search_fts_filtered(&state, &params.q, filters, 25).await.map_err(|e| {
+                        tracing::error!("FTS fallback also failed: {:?}", e);
+                        axum::http::StatusCode::INTERNAL_SERVER_ERROR
+                    })?;
+                    return Ok(Json(SearchResponse{ notes: hits }));
+                }
+            };
             let query_vec = vecs.into_iter().next().unwrap_or_else(|| vec![0.0_f32; 768]);
             let hits = db::search_vector_filtered(&state, query_vec, filters, 25).await.map_err(|_| axum::http::StatusCode::INTERNAL_SERVER_ERROR)?;
             Ok(Json(SearchResponse{ notes: hits }))
         },
         _ => {
             // hybrid: fts + vector + RRF
-            let vecs = crate::ollama::embed_texts(vec![params.q.clone()], &state.embed_model)
-                .await.map_err(|_| axum::http::StatusCode::INTERNAL_SERVER_ERROR)?;
-            let query_vec = vecs.into_iter().next().unwrap_or_else(|| vec![0.0_f32; 768]);
-            let fts_hits = db::search_fts_filtered(&state, &params.q, filters, 50).await.map_err(|_| axum::http::StatusCode::INTERNAL_SERVER_ERROR)?;
-            let vec_hits = db::search_vector_filtered(&state, query_vec, filters, 50).await.map_err(|_| axum::http::StatusCode::INTERNAL_SERVER_ERROR)?;
-            let notes = rrf_fuse(fts_hits, vec_hits, 25);
+            let fts_hits = db::search_fts_filtered(&state, &params.q, filters, 50).await.map_err(|e| {
+                tracing::error!("FTS search error in hybrid: {:?}", e);
+                axum::http::StatusCode::INTERNAL_SERVER_ERROR
+            })?;
+            
+            // Try to get vector results, but don't fail if embeddings are unavailable
+            let vec_hits = match crate::ollama::embed_texts(vec![params.q.clone()], &state.embed_model).await {
+                Ok(vecs) => {
+                    let query_vec = vecs.into_iter().next().unwrap_or_else(|| vec![0.0_f32; 768]);
+                    db::search_vector_filtered(&state, query_vec, filters, 50).await.unwrap_or_else(|e| {
+                        tracing::warn!("Vector search failed in hybrid, using FTS only: {}", e);
+                        vec![]
+                    })
+                },
+                Err(e) => {
+                    tracing::warn!("Embedding failed in hybrid search, using FTS only: {}", e);
+                    vec![]
+                }
+            };
+            
+            let notes = if vec_hits.is_empty() {
+                // Just use FTS results if vector search failed
+                fts_hits.into_iter().take(25).collect()
+            } else {
+                rrf_fuse(fts_hits, vec_hits, 25)
+            };
             Ok(Json(SearchResponse{ notes }))
         }
     }

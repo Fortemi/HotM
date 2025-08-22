@@ -117,6 +117,13 @@ class ApiClient {
     }
   }
 
+  // Search notes
+  async searchNotes(query: string, mode: "fts" | "semantic" | "hybrid" = "hybrid"): Promise<any[]> {
+    const params = new URLSearchParams({ q: query, mode });
+    const response = await this.request<{ notes: any[] }>(`/search?${params}`);
+    return response.notes || [];
+  }
+
   // Health check with retry logic
   async checkHealth(): Promise<HealthResponse> {
     try {
