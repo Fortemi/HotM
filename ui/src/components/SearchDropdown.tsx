@@ -81,13 +81,13 @@ export function SearchDropdown({
   const getModeLabel = () => {
     switch (searchMode) {
       case 'semantic':
-        return 'AI Search';
+        return 'Smart Search';
       case 'fts':
         return 'Text Search';
       case 'hybrid':
-        return 'Hybrid Search';
+        return 'Enhanced Search';
       default:
-        return 'Local Search';
+        return 'Quick Search';
     }
   };
   
@@ -136,7 +136,7 @@ export function SearchDropdown({
           </div>
           
           {/* Results */}
-          <ScrollArea className="max-h-[400px]">
+          <ScrollArea className="max-h-[300px]">
             {isSearching ? (
               <div className="flex items-center justify-center py-8">
                 <Loader2 className="h-6 w-6 animate-spin text-primary" />
@@ -251,16 +251,6 @@ export function SearchDropdown({
                                 </div>
                               </>
                             )}
-                          
-                            {/* Search relevance for non-local search */}
-                            {searchMode !== 'local' && (
-                              <>
-                                <span className="text-xs text-muted-foreground">•</span>
-                                <Badge variant="secondary" className="text-xs py-0 h-5">
-                                  {searchMode === 'hybrid' ? 'AI Ranked' : 'Relevance Match'}
-                                </Badge>
-                              </>
-                            )}
                           </div>
                         </div>
                       </div>
@@ -270,24 +260,6 @@ export function SearchDropdown({
               </div>
             )}
           </ScrollArea>
-          
-          {/* Footer with search mode info */}
-          {!isSearching && searchResults.length > 0 && (
-            <div className="px-4 py-2 border-t bg-muted/30 text-xs text-muted-foreground">
-              {searchMode === 'hybrid' && (
-                <span>Results ranked by AI for best relevance</span>
-              )}
-              {searchMode === 'semantic' && (
-                <span>Semantic search using AI embeddings</span>
-              )}
-              {searchMode === 'fts' && (
-                <span>Full-text search across all notes</span>
-              )}
-              {searchMode === 'local' && (
-                <span>Quick local search in loaded notes</span>
-              )}
-            </div>
-          )}
         </CardContent>
       </Card>
     </div>
