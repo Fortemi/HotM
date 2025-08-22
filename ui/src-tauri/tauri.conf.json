@@ -31,9 +31,6 @@
   "bundle": {
     "active": true,
     "targets": "all",
-    "resources": [
-      "resources/plantuml.jar"
-    ],
     "windows": {
       "wix": {
         "language": "en-US"

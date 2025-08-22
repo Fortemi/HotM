@@ -49,17 +49,15 @@ export function PlantUMLRenderer({ code, className = '' }: PlantUMLRendererProps
   }
 
   if (error) {
-    // Check if it's a PlantUML not found error
-    if (error.includes('PlantUML JAR file not found') || error.includes('Java is not installed')) {
+    // Check if it's a PlantUML server not available error
+    if (error.includes('PlantUML server is not available') || error.includes('Failed to connect to PlantUML server')) {
       return (
         <div className={`p-4 border border-warning/50 rounded-lg bg-warning/10 ${className}`}>
-          <div className="text-sm text-warning mb-2">PlantUML is not configured</div>
+          <div className="text-sm text-warning mb-2">PlantUML server is not running</div>
           <div className="text-xs opacity-70">
-            To render PlantUML diagrams, you need:
-            <ul className="list-disc list-inside mt-1">
-              <li>Java installed on your system</li>
-              <li>PlantUML JAR file (will be downloaded automatically on first use)</li>
-            </ul>
+            To render PlantUML diagrams, the PlantUML server needs to be running on port 8080.
+            <br />
+            The server is usually started automatically when you run the API server.
           </div>
           <details className="mt-2">
             <summary className="cursor-pointer text-xs">Show diagram source</summary>
