@@ -81,6 +81,52 @@ export function HallOfMind() {
     loadExistingNotes();
   }, []);
 
+  // Auto-refresh every 10 seconds if there are processing notes
+  useEffect(() => {
+    if (processingNotes.size === 0) return;
+    
+    const interval = setInterval(() => {
+      console.log("Auto-refreshing processing notes...");
+      processingNotes.forEach(async (noteId) => {
+        try {
+          const updatedNote = await api.getNote(noteId);
+          if (updatedNote.revised) {
+            const simpleNote = {
+              id: updatedNote.note.id,
+              title: updatedNote.original.content.split('\n')[0].substring(0, 50) || "Untitled",
+              content: updatedNote.original.content,
+              revised_content: updatedNote.revised.content,
+              createdAt: updatedNote.note.created_at_utc,
+              updatedAt: updatedNote.note.updated_at_utc,
+              tags: updatedNote.tags,
+              starred: false
+            };
+            
+            setNotes(prev => prev.map(n => n.id === simpleNote.id ? simpleNote : n));
+            
+            if (selectedNote?.id === simpleNote.id) {
+              setSelectedNote(simpleNote);
+              setRevisedContent(simpleNote.revised_content || simpleNote.content);
+            }
+            
+            // Remove from processing set
+            setProcessingNotes(prev => {
+              const newSet = new Set(prev);
+              newSet.delete(noteId);
+              return newSet;
+            });
+            
+            console.log("AI revision auto-loaded for note:", noteId);
+          }
+        } catch (error) {
+          console.error("Failed to auto-refresh note:", error);
+        }
+      });
+    }, 5000); // Check every 5 seconds
+    
+    return () => clearInterval(interval);
+  }, [processingNotes, selectedNote]);
+
   useEffect(() => {
     // Set initial dark mode
     document.documentElement.classList.toggle("dark", isDarkMode);
@@ -463,11 +509,42 @@ export function HallOfMind() {
                     filteredNotes.map((note) => (
                       <SidebarMenuItem key={note.id}>
                         <SidebarMenuButton
-                          onClick={() => {
+                          onClick={async () => {
+                            // First set the local state
                             setSelectedNote(note);
                             setNoteContent(note.content);
                             setRevisedContent(note.revised_content || note.content);
                             setEditingRevised(false); // Default to editing original
+                            
+                            // Then fetch fresh data from server
+                            try {
+                              const freshNote = await api.getNote(note.id);
+                              const updatedNote = {
+                                id: freshNote.note.id,
+                                title: freshNote.original.content.split('\n')[0].substring(0, 50) || "Untitled",
+                                content: freshNote.original.content,
+                                revised_content: freshNote.revised ? freshNote.revised.content : null,
+                                createdAt: freshNote.note.created_at_utc,
+                                updatedAt: freshNote.note.updated_at_utc,
+                                tags: freshNote.tags,
+                                starred: note.starred // Preserve starred state
+                              };
+                              
+                              // Update the note in the list
+                              setNotes(prev => prev.map(n => n.id === updatedNote.id ? updatedNote : n));
+                              
+                              // Update selected note with fresh data
+                              setSelectedNote(updatedNote);
+                              setNoteContent(updatedNote.content);
+                              setRevisedContent(updatedNote.revised_content || updatedNote.content);
+                              
+                              // Update saved notes cache
+                              savedNotes.current.set(freshNote.note.id, freshNote);
+                              
+                              console.log("Note refreshed from server:", note.id);
+                            } catch (error) {
+                              console.error("Failed to refresh note:", error);
+                            }
                           }}
                           className={selectedNote?.id === note.id ? "bg-accent" : ""}
                         >
