@@ -14,26 +14,6 @@ if (Test-Path "verify-icons.ps1") {
     Write-Host "Icon verification script not found, assuming icons are present" -ForegroundColor Yellow
 }
 
-# Download PlantUML JAR if not present
-$plantUmlJar = "src-tauri\resources\plantuml.jar"
-if (!(Test-Path $plantUmlJar)) {
-    Write-Host ""
-    Write-Host "PlantUML JAR not found, downloading..." -ForegroundColor Yellow
-    if (Test-Path "scripts\download-plantuml.ps1") {
-        & .\scripts\download-plantuml.ps1
-        if ($LASTEXITCODE -eq 0) {
-            Write-Host "PlantUML JAR downloaded successfully" -ForegroundColor Green
-        } else {
-            Write-Host "Warning: Failed to download PlantUML JAR" -ForegroundColor Yellow
-            Write-Host "PlantUML diagrams will not be available" -ForegroundColor Yellow
-        }
-    } else {
-        Write-Host "PlantUML download script not found" -ForegroundColor Yellow
-    }
-} else {
-    Write-Host "PlantUML JAR already present" -ForegroundColor Green
-}
-
 # Check if npm packages are installed
 if (-not (Test-Path "node_modules")) {
     Write-Host "Installing dependencies..." -ForegroundColor Yellow

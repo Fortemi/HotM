@@ -9,7 +9,6 @@
     "preview": "vite preview",
     "tauri": "tauri",
     "verify-icons": "powershell -ExecutionPolicy Bypass -File verify-icons.ps1 || echo 'Icon verification skipped (icons should be in src-tauri/icons/)'",
-    "download-plantuml": "powershell -ExecutionPolicy Bypass -File scripts/download-plantuml.ps1 || sh scripts/download-plantuml.sh || echo 'PlantUML download skipped'",
     "build:full": "npm run build"
   },
   "dependencies": {
