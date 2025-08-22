@@ -54,7 +54,7 @@ interface Note {
   updatedAt: string;
   tags: string[];
   starred: boolean;
-  revised_content?: string;
+  revised_content?: string | null;
 }
 
 export function HallOfMind() {
