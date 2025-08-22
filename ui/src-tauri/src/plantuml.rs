@@ -1,4 +1,4 @@
-use std::process::Command;
+use std::process::{Command, Stdio};
 use std::path::PathBuf;
 use std::fs;
 use tauri::{AppHandle, Manager};
@@ -63,9 +63,20 @@ fn get_plantuml_jar_path(app: &AppHandle) -> Result<PathBuf, PlantUMLError> {
 
 /// Check if Java is available
 fn check_java() -> Result<(), PlantUMLError> {
-    let output = Command::new("java")
-        .arg("-version")
-        .output();
+    let mut cmd = Command::new("java");
+    cmd.arg("-version")
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped());
+    
+    // Hide console window on Windows
+    #[cfg(windows)]
+    {
+        use std::os::windows::process::CommandExt;
+        const CREATE_NO_WINDOW: u32 = 0x08000000;
+        cmd.creation_flags(CREATE_NO_WINDOW);
+    }
+    
+    let output = cmd.output();
 
     match output {
         Ok(o) if o.status.success() => Ok(()),
@@ -98,9 +109,14 @@ pub fn render_plantuml(app: &AppHandle, code: &str) -> Result<String, PlantUMLEr
     // Write PlantUML code to temporary file
     fs::write(&input_file, code)?;
     
+    // Log for debugging
+    eprintln!("PlantUML: Processing diagram with JAR: {:?}", jar_path);
+    eprintln!("PlantUML: Input file: {:?}", input_file);
+    eprintln!("PlantUML: Output directory: {:?}", temp_dir);
+    
     // Run PlantUML with explicit output directory
-    let output = Command::new("java")
-        .arg("-jar")
+    let mut cmd = Command::new("java");
+    cmd.arg("-jar")
         .arg(&jar_path)
         .arg("-tsvg")
         .arg("-charset")
@@ -108,7 +124,18 @@ pub fn render_plantuml(app: &AppHandle, code: &str) -> Result<String, PlantUMLEr
         .arg("-o")
         .arg(&temp_dir)  // Explicit output directory
         .arg(&input_file)
-        .output()?;
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped());
+    
+    // Hide console window on Windows
+    #[cfg(windows)]
+    {
+        use std::os::windows::process::CommandExt;
+        const CREATE_NO_WINDOW: u32 = 0x08000000;
+        cmd.creation_flags(CREATE_NO_WINDOW);
+    }
+    
+    let output = cmd.output()?;
     
     // Clean up input file
     let _ = fs::remove_file(&input_file);
@@ -116,20 +143,47 @@ pub fn render_plantuml(app: &AppHandle, code: &str) -> Result<String, PlantUMLEr
     if !output.status.success() {
         let error_msg = String::from_utf8_lossy(&output.stderr);
         let stdout_msg = String::from_utf8_lossy(&output.stdout);
+        eprintln!("PlantUML: Command failed with stderr: {}", error_msg);
+        eprintln!("PlantUML: stdout: {}", stdout_msg);
         return Err(PlantUMLError::RenderFailed(
             format!("stderr: {}\nstdout: {}", error_msg, stdout_msg)
         ));
     }
     
-    // Read the generated SVG
-    if output_file.exists() {
-        let svg = fs::read_to_string(&output_file)?;
-        // Clean up output file
+    // PlantUML might create output file with slightly different name
+    // Try the expected file first
+    let svg = if output_file.exists() {
+        eprintln!("PlantUML: Found output file at expected location: {:?}", output_file);
+        let content = fs::read_to_string(&output_file)?;
         let _ = fs::remove_file(&output_file);
-        Ok(svg)
+        content
     } else {
-        Err(PlantUMLError::RenderFailed("SVG file not generated".to_string()))
-    }
+        // Try alternative naming (PlantUML sometimes removes underscores or changes names)
+        let alt_output = temp_dir.join(format!("plantuml_input_{}.svg", 
+            std::process::id()).replace("_", ""));
+        
+        if alt_output.exists() {
+            eprintln!("PlantUML: Found output at alternative location: {:?}", alt_output);
+            let content = fs::read_to_string(&alt_output)?;
+            let _ = fs::remove_file(&alt_output);
+            content
+        } else {
+            // List all files in temp dir for debugging
+            eprintln!("PlantUML: Output file not found. Checking directory contents...");
+            if let Ok(entries) = fs::read_dir(&temp_dir) {
+                for entry in entries {
+                    if let Ok(entry) = entry {
+                        eprintln!("  Found file: {:?}", entry.path());
+                    }
+                }
+            }
+            return Err(PlantUMLError::RenderFailed(
+                format!("SVG file not generated. Expected: {:?}", output_file)
+            ));
+        }
+    };
+    
+    Ok(svg)
 }
 
 /// Download PlantUML JAR if not present
