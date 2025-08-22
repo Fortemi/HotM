@@ -1,19 +1,34 @@
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize)]
-pub struct EmbeddingRequest { pub model: String, pub input: Vec<String> }
+pub struct EmbeddingRequest { 
+    pub model: String, 
+    pub prompt: String  // Ollama uses 'prompt' not 'input'
+}
 
 #[derive(Deserialize)]
-pub struct EmbeddingResponse { pub embeddings: Vec<Vec<f32>> }
+pub struct EmbeddingResponse { 
+    pub embedding: Vec<f32>  // Ollama returns single embedding not array
+}
 
 pub async fn embed_texts(texts: Vec<String>, model: &str) -> anyhow::Result<Vec<Vec<f32>>> {
-    let req = EmbeddingRequest { model: model.to_string(), input: texts };
-    let resp = reqwest::Client::new()
-        .post("http://127.0.0.1:11434/api/embeddings")
-        .json(&req)
-        .send().await?;
-    let body: EmbeddingResponse = resp.json().await?;
-    Ok(body.embeddings)
+    let mut embeddings = Vec::new();
+    
+    // Ollama processes one text at a time for embeddings
+    for text in texts {
+        let req = EmbeddingRequest { 
+            model: model.to_string(), 
+            prompt: text 
+        };
+        let resp = reqwest::Client::new()
+            .post("http://127.0.0.1:11434/api/embeddings")  // Using /api/embeddings endpoint
+            .json(&req)
+            .send().await?;
+        let body: EmbeddingResponse = resp.json().await?;
+        embeddings.push(body.embedding);
+    }
+    
+    Ok(embeddings)
 }
 
 #[derive(Serialize)]

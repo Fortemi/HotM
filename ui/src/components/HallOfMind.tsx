@@ -111,7 +111,7 @@ export function HallOfMind() {
             id: note.note.id,
             title: note.original.content.split('\n')[0].substring(0, 50) || "Untitled",
             content: note.original.content,
-            revised_content: note.revised.content,
+            revised_content: note.revised ? note.revised.content : null,
             createdAt: note.note.created_at_utc,
             updatedAt: note.note.updated_at_utc,
             tags: note.tags,
@@ -162,12 +162,33 @@ export function HallOfMind() {
         id: fullNote.note.id,
         title: fullNote.original.content.split('\n')[0].substring(0, 50) || "Untitled",
         content: fullNote.original.content,
-        revised_content: fullNote.revised.content,
+        revised_content: fullNote.revised ? fullNote.revised.content : null,
         createdAt: fullNote.note.created_at_utc,
         updatedAt: fullNote.note.updated_at_utc,
         tags: fullNote.tags,
         starred: false
       };
+      
+      // Set a timer to reload after AI processing
+      setTimeout(async () => {
+        try {
+          const updatedNote = await api.getNote(response.note_id);
+          if (updatedNote.revised) {
+            // Update the note with AI revision
+            const updatedSimpleNote = {
+              ...simpleNote,
+              revised_content: updatedNote.revised.content
+            };
+            setNotes(prev => prev.map(n => n.id === updatedSimpleNote.id ? updatedSimpleNote : n));
+            if (selectedNote?.id === updatedSimpleNote.id) {
+              setSelectedNote(updatedSimpleNote);
+            }
+            console.log("AI revision loaded for note:", response.note_id);
+          }
+        } catch (error) {
+          console.error("Failed to load AI revision:", error);
+        }
+      }, 5000); // Check for AI revision after 5 seconds
       
       setNotes([simpleNote, ...notes]);
       setSelectedNote(simpleNote);
