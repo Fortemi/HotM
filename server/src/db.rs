@@ -63,6 +63,15 @@ pub async fn insert_note(state: &AppState, content: &str, format: &str, source: 
 
     tx.commit().await?;
 
+    // Generate AI revision asynchronously
+    let state_clone = state.clone();
+    let content_clone = content.to_string();
+    tokio::spawn(async move {
+        if let Err(err) = generate_ai_revision(&state_clone, note_id, &content_clone).await {
+            tracing::warn!(%note_id, error = %format!("{}", err), "AI revision generation failed");
+        }
+    });
+
     // Compute and store embeddings for the revised content (best-effort)
     if let Err(err) = embed_note(&self_from_state(state), note_id, content).await {
         tracing::warn!(%note_id, error = %format!("{}", err), "embedding failed; continuing without vectors");
@@ -314,4 +323,63 @@ pub async fn search_vector_filtered(state: &AppState, query_vec: Vec<f32>, filte
         out.push(SearchHit { note_id, score: score.unwrap_or(0.0), snippet: None });
     }
     Ok(out)
+}
+
+pub async fn generate_ai_revision(state: &AppState, note_id: Uuid, content: &str) -> anyhow::Result<()> {
+    // Create a prompt for the AI to enhance the note
+    let prompt = format!(
+        r#"You are an intelligent note-taking assistant. Your task is to enhance and organize the following note while preserving all important information.
+
+Original Note:
+{}
+
+Please provide an enhanced version that:
+1. Preserves ALL original information and meaning
+2. Improves clarity and organization  
+3. Adds proper markdown formatting (headers, lists, emphasis)
+4. Identifies and highlights key concepts
+5. Adds relevant context or connections if apparent
+6. Formats any code blocks, math expressions, or diagrams properly
+7. Maintains a professional yet accessible tone
+
+Output the enhanced note in clean markdown format. Do not add explanatory text before or after the note."#,
+        content
+    );
+
+    // Generate the AI revision
+    let revised_content = crate::ollama::generate(&state.gen_model, &prompt).await?;
+    
+    // Store the revised content
+    let revision_id = Uuid::new_v4();
+    let now = Utc::now();
+    
+    let mut tx = state.pool.begin().await?;
+    
+    // Insert revision record
+    sqlx::query!(
+        "INSERT INTO note_revision (id, note_id, created_at_utc, rationale, content, type) VALUES ($1, $2, $3, $4, $5, $6)",
+        revision_id, note_id, now, "AI-enhanced revision", revised_content, "ai_enhancement"
+    ).execute(&mut *tx).await?;
+    
+    // Update current revised content
+    sqlx::query!(
+        "UPDATE note_revised_current SET content = $1, last_revision_id = $2 WHERE note_id = $3",
+        revised_content, revision_id, note_id
+    ).execute(&mut *tx).await?;
+    
+    // Log the revision
+    sqlx::query!(
+        "INSERT INTO activity_log (id, at_utc, actor, action, note_id, meta) VALUES ($1, $2, 'ai', 'revise_note', $3, '{}'::jsonb)",
+        Uuid::new_v4(), now, note_id
+    ).execute(&mut *tx).await?;
+    
+    tx.commit().await?;
+    
+    // Generate embeddings for the revised content
+    if let Err(err) = embed_note(&self_from_state(state), note_id, &revised_content).await {
+        tracing::warn!(%note_id, error = %format!("{}", err), "embedding revised content failed");
+    }
+    
+    tracing::info!(%note_id, "AI revision generated successfully");
+    Ok(())
 }

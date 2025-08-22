@@ -42,6 +42,7 @@ import {
   Loader2
 } from "lucide-react";
 import { api, NoteFull } from "@/services/api";
+import { MarkdownPreview } from "./MarkdownPreview";
 
 interface Note {
   id: string;
@@ -431,19 +432,19 @@ export function HallOfMind() {
           <main className="flex-1 p-6">
             {selectedNote ? (
               <div className="mx-auto max-w-4xl">
-                <Tabs defaultValue="edit" className="h-full">
+                <Tabs defaultValue="preview" className="h-full">
                   <TabsList className="mb-4">
+                    <TabsTrigger value="preview" className="gap-2">
+                      <Sparkles className="h-4 w-4" />
+                      AI Enhanced
+                    </TabsTrigger>
+                    <TabsTrigger value="original" className="gap-2">
+                      <BookOpen className="h-4 w-4" />
+                      Original
+                    </TabsTrigger>
                     <TabsTrigger value="edit" className="gap-2">
                       <Edit3 className="h-4 w-4" />
                       Edit
-                    </TabsTrigger>
-                    <TabsTrigger value="preview" className="gap-2">
-                      <BookOpen className="h-4 w-4" />
-                      Preview
-                    </TabsTrigger>
-                    <TabsTrigger value="insights" className="gap-2">
-                      <Sparkles className="h-4 w-4" />
-                      AI Insights
                     </TabsTrigger>
                   </TabsList>
 
@@ -479,53 +480,51 @@ export function HallOfMind() {
                   <TabsContent value="preview">
                     <Card>
                       <CardHeader>
-                        <CardTitle>{selectedNote.title}</CardTitle>
+                        <CardTitle className="flex items-center gap-2">
+                          <Sparkles className="h-5 w-5 text-primary" />
+                          {selectedNote.title}
+                        </CardTitle>
                         <CardDescription>
-                          Created {new Date(selectedNote.createdAt).toLocaleDateString()}
+                          AI-enhanced version • Updated {new Date(selectedNote.updatedAt).toLocaleString()}
                         </CardDescription>
                       </CardHeader>
                       <CardContent>
-                        <div className="prose prose-sm max-w-none dark:prose-invert">
-                          {noteContent || <p className="text-muted-foreground">Nothing to preview yet...</p>}
-                        </div>
+                        <ScrollArea className="h-[600px]">
+                          <MarkdownPreview 
+                            content={selectedNote.revised_content || noteContent || "Processing note..."}
+                          />
+                          {selectedNote.tags.length > 0 && (
+                            <div className="mt-6 pt-4 border-t">
+                              <div className="flex flex-wrap gap-2">
+                                {selectedNote.tags.map((tag) => (
+                                  <span
+                                    key={tag}
+                                    className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary"
+                                  >
+                                    <Hash className="h-3 w-3" />
+                                    {tag}
+                                  </span>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </ScrollArea>
                       </CardContent>
                     </Card>
                   </TabsContent>
 
-                  <TabsContent value="insights">
+                  <TabsContent value="original">
                     <Card>
                       <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
-                          <Sparkles className="h-5 w-5 text-primary" />
-                          AI Insights
-                        </CardTitle>
+                        <CardTitle>{selectedNote.title}</CardTitle>
                         <CardDescription>
-                          AI-powered analysis of your note
+                          Original note • Created {new Date(selectedNote.createdAt).toLocaleString()}
                         </CardDescription>
                       </CardHeader>
                       <CardContent>
-                        <div className="space-y-4">
-                          <div className="rounded-lg bg-muted p-4">
-                            <h4 className="mb-2 font-medium">Summary</h4>
-                            <p className="text-sm text-muted-foreground">
-                              AI insights will appear here once the backend is connected...
-                            </p>
-                          </div>
-                          <div className="rounded-lg bg-muted p-4">
-                            <h4 className="mb-2 font-medium">Key Topics</h4>
-                            <div className="flex flex-wrap gap-2">
-                              {selectedNote.tags.map((tag) => (
-                                <span
-                                  key={tag}
-                                  className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary"
-                                >
-                                  <Hash className="h-3 w-3" />
-                                  {tag}
-                                </span>
-                              ))}
-                            </div>
-                          </div>
-                        </div>
+                        <ScrollArea className="h-[600px]">
+                          <MarkdownPreview content={noteContent} />
+                        </ScrollArea>
                       </CardContent>
                     </Card>
                   </TabsContent>
