@@ -159,6 +159,18 @@ pub async fn update_revised(state: &AppState, note_id: Uuid, content: &str, rati
 
     tx.commit().await?;
 
+    // If rationale contains "AI", trigger AI regeneration
+    if rationale.map(|r| r.contains("AI") || r.contains("regenerat")).unwrap_or(false) {
+        // Generate AI revision asynchronously
+        let state_clone = state.clone();
+        let content_clone = content.to_string();
+        tokio::spawn(async move {
+            if let Err(err) = generate_ai_revision(&state_clone, note_id, &content_clone).await {
+                tracing::warn!(%note_id, error = %format!("{}", err), "AI revision generation failed");
+            }
+        });
+    }
+
     // Re-embed current content (best-effort)
     if let Err(err) = embed_note(&self_from_state(state), note_id, content).await {
         tracing::warn!(%note_id, error = %format!("{}", err), "embedding failed; continuing without vectors");

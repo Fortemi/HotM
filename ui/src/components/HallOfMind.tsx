@@ -62,6 +62,8 @@ export function HallOfMind() {
   const [notes, setNotes] = useState<Note[]>([]);
   const [selectedNote, setSelectedNote] = useState<Note | null>(null);
   const [noteContent, setNoteContent] = useState("");
+  const [revisedContent, setRevisedContent] = useState("");
+  const [editingRevised, setEditingRevised] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [isDarkMode, setIsDarkMode] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
@@ -232,6 +234,54 @@ export function HallOfMind() {
     }
   };
 
+  const regenerateAI = async () => {
+    if (!selectedNote) return;
+    
+    if (!serverStatus?.ok) {
+      alert("Cannot regenerate while offline. Please check your connection.");
+      return;
+    }
+    
+    try {
+      setIsLoading(true);
+      // Mark as processing
+      setProcessingNotes(prev => new Set(prev).add(selectedNote.id));
+      
+      // Trigger AI regeneration by updating the note
+      await api.updateRevision(selectedNote.id, noteContent, "Trigger AI regeneration");
+      
+      // Wait and fetch the new AI revision
+      setTimeout(async () => {
+        try {
+          const updatedNote = await api.getNote(selectedNote.id);
+          if (updatedNote.revised) {
+            setRevisedContent(updatedNote.revised.content);
+            const updatedSimpleNote = {
+              ...selectedNote,
+              revised_content: updatedNote.revised.content
+            };
+            setNotes(prev => prev.map(n => n.id === updatedSimpleNote.id ? updatedSimpleNote : n));
+            setSelectedNote(updatedSimpleNote);
+            console.log("AI revision regenerated for note:", selectedNote.id);
+          }
+        } catch (error) {
+          console.error("Failed to load regenerated AI revision:", error);
+        } finally {
+          setProcessingNotes(prev => {
+            const newSet = new Set(prev);
+            newSet.delete(selectedNote.id);
+            return newSet;
+          });
+        }
+      }, 5000);
+    } catch (error) {
+      console.error("Failed to regenerate AI enhancement:", error);
+      alert("Failed to regenerate AI enhancement");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const saveNote = async () => {
     if (!selectedNote) return;
     
@@ -247,9 +297,12 @@ export function HallOfMind() {
       return;
     }
     
+    const contentToSave = editingRevised ? revisedContent : noteContent;
+    const rationale = editingRevised ? "Edit AI-enhanced version" : "Manual edit";
+    
     try {
       setIsLoading(true);
-      await api.updateRevision(selectedNote.id, noteContent, "Manual edit");
+      await api.updateRevision(selectedNote.id, contentToSave, rationale);
       
       // Update local state
       const updatedNotes = notes.map(note => 
@@ -413,6 +466,8 @@ export function HallOfMind() {
                           onClick={() => {
                             setSelectedNote(note);
                             setNoteContent(note.content);
+                            setRevisedContent(note.revised_content || note.content);
+                            setEditingRevised(false); // Default to editing original
                           }}
                           className={selectedNote?.id === note.id ? "bg-accent" : ""}
                         >
@@ -510,25 +565,50 @@ export function HallOfMind() {
                   <TabsContent value="edit" className="h-full">
                     <Card className="border-0 shadow-none">
                       <CardHeader>
-                        <input
-                          type="text"
-                          className="text-3xl font-bold bg-transparent outline-none placeholder:text-muted-foreground"
-                          placeholder="Note title..."
-                          value={selectedNote.title}
-                          onChange={(e) => {
-                            const updatedNote = { ...selectedNote, title: e.target.value };
-                            setSelectedNote(updatedNote);
-                            setNotes(notes.map(n => n.id === updatedNote.id ? updatedNote : n));
-                          }}
-                        />
+                        <div className="flex items-center justify-between">
+                          <input
+                            type="text"
+                            className="text-3xl font-bold bg-transparent outline-none placeholder:text-muted-foreground flex-1"
+                            placeholder="Note title..."
+                            value={selectedNote.title}
+                            onChange={(e) => {
+                              const updatedNote = { ...selectedNote, title: e.target.value };
+                              setSelectedNote(updatedNote);
+                              setNotes(notes.map(n => n.id === updatedNote.id ? updatedNote : n));
+                            }}
+                          />
+                          <div className="flex gap-2">
+                            <Button
+                              variant={editingRevised ? "default" : "outline"}
+                              size="sm"
+                              onClick={() => {
+                                setEditingRevised(true);
+                                if (!revisedContent && selectedNote.revised_content) {
+                                  setRevisedContent(selectedNote.revised_content);
+                                }
+                              }}
+                            >
+                              <Sparkles className="h-4 w-4 mr-1" />
+                              Edit AI Version
+                            </Button>
+                            <Button
+                              variant={!editingRevised ? "default" : "outline"}
+                              size="sm"
+                              onClick={() => setEditingRevised(false)}
+                            >
+                              <Edit3 className="h-4 w-4 mr-1" />
+                              Edit Original
+                            </Button>
+                          </div>
+                        </div>
                         <CardDescription>
-                          Last edited {new Date(selectedNote.updatedAt).toLocaleString()}
+                          {editingRevised ? "Editing AI-enhanced version" : "Editing original note"} • Last edited {new Date(selectedNote.updatedAt).toLocaleString()}
                         </CardDescription>
                       </CardHeader>
                       <CardContent>
                         <MarkdownEditor
-                          value={noteContent}
-                          onChange={setNoteContent}
+                          value={editingRevised ? revisedContent : noteContent}
+                          onChange={editingRevised ? setRevisedContent : setNoteContent}
                           height={500}
                         />
                       </CardContent>
@@ -539,13 +619,30 @@ export function HallOfMind() {
                     <div className="space-y-4">
                       <Card>
                         <CardHeader>
-                          <CardTitle className="flex items-center gap-2">
-                            <Sparkles className="h-5 w-5 text-primary" />
-                            {selectedNote.title}
-                          </CardTitle>
-                          <CardDescription>
-                            AI-enhanced version • Updated {new Date(selectedNote.updatedAt).toLocaleString()}
-                          </CardDescription>
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <CardTitle className="flex items-center gap-2">
+                                <Sparkles className="h-5 w-5 text-primary" />
+                                {selectedNote.title}
+                              </CardTitle>
+                              <CardDescription className="mt-1">
+                                AI-enhanced version • Updated {new Date(selectedNote.updatedAt).toLocaleString()}
+                              </CardDescription>
+                            </div>
+                            <Button
+                              onClick={regenerateAI}
+                              disabled={isLoading || processingNotes.has(selectedNote.id)}
+                              size="sm"
+                              variant="outline"
+                            >
+                              {processingNotes.has(selectedNote.id) ? (
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                              ) : (
+                                <RefreshCw className="h-4 w-4" />
+                              )}
+                              <span className="ml-2">Regenerate AI</span>
+                            </Button>
+                          </div>
                         </CardHeader>
                         <CardContent>
                           <ScrollArea className="h-[400px]">
