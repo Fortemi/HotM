@@ -154,22 +154,57 @@ Write-Host "Created: $sized2xPath" -ForegroundColor Green
 $g2x.Dispose()
 $resized2x.Dispose()
 
-# Create Windows ICO file with multiple sizes
+# Create Windows ICO file with proper format
 Write-Host "Creating Windows ICO file..." -ForegroundColor Yellow
 $icoPath = Join-Path $iconsDir "icon.ico"
 
-# For ICO, we need the 256x256 version
+# Create a memory stream for the ICO file
+$ms = New-Object System.IO.MemoryStream
+
+# ICO Header
+$ms.WriteByte(0)  # Reserved
+$ms.WriteByte(0)  # Reserved
+$ms.WriteByte(1)  # Type (1 = ICO)
+$ms.WriteByte(0)  # Type high byte
+$ms.WriteByte(1)  # Number of images (1)
+$ms.WriteByte(0)  # Number of images high byte
+
+# Image directory entry for 256x256 PNG
+$ms.WriteByte(0)   # Width (0 = 256)
+$ms.WriteByte(0)   # Height (0 = 256)
+$ms.WriteByte(0)   # Color count (0 for PNG)
+$ms.WriteByte(0)   # Reserved
+$ms.WriteByte(1)   # Color planes
+$ms.WriteByte(0)   # Color planes high byte
+$ms.WriteByte(32)  # Bits per pixel
+$ms.WriteByte(0)   # Bits per pixel high byte
+
+# Create PNG data for the 256x256 image
+$tempPng = New-Object System.IO.MemoryStream
 $ico256 = New-Object System.Drawing.Bitmap(256, 256)
 $gIco = [System.Drawing.Graphics]::FromImage($ico256)
 $gIco.SmoothingMode = [System.Drawing.Drawing2D.SmoothingMode]::AntiAlias
 $gIco.InterpolationMode = [System.Drawing.Drawing2D.InterpolationMode]::HighQualityBicubic
 $gIco.DrawImage($bitmap, 0, 0, 256, 256)
+$ico256.Save($tempPng, [System.Drawing.Imaging.ImageFormat]::Png)
+$pngBytes = $tempPng.ToArray()
 
-# Save as ICO
-$ico256.Save($icoPath, [System.Drawing.Imaging.ImageFormat]::Icon)
+# Write size and offset
+$sizeBytes = [System.BitConverter]::GetBytes([uint32]$pngBytes.Length)
+$offsetBytes = [System.BitConverter]::GetBytes([uint32]22)  # Header (6) + 1 directory entry (16)
+$ms.Write($sizeBytes, 0, 4)    # Size of PNG data
+$ms.Write($offsetBytes, 0, 4)  # Offset to PNG data
+
+# Write PNG data
+$ms.Write($pngBytes, 0, $pngBytes.Length)
+
+# Save to file
+[System.IO.File]::WriteAllBytes($icoPath, $ms.ToArray())
 Write-Host "Created: $icoPath" -ForegroundColor Green
 
 # Cleanup
+$ms.Dispose()
+$tempPng.Dispose()
 $gIco.Dispose()
 $ico256.Dispose()
 $graphics.Dispose()
