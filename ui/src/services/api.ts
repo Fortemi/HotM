@@ -68,6 +68,11 @@ export interface HealthResponse {
   vector: boolean;
 }
 
+export interface RelatedNotesResponse {
+  related: SearchHit[];
+  context_summary?: string;
+}
+
 // API Client
 class ApiClient {
   private async request<T>(
@@ -234,6 +239,11 @@ class ApiClient {
       method: 'POST',
       body: JSON.stringify({ name }),
     });
+  }
+
+  // Get related notes for a specific note
+  async getRelatedNotes(id: string): Promise<RelatedNotesResponse> {
+    return this.request<RelatedNotesResponse>(`/notes/${id}/related`);
   }
 }
 

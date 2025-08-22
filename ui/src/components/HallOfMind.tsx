@@ -43,6 +43,9 @@ import {
 } from "lucide-react";
 import { api, NoteFull } from "@/services/api";
 import { MarkdownPreview } from "./MarkdownPreview";
+import { MarkdownEditor } from "./MarkdownEditor";
+import { RelatedNotes } from "./RelatedNotes";
+import { EnhancedSearch } from "./EnhancedSearch";
 
 interface Note {
   id: string;
@@ -295,16 +298,10 @@ export function HallOfMind() {
             <SidebarGroup>
               <SidebarGroupContent>
                 <div className="px-3 py-2 space-y-2">
-                  <Textarea 
-                    placeholder="Quick capture... (Ctrl+Enter to save)"
+                  <MarkdownEditor
                     value={newNoteContent}
-                    onChange={(e) => setNewNoteContent(e.target.value)}
-                    className="min-h-[80px] resize-none text-sm"
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' && e.ctrlKey) {
-                        createNewNote();
-                      }
-                    }}
+                    onChange={setNewNoteContent}
+                    height={150}
                   />
                   <Button 
                     onClick={createNewNote}
@@ -446,6 +443,10 @@ export function HallOfMind() {
                       <Edit3 className="h-4 w-4" />
                       Edit
                     </TabsTrigger>
+                    <TabsTrigger value="search" className="gap-2">
+                      <Search className="h-4 w-4" />
+                      Smart Search
+                    </TabsTrigger>
                   </TabsList>
 
                   <TabsContent value="edit" className="h-full">
@@ -467,50 +468,63 @@ export function HallOfMind() {
                         </CardDescription>
                       </CardHeader>
                       <CardContent>
-                        <Textarea
+                        <MarkdownEditor
                           value={noteContent}
-                          onChange={(e) => setNoteContent(e.target.value)}
-                          placeholder="Start writing your thoughts..."
-                          className="min-h-[500px] resize-none border-0 bg-transparent text-base leading-relaxed focus-visible:ring-0"
+                          onChange={setNoteContent}
+                          height={500}
                         />
                       </CardContent>
                     </Card>
                   </TabsContent>
 
                   <TabsContent value="preview">
-                    <Card>
-                      <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
-                          <Sparkles className="h-5 w-5 text-primary" />
-                          {selectedNote.title}
-                        </CardTitle>
-                        <CardDescription>
-                          AI-enhanced version • Updated {new Date(selectedNote.updatedAt).toLocaleString()}
-                        </CardDescription>
-                      </CardHeader>
-                      <CardContent>
-                        <ScrollArea className="h-[600px]">
-                          <MarkdownPreview 
-                            content={selectedNote.revised_content || noteContent || "Processing note..."}
-                          />
-                          {selectedNote.tags.length > 0 && (
-                            <div className="mt-6 pt-4 border-t">
-                              <div className="flex flex-wrap gap-2">
-                                {selectedNote.tags.map((tag) => (
-                                  <span
-                                    key={tag}
-                                    className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary"
-                                  >
-                                    <Hash className="h-3 w-3" />
-                                    {tag}
-                                  </span>
-                                ))}
+                    <div className="space-y-4">
+                      <Card>
+                        <CardHeader>
+                          <CardTitle className="flex items-center gap-2">
+                            <Sparkles className="h-5 w-5 text-primary" />
+                            {selectedNote.title}
+                          </CardTitle>
+                          <CardDescription>
+                            AI-enhanced version • Updated {new Date(selectedNote.updatedAt).toLocaleString()}
+                          </CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                          <ScrollArea className="h-[400px]">
+                            <MarkdownPreview 
+                              content={selectedNote.revised_content || noteContent || "Processing note..."}
+                            />
+                            {selectedNote.tags.length > 0 && (
+                              <div className="mt-6 pt-4 border-t">
+                                <div className="flex flex-wrap gap-2">
+                                  {selectedNote.tags.map((tag) => (
+                                    <span
+                                      key={tag}
+                                      className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary"
+                                    >
+                                      <Hash className="h-3 w-3" />
+                                      {tag}
+                                    </span>
+                                  ))}
+                                </div>
                               </div>
-                            </div>
-                          )}
-                        </ScrollArea>
-                      </CardContent>
-                    </Card>
+                            )}
+                          </ScrollArea>
+                        </CardContent>
+                      </Card>
+                      
+                      {/* Related Notes */}
+                      <RelatedNotes 
+                        noteId={selectedNote.id} 
+                        onSelectNote={(noteId) => {
+                          const note = notes.find(n => n.id === noteId);
+                          if (note) {
+                            setSelectedNote(note);
+                            setNoteContent(note.content);
+                          }
+                        }}
+                      />
+                    </div>
                   </TabsContent>
 
                   <TabsContent value="original">
@@ -527,6 +541,18 @@ export function HallOfMind() {
                         </ScrollArea>
                       </CardContent>
                     </Card>
+                  </TabsContent>
+
+                  <TabsContent value="search">
+                    <EnhancedSearch 
+                      onSelectNote={(noteId) => {
+                        const note = notes.find(n => n.id === noteId);
+                        if (note) {
+                          setSelectedNote(note);
+                          setNoteContent(note.content);
+                        }
+                      }}
+                    />
                   </TabsContent>
                 </Tabs>
               </div>

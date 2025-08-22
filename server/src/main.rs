@@ -35,6 +35,7 @@ async fn main() -> anyhow::Result<()> {
         .route("/api/v1/notes/:id/revised", put(routes::notes::put_revised))
         .route("/api/v1/search", get(routes::search::search))
         .route("/api/v1/semantic", post(routes::search::semantic))
+        .route("/api/v1/notes/:id/related", get(routes::search::find_related_notes))
         .route("/api/v1/tags", post(routes::taxonomy::create_tag))
         .route("/api/v1/notes/:id/tags", put(routes::taxonomy::put_note_tags))
         .route("/api/v1/collections", post(routes::taxonomy::create_collection))

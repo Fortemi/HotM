@@ -1,5 +1,5 @@
-use axum::{extract::{State, Query}, Json};
-use serde::Deserialize;
+use axum::{extract::{State, Query, Path}, Json};
+use serde::{Deserialize, Serialize};
 use crate::{db, db::AppState, models::*};
 use uuid::Uuid;
 
@@ -41,6 +41,89 @@ pub async fn semantic(State(state): State<AppState>, Json(req): Json<SemanticReq
     let query_vec = vecs.into_iter().next().unwrap_or_else(|| vec![0.0_f32; 768]);
     let hits = crate::db::search_vector_filtered(&state, query_vec, None, 25).await.map_err(|_| axum::http::StatusCode::INTERNAL_SERVER_ERROR)?;
     Ok(Json(SemanticResponse { similar: hits }))
+}
+
+#[derive(Serialize)]
+pub struct RelatedNotesResponse {
+    pub related: Vec<SearchHit>,
+    pub context_summary: Option<String>,
+}
+
+pub async fn find_related_notes(
+    State(state): State<AppState>,
+    Path(note_id): Path<Uuid>
+) -> Result<Json<RelatedNotesResponse>, axum::http::StatusCode> {
+    // Get the note content
+    let note = db::get_note(&state, note_id)
+        .await
+        .map_err(|_| axum::http::StatusCode::NOT_FOUND)?;
+    
+    // Get the content to analyze (prefer revised content if available)
+    let content = if let Some(revised) = &note.revised {
+        &revised.content
+    } else {
+        &note.original.content
+    };
+    
+    // Generate embedding for the note content
+    let vecs = crate::ollama::embed_texts(vec![content.clone()], &state.embed_model)
+        .await
+        .map_err(|_| axum::http::StatusCode::INTERNAL_SERVER_ERROR)?;
+    let content_vec = vecs.into_iter().next().unwrap_or_else(|| vec![0.0_f32; 768]);
+    
+    // Find similar notes using vector search (excluding the current note)
+    let mut similar_notes = db::search_vector_filtered(&state, content_vec.clone(), None, 10)
+        .await
+        .map_err(|_| axum::http::StatusCode::INTERNAL_SERVER_ERROR)?;
+    
+    // Filter out the current note
+    similar_notes.retain(|hit| hit.note_id != note_id);
+    
+    // Take top 5 related notes
+    similar_notes.truncate(5);
+    
+    // Generate context summary if there are related notes
+    let context_summary = if !similar_notes.is_empty() {
+        // Get the content of related notes for context analysis
+        let mut related_content = Vec::new();
+        for hit in &similar_notes {
+            if let Ok(related_note) = db::get_note(&state, hit.note_id).await {
+                let snippet = if let Some(revised) = &related_note.revised {
+                    &revised.content[..revised.content.len().min(500)]
+                } else {
+                    &related_note.original.content[..related_note.original.content.len().min(500)]
+                };
+                related_content.push(format!("- {}", snippet));
+            }
+        }
+        
+        // Use LLM to generate context summary
+        let prompt = format!(
+            r#"Analyze how this note relates to other notes in the knowledge base:
+
+Current Note:
+{}
+
+Related Notes (snippets):
+{}
+
+Provide a brief summary (2-3 sentences) explaining how this note fits into the broader context of the user's knowledge base. Focus on themes, connections, and patterns."#,
+            &content[..content.len().min(1000)],
+            related_content.join("\n")
+        );
+        
+        match crate::ollama::generate(&state.gen_model, &prompt).await {
+            Ok(summary) => Some(summary),
+            Err(_) => None
+        }
+    } else {
+        None
+    };
+    
+    Ok(Json(RelatedNotesResponse {
+        related: similar_notes,
+        context_summary,
+    }))
 }
 
 fn rrf_fuse(a: Vec<SearchHit>, b: Vec<SearchHit>, limit: usize) -> Vec<SearchHit> {
