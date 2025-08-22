@@ -22,3 +22,6 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# PlantUML JAR (downloaded during build)
+src-tauri/resources/plantuml.jar
