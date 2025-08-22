@@ -6,14 +6,16 @@ interface MermaidRendererProps {
   className?: string;
 }
 
-// Check if dark mode is enabled
-const isDarkMode = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+// Initialize mermaid with configuration (will be called on each component mount)
+const initializeMermaid = () => {
+  // Check if dark mode is enabled
+  const isDarkMode = document.documentElement.classList.contains('dark') || 
+                     (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
 
-// Initialize mermaid with configuration
-mermaid.initialize({
-  startOnLoad: false,
-  theme: isDarkMode ? 'dark' : 'default',
-  securityLevel: 'loose',
+  mermaid.initialize({
+    startOnLoad: false,
+    theme: isDarkMode ? 'dark' : 'default',
+    securityLevel: 'loose',
   themeVariables: isDarkMode ? {
     // Dark mode theme
     primaryColor: '#8b5cf6',
@@ -47,7 +49,8 @@ mermaid.initialize({
     errorBkgColor: '#fee2e2',
     errorTextColor: '#dc2626',
   },
-});
+  });
+};
 
 export function MermaidRenderer({ code, className = '' }: MermaidRendererProps) {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -56,11 +59,13 @@ export function MermaidRenderer({ code, className = '' }: MermaidRendererProps) 
   const [renderedSvg, setRenderedSvg] = useState<string | null>(null);
 
   useEffect(() => {
+    // Initialize mermaid on mount
+    initializeMermaid();
     renderMermaid();
   }, [code]);
 
   const renderMermaid = async () => {
-    if (!code || !containerRef.current) {
+    if (!code) {
       setLoading(false);
       return;
     }
@@ -73,6 +78,7 @@ export function MermaidRenderer({ code, className = '' }: MermaidRendererProps) 
       const id = `mermaid-${Math.random().toString(36).substr(2, 9)}`;
       
       // Parse and render the diagram
+      console.log('Rendering Mermaid diagram with code:', code.substring(0, 100));
       const { svg } = await mermaid.render(id, code);
       setRenderedSvg(svg);
       
