@@ -91,10 +91,25 @@ pub async fn fetch_note(state: &AppState, note_id: Uuid) -> anyhow::Result<NoteF
         note_id
     ).fetch_one(&state.pool).await?;
 
-    let revised = sqlx::query!(
-        "SELECT content, last_revision_id FROM note_revised_current WHERE note_id = $1",
+    // Try to get the latest AI revision first, fallback to current revised
+    let ai_revision = sqlx::query!(
+        "SELECT content, id as last_revision_id FROM note_revision 
+         WHERE note_id = $1 AND type = 'ai_enhancement'
+         ORDER BY created_at_utc DESC LIMIT 1",
         note_id
-    ).fetch_one(&state.pool).await?;
+    ).fetch_optional(&state.pool).await?;
+    
+    let revised = if let Some(ai_rev) = ai_revision {
+        // Use AI revision if available
+        (ai_rev.content, ai_rev.last_revision_id)
+    } else {
+        // Fallback to current revised
+        let current = sqlx::query!(
+            "SELECT content, last_revision_id FROM note_revised_current WHERE note_id = $1",
+            note_id
+        ).fetch_one(&state.pool).await?;
+        (current.content, current.last_revision_id)
+    };
 
     let tags = sqlx::query!(
         "SELECT tag_name FROM note_tag WHERE note_id = $1",
@@ -126,7 +141,7 @@ pub async fn fetch_note(state: &AppState, note_id: Uuid) -> anyhow::Result<NoteF
             updated_at_utc: note.updated_at_utc,
         },
         original: NoteOriginal { content: original.content, hash: original.hash },
-        revised: NoteRevised { content: revised.content, last_revision_id: revised.last_revision_id },
+        revised: NoteRevised { content: revised.0, last_revision_id: revised.1 },
         tags,
         links,
     })

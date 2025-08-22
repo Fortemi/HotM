@@ -54,16 +54,12 @@ pub async fn find_related_notes(
     Path(note_id): Path<Uuid>
 ) -> Result<Json<RelatedNotesResponse>, axum::http::StatusCode> {
     // Get the note content
-    let note = db::get_note(&state, note_id)
+    let note = db::fetch_note(&state, note_id)
         .await
         .map_err(|_| axum::http::StatusCode::NOT_FOUND)?;
     
     // Get the content to analyze (prefer revised content if available)
-    let content = if let Some(revised) = &note.revised {
-        &revised.content
-    } else {
-        &note.original.content
-    };
+    let content = &note.revised.content;
     
     // Generate embedding for the note content
     let vecs = crate::ollama::embed_texts(vec![content.clone()], &state.embed_model)
@@ -87,12 +83,8 @@ pub async fn find_related_notes(
         // Get the content of related notes for context analysis
         let mut related_content = Vec::new();
         for hit in &similar_notes {
-            if let Ok(related_note) = db::get_note(&state, hit.note_id).await {
-                let snippet = if let Some(revised) = &related_note.revised {
-                    &revised.content[..revised.content.len().min(500)]
-                } else {
-                    &related_note.original.content[..related_note.original.content.len().min(500)]
-                };
+            if let Ok(related_note) = db::fetch_note(&state, hit.note_id).await {
+                let snippet = &related_note.revised.content[..related_note.revised.content.len().min(500)];
                 related_content.push(format!("- {}", snippet));
             }
         }
