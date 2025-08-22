@@ -106,6 +106,11 @@ export function HallOfMind() {
           // Store the full note data
           savedNotes.current.set(note.note.id, note);
           
+          // Log if we have revised content
+          if (note.revised && note.revised.content) {
+            console.log(`Note ${note.note.id} has AI revision (${note.revised.content.length} chars)`);
+          }
+          
           // Create simplified version for UI
           return {
             id: note.note.id,
@@ -119,6 +124,16 @@ export function HallOfMind() {
           };
         });
         setNotes(simpleNotes);
+        
+        // If we have a selected note, update it with the fresh data
+        if (selectedNote) {
+          const updatedSelected = simpleNotes.find(n => n.id === selectedNote.id);
+          if (updatedSelected) {
+            setSelectedNote(updatedSelected);
+            setNoteContent(updatedSelected.content);
+          }
+        }
+        
         console.log(`Loaded ${simpleNotes.length} notes from server`);
       } else {
         console.log("No existing notes found");
