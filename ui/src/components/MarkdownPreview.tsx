@@ -44,7 +44,7 @@ export function MarkdownPreview({ content, className = "" }: MarkdownPreviewProp
             );
           },
           // Custom rendering for tables
-          table({ children }) {
+          table({ children }: any) {
             return (
               <div className="overflow-x-auto">
                 <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
@@ -54,7 +54,7 @@ export function MarkdownPreview({ content, className = "" }: MarkdownPreviewProp
             );
           },
           // Enhanced blockquote styling
-          blockquote({ children }) {
+          blockquote({ children }: any) {
             return (
               <blockquote className="border-l-4 border-purple-500 pl-4 italic bg-purple-50 dark:bg-purple-950/20 py-2 my-4">
                 {children}
