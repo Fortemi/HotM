@@ -1,11 +1,11 @@
 use tauri::{
     tray::{TrayIconBuilder}, 
-    Manager, WindowEvent, AppHandle,
+    Manager, WindowEvent,
 };
 use tauri::menu::{MenuBuilder, MenuItemBuilder};
 use tauri_plugin_global_shortcut::GlobalShortcutExt;
 
-// Create a Hall of the Mind icon programmatically (purple gradient with "HM" monogram)
+// Create a Hall of the Mind brain icon programmatically (purple gradient with brain shape)
 fn create_default_icon() -> tauri::image::Image<'static> {
     const SIZE: u32 = 32;
     let mut pixels = Vec::with_capacity((SIZE * SIZE * 4) as usize);
@@ -18,20 +18,29 @@ fn create_default_icon() -> tauri::image::Image<'static> {
             let g = 41 + diagonal_gradient;
             let b = 145 + diagonal_gradient;
             
-            // Draw "HM" monogram for Hall of the Mind
-            // H on the left
-            let is_h = (x >= 5 && x <= 7 && y >= 8 && y <= 24) ||   // H left vertical
-                      (x >= 11 && x <= 13 && y >= 8 && y <= 24) ||  // H right vertical
-                      (x >= 5 && x <= 13 && y >= 15 && y <= 17);    // H horizontal
+            // Draw simplified brain shape
+            let cx = SIZE as f32 / 2.0;
+            let cy = SIZE as f32 / 2.0;
+            let fx = x as f32;
+            let fy = y as f32;
             
-            // M on the right
-            let is_m = (x >= 16 && x <= 18 && y >= 8 && y <= 24) ||  // M left vertical
-                      (x >= 19 && x <= 20 && y >= 10 && y <= 16) ||  // M middle valley
-                      (x >= 21 && x <= 22 && y >= 10 && y <= 16) ||  // M middle peak
-                      (x >= 24 && x <= 26 && y >= 8 && y <= 24);     // M right vertical
+            // Left hemisphere (ellipse)
+            let left_dist = ((fx - (cx - 3.0)).powi(2) / 49.0 + (fy - cy).powi(2) / 81.0).sqrt();
+            let is_left_hemisphere = left_dist <= 1.0 && fx <= cx;
             
-            if is_h || is_m {
-                // White for the letters
+            // Right hemisphere (ellipse)
+            let right_dist = ((fx - (cx + 3.0)).powi(2) / 49.0 + (fy - cy).powi(2) / 81.0).sqrt();
+            let is_right_hemisphere = right_dist <= 1.0 && fx >= cx;
+            
+            // Central division line
+            let is_division = fx >= cx - 0.5 && fx <= cx + 0.5 && fy >= cy - 8.0 && fy <= cy + 6.0;
+            
+            // Brain folds (simplified wavy lines)
+            let fold1 = (fx >= cx - 6.0 && fx <= cx - 4.0 && fy >= cy - 3.0 && fy <= cy + 3.0) ||
+                       (fx >= cx + 4.0 && fx <= cx + 6.0 && fy >= cy - 3.0 && fy <= cy + 3.0);
+            
+            if is_left_hemisphere || is_right_hemisphere || is_division || fold1 {
+                // White for the brain shape
                 pixels.extend_from_slice(&[255, 255, 255, 255]);
             } else {
                 // Purple gradient for background
