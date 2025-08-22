@@ -8,7 +8,7 @@
     "build": "tsc && vite build",
     "preview": "vite preview",
     "tauri": "tauri",
-    "generate-icons": "powershell -ExecutionPolicy Bypass -File create-icon.ps1 || node create-icon.js || echo 'Icon generation skipped'",
+    "verify-icons": "powershell -ExecutionPolicy Bypass -File verify-icons.ps1 || echo 'Icon verification skipped (icons should be in src-tauri/icons/)'",
     "build:full": "npm run build"
   },
   "dependencies": {

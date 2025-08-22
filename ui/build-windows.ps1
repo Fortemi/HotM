@@ -2,11 +2,16 @@
 Write-Host "Building HotM Windows Installer..." -ForegroundColor Cyan
 Write-Host ""
 
-# Always generate icons to ensure they're correct
-Write-Host "Generating Hall of the Mind icons..." -ForegroundColor Yellow
-& .\create-icon.ps1
-if ($LASTEXITCODE -ne 0 -and $LASTEXITCODE -ne $null) {
-    Write-Host "Warning: Icon generation may have had issues" -ForegroundColor Yellow
+# Verify icons are present (they're now checked into the repository)
+Write-Host "Verifying Hall of the Mind icons..." -ForegroundColor Yellow
+if (Test-Path "verify-icons.ps1") {
+    & .\verify-icons.ps1
+    if ($LASTEXITCODE -ne 0 -and $LASTEXITCODE -ne $null) {
+        Write-Host "Warning: Some icons may be missing" -ForegroundColor Yellow
+        Write-Host "Icons should be in src-tauri\icons\" -ForegroundColor Yellow
+    }
+} else {
+    Write-Host "Icon verification script not found, assuming icons are present" -ForegroundColor Yellow
 }
 
 # Check if npm packages are installed
