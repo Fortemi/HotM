@@ -19,6 +19,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Brain,
   Plus,
@@ -69,6 +70,7 @@ export function HallOfMind() {
     message?: string;
   } | null>(null);
   const [newNoteContent, setNewNoteContent] = useState("");
+  const [processingNotes, setProcessingNotes] = useState<Set<string>>(new Set());
   const savedNotes = useRef<Map<string, NoteFull>>(new Map());
 
   // Check server health and load initial notes
@@ -184,6 +186,9 @@ export function HallOfMind() {
         starred: false
       };
       
+      // Mark note as processing
+      setProcessingNotes(prev => new Set(prev).add(response.note_id));
+      
       // Set a timer to reload after AI processing
       setTimeout(async () => {
         try {
@@ -202,6 +207,13 @@ export function HallOfMind() {
           }
         } catch (error) {
           console.error("Failed to load AI revision:", error);
+        } finally {
+          // Remove from processing set
+          setProcessingNotes(prev => {
+            const newSet = new Set(prev);
+            newSet.delete(response.note_id);
+            return newSet;
+          });
         }
       }, 5000); // Check for AI revision after 5 seconds
       
@@ -333,10 +345,17 @@ export function HallOfMind() {
             <SidebarGroup>
               <SidebarGroupContent>
                 <div className="px-3 py-2 space-y-2">
-                  <MarkdownEditor
+                  <Textarea
+                    placeholder="Quick note... (Ctrl+Enter to save)"
                     value={newNoteContent}
-                    onChange={setNewNoteContent}
-                    height={150}
+                    onChange={(e) => setNewNoteContent(e.target.value)}
+                    className="min-h-[100px] resize-none text-sm font-mono"
+                    onKeyDown={(e) => {
+                      if (e.ctrlKey && e.key === 'Enter') {
+                        e.preventDefault();
+                        createNewNote();
+                      }
+                    }}
                   />
                   <Button 
                     onClick={createNewNote}
@@ -397,7 +416,11 @@ export function HallOfMind() {
                           }}
                           className={selectedNote?.id === note.id ? "bg-accent" : ""}
                         >
-                          <BookOpen className="h-4 w-4" />
+                          {processingNotes.has(note.id) && !note.revised_content ? (
+                            <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                          ) : (
+                            <BookOpen className="h-4 w-4" />
+                          )}
                           <span className="flex-1 truncate">{note.title}</span>
                           {note.starred && <Star className="h-3 w-3 fill-yellow-500 text-yellow-500" />}
                         </SidebarMenuButton>
@@ -526,9 +549,19 @@ export function HallOfMind() {
                         </CardHeader>
                         <CardContent>
                           <ScrollArea className="h-[400px]">
-                            <MarkdownPreview 
-                              content={selectedNote.revised_content || noteContent || "Processing note..."}
-                            />
+                            {processingNotes.has(selectedNote.id) && !selectedNote.revised_content ? (
+                              <div className="flex flex-col items-center justify-center h-full space-y-4">
+                                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                                <div className="text-center">
+                                  <p className="text-sm font-medium">AI is enhancing your note...</p>
+                                  <p className="text-xs text-muted-foreground mt-1">This usually takes 5-10 seconds</p>
+                                </div>
+                              </div>
+                            ) : (
+                              <MarkdownPreview 
+                                content={selectedNote.revised_content || noteContent}
+                              />
+                            )}
                             {selectedNote.tags.length > 0 && (
                               <div className="mt-6 pt-4 border-t">
                                 <div className="flex flex-wrap gap-2">
