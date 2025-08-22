@@ -101,7 +101,7 @@ pub async fn fetch_note(state: &AppState, note_id: Uuid) -> anyhow::Result<NoteF
     
     let revised = if let Some(ai_rev) = ai_revision {
         // Use AI revision if available
-        (ai_rev.content, ai_rev.last_revision_id)
+        (ai_rev.content, Some(ai_rev.last_revision_id))
     } else {
         // Fallback to current revised
         let current = sqlx::query!(
