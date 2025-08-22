@@ -3,7 +3,7 @@ import MDEditor from '@uiw/react-md-editor';
 import rehypeKatex from 'rehype-katex';
 import remarkMath from 'remark-math';
 import remarkGfm from 'remark-gfm';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
 import { MarkdownPreview } from './MarkdownPreview';
 import { SplitSquareHorizontal, Code, Eye } from 'lucide-react';
