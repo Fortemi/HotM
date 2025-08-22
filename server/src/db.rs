@@ -234,7 +234,22 @@ pub async fn fetch_note(state: &AppState, note_id: Uuid) -> anyhow::Result<NoteF
     ).fetch_all(&state.pool).await?.into_iter().map(|r| r.tag_name).collect();
 
     let links = sqlx::query!(
-        "SELECT id, from_note_id, to_note_id, to_url, kind, score, created_at_utc FROM link WHERE from_note_id = $1",
+        r#"SELECT 
+            l.id, 
+            l.from_note_id, 
+            l.to_note_id, 
+            l.to_url, 
+            l.kind, 
+            l.score, 
+            l.created_at_utc,
+            COALESCE(
+                substring(nrc.content from 1 for 100),
+                'Linked note'
+            ) as snippet
+        FROM link l
+        LEFT JOIN note_revised_current nrc ON nrc.note_id = l.to_note_id
+        WHERE l.from_note_id = $1
+        ORDER BY l.score DESC, l.created_at_utc DESC"#,
         note_id
     ).fetch_all(&state.pool).await?;
 
@@ -246,6 +261,7 @@ pub async fn fetch_note(state: &AppState, note_id: Uuid) -> anyhow::Result<NoteF
         kind: r.kind,
         score: r.score,
         created_at_utc: r.created_at_utc,
+        snippet: r.snippet,
     }).collect();
 
     Ok(NoteFull {

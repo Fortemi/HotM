@@ -419,18 +419,38 @@ export function HallOfMind() {
           // Search for the tag using the filter parameter
           const results = await api.searchNotes(tag, "fts", `tag:${tag}`);
           if (results && results.length > 0) {
-            // Map search results to our note format
-            const searchNotes = results.map((hit: any) => ({
-              id: hit.note_id,
-              title: hit.snippet?.split('\n')[0] || "Search result",
-              content: hit.snippet || "",
-              revised_content: null,
-              createdAt: new Date().toISOString(),
-              updatedAt: new Date().toISOString(),
-              tags: [],
-              starred: false
-            }));
-            setNotes(searchNotes);
+            // Load full note details for each search result
+            const fullNotes = await Promise.all(
+              results.map(async (hit: any) => {
+                try {
+                  const fullNote = await api.getNote(hit.note_id);
+                  savedNotes.current.set(fullNote.note.id, fullNote);
+                  return {
+                    id: fullNote.note.id,
+                    title: fullNote.original.content.split('\n')[0].substring(0, 50) || "Untitled",
+                    content: fullNote.original.content,
+                    revised_content: fullNote.revised ? fullNote.revised.content : null,
+                    createdAt: fullNote.note.created_at_utc,
+                    updatedAt: fullNote.note.updated_at_utc,
+                    tags: fullNote.tags,
+                    starred: fullNote.note.starred || false
+                  };
+                } catch (err) {
+                  // Fallback to search result if can't load full note
+                  return {
+                    id: hit.note_id,
+                    title: hit.snippet?.split('\n')[0].substring(0, 50) || "Search result",
+                    content: hit.snippet || "",
+                    revised_content: null,
+                    createdAt: new Date().toISOString(),
+                    updatedAt: new Date().toISOString(),
+                    tags: [],
+                    starred: false
+                  };
+                }
+              })
+            );
+            setNotes(fullNotes);
             setSearchMode("fts");
           } else {
             // No results, but still in search mode
@@ -446,18 +466,42 @@ export function HallOfMind() {
       try {
         const results = await api.searchNotes(query, "hybrid");
         if (results && results.length > 0) {
-          const searchNotes = results.map((hit: any) => ({
-            id: hit.note_id,
-            title: hit.snippet?.split('\n')[0] || "Search result",
-            content: hit.snippet || "",
-            revised_content: null,
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
-            tags: [],
-            starred: false
-          }));
-          setNotes(searchNotes);
+          // Load full note details for each search result
+          const fullNotes = await Promise.all(
+            results.map(async (hit: any) => {
+              try {
+                const fullNote = await api.getNote(hit.note_id);
+                savedNotes.current.set(fullNote.note.id, fullNote);
+                return {
+                  id: fullNote.note.id,
+                  title: fullNote.original.content.split('\n')[0].substring(0, 50) || "Untitled",
+                  content: fullNote.original.content,
+                  revised_content: fullNote.revised ? fullNote.revised.content : null,
+                  createdAt: fullNote.note.created_at_utc,
+                  updatedAt: fullNote.note.updated_at_utc,
+                  tags: fullNote.tags,
+                  starred: fullNote.note.starred || false
+                };
+              } catch (err) {
+                // Fallback to search result if can't load full note
+                return {
+                  id: hit.note_id,
+                  title: hit.snippet?.split('\n')[0].substring(0, 50) || "Search result",
+                  content: hit.snippet || "",
+                  revised_content: null,
+                  createdAt: new Date().toISOString(),
+                  updatedAt: new Date().toISOString(),
+                  tags: [],
+                  starred: false
+                };
+              }
+            })
+          );
+          setNotes(fullNotes);
           setSearchMode("hybrid");
+        } else {
+          // No results from server, fall back to local
+          setSearchMode("local");
         }
       } catch (error) {
         console.error("Search failed:", error);

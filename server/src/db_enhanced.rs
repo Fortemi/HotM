@@ -152,20 +152,19 @@ fn parse_ai_response(response: &str) -> (String, serde_json::Value) {
     if let Some(json_start) = response.find("```json") {
         let content_part = response[..json_start].trim();
         
-        // Find PART 1 marker and extract content after it
-        let enhanced_content = if let Some(part1_idx) = content_part.find("PART 1") {
-            let after_part1 = &content_part[part1_idx..];
-            if let Some(content_start) = after_part1.find('\n') {
-                after_part1[content_start..].trim()
-                    .trim_start_matches("ENHANCED NOTE:")
-                    .trim()
-                    .to_string()
-            } else {
-                content_part.to_string()
-            }
-        } else {
-            content_part.to_string()
-        };
+        // Clean up the content - remove PART 1/2 markers and headers
+        let enhanced_content = content_part
+            .split("PART 2").next()  // Remove everything after PART 2
+            .unwrap_or(content_part)
+            .split("PART 1").last()   // Get everything after PART 1
+            .unwrap_or(content_part)
+            .trim()
+            .trim_start_matches('-')
+            .trim_start_matches("ENHANCED NOTE:")
+            .trim_start_matches("ENHANCED NOTE")
+            .trim_start_matches(':')
+            .trim()
+            .to_string();
         
         // Extract JSON
         let json_part = response[json_start..]

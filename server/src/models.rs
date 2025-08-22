@@ -36,6 +36,7 @@ pub struct Link {
     pub kind: String,
     pub score: f32,
     pub created_at_utc: DateTime<Utc>,
+    pub snippet: Option<String>,
 }
 
 #[derive(Serialize, Deserialize, Clone)]
