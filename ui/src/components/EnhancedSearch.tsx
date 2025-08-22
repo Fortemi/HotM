@@ -1,6 +1,5 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -17,7 +16,7 @@ export function EnhancedSearch({ onSelectNote }: EnhancedSearchProps) {
   const [results, setResults] = useState<SearchHit[]>([]);
   const [loading, setLoading] = useState(false);
   const [llmContext, setLlmContext] = useState<string>('');
-  const searchTimeout = useRef<NodeJS.Timeout>();
+  const searchTimeout = useRef<NodeJS.Timeout | null>(null);
 
   // Debounced search
   const performSearch = useCallback(async (searchQuery: string, mode: 'hybrid' | 'fts' | 'vector') => {
@@ -36,11 +35,9 @@ export function EnhancedSearch({ onSelectNote }: EnhancedSearchProps) {
       if (mode === 'hybrid' && response.hits.length > 0) {
         // Generate a context summary using the LLM
         const topResults = response.hits.slice(0, 3);
-        const contextPrompt = `Based on the search query "${searchQuery}", here are the top matching notes. 
-        Provide a brief insight about what the user might be looking for and how these results relate to their query.`;
         
         // For now, we'll use a placeholder for LLM context
-        // In production, this would call the LLM API
+        // In production, this would call the LLM API with a proper prompt
         setLlmContext(`Found ${response.hits.length} notes related to "${searchQuery}". 
         The results include notes about ${topResults.map(() => 'relevant topics').join(', ')}.`);
       }
