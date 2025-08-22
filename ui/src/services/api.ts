@@ -171,6 +171,7 @@ class ApiClient {
         "66a8e5c6-d5f8-4b3d-a197-2e7ff207fcc7", // Test note 1
         "d87defa1-6a9f-4470-bb63-67934faefc87", // Test note 2
         "dfacb53a-c19f-48dd-a8bb-3ad2d92464a8", // Meeting notes
+        "4b355a10-ed6f-4500-8bf5-e38978ae74f8", // UI test note
       ];
       
       // Combine and deduplicate

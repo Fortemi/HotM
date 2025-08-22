@@ -133,20 +133,15 @@ export function HallOfMind() {
   };
 
   const createNewNote = async () => {
+    // Always require content for now - simplify the logic
     if (!newNoteContent.trim()) {
-      // Create an empty local note if no content
-      const newNote: Note = {
-        id: Date.now().toString(),
-        title: "Untitled Note",
-        content: "",
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-        tags: [],
-        starred: false
-      };
-      setNotes([newNote, ...notes]);
-      setSelectedNote(newNote);
-      setNoteContent("");
+      alert("Please enter some content for the note");
+      return;
+    }
+    
+    // Only create notes on the server when connected
+    if (!serverStatus?.ok) {
+      alert("Cannot create notes while offline. Please check your connection.");
       return;
     }
     
@@ -162,7 +157,7 @@ export function HallOfMind() {
       // Add to our notes list
       const simpleNote: Note = {
         id: fullNote.note.id,
-        title: fullNote.original.content.substring(0, 50) + "...",
+        title: fullNote.original.content.split('\n')[0].substring(0, 50) || "Untitled",
         content: fullNote.original.content,
         revised_content: fullNote.revised.content,
         createdAt: fullNote.note.created_at_utc,
@@ -175,6 +170,9 @@ export function HallOfMind() {
       setSelectedNote(simpleNote);
       setNoteContent(simpleNote.content);
       setNewNoteContent("");
+      
+      // Refresh the notes list to ensure sync
+      await loadExistingNotes();
     } catch (error) {
       console.error("Failed to create note:", error);
       alert("Failed to create note. Check if the server is running.");
@@ -186,34 +184,44 @@ export function HallOfMind() {
   const saveNote = async () => {
     if (!selectedNote) return;
     
-    // Check if this is a server-backed note
-    if (savedNotes.current.has(selectedNote.id)) {
-      try {
-        setIsLoading(true);
-        await api.updateRevision(selectedNote.id, noteContent, "Manual edit");
-        
-        // Update local state
-        const updatedNotes = notes.map(note => 
-          note.id === selectedNote.id 
-            ? { ...note, content: noteContent, revised_content: noteContent, updatedAt: new Date().toISOString() }
-            : note
-        );
-        setNotes(updatedNotes);
-        console.log("Note saved successfully");
-      } catch (error) {
-        console.error("Failed to save note:", error);
-        alert("Failed to save note. Check if the server is running.");
-      } finally {
-        setIsLoading(false);
-      }
-    } else {
-      // Local-only note
+    // Only save to server
+    if (!serverStatus?.ok) {
+      alert("Cannot save while offline. Please check your connection.");
+      return;
+    }
+    
+    // Check if this note exists on the server
+    if (!savedNotes.current.has(selectedNote.id)) {
+      alert("This note doesn't exist on the server. Please create a new note.");
+      return;
+    }
+    
+    try {
+      setIsLoading(true);
+      await api.updateRevision(selectedNote.id, noteContent, "Manual edit");
+      
+      // Update local state
       const updatedNotes = notes.map(note => 
         note.id === selectedNote.id 
-          ? { ...note, content: noteContent, updatedAt: new Date().toISOString() }
+          ? { ...note, content: noteContent, revised_content: noteContent, updatedAt: new Date().toISOString() }
           : note
       );
       setNotes(updatedNotes);
+      
+      // Update the selected note too
+      setSelectedNote({
+        ...selectedNote,
+        content: noteContent,
+        revised_content: noteContent,
+        updatedAt: new Date().toISOString()
+      });
+      
+      console.log("Note saved successfully to server");
+    } catch (error) {
+      console.error("Failed to save note:", error);
+      alert("Failed to save note. Check if the server is running.");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -301,10 +309,10 @@ export function HallOfMind() {
                     onClick={createNewNote}
                     className="w-full justify-start gap-2"
                     variant="default"
-                    disabled={isLoading || (!serverStatus?.ok && !!newNoteContent.trim())}
+                    disabled={isLoading || !serverStatus?.ok || !newNoteContent.trim()}
                   >
                     <Plus className="h-4 w-4" />
-                    {newNoteContent.trim() ? 'Save to Server' : 'New Local Note'}
+                    {isLoading ? 'Creating...' : 'Create Note'}
                   </Button>
                 </div>
               </SidebarGroupContent>
