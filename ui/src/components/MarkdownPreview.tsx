@@ -3,6 +3,7 @@ import remarkGfm from 'remark-gfm';
 import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
 import 'katex/dist/katex.min.css';
+import { PlantUMLRenderer } from './PlantUMLRenderer';
 
 interface MarkdownPreviewProps {
   content: string;
@@ -23,6 +24,12 @@ export function MarkdownPreview({ content, className = "" }: MarkdownPreviewProp
             const inline = !className || !className.includes('language-');
             
             if (!inline && language) {
+              // Handle PlantUML blocks
+              if (language === 'plantuml' || language === 'puml') {
+                const code = String(children).replace(/\n$/, '');
+                return <PlantUMLRenderer code={code} className="my-4" />;
+              }
+              
               return (
                 <div className="relative">
                   <div className="absolute top-2 right-2 text-xs text-gray-500 dark:text-gray-400">

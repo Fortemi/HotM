@@ -5,6 +5,23 @@ use tauri::{
 use tauri::menu::{MenuBuilder, MenuItemBuilder};
 use tauri_plugin_global_shortcut::GlobalShortcutExt;
 
+mod plantuml;
+
+// Tauri command to render PlantUML
+#[tauri::command]
+async fn render_plantuml(app: tauri::AppHandle, code: String) -> Result<String, String> {
+    plantuml::render_plantuml(&app, &code)
+        .map_err(|e| e.to_string())
+}
+
+// Tauri command to ensure PlantUML JAR is available
+#[tauri::command]
+async fn ensure_plantuml(app: tauri::AppHandle) -> Result<(), String> {
+    plantuml::ensure_plantuml_jar(&app)
+        .await
+        .map_err(|e| e.to_string())
+}
+
 // Create a Hall of the Mind brain icon programmatically (purple gradient with brain shape)
 fn create_default_icon() -> tauri::image::Image<'static> {
     const SIZE: u32 = 32;
@@ -93,6 +110,7 @@ pub fn run() {
         .plugin(tauri_plugin_shell::init())
         .plugin(tauri_plugin_notification::init())
         .plugin(shortcut_plugin)
+        .invoke_handler(tauri::generate_handler![render_plantuml, ensure_plantuml])
         .on_window_event(|window, event| {
             println!("HotM: Window event: {:?}", event);
             match event {

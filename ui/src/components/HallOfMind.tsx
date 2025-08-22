@@ -39,7 +39,9 @@ import {
   AlertCircle,
   XCircle,
   RefreshCw,
-  Loader2
+  Loader2,
+  Copy,
+  Check
 } from "lucide-react";
 import { api, NoteFull } from "@/services/api";
 import { MarkdownPreview } from "./MarkdownPreview";
@@ -73,6 +75,7 @@ export function HallOfMind() {
   } | null>(null);
   const [newNoteContent, setNewNoteContent] = useState("");
   const [processingNotes, setProcessingNotes] = useState<Set<string>>(new Set());
+  const [copiedState, setCopiedState] = useState<{ [key: string]: boolean }>({});
   const savedNotes = useRef<Map<string, NoteFull>>(new Map());
 
   // Check server health and load initial notes
@@ -350,10 +353,15 @@ export function HallOfMind() {
       setIsLoading(true);
       await api.updateRevision(selectedNote.id, contentToSave, rationale);
       
-      // Update local state
+      // Update local state based on what was edited
       const updatedNotes = notes.map(note => 
         note.id === selectedNote.id 
-          ? { ...note, content: noteContent, revised_content: noteContent, updatedAt: new Date().toISOString() }
+          ? { 
+              ...note, 
+              content: editingRevised ? note.content : contentToSave,
+              revised_content: editingRevised ? contentToSave : note.revised_content,
+              updatedAt: new Date().toISOString() 
+            }
           : note
       );
       setNotes(updatedNotes);
@@ -361,8 +369,8 @@ export function HallOfMind() {
       // Update the selected note too
       setSelectedNote({
         ...selectedNote,
-        content: noteContent,
-        revised_content: noteContent,
+        content: editingRevised ? selectedNote.content : contentToSave,
+        revised_content: editingRevised ? contentToSave : selectedNote.revised_content,
         updatedAt: new Date().toISOString()
       });
       
@@ -380,6 +388,18 @@ export function HallOfMind() {
       note.id === noteId ? { ...note, starred: !note.starred } : note
     );
     setNotes(updatedNotes);
+  };
+
+  const copyToClipboard = async (content: string, key: string) => {
+    try {
+      await navigator.clipboard.writeText(content);
+      setCopiedState({ ...copiedState, [key]: true });
+      setTimeout(() => {
+        setCopiedState(prev => ({ ...prev, [key]: false }));
+      }, 2000);
+    } catch (error) {
+      console.error("Failed to copy:", error);
+    }
   };
 
   const filteredNotes = notes.filter(note =>
@@ -706,19 +726,34 @@ export function HallOfMind() {
                                 AI-enhanced version • Updated {new Date(selectedNote.updatedAt).toLocaleString()}
                               </CardDescription>
                             </div>
-                            <Button
-                              onClick={regenerateAI}
-                              disabled={isLoading || processingNotes.has(selectedNote.id)}
-                              size="sm"
-                              variant="outline"
-                            >
-                              {processingNotes.has(selectedNote.id) ? (
-                                <Loader2 className="h-4 w-4 animate-spin" />
-                              ) : (
-                                <RefreshCw className="h-4 w-4" />
-                              )}
-                              <span className="ml-2">Regenerate AI</span>
-                            </Button>
+                            <div className="flex gap-2">
+                              <Button
+                                onClick={() => copyToClipboard(selectedNote.revised_content || selectedNote.content, 'preview-markdown')}
+                                size="sm"
+                                variant="outline"
+                                title="Copy markdown"
+                              >
+                                {copiedState['preview-markdown'] ? (
+                                  <Check className="h-4 w-4" />
+                                ) : (
+                                  <Copy className="h-4 w-4" />
+                                )}
+                                <span className="ml-2">Copy MD</span>
+                              </Button>
+                              <Button
+                                onClick={regenerateAI}
+                                disabled={isLoading || processingNotes.has(selectedNote.id)}
+                                size="sm"
+                                variant="outline"
+                              >
+                                {processingNotes.has(selectedNote.id) ? (
+                                  <Loader2 className="h-4 w-4 animate-spin" />
+                                ) : (
+                                  <RefreshCw className="h-4 w-4" />
+                                )}
+                                <span className="ml-2">Regenerate AI</span>
+                              </Button>
+                            </div>
                           </div>
                         </CardHeader>
                         <CardContent>
@@ -772,10 +807,27 @@ export function HallOfMind() {
                   <TabsContent value="original">
                     <Card>
                       <CardHeader>
-                        <CardTitle>{selectedNote.title}</CardTitle>
-                        <CardDescription>
-                          Original note • Created {new Date(selectedNote.createdAt).toLocaleString()}
-                        </CardDescription>
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <CardTitle>{selectedNote.title}</CardTitle>
+                            <CardDescription>
+                              Original note • Created {new Date(selectedNote.createdAt).toLocaleString()}
+                            </CardDescription>
+                          </div>
+                          <Button
+                            onClick={() => copyToClipboard(noteContent, 'original-markdown')}
+                            size="sm"
+                            variant="outline"
+                            title="Copy markdown"
+                          >
+                            {copiedState['original-markdown'] ? (
+                              <Check className="h-4 w-4" />
+                            ) : (
+                              <Copy className="h-4 w-4" />
+                            )}
+                            <span className="ml-2">Copy MD</span>
+                          </Button>
+                        </div>
                       </CardHeader>
                       <CardContent>
                         <ScrollArea className="h-[600px]">
