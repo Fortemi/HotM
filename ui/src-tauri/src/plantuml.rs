@@ -1,240 +1,143 @@
-use std::process::{Command, Stdio};
-use std::path::PathBuf;
-use std::fs;
-use tauri::{AppHandle, Manager};
+use tauri::AppHandle;
 
 #[derive(Debug)]
 pub enum PlantUMLError {
-    JavaNotFound,
-    PlantUMLJarNotFound,
+    ServerNotAvailable,
     RenderFailed(String),
-    IoError(std::io::Error),
+    NetworkError(String),
 }
 
 impl std::fmt::Display for PlantUMLError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            PlantUMLError::JavaNotFound => write!(f, "Java is not installed or not in PATH"),
-            PlantUMLError::PlantUMLJarNotFound => write!(f, "PlantUML JAR file not found"),
+            PlantUMLError::ServerNotAvailable => write!(f, "PlantUML server is not available"),
             PlantUMLError::RenderFailed(msg) => write!(f, "Failed to render diagram: {}", msg),
-            PlantUMLError::IoError(e) => write!(f, "IO error: {}", e),
+            PlantUMLError::NetworkError(msg) => write!(f, "Network error: {}", msg),
         }
     }
 }
 
-impl From<std::io::Error> for PlantUMLError {
-    fn from(e: std::io::Error) -> Self {
-        PlantUMLError::IoError(e)
-    }
+/// Encode PlantUML text to the special encoding used by PlantUML server
+fn encode_plantuml(text: &str) -> String {
+    use flate2::write::DeflateEncoder;
+    use flate2::Compression;
+    use std::io::Write;
+    
+    // Compress the text
+    let mut encoder = DeflateEncoder::new(Vec::new(), Compression::default());
+    encoder.write_all(text.as_bytes()).unwrap();
+    let compressed = encoder.finish().unwrap();
+    
+    // Encode to PlantUML's custom base64-like encoding
+    encode_plantuml_deflate(&compressed)
 }
 
-/// Get the path to the PlantUML JAR file
-fn get_plantuml_jar_path(app: &AppHandle) -> Result<PathBuf, PlantUMLError> {
-    // Try multiple locations for the PlantUML JAR
-    let possible_paths = vec![
-        // Development: In src-tauri/resources directory
-        std::env::current_dir()
-            .ok()
-            .map(|p| p.join("resources").join("plantuml.jar")),
-        // Production: In the app's resource directory
-        app.path().resource_dir()
-            .map(|p| p.join("plantuml.jar"))
-            .ok(),
-        // In the app's data directory
-        app.path().app_data_dir()
-            .map(|p| p.join("plantuml.jar"))
-            .ok(),
-        // In the same directory as the executable
-        std::env::current_exe()
-            .ok()
-            .and_then(|p| p.parent().map(|d| d.join("plantuml.jar"))),
-        // In a resources subdirectory relative to executable
-        std::env::current_exe()
-            .ok()
-            .and_then(|p| p.parent().map(|d| d.join("resources").join("plantuml.jar"))),
-        // In a libs subdirectory
-        std::env::current_exe()
-            .ok()
-            .and_then(|p| p.parent().map(|d| d.join("libs").join("plantuml.jar"))),
-    ];
-
-    eprintln!("PlantUML: Searching for JAR file...");
-    for path_opt in possible_paths {
-        if let Some(path) = path_opt {
-            eprintln!("PlantUML: Checking path: {:?}", path);
-            if path.exists() {
-                eprintln!("PlantUML: Found JAR at: {:?}", path);
-                return Ok(path);
-            }
-        }
-    }
-
-    eprintln!("PlantUML: JAR not found in any expected location");
-    Err(PlantUMLError::PlantUMLJarNotFound)
-}
-
-/// Check if Java is available
-fn check_java() -> Result<(), PlantUMLError> {
-    let mut cmd = Command::new("java");
-    cmd.arg("-version")
-        .stdout(Stdio::piped())
-        .stderr(Stdio::piped());
+fn encode_plantuml_deflate(data: &[u8]) -> String {
+    let mut result = String::new();
+    let mut i = 0;
     
-    // Hide console window on Windows
-    #[cfg(windows)]
-    {
-        use std::os::windows::process::CommandExt;
-        const CREATE_NO_WINDOW: u32 = 0x08000000;
-        cmd.creation_flags(CREATE_NO_WINDOW);
-    }
-    
-    let output = cmd.output();
-
-    match output {
-        Ok(o) if o.status.success() => Ok(()),
-        _ => Err(PlantUMLError::JavaNotFound),
-    }
-}
-
-/// Render PlantUML code to SVG
-pub fn render_plantuml(app: &AppHandle, code: &str) -> Result<String, PlantUMLError> {
-    // Check Java availability
-    check_java()?;
-    
-    // Get PlantUML JAR path, or download if not present
-    let jar_path = match get_plantuml_jar_path(app) {
-        Ok(path) => path,
-        Err(_) => {
-            // Try to download PlantUML JAR
-            // For now, return an error suggesting the user needs to install PlantUML
-            return Err(PlantUMLError::PlantUMLJarNotFound);
-        }
-    };
-    
-    // Create temporary directory for input/output with timestamp for uniqueness
-    let temp_dir = std::env::temp_dir();
-    let timestamp = std::time::SystemTime::now()
-        .duration_since(std::time::UNIX_EPOCH)
-        .unwrap_or_default()
-        .as_millis();
-    let input_file = temp_dir.join(format!("plantuml_input_{}_{}.puml", 
-        std::process::id(), timestamp));
-    let output_file = temp_dir.join(format!("plantuml_input_{}_{}.svg", 
-        std::process::id(), timestamp));
-    
-    // Write PlantUML code to temporary file
-    fs::write(&input_file, code)?;
-    
-    // Log for debugging
-    eprintln!("PlantUML: Processing diagram with JAR: {:?}", jar_path);
-    eprintln!("PlantUML: Input file: {:?}", input_file);
-    eprintln!("PlantUML: Output directory: {:?}", temp_dir);
-    
-    // Run PlantUML with explicit output directory
-    let mut cmd = Command::new("java");
-    cmd.arg("-jar")
-        .arg(&jar_path)
-        .arg("-tsvg")
-        .arg("-charset")
-        .arg("UTF-8")
-        .arg("-o")
-        .arg(&temp_dir)  // Explicit output directory
-        .arg(&input_file)
-        .stdout(Stdio::piped())
-        .stderr(Stdio::piped());
-    
-    // Hide console window on Windows
-    #[cfg(windows)]
-    {
-        use std::os::windows::process::CommandExt;
-        const CREATE_NO_WINDOW: u32 = 0x08000000;
-        cmd.creation_flags(CREATE_NO_WINDOW);
-    }
-    
-    let output = cmd.output()?;
-    
-    // Clean up input file
-    let _ = fs::remove_file(&input_file);
-    
-    if !output.status.success() {
-        let error_msg = String::from_utf8_lossy(&output.stderr);
-        let stdout_msg = String::from_utf8_lossy(&output.stdout);
-        eprintln!("PlantUML: Command failed with stderr: {}", error_msg);
-        eprintln!("PlantUML: stdout: {}", stdout_msg);
-        return Err(PlantUMLError::RenderFailed(
-            format!("stderr: {}\nstdout: {}", error_msg, stdout_msg)
-        ));
-    }
-    
-    // PlantUML might create output file with slightly different name
-    // Try the expected file first
-    let svg = if output_file.exists() {
-        eprintln!("PlantUML: Found output file at expected location: {:?}", output_file);
-        let content = fs::read_to_string(&output_file)?;
-        let _ = fs::remove_file(&output_file);
-        content
-    } else {
-        // Try alternative naming (PlantUML sometimes removes underscores or changes names)
-        let alt_output = temp_dir.join(format!("plantuml_input_{}_{}.svg", 
-            std::process::id(), timestamp).replace("_", ""));
-        
-        if alt_output.exists() {
-            eprintln!("PlantUML: Found output at alternative location: {:?}", alt_output);
-            let content = fs::read_to_string(&alt_output)?;
-            let _ = fs::remove_file(&alt_output);
-            content
+    while i < data.len() {
+        if i + 2 < data.len() {
+            let b1 = data[i];
+            let b2 = data[i + 1];
+            let b3 = data[i + 2];
+            
+            result.push(encode6bit((b1 >> 2) & 0x3F));
+            result.push(encode6bit(((b1 & 0x3) << 4) | ((b2 >> 4) & 0xF)));
+            result.push(encode6bit(((b2 & 0xF) << 2) | ((b3 >> 6) & 0x3)));
+            result.push(encode6bit(b3 & 0x3F));
+            
+            i += 3;
+        } else if i + 1 < data.len() {
+            let b1 = data[i];
+            let b2 = data[i + 1];
+            
+            result.push(encode6bit((b1 >> 2) & 0x3F));
+            result.push(encode6bit(((b1 & 0x3) << 4) | ((b2 >> 4) & 0xF)));
+            result.push(encode6bit((b2 & 0xF) << 2));
+            
+            i += 2;
         } else {
-            // List all files in temp dir for debugging
-            eprintln!("PlantUML: Output file not found. Checking directory contents...");
-            if let Ok(entries) = fs::read_dir(&temp_dir) {
-                for entry in entries {
-                    if let Ok(entry) = entry {
-                        eprintln!("  Found file: {:?}", entry.path());
-                    }
-                }
-            }
-            return Err(PlantUMLError::RenderFailed(
-                format!("SVG file not generated. Expected: {:?}", output_file)
-            ));
+            let b1 = data[i];
+            
+            result.push(encode6bit((b1 >> 2) & 0x3F));
+            result.push(encode6bit((b1 & 0x3) << 4));
+            
+            i += 1;
+        }
+    }
+    
+    result
+}
+
+fn encode6bit(b: u8) -> char {
+    if b < 10 {
+        return (b + 48) as char;  // 0-9
+    }
+    if b < 36 {
+        return (b + 65 - 10) as char;  // A-Z
+    }
+    if b < 62 {
+        return (b + 97 - 36) as char;  // a-z
+    }
+    if b == 62 {
+        return '-';
+    }
+    '_'
+}
+
+/// Render PlantUML code to SVG using PlantUML server
+pub fn render_plantuml(_app: &AppHandle, code: &str) -> Result<String, PlantUMLError> {
+    // PlantUML server URL (local server on port 8080)
+    let server_url = "http://localhost:8080";
+    
+    // Encode the PlantUML code
+    let encoded = encode_plantuml(code);
+    
+    // Build the URL for SVG generation
+    let url = format!("{}/svg/{}", server_url, encoded);
+    
+    eprintln!("PlantUML: Requesting from server: {}", url);
+    
+    // Make HTTP request to PlantUML server
+    let response = match ureq::get(&url).call() {
+        Ok(response) => response,
+        Err(ureq::Error::Status(code, _response)) => {
+            eprintln!("PlantUML: Server returned status {}", code);
+            return Err(PlantUMLError::ServerNotAvailable);
+        }
+        Err(ureq::Error::Transport(e)) => {
+            eprintln!("PlantUML: Transport error: {}", e);
+            return Err(PlantUMLError::NetworkError(format!("Failed to connect to PlantUML server: {}", e)));
         }
     };
     
+    // Read the SVG response
+    let svg = match response.into_string() {
+        Ok(svg) => svg,
+        Err(e) => {
+            eprintln!("PlantUML: Failed to read response: {}", e);
+            return Err(PlantUMLError::RenderFailed(format!("Failed to read SVG response: {}", e)));
+        }
+    };
+    
+    eprintln!("PlantUML: Successfully rendered diagram ({} bytes)", svg.len());
     Ok(svg)
 }
 
-/// Download PlantUML JAR if not present
-pub async fn ensure_plantuml_jar(app: &AppHandle) -> Result<(), PlantUMLError> {
-    // Check if JAR already exists
-    if get_plantuml_jar_path(app).is_ok() {
-        return Ok(());
+/// Ensure PlantUML server is available (no longer needs to download JAR)
+pub async fn ensure_plantuml_jar(_app: &AppHandle) -> Result<(), PlantUMLError> {
+    // Check if server is available
+    let server_url = "http://localhost:8080";
+    
+    match ureq::get(server_url).call() {
+        Ok(_) => {
+            eprintln!("PlantUML: Server is available at {}", server_url);
+            Ok(())
+        }
+        Err(_) => {
+            eprintln!("PlantUML: Server not available at {}", server_url);
+            Err(PlantUMLError::ServerNotAvailable)
+        }
     }
-    
-    // Download PlantUML JAR from official release
-    let jar_url = "https://github.com/plantuml/plantuml/releases/download/v1.2025.4/plantuml-1.2025.4.jar";
-    
-    // Download to app data directory
-    let target_path = app.path().app_data_dir()
-        .map_err(|_| PlantUMLError::IoError(std::io::Error::new(
-            std::io::ErrorKind::NotFound,
-            "Cannot determine app data directory"
-        )))?
-        .join("plantuml.jar");
-    
-    // Create directory if it doesn't exist
-    if let Some(parent) = target_path.parent() {
-        fs::create_dir_all(parent)?;
-    }
-    
-    // Download the JAR file
-    let response = reqwest::get(jar_url)
-        .await
-        .map_err(|e| PlantUMLError::RenderFailed(format!("Failed to download PlantUML: {}", e)))?;
-    
-    let bytes = response.bytes()
-        .await
-        .map_err(|e| PlantUMLError::RenderFailed(format!("Failed to read PlantUML data: {}", e)))?;
-    
-    fs::write(&target_path, bytes)?;
-    
-    Ok(())
 }

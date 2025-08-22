@@ -21,3 +21,8 @@ logs/
 
 # OS
 .DS_Store
+
+# PlantUML server files (downloaded separately)
+/server/plantuml-server/*.jar
+/server/plantuml-server/*.war
+/server/*.jar

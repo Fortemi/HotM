@@ -73,6 +73,33 @@ else
     echo "  To enable AI features: ollama serve"
 fi
 
+# Check for PlantUML server (optional)
+echo ""
+if command -v java &> /dev/null; then
+    # Check if PlantUML server is already running
+    if curl -s http://localhost:8080 > /dev/null 2>&1; then
+        echo -e "${GREEN}✓ PlantUML server is already running${NC}"
+    else
+        # Try to start PlantUML server
+        if [ -f plantuml.jar ]; then
+            echo -e "${YELLOW}Starting PlantUML server on port 8080...${NC}"
+            java -jar plantuml.jar -picoweb:8080 > /dev/null 2>&1 &
+            PLANTUML_PID=$!
+            sleep 2
+            if curl -s http://localhost:8080 > /dev/null 2>&1; then
+                echo -e "${GREEN}✓ PlantUML server started (PID: $PLANTUML_PID)${NC}"
+            else
+                echo -e "${YELLOW}⚠ PlantUML server failed to start${NC}"
+            fi
+        else
+            echo -e "${YELLOW}⚠ PlantUML JAR not found (diagram rendering disabled)${NC}"
+            echo "  To enable: wget https://github.com/plantuml/plantuml/releases/download/v1.2025.4/plantuml-1.2025.4.jar -O plantuml.jar"
+        fi
+    fi
+else
+    echo -e "${YELLOW}⚠ Java not installed (PlantUML diagrams will not work)${NC}"
+fi
+
 echo ""
 
 # Run migrations
