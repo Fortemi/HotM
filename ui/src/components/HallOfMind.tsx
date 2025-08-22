@@ -14,6 +14,7 @@ import {
   SidebarTrigger
 } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
@@ -40,7 +41,8 @@ import {
   RefreshCw,
   Loader2,
   Copy,
-  Check
+  Check,
+  X
 } from "lucide-react";
 import { api, NoteFull } from "@/services/api";
 import { MarkdownPreview } from "./MarkdownPreview";
@@ -68,6 +70,9 @@ export function HallOfMind() {
   const [editingRevised, setEditingRevised] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [searchMode, setSearchMode] = useState<"local" | "fts" | "semantic" | "hybrid">("local");
+  const [searchResults, setSearchResults] = useState<Note[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [showSearchResults, setShowSearchResults] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [serverStatus, setServerStatus] = useState<{
@@ -406,9 +411,14 @@ export function HallOfMind() {
   // Perform server search when query changes
   const performSearch = async (query: string) => {
     if (!query || query.length < 2) {
+      setShowSearchResults(false);
+      setSearchResults([]);
       setSearchMode("local");
       return;
     }
+
+    setIsSearching(true);
+    setShowSearchResults(true);
 
     // Check for special search patterns
     if (query.startsWith('#')) {
@@ -450,13 +460,14 @@ export function HallOfMind() {
                 }
               })
             );
-            setNotes(fullNotes);
+            setSearchResults(fullNotes);
             setSearchMode("fts");
           } else {
             // No results, but still in search mode
-            setNotes([]);
+            setSearchResults([]);
             setSearchMode("fts");
           }
+          setIsSearching(false);
         } catch (error) {
           console.error("Search failed:", error);
         }
@@ -497,18 +508,22 @@ export function HallOfMind() {
               }
             })
           );
-          setNotes(fullNotes);
+          setSearchResults(fullNotes);
           setSearchMode("hybrid");
         } else {
-          // No results from server, fall back to local
-          setSearchMode("local");
+          // No results
+          setSearchResults([]);
+          setSearchMode("hybrid");
         }
+        setIsSearching(false);
       } catch (error) {
         console.error("Search failed:", error);
         setSearchMode("local");
+        setIsSearching(false);
       }
     } else {
       setSearchMode("local");
+      setIsSearching(false);
     }
   };
 
@@ -518,8 +533,9 @@ export function HallOfMind() {
       if (searchQuery && searchQuery.length >= 2) {
         performSearch(searchQuery);
       } else if (!searchQuery) {
-        // Reset to all notes when search is cleared
-        loadExistingNotes();
+        // Clear search results when query is cleared
+        setShowSearchResults(false);
+        setSearchResults([]);
         setSearchMode("local");
       }
     }, 300); // 300ms debounce
@@ -642,6 +658,64 @@ export function HallOfMind() {
 
             <Separator className="my-2" />
 
+            {/* Search Results Section */}
+            {showSearchResults && (
+              <>
+                <SidebarGroup>
+                  <SidebarGroupLabel className="flex items-center justify-between">
+                    <span>Search Results ({searchResults.length})</span>
+                    {isSearching && <Loader2 className="h-3 w-3 animate-spin" />}
+                    {!isSearching && searchMode !== "local" && (
+                      <Badge variant="outline" className="text-xs">
+                        {searchMode.toUpperCase()}
+                      </Badge>
+                    )}
+                  </SidebarGroupLabel>
+                  <ScrollArea className="h-[200px]">
+                    <SidebarMenu>
+                      {isSearching ? (
+                        <div className="p-4 text-center text-sm text-muted-foreground">
+                          Searching...
+                        </div>
+                      ) : searchResults.length === 0 ? (
+                        <div className="p-4 text-center text-sm text-muted-foreground">
+                          No results found for "{searchQuery}"
+                        </div>
+                      ) : (
+                        searchResults.map((note) => (
+                          <SidebarMenuItem key={note.id}>
+                            <SidebarMenuButton
+                              onClick={async () => {
+                                setSelectedNote(note);
+                                setNoteContent(note.content);
+                                setRevisedContent(note.revised_content || note.content);
+                                setEditingRevised(false);
+                                
+                                // Clear search
+                                setSearchQuery("");
+                                setShowSearchResults(false);
+                              }}
+                              className="border-l-2 border-l-primary"
+                            >
+                              <div className="flex-1 overflow-hidden">
+                                <div className="font-medium text-sm truncate">
+                                  {note.title}
+                                </div>
+                                <div className="text-xs text-muted-foreground mt-1">
+                                  {new Date(note.createdAt).toLocaleDateString()}
+                                </div>
+                              </div>
+                            </SidebarMenuButton>
+                          </SidebarMenuItem>
+                        ))
+                      )}
+                    </SidebarMenu>
+                  </ScrollArea>
+                </SidebarGroup>
+                <Separator className="my-2" />
+              </>
+            )}
+
             <SidebarGroup>
               <SidebarGroupLabel>
                 Your Notes {notes.length > 0 && `(${filteredNotes.length})`}
@@ -731,15 +805,33 @@ export function HallOfMind() {
           <header className="flex h-16 items-center gap-4 border-b px-6">
             <SidebarTrigger />
             <div className="flex flex-1 items-center gap-4">
-              <div className="flex items-center gap-2">
-                <Search className="h-4 w-4 text-muted-foreground" />
+              <div className="flex items-center gap-2 flex-1">
+                {isSearching ? (
+                  <Loader2 className="h-4 w-4 text-muted-foreground animate-spin" />
+                ) : (
+                  <Search className="h-4 w-4 text-muted-foreground" />
+                )}
                 <input
                   type="text"
-                  placeholder="Search your mind..."
+                  placeholder={searchMode !== "local" ? `Searching (${searchMode})...` : "Search your mind..."}
                   className="bg-transparent outline-none placeholder:text-muted-foreground flex-1"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
+                {searchQuery && (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-6 w-6"
+                    onClick={() => {
+                      setSearchQuery("");
+                      setShowSearchResults(false);
+                      setSearchResults([]);
+                    }}
+                  >
+                    <X className="h-3 w-3" />
+                  </Button>
+                )}
               </div>
               <div className="ml-auto flex items-center gap-2">
                 <Button
