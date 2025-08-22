@@ -30,7 +30,6 @@ export function LabelAutocomplete({
   existingLabels = []
 }: LabelAutocompleteProps) {
   const [open, setOpen] = useState(false);
-  const [value, setValue] = useState("");
   const [allLabels, setAllLabels] = useState<string[]>([]);
   const [inputValue, setInputValue] = useState("");
 
@@ -50,8 +49,7 @@ export function LabelAutocomplete({
   const handleSelect = (label: string) => {
     if (label && !existingLabels.includes(label)) {
       onAddLabel(label);
-      setValue("");
-      setInputValue("");
+            setInputValue("");
       setOpen(false);
       // Reload labels in case a new one was added
       loadLabels();
@@ -61,8 +59,7 @@ export function LabelAutocomplete({
   const handleCreateNew = () => {
     if (inputValue.trim() && !existingLabels.includes(inputValue.trim())) {
       onAddLabel(inputValue.trim());
-      setValue("");
-      setInputValue("");
+            setInputValue("");
       setOpen(false);
       // Reload labels to include the new one
       loadLabels();

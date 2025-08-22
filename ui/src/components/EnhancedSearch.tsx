@@ -12,14 +12,14 @@ interface EnhancedSearchProps {
 
 export function EnhancedSearch({ onSelectNote }: EnhancedSearchProps) {
   const [query, setQuery] = useState('');
-  const [searchMode, setSearchMode] = useState<'hybrid' | 'fts' | 'vector'>('hybrid');
+  const [searchMode, setSearchMode] = useState<'hybrid' | 'fts' | 'semantic'>('hybrid');
   const [results, setResults] = useState<SearchHit[]>([]);
   const [loading, setLoading] = useState(false);
   const [llmContext, setLlmContext] = useState<string>('');
   const searchTimeout = useRef<NodeJS.Timeout | null>(null);
 
   // Debounced search
-  const performSearch = useCallback(async (searchQuery: string, mode: 'hybrid' | 'fts' | 'vector') => {
+  const performSearch = useCallback(async (searchQuery: string, mode: 'hybrid' | 'fts' | 'semantic') => {
     if (!searchQuery.trim()) {
       setResults([]);
       setLlmContext('');
@@ -104,7 +104,7 @@ export function EnhancedSearch({ onSelectNote }: EnhancedSearchProps) {
                 <FileText className="h-3 w-3 mr-1" />
                 Text Search
               </TabsTrigger>
-              <TabsTrigger value="vector" className="text-xs">
+              <TabsTrigger value="semantic" className="text-xs">
                 <Hash className="h-3 w-3 mr-1" />
                 Semantic
               </TabsTrigger>

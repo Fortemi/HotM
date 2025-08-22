@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect } from 'react';
 import {
   ContextMenu,
   ContextMenuContent,
@@ -12,7 +12,6 @@ import {
   RefreshCw,
   Trash2,
   FolderOpen,
-  Tag,
   Star,
 } from 'lucide-react';
 
@@ -31,7 +30,6 @@ interface NoteContextMenuProps {
 
 export function NoteContextMenu({
   children,
-  noteId,
   isArchived,
   isStarred,
   onEdit,

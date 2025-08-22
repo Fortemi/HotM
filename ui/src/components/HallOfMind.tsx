@@ -55,7 +55,6 @@ import {
   Copy,
   Check,
   X,
-  SortAsc,
   Calendar,
   Type,
   ChevronRight,
@@ -69,15 +68,7 @@ import { RelatedNotes } from "./RelatedNotes";
 import { NoteMetadata } from "./NoteMetadata";
 import { EnhancedSearch } from "./EnhancedSearch";
 import { NoteContextMenu, useGlobalContextMenuPrevention } from "./NoteContextMenu";
-import { LabelAutocomplete } from "./LabelAutocomplete";
 import { DeleteNoteDialog } from "./DeleteNoteDialog";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 
 interface Note {
   id: string;
@@ -113,7 +104,6 @@ export function HallOfMind() {
   const [activeTab, setActiveTab] = useState<string>("preview");
   const [quickAccessFilter, setQuickAccessFilter] = useState<"all" | "starred" | "recent" | "archived">("all");
   const [noteLabels, setNoteLabels] = useState<Map<string, any[]>>(new Map());
-  const [showLabelInput, setShowLabelInput] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(true);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [noteToDelete, setNoteToDelete] = useState<{ id: string; title: string } | null>(null);
@@ -671,7 +661,8 @@ export function HallOfMind() {
                     createdAt: new Date().toISOString(),
                     updatedAt: new Date().toISOString(),
                     tags: [],
-                    starred: false
+                    starred: false,
+                    archived: false
                   };
                 }
               })
@@ -834,16 +825,8 @@ export function HallOfMind() {
       let groupKey = "Uncategorized";
       
       // Get the full note data to access metadata
-      const fullNote = savedNotes.current.get(note.id);
-      if (fullNote?.revised?.ai_metadata) {
-        const metadata = fullNote.revised.ai_metadata;
-        
-        if (groupBy === "category" && metadata.categories?.length > 0) {
-          groupKey = metadata.categories[0];
-        } else if (groupBy === "topic" && metadata.topics?.length > 0) {
-          groupKey = metadata.topics[0];
-        }
-      }
+      // TODO: Add metadata grouping when available
+      // const fullNote = savedNotes.current.get(note.id);
       
       if (!groups[groupKey]) {
         groups[groupKey] = [];
@@ -1737,8 +1720,6 @@ export function HallOfMind() {
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
                       <div className="lg:col-span-2">
                         <NoteMetadata
-                          metadata={fullNote?.note?.metadata}
-                          aiMetadata={fullNote?.revised?.ai_metadata}
                           tags={fullNote?.tags || []}
                           links={fullNote?.links || []}
                           starred={fullNote?.note?.starred}
@@ -1759,7 +1740,8 @@ export function HallOfMind() {
                                 createdAt: linkedNote.note.created_at_utc,
                                 updatedAt: linkedNote.note.updated_at_utc,
                                 tags: linkedNote.tags,
-                                starred: linkedNote.note.starred || false
+                                starred: linkedNote.note.starred || false,
+                                archived: linkedNote.note.archived || false
                               };
                               
                               // Add to notes if not already there
@@ -1801,7 +1783,8 @@ export function HallOfMind() {
                                 createdAt: linkedNote.note.created_at_utc,
                                 updatedAt: linkedNote.note.updated_at_utc,
                                 tags: linkedNote.tags,
-                                starred: linkedNote.note.starred || false
+                                starred: linkedNote.note.starred || false,
+                                archived: linkedNote.note.archived || false
                               };
                               
                               // Add to notes if not already there

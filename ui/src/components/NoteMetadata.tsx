@@ -26,7 +26,6 @@ interface NoteMetadataProps {
 }
 
 export function NoteMetadata({ 
-  metadata, 
   aiMetadata, 
   tags = [], 
   links = [],
