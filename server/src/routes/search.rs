@@ -16,14 +16,14 @@ pub async fn search(State(state): State<AppState>, Query(params): Query<SearchPa
                 tracing::error!("FTS search error: {:?}", e);
                 axum::http::StatusCode::INTERNAL_SERVER_ERROR
             })?;
-            Ok(Json(SearchResponse{ hits }))
+            Ok(Json(SearchResponse{ notes: hits }))
         },
         "vector" => {
             let vecs = crate::ollama::embed_texts(vec![params.q.clone()], &state.embed_model)
                 .await.map_err(|_| axum::http::StatusCode::INTERNAL_SERVER_ERROR)?;
             let query_vec = vecs.into_iter().next().unwrap_or_else(|| vec![0.0_f32; 768]);
             let hits = db::search_vector_filtered(&state, query_vec, filters, 25).await.map_err(|_| axum::http::StatusCode::INTERNAL_SERVER_ERROR)?;
-            Ok(Json(SearchResponse{ hits }))
+            Ok(Json(SearchResponse{ notes: hits }))
         },
         _ => {
             // hybrid: fts + vector + RRF
@@ -32,8 +32,8 @@ pub async fn search(State(state): State<AppState>, Query(params): Query<SearchPa
             let query_vec = vecs.into_iter().next().unwrap_or_else(|| vec![0.0_f32; 768]);
             let fts_hits = db::search_fts_filtered(&state, &params.q, filters, 50).await.map_err(|_| axum::http::StatusCode::INTERNAL_SERVER_ERROR)?;
             let vec_hits = db::search_vector_filtered(&state, query_vec, filters, 50).await.map_err(|_| axum::http::StatusCode::INTERNAL_SERVER_ERROR)?;
-            let hits = rrf_fuse(fts_hits, vec_hits, 25);
-            Ok(Json(SearchResponse{ hits }))
+            let notes = rrf_fuse(fts_hits, vec_hits, 25);
+            Ok(Json(SearchResponse{ notes }))
         }
     }
 }
@@ -43,8 +43,8 @@ pub async fn semantic(State(state): State<AppState>, Json(req): Json<SemanticReq
     let vecs = crate::ollama::embed_texts(vec![req.text.clone()], &state.embed_model)
         .await.map_err(|_| axum::http::StatusCode::INTERNAL_SERVER_ERROR)?;
     let query_vec = vecs.into_iter().next().unwrap_or_else(|| vec![0.0_f32; 768]);
-    let hits = crate::db::search_vector_filtered(&state, query_vec, None, 25).await.map_err(|_| axum::http::StatusCode::INTERNAL_SERVER_ERROR)?;
-    Ok(Json(SemanticResponse { similar: hits }))
+    let notes = crate::db::search_vector_filtered(&state, query_vec, None, 25).await.map_err(|_| axum::http::StatusCode::INTERNAL_SERVER_ERROR)?;
+    Ok(Json(SemanticResponse { similar: notes }))
 }
 
 #[derive(Serialize)]

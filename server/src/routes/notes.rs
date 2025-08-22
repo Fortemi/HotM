@@ -43,11 +43,11 @@ pub async fn regenerate_ai(State(state): State<AppState>, Path(id): Path<Uuid>) 
     let note = db::fetch_note(&state, id).await
         .map_err(|_| axum::http::StatusCode::NOT_FOUND)?;
     
-    // Trigger AI regeneration in the background
+    // Trigger AI regeneration with metadata in the background
     let state_clone = state.clone();
     let content = note.original.content.clone();
     tokio::spawn(async move {
-        if let Err(err) = db::generate_ai_revision(&state_clone, id, &content).await {
+        if let Err(err) = crate::db_enhanced::generate_ai_revision_with_metadata(&state_clone, id, &content).await {
             eprintln!("Failed to generate AI revision: {}", err);
         }
     });

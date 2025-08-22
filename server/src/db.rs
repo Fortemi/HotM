@@ -63,11 +63,11 @@ pub async fn insert_note(state: &AppState, content: &str, format: &str, source: 
 
     tx.commit().await?;
 
-    // Generate AI revision asynchronously
+    // Generate AI revision with metadata asynchronously
     let state_clone = state.clone();
     let content_clone = content.to_string();
     tokio::spawn(async move {
-        if let Err(err) = generate_ai_revision(&state_clone, note_id, &content_clone).await {
+        if let Err(err) = crate::db_enhanced::generate_ai_revision_with_metadata(&state_clone, note_id, &content_clone).await {
             tracing::warn!(%note_id, error = %format!("{}", err), "AI revision generation failed");
         }
     });

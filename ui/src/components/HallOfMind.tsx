@@ -46,6 +46,7 @@ import { api, NoteFull } from "@/services/api";
 import { MarkdownPreview } from "./MarkdownPreview";
 import { MarkdownEditor } from "./MarkdownEditor";
 import { RelatedNotes } from "./RelatedNotes";
+import { NoteMetadata } from "./NoteMetadata";
 import { EnhancedSearch } from "./EnhancedSearch";
 
 interface Note {
@@ -638,6 +639,9 @@ export function HallOfMind() {
           <main className="flex-1 p-6">
             {selectedNote ? (
               <div className="mx-auto max-w-4xl">
+                {(() => {
+                  const fullNote = savedNotes.current.get(selectedNote.id);
+                  return (
                 <Tabs defaultValue="preview" className="h-full">
                   <TabsList className="mb-4">
                     <TabsTrigger value="preview" className="gap-2">
@@ -651,6 +655,10 @@ export function HallOfMind() {
                     <TabsTrigger value="edit" className="gap-2">
                       <Edit3 className="h-4 w-4" />
                       Edit
+                    </TabsTrigger>
+                    <TabsTrigger value="metadata" className="gap-2">
+                      <Hash className="h-4 w-4" />
+                      Metadata
                     </TabsTrigger>
                     <TabsTrigger value="search" className="gap-2">
                       <Search className="h-4 w-4" />
@@ -847,7 +855,19 @@ export function HallOfMind() {
                       }}
                     />
                   </TabsContent>
+                  <TabsContent value="metadata">
+                    <NoteMetadata
+                      metadata={fullNote?.note?.metadata}
+                      aiMetadata={fullNote?.revised?.ai_metadata}
+                      tags={fullNote?.tags || []}
+                      links={fullNote?.links || []}
+                      starred={fullNote?.note?.starred}
+                      archived={fullNote?.note?.archived}
+                    />
+                  </TabsContent>
                 </Tabs>
+                );
+                })()}
               </div>
             ) : (
               <div className="flex h-full items-center justify-center">

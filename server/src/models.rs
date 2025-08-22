@@ -58,7 +58,7 @@ pub struct PutRevisedRequest { pub content: String, pub rationale: Option<String
 pub struct PutRevisedResponse { pub revision_id: Uuid, pub revised_content: String }
 
 #[derive(Serialize, Deserialize)]
-pub struct SearchResponse { pub hits: Vec<SearchHit> }
+pub struct SearchResponse { pub notes: Vec<SearchHit> }
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct SearchHit { pub note_id: Uuid, pub score: f32, pub snippet: Option<String> }
