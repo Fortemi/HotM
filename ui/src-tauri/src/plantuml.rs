@@ -32,7 +32,11 @@ impl From<std::io::Error> for PlantUMLError {
 fn get_plantuml_jar_path(app: &AppHandle) -> Result<PathBuf, PlantUMLError> {
     // Try multiple locations for the PlantUML JAR
     let possible_paths = vec![
-        // In the app's resource directory
+        // Development: In src-tauri/resources directory
+        std::env::current_dir()
+            .ok()
+            .map(|p| p.join("resources").join("plantuml.jar")),
+        // Production: In the app's resource directory
         app.path().resource_dir()
             .map(|p| p.join("plantuml.jar"))
             .ok(),
@@ -44,20 +48,28 @@ fn get_plantuml_jar_path(app: &AppHandle) -> Result<PathBuf, PlantUMLError> {
         std::env::current_exe()
             .ok()
             .and_then(|p| p.parent().map(|d| d.join("plantuml.jar"))),
+        // In a resources subdirectory relative to executable
+        std::env::current_exe()
+            .ok()
+            .and_then(|p| p.parent().map(|d| d.join("resources").join("plantuml.jar"))),
         // In a libs subdirectory
         std::env::current_exe()
             .ok()
             .and_then(|p| p.parent().map(|d| d.join("libs").join("plantuml.jar"))),
     ];
 
+    eprintln!("PlantUML: Searching for JAR file...");
     for path_opt in possible_paths {
         if let Some(path) = path_opt {
+            eprintln!("PlantUML: Checking path: {:?}", path);
             if path.exists() {
+                eprintln!("PlantUML: Found JAR at: {:?}", path);
                 return Ok(path);
             }
         }
     }
 
+    eprintln!("PlantUML: JAR not found in any expected location");
     Err(PlantUMLError::PlantUMLJarNotFound)
 }
 
@@ -99,12 +111,16 @@ pub fn render_plantuml(app: &AppHandle, code: &str) -> Result<String, PlantUMLEr
         }
     };
     
-    // Create temporary directory for input/output
+    // Create temporary directory for input/output with timestamp for uniqueness
     let temp_dir = std::env::temp_dir();
-    let input_file = temp_dir.join(format!("plantuml_input_{}.puml", 
-        std::process::id()));
-    let output_file = temp_dir.join(format!("plantuml_input_{}.svg", 
-        std::process::id()));
+    let timestamp = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap_or_default()
+        .as_millis();
+    let input_file = temp_dir.join(format!("plantuml_input_{}_{}.puml", 
+        std::process::id(), timestamp));
+    let output_file = temp_dir.join(format!("plantuml_input_{}_{}.svg", 
+        std::process::id(), timestamp));
     
     // Write PlantUML code to temporary file
     fs::write(&input_file, code)?;
@@ -159,8 +175,8 @@ pub fn render_plantuml(app: &AppHandle, code: &str) -> Result<String, PlantUMLEr
         content
     } else {
         // Try alternative naming (PlantUML sometimes removes underscores or changes names)
-        let alt_output = temp_dir.join(format!("plantuml_input_{}.svg", 
-            std::process::id()).replace("_", ""));
+        let alt_output = temp_dir.join(format!("plantuml_input_{}_{}.svg", 
+            std::process::id(), timestamp).replace("_", ""));
         
         if alt_output.exists() {
             eprintln!("PlantUML: Found output at alternative location: {:?}", alt_output);
