@@ -73,6 +73,24 @@ export interface RelatedNotesResponse {
   context_summary?: string;
 }
 
+export interface NoteSummary {
+  id: string;
+  title: string;
+  snippet: string;
+  created_at_utc: string;
+  updated_at_utc: string;
+  starred: boolean;
+  archived: boolean;
+  tags: string[];
+  has_revision: boolean;
+  metadata: any;
+}
+
+export interface ListNotesResponse {
+  notes: NoteSummary[];
+  total: number;
+}
+
 // API Client
 class ApiClient {
   private async request<T>(
@@ -180,11 +198,9 @@ class ApiClient {
       
       // Known test notes
       const knownIds = [
-        "66a8e5c6-d5f8-4b3d-a197-2e7ff207fcc7", // Test note 1
-        "d87defa1-6a9f-4470-bb63-67934faefc87", // Test note 2
-        "dfacb53a-c19f-48dd-a8bb-3ad2d92464a8", // Meeting notes
-        "4b355a10-ed6f-4500-8bf5-e38978ae74f8", // UI test note
-        "d2c50c5c-2317-446b-a17e-97f412791560", // Quick Sort AI-enhanced
+        "c4fa9d62-ee86-42fe-85c8-52f2d4301450", // Rich markdown test note
+        "59dc8ac5-893b-4552-8234-48891a74a7d0", // Empty test note
+        "1f8aab7b-7add-4144-b44f-534f2f096bf1", // API test note
       ];
       
       // Combine and deduplicate
@@ -210,18 +226,37 @@ class ApiClient {
     }
   }
   
-  // Get recent notes (using search with empty query)
-  async getRecentNotes(_limit: number = 20): Promise<NoteFull[]> {
+  // Get notes with sorting and filtering
+  async getNotes(
+    sortBy: 'created_at' | 'updated_at' | 'accessed_at' = 'created_at',
+    filter: 'all' | 'starred' | 'archived' | 'recent' = 'all',
+    limit: number = 50
+  ): Promise<NoteSummary[]> {
+    const params = new URLSearchParams({
+      sort_by: sortBy,
+      sort_order: 'desc',
+      filter,
+      limit: limit.toString(),
+    });
+    
+    const response = await this.request<ListNotesResponse>(`/notes?${params}`);
+    return response.notes;
+  }
+  
+  // Get recent notes (using new list endpoint)
+  async getRecentNotes(limit: number = 20): Promise<NoteFull[]> {
     try {
-      const noteIds = await this.getAllNoteIds();
-      const notes: NoteFull[] = [];
+      // Get note summaries first
+      const summaries = await this.getNotes('created_at', 'all', limit);
       
-      for (const id of noteIds) {
+      // Fetch full notes for each summary
+      const notes: NoteFull[] = [];
+      for (const summary of summaries) {
         try {
-          const note = await this.getNote(id);
+          const note = await this.getNote(summary.id);
           notes.push(note);
         } catch (e) {
-          console.error(`Failed to load note ${id}:`, e);
+          console.error(`Failed to load note ${summary.id}:`, e);
         }
       }
       
@@ -230,6 +265,14 @@ class ApiClient {
       console.error('Failed to get recent notes:', error);
       return [];
     }
+  }
+  
+  // Update note status (star/archive)
+  async updateNoteStatus(id: string, starred?: boolean, archived?: boolean): Promise<any> {
+    return this.request(`/notes/${id}/status`, {
+      method: 'PUT',
+      body: JSON.stringify({ starred, archived }),
+    });
   }
 
   // Add tags to a note

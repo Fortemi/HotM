@@ -1,0 +1,30 @@
+/* Fix sidebar layout to share screen properly */
+
+/* Override the hidden class on desktop */
+.group.peer.text-sidebar-foreground {
+  display: block !important;
+}
+
+/* Ensure sidebar stays in place */
+[data-slot="sidebar"] {
+  position: relative !important;
+  display: block !important;
+}
+
+/* Fix the sidebar container positioning */
+[data-slot="sidebar-container"] {
+  position: relative !important;
+  width: 16rem !important;
+}
+
+/* Remove gap element that might be causing issues */
+[data-slot="sidebar-gap"] {
+  display: none !important;
+}
+
+/* Ensure main flex container works properly */
+.flex.h-screen.w-full.bg-background {
+  display: flex !important;
+  flex-direction: row !important;
+  height: 100vh !important;
+}

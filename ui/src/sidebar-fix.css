@@ -1,0 +1,47 @@
+/* Temporary fix for sidebar visibility */
+[data-sidebar] {
+  display: flex !important;
+  flex-direction: column !important;
+  min-width: 16rem !important;
+  background: var(--sidebar, white) !important;
+  border-right: 1px solid var(--sidebar-border, #e5e5e5) !important;
+}
+
+[data-sidebar-content] {
+  flex: 1 !important;
+  overflow-y: auto !important;
+  padding: 1rem !important;
+}
+
+/* Ensure main content area is visible */
+[data-sidebar-inset] {
+  flex: 1 !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+/* Make sure the SidebarProvider wrapper is full height */
+.sidebar-provider-wrapper {
+  height: 100vh !important;
+  display: flex !important;
+  width: 100% !important;
+}
+
+/* Ensure textarea is visible */
+textarea {
+  min-height: 100px !important;
+  width: 100% !important;
+  padding: 0.5rem !important;
+  border: 1px solid var(--border, #e5e5e5) !important;
+  border-radius: 0.375rem !important;
+}
+
+/* Ensure buttons are visible */
+button {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 0.5rem 1rem !important;
+  border-radius: 0.375rem !important;
+  cursor: pointer !important;
+}

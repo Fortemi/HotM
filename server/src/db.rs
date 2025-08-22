@@ -80,9 +80,124 @@ pub async fn insert_note(state: &AppState, content: &str, format: &str, source: 
     Ok(note_id)
 }
 
+pub async fn list_notes(state: &AppState, req: &ListNotesRequest) -> anyhow::Result<ListNotesResponse> {
+    let sort_by = req.sort_by.as_deref().unwrap_or("created_at_utc");
+    let sort_order = req.sort_order.as_deref().unwrap_or("desc");
+    let filter = req.filter.as_deref().unwrap_or("all");
+    let limit = req.limit.unwrap_or(50).min(100);
+    let offset = req.offset.unwrap_or(0);
+    
+    // Build the filter clause
+    let filter_clause = match filter {
+        "starred" => "AND n.starred = true AND n.archived = false",
+        "archived" => "AND n.archived = true",
+        "recent" => "AND n.last_accessed_at IS NOT NULL AND n.archived = false",
+        _ => "AND n.archived = false", // Default to non-archived
+    };
+    
+    // Build the order clause
+    let order_clause = match sort_by {
+        "updated_at" => format!("n.updated_at_utc {}", sort_order),
+        "accessed_at" => format!("COALESCE(n.last_accessed_at, n.created_at_utc) {}", sort_order),
+        _ => format!("n.created_at_utc {}", sort_order),
+    };
+    
+    // Get total count
+    let count_query = format!(
+        "SELECT COUNT(*) as count FROM note n WHERE TRUE {}",
+        filter_clause
+    );
+    let total = sqlx::query_scalar::<_, i64>(&count_query)
+        .fetch_one(&state.pool)
+        .await?;
+    
+    // Get notes with summaries
+    let notes_query = format!(
+        r#"
+        SELECT 
+            n.id, 
+            n.created_at_utc, 
+            n.updated_at_utc, 
+            n.starred, 
+            n.archived,
+            n.metadata,
+            no.content as original_content,
+            nrc.content as revised_content,
+            nrc.ai_metadata,
+            COALESCE(
+                (SELECT string_agg(tag_name, ',') FROM note_tag WHERE note_id = n.id),
+                ''
+            ) as tags
+        FROM note n
+        JOIN note_original no ON no.note_id = n.id
+        LEFT JOIN note_revised_current nrc ON nrc.note_id = n.id
+        WHERE TRUE {}
+        ORDER BY {}
+        LIMIT {} OFFSET {}
+        "#,
+        filter_clause, order_clause, limit, offset
+    );
+    
+    let rows = sqlx::query(&notes_query)
+        .fetch_all(&state.pool)
+        .await?;
+    
+    let mut notes = Vec::new();
+    for row in rows {
+        let id: Uuid = row.try_get("id")?;
+        let original_content: String = row.try_get("original_content")?;
+        let revised_content: Option<String> = row.try_get("revised_content").ok();
+        let content = revised_content.as_ref().unwrap_or(&original_content);
+        
+        // Extract title from first line
+        let title = content.lines()
+            .next()
+            .map(|l| l.trim_start_matches('#').trim())
+            .unwrap_or("Untitled")
+            .to_string();
+        
+        // Create snippet (first 200 chars after title)
+        let snippet = content.lines()
+            .skip(1)
+            .collect::<Vec<_>>()
+            .join(" ")
+            .chars()
+            .take(200)
+            .collect::<String>();
+        
+        let tags_str: String = row.try_get("tags").unwrap_or_default();
+        let tags: Vec<String> = if tags_str.is_empty() {
+            Vec::new()
+        } else {
+            tags_str.split(',').map(|s| s.to_string()).collect()
+        };
+        
+        notes.push(NoteSummary {
+            id,
+            title,
+            snippet,
+            created_at_utc: row.try_get("created_at_utc")?,
+            updated_at_utc: row.try_get("updated_at_utc")?,
+            starred: row.try_get("starred")?,
+            archived: row.try_get("archived")?,
+            tags,
+            has_revision: revised_content.is_some(),
+            metadata: row.try_get("metadata")?,
+        });
+    }
+    
+    Ok(ListNotesResponse { notes, total })
+}
+
 pub async fn fetch_note(state: &AppState, note_id: Uuid) -> anyhow::Result<NoteFull> {
+    // Update last accessed timestamp
+    sqlx::query!(
+        "UPDATE note SET last_accessed_at = $1 WHERE id = $2",
+        Utc::now(), note_id
+    ).execute(&state.pool).await?;
+    
     let note = sqlx::query!(
-        "SELECT id, collection_id, format, source, created_at_utc, updated_at_utc FROM note WHERE id = $1",
+        "SELECT id, collection_id, format, source, created_at_utc, updated_at_utc, starred, archived, last_accessed_at, metadata FROM note WHERE id = $1",
         note_id
     ).fetch_one(&state.pool).await?;
 
@@ -99,16 +214,18 @@ pub async fn fetch_note(state: &AppState, note_id: Uuid) -> anyhow::Result<NoteF
         note_id
     ).fetch_optional(&state.pool).await?;
     
+    // Get current revised with metadata
+    let current = sqlx::query!(
+        "SELECT content, last_revision_id, ai_metadata FROM note_revised_current WHERE note_id = $1",
+        note_id
+    ).fetch_one(&state.pool).await?;
+    
     let revised = if let Some(ai_rev) = ai_revision {
-        // Use AI revision if available
-        (ai_rev.content, Some(ai_rev.last_revision_id))
+        // Use AI revision if available but keep metadata from current
+        (ai_rev.content, Some(ai_rev.last_revision_id), current.ai_metadata)
     } else {
-        // Fallback to current revised
-        let current = sqlx::query!(
-            "SELECT content, last_revision_id FROM note_revised_current WHERE note_id = $1",
-            note_id
-        ).fetch_one(&state.pool).await?;
-        (current.content, current.last_revision_id)
+        // Use current revised
+        (current.content, current.last_revision_id, current.ai_metadata)
     };
 
     let tags = sqlx::query!(
@@ -139,12 +256,41 @@ pub async fn fetch_note(state: &AppState, note_id: Uuid) -> anyhow::Result<NoteF
             source: note.source,
             created_at_utc: note.created_at_utc,
             updated_at_utc: note.updated_at_utc,
+            starred: note.starred.unwrap_or(false),
+            archived: note.archived.unwrap_or(false),
+            last_accessed_at: note.last_accessed_at,
+            metadata: note.metadata.unwrap_or(serde_json::json!({})),
         },
         original: NoteOriginal { content: original.content, hash: original.hash },
-        revised: NoteRevised { content: revised.0, last_revision_id: revised.1 },
+        revised: NoteRevised { 
+            content: revised.0, 
+            last_revision_id: revised.1,
+            ai_metadata: revised.2,
+        },
         tags,
         links,
     })
+}
+
+pub async fn update_note_status(state: &AppState, note_id: Uuid, req: &UpdateNoteStatusRequest) -> anyhow::Result<()> {
+    let mut qb = sqlx::QueryBuilder::new("UPDATE note SET updated_at_utc = ");
+    qb.push_bind(Utc::now());
+    
+    if let Some(starred) = req.starred {
+        qb.push(", starred = ");
+        qb.push_bind(starred);
+    }
+    
+    if let Some(archived) = req.archived {
+        qb.push(", archived = ");
+        qb.push_bind(archived);
+    }
+    
+    qb.push(" WHERE id = ");
+    qb.push_bind(note_id);
+    
+    qb.build().execute(&state.pool).await?;
+    Ok(())
 }
 
 pub async fn update_revised(state: &AppState, note_id: Uuid, content: &str, rationale: Option<&str>) -> anyhow::Result<Uuid> {
@@ -215,29 +361,27 @@ pub async fn search_fts(state: &AppState, q: &str, limit: i64) -> anyhow::Result
 
 pub async fn search_fts_filtered(state: &AppState, q: &str, filters: Option<&str>, limit: i64) -> anyhow::Result<Vec<SearchHit>> {
     // Basic filter parser: tag:foo, collection:uuid
-    let mut base = String::from(
-        "SELECT n.id as note_id, ts_rank(nrc.tsv, plainto_tsquery('english', $1)) AS score, substring(nrc.content for 200) AS snippet FROM note_revised_current nrc JOIN note n ON n.id = nrc.note_id WHERE nrc.tsv @@ plainto_tsquery('english', $1)"
+    let mut qb = sqlx::QueryBuilder::new(
+        "SELECT n.id as note_id, ts_rank(nrc.tsv, plainto_tsquery('english', "
     );
-    let mut args: Vec<(i32, String)> = Vec::new();
-    let mut idx = 2;
+    qb.push_bind(q);
+    qb.push(")) AS score, substring(nrc.content for 200) AS snippet FROM note_revised_current nrc JOIN note n ON n.id = nrc.note_id WHERE nrc.tsv @@ plainto_tsquery('english', ");
+    qb.push_bind(q);
+    qb.push(")");
+    
     if let Some(f) = filters {
         for token in f.split_whitespace() {
             if let Some(rest) = token.strip_prefix("tag:") {
-                base.push_str(&format!(" AND n.id IN (SELECT note_id FROM note_tag WHERE tag_name = ${})", idx));
-                args.push((idx, rest.to_string()));
-                idx += 1;
+                qb.push(" AND n.id IN (SELECT note_id FROM note_tag WHERE tag_name = ");
+                qb.push_bind(rest);
+                qb.push(")");
             } else if let Some(rest) = token.strip_prefix("collection:") {
-                base.push_str(&format!(" AND n.collection_id = ${}", idx));
-                args.push((idx, rest.to_string()));
-                idx += 1;
+                qb.push(" AND n.collection_id = ");
+                qb.push_bind(Uuid::parse_str(rest)?);
             }
         }
     }
-    base.push_str(&format!(" ORDER BY score DESC LIMIT ${}", idx));
-    // Build query dynamically; sqlx doesn't support variadic bind easily in macro; use QueryBuilder instead
-    let mut qb = sqlx::QueryBuilder::new(base);
-    qb.push_bind(q);
-    for (_i, v) in args { qb.push_bind(v); }
+    qb.push(" ORDER BY score DESC LIMIT ");
     qb.push_bind(limit);
     let rows = qb.build().fetch_all(&state.pool).await?;
     let mut out = Vec::new();
@@ -320,28 +464,28 @@ pub async fn search_vector(state: &AppState, query_vec: Vec<f32>, limit: i64) ->
 }
 
 pub async fn search_vector_filtered(state: &AppState, query_vec: Vec<f32>, filters: Option<&str>, limit: i64) -> anyhow::Result<Vec<SearchHit>> {
-    let mut base = String::from(
-        "SELECT e.note_id AS note_id, 1.0 - (e.vector <=> $1::vector) AS score FROM embedding e JOIN note n ON n.id = e.note_id WHERE TRUE"
+    let vec_param = pgvector::Vector::from(query_vec.clone());
+    let mut qb = sqlx::QueryBuilder::new(
+        "SELECT e.note_id AS note_id, 1.0 - (e.vector <=> "
     );
-    let mut args: Vec<(i32, String)> = Vec::new();
-    let mut idx = 2;
+    qb.push_bind(vec_param.clone());
+    qb.push("::vector) AS score FROM embedding e JOIN note n ON n.id = e.note_id WHERE TRUE");
+    
     if let Some(f) = filters {
         for token in f.split_whitespace() {
             if let Some(rest) = token.strip_prefix("tag:") {
-                base.push_str(&format!(" AND e.note_id IN (SELECT note_id FROM note_tag WHERE tag_name = ${})", idx));
-                args.push((idx, rest.to_string()));
-                idx += 1;
+                qb.push(" AND e.note_id IN (SELECT note_id FROM note_tag WHERE tag_name = ");
+                qb.push_bind(rest);
+                qb.push(")");
             } else if let Some(rest) = token.strip_prefix("collection:") {
-                base.push_str(&format!(" AND n.collection_id = ${}", idx));
-                args.push((idx, rest.to_string()));
-                idx += 1;
+                qb.push(" AND n.collection_id = ");
+                qb.push_bind(Uuid::parse_str(rest)?);
             }
         }
     }
-    base.push_str(&format!(" ORDER BY e.vector <=> $1::vector ASC LIMIT ${}", idx));
-    let mut qb = sqlx::QueryBuilder::new(base);
-    qb.push_bind(pgvector::Vector::from(query_vec));
-    for (_i, v) in args { qb.push_bind(v); }
+    qb.push(" ORDER BY e.vector <=> ");
+    qb.push_bind(vec_param);
+    qb.push("::vector ASC LIMIT ");
     qb.push_bind(limit);
     let rows = qb.build().fetch_all(&state.pool).await?;
     let mut out = Vec::new();

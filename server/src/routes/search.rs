@@ -9,9 +9,13 @@ pub struct SearchParams { pub q: String, pub mode: Option<String>, pub filters: 
 pub async fn search(State(state): State<AppState>, Query(params): Query<SearchParams>) -> Result<Json<SearchResponse>, axum::http::StatusCode> {
     let mode = params.mode.as_deref().unwrap_or("hybrid");
     let filters = params.filters.as_deref();
+    tracing::info!("Search request: q={}, mode={}, filters={:?}", params.q, mode, filters);
     match mode {
         "fts" => {
-            let hits = db::search_fts_filtered(&state, &params.q, filters, 25).await.map_err(|_| axum::http::StatusCode::INTERNAL_SERVER_ERROR)?;
+            let hits = db::search_fts_filtered(&state, &params.q, filters, 25).await.map_err(|e| {
+                tracing::error!("FTS search error: {:?}", e);
+                axum::http::StatusCode::INTERNAL_SERVER_ERROR
+            })?;
             Ok(Json(SearchResponse{ hits }))
         },
         "vector" => {

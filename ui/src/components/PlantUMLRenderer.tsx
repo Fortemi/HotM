@@ -1,9 +1,65 @@
 import { useState, useEffect } from 'react';
-import { invoke } from '@tauri-apps/api/core';
+import pako from 'pako';
 
 interface PlantUMLRendererProps {
   code: string;
   className?: string;
+}
+
+// PlantUML encoding function using deflate compression
+function encode64(data: Uint8Array): string {
+  let r = '';
+  for (let i = 0; i < data.length; i += 3) {
+    if (i + 2 === data.length) {
+      r += append3bytes(data[i], data[i + 1], 0);
+    } else if (i + 1 === data.length) {
+      r += append3bytes(data[i], 0, 0);
+    } else {
+      r += append3bytes(data[i], data[i + 1], data[i + 2]);
+    }
+  }
+  return r;
+}
+
+function append3bytes(b1: number, b2: number, b3: number): string {
+  const c1 = b1 >> 2;
+  const c2 = ((b1 & 0x3) << 4) | (b2 >> 4);
+  const c3 = ((b2 & 0xF) << 2) | (b3 >> 6);
+  const c4 = b3 & 0x3F;
+  let r = '';
+  r += encode6bit(c1 & 0x3F);
+  r += encode6bit(c2 & 0x3F);
+  r += encode6bit(c3 & 0x3F);
+  r += encode6bit(c4 & 0x3F);
+  return r;
+}
+
+function encode6bit(b: number): string {
+  if (b < 10) {
+    return String.fromCharCode(48 + b);
+  }
+  b -= 10;
+  if (b < 26) {
+    return String.fromCharCode(65 + b);
+  }
+  b -= 26;
+  if (b < 26) {
+    return String.fromCharCode(97 + b);
+  }
+  b -= 26;
+  if (b === 0) {
+    return '-';
+  }
+  if (b === 1) {
+    return '_';
+  }
+  return '?';
+}
+
+function encodePlantUML(text: string): string {
+  const data = unescape(encodeURIComponent(text));
+  const compressed = pako.deflateRaw(data, { level: 9 });
+  return encode64(compressed);
 }
 
 export function PlantUMLRenderer({ code, className = '' }: PlantUMLRendererProps) {
@@ -26,11 +82,22 @@ export function PlantUMLRenderer({ code, className = '' }: PlantUMLRendererProps
       setLoading(true);
       setError(null);
       
-      // Call Tauri backend to render PlantUML
-      console.log('Rendering PlantUML diagram:', code.substring(0, 100) + '...');
-      const rendered = await invoke<string>('render_plantuml', { code });
+      // Encode the PlantUML code with deflate compression
+      const encoded = encodePlantUML(code);
+      
+      // Use the PlantUML server API with the encoded text
+      const url = `http://localhost:8080/svg/${encoded}`;
+      
+      console.log('Fetching PlantUML diagram from:', url.substring(0, 100) + '...');
+      const response = await fetch(url);
+      
+      if (!response.ok) {
+        throw new Error(`PlantUML server returned ${response.status}`);
+      }
+      
+      const svgText = await response.text();
       console.log('PlantUML rendered successfully');
-      setSvg(rendered);
+      setSvg(svgText);
     } catch (err) {
       console.error('Failed to render PlantUML:', err);
       setError(err instanceof Error ? err.message : 'Failed to render diagram');

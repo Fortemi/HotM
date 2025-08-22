@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test</title>
+</head>
+<body>
+    <h1>Testing API Connection</h1>
+    <div id="results"></div>
+    <script>
+        async function test() {
+            const resultsDiv = document.getElementById('results');
+            
+            try {
+                // Test health endpoint
+                const healthRes = await fetch('http://localhost:53211/api/v1/health');
+                const health = await healthRes.json();
+                resultsDiv.innerHTML += `<p>Health: ${JSON.stringify(health)}</p>`;
+                
+                // Test getting a note
+                const noteRes = await fetch('http://localhost:53211/api/v1/notes/c4fa9d62-ee86-42fe-85c8-52f2d4301450');
+                const note = await noteRes.json();
+                resultsDiv.innerHTML += `<p>Note loaded: ${note.note.id}</p>`;
+                resultsDiv.innerHTML += `<p>Has revised: ${!!note.revised}</p>`;
+                
+            } catch (error) {
+                resultsDiv.innerHTML += `<p style="color: red">Error: ${error.message}</p>`;
+            }
+        }
+        
+        test();
+    </script>
+</body>
+</html>

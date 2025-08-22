@@ -1,4 +1,4 @@
-use axum::{extract::{State, Path}, Json};
+use axum::{extract::{State, Path, Query}, Json};
 use uuid::Uuid;
 use crate::{db, db::AppState, models::*};
 use serde_json;
@@ -18,6 +18,23 @@ pub async fn get_note(State(state): State<AppState>, Path(id): Path<Uuid>) -> Re
 pub async fn put_revised(State(state): State<AppState>, Path(id): Path<Uuid>, Json(req): Json<PutRevisedRequest>) -> Result<Json<PutRevisedResponse>, axum::http::StatusCode> {
     let rev = db::update_revised(&state, id, &req.content, req.rationale.as_deref()).await.map_err(|_| axum::http::StatusCode::INTERNAL_SERVER_ERROR)?;
     Ok(Json(PutRevisedResponse{ revision_id: rev, revised_content: req.content }))
+}
+
+// List all notes with filtering and sorting
+pub async fn list_notes(State(state): State<AppState>, Query(params): Query<ListNotesRequest>) -> Result<Json<ListNotesResponse>, axum::http::StatusCode> {
+    let response = db::list_notes(&state, &params).await
+        .map_err(|_| axum::http::StatusCode::INTERNAL_SERVER_ERROR)?;
+    Ok(Json(response))
+}
+
+// Update note status (star/archive)
+pub async fn update_note_status(State(state): State<AppState>, Path(id): Path<Uuid>, Json(req): Json<UpdateNoteStatusRequest>) -> Result<Json<serde_json::Value>, axum::http::StatusCode> {
+    db::update_note_status(&state, id, &req).await
+        .map_err(|_| axum::http::StatusCode::INTERNAL_SERVER_ERROR)?;
+    Ok(Json(serde_json::json!({
+        "status": "updated",
+        "note_id": id
+    })))
 }
 
 // Endpoint to regenerate AI enhancement for a note

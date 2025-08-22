@@ -13,7 +13,17 @@ interface MarkdownPreviewProps {
 
 export function MarkdownPreview({ content, className = "" }: MarkdownPreviewProps) {
   return (
-    <div className={`prose prose-sm max-w-none dark:prose-invert ${className}`}>
+    <div className={`prose prose-slate prose-sm max-w-none dark:prose-invert 
+                     prose-headings:font-bold prose-headings:text-foreground
+                     prose-h1:text-3xl prose-h2:text-2xl prose-h3:text-xl
+                     prose-p:text-foreground prose-p:leading-relaxed
+                     prose-a:text-primary prose-a:no-underline hover:prose-a:underline
+                     prose-strong:text-foreground prose-strong:font-semibold
+                     prose-code:text-primary prose-code:bg-muted prose-code:px-1 prose-code:py-0.5 prose-code:rounded
+                     prose-pre:bg-muted prose-pre:text-foreground
+                     prose-ol:text-foreground prose-ul:text-foreground
+                     prose-blockquote:text-muted-foreground prose-blockquote:border-primary
+                     ${className}`}>
       <ReactMarkdown
         remarkPlugins={[remarkGfm, remarkMath]}
         rehypePlugins={[rehypeKatex]}

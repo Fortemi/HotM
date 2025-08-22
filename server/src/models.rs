@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use serde_json::Value as JsonValue;
 use uuid::Uuid;
 use chrono::{DateTime, Utc};
 
@@ -10,13 +11,21 @@ pub struct NoteMeta {
     pub source: String,
     pub created_at_utc: DateTime<Utc>,
     pub updated_at_utc: DateTime<Utc>,
+    pub starred: bool,
+    pub archived: bool,
+    pub last_accessed_at: Option<DateTime<Utc>>,
+    pub metadata: JsonValue,
 }
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct NoteOriginal { pub content: String, pub hash: String }
 
 #[derive(Serialize, Deserialize, Clone)]
-pub struct NoteRevised { pub content: String, pub last_revision_id: Option<Uuid> }
+pub struct NoteRevised { 
+    pub content: String, 
+    pub last_revision_id: Option<Uuid>,
+    pub ai_metadata: Option<JsonValue>,
+}
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct Link {
@@ -86,6 +95,43 @@ pub struct PostLinkResponse { pub link_id: Uuid }
 pub struct SemanticRequest { pub text: String }
 #[derive(Serialize, Deserialize)]
 pub struct SemanticResponse { pub similar: Vec<SearchHit> }
+
+// List notes with filtering and sorting
+#[derive(Serialize, Deserialize)]
+pub struct ListNotesRequest {
+    pub sort_by: Option<String>,  // created_at, updated_at, accessed_at
+    pub sort_order: Option<String>, // asc, desc
+    pub filter: Option<String>,    // all, starred, archived, recent
+    pub limit: Option<i64>,
+    pub offset: Option<i64>,
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct NoteSummary {
+    pub id: Uuid,
+    pub title: String,
+    pub snippet: String,
+    pub created_at_utc: DateTime<Utc>,
+    pub updated_at_utc: DateTime<Utc>,
+    pub starred: bool,
+    pub archived: bool,
+    pub tags: Vec<String>,
+    pub has_revision: bool,
+    pub metadata: JsonValue,
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct ListNotesResponse {
+    pub notes: Vec<NoteSummary>,
+    pub total: i64,
+}
+
+// Update note status
+#[derive(Serialize, Deserialize)]
+pub struct UpdateNoteStatusRequest {
+    pub starred: Option<bool>,
+    pub archived: Option<bool>,
+}
 
 // Provenance (simplified)
 #[derive(Serialize, Deserialize)]

@@ -88,6 +88,12 @@ cd server
 sqlx migrate run
 ```
 
+### System Prerequisites
+```bash
+# Install Graphviz (required for PlantUML diagram rendering)
+sudo apt-get install -y graphviz
+```
+
 ### Ollama Models (for NLP features)
 ```bash
 # Pull required models

@@ -11,7 +11,6 @@ import {
   SidebarMenu,
   SidebarMenuItem,
   SidebarMenuButton,
-  SidebarInset,
   SidebarTrigger
 } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
@@ -408,9 +407,9 @@ export function HallOfMind() {
   );
 
   return (
-    <SidebarProvider>
+    <SidebarProvider defaultOpen={true}>
       <div className="flex h-screen w-full bg-background">
-        <Sidebar className="border-r">
+        <Sidebar variant="sidebar" className="border-r w-64 relative">
           <SidebarHeader className="p-4">
             <div className="flex items-center gap-2">
               <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary text-primary-foreground">
@@ -600,7 +599,7 @@ export function HallOfMind() {
           </SidebarFooter>
         </Sidebar>
 
-        <SidebarInset className="flex flex-1 flex-col">
+        <div className="flex flex-1 flex-col overflow-hidden">
           <header className="flex h-16 items-center gap-4 border-b px-6">
             <SidebarTrigger />
             <div className="flex flex-1 items-center gap-4">
@@ -866,7 +865,7 @@ export function HallOfMind() {
               </div>
             )}
           </main>
-        </SidebarInset>
+        </div>
       </div>
     </SidebarProvider>
   );
