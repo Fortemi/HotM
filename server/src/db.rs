@@ -63,11 +63,11 @@ pub async fn insert_note(state: &AppState, content: &str, format: &str, source: 
 
     tx.commit().await?;
 
-    // Generate AI revision with metadata asynchronously
+    // Generate AI revision with metadata asynchronously (using new cleaner version)
     let state_clone = state.clone();
     let content_clone = content.to_string();
     tokio::spawn(async move {
-        if let Err(err) = crate::db_enhanced::generate_ai_revision_with_metadata(&state_clone, note_id, &content_clone).await {
+        if let Err(err) = crate::db_enhanced_v2::generate_ai_revision_with_metadata(&state_clone, note_id, &content_clone).await {
             tracing::warn!(%note_id, error = %format!("{}", err), "AI revision generation failed");
         }
     });
@@ -92,7 +92,7 @@ pub async fn list_notes(state: &AppState, req: &ListNotesRequest) -> anyhow::Res
         "starred" => "AND n.starred = true AND n.archived = false",
         "archived" => "AND n.archived = true",
         "recent" => "AND n.last_accessed_at IS NOT NULL AND n.archived = false",
-        _ => "AND n.archived = false", // Default to non-archived
+        _ => "", // "all" filter should show everything, including archived
     };
     
     // Build the order clause
@@ -202,7 +202,7 @@ pub async fn fetch_note(state: &AppState, note_id: Uuid) -> anyhow::Result<NoteF
     ).fetch_one(&state.pool).await?;
 
     let original = sqlx::query!(
-        "SELECT content, hash FROM note_original WHERE note_id = $1",
+        "SELECT content, hash, user_created_at, user_last_edited_at FROM note_original WHERE note_id = $1",
         note_id
     ).fetch_one(&state.pool).await?;
 
@@ -277,11 +277,20 @@ pub async fn fetch_note(state: &AppState, note_id: Uuid) -> anyhow::Result<NoteF
             last_accessed_at: note.last_accessed_at,
             metadata: note.metadata.unwrap_or(serde_json::json!({})),
         },
-        original: NoteOriginal { content: original.content, hash: original.hash },
+        original: NoteOriginal { 
+            content: original.content, 
+            hash: original.hash,
+            user_created_at: original.user_created_at,
+            user_last_edited_at: original.user_last_edited_at,
+        },
         revised: NoteRevised { 
             content: revised.0, 
             last_revision_id: revised.1,
             ai_metadata: revised.2,
+            ai_generated_at: None, // TODO: fetch from note_revision
+            user_last_edited_at: None, // TODO: fetch from note_revision
+            is_user_edited: false, // TODO: fetch from note_revision
+            generation_count: 1, // TODO: fetch from note_revision
         },
         tags,
         links,
@@ -365,6 +374,7 @@ pub async fn search_fts(state: &AppState, q: &str, limit: i64) -> anyhow::Result
         FROM note_revised_current nrc
         JOIN note n ON n.id = nrc.note_id
         WHERE nrc.tsv @@ plainto_tsquery('english', $1)
+          AND (n.archived IS FALSE OR n.archived IS NULL)
         ORDER BY score DESC
         LIMIT $2
         "#,
@@ -383,7 +393,7 @@ pub async fn search_fts_filtered(state: &AppState, q: &str, filters: Option<&str
     qb.push_bind(q);
     qb.push(")) AS score, substring(nrc.content for 200) AS snippet FROM note_revised_current nrc JOIN note n ON n.id = nrc.note_id WHERE nrc.tsv @@ plainto_tsquery('english', ");
     qb.push_bind(q);
-    qb.push(")");
+    qb.push(") AND (n.archived IS FALSE OR n.archived IS NULL)");
     
     if let Some(f) = filters {
         for token in f.split_whitespace() {
@@ -403,7 +413,7 @@ pub async fn search_fts_filtered(state: &AppState, q: &str, filters: Option<&str
     let mut out = Vec::new();
     for row in rows {
         let note_id: Uuid = row.try_get("note_id")?;
-        let score: Option<f32> = row.try_get::<Option<f32>, _>("score")?;
+        let score: Option<f32> = row.try_get("score")?;
         let snippet: Option<String> = row.try_get("snippet")?;
         out.push(SearchHit { note_id, score: score.unwrap_or(0.0), snippet });
     }
@@ -462,6 +472,8 @@ pub async fn search_vector(state: &AppState, query_vec: Vec<f32>, limit: i64) ->
         SELECT e.note_id AS note_id,
                1.0 - (e.vector <=> $1::vector) AS score
         FROM embedding e
+        JOIN note n ON n.id = e.note_id
+        WHERE (n.archived IS FALSE OR n.archived IS NULL)
         ORDER BY e.vector <=> $1::vector
         LIMIT $2
         "#
@@ -473,8 +485,8 @@ pub async fn search_vector(state: &AppState, query_vec: Vec<f32>, limit: i64) ->
     let mut results = Vec::new();
     for row in rows {
         let note_id: Uuid = row.try_get("note_id")?;
-        let score: f32 = row.try_get("score")?;
-        results.push(SearchHit { note_id, score, snippet: None });
+        let score: f64 = row.try_get("score")?;
+        results.push(SearchHit { note_id, score: score as f32, snippet: None });
     }
     Ok(results)
 }
@@ -485,7 +497,7 @@ pub async fn search_vector_filtered(state: &AppState, query_vec: Vec<f32>, filte
         "SELECT e.note_id AS note_id, 1.0 - (e.vector <=> "
     );
     qb.push_bind(vec_param.clone());
-    qb.push("::vector) AS score FROM embedding e JOIN note n ON n.id = e.note_id WHERE TRUE");
+    qb.push("::vector) AS score FROM embedding e JOIN note n ON n.id = e.note_id WHERE (n.archived IS FALSE OR n.archived IS NULL)");
     
     if let Some(f) = filters {
         for token in f.split_whitespace() {
@@ -507,8 +519,8 @@ pub async fn search_vector_filtered(state: &AppState, query_vec: Vec<f32>, filte
     let mut out = Vec::new();
     for row in rows {
         let note_id: Uuid = row.try_get("note_id")?;
-        let score: Option<f32> = row.try_get::<Option<f32>, _>("score")?;
-        out.push(SearchHit { note_id, score: score.unwrap_or(0.0), snippet: None });
+        let score: f64 = row.try_get("score")?;
+        out.push(SearchHit { note_id, score: score as f32, snippet: None });
     }
     Ok(out)
 }

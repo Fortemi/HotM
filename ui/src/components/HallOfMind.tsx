@@ -21,6 +21,18 @@ import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
   Brain,
   Plus,
   Search,
@@ -42,7 +54,13 @@ import {
   Loader2,
   Copy,
   Check,
-  X
+  X,
+  SortAsc,
+  Calendar,
+  Type,
+  ChevronRight,
+  ChevronDown,
+  Folder
 } from "lucide-react";
 import { api, NoteFull } from "@/services/api";
 import { MarkdownPreview } from "./MarkdownPreview";
@@ -50,6 +68,16 @@ import { MarkdownEditor } from "./MarkdownEditor";
 import { RelatedNotes } from "./RelatedNotes";
 import { NoteMetadata } from "./NoteMetadata";
 import { EnhancedSearch } from "./EnhancedSearch";
+import { NoteContextMenu, useGlobalContextMenuPrevention } from "./NoteContextMenu";
+import { LabelAutocomplete } from "./LabelAutocomplete";
+import { DeleteNoteDialog } from "./DeleteNoteDialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface Note {
   id: string;
@@ -59,21 +87,42 @@ interface Note {
   updatedAt: string;
   tags: string[];
   starred: boolean;
+  archived: boolean;
   revised_content?: string | null;
 }
 
 export function HallOfMind() {
+  // Use the global context menu prevention hook
+  useGlobalContextMenuPrevention();
+  
   const [notes, setNotes] = useState<Note[]>([]);
   const [selectedNote, setSelectedNote] = useState<Note | null>(null);
   const [noteContent, setNoteContent] = useState("");
   const [revisedContent, setRevisedContent] = useState("");
   const [editingRevised, setEditingRevised] = useState(false);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [searchMode, setSearchMode] = useState<"local" | "fts" | "semantic" | "hybrid">("local");
   const [searchResults, setSearchResults] = useState<Note[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [showSearchResults, setShowSearchResults] = useState(false);
+  const [groupBy, setGroupBy] = useState<"none" | "category" | "topic">("none");
+  const [sortBy, setSortBy] = useState<"created" | "title">("created");
+  const [sortOrder, setSortOrder] = useState<"desc" | "asc">("desc");
+  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set(["Uncategorized"]));
+  const [activeTab, setActiveTab] = useState<string>("preview");
+  const [quickAccessFilter, setQuickAccessFilter] = useState<"all" | "starred" | "recent" | "archived">("all");
+  const [noteLabels, setNoteLabels] = useState<Map<string, any[]>>(new Map());
+  const [showLabelInput, setShowLabelInput] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(true);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [noteToDelete, setNoteToDelete] = useState<{ id: string; title: string } | null>(null);
+  const [quickNoteCollapsed, setQuickNoteCollapsed] = useState(false);
+  const [quickAccessCollapsed, setQuickAccessCollapsed] = useState(false);
+  const [tagsCollapsed, setTagsCollapsed] = useState(false);
+  const [selectedTags, setSelectedTags] = useState<Set<string>>(new Set());
+  const [tagSearchQuery, setTagSearchQuery] = useState("");
+  const [availableTags, setAvailableTags] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [serverStatus, setServerStatus] = useState<{
     ok: boolean;
@@ -88,7 +137,18 @@ export function HallOfMind() {
   useEffect(() => {
     checkServerHealth();
     loadExistingNotes();
+    loadAvailableTags();
   }, []);
+  
+  // Load available tags for filtering
+  const loadAvailableTags = async () => {
+    try {
+      const tags = await api.getAllLabels();
+      setAvailableTags(tags.slice(0, 50)); // Keep top 50 for performance
+    } catch (error) {
+      console.error('Failed to load tags:', error);
+    }
+  };
 
   // Auto-refresh every 10 seconds if there are processing notes
   useEffect(() => {
@@ -108,7 +168,8 @@ export function HallOfMind() {
               createdAt: updatedNote.note.created_at_utc,
               updatedAt: updatedNote.note.updated_at_utc,
               tags: updatedNote.tags,
-              starred: false
+              starred: updatedNote.note.starred || false,
+              archived: updatedNote.note.archived || false
             };
             
             setNotes(prev => prev.map(n => n.id === simpleNote.id ? simpleNote : n));
@@ -116,6 +177,7 @@ export function HallOfMind() {
             if (selectedNote?.id === simpleNote.id) {
               setSelectedNote(simpleNote);
               setRevisedContent(simpleNote.revised_content || simpleNote.content);
+              // Don't reset hasUnsavedChanges here as this is auto-refresh during processing
             }
             
             // Remove from processing set
@@ -171,6 +233,7 @@ export function HallOfMind() {
           }
           
           // Create simplified version for UI
+          console.log(`Loading note ${note.note.id}: starred=${note.note.starred}, archived=${note.note.archived}`);
           return {
             id: note.note.id,
             title: note.original.content.split('\n')[0].substring(0, 50) || "Untitled",
@@ -179,7 +242,8 @@ export function HallOfMind() {
             createdAt: note.note.created_at_utc,
             updatedAt: note.note.updated_at_utc,
             tags: note.tags,
-            starred: false
+            starred: note.note.starred || false,
+            archived: note.note.archived || false
           };
         });
         setNotes(simpleNotes);
@@ -240,7 +304,8 @@ export function HallOfMind() {
         createdAt: fullNote.note.created_at_utc,
         updatedAt: fullNote.note.updated_at_utc,
         tags: fullNote.tags,
-        starred: false
+        starred: fullNote.note.starred || false,
+        archived: fullNote.note.archived || false
       };
       
       // Mark note as processing
@@ -254,7 +319,9 @@ export function HallOfMind() {
             // Update the note with AI revision
             const updatedSimpleNote = {
               ...simpleNote,
-              revised_content: updatedNote.revised.content
+              revised_content: updatedNote.revised.content,
+              starred: updatedNote.note.starred || false,
+              archived: updatedNote.note.archived || false
             };
             setNotes(prev => prev.map(n => n.id === updatedSimpleNote.id ? updatedSimpleNote : n));
             if (selectedNote?.id === updatedSimpleNote.id) {
@@ -278,6 +345,7 @@ export function HallOfMind() {
       setSelectedNote(simpleNote);
       setNoteContent(simpleNote.content);
       setNewNoteContent("");
+      setHasUnsavedChanges(false);
       
       // Refresh the notes list to ensure sync
       await loadExistingNotes();
@@ -313,7 +381,9 @@ export function HallOfMind() {
             setRevisedContent(updatedNote.revised.content);
             const updatedSimpleNote = {
               ...selectedNote,
-              revised_content: updatedNote.revised.content
+              revised_content: updatedNote.revised.content,
+              starred: updatedNote.note.starred || false,
+              archived: updatedNote.note.archived || false
             };
             setNotes(prev => prev.map(n => n.id === updatedSimpleNote.id ? updatedSimpleNote : n));
             setSelectedNote(updatedSimpleNote);
@@ -334,6 +404,112 @@ export function HallOfMind() {
       alert("Failed to regenerate AI enhancement");
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  // Context menu handlers
+  const handleEditNote = (noteId: string) => {
+    const note = notes.find(n => n.id === noteId);
+    if (note) {
+      setSelectedNote(note);
+      setNoteContent(note.content);
+      setRevisedContent(note.revised_content || note.content);
+      setEditingRevised(false);
+      // Switch to the Edit tab
+      setActiveTab("edit");
+    }
+  };
+
+  const handleViewMetadata = (noteId: string) => {
+    const note = notes.find(n => n.id === noteId);
+    if (note) {
+      setSelectedNote(note);
+      // Switch to metadata tab
+      setActiveTab("metadata");
+    }
+  };
+
+  const handleRegenerateAI = async (noteId: string) => {
+    const note = notes.find(n => n.id === noteId);
+    if (note) {
+      setSelectedNote(note);
+      await regenerateAI();
+    }
+  };
+
+  const handleDeleteNote = (noteId: string) => {
+    const note = notes.find(n => n.id === noteId);
+    if (note) {
+      setNoteToDelete({ id: noteId, title: note.title });
+      setDeleteDialogOpen(true);
+    }
+  };
+
+  const confirmDeleteNote = async () => {
+    if (!noteToDelete) return;
+    
+    try {
+      setIsLoading(true);
+      await api.deleteNote(noteToDelete.id);
+      
+      // Remove from local state
+      setNotes(prev => prev.filter(n => n.id !== noteToDelete.id));
+      savedNotes.current.delete(noteToDelete.id);
+      
+      // Clear selection if this was the selected note
+      if (selectedNote?.id === noteToDelete.id) {
+        setSelectedNote(null);
+        setNoteContent("");
+        setRevisedContent("");
+      }
+      
+      console.log("Note deleted:", noteToDelete.id);
+      
+      // Close dialog and clear state
+      setDeleteDialogOpen(false);
+      setNoteToDelete(null);
+    } catch (error) {
+      console.error("Failed to delete note:", error);
+      // We'll handle this more gracefully in the dialog
+      setDeleteDialogOpen(false);
+      setNoteToDelete(null);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleArchiveNote = async (noteId: string) => {
+    const note = notes.find(n => n.id === noteId);
+    if (!note) return;
+    
+    const newArchived = !note.archived;
+    
+    try {
+      // Update UI optimistically
+      const updatedNotes = notes.map(n =>
+        n.id === noteId ? { ...n, archived: newArchived } : n
+      );
+      setNotes(updatedNotes);
+      
+      // Update selected note if it's the one being archived
+      if (selectedNote?.id === noteId) {
+        setSelectedNote({ ...selectedNote, archived: newArchived });
+      }
+      
+      // Actually persist to backend
+      console.log(`Updating archive status for note ${noteId}: ${newArchived}`);
+      await api.updateNoteStatus(noteId, undefined, newArchived);
+      console.log(`Successfully updated archive status for note ${noteId}: ${newArchived}`);
+    } catch (error) {
+      console.error("Failed to update archive status:", error);
+      // Revert on error
+      const revertedNotes = notes.map(n =>
+        n.id === noteId ? { ...n, archived: !newArchived } : n
+      );
+      setNotes(revertedNotes);
+      if (selectedNote?.id === noteId) {
+        setSelectedNote({ ...selectedNote, archived: !newArchived });
+      }
     }
   };
 
@@ -381,6 +557,7 @@ export function HallOfMind() {
       });
       
       console.log("Note saved successfully to server");
+      setHasUnsavedChanges(false);
     } catch (error) {
       console.error("Failed to save note:", error);
       alert("Failed to save note. Check if the server is running.");
@@ -389,11 +566,39 @@ export function HallOfMind() {
     }
   };
 
-  const toggleStar = (noteId: string) => {
-    const updatedNotes = notes.map(note =>
-      note.id === noteId ? { ...note, starred: !note.starred } : note
+  const toggleStar = async (noteId: string) => {
+    const note = notes.find(n => n.id === noteId);
+    if (!note) return;
+    
+    const newStarred = !note.starred;
+    
+    // Optimistically update UI
+    const updatedNotes = notes.map(n =>
+      n.id === noteId ? { ...n, starred: newStarred } : n
     );
     setNotes(updatedNotes);
+    
+    // Update selected note if it's the one being starred
+    if (selectedNote?.id === noteId) {
+      setSelectedNote({ ...selectedNote, starred: newStarred });
+    }
+    
+    // Actually persist to backend
+    try {
+      console.log(`Updating star status for note ${noteId}: ${newStarred}`);
+      await api.updateNoteStatus(noteId, newStarred, undefined);
+      console.log(`Successfully updated star status for note ${noteId}`);
+    } catch (error) {
+      console.error("Failed to update star status:", error);
+      // Revert on error
+      const revertedNotes = notes.map(n =>
+        n.id === noteId ? { ...n, starred: !newStarred } : n
+      );
+      setNotes(revertedNotes);
+      if (selectedNote?.id === noteId) {
+        setSelectedNote({ ...selectedNote, starred: !newStarred });
+      }
+    }
   };
 
   const copyToClipboard = async (content: string, key: string) => {
@@ -435,15 +640,26 @@ export function HallOfMind() {
                 try {
                   const fullNote = await api.getNote(hit.note_id);
                   savedNotes.current.set(fullNote.note.id, fullNote);
+                  // Extract proper title from content
+                  const lines = fullNote.original.content.split('\n');
+                  let title = "Untitled";
+                  for (const line of lines) {
+                    const cleanLine = line.trim().replace(/^#+\s*/, '').trim();
+                    if (cleanLine) {
+                      title = cleanLine.substring(0, 100);
+                      break;
+                    }
+                  }
                   return {
                     id: fullNote.note.id,
-                    title: fullNote.original.content.split('\n')[0].substring(0, 50) || "Untitled",
+                    title: title,
                     content: fullNote.original.content,
                     revised_content: fullNote.revised ? fullNote.revised.content : null,
                     createdAt: fullNote.note.created_at_utc,
                     updatedAt: fullNote.note.updated_at_utc,
                     tags: fullNote.tags,
-                    starred: fullNote.note.starred || false
+                    starred: fullNote.note.starred || false,
+                    archived: fullNote.note.archived || false
                   };
                 } catch (err) {
                   // Fallback to search result if can't load full note
@@ -483,15 +699,26 @@ export function HallOfMind() {
               try {
                 const fullNote = await api.getNote(hit.note_id);
                 savedNotes.current.set(fullNote.note.id, fullNote);
+                // Extract proper title from content (first non-empty line, remove markdown)
+                const lines = fullNote.original.content.split('\n');
+                let title = "Untitled";
+                for (const line of lines) {
+                  const cleanLine = line.trim().replace(/^#+\s*/, '').trim();
+                  if (cleanLine) {
+                    title = cleanLine.substring(0, 100);
+                    break;
+                  }
+                }
                 return {
                   id: fullNote.note.id,
-                  title: fullNote.original.content.split('\n')[0].substring(0, 50) || "Untitled",
+                  title: title,
                   content: fullNote.original.content,
                   revised_content: fullNote.revised ? fullNote.revised.content : null,
                   createdAt: fullNote.note.created_at_utc,
                   updatedAt: fullNote.note.updated_at_utc,
                   tags: fullNote.tags,
-                  starred: fullNote.note.starred || false
+                  starred: fullNote.note.starred || false,
+                  archived: fullNote.note.archived || false
                 };
               } catch (err) {
                 // Fallback to search result if can't load full note
@@ -503,7 +730,8 @@ export function HallOfMind() {
                   createdAt: new Date().toISOString(),
                   updatedAt: new Date().toISOString(),
                   tags: [],
-                  starred: false
+                  starred: false,
+                  archived: false
                 };
               }
             })
@@ -543,12 +771,104 @@ export function HallOfMind() {
     return () => clearTimeout(timer);
   }, [searchQuery]);
 
+  // Sort notes based on selected criteria
+  const sortedNotes = [...notes].sort((a, b) => {
+    if (sortBy === "created") {
+      const dateA = new Date(a.createdAt).getTime();
+      const dateB = new Date(b.createdAt).getTime();
+      return sortOrder === "desc" ? dateB - dateA : dateA - dateB;
+    } else {
+      // Sort by title
+      const titleA = a.title.toLowerCase();
+      const titleB = b.title.toLowerCase();
+      if (sortOrder === "asc") {
+        return titleA < titleB ? -1 : titleA > titleB ? 1 : 0;
+      } else {
+        return titleA > titleB ? -1 : titleA < titleB ? 1 : 0;
+      }
+    }
+  });
+
+  // Apply quick access filter first
+  let quickFilteredNotes = sortedNotes;
+  if (quickAccessFilter === "starred") {
+    quickFilteredNotes = sortedNotes.filter(note => note.starred);
+  } else if (quickAccessFilter === "recent") {
+    // Show the 10 most recent notes (excluding archived)
+    quickFilteredNotes = sortedNotes.filter(note => !note.archived).slice(0, 10);
+  } else if (quickAccessFilter === "archived") {
+    // Show only archived notes
+    quickFilteredNotes = sortedNotes.filter(note => note.archived);
+  } else {
+    // Default: show all non-archived notes
+    quickFilteredNotes = sortedNotes.filter(note => !note.archived);
+  }
+  
+  // Apply tag filter if any tags are selected
+  if (selectedTags.size > 0) {
+    quickFilteredNotes = quickFilteredNotes.filter(note => {
+      if (!note.tags || note.tags.length === 0) return false;
+      // Check if note has ALL selected tags (AND operation)
+      return Array.from(selectedTags).every(tag => 
+        note.tags.includes(tag)
+      );
+    });
+  }
+  
   const filteredNotes = searchMode === "local" 
-    ? notes.filter(note =>
+    ? quickFilteredNotes.filter(note =>
         note.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
         note.content.toLowerCase().includes(searchQuery.toLowerCase())
       )
-    : notes; // When in search mode, notes are already filtered from server
+    : quickFilteredNotes; // When in search mode, notes are already filtered from server
+  
+  // Group notes by category or topic
+  const groupedNotes = (): Record<string, Note[]> => {
+    if (groupBy === "none") {
+      return { "": filteredNotes }; // Empty key means no group heading
+    }
+    
+    const groups: Record<string, Note[]> = {};
+    
+    for (const note of filteredNotes) {
+      let groupKey = "Uncategorized";
+      
+      // Get the full note data to access metadata
+      const fullNote = savedNotes.current.get(note.id);
+      if (fullNote?.revised?.ai_metadata) {
+        const metadata = fullNote.revised.ai_metadata;
+        
+        if (groupBy === "category" && metadata.categories?.length > 0) {
+          groupKey = metadata.categories[0];
+        } else if (groupBy === "topic" && metadata.topics?.length > 0) {
+          groupKey = metadata.topics[0];
+        }
+      }
+      
+      if (!groups[groupKey]) {
+        groups[groupKey] = [];
+      }
+      groups[groupKey].push(note);
+    }
+    
+    // Sort group keys alphabetically
+    const sortedGroups: Record<string, Note[]> = {};
+    Object.keys(groups).sort().forEach(key => {
+      sortedGroups[key] = groups[key];
+    });
+    
+    return sortedGroups;
+  };
+
+  const toggleGroupExpansion = (groupName: string) => {
+    const newExpanded = new Set(expandedGroups);
+    if (newExpanded.has(groupName)) {
+      newExpanded.delete(groupName);
+    } else {
+      newExpanded.add(groupName);
+    }
+    setExpandedGroups(newExpanded);
+  };
 
   return (
     <SidebarProvider defaultOpen={true}>
@@ -603,60 +923,265 @@ export function HallOfMind() {
             </div>
           </SidebarHeader>
           
-          <SidebarContent>
+          <SidebarContent className="flex flex-col">
             <SidebarGroup>
-              <SidebarGroupContent>
-                <div className="px-3 py-2 space-y-2">
-                  <Textarea
-                    placeholder="Quick note... (Ctrl+Enter to save)"
-                    value={newNoteContent}
-                    onChange={(e) => setNewNoteContent(e.target.value)}
-                    className="min-h-[100px] resize-none text-sm font-mono"
-                    onKeyDown={(e) => {
-                      if (e.ctrlKey && e.key === 'Enter') {
-                        e.preventDefault();
-                        createNewNote();
-                      }
-                    }}
-                  />
-                  <Button 
-                    onClick={createNewNote}
-                    className="w-full justify-start gap-2"
-                    variant="default"
-                    disabled={isLoading || !serverStatus?.ok || !newNoteContent.trim()}
-                  >
-                    <Plus className="h-4 w-4" />
-                    {isLoading ? 'Creating...' : 'Create Note'}
-                  </Button>
-                </div>
-              </SidebarGroupContent>
+              <SidebarGroupLabel>
+                <button
+                  onClick={() => setQuickNoteCollapsed(!quickNoteCollapsed)}
+                  className="flex items-center justify-between w-full hover:bg-accent/50 rounded px-1 py-0.5 transition-colors"
+                >
+                  <span>Quick Note</span>
+                  {quickNoteCollapsed ? (
+                    <ChevronRight className="h-3 w-3" />
+                  ) : (
+                    <ChevronDown className="h-3 w-3" />
+                  )}
+                </button>
+              </SidebarGroupLabel>
+              {!quickNoteCollapsed && (
+                <SidebarGroupContent>
+                  <div className="px-3 py-2 space-y-2">
+                    <Textarea
+                      placeholder="Quick note... (Ctrl+Enter to save)"
+                      value={newNoteContent}
+                      onChange={(e) => setNewNoteContent(e.target.value)}
+                      className="min-h-[100px] resize-none text-sm font-mono"
+                      onKeyDown={(e) => {
+                        if (e.ctrlKey && e.key === 'Enter') {
+                          e.preventDefault();
+                          createNewNote();
+                        }
+                      }}
+                    />
+                    <Button 
+                      onClick={createNewNote}
+                      className="w-full justify-start gap-2"
+                      variant="default"
+                      disabled={isLoading || !serverStatus?.ok || !newNoteContent.trim()}
+                    >
+                      <Plus className="h-4 w-4" />
+                      {isLoading ? 'Creating...' : 'Create Note'}
+                    </Button>
+                  </div>
+                </SidebarGroupContent>
+              )}
             </SidebarGroup>
 
             <SidebarGroup>
-              <SidebarGroupLabel>Quick Access</SidebarGroupLabel>
-              <SidebarMenu>
-                <SidebarMenuItem>
-                  <SidebarMenuButton>
-                    <Star className="h-4 w-4" />
-                    <span>Starred</span>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-                <SidebarMenuItem>
-                  <SidebarMenuButton>
-                    <Clock className="h-4 w-4" />
-                    <span>Recent</span>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-                <SidebarMenuItem>
-                  <SidebarMenuButton>
-                    <Archive className="h-4 w-4" />
-                    <span>Archive</span>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              </SidebarMenu>
+              <SidebarGroupLabel>
+                <button
+                  onClick={() => setQuickAccessCollapsed(!quickAccessCollapsed)}
+                  className="flex items-center justify-between w-full hover:bg-accent/50 rounded px-1 py-0.5 transition-colors"
+                >
+                  <span>Quick Access</span>
+                  {quickAccessCollapsed ? (
+                    <ChevronRight className="h-3 w-3" />
+                  ) : (
+                    <ChevronDown className="h-3 w-3" />
+                  )}
+                </button>
+              </SidebarGroupLabel>
+              {!quickAccessCollapsed && (
+                <SidebarMenu>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton
+                      onClick={() => setQuickAccessFilter(quickAccessFilter === "starred" ? "all" : "starred")}
+                      className={quickAccessFilter === "starred" ? "bg-accent" : ""}
+                    >
+                      <Star className="h-4 w-4" />
+                      <span>Starred</span>
+                      <Badge variant="secondary" className="ml-auto">
+                        {notes.filter(n => n.starred).length}
+                      </Badge>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton
+                      onClick={() => setQuickAccessFilter(quickAccessFilter === "recent" ? "all" : "recent")}
+                      className={quickAccessFilter === "recent" ? "bg-accent" : ""}
+                    >
+                      <Clock className="h-4 w-4" />
+                      <span>Recent</span>
+                      <Badge variant="secondary" className="ml-auto">
+                        {Math.min(notes.length, 10)}
+                      </Badge>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton
+                      onClick={() => setQuickAccessFilter(quickAccessFilter === "archived" ? "all" : "archived")}
+                      className={quickAccessFilter === "archived" ? "bg-accent" : ""}
+                    >
+                      <Archive className="h-4 w-4" />
+                      <span>Archived</span>
+                      <Badge variant="secondary" className="ml-auto">
+                        {notes.filter(n => n.archived).length}
+                      </Badge>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                </SidebarMenu>
+              )}
+            </SidebarGroup>
+            
+            {/* Tag Filter Section */}
+            <SidebarGroup>
+              <SidebarGroupLabel>
+                <button
+                  onClick={() => setTagsCollapsed(!tagsCollapsed)}
+                  className="flex items-center gap-1 w-full hover:bg-accent/50 rounded px-1 py-0.5 transition-colors"
+                >
+                  <span>Tag Filter</span>
+                  {selectedTags.size > 0 && (
+                    <Badge variant="secondary" className="ml-2 text-xs">
+                      {selectedTags.size}
+                    </Badge>
+                  )}
+                  {tagsCollapsed ? (
+                    <ChevronRight className="h-3 w-3 ml-auto" />
+                  ) : (
+                    <ChevronDown className="h-3 w-3 ml-auto" />
+                  )}
+                </button>
+              </SidebarGroupLabel>
+              {!tagsCollapsed && (
+                <SidebarGroupContent>
+                  <div className="px-3 py-2 space-y-2">
+                    {/* Tag search input */}
+                    <div className="relative">
+                      <Search className="absolute left-2 top-2.5 h-3 w-3 text-muted-foreground" />
+                      <input
+                        type="text"
+                        placeholder="Search tags..."
+                        value={tagSearchQuery}
+                        onChange={(e) => setTagSearchQuery(e.target.value)}
+                        className="w-full pl-7 pr-2 py-1.5 text-xs bg-background border rounded focus:outline-none focus:ring-1 focus:ring-primary"
+                      />
+                    </div>
+                    
+                    {/* Selected tags */}
+                    {selectedTags.size > 0 && (
+                      <div>
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="text-xs text-muted-foreground">Active filters:</span>
+                          <button
+                            onClick={() => setSelectedTags(new Set())}
+                            className="text-xs text-muted-foreground hover:text-primary"
+                          >
+                            Clear all
+                          </button>
+                        </div>
+                        <div className="flex flex-wrap gap-1">
+                          {Array.from(selectedTags).map((tag) => (
+                            <Badge
+                              key={`selected-${tag}`}
+                              variant="secondary"
+                              className="text-xs"
+                            >
+                              {tag}
+                              <button
+                                onClick={() => {
+                                  const newSelected = new Set(selectedTags);
+                                  newSelected.delete(tag);
+                                  setSelectedTags(newSelected);
+                                }}
+                                className="ml-1 hover:text-destructive"
+                              >
+                                <X className="h-2 w-2" />
+                              </button>
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    
+                    {/* Available tags - only show when searching */}
+                    {tagSearchQuery && (
+                      <div>
+                        <div className="text-xs text-muted-foreground mb-1">
+                          Available tags:
+                        </div>
+                        <div className="space-y-1 max-h-[200px] overflow-y-auto">
+                          {(() => {
+                            const filtered = availableTags
+                              .filter(tag => 
+                                tag.toLowerCase().includes(tagSearchQuery.toLowerCase()) &&
+                                !selectedTags.has(tag)
+                              )
+                              .slice(0, 10); // Limit to 10 tags
+                            
+                            if (filtered.length === 0) {
+                              return (
+                                <div className="text-xs text-muted-foreground py-2">
+                                  No matching tags found
+                                </div>
+                              );
+                            }
+                            
+                            // Group tags into rows of 2-3 for dynamic layout
+                            const rows: string[][] = [];
+                            let currentRow: string[] = [];
+                            let currentRowLength = 0;
+                            
+                            filtered.forEach(tag => {
+                              const tagLength = tag.length;
+                              // Start new row if current is getting too long
+                              if (currentRowLength + tagLength > 20 && currentRow.length > 0) {
+                                rows.push(currentRow);
+                                currentRow = [tag];
+                                currentRowLength = tagLength;
+                              } else {
+                                currentRow.push(tag);
+                                currentRowLength += tagLength + 1;
+                                // Max 3 per row
+                                if (currentRow.length >= 3) {
+                                  rows.push(currentRow);
+                                  currentRow = [];
+                                  currentRowLength = 0;
+                                }
+                              }
+                            });
+                            
+                            if (currentRow.length > 0) {
+                              rows.push(currentRow);
+                            }
+                            
+                            return rows.map((row, rowIndex) => (
+                              <div key={`row-${rowIndex}`} className="flex flex-wrap gap-1">
+                                {row.map(tag => (
+                                  <Badge
+                                    key={tag}
+                                    variant="outline"
+                                    className="text-xs cursor-pointer hover:bg-accent transition-colors"
+                                    onClick={() => {
+                                      const newSelected = new Set(selectedTags);
+                                      newSelected.add(tag);
+                                      setSelectedTags(newSelected);
+                                      setTagSearchQuery(""); // Clear search after selection
+                                    }}
+                                  >
+                                    <Plus className="h-2 w-2 mr-1" />
+                                    {tag}
+                                  </Badge>
+                                ))}
+                              </div>
+                            ));
+                          })()}
+                        </div>
+                      </div>
+                    )}
+                    
+                    {/* Help text when no search */}
+                    {!tagSearchQuery && selectedTags.size === 0 && (
+                      <div className="text-xs text-muted-foreground">
+                        Type to search and filter by tags
+                      </div>
+                    )}
+                  </div>
+                </SidebarGroupContent>
+              )}
             </SidebarGroup>
 
-            <Separator className="my-2" />
+            <Separator className="my-2 flex-shrink-0" />
 
             {/* Search Results Section */}
             {showSearchResults && (
@@ -712,72 +1237,215 @@ export function HallOfMind() {
                     </SidebarMenu>
                   </ScrollArea>
                 </SidebarGroup>
-                <Separator className="my-2" />
+                <Separator className="my-2 flex-shrink-0" />
               </>
             )}
 
-            <SidebarGroup>
-              <SidebarGroupLabel>
-                Your Notes {notes.length > 0 && `(${filteredNotes.length})`}
-              </SidebarGroupLabel>
-              <ScrollArea className="h-[400px]">
+            <SidebarGroup className="flex-1 flex flex-col min-h-0">
+              <div className="px-3 py-2 flex-shrink-0">
+                <div className="flex items-center justify-between">
+                  <SidebarGroupLabel className="p-0">
+                    Notes ({filteredNotes.length})
+                    {quickAccessFilter !== "all" && (
+                      <Badge variant="outline" className="ml-2 text-xs">
+                        {quickAccessFilter}
+                      </Badge>
+                    )}
+                    {selectedTags.size > 0 && (
+                      <Badge variant="secondary" className="ml-1 text-xs">
+                        {selectedTags.size} tag{selectedTags.size > 1 ? 's' : ''}
+                      </Badge>
+                    )}
+                  </SidebarGroupLabel>
+                  <div className="flex items-center gap-1">
+                    {quickAccessFilter !== "all" && (
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-5 w-5"
+                            onClick={() => setQuickAccessFilter("all")}
+                          >
+                            <X className="h-3 w-3" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>Clear filter</TooltipContent>
+                      </Tooltip>
+                    )}
+                    <TooltipProvider>
+                      {/* Sort Control */}
+                      <DropdownMenu>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="icon" className="h-6 w-6">
+                                {sortBy === "created" ? (
+                                  <Calendar className="h-3 w-3" />
+                                ) : (
+                                  <Type className="h-3 w-3" />
+                                )}
+                              </Button>
+                            </DropdownMenuTrigger>
+                          </TooltipTrigger>
+                          <TooltipContent side="bottom">
+                            <p>Sort: {sortBy === "created" ? "Date" : "Title"} {sortOrder === "asc" ? "↑" : "↓"}</p>
+                          </TooltipContent>
+                        </Tooltip>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => { setSortBy("created"); setSortOrder("desc"); }}>
+                            <Calendar className="h-3 w-3 mr-2" />
+                            Newest First
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => { setSortBy("created"); setSortOrder("asc"); }}>
+                            <Calendar className="h-3 w-3 mr-2" />
+                            Oldest First
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => { setSortBy("title"); setSortOrder("asc"); }}>
+                            <Type className="h-3 w-3 mr-2" />
+                            Title A-Z
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => { setSortBy("title"); setSortOrder("desc"); }}>
+                            <Type className="h-3 w-3 mr-2" />
+                            Title Z-A
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                      
+                      {/* Group Control */}
+                      <DropdownMenu>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="icon" className="h-6 w-6">
+                                <Folder className="h-3 w-3" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                          </TooltipTrigger>
+                          <TooltipContent side="bottom">
+                            <p>Group: {groupBy === "none" ? "None" : groupBy === "category" ? "Category" : "Topic"}</p>
+                          </TooltipContent>
+                        </Tooltip>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => setGroupBy("none")}>
+                            <X className="h-3 w-3 mr-2" />
+                            No Grouping
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => setGroupBy("category")}>
+                            <Hash className="h-3 w-3 mr-2" />
+                            By Category
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => setGroupBy("topic")}>
+                            <Archive className="h-3 w-3 mr-2" />
+                            By Topic
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TooltipProvider>
+                  </div>
+                </div>
+              </div>
+              <ScrollArea className="flex-1 overflow-y-auto">
                 <SidebarMenu>
                   {filteredNotes.length === 0 ? (
                     <div className="p-4 text-center text-sm text-muted-foreground">
                       {isLoading ? "Loading notes..." : "No notes yet. Create your first note above!"}
                     </div>
                   ) : (
-                    filteredNotes.map((note) => (
-                      <SidebarMenuItem key={note.id}>
-                        <SidebarMenuButton
-                          onClick={async () => {
-                            // First set the local state
-                            setSelectedNote(note);
-                            setNoteContent(note.content);
-                            setRevisedContent(note.revised_content || note.content);
-                            setEditingRevised(false); // Default to editing original
-                            
-                            // Then fetch fresh data from server
-                            try {
-                              const freshNote = await api.getNote(note.id);
-                              const updatedNote = {
-                                id: freshNote.note.id,
-                                title: freshNote.original.content.split('\n')[0].substring(0, 50) || "Untitled",
-                                content: freshNote.original.content,
-                                revised_content: freshNote.revised ? freshNote.revised.content : null,
-                                createdAt: freshNote.note.created_at_utc,
-                                updatedAt: freshNote.note.updated_at_utc,
-                                tags: freshNote.tags,
-                                starred: note.starred // Preserve starred state
-                              };
-                              
-                              // Update the note in the list
-                              setNotes(prev => prev.map(n => n.id === updatedNote.id ? updatedNote : n));
-                              
-                              // Update selected note with fresh data
-                              setSelectedNote(updatedNote);
-                              setNoteContent(updatedNote.content);
-                              setRevisedContent(updatedNote.revised_content || updatedNote.content);
-                              
-                              // Update saved notes cache
-                              savedNotes.current.set(freshNote.note.id, freshNote);
-                              
-                              console.log("Note refreshed from server:", note.id);
-                            } catch (error) {
-                              console.error("Failed to refresh note:", error);
-                            }
-                          }}
-                          className={selectedNote?.id === note.id ? "bg-accent" : ""}
-                        >
-                          {processingNotes.has(note.id) && !note.revised_content ? (
-                            <Loader2 className="h-4 w-4 animate-spin text-primary" />
-                          ) : (
-                            <BookOpen className="h-4 w-4" />
-                          )}
-                          <span className="flex-1 truncate">{note.title}</span>
-                          {note.starred && <Star className="h-3 w-3 fill-yellow-500 text-yellow-500" />}
-                        </SidebarMenuButton>
-                      </SidebarMenuItem>
+                    Object.entries(groupedNotes()).map(([groupName, groupNotes]) => (
+                      <div key={groupName || "all"}>
+                        {groupName && (
+                          <div 
+                            className="px-3 py-1 flex items-center gap-1 text-xs text-muted-foreground hover:bg-accent/50 cursor-pointer sticky top-0 bg-background z-10"
+                            onClick={() => toggleGroupExpansion(groupName)}
+                          >
+                            {expandedGroups.has(groupName) ? (
+                              <ChevronDown className="h-3 w-3" />
+                            ) : (
+                              <ChevronRight className="h-3 w-3" />
+                            )}
+                            <Folder className="h-3 w-3" />
+                            <span className="font-medium">{groupName}</span>
+                            <span className="ml-auto">({groupNotes.length})</span>
+                          </div>
+                        )}
+                        {(!groupName || expandedGroups.has(groupName)) && groupNotes.map((note) => (
+                          <NoteContextMenu
+                            key={note.id}
+                            noteId={note.id}
+                            isArchived={note.archived}
+                            isStarred={note.starred}
+                            onEdit={() => handleEditNote(note.id)}
+                            onViewMetadata={() => handleViewMetadata(note.id)}
+                            onRegenerate={() => handleRegenerateAI(note.id)}
+                            onDelete={() => handleDeleteNote(note.id)}
+                            onArchive={() => handleArchiveNote(note.id)}
+                            onToggleStar={() => toggleStar(note.id)}
+                          >
+                            <SidebarMenuItem data-allow-context="true" className={groupName ? "pl-6" : ""}>
+                              <SidebarMenuButton
+                                onClick={async () => {
+                                  // First set the local state
+                                  setSelectedNote(note);
+                                  setNoteContent(note.content);
+                                  setRevisedContent(note.revised_content || note.content);
+                                  setEditingRevised(false); // Default to editing original
+                                  setHasUnsavedChanges(false); // Reset unsaved changes flag
+                                  
+                                  // Then fetch fresh data from server
+                                  try {
+                                    const freshNote = await api.getNote(note.id);
+                                    const updatedNote = {
+                                      id: freshNote.note.id,
+                                      title: freshNote.original.content.split('\n')[0].substring(0, 50) || "Untitled",
+                                      content: freshNote.original.content,
+                                      revised_content: freshNote.revised ? freshNote.revised.content : null,
+                                      createdAt: freshNote.note.created_at_utc,
+                                      updatedAt: freshNote.note.updated_at_utc,
+                                      tags: freshNote.tags,
+                                      starred: freshNote.note.starred || false,
+                                      archived: freshNote.note.archived || false
+                                    };
+                                    console.log(`Fetched note ${note.id} - starred: ${updatedNote.starred}, archived: ${updatedNote.archived}`);
+                                    
+                                    // Update the note in the list
+                                    setNotes(prev => prev.map(n => n.id === updatedNote.id ? updatedNote : n));
+                                    
+                                    // Update selected note with fresh data
+                                    setSelectedNote(updatedNote);
+                                    setNoteContent(updatedNote.content);
+                                    setRevisedContent(updatedNote.revised_content || updatedNote.content);
+                                    
+                                    // Update saved notes cache
+                                    savedNotes.current.set(freshNote.note.id, freshNote);
+                                    
+                                    // Load metadata labels for this note
+                                    try {
+                                      const labels = await api.getMetadataLabels(note.id);
+                                      setNoteLabels(new Map(noteLabels.set(note.id, labels)));
+                                    } catch (error) {
+                                      console.error("Failed to load labels:", error);
+                                    }
+                                    
+                                    console.log("Note refreshed from server:", note.id);
+                                  } catch (error) {
+                                    console.error("Failed to refresh note:", error);
+                                  }
+                                }}
+                                className={selectedNote?.id === note.id ? "bg-accent" : ""}
+                              >
+                                {processingNotes.has(note.id) && !note.revised_content ? (
+                                  <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                                ) : (
+                                  <BookOpen className="h-4 w-4" />
+                                )}
+                                <span className="flex-1 truncate">{note.title}</span>
+                                {note.starred && <Star className="h-3 w-3 fill-yellow-500 text-yellow-500" />}
+                              </SidebarMenuButton>
+                            </SidebarMenuItem>
+                          </NoteContextMenu>
+                        ))}
+                      </div>
                     ))
                   )}
                 </SidebarMenu>
@@ -834,23 +1502,28 @@ export function HallOfMind() {
                 )}
               </div>
               <div className="ml-auto flex items-center gap-2">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => selectedNote && toggleStar(selectedNote.id)}
-                >
-                  <Star className={`h-4 w-4 ${selectedNote?.starred ? 'fill-yellow-500 text-yellow-500' : ''}`} />
-                </Button>
-                <Button
-                  variant="default"
-                  size="sm"
-                  onClick={saveNote}
-                  className="gap-2"
-                  disabled={isLoading || (!!selectedNote && savedNotes.current.has(selectedNote.id) && !serverStatus?.ok)}
-                >
-                  <Save className="h-4 w-4" />
-                  {isLoading ? 'Saving...' : 'Save'}
-                </Button>
+                {selectedNote && (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => toggleStar(selectedNote.id)}
+                    title={selectedNote.starred ? "Unstar note" : "Star note"}
+                  >
+                    <Star className={`h-4 w-4 ${selectedNote.starred ? 'fill-yellow-500 text-yellow-500' : ''}`} />
+                  </Button>
+                )}
+                {selectedNote && hasUnsavedChanges && (
+                  <Button
+                    variant="default"
+                    size="sm"
+                    onClick={saveNote}
+                    className="gap-2"
+                    disabled={isLoading || (savedNotes.current.has(selectedNote.id) && !serverStatus?.ok)}
+                  >
+                    <Save className="h-4 w-4" />
+                    {isLoading ? 'Saving...' : 'Save'}
+                  </Button>
+                )}
               </div>
             </div>
           </header>
@@ -861,7 +1534,7 @@ export function HallOfMind() {
                 {(() => {
                   const fullNote = savedNotes.current.get(selectedNote.id);
                   return (
-                <Tabs defaultValue="preview" className="h-full">
+                <Tabs value={activeTab} onValueChange={setActiveTab} className="h-full">
                   <TabsList className="mb-4">
                     <TabsTrigger value="preview" className="gap-2">
                       <Sparkles className="h-4 w-4" />
@@ -931,7 +1604,14 @@ export function HallOfMind() {
                       <CardContent>
                         <MarkdownEditor
                           value={editingRevised ? revisedContent : noteContent}
-                          onChange={editingRevised ? setRevisedContent : setNoteContent}
+                          onChange={(value) => {
+                            if (editingRevised) {
+                              setRevisedContent(value);
+                            } else {
+                              setNoteContent(value);
+                            }
+                            setHasUnsavedChanges(true);
+                          }}
                           height={500}
                         />
                       </CardContent>
@@ -939,53 +1619,53 @@ export function HallOfMind() {
                   </TabsContent>
 
                   <TabsContent value="preview">
-                    <div className="space-y-4">
-                      <Card>
-                        <CardHeader>
-                          <div className="flex items-center justify-between">
-                            <div>
-                              <CardTitle className="flex items-center gap-2">
-                                <Sparkles className="h-5 w-5 text-primary" />
-                                {selectedNote.title}
-                              </CardTitle>
-                              <CardDescription className="mt-1">
-                                AI-enhanced version • Updated {new Date(selectedNote.updatedAt).toLocaleString()}
-                              </CardDescription>
-                            </div>
-                            <div className="flex gap-2">
-                              <Button
-                                onClick={() => copyToClipboard(selectedNote.revised_content || selectedNote.content, 'preview-markdown')}
-                                size="sm"
-                                variant="outline"
-                                title="Copy markdown"
-                              >
-                                {copiedState['preview-markdown'] ? (
-                                  <Check className="h-4 w-4" />
-                                ) : (
-                                  <Copy className="h-4 w-4" />
-                                )}
-                                <span className="ml-2">Copy MD</span>
-                              </Button>
-                              <Button
-                                onClick={regenerateAI}
-                                disabled={isLoading || processingNotes.has(selectedNote.id)}
-                                size="sm"
-                                variant="outline"
-                              >
-                                {processingNotes.has(selectedNote.id) ? (
-                                  <Loader2 className="h-4 w-4 animate-spin" />
-                                ) : (
-                                  <RefreshCw className="h-4 w-4" />
-                                )}
-                                <span className="ml-2">Regenerate AI</span>
-                              </Button>
-                            </div>
+                    <Card className="overflow-hidden">
+                      <CardHeader className="border-b bg-muted/30">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <CardTitle className="flex items-center gap-2">
+                              <Sparkles className="h-5 w-5 text-primary" />
+                              {selectedNote.title}
+                            </CardTitle>
+                            <CardDescription className="mt-1">
+                              AI-enhanced version • Updated {new Date(selectedNote.updatedAt).toLocaleString()}
+                            </CardDescription>
                           </div>
-                        </CardHeader>
-                        <CardContent>
-                          <ScrollArea className="h-[400px]">
+                          <div className="flex gap-2">
+                            <Button
+                              onClick={() => copyToClipboard(selectedNote.revised_content || selectedNote.content, 'preview-markdown')}
+                              size="sm"
+                              variant="outline"
+                              title="Copy markdown"
+                            >
+                              {copiedState['preview-markdown'] ? (
+                                <Check className="h-4 w-4" />
+                              ) : (
+                                <Copy className="h-4 w-4" />
+                              )}
+                              <span className="ml-2">Copy MD</span>
+                            </Button>
+                            <Button
+                              onClick={regenerateAI}
+                              disabled={isLoading || processingNotes.has(selectedNote.id)}
+                              size="sm"
+                              variant="outline"
+                            >
+                              {processingNotes.has(selectedNote.id) ? (
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                              ) : (
+                                <RefreshCw className="h-4 w-4" />
+                              )}
+                              <span className="ml-2">Regenerate AI</span>
+                            </Button>
+                          </div>
+                        </div>
+                      </CardHeader>
+                      <CardContent className="p-0">
+                        <ScrollArea className="h-[500px]">
+                          <div className="p-6">
                             {processingNotes.has(selectedNote.id) && !selectedNote.revised_content ? (
-                              <div className="flex flex-col items-center justify-center h-full space-y-4">
+                              <div className="flex flex-col items-center justify-center h-[400px] space-y-4">
                                 <Loader2 className="h-8 w-8 animate-spin text-primary" />
                                 <div className="text-center">
                                   <p className="text-sm font-medium">AI is enhancing your note...</p>
@@ -997,22 +1677,16 @@ export function HallOfMind() {
                                 content={selectedNote.revised_content || noteContent}
                               />
                             )}
-                          </ScrollArea>
-                        </CardContent>
-                      </Card>
-                      
-                      {/* Related Notes */}
-                      <RelatedNotes 
-                        noteId={selectedNote.id} 
-                        onSelectNote={(noteId) => {
-                          const note = notes.find(n => n.id === noteId);
-                          if (note) {
-                            setSelectedNote(note);
-                            setNoteContent(note.content);
-                          }
-                        }}
-                      />
-                    </div>
+                          </div>
+                        </ScrollArea>
+                      </CardContent>
+                      <div className="border-t bg-muted/30 px-6 py-3">
+                        <div className="flex items-center justify-between text-xs text-muted-foreground">
+                          <span>Enhanced with AI • Powered by gpt-oss:20b</span>
+                          <span>{selectedNote.revised_content ? `${selectedNote.revised_content.length} characters` : 'Original content'}</span>
+                        </div>
+                      </div>
+                    </Card>
                   </TabsContent>
 
                   <TabsContent value="original">
@@ -1060,53 +1734,100 @@ export function HallOfMind() {
                     />
                   </TabsContent>
                   <TabsContent value="metadata">
-                    <NoteMetadata
-                      metadata={fullNote?.note?.metadata}
-                      aiMetadata={fullNote?.revised?.ai_metadata}
-                      tags={fullNote?.tags || []}
-                      links={fullNote?.links || []}
-                      starred={fullNote?.note?.starred}
-                      archived={fullNote?.note?.archived}
-                      onTagClick={(tag) => {
-                        // Search for the tag
-                        setSearchQuery(`#${tag}`);
-                      }}
-                      onLinkClick={async (noteId) => {
-                        // Load the linked note
-                        try {
-                          const linkedNote = await api.getNote(noteId);
-                          const simpleNote = {
-                            id: linkedNote.note.id,
-                            title: linkedNote.original.content.split('\n')[0].substring(0, 50) || "Untitled",
-                            content: linkedNote.original.content,
-                            revised_content: linkedNote.revised ? linkedNote.revised.content : null,
-                            createdAt: linkedNote.note.created_at_utc,
-                            updatedAt: linkedNote.note.updated_at_utc,
-                            tags: linkedNote.tags,
-                            starred: linkedNote.note.starred || false
-                          };
-                          
-                          // Add to notes if not already there
-                          setNotes(prev => {
-                            const exists = prev.find(n => n.id === simpleNote.id);
-                            if (!exists) {
-                              return [...prev, simpleNote];
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                      <div className="lg:col-span-2">
+                        <NoteMetadata
+                          metadata={fullNote?.note?.metadata}
+                          aiMetadata={fullNote?.revised?.ai_metadata}
+                          tags={fullNote?.tags || []}
+                          links={fullNote?.links || []}
+                          starred={fullNote?.note?.starred}
+                          archived={fullNote?.note?.archived}
+                          onTagClick={(tag) => {
+                            // Search for the tag
+                            setSearchQuery(`#${tag}`);
+                          }}
+                          onLinkClick={async (noteId) => {
+                            // Load the linked note
+                            try {
+                              const linkedNote = await api.getNote(noteId);
+                              const simpleNote = {
+                                id: linkedNote.note.id,
+                                title: linkedNote.original.content.split('\n')[0].substring(0, 50) || "Untitled",
+                                content: linkedNote.original.content,
+                                revised_content: linkedNote.revised ? linkedNote.revised.content : null,
+                                createdAt: linkedNote.note.created_at_utc,
+                                updatedAt: linkedNote.note.updated_at_utc,
+                                tags: linkedNote.tags,
+                                starred: linkedNote.note.starred || false
+                              };
+                              
+                              // Add to notes if not already there
+                              setNotes(prev => {
+                                const exists = prev.find(n => n.id === simpleNote.id);
+                                if (!exists) {
+                                  return [...prev, simpleNote];
+                                }
+                                return prev;
+                              });
+                              
+                              // Select the linked note
+                              setSelectedNote(simpleNote);
+                              setNoteContent(simpleNote.content);
+                              setRevisedContent(simpleNote.revised_content || simpleNote.content);
+                              setHasUnsavedChanges(false);
+                              
+                              // Cache the full note
+                              savedNotes.current.set(linkedNote.note.id, linkedNote);
+                            } catch (error) {
+                              console.error("Failed to load linked note:", error);
                             }
-                            return prev;
-                          });
-                          
-                          // Select the linked note
-                          setSelectedNote(simpleNote);
-                          setNoteContent(simpleNote.content);
-                          setRevisedContent(simpleNote.revised_content || simpleNote.content);
-                          
-                          // Cache the full note
-                          savedNotes.current.set(linkedNote.note.id, linkedNote);
-                        } catch (error) {
-                          console.error("Failed to load linked note:", error);
-                        }
-                      }}
-                    />
+                          }}
+                        />
+                      </div>
+                      
+                      {/* Related Notes */}
+                      <div>
+                        <RelatedNotes 
+                          noteId={selectedNote.id} 
+                          onSelectNote={async (noteId) => {
+                            try {
+                              const linkedNote = await api.getNote(noteId);
+                              const simpleNote = {
+                                id: linkedNote.note.id,
+                                title: linkedNote.original.content.split('\n')[0].substring(0, 50) || "Untitled",
+                                content: linkedNote.original.content,
+                                revised_content: linkedNote.revised ? linkedNote.revised.content : null,
+                                createdAt: linkedNote.note.created_at_utc,
+                                updatedAt: linkedNote.note.updated_at_utc,
+                                tags: linkedNote.tags,
+                                starred: linkedNote.note.starred || false
+                              };
+                              
+                              // Add to notes if not already there
+                              setNotes(prev => {
+                                const exists = prev.find(n => n.id === simpleNote.id);
+                                if (!exists) {
+                                  return [...prev, simpleNote];
+                                }
+                                return prev;
+                              });
+                              
+                              // Select the linked note
+                              setSelectedNote(simpleNote);
+                              setNoteContent(simpleNote.content);
+                              setRevisedContent(simpleNote.revised_content || simpleNote.content);
+                              setHasUnsavedChanges(false);
+                              
+                              // Cache the full note
+                              savedNotes.current.set(linkedNote.note.id, linkedNote);
+                            } catch (error) {
+                              console.error("Failed to load linked note:", error);
+                            }
+                          }}
+                        />
+                      </div>
+                    </div>
                   </TabsContent>
                 </Tabs>
                 );
@@ -1130,6 +1851,14 @@ export function HallOfMind() {
           </main>
         </div>
       </div>
+      
+      {/* Delete Confirmation Dialog */}
+      <DeleteNoteDialog
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        noteTitle={noteToDelete?.title}
+        onConfirm={confirmDeleteNote}
+      />
     </SidebarProvider>
   );
 }

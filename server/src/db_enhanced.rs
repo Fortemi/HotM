@@ -28,18 +28,22 @@ Original Note:
 
 Existing tags in the system: {}
 
-Please provide your response in two parts:
+Instructions:
+1. First, provide the enhanced note content directly in clean markdown format (no labels or markers)
+2. Then add three dashes on a new line: ---
+3. Finally, provide the metadata in JSON format
 
-PART 1 - ENHANCED NOTE:
-Provide an enhanced version that:
-- Preserves ALL original information
-- Improves clarity and organization
-- Adds proper markdown formatting
-- Identifies key concepts
-- Adds relevant context
-- Maintains professional tone
+Enhanced note requirements:
+- Preserve ALL original information
+- Improve clarity and organization
+- Add proper markdown formatting
+- Identify key concepts
+- Add relevant context
+- Maintain professional tone
 
-PART 2 - METADATA JSON:
+IMPORTANT: Do NOT include "PART 1", "PART 2", "ENHANCED NOTE", or any other labels. Start directly with the enhanced content.
+
+After the three dashes, provide metadata in this JSON format:
 ```json
 {{
   "categories": ["category1", "category2"],
@@ -58,7 +62,7 @@ PART 2 - METADATA JSON:
 }}
 ```
 
-Use existing tags when appropriate, but create new ones if needed. The potential_links should be search terms to find related notes."#,
+Use existing tags when appropriate, but create new ones if needed."#,
         content, tags_list
     );
     
@@ -148,25 +152,65 @@ Use existing tags when appropriate, but create new ones if needed. The potential
 
 // Parse AI response to separate content and metadata
 fn parse_ai_response(response: &str) -> (String, serde_json::Value) {
-    // Look for the JSON block
+    // Look for the separator or JSON block
+    let separator_markers = ["---\n", "---", "```json", "PART 2", "**PART 2"];
+    let mut content_end = response.len();
+    
+    for marker in &separator_markers {
+        if let Some(pos) = response.find(marker) {
+            content_end = content_end.min(pos);
+        }
+    }
+    
+    let content_part = response[..content_end].trim();
+    
+    // Aggressively clean up the content - remove ALL possible markers and labels
+    let mut enhanced_content = content_part.to_string();
+    
+    // Remove various forms of PART markers
+    let markers_to_remove = [
+        "PART 1 – ENHANCED NOTE",
+        "PART 1 - ENHANCED NOTE",
+        "**PART 1**",
+        "PART 1:",
+        "PART 1",
+        "ENHANCED NOTE:",
+        "ENHANCED NOTE",
+        "**ENHANCED NOTE**",
+        "---METADATA---",
+        "METADATA:",
+        "```markdown",
+        "```",
+    ];
+    
+    for marker in &markers_to_remove {
+        if let Some(pos) = enhanced_content.find(marker) {
+            // If marker is at the start, remove it and everything before the next line
+            if pos == 0 {
+                enhanced_content = enhanced_content
+                    .splitn(2, '\n')
+                    .nth(1)
+                    .unwrap_or(&enhanced_content)
+                    .to_string();
+            } else {
+                enhanced_content = enhanced_content.replace(marker, "");
+            }
+        }
+    }
+    
+    // Clean up any remaining formatting artifacts
+    enhanced_content = enhanced_content
+        .trim()
+        .trim_start_matches("–")
+        .trim_start_matches("-")
+        .trim_start_matches(":")
+        .trim_start_matches("**")
+        .trim_end_matches("**")
+        .trim()
+        .to_string();
+    
+    // Extract JSON metadata if present
     if let Some(json_start) = response.find("```json") {
-        let content_part = response[..json_start].trim();
-        
-        // Clean up the content - remove PART 1/2 markers and headers
-        let enhanced_content = content_part
-            .split("PART 2").next()  // Remove everything after PART 2
-            .unwrap_or(content_part)
-            .split("PART 1").last()   // Get everything after PART 1
-            .unwrap_or(content_part)
-            .trim()
-            .trim_start_matches('-')
-            .trim_start_matches("ENHANCED NOTE:")
-            .trim_start_matches("ENHANCED NOTE")
-            .trim_start_matches(':')
-            .trim()
-            .to_string();
-        
-        // Extract JSON
         let json_part = response[json_start..]
             .strip_prefix("```json")
             .and_then(|s| s.find("```").map(|end| &s[..end]))
@@ -176,15 +220,20 @@ fn parse_ai_response(response: &str) -> (String, serde_json::Value) {
         let metadata: serde_json::Value = serde_json::from_str(json_part).unwrap_or_else(|e| {
             tracing::warn!("Failed to parse AI metadata: {}", e);
             serde_json::json!({
-                "error": "Failed to parse metadata",
-                "raw": json_part
+                "categories": [],
+                "topics": [],
+                "tags": []
             })
         });
         
         (enhanced_content, metadata)
     } else {
-        // No metadata found, use whole response as content
-        (response.to_string(), serde_json::json!({}))
+        // No metadata found
+        (enhanced_content, serde_json::json!({
+            "categories": [],
+            "topics": [],
+            "tags": []
+        }))
     }
 }
 
@@ -265,11 +314,13 @@ async fn create_contextual_links(
     if let Some(embedding) = embeddings.first() {
         let vector = pgvector::Vector::from(embedding.clone());
         
-        // Find similar notes
+        // Find similar notes (excluding archived)
         let similar_notes = sqlx::query!(
             "SELECT DISTINCT e.note_id, 1.0 - (e.vector <=> $1::vector) as similarity
              FROM embedding e
-             WHERE e.note_id != $2
+             JOIN note n ON n.id = e.note_id
+             WHERE e.note_id != $2 
+               AND (n.archived IS FALSE OR n.archived IS NULL)
              ORDER BY similarity DESC
              LIMIT 10",
             &vector.to_vec() as &Vec<f32>, note_id
@@ -289,7 +340,7 @@ async fn create_contextual_links(
         }
     }
     
-    // Search for notes containing the search terms
+    // Search for notes containing the search terms (excluding archived)
     for term in search_terms.iter().take(5) {  // Limit to avoid too many links
         let results = sqlx::query!(
             "SELECT DISTINCT n.id 
@@ -297,6 +348,7 @@ async fn create_contextual_links(
              JOIN note_revised_current nrc ON nrc.note_id = n.id
              WHERE n.id != $1 
              AND nrc.tsv @@ plainto_tsquery('english', $2)
+             AND (n.archived IS FALSE OR n.archived IS NULL)
              LIMIT 5",
             note_id, term
         ).fetch_all(&state.pool).await?;

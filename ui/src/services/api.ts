@@ -11,6 +11,9 @@ interface NoteMeta {
   source: string;
   created_at_utc: string;
   updated_at_utc: string;
+  starred?: boolean;
+  archived?: boolean;
+  last_accessed_at?: string;
 }
 
 interface NoteOriginal {
@@ -39,6 +42,15 @@ export interface NoteFull {
   revised: NoteRevised;
   tags: string[];
   links: Link[];
+  labels?: UserMetadataLabel[];
+}
+
+export interface UserMetadataLabel {
+  id: string;
+  note_id: string;
+  label: string;
+  color?: string;
+  created_at: string;
 }
 
 export interface CreateNoteRequest {
@@ -58,7 +70,7 @@ export interface SearchHit {
 }
 
 export interface SearchResponse {
-  hits: SearchHit[];
+  notes: SearchHit[];
 }
 
 export interface HealthResponse {
@@ -117,15 +129,6 @@ class ApiClient {
     }
   }
 
-  // Search notes
-  async searchNotes(query: string, mode: "fts" | "semantic" | "hybrid" = "hybrid", filters?: string): Promise<any[]> {
-    const params = new URLSearchParams({ q: query, mode });
-    if (filters) {
-      params.append('filters', filters);
-    }
-    const response = await this.request<{ notes: any[] }>(`/search?${params}`);
-    return response.notes || [];
-  }
 
   // Health check with retry logic
   async checkHealth(): Promise<HealthResponse> {
@@ -195,9 +198,13 @@ class ApiClient {
   }
 
   // Search notes
-  async searchNotes(query: string, mode: 'hybrid' | 'fts' | 'vector' = 'fts'): Promise<SearchResponse> {
+  async searchNotes(query: string, mode: 'hybrid' | 'fts' | 'semantic' = 'hybrid', filters?: string): Promise<SearchHit[]> {
     const params = new URLSearchParams({ q: query, mode });
-    return this.request<SearchResponse>(`/search?${params}`);
+    if (filters) {
+      params.append('filters', filters);
+    }
+    const response = await this.request<SearchResponse>(`/search?${params}`);
+    return response.notes || [];
   }
 
   // Get all notes IDs (we'll fetch them individually for now)
@@ -304,6 +311,51 @@ class ApiClient {
   // Get related notes for a specific note
   async getRelatedNotes(id: string): Promise<RelatedNotesResponse> {
     return this.request<RelatedNotesResponse>(`/notes/${id}/related`);
+  }
+
+  // Generate search context using LLM
+  async generateSearchContext(query: string, hits: SearchHit[]): Promise<{ context: string }> {
+    return this.request<{ context: string }>('/search/context', {
+      method: 'POST',
+      body: JSON.stringify({ query, hits }),
+    });
+  }
+
+  // Delete a note
+  async deleteNote(id: string): Promise<any> {
+    return this.request(`/notes/${id}`, {
+      method: 'DELETE',
+    });
+  }
+
+  // Get metadata labels for a note
+  async getMetadataLabels(id: string): Promise<UserMetadataLabel[]> {
+    return this.request(`/notes/${id}/labels`);
+  }
+
+  // Add metadata label to a note
+  async addMetadataLabel(id: string, label: string, color?: string): Promise<UserMetadataLabel> {
+    return this.request(`/notes/${id}/labels`, {
+      method: 'POST',
+      body: JSON.stringify({ label, color }),
+    });
+  }
+
+  // Remove metadata label from a note
+  async removeMetadataLabel(noteId: string, labelId: string): Promise<any> {
+    return this.request(`/notes/${noteId}/labels/${labelId}`, {
+      method: 'DELETE',
+    });
+  }
+
+  // Toggle star status on a note
+  async toggleStar(id: string, starred: boolean): Promise<any> {
+    return this.updateNoteStatus(id, starred, undefined);
+  }
+
+  // Get all unique labels in the system
+  async getAllLabels(): Promise<string[]> {
+    return this.request<string[]>('/labels');
   }
 }
 

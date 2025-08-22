@@ -18,13 +18,22 @@ pub struct NoteMeta {
 }
 
 #[derive(Serialize, Deserialize, Clone)]
-pub struct NoteOriginal { pub content: String, pub hash: String }
+pub struct NoteOriginal { 
+    pub content: String, 
+    pub hash: String,
+    pub user_created_at: Option<DateTime<Utc>>,
+    pub user_last_edited_at: Option<DateTime<Utc>>,
+}
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct NoteRevised { 
     pub content: String, 
     pub last_revision_id: Option<Uuid>,
     pub ai_metadata: Option<JsonValue>,
+    pub ai_generated_at: Option<DateTime<Utc>>,
+    pub user_last_edited_at: Option<DateTime<Utc>>,
+    pub is_user_edited: bool,
+    pub generation_count: i32,
 }
 
 #[derive(Serialize, Deserialize, Clone)]
@@ -139,6 +148,35 @@ pub struct ListNotesResponse {
 pub struct UpdateNoteStatusRequest {
     pub starred: Option<bool>,
     pub archived: Option<bool>,
+}
+
+// User metadata labels
+#[derive(Serialize, Deserialize, Clone)]
+pub struct UserMetadataLabel {
+    pub id: Uuid,
+    pub note_id: Uuid,
+    pub label: String,
+    pub color: Option<String>,
+    pub created_at: DateTime<Utc>,
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct AddMetadataLabelRequest {
+    pub label: String,
+    pub color: Option<String>,
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct UserConfig {
+    pub key: String,
+    pub value: JsonValue,
+    pub updated_at: DateTime<Utc>,
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct UpdateConfigRequest {
+    pub key: String,
+    pub value: JsonValue,
 }
 
 // Provenance (simplified)

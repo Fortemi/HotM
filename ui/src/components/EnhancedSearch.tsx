@@ -28,18 +28,19 @@ export function EnhancedSearch({ onSelectNote }: EnhancedSearchProps) {
 
     setLoading(true);
     try {
-      const response = await api.searchNotes(searchQuery, mode);
-      setResults(response.hits);
+      const results = await api.searchNotes(searchQuery, mode);
+      setResults(results);
       
       // If hybrid mode and we have results, generate LLM context
-      if (mode === 'hybrid' && response.hits.length > 0) {
-        // Generate a context summary using the LLM
-        const topResults = response.hits.slice(0, 3);
-        
-        // For now, we'll use a placeholder for LLM context
-        // In production, this would call the LLM API with a proper prompt
-        setLlmContext(`Found ${response.hits.length} notes related to "${searchQuery}". 
-        The results include notes about ${topResults.map(() => 'relevant topics').join(', ')}.`);
+      if (mode === 'hybrid' && results.length > 0) {
+        try {
+          const contextResponse = await api.generateSearchContext(searchQuery, results.slice(0, 5));
+          setLlmContext(contextResponse.context);
+        } catch (error) {
+          console.error('Failed to generate LLM context:', error);
+          // Fallback to simple context
+          setLlmContext(`Found ${results.length} notes related to "${searchQuery}". Click to explore the results.`);
+        }
       }
     } catch (error) {
       console.error('Search failed:', error);

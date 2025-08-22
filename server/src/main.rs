@@ -1,5 +1,5 @@
 use axum::{Router};
-use axum::routing::{get, post, put};
+use axum::routing::{get, post, put, delete};
 use hotm_server::{db::AppState, routes};
 use std::net::SocketAddr;
 use tower_http::cors::{CorsLayer, Any};
@@ -33,11 +33,17 @@ async fn main() -> anyhow::Result<()> {
         .route("/api/v1/notes", get(routes::notes::list_notes))
         .route("/api/v1/notes", post(routes::notes::create_note))
         .route("/api/v1/notes/:id", get(routes::notes::get_note))
+        .route("/api/v1/notes/:id", delete(routes::notes::delete_note))
         .route("/api/v1/notes/:id/status", put(routes::notes::update_note_status))
         .route("/api/v1/notes/:id/revised", put(routes::notes::put_revised))
         .route("/api/v1/notes/:id/regenerate-ai", post(routes::notes::regenerate_ai))
+        .route("/api/v1/notes/:id/labels", get(routes::notes::get_metadata_labels))
+        .route("/api/v1/notes/:id/labels", post(routes::notes::add_metadata_label))
+        .route("/api/v1/notes/:id/labels/:label_id", delete(routes::notes::remove_metadata_label))
+        .route("/api/v1/labels", get(routes::notes::get_all_labels))
         .route("/api/v1/notes/:id/link", post(routes::notes::create_note_link))
         .route("/api/v1/search", get(routes::search::search))
+        .route("/api/v1/search/context", post(routes::search::generate_search_context))
         .route("/api/v1/semantic", post(routes::search::semantic))
         .route("/api/v1/notes/:id/related", get(routes::search::find_related_notes))
         .route("/api/v1/tags", post(routes::taxonomy::create_tag))

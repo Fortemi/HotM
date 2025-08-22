@@ -1,9 +1,7 @@
 import { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Separator } from '@/components/ui/separator';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { api, RelatedNotesResponse, SearchHit } from '@/services/api';
-import { Link2, Sparkles, FileText } from 'lucide-react';
+import { Link2, Sparkles } from 'lucide-react';
 
 interface RelatedNotesProps {
   noteId: string;
@@ -13,17 +11,21 @@ interface RelatedNotesProps {
 export function RelatedNotes({ noteId, onSelectNote }: RelatedNotesProps) {
   const [relatedData, setRelatedData] = useState<RelatedNotesResponse | null>(null);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!noteId) return;
     
     const fetchRelated = async () => {
       setLoading(true);
+      setError(null);
       try {
         const data = await api.getRelatedNotes(noteId);
         setRelatedData(data);
       } catch (error) {
         console.error('Failed to fetch related notes:', error);
+        const errorMessage = error instanceof Error ? error.message : 'Failed to load related notes';
+        setError(errorMessage);
         setRelatedData(null);
       } finally {
         setLoading(false);
@@ -49,7 +51,49 @@ export function RelatedNotes({ noteId, onSelectNote }: RelatedNotesProps) {
     );
   }
 
-  if (!relatedData || relatedData.related.length === 0) {
+  if (error) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Link2 className="h-4 w-4" />
+            Related Notes
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-sm text-red-600">
+            Error loading related notes: {error}
+          </div>
+          <button 
+            onClick={() => {
+              setError(null);
+              const fetchRelated = async () => {
+                setLoading(true);
+                setError(null);
+                try {
+                  const data = await api.getRelatedNotes(noteId);
+                  setRelatedData(data);
+                } catch (error) {
+                  console.error('Failed to fetch related notes:', error);
+                  const errorMessage = error instanceof Error ? error.message : 'Failed to load related notes';
+                  setError(errorMessage);
+                  setRelatedData(null);
+                } finally {
+                  setLoading(false);
+                }
+              };
+              fetchRelated();
+            }}
+            className="mt-2 text-xs text-primary hover:underline"
+          >
+            Try again
+          </button>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (!relatedData || !relatedData.related || relatedData.related.length === 0) {
     return (
       <Card>
         <CardHeader>
@@ -66,50 +110,55 @@ export function RelatedNotes({ noteId, onSelectNote }: RelatedNotesProps) {
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
+    <Card className="h-full">
+      <CardHeader className="pb-3">
+        <CardTitle className="flex items-center gap-2 text-sm">
           <Link2 className="h-4 w-4" />
           Related Notes
         </CardTitle>
-        {relatedData.context_summary && (
-          <CardDescription className="flex items-start gap-2 mt-2">
-            <Sparkles className="h-3 w-3 mt-0.5 text-primary flex-shrink-0" />
-            <span className="text-xs">{relatedData.context_summary}</span>
-          </CardDescription>
-        )}
       </CardHeader>
-      <CardContent>
-        <ScrollArea className="h-[200px]">
-          <div className="space-y-2">
-            {relatedData.related.map((hit: SearchHit, index: number) => (
-              <div key={hit.note_id}>
-                <button
-                  onClick={() => onSelectNote?.(hit.note_id)}
-                  className="w-full text-left p-2 rounded-lg hover:bg-muted transition-colors"
-                >
-                  <div className="flex items-start gap-2">
-                    <FileText className="h-3 w-3 mt-0.5 text-muted-foreground" />
-                    <div className="flex-1 min-w-0">
-                      <div className="text-sm font-medium truncate">
-                        Note {index + 1}
+      <CardContent className="pt-0">
+        <div className="space-y-1">
+          {(relatedData.related || []).slice(0, 5).map((hit: SearchHit, index: number) => {
+            // Generate a unique key based on note_id and index to avoid duplicates
+            const uniqueKey = `${hit?.note_id || 'unknown'}-${index}`;
+            
+            return (
+              <button
+                key={uniqueKey}
+                onClick={() => hit?.note_id && onSelectNote?.(hit.note_id)}
+                className="w-full text-left px-2 py-1.5 rounded hover:bg-muted/50 transition-colors group"
+                disabled={!hit?.note_id}
+              >
+                <div className="flex items-start gap-2">
+                  <div className="text-xs font-medium text-muted-foreground mt-0.5">
+                    {index + 1}.
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    {hit?.snippet && (
+                      <div className="text-xs text-foreground/80 line-clamp-2 group-hover:text-foreground">
+                        {hit.snippet}
                       </div>
-                      {hit.snippet && (
-                        <div className="text-xs text-muted-foreground line-clamp-2 mt-1">
-                          {hit.snippet}
-                        </div>
-                      )}
-                      <div className="text-xs text-muted-foreground mt-1">
-                        Relevance: {(hit.score * 100).toFixed(0)}%
-                      </div>
+                    )}
+                    <div className="text-xs text-muted-foreground mt-0.5">
+                      {hit?.score ? `${(hit.score * 100).toFixed(0)}% match` : 'Related'}
                     </div>
                   </div>
-                </button>
-                {index < relatedData.related.length - 1 && <Separator className="my-2" />}
-              </div>
-            ))}
+                </div>
+              </button>
+            );
+          })}
+        </div>
+        {relatedData.context_summary && (
+          <div className="mt-3 pt-3 border-t">
+            <div className="flex items-start gap-1.5">
+              <Sparkles className="h-3 w-3 mt-0.5 text-primary flex-shrink-0" />
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                {relatedData.context_summary}
+              </p>
+            </div>
           </div>
-        </ScrollArea>
+        )}
       </CardContent>
     </Card>
   );
