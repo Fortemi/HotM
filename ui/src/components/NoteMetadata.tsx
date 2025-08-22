@@ -22,6 +22,7 @@ interface NoteMetadataProps {
   starred?: boolean;
   archived?: boolean;
   onTagClick?: (tag: string) => void;
+  onLinkClick?: (noteId: string) => void;
 }
 
 export function NoteMetadata({ 
@@ -31,7 +32,8 @@ export function NoteMetadata({
   links = [],
   starred = false,
   archived = false,
-  onTagClick
+  onTagClick,
+  onLinkClick
 }: NoteMetadataProps) {
   // Parse AI metadata if it exists
   const parsedAiMetadata = aiMetadata || {};
@@ -240,17 +242,33 @@ export function NoteMetadata({
             <>
               <Separator className="my-4" />
               <div>
-                <div className="flex items-center gap-2 mb-2">
+                <div className="flex items-center gap-2 mb-3">
                   <Link className="h-4 w-4 text-muted-foreground" />
                   <span className="text-sm font-semibold">Linked Notes ({links.length})</span>
                 </div>
-                <div className="space-y-1">
+                <div className="space-y-2">
                   {links.map((link: any, idx: number) => (
-                    <div key={idx} className="flex items-center justify-between text-xs">
-                      <span className="text-muted-foreground">{link.kind}</span>
-                      <Badge variant="outline" className="text-xs">
-                        {(link.score * 100).toFixed(0)}%
-                      </Badge>
+                    <div 
+                      key={idx} 
+                      className={`p-2 rounded border ${onLinkClick ? 'cursor-pointer hover:bg-accent' : ''}`}
+                      onClick={() => onLinkClick && onLinkClick(link.to_note_id)}
+                    >
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-xs font-medium capitalize">
+                          {link.kind === 'semantic' ? '🧠 Semantic' : '🔑 Keyword'} Link
+                        </span>
+                        <Badge variant={link.score > 0.8 ? "default" : "outline"} className="text-xs">
+                          {(link.score * 100).toFixed(0)}% match
+                        </Badge>
+                      </div>
+                      {link.snippet && (
+                        <p className="text-xs text-muted-foreground line-clamp-2">
+                          {link.snippet}
+                        </p>
+                      )}
+                      <div className="text-xs text-blue-600 hover:underline mt-1">
+                        Click to open linked note →
+                      </div>
                     </div>
                   ))}
                 </div>

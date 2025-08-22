@@ -96,6 +96,13 @@ pub struct SemanticRequest { pub text: String }
 #[derive(Serialize, Deserialize)]
 pub struct SemanticResponse { pub similar: Vec<SearchHit> }
 
+// Create link between notes
+#[derive(Serialize, Deserialize)]
+pub struct CreateLinkRequest {
+    pub to_note_id: Uuid,
+    pub reason: Option<String>,
+}
+
 // List notes with filtering and sorting
 #[derive(Serialize, Deserialize)]
 pub struct ListNotesRequest {

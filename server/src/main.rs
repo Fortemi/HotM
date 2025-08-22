@@ -36,6 +36,7 @@ async fn main() -> anyhow::Result<()> {
         .route("/api/v1/notes/:id/status", put(routes::notes::update_note_status))
         .route("/api/v1/notes/:id/revised", put(routes::notes::put_revised))
         .route("/api/v1/notes/:id/regenerate-ai", post(routes::notes::regenerate_ai))
+        .route("/api/v1/notes/:id/link", post(routes::notes::create_note_link))
         .route("/api/v1/search", get(routes::search::search))
         .route("/api/v1/semantic", post(routes::search::semantic))
         .route("/api/v1/notes/:id/related", get(routes::search::find_related_notes))

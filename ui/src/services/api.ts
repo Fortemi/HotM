@@ -118,8 +118,11 @@ class ApiClient {
   }
 
   // Search notes
-  async searchNotes(query: string, mode: "fts" | "semantic" | "hybrid" = "hybrid"): Promise<any[]> {
+  async searchNotes(query: string, mode: "fts" | "semantic" | "hybrid" = "hybrid", filters?: string): Promise<any[]> {
     const params = new URLSearchParams({ q: query, mode });
+    if (filters) {
+      params.append('filters', filters);
+    }
     const response = await this.request<{ notes: any[] }>(`/search?${params}`);
     return response.notes || [];
   }

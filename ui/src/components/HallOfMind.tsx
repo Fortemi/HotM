@@ -412,11 +412,12 @@ export function HallOfMind() {
 
     // Check for special search patterns
     if (query.startsWith('#')) {
-      // Tag search
+      // Tag search - convert #tag to tag:tagname filter
       const tag = query.substring(1).trim();
       if (tag) {
         try {
-          const results = await api.searchNotes(query, "fts");
+          // Search for the tag using the filter parameter
+          const results = await api.searchNotes(tag, "fts", `tag:${tag}`);
           if (results && results.length > 0) {
             // Map search results to our note format
             const searchNotes = results.map((hit: any) => ({
@@ -430,6 +431,10 @@ export function HallOfMind() {
               starred: false
             }));
             setNotes(searchNotes);
+            setSearchMode("fts");
+          } else {
+            // No results, but still in search mode
+            setNotes([]);
             setSearchMode("fts");
           }
         } catch (error) {
@@ -856,21 +861,6 @@ export function HallOfMind() {
                                 content={selectedNote.revised_content || noteContent}
                               />
                             )}
-                            {selectedNote.tags.length > 0 && (
-                              <div className="mt-6 pt-4 border-t">
-                                <div className="flex flex-wrap gap-2">
-                                  {selectedNote.tags.map((tag) => (
-                                    <span
-                                      key={tag}
-                                      className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary"
-                                    >
-                                      <Hash className="h-3 w-3" />
-                                      {tag}
-                                    </span>
-                                  ))}
-                                </div>
-                              </div>
-                            )}
                           </ScrollArea>
                         </CardContent>
                       </Card>
@@ -944,6 +934,41 @@ export function HallOfMind() {
                       onTagClick={(tag) => {
                         // Search for the tag
                         setSearchQuery(`#${tag}`);
+                      }}
+                      onLinkClick={async (noteId) => {
+                        // Load the linked note
+                        try {
+                          const linkedNote = await api.getNote(noteId);
+                          const simpleNote = {
+                            id: linkedNote.note.id,
+                            title: linkedNote.original.content.split('\n')[0].substring(0, 50) || "Untitled",
+                            content: linkedNote.original.content,
+                            revised_content: linkedNote.revised ? linkedNote.revised.content : null,
+                            createdAt: linkedNote.note.created_at_utc,
+                            updatedAt: linkedNote.note.updated_at_utc,
+                            tags: linkedNote.tags,
+                            starred: linkedNote.note.starred || false
+                          };
+                          
+                          // Add to notes if not already there
+                          setNotes(prev => {
+                            const exists = prev.find(n => n.id === simpleNote.id);
+                            if (!exists) {
+                              return [...prev, simpleNote];
+                            }
+                            return prev;
+                          });
+                          
+                          // Select the linked note
+                          setSelectedNote(simpleNote);
+                          setNoteContent(simpleNote.content);
+                          setRevisedContent(simpleNote.revised_content || simpleNote.content);
+                          
+                          // Cache the full note
+                          savedNotes.current.set(linkedNote.note.id, linkedNote);
+                        } catch (error) {
+                          console.error("Failed to load linked note:", error);
+                        }
                       }}
                     />
                   </TabsContent>

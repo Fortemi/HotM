@@ -57,3 +57,31 @@ pub async fn regenerate_ai(State(state): State<AppState>, Path(id): Path<Uuid>) 
         "note_id": id
     })))
 }
+
+// Create a manual link between notes
+pub async fn create_note_link(
+    State(state): State<AppState>, 
+    Path(id): Path<Uuid>, 
+    Json(req): Json<CreateLinkRequest>
+) -> Result<Json<serde_json::Value>, axum::http::StatusCode> {
+    use chrono::Utc;
+    
+    let link_id = Uuid::new_v4();
+    let result = sqlx::query!(
+        "INSERT INTO link (id, from_note_id, to_note_id, kind, score, created_at_utc) 
+         VALUES ($1, $2, $3, $4, $5, $6)
+         ON CONFLICT DO NOTHING",
+        link_id, id, req.to_note_id, "manual", 1.0_f32, Utc::now()
+    )
+    .execute(&state.pool)
+    .await
+    .map_err(|_| axum::http::StatusCode::INTERNAL_SERVER_ERROR)?;
+    
+    Ok(Json(serde_json::json!({
+        "status": "created",
+        "link_id": link_id,
+        "from_note_id": id,
+        "to_note_id": req.to_note_id,
+        "rows_affected": result.rows_affected()
+    })))
+}
