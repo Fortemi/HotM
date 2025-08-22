@@ -73,8 +73,9 @@ pub async fn insert_note(state: &AppState, content: &str, format: &str, source: 
     });
 
     // Compute and store embeddings for the revised content (best-effort)
+    // This is non-critical, so we just log if it fails
     if let Err(err) = embed_note(&self_from_state(state), note_id, content).await {
-        tracing::warn!(%note_id, error = %format!("{}", err), "embedding failed; continuing without vectors");
+        tracing::warn!(%note_id, error = %format!("{}", err), "embedding failed; continuing without vectors. Make sure nomic-embed-text model is installed: ollama pull nomic-embed-text");
     }
     Ok(note_id)
 }

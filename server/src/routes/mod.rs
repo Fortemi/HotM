@@ -4,3 +4,4 @@ pub mod search;
 pub mod taxonomy;
 pub mod links;
 pub mod provenance;
+pub mod debug;

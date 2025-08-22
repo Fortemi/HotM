@@ -42,6 +42,7 @@ async fn main() -> anyhow::Result<()> {
         .route("/api/v1/notes/:id/collection", put(routes::taxonomy::put_note_collection))
         .route("/api/v1/notes/:id/links", post(routes::links::post_link))
         .route("/api/v1/notes/:id/provenance", get(routes::provenance::get_provenance))
+        .route("/api/v1/debug/revisions", get(routes::debug::debug_revisions))
         .with_state(state)
         .layer(cors);
 
