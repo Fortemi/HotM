@@ -98,13 +98,15 @@ pub fn render_plantuml(app: &AppHandle, code: &str) -> Result<String, PlantUMLEr
     // Write PlantUML code to temporary file
     fs::write(&input_file, code)?;
     
-    // Run PlantUML
+    // Run PlantUML with explicit output directory
     let output = Command::new("java")
         .arg("-jar")
         .arg(&jar_path)
         .arg("-tsvg")
         .arg("-charset")
         .arg("UTF-8")
+        .arg("-o")
+        .arg(&temp_dir)  // Explicit output directory
         .arg(&input_file)
         .output()?;
     
@@ -113,7 +115,10 @@ pub fn render_plantuml(app: &AppHandle, code: &str) -> Result<String, PlantUMLEr
     
     if !output.status.success() {
         let error_msg = String::from_utf8_lossy(&output.stderr);
-        return Err(PlantUMLError::RenderFailed(error_msg.to_string()));
+        let stdout_msg = String::from_utf8_lossy(&output.stdout);
+        return Err(PlantUMLError::RenderFailed(
+            format!("stderr: {}\nstdout: {}", error_msg, stdout_msg)
+        ));
     }
     
     // Read the generated SVG

@@ -296,8 +296,8 @@ export function HallOfMind() {
       // Mark as processing
       setProcessingNotes(prev => new Set(prev).add(selectedNote.id));
       
-      // Trigger AI regeneration by updating the note
-      await api.updateRevision(selectedNote.id, noteContent, "Trigger AI regeneration");
+      // Trigger AI regeneration using the dedicated endpoint
+      await api.regenerateAI(selectedNote.id);
       
       // Wait and fetch the new AI revision
       setTimeout(async () => {

@@ -159,6 +159,13 @@ class ApiClient {
     });
   }
 
+  // Trigger AI regeneration for a note
+  async regenerateAI(id: string): Promise<any> {
+    return this.request(`/notes/${id}/regenerate-ai`, {
+      method: 'POST',
+    });
+  }
+
   // Search notes
   async searchNotes(query: string, mode: 'hybrid' | 'fts' | 'vector' = 'fts'): Promise<SearchResponse> {
     const params = new URLSearchParams({ q: query, mode });

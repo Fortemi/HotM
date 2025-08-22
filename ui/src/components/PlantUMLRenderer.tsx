@@ -27,7 +27,9 @@ export function PlantUMLRenderer({ code, className = '' }: PlantUMLRendererProps
       setError(null);
       
       // Call Tauri backend to render PlantUML
+      console.log('Rendering PlantUML diagram:', code.substring(0, 100) + '...');
       const rendered = await invoke<string>('render_plantuml', { code });
+      console.log('PlantUML rendered successfully');
       setSvg(rendered);
     } catch (err) {
       console.error('Failed to render PlantUML:', err);
