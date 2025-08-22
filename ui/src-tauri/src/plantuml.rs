@@ -78,8 +78,15 @@ pub fn render_plantuml(app: &AppHandle, code: &str) -> Result<String, PlantUMLEr
     // Check Java availability
     check_java()?;
     
-    // Get PlantUML JAR path
-    let jar_path = get_plantuml_jar_path(app)?;
+    // Get PlantUML JAR path, or download if not present
+    let jar_path = match get_plantuml_jar_path(app) {
+        Ok(path) => path,
+        Err(_) => {
+            // Try to download PlantUML JAR
+            // For now, return an error suggesting the user needs to install PlantUML
+            return Err(PlantUMLError::PlantUMLJarNotFound);
+        }
+    };
     
     // Create temporary directory for input/output
     let temp_dir = std::env::temp_dir();

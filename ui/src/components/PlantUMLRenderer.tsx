@@ -47,6 +47,26 @@ export function PlantUMLRenderer({ code, className = '' }: PlantUMLRendererProps
   }
 
   if (error) {
+    // Check if it's a PlantUML not found error
+    if (error.includes('PlantUML JAR file not found') || error.includes('Java is not installed')) {
+      return (
+        <div className={`p-4 border border-warning/50 rounded-lg bg-warning/10 ${className}`}>
+          <div className="text-sm text-warning mb-2">PlantUML is not configured</div>
+          <div className="text-xs opacity-70">
+            To render PlantUML diagrams, you need:
+            <ul className="list-disc list-inside mt-1">
+              <li>Java installed on your system</li>
+              <li>PlantUML JAR file (will be downloaded automatically on first use)</li>
+            </ul>
+          </div>
+          <details className="mt-2">
+            <summary className="cursor-pointer text-xs">Show diagram source</summary>
+            <pre className="mt-2 text-xs opacity-70 overflow-x-auto">{code}</pre>
+          </details>
+        </div>
+      );
+    }
+    
     return (
       <div className={`p-4 border border-destructive/50 rounded-lg bg-destructive/10 ${className}`}>
         <div className="text-sm text-destructive">Failed to render diagram: {error}</div>
