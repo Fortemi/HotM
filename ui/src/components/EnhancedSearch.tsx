@@ -3,6 +3,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Badge } from '@/components/ui/badge';
 import { api, SearchHit } from '@/services/api';
 import { Search, Sparkles, FileText, Hash, Loader2 } from 'lucide-react';
 
@@ -110,6 +111,7 @@ export function EnhancedSearch({ onSelectNote }: EnhancedSearchProps) {
               </TabsTrigger>
             </TabsList>
 
+            {/* Hybrid Tab Content */}
             <TabsContent value="hybrid" className="mt-4">
               {llmContext && (
                 <div className="mb-4 p-3 bg-primary/5 rounded-lg">
@@ -119,6 +121,30 @@ export function EnhancedSearch({ onSelectNote }: EnhancedSearchProps) {
                   </div>
                 </div>
               )}
+            </TabsContent>
+            
+            {/* FTS Tab Content */}
+            <TabsContent value="fts" className="mt-4">
+              <div className="mb-4 p-3 bg-blue-500/5 rounded-lg">
+                <div className="flex items-start gap-2">
+                  <FileText className="h-4 w-4 text-blue-500 mt-0.5" />
+                  <p className="text-sm text-muted-foreground">
+                    Full-text search across all note content and metadata
+                  </p>
+                </div>
+              </div>
+            </TabsContent>
+            
+            {/* Semantic Tab Content */}
+            <TabsContent value="semantic" className="mt-4">
+              <div className="mb-4 p-3 bg-purple-500/5 rounded-lg">
+                <div className="flex items-start gap-2">
+                  <Hash className="h-4 w-4 text-purple-500 mt-0.5" />
+                  <p className="text-sm text-muted-foreground">
+                    AI-powered semantic search using embeddings to find conceptually similar notes
+                  </p>
+                </div>
+              </div>
             </TabsContent>
           </Tabs>
 
@@ -130,29 +156,48 @@ export function EnhancedSearch({ onSelectNote }: EnhancedSearchProps) {
                   <button
                     key={hit.note_id}
                     onClick={() => onSelectNote(hit.note_id)}
-                    className="w-full text-left p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors"
+                    className="w-full text-left p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors border-b last:border-0"
                   >
-                    <div className="flex items-start gap-3">
-                      <FileText className="h-4 w-4 text-muted-foreground mt-0.5" />
-                      <div className="flex-1 min-w-0">
-                        <div className="font-medium text-sm">
-                          Note Result
+                    <div className="space-y-2">
+                      {/* Title */}
+                      <div className="font-medium text-sm line-clamp-1">
+                        {hit.snippet?.split('\n')[0].substring(0, 50) || 'Untitled Note'}
+                      </div>
+                      
+                      {/* Content snippet */}
+                      {hit.snippet && (
+                        <div className="text-xs text-muted-foreground line-clamp-2">
+                          {hit.snippet}
                         </div>
-                        {hit.snippet && (
-                          <div className="text-xs text-muted-foreground mt-1 line-clamp-2">
-                            {hit.snippet}
-                          </div>
+                      )}
+                      
+                      {/* Metadata row */}
+                      <div className="flex items-center gap-3 flex-wrap">
+                        <span className="text-xs text-muted-foreground">
+                          Relevance: {(hit.score * 100).toFixed(0)}%
+                        </span>
+                        
+                        {/* Search mode badge */}
+                        {searchMode === 'hybrid' && (
+                          <Badge variant="secondary" className="text-xs">
+                            AI-ranked
+                          </Badge>
                         )}
-                        <div className="flex items-center gap-4 mt-2">
-                          <span className="text-xs text-muted-foreground">
-                            Relevance: {(hit.score * 100).toFixed(0)}%
-                          </span>
-                          {searchMode === 'hybrid' && (
-                            <span className="text-xs text-primary">
-                              AI-ranked
-                            </span>
-                          )}
-                        </div>
+                        {searchMode === 'semantic' && (
+                          <Badge variant="outline" className="text-xs">
+                            Semantic match
+                          </Badge>
+                        )}
+                        {searchMode === 'fts' && (
+                          <Badge variant="outline" className="text-xs">
+                            Text match
+                          </Badge>
+                        )}
+                        
+                        {/* Note ID for now, can add tags later */}
+                        <span className="text-xs text-muted-foreground">
+                          ID: {hit.note_id.substring(0, 8)}...
+                        </span>
                       </div>
                     </div>
                   </button>

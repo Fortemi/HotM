@@ -69,8 +69,9 @@ import { NoteMetadata } from "./NoteMetadata";
 import { EnhancedSearch } from "./EnhancedSearch";
 import { NoteContextMenu, useGlobalContextMenuPrevention } from "./NoteContextMenu";
 import { DeleteNoteDialog } from "./DeleteNoteDialog";
+import { SearchDropdown } from "./SearchDropdown";
 
-interface Note {
+export interface Note {
   id: string;
   title: string;
   content: string;
@@ -122,6 +123,7 @@ export function HallOfMind() {
   const [processingNotes, setProcessingNotes] = useState<Set<string>>(new Set());
   const [copiedState, setCopiedState] = useState<{ [key: string]: boolean }>({});
   const savedNotes = useRef<Map<string, NoteFull>>(new Map());
+  const searchInputRef = useRef<HTMLDivElement>(null);
 
   // Check server health and load initial notes
   useEffect(() => {
@@ -1166,64 +1168,6 @@ export function HallOfMind() {
 
             <Separator className="my-2 flex-shrink-0" />
 
-            {/* Search Results Section */}
-            {showSearchResults && (
-              <>
-                <SidebarGroup>
-                  <SidebarGroupLabel className="flex items-center justify-between">
-                    <span>Search Results ({searchResults.length})</span>
-                    {isSearching && <Loader2 className="h-3 w-3 animate-spin" />}
-                    {!isSearching && searchMode !== "local" && (
-                      <Badge variant="outline" className="text-xs">
-                        {searchMode.toUpperCase()}
-                      </Badge>
-                    )}
-                  </SidebarGroupLabel>
-                  <ScrollArea className="h-[200px]">
-                    <SidebarMenu>
-                      {isSearching ? (
-                        <div className="p-4 text-center text-sm text-muted-foreground">
-                          Searching...
-                        </div>
-                      ) : searchResults.length === 0 ? (
-                        <div className="p-4 text-center text-sm text-muted-foreground">
-                          No results found for "{searchQuery}"
-                        </div>
-                      ) : (
-                        searchResults.map((note) => (
-                          <SidebarMenuItem key={note.id}>
-                            <SidebarMenuButton
-                              onClick={async () => {
-                                setSelectedNote(note);
-                                setNoteContent(note.content);
-                                setRevisedContent(note.revised_content || note.content);
-                                setEditingRevised(false);
-                                
-                                // Clear search
-                                setSearchQuery("");
-                                setShowSearchResults(false);
-                              }}
-                              className="border-l-2 border-l-primary"
-                            >
-                              <div className="flex-1 overflow-hidden">
-                                <div className="font-medium text-sm truncate">
-                                  {note.title}
-                                </div>
-                                <div className="text-xs text-muted-foreground mt-1">
-                                  {new Date(note.createdAt).toLocaleDateString()}
-                                </div>
-                              </div>
-                            </SidebarMenuButton>
-                          </SidebarMenuItem>
-                        ))
-                      )}
-                    </SidebarMenu>
-                  </ScrollArea>
-                </SidebarGroup>
-                <Separator className="my-2 flex-shrink-0" />
-              </>
-            )}
-
             <SidebarGroup className="flex-1 flex flex-col min-h-0">
               <div className="px-3 py-2 flex-shrink-0">
                 <div className="flex items-center justify-between">
@@ -1456,7 +1400,7 @@ export function HallOfMind() {
           <header className="flex h-16 items-center gap-4 border-b px-6">
             <SidebarTrigger />
             <div className="flex flex-1 items-center gap-4">
-              <div className="flex items-center gap-2 flex-1">
+              <div className="flex items-center gap-2 flex-1 relative" ref={searchInputRef}>
                 {isSearching ? (
                   <Loader2 className="h-4 w-4 text-muted-foreground animate-spin" />
                 ) : (
@@ -1483,6 +1427,27 @@ export function HallOfMind() {
                     <X className="h-3 w-3" />
                   </Button>
                 )}
+                
+                {/* Search Dropdown */}
+                <SearchDropdown
+                  isOpen={showSearchResults && searchResults.length > 0}
+                  searchQuery={searchQuery}
+                  searchMode={searchMode}
+                  isSearching={isSearching}
+                  searchResults={searchResults}
+                  onSelectNote={(note) => {
+                    setSelectedNote(note);
+                    setNoteContent(note.content);
+                    setRevisedContent(note.revised_content || note.content);
+                    setEditingRevised(false);
+                    setHasUnsavedChanges(false);
+                    setSearchQuery("");
+                    setShowSearchResults(false);
+                  }}
+                  onClose={() => setShowSearchResults(false)}
+                  anchorRef={searchInputRef}
+                  savedNotes={savedNotes.current}
+                />
               </div>
               <div className="ml-auto flex items-center gap-2">
                 {selectedNote && (
