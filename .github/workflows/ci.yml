@@ -20,7 +20,7 @@ jobs:
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: hotm_test
+          POSTGRES_DB: postgres
         ports: ["5432:5432"]
         options: >-
           --health-cmd "pg_isready -U postgres"
@@ -56,8 +56,8 @@ jobs:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/hotm_test
         run: |
           cd server
-          sqlx database create
-          sqlx migrate run
+          sqlx database create --database-url=$DATABASE_URL
+          sqlx migrate run --database-url=$DATABASE_URL
 
       - name: Check code formatting
         run: |
@@ -65,6 +65,9 @@ jobs:
           cargo fmt -- --check
 
       - name: Run clippy
+        env:
+          TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/hotm_test
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/hotm_test  
         run: |
           cd server
           cargo clippy -- -D warnings
