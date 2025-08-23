@@ -57,18 +57,23 @@ jobs:
         path: server/target
         key: ${{ runner.os }}-cargo-build-target-${{ hashFiles('**/Cargo.lock') }}
     
-    - name: Install SQLx CLI
-      run: cargo install sqlx-cli --no-default-features --features postgres
+    - name: Install PostgreSQL client and SQLx CLI
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y postgresql-client
+        cargo install sqlx-cli --no-default-features --features postgres
     
     - name: Setup test database
       run: |
         cd server
         export DATABASE_URL=postgres://postgres:postgres@localhost:5433/hotm_test
+        export DB_PORT=5433
         ./setup_ci_db.sh
         sqlx migrate run --database-url=$DATABASE_URL
       env:
         DATABASE_URL: postgres://postgres:postgres@localhost:5433/hotm_test
         TEST_DATABASE_URL: postgres://postgres:postgres@localhost:5433
+        DB_PORT: 5433
     
     - name: Run clippy
       run: |
@@ -156,8 +161,11 @@ jobs:
         toolchain: stable
         override: true
     
-    - name: Install SQLx CLI
-      run: cargo install sqlx-cli --no-default-features --features postgres
+    - name: Install PostgreSQL client and SQLx CLI
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y postgresql-client
+        cargo install sqlx-cli --no-default-features --features postgres
     
     - name: Setup test database
       run: |
