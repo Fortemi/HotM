@@ -83,10 +83,25 @@ jobs:
     - name: Run tests
       run: |
         cd server
-        cargo test --all-features
+        echo "🔧 Starting test execution..."
+        echo "Database URL: $DATABASE_URL"
+        echo "Test Database URL: $TEST_DATABASE_URL"
+        echo "Available tests:"
+        cargo test --all-features --list || echo "Failed to list tests"
+        echo ""
+        echo "🚀 Running tests..."
+        cargo test --all-features --verbose 2>&1 | tee test_output.log || {
+          echo "❌ Tests failed! Last 50 lines of output:"
+          tail -50 test_output.log
+          echo "Full logs available in test_output.log"
+          exit 1
+        }
+        echo "✅ All tests completed successfully!"
       env:
         DATABASE_URL: postgres://postgres:postgres@localhost:5433/hotm_test
         TEST_DATABASE_URL: postgres://postgres:postgres@localhost:5433
+        RUST_LOG: debug
+        RUST_BACKTRACE: 1
     
     - name: Check formatting
       run: |
