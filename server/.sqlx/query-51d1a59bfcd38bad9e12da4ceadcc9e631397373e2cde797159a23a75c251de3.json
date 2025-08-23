@@ -1,0 +1,64 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT \n            l.id, \n            l.from_note_id, \n            l.to_note_id, \n            l.to_url, \n            l.kind, \n            l.score, \n            l.created_at_utc,\n            COALESCE(\n                substring(nrc.content from 1 for 100),\n                'Linked note'\n            ) as snippet\n        FROM link l\n        LEFT JOIN note_revised_current nrc ON nrc.note_id = l.to_note_id\n        WHERE l.from_note_id = $1\n        ORDER BY l.score DESC, l.created_at_utc DESC",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "from_note_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 2,
+        "name": "to_note_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 3,
+        "name": "to_url",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 4,
+        "name": "kind",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 5,
+        "name": "score",
+        "type_info": "Float4"
+      },
+      {
+        "ordinal": 6,
+        "name": "created_at_utc",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 7,
+        "name": "snippet",
+        "type_info": "Text"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false,
+      true,
+      true,
+      true,
+      false,
+      false,
+      false,
+      null
+    ]
+  },
+  "hash": "51d1a59bfcd38bad9e12da4ceadcc9e631397373e2cde797159a23a75c251de3"
+}

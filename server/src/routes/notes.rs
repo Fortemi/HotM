@@ -106,7 +106,7 @@ pub async fn get_metadata_labels(
         note_id: row.note_id,
         label: row.label,
         color: row.color,
-        created_at: row.created_at.unwrap_or_else(Utc::now),
+        created_at: row.created_at,
     })
     .collect();
     

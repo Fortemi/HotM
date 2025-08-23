@@ -51,18 +51,18 @@ CREATE TABLE IF NOT EXISTS note_revised_current (
 -- Note revision history
 CREATE TABLE IF NOT EXISTS note_revision (
   id UUID PRIMARY KEY,
-  note_id UUID REFERENCES note(id) ON DELETE CASCADE,
+  note_id UUID NOT NULL REFERENCES note(id) ON DELETE CASCADE,
   parent_revision_id UUID REFERENCES note_revision(id),
   revision_number INTEGER NOT NULL,
   content TEXT NOT NULL,
-  type TEXT DEFAULT 'ai_enhancement', -- 'ai_enhancement', 'user_edit', etc.
+  type TEXT NOT NULL DEFAULT 'ai_enhancement', -- 'ai_enhancement', 'user_edit', etc.
   summary TEXT,
   rationale TEXT,
   created_at_utc TIMESTAMPTZ NOT NULL,
   ai_generated_at TIMESTAMPTZ DEFAULT NOW(),
   user_last_edited_at TIMESTAMPTZ,
-  is_user_edited BOOLEAN DEFAULT FALSE,
-  generation_count INTEGER DEFAULT 1
+  is_user_edited BOOLEAN NOT NULL DEFAULT FALSE,
+  generation_count INTEGER NOT NULL DEFAULT 1
 );
 
 -- Collections for organizing notes
@@ -94,7 +94,7 @@ CREATE TABLE IF NOT EXISTS link (
   to_note_id UUID,
   to_url TEXT,
   kind TEXT NOT NULL,
-  score FLOAT NOT NULL,
+  score REAL NOT NULL, -- Changed to REAL (f32) to match code
   created_at_utc TIMESTAMPTZ NOT NULL,
   FOREIGN KEY (to_note_id) REFERENCES note(id) ON DELETE CASCADE,
   CHECK ((to_note_id IS NOT NULL AND to_url IS NULL) OR 
@@ -170,12 +170,12 @@ CREATE TABLE IF NOT EXISTS job_queue (
   error_message TEXT,
   estimated_duration_ms INTEGER,
   actual_duration_ms INTEGER,
-  progress_percent INTEGER DEFAULT 0,
+  progress_percent INTEGER NOT NULL DEFAULT 0,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   started_at TIMESTAMPTZ,
   completed_at TIMESTAMPTZ,
-  retry_count INTEGER DEFAULT 0,
-  max_retries INTEGER DEFAULT 3
+  retry_count INTEGER NOT NULL DEFAULT 0,
+  max_retries INTEGER NOT NULL DEFAULT 3
 );
 
 -- Job history for calculating estimates

@@ -1,0 +1,15 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "DELETE FROM user_metadata_label WHERE id = $1 AND note_id = $2",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "fabe04f248d5977d0547ce2f7f60c56cf68ac47b4f65b36ee3c52d3781b420d6"
+}

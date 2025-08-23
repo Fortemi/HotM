@@ -1,0 +1,19 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO link (id, from_note_id, to_note_id, kind, score, created_at_utc) \n         VALUES ($1, $2, $3, $4, $5, $6)\n         ON CONFLICT DO NOTHING",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid",
+        "Uuid",
+        "Text",
+        "Float4",
+        "Timestamptz"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "39077d5b5f979b726c103408665d4cce8d51719063480f7c8c1dfb80de3d5143"
+}

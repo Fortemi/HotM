@@ -1,9 +1,10 @@
 use axum::{extract::{State, Path}, Json};
 use crate::{db::AppState, models::*};
 use uuid::Uuid;
+use chrono::Utc;
 
 pub async fn create_tag(State(state): State<AppState>, Json(req): Json<CreateTagRequest>) -> Result<Json<CreateTagResponse>, axum::http::StatusCode> {
-    sqlx::query!("INSERT INTO tag (name) VALUES ($1) ON CONFLICT DO NOTHING", req.name).execute(&state.pool).await.map_err(|_| axum::http::StatusCode::INTERNAL_SERVER_ERROR)?;
+    sqlx::query!("INSERT INTO tag (name, created_at_utc) VALUES ($1, $2) ON CONFLICT (name) DO NOTHING", req.name, Utc::now()).execute(&state.pool).await.map_err(|_| axum::http::StatusCode::INTERNAL_SERVER_ERROR)?;
     Ok(Json(CreateTagResponse { name: req.name }))
 }
 
@@ -11,7 +12,7 @@ pub async fn put_note_tags(State(state): State<AppState>, Path(id): Path<Uuid>, 
     let mut tx = state.pool.begin().await.map_err(|_| axum::http::StatusCode::INTERNAL_SERVER_ERROR)?;
     if let Some(add) = req.add.as_ref() {
         for t in add {
-            sqlx::query!("INSERT INTO tag (name) VALUES ($1) ON CONFLICT DO NOTHING", t).execute(&mut *tx).await.map_err(|_| axum::http::StatusCode::INTERNAL_SERVER_ERROR)?;
+            sqlx::query!("INSERT INTO tag (name, created_at_utc) VALUES ($1, $2) ON CONFLICT (name) DO NOTHING", t, Utc::now()).execute(&mut *tx).await.map_err(|_| axum::http::StatusCode::INTERNAL_SERVER_ERROR)?;
             sqlx::query!("INSERT INTO note_tag (note_id, tag_name, source) VALUES ($1, $2, 'manual') ON CONFLICT DO NOTHING", id, t).execute(&mut *tx).await.map_err(|_| axum::http::StatusCode::INTERNAL_SERVER_ERROR)?;
         }
     }

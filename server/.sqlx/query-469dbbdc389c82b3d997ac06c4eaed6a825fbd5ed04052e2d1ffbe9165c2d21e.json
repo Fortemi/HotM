@@ -1,0 +1,34 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT DISTINCT e.note_id, 1.0 - (e.vector <=> $1::vector) as similarity\n             FROM embedding e\n             JOIN note n ON n.id = e.note_id\n             WHERE e.note_id != $2 \n               AND (n.archived IS FALSE OR n.archived IS NULL)\n             ORDER BY similarity DESC\n             LIMIT 10",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "note_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "similarity",
+        "type_info": "Float8"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        {
+          "Custom": {
+            "name": "vector",
+            "kind": "Simple"
+          }
+        },
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      true,
+      null
+    ]
+  },
+  "hash": "469dbbdc389c82b3d997ac06c4eaed6a825fbd5ed04052e2d1ffbe9165c2d21e"
+}

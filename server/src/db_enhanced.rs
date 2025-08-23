@@ -99,8 +99,9 @@ Use existing tags when appropriate, but create new ones if needed."#,
             if let Some(tag_name) = tag_value.as_str() {
                 // Insert tag if it doesn't exist
                 sqlx::query!(
-                    "INSERT INTO tag (name) VALUES ($1) ON CONFLICT (name) DO NOTHING",
-                    tag_name
+                    "INSERT INTO tag (name, created_at_utc) VALUES ($1, $2) ON CONFLICT (name) DO NOTHING",
+                    tag_name,
+                    Utc::now()
                 ).execute(&mut *tx).await?;
                 
                 // Link tag to note
@@ -352,7 +353,7 @@ async fn create_contextual_links(
         
         // Create reciprocal links for highly related notes (similarity > 0.7)
         for similar in similar_notes {
-            tracing::info!("Checking note {} with similarity {}", similar.note_id, similar.similarity.unwrap_or(0.0));
+            tracing::info!("Checking note {:?} with similarity {}", similar.note_id, similar.similarity.unwrap_or(0.0));
             if similar.similarity.unwrap_or(0.0) > 0.7 {
                 // Check if forward link already exists
                 let existing_forward = sqlx::query!(
@@ -368,7 +369,7 @@ async fn create_contextual_links(
                          VALUES ($1, $2, $3, $4, $5, $6)",
                         link_id_forward, note_id, similar.note_id, "semantic", similar.similarity.unwrap_or(0.0) as f32, Utc::now()
                     ).execute(&state.pool).await?;
-                    tracing::info!("Created forward semantic link from {} to {}", note_id, similar.note_id);
+                    tracing::info!("Created forward semantic link from {} to {:?}", note_id, similar.note_id);
                 }
                 
                 // Check if backward link already exists
@@ -385,7 +386,7 @@ async fn create_contextual_links(
                          VALUES ($1, $2, $3, $4, $5, $6)",
                         link_id_backward, similar.note_id, note_id, "semantic", similar.similarity.unwrap_or(0.0) as f32, Utc::now()
                     ).execute(&state.pool).await?;
-                    tracing::info!("Created backward semantic link from {} to {}", similar.note_id, note_id);
+                    tracing::info!("Created backward semantic link from {:?} to {}", similar.note_id, note_id);
                 }
             }
         }

@@ -1,0 +1,24 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO embedding (id, note_id, chunk_index, text, vector, model) \n             VALUES ($1, $2, $3, $4, $5::vector, $6)\n             ON CONFLICT (note_id, chunk_index) \n             DO UPDATE SET text = $4, vector = $5::vector",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid",
+        "Int4",
+        "Text",
+        {
+          "Custom": {
+            "name": "vector",
+            "kind": "Simple"
+          }
+        },
+        "Text"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "ca65b571bbb22f98c7b05a44fd5be1dd2c8ad0697067e6c45e268a680668dabe"
+}

@@ -63,20 +63,25 @@ pub async fn insert_note(state: &AppState, content: &str, format: &str, source: 
 
     tx.commit().await?;
 
-    // Generate AI revision with metadata asynchronously (using new cleaner version)
-    let state_clone = state.clone();
-    let content_clone = content.to_string();
-    tokio::spawn(async move {
-        if let Err(err) = crate::db_enhanced_v2::generate_ai_revision_with_metadata(&state_clone, note_id, &content_clone).await {
-            tracing::warn!(%note_id, error = %format!("{}", err), "AI revision generation failed");
-        }
-    });
-
-    // Compute and store embeddings for the revised content (best-effort)
-    // This is non-critical, so we just log if it fails
-    if let Err(err) = embed_note(&self_from_state(state), note_id, content).await {
-        tracing::warn!(%note_id, error = %format!("{}", err), "embedding failed; continuing without vectors. Make sure nomic-embed-text model is installed: ollama pull nomic-embed-text");
+    // Queue jobs for NLP enhancement pipeline instead of running directly
+    use crate::job_queue::{queue_job, JobType};
+    
+    // Queue AI revision job with high priority
+    if let Err(e) = queue_job(&state.pool, Some(note_id), JobType::AiRevision, 8, None).await {
+        tracing::warn!("Failed to queue AI revision job for note {}: {}", note_id, e);
     }
+    
+    // Queue embedding generation with medium priority
+    if let Err(e) = queue_job(&state.pool, Some(note_id), JobType::Embedding, 5, None).await {
+        tracing::warn!("Failed to queue embedding job for note {}: {}", note_id, e);
+    }
+    
+    // Queue link detection with lower priority
+    if let Err(e) = queue_job(&state.pool, Some(note_id), JobType::Linking, 3, None).await {
+        tracing::warn!("Failed to queue linking job for note {}: {}", note_id, e);
+    }
+    
+    tracing::info!("Queued jobs for note {}", note_id);
     Ok(note_id)
 }
 
@@ -255,11 +260,11 @@ pub async fn fetch_note(state: &AppState, note_id: Uuid) -> anyhow::Result<NoteF
 
     let links: Vec<Link> = links.into_iter().map(|r| Link{
         id: r.id,
-        from_note_id: r.from_note_id,
+        from_note_id: r.from_note_id.unwrap(), // from_note_id is NOT NULL in schema
         to_note_id: r.to_note_id,
         to_url: r.to_url,
         kind: r.kind,
-        score: r.score,
+        score: r.score as f32, // Convert from f64 to f32
         created_at_utc: r.created_at_utc,
         snippet: r.snippet,
     }).collect();
@@ -275,7 +280,7 @@ pub async fn fetch_note(state: &AppState, note_id: Uuid) -> anyhow::Result<NoteF
             starred: note.starred.unwrap_or(false),
             archived: note.archived.unwrap_or(false),
             last_accessed_at: note.last_accessed_at,
-            metadata: note.metadata.unwrap_or(serde_json::json!({})),
+            metadata: note.metadata, // metadata is NOT NULL with default
         },
         original: NoteOriginal { 
             content: original.content, 

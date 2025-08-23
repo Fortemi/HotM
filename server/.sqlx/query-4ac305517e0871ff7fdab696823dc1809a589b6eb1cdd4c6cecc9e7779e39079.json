@@ -1,0 +1,35 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        SELECT n.id as note_id,\n               ts_rank(nrc.tsv, plainto_tsquery('english', $1)) AS score,\n               substring(nrc.content for 200) AS snippet\n        FROM note_revised_current nrc\n        JOIN note n ON n.id = nrc.note_id\n        WHERE nrc.tsv @@ plainto_tsquery('english', $1)\n          AND (n.archived IS FALSE OR n.archived IS NULL)\n        ORDER BY score DESC\n        LIMIT $2\n        ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "note_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "score",
+        "type_info": "Float4"
+      },
+      {
+        "ordinal": 2,
+        "name": "snippet",
+        "type_info": "Text"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Text",
+        "Int8"
+      ]
+    },
+    "nullable": [
+      false,
+      null,
+      null
+    ]
+  },
+  "hash": "4ac305517e0871ff7fdab696823dc1809a589b6eb1cdd4c6cecc9e7779e39079"
+}

@@ -1,0 +1,34 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT estimate_job_duration($1::job_type, NULL)",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "estimate_job_duration",
+        "type_info": "Int4"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        {
+          "Custom": {
+            "name": "job_type",
+            "kind": {
+              "Enum": [
+                "ai_revision",
+                "embedding",
+                "linking",
+                "context_update"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "nullable": [
+      null
+    ]
+  },
+  "hash": "2e51614397d6cc57bfa0d7d9076a8f62a86913c56c58c828c83cc39074708f3b"
+}

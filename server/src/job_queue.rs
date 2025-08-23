@@ -39,7 +39,7 @@ pub struct Job {
     pub error_message: Option<String>,
     pub estimated_duration_ms: Option<i32>,
     pub actual_duration_ms: Option<i32>,
-    pub progress_percent: Option<i32>,
+    pub progress_percent: i32,
     pub created_at: DateTime<Utc>,
     pub started_at: Option<DateTime<Utc>>,
     pub completed_at: Option<DateTime<Utc>>,
@@ -171,7 +171,7 @@ impl JobQueueManager {
     }
 
     /// Process a single job
-    async fn process_job(&self, mut job: Job) -> anyhow::Result<()> {
+    async fn process_job(&self, job: Job) -> anyhow::Result<()> {
         let start_time = std::time::Instant::now();
         
         // Update progress
@@ -393,7 +393,7 @@ impl JobQueueManager {
             INSERT INTO job_history (job_type, duration_ms, success, created_at)
             VALUES ($1, $2, $3, NOW())
             "#,
-            job_type as &JobType,
+            &job_type as &JobType,
             duration_ms,
             success
         )
@@ -441,7 +441,7 @@ pub async fn queue_job(
     // Estimate duration based on history
     let estimated_duration = sqlx::query_scalar!(
         "SELECT estimate_job_duration($1::job_type, NULL)",
-        job_type as &JobType
+        &job_type as &JobType
     )
     .fetch_one(pool)
     .await?;
@@ -455,7 +455,7 @@ pub async fn queue_job(
         "#,
         job_id,
         note_id,
-        job_type as &JobType,
+        &job_type as &JobType,
         priority,
         payload,
         estimated_duration

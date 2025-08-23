@@ -176,11 +176,20 @@ async fn store_enhanced_note(
     
     let mut tx = state.pool.begin().await?;
     
+    // Get the next revision number
+    let revision_number: i32 = sqlx::query_scalar!(
+        "SELECT COALESCE(MAX(revision_number), 0) + 1 FROM note_revision WHERE note_id = $1",
+        note_id
+    )
+    .fetch_one(&mut *tx)
+    .await?
+    .unwrap_or(1);
+    
     // Insert revision record
     sqlx::query!(
-        "INSERT INTO note_revision (id, note_id, created_at_utc, rationale, content, type) 
-         VALUES ($1, $2, $3, $4, $5, $6)",
-        revision_id, note_id, now, "AI-enhanced revision", enhanced_content, "ai_enhancement"
+        "INSERT INTO note_revision (id, note_id, revision_number, created_at_utc, rationale, content, type) 
+         VALUES ($1, $2, $3, $4, $5, $6, $7)",
+        revision_id, note_id, revision_number, now, "AI-enhanced revision", enhanced_content, "ai_enhancement"
     ).execute(&mut *tx).await?;
     
     // Update current revised content with metadata
@@ -195,8 +204,9 @@ async fn store_enhanced_note(
     for tag_name in tags {
         // Insert tag if it doesn't exist
         sqlx::query!(
-            "INSERT INTO tag (name) VALUES ($1) ON CONFLICT (name) DO NOTHING",
-            tag_name
+            "INSERT INTO tag (name, created_at_utc) VALUES ($1, $2) ON CONFLICT (name) DO NOTHING",
+            tag_name,
+            Utc::now()
         ).execute(&mut *tx).await?;
         
         // Link tag to note
@@ -275,7 +285,7 @@ pub async fn create_contextual_links(
                     link_id_backward, similar.note_id, note_id, similar.similarity.unwrap_or(0.0) as f32, Utc::now()
                 ).execute(&state.pool).await?;
                 
-                tracing::info!("Created reciprocal semantic links between {} and {}", note_id, similar.note_id);
+                tracing::info!("Created reciprocal semantic links between {} and {:?}", note_id, similar.note_id);
             }
         }
     }

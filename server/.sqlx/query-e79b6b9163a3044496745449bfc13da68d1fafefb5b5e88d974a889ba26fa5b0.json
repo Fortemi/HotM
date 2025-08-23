@@ -1,0 +1,93 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        SELECT \n            id,\n            note_id,\n            job_type as \"job_type: JobType\",\n            status as \"status: JobStatus\",\n            progress_percent,\n            estimated_duration_ms,\n            remaining_ms,\n            queue_wait_ms,\n            note_title\n        FROM job_queue_status\n        ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "note_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 2,
+        "name": "job_type: JobType",
+        "type_info": {
+          "Custom": {
+            "name": "job_type",
+            "kind": {
+              "Enum": [
+                "ai_revision",
+                "embedding",
+                "linking",
+                "context_update"
+              ]
+            }
+          }
+        }
+      },
+      {
+        "ordinal": 3,
+        "name": "status: JobStatus",
+        "type_info": {
+          "Custom": {
+            "name": "job_status",
+            "kind": {
+              "Enum": [
+                "pending",
+                "running",
+                "completed",
+                "failed",
+                "cancelled"
+              ]
+            }
+          }
+        }
+      },
+      {
+        "ordinal": 4,
+        "name": "progress_percent",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 5,
+        "name": "estimated_duration_ms",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 6,
+        "name": "remaining_ms",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 7,
+        "name": "queue_wait_ms",
+        "type_info": "Int8"
+      },
+      {
+        "ordinal": 8,
+        "name": "note_title",
+        "type_info": "Text"
+      }
+    ],
+    "parameters": {
+      "Left": []
+    },
+    "nullable": [
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true
+    ]
+  },
+  "hash": "e79b6b9163a3044496745449bfc13da68d1fafefb5b5e88d974a889ba26fa5b0"
+}

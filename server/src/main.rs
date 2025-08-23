@@ -24,11 +24,10 @@ async fn main() -> anyhow::Result<()> {
     let state_arc = Arc::new(state.clone());
     
     // Start the job queue processor
-    let job_manager = job_queue::JobQueueManager::new(state.pool.clone(), state_arc.clone());
+    let job_manager = Arc::new(job_queue::JobQueueManager::new(state.pool.clone(), state_arc.clone()));
+    let job_manager_clone = job_manager.clone();
     tokio::spawn(async move {
-        if let Err(e) = job_manager.start_processing().await {
-            tracing::error!("Job queue processor error: {}", e);
-        }
+        job_manager_clone.start().await;
     });
 
     // Configure CORS to allow requests from Tauri app
