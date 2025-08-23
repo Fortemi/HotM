@@ -17,18 +17,23 @@ async fn tags_collections_links_roundtrip() {
         .unwrap();
 
     // add tag
-    sqlx::query!("INSERT INTO tag (name, created_at_utc) VALUES ('project-x', NOW()) ON CONFLICT DO NOTHING")
-        .execute(&state.pool)
-        .await
-        .unwrap();
+    sqlx::query!(
+        "INSERT INTO tag (name, created_at_utc) VALUES ('project-x', NOW()) ON CONFLICT DO NOTHING"
+    )
+    .execute(&state.pool)
+    .await
+    .unwrap();
     sqlx::query!("INSERT INTO note_tag (note_id, tag_name, source) VALUES ($1, 'project-x', 'manual') ON CONFLICT DO NOTHING", a).execute(&state.pool).await.unwrap();
 
     // create collection and assign
     let cid = Uuid::new_v4();
-    sqlx::query!("INSERT INTO collection (id, name, created_at_utc) VALUES ($1, 'Work', NOW())", cid)
-        .execute(&state.pool)
-        .await
-        .unwrap();
+    sqlx::query!(
+        "INSERT INTO collection (id, name, created_at_utc) VALUES ($1, 'Work', NOW())",
+        cid
+    )
+    .execute(&state.pool)
+    .await
+    .unwrap();
     sqlx::query!("UPDATE note SET collection_id = $1 WHERE id = $2", cid, a)
         .execute(&state.pool)
         .await

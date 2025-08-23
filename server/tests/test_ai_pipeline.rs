@@ -27,11 +27,11 @@ mod tests {
 
         // Check if we should use mock AI
         let use_mock_ai = std::env::var("USE_MOCK_AI").unwrap_or_default() == "true";
-        
+
         if use_mock_ai {
             // Mock AI revision - simulate what AI would do
             let mock_revised_content = "# Test Note\n\nThis is a **test note** for AI revision testing. It should be enhanced with *markdown formatting*.\n\n- Enhanced with headers\n- Added bold and italic text\n- Improved structure";
-            
+
             // Directly update the database with mock revision (simulating AI pipeline)
             sqlx::query!(
                 "INSERT INTO note_revised_current (note_id, content, ai_metadata) VALUES ($1, $2, '{}') ON CONFLICT (note_id) DO UPDATE SET content = $2, ai_metadata = '{}'",
@@ -41,7 +41,7 @@ mod tests {
             .execute(&state.pool)
             .await
             .expect("Failed to insert mock revision");
-            
+
             println!("Applied mock AI revision for testing");
         } else {
             // Wait for real AI revision to be generated (async process)

@@ -214,7 +214,9 @@ fn parse_ai_response(response: &str) -> (String, serde_json::Value) {
         if let Some(pos) = enhanced_content.find(marker) {
             // If marker is at the start, remove it and everything before the next line
             if pos == 0 {
-                enhanced_content = enhanced_content.split_once('\n').map(|x| x.1)
+                enhanced_content = enhanced_content
+                    .split_once('\n')
+                    .map(|x| x.1)
                     .unwrap_or(&enhanced_content)
                     .to_string();
             } else {

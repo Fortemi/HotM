@@ -536,7 +536,9 @@ fn clean_enhanced_content(content: &str) -> String {
 
     for marker in &markers {
         if cleaned.starts_with(marker) {
-            cleaned = cleaned.split_once('\n').map(|x| x.1)
+            cleaned = cleaned
+                .split_once('\n')
+                .map(|x| x.1)
                 .unwrap_or(&cleaned)
                 .to_string();
         }
