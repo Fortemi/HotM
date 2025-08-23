@@ -1,0 +1,69 @@
+import '@testing-library/jest-dom';
+import { expect, afterEach } from 'vitest';
+import { cleanup } from '@testing-library/react';
+
+// Cleanup after each test
+afterEach(() => {
+  cleanup();
+});
+
+// Mock WebSocket for tests
+global.WebSocket = class MockWebSocket {
+  url: string;
+  readyState: number = 0;
+  onopen: ((event: Event) => void) | null = null;
+  onclose: ((event: CloseEvent) => void) | null = null;
+  onerror: ((event: Event) => void) | null = null;
+  onmessage: ((event: MessageEvent) => void) | null = null;
+
+  constructor(url: string) {
+    this.url = url;
+    this.readyState = 1; // OPEN
+    setTimeout(() => {
+      if (this.onopen) {
+        this.onopen(new Event('open'));
+      }
+    }, 0);
+  }
+
+  send(data: string | ArrayBuffer | Blob) {
+    // Mock send
+  }
+
+  close() {
+    this.readyState = 3; // CLOSED
+    if (this.onclose) {
+      this.onclose(new CloseEvent('close'));
+    }
+  }
+} as any;
+
+// Mock fetch for API calls
+global.fetch = async (url: RequestInfo | URL, init?: RequestInit) => {
+  const urlString = url.toString();
+  
+  // Mock health endpoint
+  if (urlString.includes('/health')) {
+    return new Response(JSON.stringify({ ok: true, db: true, vector: true, ollama: true }), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' }
+    });
+  }
+  
+  // Mock notes list
+  if (urlString.includes('/notes') && init?.method !== 'POST') {
+    return new Response(JSON.stringify({
+      notes: [],
+      total: 0
+    }), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' }
+    });
+  }
+  
+  // Default response
+  return new Response(JSON.stringify({}), {
+    status: 200,
+    headers: { 'Content-Type': 'application/json' }
+  });
+};
