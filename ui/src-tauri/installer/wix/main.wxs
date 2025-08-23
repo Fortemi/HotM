@@ -18,7 +18,7 @@
         </Control>
         
         <Control Id="Description" Type="Text" X="25" Y="23" Width="280" Height="30" Transparent="yes" NoPrefix="yes">
-          <Text>Choose which components of Hall of the Mind to install.</Text>
+          <Text>Choose components for your security-focused deployment scenario.</Text>
         </Control>
         
         <Control Id="BannerBitmap" Type="Bitmap" X="0" Y="0" Width="370" Height="44" TabSkip="no" Text="WixUI_Bmp_Banner" />
@@ -26,7 +26,7 @@
         
         <Control Id="ClientCheckBox" Type="CheckBox" X="25" Y="70" Width="300" Height="17" 
                  Property="INSTALL_CLIENT" CheckBoxValue="1">
-          <Text>Desktop Client (Tauri UI) - Recommended</Text>
+          <Text>Desktop Client - Workstation Interface</Text>
         </Control>
         
         <Control Id="ClientInfo" Type="Text" X="35" Y="85" Width="300" Height="25" Transparent="yes" NoPrefix="yes">
@@ -35,15 +35,15 @@
         
         <Control Id="ServerCheckBox" Type="CheckBox" X="25" Y="115" Width="300" Height="17" 
                  Property="INSTALL_SERVER" CheckBoxValue="1">
-          <Text>API Server (Rust backend) - Advanced</Text>
+          <Text>API Server - Network Hub with GPU/Inference Power</Text>
         </Control>
         
         <Control Id="ServerInfo" Type="Text" X="35" Y="130" Width="300" Height="40" Transparent="yes" NoPrefix="yes">
-          <Text>Local HTTP API server (port 53211) for integrations, automation, and headless usage. Requires PostgreSQL database setup.</Text>
+          <Text>Centralized server (port 53211) for home/office networks. Includes NLP processing, database, and multi-client support.</Text>
         </Control>
         
         <Control Id="RecommendedText" Type="Text" X="25" Y="175" Width="300" Height="25" Transparent="yes" NoPrefix="yes">
-          <Text>💡 Most users should install the Desktop Client. The Server is for advanced integrations.</Text>
+          <Text>🏠 Home/Office: Install Server on central system, Client on workstations</Text>
         </Control>
         
         <Control Id="BottomLine" Type="Line" X="0" Y="234" Width="370" Height="0" />
@@ -175,10 +175,10 @@
       </Directory>
     </Directory>
     
-    <!-- Features for different installation options -->
+    <!-- Features for different deployment scenarios -->
     <Feature Id="ClientFeature" 
              Title="Desktop Client" 
-             Description="Hall of the Mind desktop application with tray integration"
+             Description="Workstation interface for individual users and developers"
              Level="1"
              Display="expand"
              ConfigurableDirectory="INSTALLDIR">
@@ -188,7 +188,7 @@
     
     <Feature Id="ServerFeature" 
              Title="API Server" 
-             Description="Local HTTP API server for integrations and automation"
+             Description="Centralized network hub for home/office deployments with inference power"
              Level="2"
              Display="expand">
       <Condition Level="1">INSTALL_SERVER = "1"</Condition>

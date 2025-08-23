@@ -75,26 +75,27 @@ git push origin v0.2.0-beta                # Trigger release build
 
 ### MSI Installer Components
 
-The Windows MSI installer offers flexible component selection:
+The Windows MSI installer offers flexible deployment options for security-minded users and developers:
 
-**Desktop Client (Recommended)**:
+**Desktop Client**:
 - Tauri-based rich desktop interface
 - Global hotkey support (Ctrl+Alt+H)
-- System tray integration
-- Automatic startup option
-- Perfect for end users
+- System tray integration with auto-startup
+- Connects to local or remote HotM server
+- For individual workstations and development
 
-**API Server (Advanced)**:
+**API Server (Centralized Deployment)**:
 - Rust HTTP API server (port 53211)
 - Windows Service installation
-- Requires PostgreSQL database setup  
-- For integrations, automation, headless usage
-- Advanced users and developers only
+- PostgreSQL database with pgvector
+- Ollama integration for NLP processing
+- For centralized home/office deployments
 
-**Installation Options**:
-- Client Only (default) - Most users
-- Server Only - Headless/integration deployments
-- Both Components - Full development setup
+**Deployment Scenarios**:
+- **Local Development** - Both components on developer machine
+- **Home Network Hub** - Server on central system with GPU/inference power
+- **Small Office Setup** - Dedicated server, multiple client workstations
+- **Hybrid Mode** - Mix of local and networked deployments
 
 ### Release Channels
 
