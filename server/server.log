@@ -1,0 +1,1 @@
+/bin/bash: line 1: RUST_LOG=info,hotm_server=debug,tracing=debug: command not found

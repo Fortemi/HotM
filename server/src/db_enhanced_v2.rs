@@ -1,4 +1,5 @@
 use crate::db::AppState;
+use crate::job_queue::{self, JobType};
 use uuid::Uuid;
 use chrono::Utc;
 use serde_json::json;
@@ -218,7 +219,7 @@ async fn store_enhanced_note(
 }
 
 /// Create contextual links to related notes (both semantic and keyword-based)
-async fn create_contextual_links(
+pub async fn create_contextual_links(
     state: &AppState,
     note_id: Uuid,
     content: &str,
@@ -347,7 +348,7 @@ async fn create_contextual_links(
 }
 
 /// Update the AI-enhanced content with context from linked notes
-async fn update_with_linked_context(state: &AppState, note_id: Uuid) -> anyhow::Result<()> {
+pub async fn update_with_linked_context(state: &AppState, note_id: Uuid) -> anyhow::Result<()> {
     tracing::info!("Updating note {} with linked context", note_id);
     
     // Get the best semantic links
@@ -405,7 +406,7 @@ Keep it concise (2-3 sentences). Output the full note with the new section added
 }
 
 /// Generate embeddings for the note content
-async fn embed_note_content(state: &AppState, note_id: Uuid, content: &str) -> anyhow::Result<()> {
+pub async fn embed_note_content(state: &AppState, note_id: Uuid, content: &str) -> anyhow::Result<()> {
     // Delete previous embeddings
     sqlx::query!("DELETE FROM embedding WHERE note_id = $1", note_id)
         .execute(&state.pool).await?;

@@ -1,7 +1,8 @@
 use axum::{Router};
 use axum::routing::{get, post, put, delete};
-use hotm_server::{db::AppState, routes};
+use hotm_server::{db::AppState, routes, job_queue};
 use std::net::SocketAddr;
+use std::sync::Arc;
 use tower_http::cors::{CorsLayer, Any};
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
@@ -20,6 +21,15 @@ async fn main() -> anyhow::Result<()> {
         .expect("DATABASE_URL must be set (e.g., postgres://user:pass@host:5432/db)");
 
     let state = AppState::connect(&database_url).await?;
+    let state_arc = Arc::new(state.clone());
+    
+    // Start the job queue processor
+    let job_manager = job_queue::JobQueueManager::new(state.pool.clone(), state_arc.clone());
+    tokio::spawn(async move {
+        if let Err(e) = job_manager.start_processing().await {
+            tracing::error!("Job queue processor error: {}", e);
+        }
+    });
 
     // Configure CORS to allow requests from Tauri app
     let cors = CorsLayer::new()
@@ -53,6 +63,11 @@ async fn main() -> anyhow::Result<()> {
         .route("/api/v1/notes/:id/links", post(routes::links::post_link))
         .route("/api/v1/notes/:id/provenance", get(routes::provenance::get_provenance))
         .route("/api/v1/debug/revisions", get(routes::debug::debug_revisions))
+        .route("/api/v1/jobs", post(routes::jobs::queue_job))
+        .route("/api/v1/jobs/queue", get(routes::jobs::get_queue_status))
+        .route("/api/v1/jobs/:id", get(routes::jobs::get_job_status))
+        .route("/api/v1/jobs/:id/cancel", post(routes::jobs::cancel_job))
+        .route("/api/v1/notes/:id/jobs", get(routes::jobs::get_note_jobs))
         .with_state(state)
         .layer(cors);
 

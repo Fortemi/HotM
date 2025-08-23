@@ -3,6 +3,42 @@
 // Use localhost which works from both WSL and Windows
 const API_BASE = 'http://localhost:53211/api/v1';
 
+// Job Queue Types
+export type JobStatus = 'pending' | 'running' | 'completed' | 'failed' | 'cancelled';
+export type JobType = 'ai_revision' | 'embedding' | 'linking' | 'context_update';
+
+export interface Job {
+  id: string;
+  note_id?: string;
+  job_type: JobType;
+  status: JobStatus;
+  progress_percent?: number;
+  error_message?: string;
+  estimated_duration_ms?: number;
+  actual_duration_ms?: number;
+  created_at: string;
+  started_at?: string;
+  completed_at?: string;
+}
+
+export interface JobQueueStatus {
+  id: string;
+  note_id?: string;
+  note_title?: string;
+  job_type: JobType;
+  status: JobStatus;
+  progress_percent?: number;
+  estimated_duration_ms?: number;
+  remaining_ms?: number;
+  queue_wait_ms?: number;
+}
+
+export interface QueueJobResponse {
+  job_id: string;
+  estimated_duration_ms: number;
+  queue_position: number;
+}
+
 // Backend API types
 interface NoteMeta {
   id: string;
@@ -356,6 +392,70 @@ class ApiClient {
   // Get all unique labels in the system
   async getAllLabels(): Promise<string[]> {
     return this.request<string[]>('/labels');
+  }
+
+  // Job Queue Operations
+  
+  // Queue a new job
+  async queueJob(noteId: string | undefined, jobType: JobType, priority?: number): Promise<QueueJobResponse> {
+    return this.request<QueueJobResponse>('/jobs', {
+      method: 'POST',
+      body: JSON.stringify({ 
+        note_id: noteId, 
+        job_type: jobType,
+        priority: priority || 5 
+      }),
+    });
+  }
+
+  // Get job queue status
+  async getJobQueueStatus(): Promise<JobQueueStatus[]> {
+    return this.request<JobQueueStatus[]>('/jobs/queue');
+  }
+
+  // Get specific job status
+  async getJobStatus(jobId: string): Promise<Job> {
+    return this.request<Job>(`/jobs/${jobId}`);
+  }
+
+  // Cancel a job
+  async cancelJob(jobId: string): Promise<void> {
+    await this.request(`/jobs/${jobId}/cancel`, {
+      method: 'POST',
+    });
+  }
+
+  // Get jobs for a specific note
+  async getNoteJobs(noteId: string): Promise<Job[]> {
+    return this.request<Job[]>(`/notes/${noteId}/jobs`);
+  }
+
+  // Poll job status with callback
+  async pollJobStatus(
+    jobId: string, 
+    onProgress: (job: Job) => void,
+    intervalMs: number = 1000
+  ): Promise<Job> {
+    return new Promise((resolve, reject) => {
+      const interval = setInterval(async () => {
+        try {
+          const job = await this.getJobStatus(jobId);
+          onProgress(job);
+          
+          if (job.status === 'completed' || job.status === 'failed' || job.status === 'cancelled') {
+            clearInterval(interval);
+            if (job.status === 'completed') {
+              resolve(job);
+            } else {
+              reject(new Error(job.error_message || `Job ${job.status}`));
+            }
+          }
+        } catch (error) {
+          clearInterval(interval);
+          reject(error);
+        }
+      }, intervalMs);
+    });
   }
 }
 
