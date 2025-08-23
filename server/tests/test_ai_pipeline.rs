@@ -25,9 +25,29 @@ mod tests {
 
         println!("Created test note: {}", note_id);
 
-        // Wait for AI revision to be generated (async process)
-        println!("Waiting for AI revision generation...");
-        sleep(Duration::from_secs(10)).await;
+        // Check if we should use mock AI
+        let use_mock_ai = std::env::var("USE_MOCK_AI").unwrap_or_default() == "true";
+        
+        if use_mock_ai {
+            // Mock AI revision - simulate what AI would do
+            let mock_revised_content = "# Test Note\n\nThis is a **test note** for AI revision testing. It should be enhanced with *markdown formatting*.\n\n- Enhanced with headers\n- Added bold and italic text\n- Improved structure";
+            
+            // Directly update the database with mock revision (simulating AI pipeline)
+            sqlx::query!(
+                "UPDATE note SET revised = $1, revised_metadata = '{}', revised_at_utc = NOW() WHERE id = $2",
+                mock_revised_content,
+                note_id
+            )
+            .execute(&state.pool)
+            .await
+            .expect("Failed to insert mock revision");
+            
+            println!("Applied mock AI revision for testing");
+        } else {
+            // Wait for real AI revision to be generated (async process)
+            println!("Waiting for AI revision generation...");
+            sleep(Duration::from_secs(10)).await;
+        }
 
         // Fetch the note with revision
         let note_full = fetch_note(&state, note_id)
@@ -80,8 +100,29 @@ mod tests {
             .await
             .expect("Failed to insert test note");
 
-        // Wait for embeddings to be generated
-        sleep(Duration::from_secs(5)).await;
+        // Check if we should use mock AI
+        let use_mock_ai = std::env::var("USE_MOCK_AI").unwrap_or_default() == "true";
+        
+        if use_mock_ai {
+            // Mock embeddings - insert fake vector data
+            let mock_vector = vec![0.1; 384]; // Mock 384-dimensional vector
+            let mock_vector_str = format!("[{}]", mock_vector.iter().map(|v| v.to_string()).collect::<Vec<_>>().join(","));
+            
+            sqlx::query!(
+                "INSERT INTO embedding (note_id, chunk_text, vector, chunk_index, created_at_utc) VALUES ($1, $2, $3::vector, 0, NOW())",
+                note_id,
+                test_content,
+                mock_vector_str
+            )
+            .execute(&state.pool)
+            .await
+            .expect("Failed to insert mock embeddings");
+            
+            println!("Applied mock embeddings for testing");
+        } else {
+            // Wait for real embeddings to be generated
+            sleep(Duration::from_secs(5)).await;
+        }
 
         // Query for embeddings
         let embeddings = sqlx::query!(
