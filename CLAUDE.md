@@ -68,10 +68,33 @@ git push origin v0.2.0-beta                # Trigger release build
 ```
 
 4. **Automated Release**: GitHub Actions will:
-   - Build Windows MSI installer
+   - Build Windows MSI installer with component selection
    - Create GitHub release with channel info
    - Mark as prerelease for non-stable channels
    - Upload MSI as release asset
+
+### MSI Installer Components
+
+The Windows MSI installer offers flexible component selection:
+
+**Desktop Client (Recommended)**:
+- Tauri-based rich desktop interface
+- Global hotkey support (Ctrl+Alt+H)
+- System tray integration
+- Automatic startup option
+- Perfect for end users
+
+**API Server (Advanced)**:
+- Rust HTTP API server (port 53211)
+- Windows Service installation
+- Requires PostgreSQL database setup  
+- For integrations, automation, headless usage
+- Advanced users and developers only
+
+**Installation Options**:
+- Client Only (default) - Most users
+- Server Only - Headless/integration deployments
+- Both Components - Full development setup
 
 ### Release Channels
 
