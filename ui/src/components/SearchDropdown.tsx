@@ -114,12 +114,15 @@ export function SearchDropdown({
     <div 
       ref={dropdownRef}
       className="absolute top-full left-0 right-0 mt-2 z-50"
-      style={{ maxWidth: '600px' }}
+      style={{ 
+        maxWidth: '600px',
+        maxHeight: 'min(400px, 50vh)'
+      }}
     >
-      <Card className="shadow-lg border-2">
-        <CardContent className="p-0">
+      <Card className="shadow-lg border-2 max-h-full flex flex-col">
+        <CardContent className="p-0 flex flex-col h-full">
           {/* Header */}
-          <div className="flex items-center justify-between px-4 py-2 border-b bg-muted/50">
+          <div className="flex items-center justify-between px-4 py-2 border-b bg-muted/50 flex-shrink-0">
             <div className="flex items-center gap-2">
               {getModeIcon()}
               <span className="text-sm font-medium">{getModeLabel()}</span>
@@ -136,7 +139,8 @@ export function SearchDropdown({
           </div>
           
           {/* Results */}
-          <ScrollArea className="max-h-[300px]">
+          <div className="overflow-hidden flex-1">
+            <ScrollArea className="h-full max-h-[320px]">
             {isSearching ? (
               <div className="flex items-center justify-center py-8">
                 <Loader2 className="h-6 w-6 animate-spin text-primary" />
@@ -259,7 +263,8 @@ export function SearchDropdown({
                 })}
               </div>
             )}
-          </ScrollArea>
+            </ScrollArea>
+          </div>
         </CardContent>
       </Card>
     </div>
