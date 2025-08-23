@@ -101,7 +101,7 @@ export function HallOfMind() {
   const [isSearching, setIsSearching] = useState(false);
   const [showSearchResults, setShowSearchResults] = useState(false);
   const [groupBy, setGroupBy] = useState<"none" | "category" | "topic">("none");
-  const [sortBy, setSortBy] = useState<"created" | "title">("created");
+  const [sortBy, setSortBy] = useState<"created" | "updated" | "title">("created");
   const [sortOrder, setSortOrder] = useState<"desc" | "asc">("desc");
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set(["Uncategorized"]));
   const [activeTab, setActiveTab] = useState<string>("preview");
@@ -828,6 +828,10 @@ export function HallOfMind() {
       const dateA = new Date(a.createdAt).getTime();
       const dateB = new Date(b.createdAt).getTime();
       return sortOrder === "desc" ? dateB - dateA : dateA - dateB;
+    } else if (sortBy === "updated") {
+      const dateA = new Date(a.updatedAt).getTime();
+      const dateB = new Date(b.updatedAt).getTime();
+      return sortOrder === "desc" ? dateB - dateA : dateA - dateB;
     } else {
       // Sort by title
       const titleA = a.title.toLowerCase();
@@ -1035,18 +1039,6 @@ export function HallOfMind() {
                       <span>Starred</span>
                       <Badge variant="secondary" className="ml-auto">
                         {notes.filter(n => n.starred).length}
-                      </Badge>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                  <SidebarMenuItem>
-                    <SidebarMenuButton
-                      onClick={() => setQuickAccessFilter(quickAccessFilter === "recent" ? "all" : "recent")}
-                      className={quickAccessFilter === "recent" ? "bg-primary/10" : ""}
-                    >
-                      <Clock className="h-4 w-4" />
-                      <span>Recent</span>
-                      <Badge variant="secondary" className="ml-auto">
-                        {Math.min(notes.length, 10)}
                       </Badge>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
@@ -1267,6 +1259,8 @@ export function HallOfMind() {
                               <Button variant="ghost" size="icon" className="h-6 w-6">
                                 {sortBy === "created" ? (
                                   <Calendar className="h-3 w-3" />
+                                ) : sortBy === "updated" ? (
+                                  <Clock className="h-3 w-3" />
                                 ) : (
                                   <Type className="h-3 w-3" />
                                 )}
@@ -1274,7 +1268,7 @@ export function HallOfMind() {
                             </DropdownMenuTrigger>
                           </TooltipTrigger>
                           <TooltipContent side="bottom">
-                            <p>Sort: {sortBy === "created" ? "Date" : "Title"} {sortOrder === "asc" ? "↑" : "↓"}</p>
+                            <p>Sort: {sortBy === "created" ? "Created" : sortBy === "updated" ? "Updated" : "Title"} {sortOrder === "asc" ? "↑" : "↓"}</p>
                           </TooltipContent>
                         </Tooltip>
                         <DropdownMenuContent align="end">
@@ -1285,6 +1279,14 @@ export function HallOfMind() {
                           <DropdownMenuItem onClick={() => { setSortBy("created"); setSortOrder("asc"); }}>
                             <Calendar className="h-3 w-3 mr-2" />
                             Oldest First
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => { setSortBy("updated"); setSortOrder("desc"); }}>
+                            <Clock className="h-3 w-3 mr-2" />
+                            Recently Updated
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => { setSortBy("updated"); setSortOrder("asc"); }}>
+                            <Clock className="h-3 w-3 mr-2" />
+                            Least Recently Updated
                           </DropdownMenuItem>
                           <DropdownMenuItem onClick={() => { setSortBy("title"); setSortOrder("asc"); }}>
                             <Type className="h-3 w-3 mr-2" />
@@ -1786,6 +1788,7 @@ export function HallOfMind() {
                           links={fullNote?.links || []}
                           starred={fullNote?.note?.starred}
                           archived={fullNote?.note?.archived}
+                          aiMetadata={fullNote?.revised?.ai_metadata}
                           onTagClick={(tag) => {
                             // Search for the tag
                             setSearchQuery(`#${tag}`);
