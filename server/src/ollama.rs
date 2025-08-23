@@ -20,9 +20,17 @@ pub async fn embed_texts(texts: Vec<String>, model: &str) -> anyhow::Result<Vec<
     
     // Ollama processes one text at a time for embeddings
     for text in texts {
+        // Skip empty texts or provide a minimal text
+        let prompt_text = if text.trim().is_empty() {
+            tracing::warn!("Empty text provided for embedding, using placeholder");
+            "[empty]".to_string()
+        } else {
+            text.clone()
+        };
+        
         let req = EmbeddingRequest { 
             model: model.to_string(), 
-            prompt: text.clone()
+            prompt: prompt_text
         };
         
         tracing::debug!("Requesting embedding for text (length: {})", text.len());
@@ -45,6 +53,13 @@ pub async fn embed_texts(texts: Vec<String>, model: &str) -> anyhow::Result<Vec<
         }
         
         let body: EmbeddingResponse = resp.json().await?;
+        
+        // Validate embedding has data
+        if body.embedding.is_empty() {
+            tracing::error!("Ollama returned empty embedding for text");
+            anyhow::bail!("Ollama returned empty embedding");
+        }
+        
         embeddings.push(body.embedding);
     }
     

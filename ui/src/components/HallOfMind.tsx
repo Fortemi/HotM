@@ -71,6 +71,7 @@ import { NoteContextMenu, useGlobalContextMenuPrevention } from "./NoteContextMe
 import { DeleteNoteDialog } from "./DeleteNoteDialog";
 import { SearchDropdown } from "./SearchDropdown";
 import JobQueueMonitor from "./JobQueueMonitor";
+import { JobQueueIndicator } from "./JobQueueIndicator";
 
 export interface Note {
   id: string;
@@ -1587,6 +1588,7 @@ export function HallOfMind() {
                     {isLoading ? 'Saving...' : 'Save'}
                   </Button>
                 )}
+                <JobQueueIndicator />
               </div>
             </div>
           </header>
