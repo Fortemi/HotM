@@ -255,6 +255,11 @@ export function NoteMetadata({
                       <div className="flex items-center justify-between mb-1">
                         <span className="text-xs font-medium capitalize">
                           {link.kind === 'semantic' ? '🧠 Semantic' : '🔑 Keyword'} Link
+                          {link.kind === 'keyword' && link.metadata?.keywords && (
+                            <span className="ml-1 text-muted-foreground">
+                              ({link.metadata.keywords.join(', ')})
+                            </span>
+                          )}
                         </span>
                         <Badge variant={link.score > 0.8 ? "default" : "outline"} className="text-xs">
                           {(link.score * 100).toFixed(0)}% match

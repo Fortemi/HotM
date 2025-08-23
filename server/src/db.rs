@@ -249,6 +249,7 @@ pub async fn fetch_note(state: &AppState, note_id: Uuid) -> anyhow::Result<NoteF
             l.kind, 
             l.score, 
             l.created_at_utc,
+            l.metadata,
             COALESCE(
                 substring(nrc.content from 1 for 100),
                 'Linked note'
@@ -269,6 +270,7 @@ pub async fn fetch_note(state: &AppState, note_id: Uuid) -> anyhow::Result<NoteF
         score: r.score as f32, // Convert from f64 to f32
         created_at_utc: r.created_at_utc,
         snippet: r.snippet,
+        metadata: r.metadata,
     }).collect();
 
     Ok(NoteFull {

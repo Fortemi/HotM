@@ -111,15 +111,15 @@ export function RelatedNotes({ noteId, onSelectNote }: RelatedNotesProps) {
   }
 
   return (
-    <Card className="h-full">
-      <CardHeader className="pb-3">
+    <Card className="h-full flex flex-col">
+      <CardHeader className="pb-3 flex-shrink-0">
         <CardTitle className="flex items-center gap-2 text-sm">
           <Link2 className="h-4 w-4" />
           Related Notes
         </CardTitle>
       </CardHeader>
-      <CardContent className="pt-0">
-        <div className="space-y-1">
+      <CardContent className="pt-0 flex-1 flex flex-col min-h-0">
+        <div className="space-y-1 flex-shrink-0">
           {(relatedData.related || []).slice(0, 5).map((hit: SearchHit, index: number) => {
             // Generate a unique key based on note_id and index to avoid duplicates
             const uniqueKey = `${hit?.note_id || 'unknown'}-${index}`;
@@ -151,10 +151,10 @@ export function RelatedNotes({ noteId, onSelectNote }: RelatedNotesProps) {
           })}
         </div>
         {relatedData.context_summary && (
-          <div className="mt-3 pt-3 border-t">
-            <div className="flex items-start gap-1.5">
+          <div className="mt-3 pt-3 border-t flex-1 min-h-0 flex flex-col">
+            <div className="flex items-start gap-1.5 h-full">
               <Sparkles className="h-3 w-3 mt-0.5 text-primary flex-shrink-0" />
-              <ScrollArea className="h-24 flex-1">
+              <ScrollArea className="flex-1 h-full">
                 <p className="text-xs text-muted-foreground leading-relaxed pr-2">
                   {relatedData.context_summary}
                 </p>

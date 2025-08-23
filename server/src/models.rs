@@ -46,6 +46,7 @@ pub struct Link {
     pub score: f32,
     pub created_at_utc: DateTime<Utc>,
     pub snippet: Option<String>,
+    pub metadata: Option<serde_json::Value>,
 }
 
 #[derive(Serialize, Deserialize, Clone)]

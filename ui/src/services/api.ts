@@ -70,6 +70,7 @@ interface Link {
   kind: string;
   score: number;
   created_at_utc: string;
+  metadata?: any;
 }
 
 export interface NoteFull {

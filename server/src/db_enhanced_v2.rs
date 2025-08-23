@@ -327,31 +327,36 @@ pub async fn create_contextual_links(
         ).fetch_all(&state.pool).await?;
         
         for result in results {
+            // Create metadata with the keyword that created this link
+            let link_metadata = serde_json::json!({
+                "keywords": [term.clone()]
+            });
+            
             // Forward link (new -> old)
             let link_id_forward = Uuid::new_v4();
             sqlx::query!(
-                "INSERT INTO link (id, from_note_id, to_note_id, to_url, kind, score, created_at_utc)
-                 SELECT $1, $2, $3, NULL, 'keyword', 0.5, $4
+                "INSERT INTO link (id, from_note_id, to_note_id, to_url, kind, score, created_at_utc, metadata)
+                 SELECT $1, $2, $3, NULL, 'keyword', 0.5, $4, $5
                  WHERE NOT EXISTS (
                      SELECT 1 FROM link 
                      WHERE from_note_id = $2 AND to_note_id = $3 AND kind = 'keyword'
                  )",
-                link_id_forward, note_id, result.id, Utc::now()
+                link_id_forward, note_id, result.id, Utc::now(), link_metadata
             ).execute(&state.pool).await?;
             
             // Backward link (old -> new)
             let link_id_backward = Uuid::new_v4();
             sqlx::query!(
-                "INSERT INTO link (id, from_note_id, to_note_id, to_url, kind, score, created_at_utc)
-                 SELECT $1, $2, $3, NULL, 'keyword', 0.5, $4
+                "INSERT INTO link (id, from_note_id, to_note_id, to_url, kind, score, created_at_utc, metadata)
+                 SELECT $1, $2, $3, NULL, 'keyword', 0.5, $4, $5
                  WHERE NOT EXISTS (
                      SELECT 1 FROM link 
                      WHERE from_note_id = $2 AND to_note_id = $3 AND kind = 'keyword'
                  )",
-                link_id_backward, result.id, note_id, Utc::now()
+                link_id_backward, result.id, note_id, Utc::now(), link_metadata
             ).execute(&state.pool).await?;
             
-            tracing::info!("Created reciprocal keyword links between {} and {}", note_id, result.id);
+            tracing::info!("Created reciprocal keyword links between {} and {} for keyword: {}", note_id, result.id, term);
         }
     }
     
