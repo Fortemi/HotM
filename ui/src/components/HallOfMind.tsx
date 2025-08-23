@@ -218,15 +218,17 @@ export function HallOfMind() {
     }
   };
 
-  // Auto-refresh every 10 seconds if there are processing notes
+  // Listen for WebSocket note updates
   useEffect(() => {
-    if (processingNotes.size === 0) return;
-    
-    const interval = setInterval(() => {
-      console.log("Auto-refreshing processing notes...");
-      processingNotes.forEach(async (noteId) => {
+    const handleNoteUpdate = async (event: CustomEvent) => {
+      const { note_id, title, tags, has_ai_content, has_links } = event.detail;
+      
+      console.log("Received note update:", { note_id, title, tags, has_ai_content, has_links });
+      
+      // If this note is being processed, fetch the full updated note
+      if (processingNotes.has(note_id)) {
         try {
-          const updatedNote = await api.getNote(noteId);
+          const updatedNote = await api.getNote(note_id);
           if (updatedNote.revised) {
             const simpleNote = {
               id: updatedNote.note.id,
@@ -245,26 +247,36 @@ export function HallOfMind() {
             if (selectedNote?.id === simpleNote.id) {
               setSelectedNote(simpleNote);
               setRevisedContent(simpleNote.revised_content || simpleNote.content);
-              // Don't reset hasUnsavedChanges here as this is auto-refresh during processing
             }
             
             // Remove from processing set
             setProcessingNotes(prev => {
               const newSet = new Set(prev);
-              newSet.delete(noteId);
+              newSet.delete(note_id);
               return newSet;
             });
             
-            console.log("AI revision auto-loaded for note:", noteId);
+            console.log("Note updated via WebSocket:", note_id);
           }
         } catch (error) {
-          console.error("Failed to auto-refresh note:", error);
+          console.error("Failed to fetch updated note:", error);
         }
-      });
-    }, 5000); // Check every 5 seconds
+      } else {
+        // Just update the note metadata (tags, etc.) without full fetch
+        setNotes(prev => prev.map(note => 
+          note.id === note_id
+            ? { ...note, tags: tags || note.tags }
+            : note
+        ));
+      }
+    };
     
-    return () => clearInterval(interval);
-  }, [processingNotes, selectedNote]);
+    window.addEventListener('noteUpdated', handleNoteUpdate as EventListener);
+    
+    return () => {
+      window.removeEventListener('noteUpdated', handleNoteUpdate as EventListener);
+    };
+  }, [processingNotes, selectedNote, api]);
 
   useEffect(() => {
     // Set initial dark mode
@@ -376,38 +388,11 @@ export function HallOfMind() {
         archived: fullNote.note.archived || false
       };
       
-      // Mark note as processing
+      // Mark note as processing - WebSocket events will clear this when jobs complete
       setProcessingNotes(prev => new Set(prev).add(response.note_id));
       
-      // Set a timer to reload after AI processing
-      setTimeout(async () => {
-        try {
-          const updatedNote = await api.getNote(response.note_id);
-          if (updatedNote.revised) {
-            // Update the note with AI revision
-            const updatedSimpleNote = {
-              ...simpleNote,
-              revised_content: updatedNote.revised.content,
-              starred: updatedNote.note.starred || false,
-              archived: updatedNote.note.archived || false
-            };
-            setNotes(prev => prev.map(n => n.id === updatedSimpleNote.id ? updatedSimpleNote : n));
-            if (selectedNote?.id === updatedSimpleNote.id) {
-              setSelectedNote(updatedSimpleNote);
-            }
-            console.log("AI revision loaded for note:", response.note_id);
-          }
-        } catch (error) {
-          console.error("Failed to load AI revision:", error);
-        } finally {
-          // Remove from processing set
-          setProcessingNotes(prev => {
-            const newSet = new Set(prev);
-            newSet.delete(response.note_id);
-            return newSet;
-          });
-        }
-      }, 5000); // Check for AI revision after 5 seconds
+      console.log("Note created and marked for AI processing:", response.note_id);
+      // The WebSocket noteUpdated event will handle updating the UI when jobs complete
       
       setNotes([simpleNote, ...notes]);
       setSelectedNote(simpleNote);
@@ -435,41 +420,24 @@ export function HallOfMind() {
     
     try {
       setIsLoading(true);
-      // Mark as processing
+      // Mark as processing - WebSocket events will clear this when jobs complete
       setProcessingNotes(prev => new Set(prev).add(selectedNote.id));
       
       // Trigger AI regeneration using the dedicated endpoint
       await api.regenerateAI(selectedNote.id);
       
-      // Wait and fetch the new AI revision
-      setTimeout(async () => {
-        try {
-          const updatedNote = await api.getNote(selectedNote.id);
-          if (updatedNote.revised) {
-            setRevisedContent(updatedNote.revised.content);
-            const updatedSimpleNote = {
-              ...selectedNote,
-              revised_content: updatedNote.revised.content,
-              starred: updatedNote.note.starred || false,
-              archived: updatedNote.note.archived || false
-            };
-            setNotes(prev => prev.map(n => n.id === updatedSimpleNote.id ? updatedSimpleNote : n));
-            setSelectedNote(updatedSimpleNote);
-            console.log("AI revision regenerated for note:", selectedNote.id);
-          }
-        } catch (error) {
-          console.error("Failed to load regenerated AI revision:", error);
-        } finally {
-          setProcessingNotes(prev => {
-            const newSet = new Set(prev);
-            newSet.delete(selectedNote.id);
-            return newSet;
-          });
-        }
-      }, 5000);
+      console.log("AI regeneration triggered for note:", selectedNote.id);
+      // The WebSocket noteUpdated event will handle updating the UI when jobs complete
     } catch (error) {
       console.error("Failed to regenerate AI enhancement:", error);
       alert("Failed to regenerate AI enhancement");
+      
+      // Remove from processing on error
+      setProcessingNotes(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(selectedNote.id);
+        return newSet;
+      });
     } finally {
       setIsLoading(false);
     }
@@ -1718,7 +1686,7 @@ export function HallOfMind() {
                             </Button>
                             <Button
                               onClick={regenerateAI}
-                              disabled={isLoading || processingNotes.has(selectedNote.id)}
+                              disabled={isLoading}
                               size="sm"
                               variant="outline"
                             >

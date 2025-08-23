@@ -13,9 +13,20 @@ interface QueueStatus {
 
 interface WsMessage {
   type: string;
+  job_id?: string;
+  job_type?: string;
+  note_id?: string;
+  progress_percent?: number;
+  message?: string;
+  error?: string;
+  duration_ms?: number;
   total_jobs?: number;
   running?: number;
   pending?: number;
+  title?: string;
+  tags?: string[];
+  has_ai_content?: boolean;
+  has_links?: boolean;
 }
 
 export const JobQueueIndicator: React.FC = () => {
@@ -42,12 +53,60 @@ export const JobQueueIndicator: React.FC = () => {
       ws.current.onmessage = (event) => {
         try {
           const message: WsMessage = JSON.parse(event.data);
-          if (message.type === 'QueueStatus') {
-            setQueueStatus({
-              total_jobs: message.total_jobs || 0,
-              running: message.running || 0,
-              pending: message.pending || 0,
-            });
+          
+          switch (message.type) {
+            case 'QueueStatus':
+              setQueueStatus({
+                total_jobs: message.total_jobs || 0,
+                running: message.running || 0,
+                pending: message.pending || 0,
+              });
+              break;
+              
+            case 'JobQueued':
+              // Increment counters when job is queued
+              setQueueStatus(prev => ({
+                ...prev,
+                pending: prev.pending + 1,
+                total_jobs: prev.total_jobs + 1,
+              }));
+              break;
+              
+            case 'JobStarted':
+              // Move from pending to running
+              setQueueStatus(prev => ({
+                ...prev,
+                pending: Math.max(0, prev.pending - 1),
+                running: prev.running + 1,
+              }));
+              break;
+              
+            case 'JobProgress':
+              // Just update progress, don't change counts
+              break;
+              
+            case 'JobCompleted':
+            case 'JobFailed':
+              // Decrease counters
+              setQueueStatus(prev => ({
+                ...prev,
+                running: Math.max(0, prev.running - 1),
+                total_jobs: Math.max(0, prev.total_jobs - 1),
+              }));
+              break;
+              
+            case 'NoteUpdated':
+              // Emit custom event for note updates
+              window.dispatchEvent(new CustomEvent('noteUpdated', {
+                detail: {
+                  note_id: message.note_id,
+                  title: message.title,
+                  tags: message.tags,
+                  has_ai_content: message.has_ai_content,
+                  has_links: message.has_links,
+                }
+              }));
+              break;
           }
         } catch (error) {
           console.error('Failed to parse WebSocket message:', error);
@@ -121,34 +180,36 @@ export const JobQueueIndicator: React.FC = () => {
             )}
           </div>
           
-          {/* Status bar indicators */}
-          <div className="absolute bottom-0 left-0 right-0 h-1 flex gap-px">
-            {/* Connection status */}
-            <div 
-              className={`h-full transition-all ${
-                wsConnected ? 'bg-green-500' : 'bg-red-500'
-              }`} 
-              style={{ width: '2px' }}
-            />
-            
-            {/* Running jobs */}
-            {Array.from({ length: Math.min(queueStatus.running, 3) }).map((_, i) => (
+          {/* Status bar indicators - only show when there's activity */}
+          {(queueStatus.total_jobs > 0 || !wsConnected) && (
+            <div className="absolute bottom-0 left-0 right-0 h-1 flex gap-px">
+              {/* Connection status */}
               <div 
-                key={`running-${i}`}
-                className="h-full bg-blue-500 animate-pulse" 
-                style={{ width: '3px' }}
-              />
-            ))}
-            
-            {/* Pending jobs */}
-            {Array.from({ length: Math.min(queueStatus.pending, 5) }).map((_, i) => (
-              <div 
-                key={`pending-${i}`}
-                className="h-full bg-yellow-500" 
+                className={`h-full transition-all ${
+                  wsConnected ? 'bg-green-500' : 'bg-red-500'
+                }`} 
                 style={{ width: '2px' }}
               />
-            ))}
-          </div>
+              
+              {/* Running jobs */}
+              {Array.from({ length: Math.min(queueStatus.running, 3) }).map((_, i) => (
+                <div 
+                  key={`running-${i}`}
+                  className="h-full bg-blue-500 animate-pulse" 
+                  style={{ width: '3px' }}
+                />
+              ))}
+              
+              {/* Pending jobs */}
+              {Array.from({ length: Math.min(queueStatus.pending, 5) }).map((_, i) => (
+                <div 
+                  key={`pending-${i}`}
+                  className="h-full bg-yellow-500" 
+                  style={{ width: '2px' }}
+                />
+              ))}
+            </div>
+          )}
         </Button>
       </PopoverTrigger>
       

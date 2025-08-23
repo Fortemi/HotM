@@ -8,6 +8,7 @@ import { Activity, Clock, CheckCircle2, XCircle, AlertCircle, Loader2 } from 'lu
 interface Job {
   job_id: string;
   job_type: string;
+  note_id?: string;
   progress_percent: number;
   message?: string;
   started_at: string;
@@ -24,6 +25,7 @@ interface WsMessage {
   type: string;
   job_id?: string;
   job_type?: string;
+  note_id?: string;
   progress_percent?: number;
   message?: string;
   error?: string;
@@ -32,6 +34,11 @@ interface WsMessage {
   running?: number;
   pending?: number;
   active_job?: Job;
+  // Note update fields
+  title?: string;
+  tags?: string[];
+  has_ai_content?: boolean;
+  has_links?: boolean;
 }
 
 const JobQueueMonitor: React.FC = () => {
@@ -40,9 +47,18 @@ const JobQueueMonitor: React.FC = () => {
     running: 0,
     pending: 0,
   });
-  const [recentJobs, setRecentJobs] = useState<Array<{
+  const [runningJobs, setRunningJobs] = useState<Array<{
     job_id: string;
     job_type: string;
+    note_id?: string;
+    progress_percent: number;
+    message?: string;
+    started_at: Date;
+  }>>([]);
+  const [completedJobs, setCompletedJobs] = useState<Array<{
+    job_id: string;
+    job_type: string;
+    note_id?: string;
     status: 'completed' | 'failed';
     duration_ms?: number;
     error?: string;
@@ -103,45 +119,65 @@ const JobQueueMonitor: React.FC = () => {
         break;
 
       case 'JobStarted':
-        // Update active job
+        // Add to running jobs and update active job
         if (message.job_id && message.job_type) {
+          const newJob = {
+            job_id: message.job_id!,
+            job_type: message.job_type!,
+            note_id: message.note_id,
+            progress_percent: 0,
+            message: 'Starting...',
+            started_at: new Date(),
+          };
+          
+          setRunningJobs(prev => [newJob, ...prev.filter(j => j.job_id !== message.job_id)]);
           setQueueStatus(prev => ({
             ...prev,
             active_job: {
-              job_id: message.job_id!,
-              job_type: message.job_type!,
-              progress_percent: 0,
-              message: 'Starting...',
-              started_at: new Date().toISOString(),
+              ...newJob,
+              started_at: newJob.started_at.toISOString(),
             },
           }));
         }
         break;
 
       case 'JobProgress':
-        // Update progress of active job
-        if (message.job_id && queueStatus.active_job?.job_id === message.job_id) {
-          setQueueStatus(prev => ({
-            ...prev,
-            active_job: {
-              ...prev.active_job!,
-              progress_percent: message.progress_percent || 0,
-              message: message.message,
-            },
-          }));
+        // Update progress of running job and active job
+        if (message.job_id) {
+          setRunningJobs(prev => prev.map(job => 
+            job.job_id === message.job_id 
+              ? { ...job, progress_percent: message.progress_percent || 0, message: message.message }
+              : job
+          ));
+          
+          if (queueStatus.active_job?.job_id === message.job_id) {
+            setQueueStatus(prev => ({
+              ...prev,
+              active_job: {
+                ...prev.active_job!,
+                progress_percent: message.progress_percent || 0,
+                message: message.message,
+              },
+            }));
+          }
         }
         break;
 
       case 'JobCompleted':
-        // Add to recent jobs and clear active if it's the same
+        // Move from running to completed jobs
         if (message.job_id) {
-          setRecentJobs(prev => [{
+          const runningJob = runningJobs.find(j => j.job_id === message.job_id);
+          const completedJob = {
             job_id: message.job_id!,
-            job_type: queueStatus.active_job?.job_type || 'Unknown',
-            status: 'completed',
+            job_type: message.job_type || runningJob?.job_type || queueStatus.active_job?.job_type || 'Unknown',
+            note_id: message.note_id,
+            status: 'completed' as const,
             duration_ms: message.duration_ms,
             timestamp: new Date(),
-          }, ...prev].slice(0, 10)); // Keep last 10 jobs
+          };
+          
+          setRunningJobs(prev => prev.filter(j => j.job_id !== message.job_id));
+          setCompletedJobs(prev => [completedJob, ...prev].slice(0, 10));
 
           if (queueStatus.active_job?.job_id === message.job_id) {
             setQueueStatus(prev => ({
@@ -155,15 +191,20 @@ const JobQueueMonitor: React.FC = () => {
         break;
 
       case 'JobFailed':
-        // Add to recent jobs with error
+        // Move from running to completed jobs with error
         if (message.job_id) {
-          setRecentJobs(prev => [{
+          const runningJob = runningJobs.find(j => j.job_id === message.job_id);
+          const failedJob = {
             job_id: message.job_id!,
-            job_type: queueStatus.active_job?.job_type || 'Unknown',
-            status: 'failed',
+            job_type: message.job_type || runningJob?.job_type || queueStatus.active_job?.job_type || 'Unknown',
+            note_id: message.note_id,
+            status: 'failed' as const,
             error: message.error,
             timestamp: new Date(),
-          }, ...prev].slice(0, 10));
+          };
+          
+          setRunningJobs(prev => prev.filter(j => j.job_id !== message.job_id));
+          setCompletedJobs(prev => [failedJob, ...prev].slice(0, 10));
 
           if (queueStatus.active_job?.job_id === message.job_id) {
             setQueueStatus(prev => ({
@@ -172,6 +213,30 @@ const JobQueueMonitor: React.FC = () => {
               running: Math.max(0, prev.running - 1),
             }));
           }
+        }
+        break;
+        
+      case 'NoteUpdated':
+        // Handle note updates - could emit custom event for parent components
+        if (message.note_id) {
+          console.log('Note updated:', {
+            note_id: message.note_id,
+            title: message.title,
+            tags: message.tags,
+            has_ai_content: message.has_ai_content,
+            has_links: message.has_links,
+          });
+          
+          // Emit custom event for note updates
+          window.dispatchEvent(new CustomEvent('noteUpdated', {
+            detail: {
+              note_id: message.note_id,
+              title: message.title,
+              tags: message.tags,
+              has_ai_content: message.has_ai_content,
+              has_links: message.has_links,
+            }
+          }));
         }
         break;
     }
@@ -245,11 +310,11 @@ const JobQueueMonitor: React.FC = () => {
             <div className="text-sm text-muted-foreground">Pending</div>
           </div>
           <div className="text-center">
-            <div className="text-2xl font-bold text-blue-500">{queueStatus.running}</div>
+            <div className="text-2xl font-bold text-blue-500">{runningJobs.length}</div>
             <div className="text-sm text-muted-foreground">Running</div>
           </div>
           <div className="text-center">
-            <div className="text-2xl font-bold text-green-500">{recentJobs.filter(j => j.status === 'completed').length}</div>
+            <div className="text-2xl font-bold text-green-500">{completedJobs.filter(j => j.status === 'completed').length}</div>
             <div className="text-sm text-muted-foreground">Completed</div>
           </div>
         </div>
@@ -278,13 +343,51 @@ const JobQueueMonitor: React.FC = () => {
           </div>
         )}
 
-        {/* Recent Jobs */}
-        {recentJobs.length > 0 && (
+        {/* Running Jobs */}
+        {runningJobs.length > 0 && (
+          <div className="space-y-2">
+            <h3 className="font-medium flex items-center gap-2">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              Running Jobs
+            </h3>
+            <div className="space-y-2">
+              {runningJobs.map((job) => (
+                <div
+                  key={job.job_id}
+                  className="flex items-center justify-between p-2 rounded-lg bg-blue-50 border border-blue-200"
+                >
+                  <div className="flex items-center gap-2">
+                    <Loader2 className="h-4 w-4 animate-spin text-blue-500" />
+                    <Badge className={getJobTypeColor(job.job_type)}>
+                      {job.job_type}
+                    </Badge>
+                    <span className="text-xs text-muted-foreground">
+                      {job.job_id.slice(0, 8)}...
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-blue-600">
+                      {job.progress_percent}%
+                    </span>
+                    {job.message && (
+                      <span className="text-xs text-muted-foreground max-w-32 truncate">
+                        {job.message}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Completed Jobs */}
+        {completedJobs.length > 0 && (
           <div className="space-y-2">
             <h3 className="font-medium">Recent Jobs</h3>
             <ScrollArea className="h-48">
               <div className="space-y-2">
-                {recentJobs.map((job) => (
+                {completedJobs.map((job) => (
                   <div
                     key={job.job_id}
                     className="flex items-center justify-between p-2 rounded-lg bg-muted/50"
@@ -321,7 +424,7 @@ const JobQueueMonitor: React.FC = () => {
         )}
 
         {/* Empty State */}
-        {queueStatus.total_jobs === 0 && recentJobs.length === 0 && (
+        {queueStatus.total_jobs === 0 && runningJobs.length === 0 && completedJobs.length === 0 && (
           <div className="text-center py-8 text-muted-foreground">
             <AlertCircle className="h-8 w-8 mx-auto mb-2" />
             <p>No jobs in queue</p>

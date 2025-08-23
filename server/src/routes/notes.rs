@@ -135,22 +135,46 @@ pub async fn remove_metadata_label(
 
 // Endpoint to regenerate AI enhancement for a note
 pub async fn regenerate_ai(State(state): State<AppState>, Path(id): Path<Uuid>) -> Result<Json<serde_json::Value>, axum::http::StatusCode> {
-    // Get the current note content
-    let note = db::fetch_note(&state, id).await
+    // Verify the note exists
+    let _note = db::fetch_note(&state, id).await
         .map_err(|_| axum::http::StatusCode::NOT_FOUND)?;
     
-    // Trigger AI regeneration with metadata in the background
-    let state_clone = state.clone();
-    let content = note.original.content.clone();
-    tokio::spawn(async move {
-        if let Err(err) = crate::db_enhanced::generate_ai_revision_with_metadata(&state_clone, id, &content).await {
-            eprintln!("Failed to generate AI revision: {}", err);
+    // Queue jobs for NLP enhancement pipeline
+    use crate::job_queue::{queue_job, JobType};
+    
+    let mut job_ids = Vec::new();
+    
+    // Queue AI revision job with high priority
+    match queue_job(&state.pool, Some(id), JobType::AiRevision, 8, None).await {
+        Ok(job_id) => job_ids.push(job_id),
+        Err(e) => {
+            tracing::warn!("Failed to queue AI revision job for note {}: {}", id, e);
+            return Err(axum::http::StatusCode::INTERNAL_SERVER_ERROR);
         }
-    });
+    }
+    
+    // Queue embedding generation with medium priority
+    match queue_job(&state.pool, Some(id), JobType::Embedding, 5, None).await {
+        Ok(job_id) => job_ids.push(job_id),
+        Err(e) => {
+            tracing::warn!("Failed to queue embedding job for note {}: {}", id, e);
+        }
+    }
+    
+    // Queue link detection with lower priority
+    match queue_job(&state.pool, Some(id), JobType::Linking, 3, None).await {
+        Ok(job_id) => job_ids.push(job_id),
+        Err(e) => {
+            tracing::warn!("Failed to queue linking job for note {}: {}", id, e);
+        }
+    }
+    
+    tracing::info!("Queued regeneration jobs for note {}", id);
     
     Ok(Json(serde_json::json!({
         "status": "regenerating",
-        "note_id": id
+        "note_id": id,
+        "job_ids": job_ids
     })))
 }
 

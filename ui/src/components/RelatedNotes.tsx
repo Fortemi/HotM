@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { api, RelatedNotesResponse, SearchHit } from '@/services/api';
 import { Link2, Sparkles } from 'lucide-react';
 
@@ -153,9 +154,11 @@ export function RelatedNotes({ noteId, onSelectNote }: RelatedNotesProps) {
           <div className="mt-3 pt-3 border-t">
             <div className="flex items-start gap-1.5">
               <Sparkles className="h-3 w-3 mt-0.5 text-primary flex-shrink-0" />
-              <p className="text-xs text-muted-foreground leading-relaxed">
-                {relatedData.context_summary}
-              </p>
+              <ScrollArea className="h-24 flex-1">
+                <p className="text-xs text-muted-foreground leading-relaxed pr-2">
+                  {relatedData.context_summary}
+                </p>
+              </ScrollArea>
             </div>
           </div>
         )}

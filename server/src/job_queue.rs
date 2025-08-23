@@ -181,9 +181,15 @@ impl JobQueueManager {
             WsMessage::JobStarted {
                 job_id: job.id,
                 job_type: format!("{:?}", job.job_type),
+                note_id: job.note_id,
                 estimated_duration_ms: job.estimated_duration_ms.map(|d| d as i64),
             }
         );
+        
+        // Broadcast updated queue status
+        if let Err(e) = self.broadcast_queue_status().await {
+            tracing::warn!("Failed to broadcast queue status: {}", e);
+        }
         
         // Update progress
         self.update_progress(&job.id, 0, Some("Starting job")).await?;
@@ -225,9 +231,23 @@ impl JobQueueManager {
                     &self.state.ws_broadcaster,
                     WsMessage::JobCompleted {
                         job_id: job.id,
+                        job_type: format!("{:?}", job.job_type),
+                        note_id: job.note_id,
                         duration_ms: duration_ms as i64,
                     }
                 );
+                
+                // Broadcast note updated if there's a note_id
+                if let Some(note_id) = job.note_id {
+                    if let Err(e) = self.broadcast_note_update(note_id).await {
+                        tracing::warn!("Failed to broadcast note update: {}", e);
+                    }
+                }
+                
+                // Broadcast updated queue status
+                if let Err(e) = self.broadcast_queue_status().await {
+                    tracing::warn!("Failed to broadcast queue status: {}", e);
+                }
                 
                 info!("Job {} completed in {}ms", job.id, duration_ms);
             }
@@ -240,6 +260,8 @@ impl JobQueueManager {
                     &self.state.ws_broadcaster,
                     WsMessage::JobFailed {
                         job_id: job.id,
+                        job_type: format!("{:?}", job.job_type),
+                        note_id: job.note_id,
                         error: error_msg.clone(),
                         retry_count: job.retry_count,
                     }
@@ -282,6 +304,11 @@ impl JobQueueManager {
                 }
 
                 self.record_job_history(&job.job_type, duration_ms, false).await?;
+                
+                // Broadcast updated queue status after failure
+                if let Err(e) = self.broadcast_queue_status().await {
+                    tracing::warn!("Failed to broadcast queue status: {}", e);
+                }
             }
         }
 
@@ -360,9 +387,9 @@ impl JobQueueManager {
         .fetch_one(&self.pool)
         .await?;
 
-        self.update_progress(&job.id, 30, Some("Creating links")).await?;
+        self.update_progress(&job.id, 30, Some("Creating semantic and keyword links")).await?;
         
-        // Create contextual links
+        // Create contextual links (both semantic and keyword-based)
         let metadata = data.ai_metadata.unwrap_or_else(|| serde_json::json!({}));
         crate::db_enhanced_v2::create_contextual_links(
             &*self.state,
@@ -370,6 +397,11 @@ impl JobQueueManager {
             &data.content,
             &metadata
         ).await?;
+
+        self.update_progress(&job.id, 70, Some("Updating with linked context")).await?;
+        
+        // Update the note with context from linked articles
+        crate::db_enhanced_v2::update_with_linked_context(&*self.state, note_id).await?;
 
         self.update_progress(&job.id, 100, Some("Completed")).await?;
         
@@ -411,11 +443,23 @@ impl JobQueueManager {
         .execute(&self.pool)
         .await?;
 
+        // Get note_id for this job
+        let note_id = match sqlx::query_scalar!(
+            "SELECT note_id FROM job_queue WHERE id = $1",
+            job_id
+        )
+        .fetch_optional(&self.pool)
+        .await {
+            Ok(Some(note_id)) => note_id,
+            _ => None,
+        };
+        
         // Broadcast progress update via WebSocket
         broadcast_message(
             &self.state.ws_broadcaster,
             WsMessage::JobProgress {
                 job_id: *job_id,
+                note_id,
                 progress_percent: percent,
                 message: message.map(String::from),
             }
@@ -440,6 +484,98 @@ impl JobQueueManager {
         .execute(&self.pool)
         .await?;
 
+        Ok(())
+    }
+    
+    /// Broadcast current queue status
+    async fn broadcast_queue_status(&self) -> anyhow::Result<()> {
+        // Get current queue statistics
+        let stats = sqlx::query!(
+            r#"
+            SELECT 
+                COUNT(*) FILTER (WHERE status = 'pending') as "pending!",
+                COUNT(*) FILTER (WHERE status = 'running') as "running!",
+                COUNT(*) as "total!"
+            FROM job_queue
+            WHERE status IN ('pending', 'running')
+            "#
+        )
+        .fetch_one(&self.pool)
+        .await?;
+        
+        // Get active job if any
+        let active_job = sqlx::query!(
+            r#"
+            SELECT 
+                id, 
+                job_type::text as "job_type!",
+                progress_percent,
+                progress_message,
+                started_at
+            FROM job_queue
+            WHERE status = 'running'
+            ORDER BY started_at DESC
+            LIMIT 1
+            "#
+        )
+        .fetch_optional(&self.pool)
+        .await?
+        .map(|row| crate::websocket::ActiveJob {
+            job_id: row.id,
+            job_type: row.job_type,
+            progress_percent: row.progress_percent,
+            message: row.progress_message,
+            started_at: row.started_at.unwrap_or_else(chrono::Utc::now),
+        });
+        
+        broadcast_message(
+            &self.state.ws_broadcaster,
+            WsMessage::QueueStatus {
+                total_jobs: stats.total as usize,
+                running: stats.running as usize,
+                pending: stats.pending as usize,
+                active_job,
+            }
+        );
+        
+        Ok(())
+    }
+
+    /// Broadcast note update after job completion
+    async fn broadcast_note_update(&self, note_id: Uuid) -> anyhow::Result<()> {
+        // Get updated note information
+        let note_info = sqlx::query!(
+            r#"
+            SELECT 
+                LEFT(COALESCE(no.content, 'Untitled'), 50) as title,
+                COALESCE(array_agg(DISTINCT nt.tag_name) FILTER (WHERE nt.tag_name IS NOT NULL), ARRAY[]::text[]) as tags,
+                CASE WHEN nrc.content IS NOT NULL THEN true ELSE false END as has_ai_content,
+                CASE WHEN EXISTS(SELECT 1 FROM link WHERE from_note_id = n.id) THEN true ELSE false END as has_links
+            FROM note n
+            LEFT JOIN note_original no ON no.note_id = n.id
+            LEFT JOIN note_tag nt ON nt.note_id = n.id
+            LEFT JOIN note_revised_current nrc ON nrc.note_id = n.id
+            WHERE n.id = $1
+            GROUP BY n.id, no.content, nrc.content
+            "#,
+            note_id
+        )
+        .fetch_optional(&self.pool)
+        .await?;
+        
+        if let Some(info) = note_info {
+            broadcast_message(
+                &self.state.ws_broadcaster,
+                crate::websocket::WsMessage::NoteUpdated {
+                    note_id,
+                    title: info.title.unwrap_or_else(|| "Untitled".to_string()),
+                    tags: info.tags.unwrap_or_default(),
+                    has_ai_content: info.has_ai_content.unwrap_or(false),
+                    has_links: info.has_links.unwrap_or(false),
+                }
+            );
+        }
+        
         Ok(())
     }
 

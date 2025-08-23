@@ -20,21 +20,34 @@ pub enum WsMessage {
     JobStarted {
         job_id: Uuid,
         job_type: String,
+        note_id: Option<Uuid>,
         estimated_duration_ms: Option<i64>,
     },
     JobProgress {
         job_id: Uuid,
+        note_id: Option<Uuid>,
         progress_percent: i32,
         message: Option<String>,
     },
     JobCompleted {
         job_id: Uuid,
+        job_type: String,
+        note_id: Option<Uuid>,
         duration_ms: i64,
     },
     JobFailed {
         job_id: Uuid,
+        job_type: String,
+        note_id: Option<Uuid>,
         error: String,
         retry_count: i32,
+    },
+    NoteUpdated {
+        note_id: Uuid,
+        title: String,
+        tags: Vec<String>,
+        has_ai_content: bool,
+        has_links: bool,
     },
     QueueStatus {
         total_jobs: usize,

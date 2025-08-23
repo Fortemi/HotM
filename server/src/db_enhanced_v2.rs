@@ -1,5 +1,5 @@
 use crate::db::AppState;
-use crate::job_queue::{self, JobType};
+// Job queue imports removed as they are not used in this file
 use uuid::Uuid;
 use chrono::Utc;
 use serde_json::json;
@@ -9,39 +9,31 @@ use pgvector;
 pub async fn generate_ai_revision_with_metadata(state: &AppState, note_id: Uuid, content: &str) -> anyhow::Result<()> {
     tracing::info!(%note_id, "Starting AI enhancement process");
     
-    // Step 1: Generate enhanced content (focused on content improvement only)
+    // Step 1: Parse explicit tags and topics from original content
+    let (parsed_tags, parsed_topics) = parse_explicit_tags_and_topics(content);
+    tracing::info!("Parsed from original content - tags: {:?}, topics: {:?}", parsed_tags, parsed_topics);
+    
+    // Step 2: Generate enhanced content (focused on content improvement only)
     let enhanced_content = generate_enhanced_content(state, content).await?;
     
-    // Step 2: Extract metadata from the content (separate AI call)
-    let metadata = extract_metadata(state, content, &enhanced_content).await?;
+    // Step 3: Extract metadata from the content (separate AI call)
+    let mut metadata = extract_metadata(state, content, &enhanced_content).await?;
     
-    // Step 3: Generate tags based on existing tags in the system
-    let tags = generate_tags(state, &enhanced_content).await?;
+    // Step 4: Generate tags based on existing tags in the system, including parsed ones
+    let mut ai_tags = generate_tags(state, &enhanced_content).await?;
     
-    // Step 4: Store everything in the database
-    store_enhanced_note(state, note_id, &enhanced_content, &metadata, &tags).await?;
-    
-    // Step 5: Generate embeddings FIRST (needed for semantic linking)
-    embed_note_content(state, note_id, &enhanced_content).await?;
-    
-    // Step 6: Create contextual links with both semantic and keyword matching
-    // Run in background but with proper content
-    let state_clone = state.clone();
-    let metadata_clone = metadata.clone();
-    let enhanced_content_clone = enhanced_content.clone();
-    tokio::spawn(async move {
-        // Wait a bit to ensure embeddings are committed
-        tokio::time::sleep(tokio::time::Duration::from_millis(500)).await;
-        
-        if let Err(err) = create_contextual_links(&state_clone, note_id, &enhanced_content_clone, &metadata_clone).await {
-            tracing::warn!(%note_id, error = %err, "Failed to create contextual links");
+    // Step 5: Merge parsed tags and topics with AI-generated ones
+    ai_tags.extend(parsed_tags);
+    if let Some(topics_array) = metadata.get_mut("topics").and_then(|v| v.as_array_mut()) {
+        for topic in parsed_topics {
+            topics_array.push(serde_json::Value::String(topic));
         }
-        
-        // Step 7: After links are created, update the AI content with linked article context
-        if let Err(err) = update_with_linked_context(&state_clone, note_id).await {
-            tracing::warn!(%note_id, error = %err, "Failed to update with linked context");
-        }
-    });
+    }
+    
+    // Step 6: Store everything in the database
+    store_enhanced_note(state, note_id, &enhanced_content, &metadata, &ai_tags).await?;
+    
+    // AI revision job is complete - embedding and linking will be handled by separate jobs
     
     tracing::info!(%note_id, "AI enhancement completed successfully");
     Ok(())
@@ -139,28 +131,38 @@ async fn generate_tags(state: &AppState, content: &str) -> anyhow::Result<Vec<St
     };
     
     let prompt = format!(
-        r#"Analyze the following note and suggest appropriate tags.
+        r#"You are a precise tagging system. Read the note content and generate relevant tags.
 
-Note Content:
+[NOTE CONTENT]
 {}
 
+[CONTEXT]
 {}
 
-Please suggest 3-7 relevant tags for this note. Use existing tags when appropriate, but create new ones if needed.
-Tags should be lowercase, hyphenated (e.g., "machine-learning", "project-management").
+Generate 3-7 relevant tags for this specific note content. Tags should be:
+- Lowercase with hyphens (e.g. "machine-learning")
+- Specific to the note content (not generic terms)
+- Based on actual topics, technologies, or concepts mentioned
+- Reuse existing tags when appropriate
 
-Output the tags as a comma-separated list, nothing else."#,
+Respond with ONLY a comma-separated list of tags, no other text or explanation:
+"#,
         content, tags_context
     );
     
     let response = crate::ollama::generate(&state.gen_model, &prompt).await?;
     
-    // Parse tags from response
-    Ok(response
+    // Parse tags from response - be more strict about filtering
+    let tags: Vec<String> = response
         .split(',')
         .map(|s| s.trim().to_lowercase().replace(' ', "-"))
-        .filter(|s| !s.is_empty())
-        .collect())
+        .filter(|s| !s.is_empty() && s.len() > 2 && s.len() < 50)
+        .filter(|s| !s.contains("knowledge") && !s.contains("engine") && !s.contains("system"))
+        .take(7) // Limit to max 7 tags
+        .collect();
+    
+    tracing::info!("Generated {} tags: {:?}", tags.len(), tags);
+    Ok(tags)
 }
 
 /// Store the enhanced note and metadata in the database
@@ -488,6 +490,30 @@ fn extract_json(response: &str) -> String {
     }
     
     response.trim().to_string()
+}
+
+/// Parse explicit tags and topics from content
+fn parse_explicit_tags_and_topics(content: &str) -> (Vec<String>, Vec<String>) {
+    use regex::Regex;
+    
+    // Parse tags like #tag-name or #tagname
+    let tag_regex = Regex::new(r"#([a-zA-Z][a-zA-Z0-9_-]*)").unwrap();
+    let tags: Vec<String> = tag_regex
+        .captures_iter(content)
+        .map(|cap| cap[1].to_lowercase().replace('_', "-"))
+        .filter(|tag| tag.len() > 1 && tag.len() < 50)
+        .collect();
+    
+    // Parse topics like [Topic Name] or [topic]
+    let topic_regex = Regex::new(r"\[([^\]]+)\]").unwrap();
+    let topics: Vec<String> = topic_regex
+        .captures_iter(content)
+        .map(|cap| cap[1].trim().to_string())
+        .filter(|topic| !topic.is_empty() && topic.len() > 2 && topic.len() < 100)
+        .filter(|topic| !topic.contains("http") && !topic.contains("www")) // Exclude URLs
+        .collect();
+    
+    (tags, topics)
 }
 
 /// Chunk text into smaller pieces for embedding
