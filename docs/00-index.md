@@ -11,7 +11,8 @@ HotM is a local-first notes and analysis tool with immutable originals, NLP-powe
 - [System Constraints](01-requirements/constraints.md) - Technical and business constraints
 
 ### 2. Technical Specifications
-- [API Specification](02-specifications/api-specification.md) - REST API endpoints and contracts
+- [API Specification v1](02-specifications/api-specification.md) - Original REST API design
+- [API Specification v2](02-specifications/api-specification-v2.md) - **Current implementation with WebSocket**
 - [Data Model](02-specifications/data-model.md) - Database schema and relationships
 - [MCP Server Tools](02-specifications/mcp-tools-spec.md) - Model Context Protocol integration
 - [UI Specification](02-specifications/ui-specification.md) - User interface components and flows
@@ -25,7 +26,8 @@ HotM is a local-first notes and analysis tool with immutable originals, NLP-powe
 
 ### 4. Implementation Guides
 - [Development Guide](04-implementation/development-guide.md) - Setup and development workflow
-- [Testing Strategy](04-implementation/testing-strategy.md) - Testing approach and standards
+- [Testing Strategy](04-implementation/testing-strategy.md) - Original testing approach
+- [Testing Framework](09-testing-framework.md) - **Comprehensive testing implementation guide**
 - [Code Standards](04-implementation/code-standards.md) - Rust and TypeScript conventions
 - [Background Workers](04-implementation/background-workers.md) - Async job processing
 
@@ -57,4 +59,11 @@ HotM is a local-first notes and analysis tool with immutable originals, NLP-powe
 
 ## Version
 Current Version: 0.1.0 (Alpha)
-Documentation Last Updated: 2025-08-21
+Documentation Last Updated: 2025-08-23
+
+## Recent Updates
+- Added WebSocket API for real-time job monitoring
+- Implemented job queue with priority-based processing
+- Added link metadata for keyword tracking
+- Enhanced UI with job status indicators
+- Created comprehensive testing framework documentation
