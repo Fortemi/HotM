@@ -56,6 +56,13 @@ async fn test_hybrid_search_does_not_panic() {
 
 #[tokio::test]
 async fn test_semantic_search_does_not_panic() {
+    // Skip semantic search tests when using mock AI since they require Ollama
+    let use_mock_ai = std::env::var("USE_MOCK_AI").unwrap_or_default() == "true";
+    if use_mock_ai {
+        println!("Skipping semantic search test with mock AI");
+        return;
+    }
+
     let db_url = std::env::var("TEST_DATABASE_URL").expect("TEST_DATABASE_URL must be set");
     let (broadcaster, _) = create_broadcaster();
     let state = AppState::connect(&db_url, broadcaster).await.unwrap();
