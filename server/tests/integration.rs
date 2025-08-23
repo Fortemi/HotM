@@ -7,7 +7,9 @@ async fn create_and_get_note_roundtrip() {
 
     // Create
     let content = "Test note content";
-    let id = hotm_server::db::insert_note(&state, content, "markdown", "manual").await.unwrap();
+    let id = hotm_server::db::insert_note(&state, content, "markdown", "manual")
+        .await
+        .unwrap();
 
     // Get
     let note = hotm_server::db::fetch_note(&state, id).await.unwrap();

@@ -1,12 +1,15 @@
+use crate::db::AppState;
 use axum::{
-    extract::{ws::{WebSocket, WebSocketUpgrade}, State},
+    extract::{
+        ws::{WebSocket, WebSocketUpgrade},
+        State,
+    },
     response::Response,
 };
+use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use tokio::sync::broadcast;
-use serde::{Deserialize, Serialize};
 use uuid::Uuid;
-use crate::db::AppState;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(tag = "type")]
@@ -73,23 +76,20 @@ pub fn create_broadcaster() -> (WsBroadcaster, broadcast::Receiver<WsMessage>) {
     (Arc::new(tx), rx)
 }
 
-pub async fn ws_handler(
-    ws: WebSocketUpgrade,
-    State(state): State<AppState>,
-) -> Response {
+pub async fn ws_handler(ws: WebSocketUpgrade, State(state): State<AppState>) -> Response {
     ws.on_upgrade(move |socket| handle_socket(socket, state))
 }
 
 async fn handle_socket(mut socket: WebSocket, state: AppState) {
     // Get a receiver for broadcast messages
     let mut rx = state.ws_broadcaster.subscribe();
-    
+
     // Send initial queue status
     if let Ok(status) = get_queue_status(&state).await {
         let msg = serde_json::to_string(&status).unwrap_or_default();
         let _ = socket.send(axum::extract::ws::Message::Text(msg)).await;
     }
-    
+
     // Start listening for messages to broadcast
     loop {
         tokio::select! {
@@ -123,7 +123,9 @@ async fn handle_socket(mut socket: WebSocket, state: AppState) {
     }
 }
 
-async fn get_queue_status(state: &AppState) -> Result<WsMessage, Box<dyn std::error::Error + Send + Sync>> {
+async fn get_queue_status(
+    state: &AppState,
+) -> Result<WsMessage, Box<dyn std::error::Error + Send + Sync>> {
     // Get current queue statistics
     let stats = sqlx::query!(
         r#"
@@ -137,7 +139,7 @@ async fn get_queue_status(state: &AppState) -> Result<WsMessage, Box<dyn std::er
     )
     .fetch_one(&state.pool)
     .await?;
-    
+
     // Get active job if any
     let active_job = sqlx::query!(
         r#"
@@ -162,7 +164,7 @@ async fn get_queue_status(state: &AppState) -> Result<WsMessage, Box<dyn std::er
         message: row.progress_message,
         started_at: row.started_at.unwrap_or_else(chrono::Utc::now),
     });
-    
+
     Ok(WsMessage::QueueStatus {
         total_jobs: stats.total as usize,
         running: stats.running as usize,

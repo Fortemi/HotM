@@ -1,13 +1,13 @@
 use crate::db::AppState;
-use crate::websocket::{WsMessage, broadcast_message};
-use uuid::Uuid;
+use crate::websocket::{broadcast_message, WsMessage};
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use sqlx::PgPool;
 use std::sync::Arc;
 use tokio::sync::{Mutex, Notify};
 use tokio::time::{sleep, Duration};
-use tracing::{info, warn, error};
+use tracing::{error, info, warn};
+use uuid::Uuid;
 
 #[derive(Debug, Clone, Serialize, Deserialize, sqlx::Type)]
 #[sqlx(type_name = "job_status", rename_all = "lowercase")]
@@ -77,7 +77,7 @@ impl JobQueueManager {
     /// Start the job queue processor
     pub async fn start(self: Arc<Self>) {
         info!("Starting job queue processor");
-        
+
         // Start the main processing loop
         let processor = self.clone();
         tokio::spawn(async move {
@@ -113,7 +113,7 @@ impl JobQueueManager {
                     drop(is_processing);
 
                     info!("Processing job: {:?}", job.id);
-                    
+
                     // Process the job
                     if let Err(e) = self.process_job(job).await {
                         error!("Failed to process job: {}", e);
@@ -121,7 +121,7 @@ impl JobQueueManager {
 
                     // Mark as not processing
                     *self.is_processing.lock().await = false;
-                    
+
                     // Notify that we're done
                     self.notify.notify_one();
                 }
@@ -174,7 +174,7 @@ impl JobQueueManager {
     /// Process a single job
     async fn process_job(&self, job: Job) -> anyhow::Result<()> {
         let start_time = std::time::Instant::now();
-        
+
         // Broadcast job started
         broadcast_message(
             &self.state.ws_broadcaster,
@@ -183,16 +183,17 @@ impl JobQueueManager {
                 job_type: format!("{:?}", job.job_type),
                 note_id: job.note_id,
                 estimated_duration_ms: job.estimated_duration_ms.map(|d| d as i64),
-            }
+            },
         );
-        
+
         // Broadcast updated queue status
         if let Err(e) = self.broadcast_queue_status().await {
             tracing::warn!("Failed to broadcast queue status: {}", e);
         }
-        
+
         // Update progress
-        self.update_progress(&job.id, 0, Some("Starting job")).await?;
+        self.update_progress(&job.id, 0, Some("Starting job"))
+            .await?;
 
         let result = match job.job_type {
             JobType::AiRevision => self.process_ai_revision(&job).await,
@@ -224,8 +225,9 @@ impl JobQueueManager {
                 .await?;
 
                 // Record in history for estimation
-                self.record_job_history(&job.job_type, duration_ms, true).await?;
-                
+                self.record_job_history(&job.job_type, duration_ms, true)
+                    .await?;
+
                 // Broadcast job completed
                 broadcast_message(
                     &self.state.ws_broadcaster,
@@ -234,27 +236,27 @@ impl JobQueueManager {
                         job_type: format!("{:?}", job.job_type),
                         note_id: job.note_id,
                         duration_ms: duration_ms as i64,
-                    }
+                    },
                 );
-                
+
                 // Broadcast note updated if there's a note_id
                 if let Some(note_id) = job.note_id {
                     if let Err(e) = self.broadcast_note_update(note_id).await {
                         tracing::warn!("Failed to broadcast note update: {}", e);
                     }
                 }
-                
+
                 // Broadcast updated queue status
                 if let Err(e) = self.broadcast_queue_status().await {
                     tracing::warn!("Failed to broadcast queue status: {}", e);
                 }
-                
+
                 info!("Job {} completed in {}ms", job.id, duration_ms);
             }
             Err(e) => {
                 let error_msg = format!("{}", e);
                 warn!("Job {} failed: {}", job.id, error_msg);
-                
+
                 // Broadcast job failed
                 broadcast_message(
                     &self.state.ws_broadcaster,
@@ -264,7 +266,7 @@ impl JobQueueManager {
                         note_id: job.note_id,
                         error: error_msg.clone(),
                         retry_count: job.retry_count,
-                    }
+                    },
                 );
 
                 // Check if we should retry
@@ -303,8 +305,9 @@ impl JobQueueManager {
                     .await?;
                 }
 
-                self.record_job_history(&job.job_type, duration_ms, false).await?;
-                
+                self.record_job_history(&job.job_type, duration_ms, false)
+                    .await?;
+
                 // Broadcast updated queue status after failure
                 if let Err(e) = self.broadcast_queue_status().await {
                     tracing::warn!("Failed to broadcast queue status: {}", e);
@@ -317,10 +320,13 @@ impl JobQueueManager {
 
     /// Process AI revision job
     async fn process_ai_revision(&self, job: &Job) -> anyhow::Result<serde_json::Value> {
-        let note_id = job.note_id.ok_or_else(|| anyhow::anyhow!("No note_id for AI revision job"))?;
-        
-        self.update_progress(&job.id, 10, Some("Fetching note content")).await?;
-        
+        let note_id = job
+            .note_id
+            .ok_or_else(|| anyhow::anyhow!("No note_id for AI revision job"))?;
+
+        self.update_progress(&job.id, 10, Some("Fetching note content"))
+            .await?;
+
         // Get note content
         let note = sqlx::query!(
             "SELECT content FROM note_original WHERE note_id = $1",
@@ -329,17 +335,20 @@ impl JobQueueManager {
         .fetch_one(&self.pool)
         .await?;
 
-        self.update_progress(&job.id, 20, Some("Generating AI revision")).await?;
-        
+        self.update_progress(&job.id, 20, Some("Generating AI revision"))
+            .await?;
+
         // Call the AI revision function
         crate::db_enhanced_v2::generate_ai_revision_with_metadata(
-            &*self.state,
+            &self.state,
             note_id,
-            &note.content
-        ).await?;
+            &note.content,
+        )
+        .await?;
 
-        self.update_progress(&job.id, 100, Some("Completed")).await?;
-        
+        self.update_progress(&job.id, 100, Some("Completed"))
+            .await?;
+
         Ok(serde_json::json!({
             "note_id": note_id,
             "success": true
@@ -348,10 +357,13 @@ impl JobQueueManager {
 
     /// Process embedding job
     async fn process_embedding(&self, job: &Job) -> anyhow::Result<serde_json::Value> {
-        let note_id = job.note_id.ok_or_else(|| anyhow::anyhow!("No note_id for embedding job"))?;
-        
-        self.update_progress(&job.id, 10, Some("Fetching content")).await?;
-        
+        let note_id = job
+            .note_id
+            .ok_or_else(|| anyhow::anyhow!("No note_id for embedding job"))?;
+
+        self.update_progress(&job.id, 10, Some("Fetching content"))
+            .await?;
+
         // Get revised content
         let content = sqlx::query!(
             "SELECT content FROM note_revised_current WHERE note_id = $1",
@@ -360,13 +372,15 @@ impl JobQueueManager {
         .fetch_one(&self.pool)
         .await?;
 
-        self.update_progress(&job.id, 30, Some("Generating embeddings")).await?;
-        
-        // Generate embeddings
-        crate::db_enhanced_v2::embed_note_content(&*self.state, note_id, &content.content).await?;
+        self.update_progress(&job.id, 30, Some("Generating embeddings"))
+            .await?;
 
-        self.update_progress(&job.id, 100, Some("Completed")).await?;
-        
+        // Generate embeddings
+        crate::db_enhanced_v2::embed_note_content(&self.state, note_id, &content.content).await?;
+
+        self.update_progress(&job.id, 100, Some("Completed"))
+            .await?;
+
         Ok(serde_json::json!({
             "note_id": note_id,
             "success": true
@@ -375,10 +389,13 @@ impl JobQueueManager {
 
     /// Process linking job
     async fn process_linking(&self, job: &Job) -> anyhow::Result<serde_json::Value> {
-        let note_id = job.note_id.ok_or_else(|| anyhow::anyhow!("No note_id for linking job"))?;
-        
-        self.update_progress(&job.id, 10, Some("Fetching metadata")).await?;
-        
+        let note_id = job
+            .note_id
+            .ok_or_else(|| anyhow::anyhow!("No note_id for linking job"))?;
+
+        self.update_progress(&job.id, 10, Some("Fetching metadata"))
+            .await?;
+
         // Get content and metadata
         let data = sqlx::query!(
             "SELECT content, ai_metadata FROM note_revised_current WHERE note_id = $1",
@@ -387,24 +404,28 @@ impl JobQueueManager {
         .fetch_one(&self.pool)
         .await?;
 
-        self.update_progress(&job.id, 30, Some("Creating semantic and keyword links")).await?;
-        
+        self.update_progress(&job.id, 30, Some("Creating semantic and keyword links"))
+            .await?;
+
         // Create contextual links (both semantic and keyword-based)
         let metadata = data.ai_metadata.unwrap_or_else(|| serde_json::json!({}));
         crate::db_enhanced_v2::create_contextual_links(
-            &*self.state,
+            &self.state,
             note_id,
             &data.content,
-            &metadata
-        ).await?;
+            &metadata,
+        )
+        .await?;
 
-        self.update_progress(&job.id, 70, Some("Updating with linked context")).await?;
-        
+        self.update_progress(&job.id, 70, Some("Updating with linked context"))
+            .await?;
+
         // Update the note with context from linked articles
-        crate::db_enhanced_v2::update_with_linked_context(&*self.state, note_id).await?;
+        crate::db_enhanced_v2::update_with_linked_context(&self.state, note_id).await?;
 
-        self.update_progress(&job.id, 100, Some("Completed")).await?;
-        
+        self.update_progress(&job.id, 100, Some("Completed"))
+            .await?;
+
         Ok(serde_json::json!({
             "note_id": note_id,
             "success": true
@@ -413,15 +434,19 @@ impl JobQueueManager {
 
     /// Process context update job
     async fn process_context_update(&self, job: &Job) -> anyhow::Result<serde_json::Value> {
-        let note_id = job.note_id.ok_or_else(|| anyhow::anyhow!("No note_id for context update job"))?;
-        
-        self.update_progress(&job.id, 10, Some("Updating with linked context")).await?;
-        
-        // Update with linked context
-        crate::db_enhanced_v2::update_with_linked_context(&*self.state, note_id).await?;
+        let note_id = job
+            .note_id
+            .ok_or_else(|| anyhow::anyhow!("No note_id for context update job"))?;
 
-        self.update_progress(&job.id, 100, Some("Completed")).await?;
-        
+        self.update_progress(&job.id, 10, Some("Updating with linked context"))
+            .await?;
+
+        // Update with linked context
+        crate::db_enhanced_v2::update_with_linked_context(&self.state, note_id).await?;
+
+        self.update_progress(&job.id, 100, Some("Completed"))
+            .await?;
+
         Ok(serde_json::json!({
             "note_id": note_id,
             "success": true
@@ -429,7 +454,12 @@ impl JobQueueManager {
     }
 
     /// Update job progress
-    async fn update_progress(&self, job_id: &Uuid, percent: i32, message: Option<&str>) -> anyhow::Result<()> {
+    async fn update_progress(
+        &self,
+        job_id: &Uuid,
+        percent: i32,
+        message: Option<&str>,
+    ) -> anyhow::Result<()> {
         sqlx::query!(
             r#"
             UPDATE job_queue
@@ -444,16 +474,15 @@ impl JobQueueManager {
         .await?;
 
         // Get note_id for this job
-        let note_id = match sqlx::query_scalar!(
-            "SELECT note_id FROM job_queue WHERE id = $1",
-            job_id
-        )
-        .fetch_optional(&self.pool)
-        .await {
-            Ok(Some(note_id)) => note_id,
-            _ => None,
-        };
-        
+        let note_id =
+            match sqlx::query_scalar!("SELECT note_id FROM job_queue WHERE id = $1", job_id)
+                .fetch_optional(&self.pool)
+                .await
+            {
+                Ok(Some(note_id)) => note_id,
+                _ => None,
+            };
+
         // Broadcast progress update via WebSocket
         broadcast_message(
             &self.state.ws_broadcaster,
@@ -462,16 +491,21 @@ impl JobQueueManager {
                 note_id,
                 progress_percent: percent,
                 message: message.map(String::from),
-            }
+            },
         );
-        
+
         info!("Job {} progress: {}% - {:?}", job_id, percent, message);
-        
+
         Ok(())
     }
 
     /// Record job history for estimation
-    async fn record_job_history(&self, job_type: &JobType, duration_ms: i32, success: bool) -> anyhow::Result<()> {
+    async fn record_job_history(
+        &self,
+        job_type: &JobType,
+        duration_ms: i32,
+        success: bool,
+    ) -> anyhow::Result<()> {
         sqlx::query!(
             r#"
             INSERT INTO job_history (job_type, duration_ms, success, created_at)
@@ -486,7 +520,7 @@ impl JobQueueManager {
 
         Ok(())
     }
-    
+
     /// Broadcast current queue status
     async fn broadcast_queue_status(&self) -> anyhow::Result<()> {
         // Get current queue statistics
@@ -502,7 +536,7 @@ impl JobQueueManager {
         )
         .fetch_one(&self.pool)
         .await?;
-        
+
         // Get active job if any
         let active_job = sqlx::query!(
             r#"
@@ -527,7 +561,7 @@ impl JobQueueManager {
             message: row.progress_message,
             started_at: row.started_at.unwrap_or_else(chrono::Utc::now),
         });
-        
+
         broadcast_message(
             &self.state.ws_broadcaster,
             WsMessage::QueueStatus {
@@ -535,9 +569,9 @@ impl JobQueueManager {
                 running: stats.running as usize,
                 pending: stats.pending as usize,
                 active_job,
-            }
+            },
         );
-        
+
         Ok(())
     }
 
@@ -562,7 +596,7 @@ impl JobQueueManager {
         )
         .fetch_optional(&self.pool)
         .await?;
-        
+
         if let Some(info) = note_info {
             broadcast_message(
                 &self.state.ws_broadcaster,
@@ -572,10 +606,10 @@ impl JobQueueManager {
                     tags: info.tags.unwrap_or_default(),
                     has_ai_content: info.has_ai_content.unwrap_or(false),
                     has_links: info.has_links.unwrap_or(false),
-                }
+                },
             );
         }
-        
+
         Ok(())
     }
 
@@ -623,7 +657,7 @@ pub async fn queue_job(
     .await?;
 
     let job_id = Uuid::new_v4();
-    
+
     sqlx::query!(
         r#"
         INSERT INTO job_queue (id, note_id, job_type, priority, payload, estimated_duration_ms)
@@ -640,7 +674,7 @@ pub async fn queue_job(
     .await?;
 
     info!("Queued job {} of type {:?}", job_id, job_type);
-    
+
     Ok(job_id)
 }
 

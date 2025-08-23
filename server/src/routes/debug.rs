@@ -1,5 +1,5 @@
-use axum::{extract::State, Json};
 use crate::db::AppState;
+use axum::{extract::State, Json};
 use serde::Serialize;
 use uuid::Uuid;
 
@@ -21,7 +21,9 @@ pub struct RevisionInfo {
     pub content_preview: String,
 }
 
-pub async fn debug_revisions(State(state): State<AppState>) -> Result<Json<DebugInfo>, axum::http::StatusCode> {
+pub async fn debug_revisions(
+    State(state): State<AppState>,
+) -> Result<Json<DebugInfo>, axum::http::StatusCode> {
     // Count total notes
     let total_notes = sqlx::query!("SELECT COUNT(*) as count FROM note")
         .fetch_one(&state.pool)
@@ -29,17 +31,16 @@ pub async fn debug_revisions(State(state): State<AppState>) -> Result<Json<Debug
         .map_err(|_| axum::http::StatusCode::INTERNAL_SERVER_ERROR)?
         .count
         .unwrap_or(0);
-    
+
     // Count notes with revisions
-    let notes_with_revisions = sqlx::query!(
-        "SELECT COUNT(DISTINCT note_id) as count FROM note_revision"
-    )
-    .fetch_one(&state.pool)
-    .await
-    .map_err(|_| axum::http::StatusCode::INTERNAL_SERVER_ERROR)?
-    .count
-    .unwrap_or(0);
-    
+    let notes_with_revisions =
+        sqlx::query!("SELECT COUNT(DISTINCT note_id) as count FROM note_revision")
+            .fetch_one(&state.pool)
+            .await
+            .map_err(|_| axum::http::StatusCode::INTERNAL_SERVER_ERROR)?
+            .count
+            .unwrap_or(0);
+
     // Count total revisions
     let total_revisions = sqlx::query!("SELECT COUNT(*) as count FROM note_revision")
         .fetch_one(&state.pool)
@@ -47,7 +48,7 @@ pub async fn debug_revisions(State(state): State<AppState>) -> Result<Json<Debug
         .map_err(|_| axum::http::StatusCode::INTERNAL_SERVER_ERROR)?
         .count
         .unwrap_or(0);
-    
+
     // Get recent revisions
     let recent_revisions_raw = sqlx::query!(
         r#"
@@ -60,7 +61,7 @@ pub async fn debug_revisions(State(state): State<AppState>) -> Result<Json<Debug
     .fetch_all(&state.pool)
     .await
     .map_err(|_| axum::http::StatusCode::INTERNAL_SERVER_ERROR)?;
-    
+
     let recent_revisions: Vec<RevisionInfo> = recent_revisions_raw
         .into_iter()
         .map(|r| RevisionInfo {
@@ -71,7 +72,7 @@ pub async fn debug_revisions(State(state): State<AppState>) -> Result<Json<Debug
             content_preview: r.content.chars().take(100).collect::<String>() + "...",
         })
         .collect();
-    
+
     // Count embeddings
     let embedding_count = sqlx::query!("SELECT COUNT(*) as count FROM embedding")
         .fetch_one(&state.pool)
@@ -79,7 +80,7 @@ pub async fn debug_revisions(State(state): State<AppState>) -> Result<Json<Debug
         .map_err(|_| axum::http::StatusCode::INTERNAL_SERVER_ERROR)?
         .count
         .unwrap_or(0);
-    
+
     Ok(Json(DebugInfo {
         total_notes,
         notes_with_revisions,

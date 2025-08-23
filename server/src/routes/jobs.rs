@@ -1,7 +1,11 @@
-use axum::{extract::{State, Path}, Json, http::StatusCode};
-use uuid::Uuid;
 use crate::{db::AppState, job_queue};
+use axum::{
+    extract::{Path, State},
+    http::StatusCode,
+    Json,
+};
 use serde::{Deserialize, Serialize};
+use uuid::Uuid;
 
 #[derive(Debug, Deserialize)]
 pub struct QueueJobRequest {
@@ -24,7 +28,7 @@ pub async fn queue_job(
     Json(req): Json<QueueJobRequest>,
 ) -> Result<Json<QueueJobResponse>, StatusCode> {
     let priority = req.priority.unwrap_or(5);
-    
+
     // Queue the job
     let job_id = job_queue::queue_job(
         &state.pool,

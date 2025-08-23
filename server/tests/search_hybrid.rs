@@ -7,13 +7,20 @@ async fn hybrid_search_does_not_panic() {
 
     // Should handle empty indices gracefully
     let app = axum::Router::new()
-        .route("/api/v1/search", axum::routing::get(hotm_server::routes::search::search))
+        .route(
+            "/api/v1/search",
+            axum::routing::get(hotm_server::routes::search::search),
+        )
         .with_state(state);
 
     let res = app
-        .oneshot(axum::http::Request::builder()
-            .uri("/api/v1/search?q=test&mode=hybrid")
-            .body(axum::body::Body::empty()).unwrap())
-        .await.unwrap();
+        .oneshot(
+            axum::http::Request::builder()
+                .uri("/api/v1/search?q=test&mode=hybrid")
+                .body(axum::body::Body::empty())
+                .unwrap(),
+        )
+        .await
+        .unwrap();
     assert!(res.status().is_success());
 }
