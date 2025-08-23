@@ -271,10 +271,10 @@ export function HallOfMind() {
       }
     };
     
-    window.addEventListener('noteUpdated', handleNoteUpdate as EventListener);
+    window.addEventListener('noteUpdated', handleNoteUpdate as unknown as EventListener);
     
     return () => {
-      window.removeEventListener('noteUpdated', handleNoteUpdate as EventListener);
+      window.removeEventListener('noteUpdated', handleNoteUpdate as unknown as EventListener);
     };
   }, [processingNotes, selectedNote, api]);
 

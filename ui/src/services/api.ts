@@ -60,6 +60,7 @@ interface NoteOriginal {
 interface NoteRevised {
   content: string;
   last_revision_id?: string;
+  ai_metadata?: any;
 }
 
 interface Link {

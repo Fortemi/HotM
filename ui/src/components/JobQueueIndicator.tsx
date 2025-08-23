@@ -140,14 +140,7 @@ export const JobQueueIndicator: React.FC = () => {
     };
   }, []);
 
-  // Determine status color and icon
-  const getStatusColor = () => {
-    if (!wsConnected) return 'bg-gray-400';
-    if (queueStatus.running > 0) return 'bg-blue-500 animate-pulse';
-    if (queueStatus.pending > 0) return 'bg-yellow-500';
-    return 'bg-green-500';
-  };
-
+  // Determine status icon
   const getStatusIcon = () => {
     if (!wsConnected) return <AlertCircle className="h-4 w-4" />;
     if (queueStatus.running > 0) return <Loader2 className="h-4 w-4 animate-spin" />;
