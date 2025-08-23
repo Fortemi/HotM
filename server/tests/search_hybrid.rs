@@ -1,9 +1,11 @@
 use hotm_server::db::AppState;
+use hotm_server::websocket::create_broadcaster;
 
 #[tokio::test]
 async fn hybrid_search_does_not_panic() {
     let db_url = std::env::var("TEST_DATABASE_URL").expect("TEST_DATABASE_URL must be set");
-    let state = AppState::connect(&db_url).await.unwrap();
+    let (broadcaster, _) = create_broadcaster();
+    let state = AppState::connect(&db_url, broadcaster).await.unwrap();
 
     // Should handle empty indices gracefully
     let app = axum::Router::new()

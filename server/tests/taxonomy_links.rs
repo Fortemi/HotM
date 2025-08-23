@@ -1,10 +1,12 @@
 use hotm_server::db::AppState;
+use hotm_server::websocket::create_broadcaster;
 use uuid::Uuid;
 
 #[tokio::test]
 async fn tags_collections_links_roundtrip() {
     let db_url = std::env::var("TEST_DATABASE_URL").expect("TEST_DATABASE_URL must be set");
-    let state = AppState::connect(&db_url).await.unwrap();
+    let (broadcaster, _) = create_broadcaster();
+    let state = AppState::connect(&db_url, broadcaster).await.unwrap();
 
     // create note
     let a = hotm_server::db::insert_note(&state, "alpha", "markdown", "manual")

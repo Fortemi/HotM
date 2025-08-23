@@ -12,7 +12,8 @@ mod tests {
             std::env::var("DATABASE_URL").expect("DATABASE_URL must be set for tests")
         });
 
-        let state = AppState::connect(&database_url)
+        let (broadcaster, _) = hotm_server::websocket::create_broadcaster();
+        let state = AppState::connect(&database_url, broadcaster)
             .await
             .expect("Failed to connect to database");
 
@@ -72,7 +73,8 @@ mod tests {
             std::env::var("DATABASE_URL").expect("DATABASE_URL must be set for tests")
         });
 
-        let state = AppState::connect(&database_url)
+        let (broadcaster, _) = hotm_server::websocket::create_broadcaster();
+        let state = AppState::connect(&database_url, broadcaster)
             .await
             .expect("Failed to connect to database");
 
