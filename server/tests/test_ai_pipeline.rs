@@ -3,7 +3,6 @@ mod tests {
     use hotm_server::db::{fetch_note, insert_note, AppState};
     use std::time::Duration;
     use tokio::time::sleep;
-    use uuid::Uuid;
 
     #[tokio::test]
     async fn test_ai_revision_generation() {
@@ -42,29 +41,26 @@ mod tests {
         );
 
         // Check if revision was generated
-        if let Some(revised) = &note_full.revised {
-            println!("AI Revision generated successfully!");
-            println!("Original: {}", test_content);
-            println!("Revised: {}", revised.content);
+        let revised = &note_full.revised;
+        println!("AI Revision generated successfully!");
+        println!("Original: {}", test_content);
+        println!("Revised: {}", revised.content);
 
-            // Verify revision is different from original (AI enhanced it)
-            assert_ne!(
-                revised.content, test_content,
-                "Revised content should be different from original"
-            );
+        // Verify revision is different from original (AI enhanced it)
+        assert_ne!(
+            revised.content, test_content,
+            "Revised content should be different from original"
+        );
 
-            // Check for markdown formatting (AI should add this)
-            let has_markdown = revised.content.contains("#")
-                || revised.content.contains("**")
-                || revised.content.contains("*")
-                || revised.content.contains("-");
-            assert!(
-                has_markdown,
-                "AI revision should contain markdown formatting"
-            );
-        } else {
-            panic!("No revision found after waiting!");
-        }
+        // Check for markdown formatting (AI should add this)
+        let has_markdown = revised.content.contains("#")
+            || revised.content.contains("**")
+            || revised.content.contains("*")
+            || revised.content.contains("-");
+        assert!(
+            has_markdown,
+            "AI revision should contain markdown formatting"
+        );
     }
 
     #[tokio::test]

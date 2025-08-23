@@ -1,4 +1,3 @@
-use std::time::Duration;
 
 #[tokio::test]
 async fn create_and_get_note_roundtrip() {
