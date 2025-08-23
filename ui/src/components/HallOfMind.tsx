@@ -124,6 +124,7 @@ export function HallOfMind() {
   const [copiedState, setCopiedState] = useState<{ [key: string]: boolean }>({});
   const savedNotes = useRef<Map<string, NoteFull>>(new Map());
   const searchInputRef = useRef<HTMLDivElement>(null);
+  const searchCache = useRef<Map<string, { results: Note[], timestamp: number }>>(new Map());
 
   // Check server health and load initial notes
   useEffect(() => {
@@ -131,6 +132,61 @@ export function HallOfMind() {
     loadExistingNotes();
     loadAvailableTags();
   }, []);
+  
+  // Browser history management
+  useEffect(() => {
+    // Push initial state
+    const state = {
+      noteId: selectedNote?.id,
+      tab: activeTab,
+      searchQuery: searchQuery
+    };
+    window.history.replaceState(state, '');
+    
+    // Handle browser back/forward buttons
+    const handlePopState = (event: PopStateEvent) => {
+      if (event.state) {
+        // Restore previous state
+        if (event.state.noteId) {
+          const note = notes.find(n => n.id === event.state.noteId);
+          if (note) {
+            setSelectedNote(note);
+            setNoteContent(note.content);
+            setRevisedContent(note.revised_content || note.content);
+          }
+        }
+        if (event.state.tab) {
+          setActiveTab(event.state.tab);
+        }
+        if (event.state.searchQuery !== undefined) {
+          setSearchQuery(event.state.searchQuery);
+        }
+      }
+    };
+    
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, [notes]); // Depend on notes to ensure we can find them
+  
+  // Push history state when navigation changes
+  useEffect(() => {
+    // Don't push state on initial load
+    if (window.history.state === null) return;
+    
+    const state = {
+      noteId: selectedNote?.id,
+      tab: activeTab,
+      searchQuery: searchQuery
+    };
+    
+    // Only push if state actually changed
+    const currentState = window.history.state;
+    if (currentState?.noteId !== state.noteId || 
+        currentState?.tab !== state.tab ||
+        currentState?.searchQuery !== state.searchQuery) {
+      window.history.pushState(state, '');
+    }
+  }, [selectedNote?.id, activeTab, searchQuery]);
   
   // Load available tags for filtering
   const loadAvailableTags = async () => {
@@ -613,6 +669,16 @@ export function HallOfMind() {
       setSearchMode("local");
       return;
     }
+    
+    // Check cache first (cache for 5 minutes)
+    const cacheKey = `${query}-${searchMode}`;
+    const cached = searchCache.current.get(cacheKey);
+    if (cached && Date.now() - cached.timestamp < 5 * 60 * 1000) {
+      setSearchResults(cached.results);
+      setShowSearchResults(true);
+      setIsSearching(false);
+      return;
+    }
 
     setIsSearching(true);
     setShowSearchResults(true);
@@ -670,6 +736,8 @@ export function HallOfMind() {
               })
             );
             setSearchResults(fullNotes);
+            // Cache the results
+            searchCache.current.set(`${query}-fts`, { results: fullNotes, timestamp: Date.now() });
             setSearchMode("fts");
           } else {
             // No results, but still in search mode
@@ -730,6 +798,8 @@ export function HallOfMind() {
             })
           );
           setSearchResults(fullNotes);
+          // Cache the results
+          searchCache.current.set(`${query}-hybrid`, { results: fullNotes, timestamp: Date.now() });
           setSearchMode("hybrid");
         } else {
           // No results
@@ -971,7 +1041,7 @@ export function HallOfMind() {
                   <SidebarMenuItem>
                     <SidebarMenuButton
                       onClick={() => setQuickAccessFilter(quickAccessFilter === "starred" ? "all" : "starred")}
-                      className={quickAccessFilter === "starred" ? "bg-accent" : ""}
+                      className={quickAccessFilter === "starred" ? "bg-primary/10" : ""}
                     >
                       <Star className="h-4 w-4" />
                       <span>Starred</span>
@@ -983,7 +1053,7 @@ export function HallOfMind() {
                   <SidebarMenuItem>
                     <SidebarMenuButton
                       onClick={() => setQuickAccessFilter(quickAccessFilter === "recent" ? "all" : "recent")}
-                      className={quickAccessFilter === "recent" ? "bg-accent" : ""}
+                      className={quickAccessFilter === "recent" ? "bg-primary/10" : ""}
                     >
                       <Clock className="h-4 w-4" />
                       <span>Recent</span>
@@ -995,7 +1065,7 @@ export function HallOfMind() {
                   <SidebarMenuItem>
                     <SidebarMenuButton
                       onClick={() => setQuickAccessFilter(quickAccessFilter === "archived" ? "all" : "archived")}
-                      className={quickAccessFilter === "archived" ? "bg-accent" : ""}
+                      className={quickAccessFilter === "archived" ? "bg-primary/10" : ""}
                     >
                       <Archive className="h-4 w-4" />
                       <span>Archived</span>
@@ -1359,7 +1429,7 @@ export function HallOfMind() {
                                     console.error("Failed to refresh note:", error);
                                   }
                                 }}
-                                className={selectedNote?.id === note.id ? "bg-accent" : ""}
+                                className={selectedNote?.id === note.id ? "bg-primary/10 border-l-2 border-l-primary" : ""}
                               >
                                 {processingNotes.has(note.id) && !note.revised_content ? (
                                   <Loader2 className="h-4 w-4 animate-spin text-primary" />
@@ -1435,6 +1505,8 @@ export function HallOfMind() {
                       setSearchQuery("");
                       setShowSearchResults(false);
                       setSearchResults([]);
+                      // Clear cache when clearing search
+                      searchCache.current.clear();
                     }}
                   >
                     <X className="h-3 w-3" />
@@ -1508,26 +1580,32 @@ export function HallOfMind() {
                   return (
                 <Tabs value={activeTab} onValueChange={setActiveTab} className="h-full">
                   <TabsList className="mb-4">
-                    <TabsTrigger value="preview" className="gap-2">
-                      <Sparkles className="h-4 w-4" />
-                      AI Enhanced
-                    </TabsTrigger>
-                    <TabsTrigger value="original" className="gap-2">
-                      <BookOpen className="h-4 w-4" />
-                      Original
-                    </TabsTrigger>
-                    <TabsTrigger value="edit" className="gap-2">
-                      <Edit3 className="h-4 w-4" />
-                      Edit
-                    </TabsTrigger>
-                    <TabsTrigger value="metadata" className="gap-2">
-                      <Hash className="h-4 w-4" />
-                      Metadata
-                    </TabsTrigger>
-                    <TabsTrigger value="search" className="gap-2">
-                      <Search className="h-4 w-4" />
-                      Smart Search
-                    </TabsTrigger>
+                    {activeTab !== 'search' && (
+                      <>
+                        <TabsTrigger value="preview" className="gap-2">
+                          <Sparkles className="h-4 w-4" />
+                          AI Enhanced
+                        </TabsTrigger>
+                        <TabsTrigger value="original" className="gap-2">
+                          <BookOpen className="h-4 w-4" />
+                          Original
+                        </TabsTrigger>
+                        <TabsTrigger value="edit" className="gap-2">
+                          <Edit3 className="h-4 w-4" />
+                          Edit
+                        </TabsTrigger>
+                        <TabsTrigger value="metadata" className="gap-2">
+                          <Hash className="h-4 w-4" />
+                          Metadata
+                        </TabsTrigger>
+                      </>
+                    )}
+                    {activeTab === 'search' && (
+                      <TabsTrigger value="search" className="gap-2">
+                        <Search className="h-4 w-4" />
+                        Search Results
+                      </TabsTrigger>
+                    )}
                   </TabsList>
 
                   <TabsContent value="edit" className="h-full">
@@ -1705,6 +1783,8 @@ export function HallOfMind() {
                           setSelectedNote(note);
                           setNoteContent(note.content);
                           setRevisedContent(note.revised_content || note.content);
+                          // Jump to AI enhanced view
+                          setActiveTab('preview');
                         }
                       }}
                     />

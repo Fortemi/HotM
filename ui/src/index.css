@@ -12,6 +12,17 @@
     color: var(--foreground);
   }
   
+  /* Custom text selection colors */
+  ::selection {
+    background: oklch(0.65 0.2 280 / 0.3);
+    color: var(--foreground);
+  }
+  
+  ::-moz-selection {
+    background: oklch(0.65 0.2 280 / 0.3);
+    color: var(--foreground);
+  }
+  
   /* Subtle scrollbar styling */
   ::-webkit-scrollbar {
     width: 8px;
