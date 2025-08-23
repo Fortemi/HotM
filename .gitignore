@@ -1,28 +1,140 @@
-# Python
-__pycache__/
-*.py[cod]
-*.pyo
-*.pyd
-*.so
-.venv/
+# Environment Variables
 .env
+.env.local
+.env.*.local
+# Keep example files
+!.env.example
 
-# VSCode
+# Build Artifacts
+target/
+dist/
+build/
+*.exe
+*.dll
+*.so
+*.dylib
+
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# Rust
+**/*.rs.bk
+*.pdb
+Cargo.lock
+# Keep Cargo.lock for binary crates
+!/server/Cargo.lock
+
+# IDE
 .vscode/
+.idea/
+*.swp
+*.swo
+*.swn
+.project
+.classpath
+.settings/
 
-# Data
-/data/*.db
-/data/*.sqlite
-/data/*.sqlite3
-/data/notes/
+# OS Files
+.DS_Store
+Thumbs.db
+desktop.ini
 
 # Logs
+*.log
 logs/
+*.log.*
 
-# OS
-.DS_Store
+# Temporary Files
+*.tmp
+*.temp
+*.cache
+*.bak
+*~
+.tmp/
+tmp/
 
-# PlantUML server files (downloaded separately)
-/server/plantuml-server/*.jar
-/server/plantuml-server/*.war
-/server/*.jar
+# Database
+*.db
+*.sqlite
+*.sqlite3
+*.sqlite-journal
+*.sqlite-wal
+
+# Python (if any Python scripts)
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyo
+*.pyd
+.Python
+.venv/
+env/
+venv/
+
+# Testing
+coverage/
+*.lcov
+.nyc_output/
+.coverage
+*.cover
+.hypothesis/
+.pytest_cache/
+
+# PlantUML
+*.jar
+*.war
+plantuml-server/
+
+# Data directories
+/data/notes/
+/data/*.db
+/data/*.sqlite*
+
+# Backup files
+*.backup
+*.old
+*.orig
+
+# macOS
+.AppleDouble
+.LSOverride
+Icon
+._*
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+.AppleDB
+.AppleDesktop
+Network Trash Folder
+Temporary Items
+.apdisk
+
+# Windows
+ehthumbs.db
+ehthumbs_vista.db
+*.stackdump
+[Dd]esktop.ini
+$RECYCLE.BIN/
+*.cab
+*.msi
+*.msix
+*.msm
+*.msp
+*.lnk
+
+# Tauri
+ui/src-tauri/target/
+ui/src-tauri/WixTools/
+
+# Keep important files
+!.gitkeep
+!.github/
+!.sqlx/
