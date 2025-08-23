@@ -19,6 +19,27 @@ HotM is a local-first notes and analysis tool that maintains immutable originals
 **Architecture**: Modular, SOLID principles, fully async
 **Target**: Windows 11 primary, network deployment supported
 
+## Testing Discipline
+
+**MANDATORY: Always run full local tests before any git push**
+
+Before pushing ANY changes to GitHub:
+1. Run `gh act -j backend-tests` from repo root and wait for completion
+2. Run `gh act -j frontend-tests` from repo root and wait for completion
+3. Verify both exit code 0 and all tests passing 
+4. Only push after confirming green local test runs for both backend and frontend
+5. If any tests fail, fix issues and repeat from step 1
+
+**No exceptions - even for "simple" fixes like cache configuration or formatting changes**
+
+### Test Commands Reference
+- **Backend tests**: `gh act -j backend-tests` (includes unit tests, clippy, formatting)
+- **Frontend tests**: `gh act -j frontend-tests` (includes vitest unit tests, type checking, coverage)
+- **Local backend only**: `cd server && cargo test`
+- **Local frontend only**: `cd ui && npm test -- --run`
+
+Integration tests are disabled in CI but must be run locally for full validation.
+
 ## Development Commands
 
 ### Rust Server (Axum API)
