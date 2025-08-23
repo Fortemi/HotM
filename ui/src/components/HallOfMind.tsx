@@ -1834,7 +1834,7 @@ export function HallOfMind() {
                       </div>
                       
                       {/* Related Notes */}
-                      <div>
+                      <div className="h-full">
                         <RelatedNotes 
                           noteId={selectedNote.id} 
                           onSelectNote={async (noteId) => {
