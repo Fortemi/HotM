@@ -1,0 +1,110 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+env:
+  RUST_BACKTRACE: 1
+
+jobs:
+  build-release:
+    name: Build Release Assets
+    runs-on: windows-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '20'
+        cache: 'npm'
+        cache-dependency-path: ui/package-lock.json
+    
+    - name: Install Rust
+      uses: actions-rs/toolchain@v1
+      with:
+        toolchain: stable
+        override: true
+        target: x86_64-pc-windows-msvc
+    
+    - name: Install dependencies
+      run: |
+        cd ui
+        npm ci
+    
+    - name: Build Tauri app
+      run: |
+        cd ui
+        npm run tauri build
+    
+    - name: Locate MSI file
+      shell: powershell
+      run: |
+        $msi = Get-ChildItem -Path "ui/src-tauri/target/release/bundle/msi" -Filter "*.msi" | Sort-Object LastWriteTime -Descending | Select-Object -First 1
+        if ($msi) {
+          echo "MSI_PATH=$($msi.FullName)" >> $env:GITHUB_ENV
+          echo "MSI_NAME=$($msi.Name)" >> $env:GITHUB_ENV
+          Write-Output "Found MSI: $($msi.FullName)"
+        } else {
+          Write-Error "No MSI file found"
+          exit 1
+        }
+    
+    - name: Extract version from tag
+      shell: bash
+      run: |
+        VERSION=${GITHUB_REF#refs/tags/v}
+        echo "VERSION=$VERSION" >> $GITHUB_ENV
+        echo "Release version: $VERSION"
+    
+    - name: Create Release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ github.ref }}
+        release_name: HotM ${{ env.VERSION }}
+        body: |
+          ## HotM ${{ env.VERSION }}
+          
+          ### Download
+          
+          **Windows (MSI Installer)**: Download `${{ env.MSI_NAME }}` below
+          
+          ### Installation
+          
+          1. Download the MSI file
+          2. Run the installer as administrator
+          3. Follow the installation wizard
+          4. HotM will be available in your Start Menu
+          
+          ### System Requirements
+          
+          - Windows 10 or Windows 11
+          - Microsoft Edge WebView2 Runtime (auto-installed)
+          
+          ### Features
+          
+          - Local-first notes with immutable originals
+          - AI-powered revisions and summarization (requires Ollama)
+          - Hybrid search (full-text + semantic)
+          - Automatic link detection
+          - Global hotkey: Ctrl+Alt+H
+          
+          For setup instructions, see the [documentation](https://github.com/${{ github.repository }}/blob/main/CLAUDE.md).
+        draft: false
+        prerelease: false
+    
+    - name: Upload MSI to Release
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ${{ env.MSI_PATH }}
+        asset_name: ${{ env.MSI_NAME }}
+        asset_content_type: application/octet-stream

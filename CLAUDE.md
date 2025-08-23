@@ -39,6 +39,42 @@ Before pushing ANY changes to GitHub:
 
 All shell-based test scripts have been removed - use `gh act` for consistent CI/CD parity.
 
+## Release Process
+
+### Creating a New Release
+
+1. **Bump Version**: Use the version bump script
+```bash
+./scripts/bump_version.sh 0.2.0
+```
+
+2. **Review and Commit**: 
+```bash
+git diff                                    # Review changes
+git add -A && git commit -m "chore: bump version to 0.2.0"
+```
+
+3. **Create and Push Tag**:
+```bash
+git tag v0.2.0                             # Create version tag
+git push origin v0.2.0                     # Trigger release build
+```
+
+4. **Automated Release**: GitHub Actions will:
+   - Build Windows MSI installer
+   - Create GitHub release with changelog
+   - Upload MSI as release asset
+
+### Version Management
+
+Versions are synchronized across:
+- `server/Cargo.toml` (Rust API server)
+- `ui/src-tauri/Cargo.toml` (Tauri app)  
+- `ui/src-tauri/tauri.conf.json` (Tauri config)
+- `ui/package.json` (Node.js frontend)
+- `README.md` (version badge)
+- `docs/02-specifications/api-specification.md`
+
 ## Development Commands
 
 ### Rust Server (Axum API)
