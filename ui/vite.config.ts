@@ -13,6 +13,14 @@ export default defineConfig(async () => ({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  build: {
+    rollupOptions: {
+      external: (id) => {
+        // Exclude test files from production build
+        return id.includes('.test.') || id.includes('__tests__') || id.includes('/test/');
+      }
+    }
+  },
 
   // Vite options tailored for Tauri development and only applied in `tauri dev` or `tauri build`
   //
