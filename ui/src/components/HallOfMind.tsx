@@ -133,19 +133,16 @@ export function HallOfMind() {
     loadAvailableTags();
   }, []);
   
-  // Browser history management
+  // Browser history management with debouncing and navigation lock
+  const navigationLock = useRef(false);
+  const historyTimer = useRef<NodeJS.Timeout | null>(null);
+  
   useEffect(() => {
-    // Push initial state
-    const state = {
-      noteId: selectedNote?.id,
-      tab: activeTab,
-      searchQuery: searchQuery
-    };
-    window.history.replaceState(state, '');
-    
     // Handle browser back/forward buttons
     const handlePopState = (event: PopStateEvent) => {
-      if (event.state) {
+      if (event.state && !navigationLock.current) {
+        navigationLock.current = true;
+        
         // Restore previous state
         if (event.state.noteId) {
           const note = notes.find(n => n.id === event.state.noteId);
@@ -161,31 +158,52 @@ export function HallOfMind() {
         if (event.state.searchQuery !== undefined) {
           setSearchQuery(event.state.searchQuery);
         }
+        
+        // Unlock after a short delay
+        setTimeout(() => {
+          navigationLock.current = false;
+        }, 100);
       }
     };
     
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
-  }, [notes]); // Depend on notes to ensure we can find them
+  }, [notes]);
   
-  // Push history state when navigation changes
+  // Debounced history push - only push after user stops navigating
   useEffect(() => {
-    // Don't push state on initial load
-    if (window.history.state === null) return;
-    
-    const state = {
-      noteId: selectedNote?.id,
-      tab: activeTab,
-      searchQuery: searchQuery
-    };
-    
-    // Only push if state actually changed
-    const currentState = window.history.state;
-    if (currentState?.noteId !== state.noteId || 
-        currentState?.tab !== state.tab ||
-        currentState?.searchQuery !== state.searchQuery) {
-      window.history.pushState(state, '');
+    // Clear any pending history push
+    if (historyTimer.current) {
+      clearTimeout(historyTimer.current);
     }
+    
+    // Don't push if we're in a navigation lock (from popstate)
+    if (navigationLock.current) {
+      return;
+    }
+    
+    // Debounce history pushes by 500ms
+    historyTimer.current = setTimeout(() => {
+      const state = {
+        noteId: selectedNote?.id,
+        tab: activeTab,
+        searchQuery: searchQuery
+      };
+      
+      // Only push if state actually changed significantly
+      const currentState = window.history.state;
+      if (!currentState || 
+          currentState.noteId !== state.noteId || 
+          currentState.tab !== state.tab) {
+        window.history.replaceState(state, '');
+      }
+    }, 500);
+    
+    return () => {
+      if (historyTimer.current) {
+        clearTimeout(historyTimer.current);
+      }
+    };
   }, [selectedNote?.id, activeTab, searchQuery]);
   
   // Load available tags for filtering

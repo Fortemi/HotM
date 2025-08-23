@@ -139,6 +139,7 @@ Use existing tags when appropriate, but create new ones if needed."#,
     tokio::spawn({
         let state = state.clone();
         let metadata = metadata_json.clone();
+        let revised_content = revised_content.clone();  // Add this clone!
         async move {
             if let Err(err) = create_contextual_links(&state, note_id, &revised_content, &metadata).await {
                 tracing::warn!(%note_id, error = %err, "Failed to create contextual links");
@@ -239,15 +240,22 @@ fn parse_ai_response(response: &str) -> (String, serde_json::Value) {
 
 // Embed note content
 async fn embed_note_content(state: &AppState, note_id: Uuid, content: &str) -> anyhow::Result<()> {
+    tracing::info!("Starting embed_note_content for note {}", note_id);
+    
     // Chunk the content
     let chunks = chunk_text(content, 1000);
     
     if chunks.is_empty() {
+        tracing::warn!("No chunks to embed for note {}", note_id);
         return Ok(());
     }
     
+    tracing::info!("Generating embeddings for {} chunks", chunks.len());
+    
     // Generate embeddings
     let embeddings = crate::ollama::embed_texts(chunks.clone(), &state.embed_model).await?;
+    
+    tracing::info!("Generated {} embeddings for note {}", embeddings.len(), note_id);
     
     // Store embeddings
     for (idx, (chunk, embedding)) in chunks.iter().zip(embeddings.iter()).enumerate() {
@@ -263,6 +271,7 @@ async fn embed_note_content(state: &AppState, note_id: Uuid, content: &str) -> a
         ).execute(&state.pool).await?;
     }
     
+    tracing::info!("Successfully stored {} embeddings for note {}", chunks.len(), note_id);
     Ok(())
 }
 
@@ -273,6 +282,9 @@ async fn create_contextual_links(
     content: &str, 
     metadata: &serde_json::Value
 ) -> anyhow::Result<()> {
+    tracing::info!("Starting create_contextual_links for note {}", note_id);
+    tracing::info!("Metadata: {:?}", metadata);
+    
     // Get potential link terms from metadata
     let mut search_terms = Vec::new();
     
@@ -307,11 +319,21 @@ async fn create_contextual_links(
         }
     }
     
+    tracing::info!("Search terms collected: {:?}", search_terms);
+    
     // Find related notes using semantic search
     let content_sample = content.chars().take(500).collect::<String>();
+    tracing::info!("Generating embeddings for semantic search...");
     let embeddings = crate::ollama::embed_texts(vec![content_sample], &state.embed_model).await?;
     
     if let Some(embedding) = embeddings.first() {
+        tracing::info!("Embedding generated, searching for similar notes...");
+        
+        // First check if there are any embeddings in the database
+        let embedding_count = sqlx::query!("SELECT COUNT(*) as count FROM embedding")
+            .fetch_one(&state.pool).await?;
+        tracing::info!("Total embeddings in database: {}", embedding_count.count.unwrap_or(0));
+        
         let vector = pgvector::Vector::from(embedding.clone());
         
         // Find similar notes (excluding archived)
@@ -326,22 +348,53 @@ async fn create_contextual_links(
             &vector.to_vec() as &Vec<f32>, note_id
         ).fetch_all(&state.pool).await?;
         
-        // Create links for highly related notes (similarity > 0.7)
+        tracing::info!("Found {} similar notes", similar_notes.len());
+        
+        // Create reciprocal links for highly related notes (similarity > 0.7)
         for similar in similar_notes {
+            tracing::info!("Checking note {} with similarity {}", similar.note_id, similar.similarity.unwrap_or(0.0));
             if similar.similarity.unwrap_or(0.0) > 0.7 {
-                let link_id = Uuid::new_v4();
-                sqlx::query!(
-                    "INSERT INTO link (id, from_note_id, to_note_id, kind, score, created_at_utc)
-                     VALUES ($1, $2, $3, $4, $5, $6)
-                     ON CONFLICT DO NOTHING",
-                    link_id, note_id, similar.note_id, "semantic", similar.similarity.unwrap_or(0.0) as f32, Utc::now()
-                ).execute(&state.pool).await?;
+                // Check if forward link already exists
+                let existing_forward = sqlx::query!(
+                    "SELECT id FROM link WHERE from_note_id = $1 AND to_note_id = $2 AND kind = $3",
+                    note_id, similar.note_id, "semantic"
+                ).fetch_optional(&state.pool).await?;
+                
+                if existing_forward.is_none() {
+                    // Create link from new note to existing note
+                    let link_id_forward = Uuid::new_v4();
+                    sqlx::query!(
+                        "INSERT INTO link (id, from_note_id, to_note_id, kind, score, created_at_utc)
+                         VALUES ($1, $2, $3, $4, $5, $6)",
+                        link_id_forward, note_id, similar.note_id, "semantic", similar.similarity.unwrap_or(0.0) as f32, Utc::now()
+                    ).execute(&state.pool).await?;
+                    tracing::info!("Created forward semantic link from {} to {}", note_id, similar.note_id);
+                }
+                
+                // Check if backward link already exists
+                let existing_backward = sqlx::query!(
+                    "SELECT id FROM link WHERE from_note_id = $1 AND to_note_id = $2 AND kind = $3",
+                    similar.note_id, note_id, "semantic"
+                ).fetch_optional(&state.pool).await?;
+                
+                if existing_backward.is_none() {
+                    // Create reciprocal link from existing note to new note
+                    let link_id_backward = Uuid::new_v4();
+                    sqlx::query!(
+                        "INSERT INTO link (id, from_note_id, to_note_id, kind, score, created_at_utc)
+                         VALUES ($1, $2, $3, $4, $5, $6)",
+                        link_id_backward, similar.note_id, note_id, "semantic", similar.similarity.unwrap_or(0.0) as f32, Utc::now()
+                    ).execute(&state.pool).await?;
+                    tracing::info!("Created backward semantic link from {} to {}", similar.note_id, note_id);
+                }
             }
         }
     }
     
     // Search for notes containing the search terms (excluding archived)
+    tracing::info!("Searching for keyword-based links with {} terms", search_terms.len());
     for term in search_terms.iter().take(5) {  // Limit to avoid too many links
+        tracing::info!("Searching for notes containing term: {}", term);
         let results = sqlx::query!(
             "SELECT DISTINCT n.id 
              FROM note n
@@ -353,17 +406,44 @@ async fn create_contextual_links(
             note_id, term
         ).fetch_all(&state.pool).await?;
         
+        tracing::info!("Found {} notes for term '{}'", results.len(), term);
+        
         for result in results {
-            let link_id = Uuid::new_v4();
-            sqlx::query!(
-                "INSERT INTO link (id, from_note_id, to_note_id, kind, score, created_at_utc)
-                 VALUES ($1, $2, $3, $4, $5, $6)
-                 ON CONFLICT DO NOTHING",
-                link_id, note_id, result.id, "keyword", 0.5_f32, Utc::now()
-            ).execute(&state.pool).await?;
+            // Check if forward link already exists
+            let existing_forward = sqlx::query!(
+                "SELECT id FROM link WHERE from_note_id = $1 AND to_note_id = $2 AND kind = $3",
+                note_id, result.id, "keyword"
+            ).fetch_optional(&state.pool).await?;
+            
+            if existing_forward.is_none() {
+                // Create link from new note to existing note
+                let link_id_forward = Uuid::new_v4();
+                sqlx::query!(
+                    "INSERT INTO link (id, from_note_id, to_note_id, kind, score, created_at_utc)
+                     VALUES ($1, $2, $3, $4, $5, $6)",
+                    link_id_forward, note_id, result.id, "keyword", 0.5_f32, Utc::now()
+                ).execute(&state.pool).await?;
+            }
+            
+            // Check if backward link already exists
+            let existing_backward = sqlx::query!(
+                "SELECT id FROM link WHERE from_note_id = $1 AND to_note_id = $2 AND kind = $3",
+                result.id, note_id, "keyword"
+            ).fetch_optional(&state.pool).await?;
+            
+            if existing_backward.is_none() {
+                // Create reciprocal link from existing note to new note
+                let link_id_backward = Uuid::new_v4();
+                sqlx::query!(
+                    "INSERT INTO link (id, from_note_id, to_note_id, kind, score, created_at_utc)
+                     VALUES ($1, $2, $3, $4, $5, $6)",
+                    link_id_backward, result.id, note_id, "keyword", 0.5_f32, Utc::now()
+                ).execute(&state.pool).await?;
+            }
         }
     }
     
+    tracing::info!("Finished create_contextual_links for note {}", note_id);
     Ok(())
 }
 

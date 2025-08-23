@@ -2,6 +2,7 @@ use crate::db::AppState;
 use uuid::Uuid;
 use chrono::Utc;
 use serde_json::json;
+use pgvector;
 
 /// Generate AI-enhanced version of a note with separate calls for each component
 pub async fn generate_ai_revision_with_metadata(state: &AppState, note_id: Uuid, content: &str) -> anyhow::Result<()> {
@@ -19,21 +20,25 @@ pub async fn generate_ai_revision_with_metadata(state: &AppState, note_id: Uuid,
     // Step 4: Store everything in the database
     store_enhanced_note(state, note_id, &enhanced_content, &metadata, &tags).await?;
     
-    // Step 5: Create contextual links (async, non-blocking)
+    // Step 5: Generate embeddings FIRST (needed for semantic linking)
+    embed_note_content(state, note_id, &enhanced_content).await?;
+    
+    // Step 6: Create contextual links with both semantic and keyword matching
+    // Run in background but with proper content
     let state_clone = state.clone();
     let metadata_clone = metadata.clone();
+    let enhanced_content_clone = enhanced_content.clone();
     tokio::spawn(async move {
-        if let Err(err) = create_contextual_links(&state_clone, note_id, &metadata_clone).await {
+        // Wait a bit to ensure embeddings are committed
+        tokio::time::sleep(tokio::time::Duration::from_millis(500)).await;
+        
+        if let Err(err) = create_contextual_links(&state_clone, note_id, &enhanced_content_clone, &metadata_clone).await {
             tracing::warn!(%note_id, error = %err, "Failed to create contextual links");
         }
-    });
-    
-    // Step 6: Generate embeddings (async, non-blocking)
-    let state_clone = state.clone();
-    let content_clone = enhanced_content.clone();
-    tokio::spawn(async move {
-        if let Err(err) = embed_note_content(&state_clone, note_id, &content_clone).await {
-            tracing::warn!(%note_id, error = %err, "Failed to generate embeddings");
+        
+        // Step 7: After links are created, update the AI content with linked article context
+        if let Err(err) = update_with_linked_context(&state_clone, note_id).await {
+            tracing::warn!(%note_id, error = %err, "Failed to update with linked context");
         }
     });
     
@@ -212,13 +217,69 @@ async fn store_enhanced_note(
     Ok(())
 }
 
-/// Create contextual links to related notes
+/// Create contextual links to related notes (both semantic and keyword-based)
 async fn create_contextual_links(
     state: &AppState,
     note_id: Uuid,
+    content: &str,
     metadata: &serde_json::Value
 ) -> anyhow::Result<()> {
-    // Extract potential link terms from metadata
+    tracing::info!("Creating contextual links for note {}", note_id);
+    
+    // Part 1: Semantic linking using embeddings
+    let content_sample = content.chars().take(500).collect::<String>();
+    let embeddings = crate::ollama::embed_texts(vec![content_sample], &state.embed_model).await?;
+    
+    if let Some(embedding) = embeddings.first() {
+        let vector = pgvector::Vector::from(embedding.clone());
+        
+        // Find similar notes
+        let similar_notes = sqlx::query!(
+            "SELECT DISTINCT e.note_id, 1.0 - (e.vector <=> $1::vector) as similarity
+             FROM embedding e
+             JOIN note n ON n.id = e.note_id
+             WHERE e.note_id != $2 
+             AND (n.archived IS FALSE OR n.archived IS NULL)
+             ORDER BY similarity DESC
+             LIMIT 10",
+            &vector.to_vec() as &Vec<f32>, note_id
+        ).fetch_all(&state.pool).await?;
+        
+        tracing::info!("Found {} semantically similar notes", similar_notes.len());
+        
+        // Create reciprocal semantic links for highly similar notes
+        for similar in similar_notes {
+            if similar.similarity.unwrap_or(0.0) > 0.7 {
+                // Forward link (new -> old)
+                let link_id_forward = Uuid::new_v4();
+                sqlx::query!(
+                    "INSERT INTO link (id, from_note_id, to_note_id, to_url, kind, score, created_at_utc)
+                     SELECT $1, $2, $3, NULL, 'semantic', $4, $5
+                     WHERE NOT EXISTS (
+                         SELECT 1 FROM link 
+                         WHERE from_note_id = $2 AND to_note_id = $3 AND kind = 'semantic'
+                     )",
+                    link_id_forward, note_id, similar.note_id, similar.similarity.unwrap_or(0.0) as f32, Utc::now()
+                ).execute(&state.pool).await?;
+                
+                // Backward link (old -> new)
+                let link_id_backward = Uuid::new_v4();
+                sqlx::query!(
+                    "INSERT INTO link (id, from_note_id, to_note_id, to_url, kind, score, created_at_utc)
+                     SELECT $1, $2, $3, NULL, 'semantic', $4, $5
+                     WHERE NOT EXISTS (
+                         SELECT 1 FROM link 
+                         WHERE from_note_id = $2 AND to_note_id = $3 AND kind = 'semantic'
+                     )",
+                    link_id_backward, similar.note_id, note_id, similar.similarity.unwrap_or(0.0) as f32, Utc::now()
+                ).execute(&state.pool).await?;
+                
+                tracing::info!("Created reciprocal semantic links between {} and {}", note_id, similar.note_id);
+            }
+        }
+    }
+    
+    // Part 2: Keyword-based linking
     let mut search_terms = Vec::new();
     
     if let Some(keywords) = metadata.get("keywords").and_then(|v| v.as_array()) {
@@ -237,23 +298,109 @@ async fn create_contextual_links(
         }
     }
     
+    tracing::info!("Searching for keyword links with {} terms", search_terms.len());
+    
     // Search for related notes using each term
     for term in search_terms.iter().take(5) {
-        let results = crate::db::search_fts(state, term, 3).await?;
+        let results = sqlx::query!(
+            "SELECT DISTINCT n.id 
+             FROM note n
+             JOIN note_revised_current nrc ON nrc.note_id = n.id
+             WHERE n.id != $1 
+             AND nrc.tsv @@ plainto_tsquery('english', $2)
+             AND (n.archived IS FALSE OR n.archived IS NULL)
+             LIMIT 5",
+            note_id, term
+        ).fetch_all(&state.pool).await?;
         
-        for hit in results {
-            if hit.note_id != note_id && hit.score > 0.5 {
-                let link_id = Uuid::new_v4();
-                sqlx::query!(
-                    "INSERT INTO link (id, from_note_id, to_note_id, to_url, kind, score, created_at_utc)
-                     VALUES ($1, $2, $3, NULL, 'contextual', $4, $5)
-                     ON CONFLICT DO NOTHING",
-                    link_id, note_id, hit.note_id, hit.score, Utc::now()
-                ).execute(&state.pool).await?;
-            }
+        for result in results {
+            // Forward link (new -> old)
+            let link_id_forward = Uuid::new_v4();
+            sqlx::query!(
+                "INSERT INTO link (id, from_note_id, to_note_id, to_url, kind, score, created_at_utc)
+                 SELECT $1, $2, $3, NULL, 'keyword', 0.5, $4
+                 WHERE NOT EXISTS (
+                     SELECT 1 FROM link 
+                     WHERE from_note_id = $2 AND to_note_id = $3 AND kind = 'keyword'
+                 )",
+                link_id_forward, note_id, result.id, Utc::now()
+            ).execute(&state.pool).await?;
+            
+            // Backward link (old -> new)
+            let link_id_backward = Uuid::new_v4();
+            sqlx::query!(
+                "INSERT INTO link (id, from_note_id, to_note_id, to_url, kind, score, created_at_utc)
+                 SELECT $1, $2, $3, NULL, 'keyword', 0.5, $4
+                 WHERE NOT EXISTS (
+                     SELECT 1 FROM link 
+                     WHERE from_note_id = $2 AND to_note_id = $3 AND kind = 'keyword'
+                 )",
+                link_id_backward, result.id, note_id, Utc::now()
+            ).execute(&state.pool).await?;
+            
+            tracing::info!("Created reciprocal keyword links between {} and {}", note_id, result.id);
         }
     }
     
+    tracing::info!("Finished creating contextual links for note {}", note_id);
+    Ok(())
+}
+
+/// Update the AI-enhanced content with context from linked notes
+async fn update_with_linked_context(state: &AppState, note_id: Uuid) -> anyhow::Result<()> {
+    tracing::info!("Updating note {} with linked context", note_id);
+    
+    // Get the best semantic links
+    let links = sqlx::query!(
+        "SELECT l.to_note_id, l.score, nrc.content
+         FROM link l
+         JOIN note_revised_current nrc ON nrc.note_id = l.to_note_id
+         WHERE l.from_note_id = $1 AND l.kind = 'semantic' AND l.score > 0.75
+         ORDER BY l.score DESC
+         LIMIT 3",
+        note_id
+    ).fetch_all(&state.pool).await?;
+    
+    if links.is_empty() {
+        tracing::info!("No high-quality links found for context update");
+        return Ok(());
+    }
+    
+    // Get current enhanced content
+    let current = sqlx::query!(
+        "SELECT content FROM note_revised_current WHERE note_id = $1",
+        note_id
+    ).fetch_one(&state.pool).await?;
+    
+    // Build context from linked notes
+    let mut linked_context = String::new();
+    for link in links {
+        // Take first 200 chars as context
+        let preview = link.content.chars().take(200).collect::<String>();
+        linked_context.push_str(&format!("\n- Related note (similarity {:.0}%): {}\n", 
+            link.score * 100.0, preview));
+    }
+    
+    // Generate updated content with context
+    let prompt = format!(
+        "You have an enhanced note that has been linked to related notes. \
+Add a 'Related Context' section at the end that briefly mentions the connections.\n\n\
+Current Enhanced Note:\n{}\n\n\
+Related Notes Found:\n{}\n\n\
+Add a brief '## Related Context' section at the end that mentions these connections naturally.\n\
+Keep it concise (2-3 sentences). Output the full note with the new section added.",
+        current.content, linked_context
+    );
+    
+    let updated_content = crate::ollama::generate(&state.gen_model, &prompt).await?;
+    
+    // Update the enhanced content
+    sqlx::query!(
+        "UPDATE note_revised_current SET content = $1 WHERE note_id = $2",
+        updated_content, note_id
+    ).execute(&state.pool).await?;
+    
+    tracing::info!("Successfully updated note {} with linked context", note_id);
     Ok(())
 }
 
