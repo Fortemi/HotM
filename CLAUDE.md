@@ -21,24 +21,23 @@ HotM is a local-first notes and analysis tool that maintains immutable originals
 
 ## Testing Discipline
 
-**MANDATORY: Always run full local tests before any git push**
+**Act (GitHub Actions locally) is the AUTHORITATIVE standard for all testing**
 
 Before pushing ANY changes to GitHub:
 1. Run `gh act -j backend-tests` from repo root and wait for completion
-2. Run `gh act -j frontend-tests` from repo root and wait for completion
-3. Verify both exit code 0 and all tests passing 
+2. Run `gh act -j frontend-tests` from repo root and wait for completion  
+3. Verify both exit code 0 and all tests passing
 4. Only push after confirming green local test runs for both backend and frontend
 5. If any tests fail, fix issues and repeat from step 1
 
-**No exceptions - even for "simple" fixes like cache configuration or formatting changes**
+**No exceptions - even for "simple" fixes. Act tests are the single source of truth.**
 
-### Test Commands Reference
-- **Backend tests**: `gh act -j backend-tests` (includes unit tests, clippy, formatting)
-- **Frontend tests**: `gh act -j frontend-tests` (includes vitest unit tests, type checking, coverage)
-- **Local backend only**: `cd server && cargo test`
-- **Local frontend only**: `cd ui && npm test -- --run`
+### Standard Test Commands (Use These)
+- **Full backend validation**: `gh act -j backend-tests` (Rust tests, clippy, formatting, security audit)
+- **Full frontend validation**: `gh act -j frontend-tests` (React tests, TypeScript build, coverage, security audit)
+- **Quick local iteration**: `cd server && cargo test` or `cd ui && npm test -- --run`
 
-Integration tests are disabled in CI but must be run locally for full validation.
+All shell-based test scripts have been removed - use `gh act` for consistent CI/CD parity.
 
 ## Development Commands
 
@@ -51,9 +50,8 @@ export DATABASE_URL=postgres://user:pass@localhost:5432/hotm_dev
 cd server
 RUST_LOG=hotm_server=info,axum=info cargo run
 
-# Run tests
-cd server
-cargo test
+# Run tests (use act for full validation)
+gh act -j backend-tests
 
 # One-command setup and run (checks Ollama, pulls models, ensures pgvector)
 ./scripts/dev_server.sh
@@ -78,25 +76,21 @@ npm run typecheck
 # Linting
 npm run lint
 
-# Run Playwright tests
-npm run test
+# Run tests (use act for full validation)
+gh act -j frontend-tests
 ```
 
-### Testing
+### Testing (Use Act - Authoritative Standard)
 ```bash
-# Run all tests with coverage
-cd server
-cargo test
-cargo tarpaulin --out Html
+# STANDARD: Run full backend test suite (includes tests, clippy, formatting, security)
+gh act -j backend-tests
 
-# Run specific test suites
-cargo test unit::
-cargo test integration::
+# STANDARD: Run full frontend test suite (includes tests, build, coverage, security)  
+gh act -j frontend-tests
 
-# UI tests
-cd ui
-npm run test
-npm run test:e2e
+# Quick local iteration only (not comprehensive)
+cd server && cargo test        # Basic Rust unit tests only
+cd ui && npm test -- --run     # Basic React unit tests only
 ```
 
 ### Database Setup
