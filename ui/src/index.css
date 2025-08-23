@@ -11,6 +11,32 @@
     background-color: var(--background);
     color: var(--foreground);
   }
+  
+  /* Subtle scrollbar styling */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  
+  ::-webkit-scrollbar-thumb {
+    background: oklch(0.8 0.02 280 / 0.3);
+    border-radius: 4px;
+    transition: background 0.2s;
+  }
+  
+  ::-webkit-scrollbar-thumb:hover {
+    background: oklch(0.7 0.02 280 / 0.5);
+  }
+  
+  /* Firefox scrollbar styling */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: oklch(0.8 0.02 280 / 0.3) transparent;
+  }
 }
 
 :root {
@@ -80,4 +106,17 @@
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.556 0 0);
+}
+
+/* Dark mode scrollbar styling */
+.dark ::-webkit-scrollbar-thumb {
+  background: oklch(0.4 0.02 280 / 0.3);
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: oklch(0.5 0.02 280 / 0.5);
+}
+
+.dark {
+  scrollbar-color: oklch(0.4 0.02 280 / 0.3) transparent;
 }

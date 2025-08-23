@@ -25,6 +25,7 @@ interface SearchDropdownProps {
   searchResults: Note[];
   onSelectNote: (note: Note) => void;
   onClose: () => void;
+  onViewAll?: () => void;
   anchorRef?: React.RefObject<HTMLDivElement | null>;
   savedNotes?: Map<string, any>; // Access to full note data with AI metadata
 }
@@ -37,6 +38,7 @@ export function SearchDropdown({
   searchResults,
   onSelectNote,
   onClose,
+  onViewAll,
   anchorRef,
   savedNotes
 }: SearchDropdownProps) {
@@ -261,9 +263,12 @@ export function SearchDropdown({
                 })}
                 
                 {/* Show "View all results" if there are more results */}
-                {searchResults.length >= 5 && (
+                {searchResults.length >= 5 && onViewAll && (
                   <div className="px-4 py-3 border-t bg-muted/30">
-                    <button className="w-full text-center text-sm text-primary hover:underline">
+                    <button 
+                      className="w-full text-center text-sm text-primary hover:underline"
+                      onClick={onViewAll}
+                    >
                       Press Enter to view all results →
                     </button>
                   </div>

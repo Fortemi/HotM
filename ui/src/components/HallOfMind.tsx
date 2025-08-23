@@ -1414,7 +1414,13 @@ export function HallOfMind() {
                   onChange={(e) => setSearchQuery(e.target.value)}
                   onKeyDown={(e) => {
                     if (e.key === 'Enter' && searchQuery) {
-                      // Navigate to search tab
+                      // Navigate to search tab - select first note if none selected
+                      if (!selectedNote && notes.length > 0) {
+                        const firstNote = notes[0];
+                        setSelectedNote(firstNote);
+                        setNoteContent(firstNote.content);
+                        setRevisedContent(firstNote.revised_content || firstNote.content);
+                      }
                       setActiveTab('search');
                       setShowSearchResults(false);
                     }
@@ -1452,6 +1458,17 @@ export function HallOfMind() {
                     setShowSearchResults(false);
                   }}
                   onClose={() => setShowSearchResults(false)}
+                  onViewAll={() => {
+                    // Navigate to search tab
+                    if (!selectedNote && notes.length > 0) {
+                      const firstNote = notes[0];
+                      setSelectedNote(firstNote);
+                      setNoteContent(firstNote.content);
+                      setRevisedContent(firstNote.revised_content || firstNote.content);
+                    }
+                    setActiveTab('search');
+                    setShowSearchResults(false);
+                  }}
                   anchorRef={searchInputRef}
                   savedNotes={savedNotes.current}
                 />
