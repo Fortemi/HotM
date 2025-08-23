@@ -28,6 +28,11 @@ jobs:
           --health-retries 5
         ports:
           - 5433:5432
+      
+      ollama:
+        image: ollama/ollama:latest
+        ports:
+          - 11434:11434
     
     steps:
     - uses: actions/checkout@v3
@@ -75,6 +80,13 @@ jobs:
         TEST_DATABASE_URL: postgres://postgres:postgres@localhost:5433
         DB_PORT: 5433
     
+    - name: Setup Ollama models
+      run: |
+        # Pull required models
+        docker exec ${{ job.services.ollama.id }} ollama pull nomic-embed-text || true
+        # Use a smaller model for testing
+        docker exec ${{ job.services.ollama.id }} ollama pull tinyllama || true
+    
     - name: Run clippy
       run: |
         cd server
@@ -100,6 +112,9 @@ jobs:
       env:
         DATABASE_URL: postgres://postgres:postgres@localhost:5433/hotm_test
         TEST_DATABASE_URL: postgres://postgres:postgres@localhost:5433
+        OLLAMA_URL: http://localhost:11434
+        OLLAMA_GENERATION_MODEL: tinyllama
+        OLLAMA_EMBEDDING_MODEL: nomic-embed-text
         RUST_LOG: debug
         RUST_BACKTRACE: 1
     
