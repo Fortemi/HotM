@@ -1696,11 +1696,15 @@ export function HallOfMind() {
 
                   <TabsContent value="search">
                     <EnhancedSearch 
+                      searchQuery={searchQuery}
+                      searchMode={searchMode === 'local' ? 'hybrid' : searchMode as 'hybrid' | 'fts' | 'semantic'}
+                      onSearchModeChange={(mode) => setSearchMode(mode)}
                       onSelectNote={(noteId) => {
                         const note = notes.find(n => n.id === noteId);
                         if (note) {
                           setSelectedNote(note);
                           setNoteContent(note.content);
+                          setRevisedContent(note.revised_content || note.content);
                         }
                       }}
                     />

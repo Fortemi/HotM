@@ -1,5 +1,4 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
-import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -9,11 +8,12 @@ import { Search, Sparkles, FileText, Hash, Loader2, Star, Archive, Clock } from 
 
 interface EnhancedSearchProps {
   onSelectNote: (noteId: string) => void;
+  searchQuery: string;
+  searchMode: 'hybrid' | 'fts' | 'semantic';
+  onSearchModeChange: (mode: 'hybrid' | 'fts' | 'semantic') => void;
 }
 
-export function EnhancedSearch({ onSelectNote }: EnhancedSearchProps) {
-  const [query, setQuery] = useState('');
-  const [searchMode, setSearchMode] = useState<'hybrid' | 'fts' | 'semantic'>('hybrid');
+export function EnhancedSearch({ onSelectNote, searchQuery, searchMode, onSearchModeChange }: EnhancedSearchProps) {
   const [results, setResults] = useState<SearchHit[]>([]);
   const [fullNotes, setFullNotes] = useState<Map<string, NoteFull>>(new Map());
   const [loading, setLoading] = useState(false);
@@ -68,14 +68,14 @@ export function EnhancedSearch({ onSelectNote }: EnhancedSearchProps) {
     }
   }, []);
 
-  // Handle input change with debouncing
+  // Handle search when query or mode changes
   useEffect(() => {
     if (searchTimeout.current) {
       clearTimeout(searchTimeout.current);
     }
     
     searchTimeout.current = setTimeout(() => {
-      performSearch(query, searchMode);
+      performSearch(searchQuery, searchMode);
     }, 300);
 
     return () => {
@@ -83,35 +83,24 @@ export function EnhancedSearch({ onSelectNote }: EnhancedSearchProps) {
         clearTimeout(searchTimeout.current);
       }
     };
-  }, [query, searchMode, performSearch]);
+  }, [searchQuery, searchMode, performSearch]);
 
   return (
     <Card className="w-full">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Search className="h-5 w-5" />
-          Intelligent Search
+          Search Results
+          {loading && <Loader2 className="h-5 w-5 animate-spin text-muted-foreground ml-2" />}
         </CardTitle>
         <CardDescription>
-          Search across all your notes with AI-enhanced relevance
+          {searchQuery ? `Searching for "${searchQuery}"` : 'Enter a search query above to find notes'}
         </CardDescription>
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
-          {/* Search Input */}
-          <div className="flex gap-2">
-            <Input
-              type="text"
-              placeholder="Search your mind..."
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              className="flex-1"
-            />
-            {loading && <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />}
-          </div>
-
           {/* Search Mode Tabs */}
-          <Tabs value={searchMode} onValueChange={(v) => setSearchMode(v as any)}>
+          <Tabs value={searchMode} onValueChange={(v) => onSearchModeChange(v as any)}>
             <TabsList className="grid w-full grid-cols-3">
               <TabsTrigger value="hybrid" className="text-xs">
                 <Sparkles className="h-3 w-3 mr-1" />
@@ -283,10 +272,10 @@ export function EnhancedSearch({ onSelectNote }: EnhancedSearchProps) {
           )}
 
           {/* No Results */}
-          {!loading && query && results.length === 0 && (
+          {!loading && searchQuery && results.length === 0 && (
             <div className="text-center py-8 text-muted-foreground">
               <Search className="h-8 w-8 mx-auto mb-2 opacity-50" />
-              <p className="text-sm">No notes found matching "{query}"</p>
+              <p className="text-sm">No notes found matching "{searchQuery}"</p>
               <p className="text-xs mt-1">Try different keywords or search modes</p>
             </div>
           )}
