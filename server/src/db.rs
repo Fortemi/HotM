@@ -2,6 +2,7 @@ use sqlx::{Pool, Postgres, Row};
 use uuid::Uuid;
 use chrono::{DateTime, Utc};
 use crate::models::*;
+use crate::websocket::WsBroadcaster;
 use sha2::{Sha256, Digest};
 use hex;
 
@@ -14,10 +15,11 @@ pub struct AppState {
     pub embed_model: String,
     pub ollama_base: String,
     pub gen_model: String,
+    pub ws_broadcaster: WsBroadcaster,
 }
 
 impl AppState {
-    pub async fn connect(url: &str) -> anyhow::Result<Self> {
+    pub async fn connect(url: &str, ws_broadcaster: WsBroadcaster) -> anyhow::Result<Self> {
         let pool = sqlx::postgres::PgPoolOptions::new()
             .max_connections(10)
             .connect(url)
@@ -27,7 +29,7 @@ impl AppState {
         let embed_model = std::env::var("OLLAMA_EMBED_MODEL").unwrap_or_else(|_| DEFAULT_EMBED_MODEL.to_string());
         let gen_model = std::env::var("OLLAMA_GEN_MODEL").unwrap_or_else(|_| DEFAULT_GEN_MODEL.to_string());
         let ollama_base = std::env::var("OLLAMA_BASE").unwrap_or_else(|_| "http://127.0.0.1:11434".to_string());
-        Ok(Self { pool, embed_model, ollama_base, gen_model })
+        Ok(Self { pool, embed_model, ollama_base, gen_model, ws_broadcaster })
     }
 }
 

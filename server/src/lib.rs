@@ -5,3 +5,4 @@ pub mod job_queue;
 pub mod models;
 pub mod routes;
 pub mod ollama;
+pub mod websocket;

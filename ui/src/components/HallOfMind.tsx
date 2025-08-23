@@ -70,6 +70,7 @@ import { EnhancedSearch } from "./EnhancedSearch";
 import { NoteContextMenu, useGlobalContextMenuPrevention } from "./NoteContextMenu";
 import { DeleteNoteDialog } from "./DeleteNoteDialog";
 import { SearchDropdown } from "./SearchDropdown";
+import JobQueueMonitor from "./JobQueueMonitor";
 
 export interface Note {
   id: string;
@@ -1908,17 +1909,22 @@ export function HallOfMind() {
                 })()}
               </div>
             ) : (
-              <div className="flex h-full items-center justify-center">
-                <div className="text-center">
-                  <Brain className="mx-auto h-12 w-12 text-muted-foreground" />
-                  <h3 className="mt-4 text-lg font-medium">No note selected</h3>
-                  <p className="mt-2 text-sm text-muted-foreground">
-                    Create a new note or select an existing one to get started
-                  </p>
-                  <Button onClick={createNewNote} className="mt-4">
-                    <Plus className="mr-2 h-4 w-4" />
-                    Create New Note
-                  </Button>
+              <div className="flex flex-col h-full gap-6">
+                <div className="flex-1 flex items-center justify-center">
+                  <div className="text-center">
+                    <Brain className="mx-auto h-12 w-12 text-muted-foreground" />
+                    <h3 className="mt-4 text-lg font-medium">No note selected</h3>
+                    <p className="mt-2 text-sm text-muted-foreground">
+                      Create a new note or select an existing one to get started
+                    </p>
+                    <Button onClick={createNewNote} className="mt-4">
+                      <Plus className="mr-2 h-4 w-4" />
+                      Create New Note
+                    </Button>
+                  </div>
+                </div>
+                <div className="max-w-2xl mx-auto w-full">
+                  <JobQueueMonitor />
                 </div>
               </div>
             )}

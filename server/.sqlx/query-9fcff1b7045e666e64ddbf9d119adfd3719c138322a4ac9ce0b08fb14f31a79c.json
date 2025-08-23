@@ -1,0 +1,32 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        SELECT \n            COUNT(*) FILTER (WHERE status = 'pending') as \"pending!\",\n            COUNT(*) FILTER (WHERE status = 'running') as \"running!\",\n            COUNT(*) as \"total!\"\n        FROM job_queue\n        WHERE status IN ('pending', 'running')\n        ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "pending!",
+        "type_info": "Int8"
+      },
+      {
+        "ordinal": 1,
+        "name": "running!",
+        "type_info": "Int8"
+      },
+      {
+        "ordinal": 2,
+        "name": "total!",
+        "type_info": "Int8"
+      }
+    ],
+    "parameters": {
+      "Left": []
+    },
+    "nullable": [
+      null,
+      null,
+      null
+    ]
+  },
+  "hash": "9fcff1b7045e666e64ddbf9d119adfd3719c138322a4ac9ce0b08fb14f31a79c"
+}

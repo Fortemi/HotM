@@ -171,6 +171,7 @@ CREATE TABLE IF NOT EXISTS job_queue (
   estimated_duration_ms INTEGER,
   actual_duration_ms INTEGER,
   progress_percent INTEGER NOT NULL DEFAULT 0,
+  progress_message TEXT,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   started_at TIMESTAMPTZ,
   completed_at TIMESTAMPTZ,

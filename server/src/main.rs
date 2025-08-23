@@ -1,6 +1,6 @@
 use axum::{Router};
 use axum::routing::{get, post, put, delete};
-use hotm_server::{db::AppState, routes, job_queue};
+use hotm_server::{db::AppState, routes, job_queue, websocket};
 use std::net::SocketAddr;
 use std::sync::Arc;
 use tower_http::cors::{CorsLayer, Any};
@@ -20,7 +20,10 @@ async fn main() -> anyhow::Result<()> {
     let database_url = std::env::var("DATABASE_URL")
         .expect("DATABASE_URL must be set (e.g., postgres://user:pass@host:5432/db)");
 
-    let state = AppState::connect(&database_url).await?;
+    // Create WebSocket broadcaster
+    let (ws_broadcaster, _rx) = websocket::create_broadcaster();
+    
+    let state = AppState::connect(&database_url, ws_broadcaster).await?;
     let state_arc = Arc::new(state.clone());
     
     // Start the job queue processor
@@ -67,6 +70,7 @@ async fn main() -> anyhow::Result<()> {
         .route("/api/v1/jobs/:id", get(routes::jobs::get_job_status))
         .route("/api/v1/jobs/:id/cancel", post(routes::jobs::cancel_job))
         .route("/api/v1/notes/:id/jobs", get(routes::jobs::get_note_jobs))
+        .route("/api/v1/ws", get(websocket::ws_handler))
         .with_state(state)
         .layer(cors);
 

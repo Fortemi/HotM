@@ -1,4 +1,5 @@
 use crate::db::AppState;
+use crate::websocket::{WsMessage, broadcast_message};
 use uuid::Uuid;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
@@ -174,6 +175,16 @@ impl JobQueueManager {
     async fn process_job(&self, job: Job) -> anyhow::Result<()> {
         let start_time = std::time::Instant::now();
         
+        // Broadcast job started
+        broadcast_message(
+            &self.state.ws_broadcaster,
+            WsMessage::JobStarted {
+                job_id: job.id,
+                job_type: format!("{:?}", job.job_type),
+                estimated_duration_ms: job.estimated_duration_ms.map(|d| d as i64),
+            }
+        );
+        
         // Update progress
         self.update_progress(&job.id, 0, Some("Starting job")).await?;
 
@@ -209,11 +220,30 @@ impl JobQueueManager {
                 // Record in history for estimation
                 self.record_job_history(&job.job_type, duration_ms, true).await?;
                 
+                // Broadcast job completed
+                broadcast_message(
+                    &self.state.ws_broadcaster,
+                    WsMessage::JobCompleted {
+                        job_id: job.id,
+                        duration_ms: duration_ms as i64,
+                    }
+                );
+                
                 info!("Job {} completed in {}ms", job.id, duration_ms);
             }
             Err(e) => {
                 let error_msg = format!("{}", e);
                 warn!("Job {} failed: {}", job.id, error_msg);
+                
+                // Broadcast job failed
+                broadcast_message(
+                    &self.state.ws_broadcaster,
+                    WsMessage::JobFailed {
+                        job_id: job.id,
+                        error: error_msg.clone(),
+                        retry_count: job.retry_count,
+                    }
+                );
 
                 // Check if we should retry
                 if job.retry_count < job.max_retries {
@@ -371,16 +401,26 @@ impl JobQueueManager {
         sqlx::query!(
             r#"
             UPDATE job_queue
-            SET progress_percent = $1
-            WHERE id = $2
+            SET progress_percent = $1, progress_message = $2
+            WHERE id = $3
             "#,
             percent,
+            message,
             job_id
         )
         .execute(&self.pool)
         .await?;
 
-        // Broadcast progress update (would connect to WebSocket here)
+        // Broadcast progress update via WebSocket
+        broadcast_message(
+            &self.state.ws_broadcaster,
+            WsMessage::JobProgress {
+                job_id: *job_id,
+                progress_percent: percent,
+                message: message.map(String::from),
+            }
+        );
+        
         info!("Job {} progress: {}% - {:?}", job_id, percent, message);
         
         Ok(())
