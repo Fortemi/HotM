@@ -1,5 +1,6 @@
 use hotm_server::db::AppState;
 use hotm_server::websocket::create_broadcaster;
+use tower::util::ServiceExt;
 
 #[tokio::test]
 async fn hybrid_search_does_not_panic() {
