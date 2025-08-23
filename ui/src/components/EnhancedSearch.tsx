@@ -4,8 +4,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
-import { api, SearchHit } from '@/services/api';
-import { Search, Sparkles, FileText, Hash, Loader2 } from 'lucide-react';
+import { api, SearchHit, NoteFull } from '@/services/api';
+import { Search, Sparkles, FileText, Hash, Loader2, Star, Archive, Clock } from 'lucide-react';
 
 interface EnhancedSearchProps {
   onSelectNote: (noteId: string) => void;
@@ -15,6 +15,7 @@ export function EnhancedSearch({ onSelectNote }: EnhancedSearchProps) {
   const [query, setQuery] = useState('');
   const [searchMode, setSearchMode] = useState<'hybrid' | 'fts' | 'semantic'>('hybrid');
   const [results, setResults] = useState<SearchHit[]>([]);
+  const [fullNotes, setFullNotes] = useState<Map<string, NoteFull>>(new Map());
   const [loading, setLoading] = useState(false);
   const [llmContext, setLlmContext] = useState<string>('');
   const searchTimeout = useRef<NodeJS.Timeout | null>(null);
@@ -32,6 +33,20 @@ export function EnhancedSearch({ onSelectNote }: EnhancedSearchProps) {
       const results = await api.searchNotes(searchQuery, mode);
       setResults(results);
       
+      // Fetch full note data for better display
+      const notesMap = new Map<string, NoteFull>();
+      await Promise.all(
+        results.slice(0, 20).map(async (hit) => {
+          try {
+            const fullNote = await api.getNote(hit.note_id);
+            notesMap.set(hit.note_id, fullNote);
+          } catch (error) {
+            console.error(`Failed to load note ${hit.note_id}:`, error);
+          }
+        })
+      );
+      setFullNotes(notesMap);
+      
       // If hybrid mode and we have results, generate LLM context
       if (mode === 'hybrid' && results.length > 0) {
         try {
@@ -46,6 +61,7 @@ export function EnhancedSearch({ onSelectNote }: EnhancedSearchProps) {
     } catch (error) {
       console.error('Search failed:', error);
       setResults([]);
+      setFullNotes(new Map());
       setLlmContext('');
     } finally {
       setLoading(false);
@@ -150,58 +166,118 @@ export function EnhancedSearch({ onSelectNote }: EnhancedSearchProps) {
 
           {/* Search Results */}
           {results.length > 0 && (
-            <ScrollArea className="h-[300px]">
-              <div className="space-y-2">
-                {results.map((hit) => (
-                  <button
-                    key={hit.note_id}
-                    onClick={() => onSelectNote(hit.note_id)}
-                    className="w-full text-left p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors border-b last:border-0"
-                  >
-                    <div className="space-y-2">
-                      {/* Title */}
-                      <div className="font-medium text-sm line-clamp-1">
-                        {hit.snippet?.split('\n')[0].substring(0, 50) || 'Untitled Note'}
-                      </div>
-                      
-                      {/* Content snippet */}
-                      {hit.snippet && (
-                        <div className="text-xs text-muted-foreground line-clamp-2">
-                          {hit.snippet}
+            <ScrollArea className="h-[500px]">
+              <div className="space-y-3 p-2">
+                {results.map((hit) => {
+                  const fullNote = fullNotes.get(hit.note_id);
+                  const aiMetadata = (fullNote?.revised as any)?.ai_metadata;
+                  const categories = aiMetadata?.categories || [];
+                  const topics = aiMetadata?.topics || [];
+                  const tags = fullNote?.tags || [];
+                  
+                  // Extract title from content
+                  const title = fullNote?.original?.content?.split('\n')[0]?.replace(/^#+\s*/, '').substring(0, 100) || 
+                                hit.snippet?.split('\n')[0]?.substring(0, 50) || 
+                                'Untitled Note';
+                  
+                  return (
+                    <button
+                      key={hit.note_id}
+                      onClick={() => onSelectNote(hit.note_id)}
+                      className="w-full text-left p-4 rounded-lg bg-card hover:bg-accent/50 transition-colors border shadow-sm hover:shadow-md"
+                    >
+                      <div className="space-y-3">
+                        {/* Title and badges */}
+                        <div className="flex items-start justify-between gap-2">
+                          <h3 className="font-semibold text-sm line-clamp-2 flex-1">
+                            {title}
+                          </h3>
+                          <div className="flex items-center gap-1 flex-shrink-0">
+                            {fullNote?.note?.starred && (
+                              <Star className="h-4 w-4 fill-yellow-500 text-yellow-500" />
+                            )}
+                            {fullNote?.note?.archived && (
+                              <Archive className="h-4 w-4 text-muted-foreground" />
+                            )}
+                          </div>
                         </div>
-                      )}
-                      
-                      {/* Metadata row */}
-                      <div className="flex items-center gap-3 flex-wrap">
-                        <span className="text-xs text-muted-foreground">
-                          Relevance: {(hit.score * 100).toFixed(0)}%
-                        </span>
                         
-                        {/* Search mode badge */}
-                        {searchMode === 'hybrid' && (
-                          <Badge variant="secondary" className="text-xs">
-                            AI-ranked
-                          </Badge>
-                        )}
-                        {searchMode === 'semantic' && (
-                          <Badge variant="outline" className="text-xs">
-                            Semantic match
-                          </Badge>
-                        )}
-                        {searchMode === 'fts' && (
-                          <Badge variant="outline" className="text-xs">
-                            Text match
-                          </Badge>
+                        {/* Content preview */}
+                        <p className="text-xs text-muted-foreground line-clamp-3">
+                          {fullNote?.revised?.content || fullNote?.original?.content || hit.snippet || ''}
+                        </p>
+                        
+                        {/* Categories and Topics */}
+                        {(categories.length > 0 || topics.length > 0) && (
+                          <div className="flex items-center gap-2 flex-wrap">
+                            {categories.slice(0, 2).map((category: string, idx: number) => (
+                              <Badge 
+                                key={`cat-${idx}`} 
+                                variant="default" 
+                                className="text-xs py-0 h-5 bg-blue-500/10 text-blue-700 border-blue-200"
+                              >
+                                📂 {category}
+                              </Badge>
+                            ))}
+                            
+                            {topics.slice(0, 2).map((topic: string, idx: number) => (
+                              <Badge 
+                                key={`topic-${idx}`} 
+                                variant="secondary" 
+                                className="text-xs py-0 h-5 bg-purple-500/10 text-purple-700 border-purple-200"
+                              >
+                                💡 {topic}
+                              </Badge>
+                            ))}
+                            
+                            {(categories.length > 2 || topics.length > 2) && (
+                              <span className="text-xs text-muted-foreground">
+                                +{Math.max(0, categories.length - 2) + Math.max(0, topics.length - 2)} more
+                              </span>
+                            )}
+                          </div>
                         )}
                         
-                        {/* Note ID for now, can add tags later */}
-                        <span className="text-xs text-muted-foreground">
-                          ID: {hit.note_id.substring(0, 8)}...
-                        </span>
+                        {/* Tags and metadata */}
+                        <div className="flex items-center gap-2 flex-wrap">
+                          {/* Date */}
+                          {fullNote?.note?.created_at_utc && (
+                            <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                              <Clock className="h-3 w-3" />
+                              {new Date(fullNote.note.created_at_utc).toLocaleDateString()}
+                            </div>
+                          )}
+                          
+                          {/* Tags */}
+                          {tags.length > 0 && (
+                            <>
+                              <span className="text-xs text-muted-foreground">•</span>
+                              {tags.slice(0, 3).map((tag, idx) => (
+                                <Badge 
+                                  key={idx} 
+                                  variant="outline" 
+                                  className="text-xs py-0 h-5"
+                                >
+                                  #{tag}
+                                </Badge>
+                              ))}
+                              {tags.length > 3 && (
+                                <span className="text-xs text-muted-foreground">
+                                  +{tags.length - 3} tags
+                                </span>
+                              )}
+                            </>
+                          )}
+                          
+                          {/* Relevance score */}
+                          <span className="text-xs text-muted-foreground ml-auto">
+                            {(hit.score * 100).toFixed(0)}% match
+                          </span>
+                        </div>
                       </div>
-                    </div>
-                  </button>
-                ))}
+                    </button>
+                  );
+                })}
               </div>
             </ScrollArea>
           )}

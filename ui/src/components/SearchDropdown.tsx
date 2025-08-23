@@ -4,7 +4,6 @@ import {
   CardContent 
 } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { 
   Search, 
   Star, 
@@ -139,8 +138,7 @@ export function SearchDropdown({
           </div>
           
           {/* Results */}
-          <div className="overflow-hidden flex-1">
-            <ScrollArea className="h-full max-h-[320px]">
+          <div className="overflow-y-auto flex-1 max-h-[320px]">
             {isSearching ? (
               <div className="flex items-center justify-center py-8">
                 <Loader2 className="h-6 w-6 animate-spin text-primary" />
@@ -261,9 +259,17 @@ export function SearchDropdown({
                     </button>
                   );
                 })}
+                
+                {/* Show "View all results" if there are more results */}
+                {searchResults.length >= 5 && (
+                  <div className="px-4 py-3 border-t bg-muted/30">
+                    <button className="w-full text-center text-sm text-primary hover:underline">
+                      Press Enter to view all results →
+                    </button>
+                  </div>
+                )}
               </div>
             )}
-            </ScrollArea>
           </div>
         </CardContent>
       </Card>

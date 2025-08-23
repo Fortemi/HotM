@@ -1412,6 +1412,13 @@ export function HallOfMind() {
                   className="bg-transparent outline-none placeholder:text-muted-foreground flex-1"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && searchQuery) {
+                      // Navigate to search tab
+                      setActiveTab('search');
+                      setShowSearchResults(false);
+                    }
+                  }}
                 />
                 {searchQuery && (
                   <Button
@@ -1434,7 +1441,7 @@ export function HallOfMind() {
                   searchQuery={searchQuery}
                   searchMode={searchMode}
                   isSearching={isSearching}
-                  searchResults={searchResults}
+                  searchResults={searchResults.slice(0, 5)}
                   onSelectNote={(note) => {
                     setSelectedNote(note);
                     setNoteContent(note.content);
