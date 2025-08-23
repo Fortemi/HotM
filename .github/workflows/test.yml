@@ -27,7 +27,7 @@ jobs:
           --health-timeout 5s
           --health-retries 5
         ports:
-          - 5432:5432
+          - 5433:5432
     
     steps:
     - uses: actions/checkout@v3
@@ -63,12 +63,12 @@ jobs:
     - name: Setup test database
       run: |
         cd server
-        export DATABASE_URL=postgres://postgres:postgres@localhost:5432/hotm_test
+        export DATABASE_URL=postgres://postgres:postgres@localhost:5433/hotm_test
         ./setup_ci_db.sh
         sqlx migrate run --database-url=$DATABASE_URL
       env:
-        DATABASE_URL: postgres://postgres:postgres@localhost:5432/hotm_test
-        TEST_DATABASE_URL: postgres://postgres:postgres@localhost:5432
+        DATABASE_URL: postgres://postgres:postgres@localhost:5433/hotm_test
+        TEST_DATABASE_URL: postgres://postgres:postgres@localhost:5433
     
     - name: Run clippy
       run: |
@@ -80,8 +80,8 @@ jobs:
         cd server
         cargo test --all-features
       env:
-        DATABASE_URL: postgres://postgres:postgres@localhost:5432/hotm_test
-        TEST_DATABASE_URL: postgres://postgres:postgres@localhost:5432
+        DATABASE_URL: postgres://postgres:postgres@localhost:5433/hotm_test
+        TEST_DATABASE_URL: postgres://postgres:postgres@localhost:5433
     
     - name: Check formatting
       run: |
