@@ -64,6 +64,7 @@ jobs:
         sudo apt-get update
         sudo apt-get install -y postgresql-client
         cargo install sqlx-cli --no-default-features --features postgres
+        cargo install cargo-audit
     
     - name: Setup test database
       run: |
@@ -113,6 +114,11 @@ jobs:
       run: |
         cd server
         cargo fmt -- --check
+    
+    - name: Security audit
+      run: |
+        cd server
+        cargo audit
 
   frontend-tests:
     name: Frontend Tests
@@ -147,6 +153,11 @@ jobs:
       run: |
         cd ui
         npm run test:coverage -- --run
+
+    - name: Security audit
+      run: |
+        cd ui
+        npm audit --audit-level high
 
   # integration-tests: Disabled for now - run locally only
   # name: Integration Tests
