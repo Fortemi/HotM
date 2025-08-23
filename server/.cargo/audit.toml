@@ -1,0 +1,5 @@
+[advisories]
+# Ignore RSA vulnerability since we only use PostgreSQL, not MySQL
+ignore = [
+    "RUSTSEC-2023-0071",  # RSA Marvin Attack - only affects MySQL connections
+]

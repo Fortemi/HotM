@@ -16,9 +16,9 @@ uuid = { version = "1", features = ["v4", "serde"] }
 chrono = { version = "0.4", features = ["clock", "serde"] }
 thiserror = "1"
 reqwest = { version = "0.12", features = ["json"] }
-sqlx = { version = "0.7", features = ["runtime-tokio", "postgres", "uuid", "chrono", "json", "macros", "bigdecimal"] }
+sqlx = { version = "0.8.6", default-features = false, features = ["runtime-tokio-rustls", "postgres", "uuid", "chrono", "json", "macros", "bigdecimal", "migrate"] }
 anyhow = "1"
-pgvector = { version = "0.3", features = ["sqlx", "postgres"] }
+pgvector = { version = "0.4.1", features = ["sqlx", "postgres"] }
 sha2 = "0.10"
 hex = "0.4"
 dotenvy = "0.15"
