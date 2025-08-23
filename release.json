@@ -1,0 +1,10 @@
+{
+  "channel": "beta",
+  "description": "Release channel configuration for HotM builds",
+  "channels": {
+    "alpha": "Early development releases with experimental features",
+    "beta": "Pre-release builds for community testing", 
+    "rc": "Release candidates - stable builds awaiting final testing",
+    "stable": "Production releases"
+  }
+}

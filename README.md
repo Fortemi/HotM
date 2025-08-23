@@ -1,6 +1,6 @@
 # HotM — Personal Notes, Interaction, and Analysis
 
-[![Version](https://img.shields.io/badge/version-0.1.0--alpha-blue)]()
+[![Version](https://img.shields.io/badge/version-0.1.1-blue)]()
 [![Platform](https://img.shields.io/badge/platform-Windows%2011-blue)]()
 [![License](https://img.shields.io/badge/license-MIT-green)]()
 

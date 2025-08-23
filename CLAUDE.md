@@ -43,37 +43,59 @@ All shell-based test scripts have been removed - use `gh act` for consistent CI/
 
 ### Creating a New Release
 
-1. **Bump Version**: Use the version bump script
+1. **Bump Version with Release Channel**:
 ```bash
+# Using current channel (default: beta)
 ./scripts/bump_version.sh 0.2.0
+
+# Set specific channel
+./scripts/bump_version.sh 0.2.0 alpha      # v0.2.0-alpha (prerelease)
+./scripts/bump_version.sh 0.2.0 beta       # v0.2.0-beta (prerelease)
+./scripts/bump_version.sh 0.2.0 rc         # v0.2.0-rc (prerelease)
+./scripts/bump_version.sh 0.2.0 stable     # v0.2.0 (full release)
 ```
 
 2. **Review and Commit**: 
 ```bash
 git diff                                    # Review changes
-git add -A && git commit -m "chore: bump version to 0.2.0"
+git add -A && git commit -m "chore: bump version to 0.2.0-beta"
 ```
 
 3. **Create and Push Tag**:
 ```bash
-git tag v0.2.0                             # Create version tag
-git push origin v0.2.0                     # Trigger release build
+git tag v0.2.0-beta                        # Create version tag with channel
+git push origin v0.2.0-beta                # Trigger release build
 ```
 
 4. **Automated Release**: GitHub Actions will:
    - Build Windows MSI installer
-   - Create GitHub release with changelog
+   - Create GitHub release with channel info
+   - Mark as prerelease for non-stable channels
    - Upload MSI as release asset
+
+### Release Channels
+
+Release channels allow community testing while maintaining clean package versions:
+
+- **`alpha`**: Early development releases with experimental features
+- **`beta`**: Pre-release builds for community testing (default)  
+- **`rc`**: Release candidates - stable builds awaiting final testing
+- **`stable`**: Production releases
+
+Channel configuration is stored in `release.json`.
 
 ### Version Management
 
-Versions are synchronized across:
+**Package Versions** (clean semantic versioning):
 - `server/Cargo.toml` (Rust API server)
 - `ui/src-tauri/Cargo.toml` (Tauri app)  
 - `ui/src-tauri/tauri.conf.json` (Tauri config)
 - `ui/package.json` (Node.js frontend)
 - `README.md` (version badge)
 - `docs/02-specifications/api-specification.md`
+
+**Git Tags** (with channel suffixes):
+- `v0.2.0-alpha`, `v0.2.0-beta`, `v0.2.0-rc`, `v0.2.0` (stable)
 
 ## Development Commands
 
