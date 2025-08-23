@@ -8,6 +8,9 @@ on:
 env:
   RUST_BACKTRACE: 1
 
+permissions:
+  contents: write
+
 jobs:
   build-release:
     name: Build Release Assets
@@ -79,13 +82,10 @@ jobs:
         echo "Release channel: $CHANNEL"
     
     - name: Create Release
-      id: create_release
-      uses: actions/create-release@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      uses: softprops/action-gh-release@v2
+      if: github.ref_type == 'tag'
       with:
-        tag_name: ${{ github.ref }}
-        release_name: HotM ${{ env.DISPLAY_VERSION }}
+        name: HotM ${{ env.DISPLAY_VERSION }}
         body: |
           ## HotM ${{ env.DISPLAY_VERSION }}
           
@@ -118,13 +118,4 @@ jobs:
           For setup instructions, see the [documentation](https://github.com/${{ github.repository }}/blob/main/CLAUDE.md).
         draft: false
         prerelease: ${{ env.CHANNEL != 'stable' }}
-    
-    - name: Upload MSI to Release
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ${{ env.MSI_PATH }}
-        asset_name: ${{ env.MSI_NAME }}
-        asset_content_type: application/octet-stream
+        files: ${{ env.MSI_PATH }}
