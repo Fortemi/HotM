@@ -17,7 +17,7 @@ async fn tags_collections_links_roundtrip() {
         .unwrap();
 
     // add tag
-    sqlx::query!("INSERT INTO tag (name) VALUES ('project-x') ON CONFLICT DO NOTHING")
+    sqlx::query!("INSERT INTO tag (name, created_at_utc) VALUES ('project-x', NOW()) ON CONFLICT DO NOTHING")
         .execute(&state.pool)
         .await
         .unwrap();
@@ -25,7 +25,7 @@ async fn tags_collections_links_roundtrip() {
 
     // create collection and assign
     let cid = Uuid::new_v4();
-    sqlx::query!("INSERT INTO collection (id, name) VALUES ($1, 'Work')", cid)
+    sqlx::query!("INSERT INTO collection (id, name, created_at_utc) VALUES ($1, 'Work', NOW())", cid)
         .execute(&state.pool)
         .await
         .unwrap();
