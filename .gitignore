@@ -136,6 +136,9 @@ $RECYCLE.BIN/
 ui/src-tauri/target/
 ui/src-tauri/WixTools/
 
+# Local development tools
+bin/act
+
 # Keep important files
 !.gitkeep
 !.github/

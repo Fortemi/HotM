@@ -1,67 +1,137 @@
-name: CI
+name: CI/CD Pipeline
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, develop ]
   pull_request:
-    branches: [ main ]
+    branches: [ main, develop ]
+
+env:
+  CARGO_TERM_COLOR: always
+  RUST_LOG: off
 
 jobs:
   server:
+    name: Backend Tests
     runs-on: ubuntu-latest
     services:
       postgres:
-        image: ankane/pgvector:latest
+        image: pgvector/pgvector:pg16
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
           POSTGRES_DB: hotm_test
         ports: ["5432:5432"]
         options: >-
-          --health-cmd "pg_isready -U postgres" \
-          --health-interval 10s \
-          --health-timeout 5s \
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 10s
+          --health-timeout 5s
           --health-retries 5
     steps:
-      - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@stable
-      - name: Wait for Postgres
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+
+      - name: Cache cargo dependencies
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            server/target/
+          key: ${{ runner.os }}-cargo-${{ hashFiles('server/Cargo.lock') }}
+
+      - name: Install SQLx CLI
+        run: cargo install sqlx-cli --no-default-features --features postgres
+
+      - name: Setup test database
+        env:
+          TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/hotm_test
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/hotm_test
         run: |
-          for i in {1..10}; do
-            if pg_isready -h localhost -p 5432 -U postgres; then break; fi
-            sleep 2
-          done
-      - name: Install psql
-        run: sudo apt-get update && sudo apt-get install -y postgresql-client
-      - name: Create extension
-        run: psql postgresql://postgres:postgres@localhost:5432/hotm_test -c 'CREATE EXTENSION IF NOT EXISTS vector;'
+          cd server
+          sqlx database create
+          sqlx migrate run
+
+      - name: Check code formatting
+        run: |
+          cd server
+          cargo fmt -- --check
+
+      - name: Run clippy
+        run: |
+          cd server
+          cargo clippy -- -D warnings
+
       - name: Run server tests
         env:
           TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/hotm_test
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/hotm_test
+          RUST_LOG: off
         run: |
-          cargo test -p hotm-server -- --nocapture
+          cd server
+          cargo test -- --nocapture
 
   ui:
+    name: Frontend Tests
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          node-version: 20
-      - name: Install deps
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: ui/package-lock.json
+
+      - name: Install dependencies
         working-directory: ui
         run: npm ci
-      - name: Build UI (no Tauri)
+
+      - name: Run tests
         working-directory: ui
-        run: npm run build --if-present || npm run typecheck
-      - name: Playwright install
+        run: npm run test -- --run --reporter=verbose
+
+      - name: Type check
         working-directory: ui
-        run: npx playwright install --with-deps
-      - name: Start server (mock)
+        run: npm run typecheck
+
+      - name: Build frontend
+        working-directory: ui
+        run: npm run build
+
+  security-check:
+    name: Security & Quality
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Run cargo audit
+        uses: actions-rs/audit-check@v1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: ui/package-lock.json
+
+      - name: Run npm audit
+        working-directory: ui
         run: |
-          # minimal static serve of built UI or start vite dev for tests
-          nohup bash -c 'cd ui && npm run start' >/dev/null 2>&1 &
-          sleep 3
-      - name: Run smoke tests
-        working-directory: ui
-        run: npm test -- --reporter=list
+          npm ci
+          npm audit --audit-level moderate
