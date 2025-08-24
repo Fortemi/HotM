@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { api, RelatedNotesResponse, SearchHit } from '@/services/api';
@@ -13,16 +13,38 @@ export function RelatedNotes({ noteId, onSelectNote }: RelatedNotesProps) {
   const [relatedData, setRelatedData] = useState<RelatedNotesResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  
+  // Cache for related notes data to prevent excessive API calls
+  const relatedCache = useRef<Map<string, { data: RelatedNotesResponse; timestamp: number }>>(new Map());
 
   useEffect(() => {
     if (!noteId) return;
     
     const fetchRelated = async () => {
+      // Check cache first
+      const now = Date.now();
+      const cachedData = relatedCache.current.get(noteId);
+      const CACHE_DURATION = 60000; // 60 seconds cache for related notes (more expensive computation)
+      
+      if (cachedData && (now - cachedData.timestamp) < CACHE_DURATION) {
+        setRelatedData(cachedData.data);
+        console.log("Using cached related notes for:", noteId);
+        return;
+      }
+      
       setLoading(true);
       setError(null);
       try {
         const data = await api.getRelatedNotes(noteId);
         setRelatedData(data);
+        
+        // Cache the result
+        relatedCache.current.set(noteId, {
+          data: data,
+          timestamp: now
+        });
+        
+        console.log("Fetched and cached related notes for:", noteId);
       } catch (error) {
         console.error('Failed to fetch related notes:', error);
         const errorMessage = error instanceof Error ? error.message : 'Failed to load related notes';
@@ -68,12 +90,22 @@ export function RelatedNotes({ noteId, onSelectNote }: RelatedNotesProps) {
           <button 
             onClick={() => {
               setError(null);
+              // Clear cache for this note to force fresh fetch
+              relatedCache.current.delete(noteId);
               const fetchRelated = async () => {
                 setLoading(true);
                 setError(null);
                 try {
                   const data = await api.getRelatedNotes(noteId);
                   setRelatedData(data);
+                  
+                  // Cache the result
+                  relatedCache.current.set(noteId, {
+                    data: data,
+                    timestamp: Date.now()
+                  });
+                  
+                  console.log("Retry: Fetched and cached related notes for:", noteId);
                 } catch (error) {
                   console.error('Failed to fetch related notes:', error);
                   const errorMessage = error instanceof Error ? error.message : 'Failed to load related notes';

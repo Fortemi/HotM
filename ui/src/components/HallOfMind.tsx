@@ -124,7 +124,11 @@ export function HallOfMind() {
   const [newNoteContent, setNewNoteContent] = useState("");
   const [processingNotes, setProcessingNotes] = useState<Set<string>>(new Set());
   const [copiedState, setCopiedState] = useState<{ [key: string]: boolean }>({});
+  
+  // Refs for notification grouping and metadata caching
   const savedNotes = useRef<Map<string, NoteFull>>(new Map());
+  const notificationTimeouts = useRef<Map<string, NodeJS.Timeout>>(new Map());
+  const metadataCache = useRef<Map<string, { data: any; timestamp: number; relatedNotes?: any }>>(new Map());
   const searchInputRef = useRef<HTMLDivElement>(null);
   const searchCache = useRef<Map<string, { results: Note[], timestamp: number }>>(new Map());
 
@@ -252,50 +256,82 @@ export function HallOfMind() {
               // Update full note cache for metadata display
               savedNotes.current.set(simpleNote.id, updatedNote);
               
-              // Refresh metadata labels for the updated note
-              try {
-                const labels = await api.getMetadataLabels(simpleNote.id);
-                setNoteLabels(new Map(noteLabels.set(simpleNote.id, labels)));
-              } catch (error) {
-                console.error("Failed to refresh metadata labels:", error);
-              }
-            }
-            
-            // Remove from processing set
-            setProcessingNotes(prev => {
-              const newSet = new Set(prev);
-              newSet.delete(note_id);
-              return newSet;
-            });
-            
-            // Show Windows notification
-            try {
-              const { 
-                isPermissionGranted, 
-                requestPermission, 
-                sendNotification 
-              } = await import('@tauri-apps/plugin-notification');
+              // Cache metadata with timestamp to avoid excessive API calls
+              const now = Date.now();
+              const cacheKey = simpleNote.id;
+              const cachedData = metadataCache.current.get(cacheKey);
+              const CACHE_DURATION = 30000; // 30 seconds cache
               
-              // Check/request notification permission
-              let hasPermission = await isPermissionGranted();
-              if (!hasPermission) {
-                const permission = await requestPermission();
-                hasPermission = permission === 'granted';
-              }
-              
-              if (hasPermission) {
-                await sendNotification({
-                  title: 'HotM - Processing Complete',
-                  body: `Note "${simpleNote.title}" has been processed with AI enhancements. Click to view.`,
-                  sound: 'default'
-                });
-                console.log("Notification sent for processed note:", note_id);
+              if (!cachedData || (now - cachedData.timestamp) > CACHE_DURATION) {
+                try {
+                  const labels = await api.getMetadataLabels(simpleNote.id);
+                  setNoteLabels(new Map(noteLabels.set(simpleNote.id, labels)));
+                  
+                  // Cache the metadata
+                  metadataCache.current.set(cacheKey, {
+                    data: labels,
+                    timestamp: now
+                  });
+                } catch (error) {
+                  console.error("Failed to refresh metadata labels:", error);
+                }
               } else {
-                console.warn("Notification permission not granted");
+                // Use cached data
+                setNoteLabels(new Map(noteLabels.set(simpleNote.id, cachedData.data)));
+                console.log("Using cached metadata for note:", simpleNote.id);
               }
-            } catch (error) {
-              console.error("Failed to send notification:", error);
             }
+            
+            // Group notifications to prevent duplicates for multi-job pipelines
+            // Clear any existing timeout for this note
+            const existingTimeout = notificationTimeouts.current.get(note_id);
+            if (existingTimeout) {
+              clearTimeout(existingTimeout);
+            }
+            
+            // Set a new timeout to send notification after 2 seconds of no more updates
+            const notificationTimeout = setTimeout(async () => {
+              // Remove from processing set
+              setProcessingNotes(prev => {
+                const newSet = new Set(prev);
+                newSet.delete(note_id);
+                return newSet;
+              });
+              
+              // Send notification once all jobs for this note are complete
+              try {
+                const { 
+                  isPermissionGranted, 
+                  requestPermission, 
+                  sendNotification 
+                } = await import('@tauri-apps/plugin-notification');
+                
+                // Check/request notification permission
+                let hasPermission = await isPermissionGranted();
+                if (!hasPermission) {
+                  const permission = await requestPermission();
+                  hasPermission = permission === 'granted';
+                }
+                
+                if (hasPermission) {
+                  await sendNotification({
+                    title: 'HotM - Processing Complete',
+                    body: `Note "${simpleNote.title}" has been processed with AI enhancements. Click to view.`,
+                    sound: 'default'
+                  });
+                  console.log("Grouped notification sent for processed note:", note_id);
+                } else {
+                  console.warn("Notification permission not granted");
+                }
+              } catch (error) {
+                console.error("Failed to send notification:", error);
+              }
+              
+              // Clean up the timeout reference
+              notificationTimeouts.current.delete(note_id);
+            }, 2000); // Wait 2 seconds for additional updates
+            
+            notificationTimeouts.current.set(note_id, notificationTimeout);
             
             console.log("Note updated via WebSocket:", note_id);
           }
@@ -310,20 +346,37 @@ export function HallOfMind() {
             : note
         ));
         
-        // If this note is currently selected, refresh its metadata
+        // If this note is currently selected, refresh its metadata with caching
         if (selectedNote?.id === note_id) {
-          try {
-            // Refresh the full note data
-            const updatedNote = await api.getNote(note_id);
-            savedNotes.current.set(note_id, updatedNote);
-            
-            // Refresh metadata labels
-            const labels = await api.getMetadataLabels(note_id);
-            setNoteLabels(new Map(noteLabels.set(note_id, labels)));
-            
-            console.log("Metadata refreshed for currently selected note:", note_id);
-          } catch (error) {
-            console.error("Failed to refresh metadata for selected note:", error);
+          const now = Date.now();
+          const cacheKey = note_id;
+          const cachedData = metadataCache.current.get(cacheKey);
+          const CACHE_DURATION = 30000; // 30 seconds cache
+          
+          if (!cachedData || (now - cachedData.timestamp) > CACHE_DURATION) {
+            try {
+              // Refresh the full note data
+              const updatedNote = await api.getNote(note_id);
+              savedNotes.current.set(note_id, updatedNote);
+              
+              // Refresh metadata labels
+              const labels = await api.getMetadataLabels(note_id);
+              setNoteLabels(new Map(noteLabels.set(note_id, labels)));
+              
+              // Cache the metadata
+              metadataCache.current.set(cacheKey, {
+                data: labels,
+                timestamp: now
+              });
+              
+              console.log("Metadata refreshed for currently selected note:", note_id);
+            } catch (error) {
+              console.error("Failed to refresh metadata for selected note:", error);
+            }
+          } else {
+            // Use cached data
+            setNoteLabels(new Map(noteLabels.set(note_id, cachedData.data)));
+            console.log("Using cached metadata for selected note:", note_id);
           }
         }
       }

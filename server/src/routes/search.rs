@@ -316,11 +316,17 @@ pub async fn find_related_notes(
     });
     let similar_notes: Vec<SearchHit> = scored_notes.into_iter().take(5).collect();
 
-    // Generate context summary if there are related notes
-    let context_summary = if !similar_notes.is_empty() {
-        // Get the content of related notes for context analysis
+    // Filter for high-quality matches (>50% similarity) for context summary generation
+    let high_quality_notes: Vec<&SearchHit> = similar_notes
+        .iter()
+        .filter(|hit| hit.score > 0.5)
+        .collect();
+
+    // Generate context summary if there are high-quality related notes
+    let context_summary = if !high_quality_notes.is_empty() {
+        // Get the content of high-quality related notes for context analysis
         let mut related_content = Vec::new();
-        for hit in &similar_notes {
+        for hit in &high_quality_notes {
             if let Ok(related_note) = db::fetch_note(&state, hit.note_id).await {
                 // Safe string truncation that respects UTF-8 boundaries
                 let snippet = safe_truncate(&related_note.revised.content, 500);
