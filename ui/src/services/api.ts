@@ -5,7 +5,7 @@ const API_BASE = 'http://localhost:53211/api/v1';
 
 // Job Queue Types
 export type JobStatus = 'pending' | 'running' | 'completed' | 'failed' | 'cancelled';
-export type JobType = 'ai_revision' | 'embedding' | 'linking' | 'context_update';
+export type JobType = 'ai_revision' | 'embedding' | 'linking' | 'context_update' | 'title_generation';
 
 export interface Job {
   id: string;
@@ -50,6 +50,7 @@ interface NoteMeta {
   starred?: boolean;
   archived?: boolean;
   last_accessed_at?: string;
+  title?: string;
 }
 
 interface NoteOriginal {
@@ -220,11 +221,19 @@ class ApiClient {
     return this.request<NoteFull>(`/notes/${id}`);
   }
 
-  // Update note revision
+  // Update note revision (AI-enhanced content)
   async updateRevision(id: string, content: string, rationale?: string): Promise<any> {
     return this.request(`/notes/${id}/revised`, {
       method: 'PUT',
       body: JSON.stringify({ content, rationale }),
+    });
+  }
+
+  // Update original note content
+  async updateOriginalContent(id: string, content: string): Promise<any> {
+    return this.request(`/notes/${id}/original`, {
+      method: 'PUT',
+      body: JSON.stringify({ content }),
     });
   }
 

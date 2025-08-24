@@ -72,6 +72,7 @@ import { DeleteNoteDialog } from "./DeleteNoteDialog";
 import { SearchDropdown } from "./SearchDropdown";
 import JobQueueMonitor from "./JobQueueMonitor";
 import { JobQueueIndicator } from "./JobQueueIndicator";
+import { TypingAnimation } from "./TypingAnimation";
 
 export interface Note {
   id: string;
@@ -83,6 +84,7 @@ export interface Note {
   starred: boolean;
   archived: boolean;
   revised_content?: string | null;
+  ai_generated_title?: string | null;
 }
 
 export function HallOfMind() {
@@ -129,6 +131,9 @@ export function HallOfMind() {
   const savedNotes = useRef<Map<string, NoteFull>>(new Map());
   const notificationTimeouts = useRef<Map<string, NodeJS.Timeout>>(new Map());
   const metadataCache = useRef<Map<string, { data: any; timestamp: number; relatedNotes?: any }>>(new Map());
+  
+  // State for title animations
+  const [titleAnimations, setTitleAnimations] = useState<Map<string, { oldTitle: string; newTitle: string; isAnimating: boolean }>>(new Map());
   const searchInputRef = useRef<HTMLDivElement>(null);
   const searchCache = useRef<Map<string, { results: Note[], timestamp: number }>>(new Map());
 
@@ -224,8 +229,23 @@ export function HallOfMind() {
 
   // Listen for WebSocket note updates
   useEffect(() => {
+    // Track recent updates to prevent duplicate processing
+    const recentUpdates = new Map<string, number>();
+    const DUPLICATE_THRESHOLD = 1000; // 1 second
+    
     const handleNoteUpdate = async (event: CustomEvent) => {
       const { note_id, title, tags, has_ai_content, has_links } = event.detail;
+      
+      // Check if we recently processed an update for this note
+      const now = Date.now();
+      const lastUpdate = recentUpdates.get(note_id);
+      if (lastUpdate && (now - lastUpdate) < DUPLICATE_THRESHOLD) {
+        console.log(`Ignoring duplicate update for note ${note_id}`);
+        return;
+      }
+      
+      // Record this update
+      recentUpdates.set(note_id, now);
       
       console.log("Received note update:", { note_id, title, tags, has_ai_content, has_links });
       
@@ -234,16 +254,31 @@ export function HallOfMind() {
         try {
           const updatedNote = await api.getNote(note_id);
           if (updatedNote.revised) {
+            // Check for title changes to trigger animation
+            const currentNote = notes.find(n => n.id === updatedNote.note.id);
+            const oldTitle = currentNote?.title || updatedNote.original.content.split('\n')[0].substring(0, 50) || "Untitled";
+            const newTitle = updatedNote.note.title || updatedNote.original.content.split('\n')[0].substring(0, 50) || "Untitled";
+            
+            // Trigger title animation if title changed
+            if (oldTitle !== newTitle) {
+              setTitleAnimations(prev => new Map(prev.set(updatedNote.note.id, {
+                oldTitle,
+                newTitle,
+                isAnimating: true
+              })));
+            }
+
             const simpleNote = {
               id: updatedNote.note.id,
-              title: updatedNote.original.content.split('\n')[0].substring(0, 50) || "Untitled",
+              title: newTitle,
               content: updatedNote.original.content,
               revised_content: updatedNote.revised.content,
               createdAt: updatedNote.note.created_at_utc,
               updatedAt: updatedNote.note.updated_at_utc,
               tags: updatedNote.tags,
               starred: updatedNote.note.starred || false,
-              archived: updatedNote.note.archived || false
+              archived: updatedNote.note.archived || false,
+              ai_generated_title: updatedNote.note.title
             };
             
             setNotes(prev => prev.map(n => n.id === simpleNote.id ? simpleNote : n));
@@ -300,28 +335,51 @@ export function HallOfMind() {
               
               // Send notification once all jobs for this note are complete
               try {
-                const { 
-                  isPermissionGranted, 
-                  requestPermission, 
-                  sendNotification 
-                } = await import('@tauri-apps/plugin-notification');
-                
-                // Check/request notification permission
-                let hasPermission = await isPermissionGranted();
-                if (!hasPermission) {
-                  const permission = await requestPermission();
-                  hasPermission = permission === 'granted';
-                }
-                
-                if (hasPermission) {
-                  await sendNotification({
-                    title: 'HotM - Processing Complete',
-                    body: `Note "${simpleNote.title}" has been processed with AI enhancements. Click to view.`,
-                    sound: 'default'
-                  });
-                  console.log("Grouped notification sent for processed note:", note_id);
+                // Check if we're running in Tauri environment
+                if (typeof window !== 'undefined' && (window as any).__TAURI__) {
+                  const { 
+                    isPermissionGranted, 
+                    requestPermission, 
+                    sendNotification 
+                  } = await import('@tauri-apps/plugin-notification');
+                  
+                  // Check/request notification permission
+                  let hasPermission = await isPermissionGranted();
+                  if (!hasPermission) {
+                    const permission = await requestPermission();
+                    hasPermission = permission === 'granted';
+                  }
+                  
+                  if (hasPermission) {
+                    await sendNotification({
+                      title: 'HotM - Processing Complete',
+                      body: `Note "${simpleNote.title}" has been processed with AI enhancements. Click to view.`,
+                      sound: 'default'
+                    });
+                    console.log("Grouped notification sent for processed note:", note_id);
+                  } else {
+                    console.warn("Notification permission not granted");
+                  }
                 } else {
-                  console.warn("Notification permission not granted");
+                  // Fallback for development/web environment
+                  console.log(`Note processing complete: ${simpleNote.title}`);
+                  
+                  // Try to use browser notifications as fallback
+                  if ('Notification' in window && Notification.permission === 'granted') {
+                    new Notification('HotM - Processing Complete', {
+                      body: `Note "${simpleNote.title}" has been processed with AI enhancements.`,
+                      icon: '/favicon.ico'
+                    });
+                  } else if ('Notification' in window && Notification.permission === 'default') {
+                    // Request permission and try again
+                    const permission = await Notification.requestPermission();
+                    if (permission === 'granted') {
+                      new Notification('HotM - Processing Complete', {
+                        body: `Note "${simpleNote.title}" has been processed with AI enhancements.`,
+                        icon: '/favicon.ico'
+                      });
+                    }
+                  }
                 }
               } catch (error) {
                 console.error("Failed to send notification:", error);
@@ -683,7 +741,15 @@ export function HallOfMind() {
     
     try {
       setIsLoading(true);
-      await api.updateRevision(selectedNote.id, contentToSave, rationale);
+      
+      // Use the correct API endpoint based on what we're editing
+      if (editingRevised) {
+        // Editing revised content - use /revised endpoint
+        await api.updateRevision(selectedNote.id, contentToSave, rationale);
+      } else {
+        // Editing original content - use /original endpoint
+        await api.updateOriginalContent(selectedNote.id, contentToSave);
+      }
       
       // Update local state based on what was edited
       const updatedNotes = notes.map(note => 
@@ -706,7 +772,7 @@ export function HallOfMind() {
         updatedAt: new Date().toISOString()
       });
       
-      console.log("Note saved successfully to server");
+      console.log(`Note ${editingRevised ? 'revised' : 'original'} content saved successfully to server`);
       setHasUnsavedChanges(false);
     } catch (error) {
       console.error("Failed to save note:", error);
@@ -1498,14 +1564,15 @@ export function HallOfMind() {
                                     const freshNote = await api.getNote(note.id);
                                     const updatedNote = {
                                       id: freshNote.note.id,
-                                      title: freshNote.original.content.split('\n')[0].substring(0, 50) || "Untitled",
+                                      title: freshNote.note.title || freshNote.original.content.split('\n')[0].substring(0, 50) || "Untitled",
                                       content: freshNote.original.content,
                                       revised_content: freshNote.revised ? freshNote.revised.content : null,
                                       createdAt: freshNote.note.created_at_utc,
                                       updatedAt: freshNote.note.updated_at_utc,
                                       tags: freshNote.tags,
                                       starred: freshNote.note.starred || false,
-                                      archived: freshNote.note.archived || false
+                                      archived: freshNote.note.archived || false,
+                                      ai_generated_title: freshNote.note.title
                                     };
                                     console.log(`Fetched note ${note.id} - starred: ${updatedNote.starred}, archived: ${updatedNote.archived}`);
                                     
@@ -1540,7 +1607,25 @@ export function HallOfMind() {
                                 ) : (
                                   <BookOpen className="h-4 w-4" />
                                 )}
-                                <span className="flex-1 truncate">{note.title}</span>
+                                <span className="flex-1 truncate">
+                                  {titleAnimations.has(note.id) && titleAnimations.get(note.id)?.isAnimating ? (
+                                    <TypingAnimation
+                                      oldText={titleAnimations.get(note.id)!.oldTitle}
+                                      newText={titleAnimations.get(note.id)!.newTitle}
+                                      onComplete={() => {
+                                        setTitleAnimations(prev => {
+                                          const newMap = new Map(prev);
+                                          newMap.delete(note.id);
+                                          return newMap;
+                                        });
+                                      }}
+                                      speed="fast"
+                                      className="text-sidebar-foreground"
+                                    />
+                                  ) : (
+                                    note.title
+                                  )}
+                                </span>
                                 {note.starred && <Star className="h-3 w-3 fill-yellow-500 text-yellow-500" />}
                               </SidebarMenuButton>
                             </SidebarMenuItem>
@@ -1780,7 +1865,23 @@ export function HallOfMind() {
                           <div>
                             <CardTitle className="flex items-center gap-2">
                               <Sparkles className="h-5 w-5 text-primary" />
-                              {selectedNote.title}
+                              {titleAnimations.has(selectedNote.id) && titleAnimations.get(selectedNote.id)?.isAnimating ? (
+                                <TypingAnimation
+                                  oldText={titleAnimations.get(selectedNote.id)!.oldTitle}
+                                  newText={titleAnimations.get(selectedNote.id)!.newTitle}
+                                  onComplete={() => {
+                                    setTitleAnimations(prev => {
+                                      const newMap = new Map(prev);
+                                      newMap.delete(selectedNote.id);
+                                      return newMap;
+                                    });
+                                  }}
+                                  speed="normal"
+                                  className="text-card-foreground"
+                                />
+                              ) : (
+                                selectedNote.title
+                              )}
                             </CardTitle>
                             <CardDescription className="mt-1">
                               AI-enhanced version • Updated {new Date(selectedNote.updatedAt).toLocaleString()}
@@ -1849,7 +1950,25 @@ export function HallOfMind() {
                       <CardHeader>
                         <div className="flex items-center justify-between">
                           <div>
-                            <CardTitle>{selectedNote.title}</CardTitle>
+                            <CardTitle>
+                              {titleAnimations.has(selectedNote.id) && titleAnimations.get(selectedNote.id)?.isAnimating ? (
+                                <TypingAnimation
+                                  oldText={titleAnimations.get(selectedNote.id)!.oldTitle}
+                                  newText={titleAnimations.get(selectedNote.id)!.newTitle}
+                                  onComplete={() => {
+                                    setTitleAnimations(prev => {
+                                      const newMap = new Map(prev);
+                                      newMap.delete(selectedNote.id);
+                                      return newMap;
+                                    });
+                                  }}
+                                  speed="normal"
+                                  className="text-card-foreground"
+                                />
+                              ) : (
+                                selectedNote.title
+                              )}
+                            </CardTitle>
                             <CardDescription>
                               Original note • Created {new Date(selectedNote.createdAt).toLocaleString()}
                             </CardDescription>
