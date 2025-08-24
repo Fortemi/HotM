@@ -77,12 +77,16 @@ window_size = { width = 1200, height = 800 }
 window_position = "center"  # center, remember, custom
 
 [database]
-type = "embedded"
-path = "./data/hotm.db"
+type = "postgresql"
+url = "postgresql://hotm:hotm_local@localhost:54321/hotm"  # Embedded PostgreSQL
+port = 54321  # Non-standard port to avoid conflicts
+embedded = true  # Managed by HotM installer
+data_directory = "./data/postgres"
 cache_size = "100MB"
 auto_backup = true
 backup_retention = "30d"
 vacuum_on_startup = false
+extensions = ["vector", "pg_trgm", "btree_gin"]
 
 [ai]
 type = "hybrid"
@@ -109,6 +113,31 @@ mcp_server = true
 api_server = false
 debug_mode = false
 telemetry = false
+cloud_sync = false  # Cross-device sync to cloud
+
+[cloud_sync]
+enabled = false
+provider = "hotm_cloud"  # hotm_cloud, s3, azure, gcp
+endpoint = "https://sync.hotm.app"
+auth_method = "api_key"  # api_key, oauth
+sync_interval = "15m"
+conflict_resolution = "last_write_wins"  # last_write_wins, manual_resolve
+selective_sync = true  # Only sync tagged collections
+bandwidth_limit = "10MB/hour"  # Prevent overwhelming connection
+
+[services]
+# Embedded services managed by HotM installer
+postgresql_embedded = true
+postgresql_port = 54321
+postgresql_data_dir = "./data/postgres"
+postgresql_log_file = "./logs/postgres.log"
+
+ollama_embedded = true  # Bundle Ollama with installer
+ollama_port = 11435  # Non-standard port to avoid conflicts
+ollama_models_dir = "./models"
+ollama_log_file = "./logs/ollama.log"
+
+service_management = "windows_service"  # windows_service, systemd, manual
 
 [logging]
 level = "info"
@@ -180,14 +209,20 @@ custom_css = "/etc/hotm/custom.css"
 branding = { name = "Company Knowledge Base", logo = "/assets/logo.png" }
 
 [database]
-type = "postgresql"
-url = "postgres://hotm:${DB_PASSWORD}@postgres:5432/hotm"
+type = "postgresql" 
+# For embedded deployment
+url = "postgresql://hotm:${DB_PASSWORD}@localhost:54321/hotm"
+# For external PostgreSQL/DocumentDB
+# url = "postgres://hotm:${DB_PASSWORD}@postgres:5432/hotm"
+embedded = false  # Set to true for single-machine deployments
+port = 54321  # Embedded PostgreSQL port
 pool_size = 20
 max_lifetime = "1h"
 connection_timeout = "10s"
 idle_timeout = "5m"
-ssl_mode = "require"
+ssl_mode = "prefer"  # prefer for local, require for remote
 application_name = "hotm-server"
+extensions = ["vector", "pg_trgm", "btree_gin"]
 
 [database.migrations]
 auto_migrate = true
@@ -350,10 +385,17 @@ upnp_enabled = false
 
 [database]
 type = "postgresql"
-url = "postgres://localhost:5432/hotm"
+url = "postgresql://hotm:hotm_local@localhost:54321/hotm"  # Embedded PostgreSQL
+embedded = true  # Managed by HotM installer
 local_cache = true
 cache_size = "200MB"
-sync_conflicts = "last_write_wins"  # last_write_wins, manual_resolve
+extensions = ["vector", "pg_trgm", "btree_gin"]
+
+[cloud_sync]
+enabled = true  # Enable cross-device sync in hybrid mode
+provider = "hotm_cloud"
+sync_interval = "10m"  # More frequent sync in hybrid mode
+conflict_resolution = "last_write_wins"
 
 [security]
 local_auth = false      # No auth for desktop interface
@@ -469,9 +511,11 @@ hot_reload = true
 
 [database]
 type = "postgresql"
-url = "postgres://dev:dev@localhost:5432/hotm_dev"
+url = "postgresql://hotm:dev_password@localhost:54321/hotm_dev"  # Embedded PostgreSQL
+embedded = true  # Use embedded PostgreSQL for development
 reset_on_start = false
 auto_migrate = true
+extensions = ["vector", "pg_trgm", "btree_gin"]
 
 [performance]
 worker_threads = 4
@@ -866,4 +910,190 @@ auth_disabled = true  # Only for testing
 cors_permissive = true
 ```
 
-This comprehensive configuration guide ensures that HotM can be properly configured for any deployment scenario while maintaining security, performance, and operational best practices.
+## Installer Service Management
+
+### Embedded Services Architecture
+
+The HotM installer bundles and manages essential services to provide a complete local-first experience:
+
+**Bundled Services:**
+- **PostgreSQL with pgvector** - Local DocumentDB with vector search capabilities
+- **Ollama** - Local AI inference engine with bundled models
+- **HotM Runtime** - Unified application runtime
+
+**Service Management Features:**
+```toml
+[installer.services]
+# Windows Service Integration
+windows_service_install = true
+service_name = "HotM Knowledge Base"
+service_display_name = "HotM Knowledge Management System"
+service_description = "Local-first knowledge management with AI capabilities"
+start_type = "automatic"  # automatic, manual, disabled
+
+# Service Dependencies
+postgresql_startup_timeout = "30s"
+ollama_startup_timeout = "60s"  # Model loading takes time
+service_startup_order = ["postgresql", "ollama", "hotm"]
+
+# Port Management
+auto_port_detection = true
+port_conflict_resolution = "increment"  # increment, fail, prompt
+reserved_port_range = "54320-54330"
+
+# Service Health Monitoring
+health_check_interval = "30s"
+auto_restart_failed_services = true
+max_restart_attempts = 3
+restart_backoff = "exponential"
+```
+
+**Installation Directory Structure:**
+```
+C:\Program Files\HotM\
+├── bin/
+│   ├── hotm.exe                 # Main runtime
+│   ├── pg_ctl.exe              # PostgreSQL control
+│   └── ollama.exe              # AI inference engine
+├── data/
+│   ├── postgres/               # PostgreSQL data directory
+│   ├── models/                 # AI models (3-5GB)
+│   └── user/                   # User data and notes
+├── logs/
+│   ├── hotm.log
+│   ├── postgres.log
+│   └── ollama.log
+├── config/
+│   ├── hotm.toml              # Main configuration
+│   ├── postgresql.conf         # PostgreSQL settings
+│   └── models.json            # AI model inventory
+└── uninstall/
+    └── cleanup.exe            # Complete removal tool
+```
+
+**Service Configuration Templates:**
+
+**PostgreSQL Configuration (postgresql.conf):**
+```ini
+# Optimized for local desktop use
+port = 54321
+max_connections = 100
+shared_buffers = 128MB
+effective_cache_size = 512MB
+work_mem = 4MB
+maintenance_work_mem = 64MB
+
+# Logging optimized for desktop use
+log_destination = 'stderr'
+logging_collector = on
+log_directory = '../logs'
+log_filename = 'postgres.log'
+log_rotation_age = 1d
+log_rotation_size = 10MB
+
+# Enable required extensions
+shared_preload_libraries = 'vector'
+```
+
+**Ollama Service Configuration:**
+```json
+{
+  "server": {
+    "host": "127.0.0.1",
+    "port": 11435,
+    "models_path": "./models",
+    "concurrent_requests": 2,
+    "memory_limit": "4GB"
+  },
+  "bundled_models": [
+    {
+      "name": "gpt-oss:20b",
+      "size": "1.2GB",
+      "purpose": "text_generation",
+      "auto_load": true
+    },
+    {
+      "name": "nomic-embed-text",
+      "size": "274MB", 
+      "purpose": "embeddings",
+      "auto_load": true
+    }
+  ],
+  "startup": {
+    "preload_models": true,
+    "warmup_requests": false,
+    "health_check_endpoint": "/api/health"
+  }
+}
+```
+
+### User Service Management Interface
+
+**Desktop UI Service Panel:**
+```toml
+[ui.services]
+show_service_status = true
+allow_service_control = true  # Start/stop/restart services
+show_resource_usage = true   # CPU, memory, disk usage
+log_viewer = true           # Built-in log viewer
+port_configuration = true   # Change ports if conflicts occur
+
+[ui.services.status_indicators]
+# System tray indicators
+postgresql_status = "green"  # green, yellow, red
+ollama_status = "green"
+cloud_sync_status = "blue"  # blue when syncing, green when idle
+```
+
+**Command Line Service Management:**
+```bash
+# Service control commands
+hotm service status           # Show all service status
+hotm service start postgres   # Start specific service
+hotm service stop ollama      # Stop specific service  
+hotm service restart all      # Restart all services
+hotm service logs postgres    # View service logs
+
+# Configuration management
+hotm config validate         # Validate configuration
+hotm config test-connection  # Test database connection
+hotm config reset            # Reset to defaults
+hotm config export           # Export current config
+```
+
+### Installation and Upgrade Handling
+
+**Initial Installation Process:**
+1. **Pre-installation Checks**
+   - Port availability scanning
+   - Disk space verification (minimum 8GB)
+   - Windows version compatibility
+   - Existing service conflict detection
+
+2. **Service Installation**
+   - PostgreSQL service registration
+   - Database initialization with extensions
+   - Ollama service setup and model download
+   - HotM service registration and configuration
+
+3. **Post-installation Verification**
+   - Service startup validation  
+   - Database connectivity test
+   - AI model loading verification
+   - User account setup
+
+**Upgrade Process:**
+```toml
+[installer.upgrade]
+backup_user_data = true
+backup_database = true  
+preserve_configuration = true
+service_migration = "seamless"  # seamless, restart, manual
+
+# Data migration between versions
+migration_scripts = ["v0.1_to_v0.2.sql"]
+rollback_support = true
+rollback_timeout = "5m"
+```
+
+This comprehensive configuration guide ensures that HotM can be properly configured for any deployment scenario while maintaining security, performance, and operational best practices with full service management capabilities.

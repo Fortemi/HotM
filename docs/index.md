@@ -10,6 +10,9 @@ HotM is a local-first notes and analysis tool with immutable originals, NLP-powe
   - API (v1/v2), Data model, MCP tools, UI spec
 - Architecture: `architecture/` and `architecture-overview.md`
   - System design, NLP pipeline
+  - **Unified Runtime Architecture**: `architecture/unified-runtime-architecture.md`
+  - **Cloud Sync Architecture**: `architecture/cloud-sync-architecture.md`
+  - **Deployment Diagrams**: `architecture/deployment-architecture-diagrams.md`
   - Stage 2: `architecture/stage-2-architecture.md` (sync, auth/billing, encryption, device model)
   - Client Sync Agent interfaces: `architecture/client-sync-agent.md`
   - Decisions: `adr/ADR-001-journal-sync-lww.md`
