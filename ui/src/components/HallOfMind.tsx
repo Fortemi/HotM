@@ -257,21 +257,26 @@ export function HallOfMind() {
           if (updatedNote.revised) {
             // Check for title changes to trigger animation
             const currentNote = notes.find(n => n.id === updatedNote.note.id);
-            const oldTitle = currentNote?.title || updatedNote.original.content.split('\n')[0].substring(0, 50) || "Untitled";
-            const newTitle = updatedNote.note.title || updatedNote.original.content.split('\n')[0].substring(0, 50) || "Untitled";
+            // For animation, we need to compare the actual stored AI title, not the display title
+            const oldAiTitle = currentNote?.ai_generated_title;
+            const newAiTitle = updatedNote.note.title;
             
-            // Trigger title animation if title changed
-            if (oldTitle !== newTitle) {
+            // Calculate display titles for animation
+            const oldDisplayTitle = oldAiTitle || updatedNote.original.content.split('\n')[0].substring(0, 50) || "Untitled";
+            const newDisplayTitle = newAiTitle || updatedNote.original.content.split('\n')[0].substring(0, 50) || "Untitled";
+            
+            // Trigger title animation if AI-generated title changed (new title generated or existing title updated)
+            if (oldAiTitle !== newAiTitle && newAiTitle) {
               setTitleAnimations(prev => new Map(prev.set(updatedNote.note.id, {
-                oldTitle,
-                newTitle,
+                oldTitle: oldDisplayTitle,
+                newTitle: newDisplayTitle,
                 isAnimating: true
               })));
             }
 
             const simpleNote = {
               id: updatedNote.note.id,
-              title: newTitle,
+              title: newDisplayTitle,
               content: updatedNote.original.content,
               revised_content: updatedNote.revised.content,
               createdAt: updatedNote.note.created_at_utc,
