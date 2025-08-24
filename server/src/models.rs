@@ -14,6 +14,7 @@ pub struct NoteMeta {
     pub starred: bool,
     pub archived: bool,
     pub last_accessed_at: Option<DateTime<Utc>>,
+    pub title: Option<String>,
     pub metadata: JsonValue,
 }
 
@@ -34,6 +35,7 @@ pub struct NoteRevised {
     pub user_last_edited_at: Option<DateTime<Utc>>,
     pub is_user_edited: bool,
     pub generation_count: i32,
+    pub model: Option<String>,
 }
 
 #[derive(Serialize, Deserialize, Clone)]
@@ -157,6 +159,7 @@ mod tests {
             starred: false,
             archived: false,
             last_accessed_at: None,
+            title: None,
             metadata: json!({}),
         };
 
@@ -276,6 +279,18 @@ pub struct SemanticResponse {
 pub struct CreateLinkRequest {
     pub to_note_id: Uuid,
     pub reason: Option<String>,
+}
+
+// Update note title
+#[derive(Serialize, Deserialize)]
+pub struct UpdateNoteTitleRequest {
+    pub title: String,
+}
+
+// Update original note content
+#[derive(Serialize, Deserialize)]
+pub struct UpdateOriginalContentRequest {
+    pub content: String,
 }
 
 // List notes with filtering and sorting

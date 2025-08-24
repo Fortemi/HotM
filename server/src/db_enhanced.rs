@@ -84,14 +84,15 @@ Use existing tags when appropriate, but create new ones if needed."#,
 
     // Insert revision record
     sqlx::query!(
-        "INSERT INTO note_revision (id, note_id, created_at_utc, rationale, content, type) 
-         VALUES ($1, $2, $3, $4, $5, $6)",
+        "INSERT INTO note_revision (id, note_id, created_at_utc, rationale, content, type, model) 
+         VALUES ($1, $2, $3, $4, $5, $6, $7)",
         revision_id,
         note_id,
         now,
         "AI-enhanced revision with metadata",
         revised_content,
-        "ai_enhancement"
+        "ai_enhancement",
+        state.gen_model
     )
     .execute(&mut *tx)
     .await?;

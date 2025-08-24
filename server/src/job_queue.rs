@@ -26,6 +26,7 @@ pub enum JobType {
     Embedding,
     Linking,
     ContextUpdate,
+    TitleGeneration,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -200,6 +201,7 @@ impl JobQueueManager {
             JobType::Embedding => self.process_embedding(&job).await,
             JobType::Linking => self.process_linking(&job).await,
             JobType::ContextUpdate => self.process_context_update(&job).await,
+            JobType::TitleGeneration => self.process_title_generation(&job).await,
         };
 
         let duration_ms = start_time.elapsed().as_millis() as i32;
@@ -449,6 +451,65 @@ impl JobQueueManager {
 
         Ok(serde_json::json!({
             "note_id": note_id,
+            "success": true
+        }))
+    }
+
+    /// Process title generation job
+    async fn process_title_generation(&self, job: &Job) -> anyhow::Result<serde_json::Value> {
+        let note_id = job
+            .note_id
+            .ok_or_else(|| anyhow::anyhow!("No note_id for title generation job"))?;
+
+        self.update_progress(&job.id, 10, Some("Fetching note and related notes"))
+            .await?;
+
+        // Get the current note data
+        let note = crate::db::fetch_note(&self.state, note_id).await?;
+        
+        self.update_progress(&job.id, 30, Some("Finding related notes"))
+            .await?;
+
+        // Generate embedding for the note to find related notes
+        let content = &note.revised.content;
+        let embeddings = crate::ollama::embed_texts(vec![content.clone()], &self.state.embed_model).await?;
+        let query_vec = embeddings
+            .into_iter()
+            .next()
+            .unwrap_or_else(|| vec![0.0_f32; 768]);
+
+        // Find related notes with >50% similarity
+        let related_notes = crate::db::search_vector_filtered(&self.state, query_vec, None, 10).await?;
+        let high_quality_related: Vec<_> = related_notes
+            .into_iter()
+            .filter(|hit| hit.score > 0.5 && hit.note_id != note_id)
+            .take(5)
+            .collect();
+
+        self.update_progress(&job.id, 60, Some("Generating contextual title"))
+            .await?;
+
+        // Generate unique title using enhanced context and retry logic
+        let title = crate::db_enhanced_v2::generate_unique_title(
+            &self.state,
+            note_id,
+            content,
+            &note.revised.ai_metadata.as_ref().unwrap_or(&serde_json::json!({})),
+            &high_quality_related
+        ).await?;
+
+        self.update_progress(&job.id, 80, Some("Updating note title"))
+            .await?;
+
+        // Store the generated title
+        crate::db_enhanced_v2::store_note_title(&self.state, note_id, &title).await?;
+
+        self.update_progress(&job.id, 100, Some("Title generation completed"))
+            .await?;
+
+        Ok(serde_json::json!({
+            "note_id": note_id,
+            "title": title,
             "success": true
         }))
     }

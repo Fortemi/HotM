@@ -105,8 +105,63 @@ pub async fn insert_note(
         tracing::warn!("Failed to queue linking job for note {}: {}", note_id, e);
     }
 
+    // Queue title generation after other processing is complete (lowest priority)
+    if let Err(e) = queue_job(&state.pool, Some(note_id), JobType::TitleGeneration, 2, None).await {
+        tracing::warn!("Failed to queue title generation job for note {}: {}", note_id, e);
+    }
+
     tracing::info!("Queued jobs for note {}", note_id);
     Ok(note_id)
+}
+
+pub async fn update_original_content(
+    state: &AppState,
+    note_id: Uuid,
+    content: &str,
+) -> anyhow::Result<()> {
+    let now = Utc::now();
+    
+    // Calculate new hash
+    let mut hasher = Sha256::new();
+    hasher.update(content.as_bytes());
+    let hash = format!("sha256:{}", hex::encode(hasher.finalize()));
+    
+    let mut tx = state.pool.begin().await?;
+
+    // Update the original content
+    sqlx::query!(
+        "UPDATE note_original SET content = $1, hash = $2, user_last_edited_at = $3 WHERE note_id = $4",
+        content,
+        hash,
+        now,
+        note_id
+    )
+    .execute(&mut *tx)
+    .await?;
+
+    // Update note's updated_at timestamp
+    sqlx::query!(
+        "UPDATE note SET updated_at_utc = $1 WHERE id = $2",
+        now,
+        note_id
+    )
+    .execute(&mut *tx)
+    .await?;
+
+    // Log the activity
+    sqlx::query!(
+        "INSERT INTO activity_log (id, at_utc, actor, action, note_id, meta) VALUES ($1, $2, 'user', 'update_original', $3, '{}'::jsonb)",
+        Uuid::new_v4(), 
+        now, 
+        note_id
+    )
+    .execute(&mut *tx)
+    .await?;
+
+    tx.commit().await?;
+
+    tracing::info!("Updated original content for note {}", note_id);
+    Ok(())
 }
 
 pub async fn list_notes(
@@ -155,6 +210,7 @@ pub async fn list_notes(
             n.updated_at_utc, 
             n.starred, 
             n.archived,
+            n.title,
             n.metadata,
             no.content as original_content,
             nrc.content as revised_content,
@@ -182,13 +238,16 @@ pub async fn list_notes(
         let revised_content: Option<String> = row.try_get("revised_content").ok();
         let content = revised_content.as_ref().unwrap_or(&original_content);
 
-        // Extract title from first line
-        let title = content
-            .lines()
-            .next()
-            .map(|l| l.trim_start_matches('#').trim())
-            .unwrap_or("Untitled")
-            .to_string();
+        // Use stored title or extract from first line as fallback
+        let stored_title: Option<String> = row.try_get("title").ok().flatten();
+        let title = stored_title.unwrap_or_else(|| {
+            content
+                .lines()
+                .next()
+                .map(|l| l.trim_start_matches('#').trim())
+                .unwrap_or("Untitled")
+                .to_string()
+        });
 
         // Create snippet (first 200 chars after title)
         let snippet = content
@@ -235,7 +294,7 @@ pub async fn fetch_note(state: &AppState, note_id: Uuid) -> anyhow::Result<NoteF
     .await?;
 
     let note = sqlx::query!(
-        "SELECT id, collection_id, format, source, created_at_utc, updated_at_utc, starred, archived, last_accessed_at, metadata FROM note WHERE id = $1",
+        "SELECT id, collection_id, format, source, created_at_utc, updated_at_utc, starred, archived, last_accessed_at, title, metadata FROM note WHERE id = $1",
         note_id
     ).fetch_one(&state.pool).await?;
 
@@ -244,37 +303,21 @@ pub async fn fetch_note(state: &AppState, note_id: Uuid) -> anyhow::Result<NoteF
         note_id
     ).fetch_one(&state.pool).await?;
 
-    // Try to get the latest AI revision first, fallback to current revised
-    let ai_revision = sqlx::query!(
-        "SELECT content, id as last_revision_id FROM note_revision 
-         WHERE note_id = $1 AND type = 'ai_enhancement'
-         ORDER BY created_at_utc DESC LIMIT 1",
-        note_id
-    )
-    .fetch_optional(&state.pool)
-    .await?;
-
-    // Get current revised with metadata
+    // Get current revised content - this table always contains the most up-to-date content
     let current = sqlx::query!(
-        "SELECT content, last_revision_id, ai_metadata FROM note_revised_current WHERE note_id = $1",
+        "SELECT nrc.content, nrc.last_revision_id, nrc.ai_metadata, nr.model 
+         FROM note_revised_current nrc
+         LEFT JOIN note_revision nr ON nr.id = nrc.last_revision_id
+         WHERE nrc.note_id = $1",
         note_id
     ).fetch_one(&state.pool).await?;
 
-    let revised = if let Some(ai_rev) = ai_revision {
-        // Use AI revision if available but keep metadata from current
-        (
-            ai_rev.content,
-            Some(ai_rev.last_revision_id),
-            current.ai_metadata,
-        )
-    } else {
-        // Use current revised
-        (
-            current.content,
-            current.last_revision_id,
-            current.ai_metadata,
-        )
-    };
+    let revised = (
+        current.content,
+        current.last_revision_id,
+        current.ai_metadata,
+        current.model,
+    );
 
     let tags = sqlx::query!("SELECT tag_name FROM note_tag WHERE note_id = $1", note_id)
         .fetch_all(&state.pool)
@@ -332,6 +375,7 @@ pub async fn fetch_note(state: &AppState, note_id: Uuid) -> anyhow::Result<NoteF
             starred: note.starred.unwrap_or(false),
             archived: note.archived.unwrap_or(false),
             last_accessed_at: note.last_accessed_at,
+            title: note.title,
             metadata: note.metadata, // metadata is NOT NULL with default
         },
         original: NoteOriginal {
@@ -348,6 +392,7 @@ pub async fn fetch_note(state: &AppState, note_id: Uuid) -> anyhow::Result<NoteF
             user_last_edited_at: None, // TODO: fetch from note_revision
             is_user_edited: false,     // TODO: fetch from note_revision
             generation_count: 1,       // TODO: fetch from note_revision
+            model: revised.3,
         },
         tags,
         links,
@@ -390,7 +435,7 @@ pub async fn update_revised(
     let mut tx = state.pool.begin().await?;
 
     sqlx::query!(
-        "INSERT INTO note_revision (id, note_id, parent_revision_id, content, type, created_at_utc, summary, rationale) VALUES ($1, $2, (SELECT last_revision_id FROM note_revised_current WHERE note_id = $2), $3, 'manual', $4, NULL, $5)",
+        "INSERT INTO note_revision (id, note_id, parent_revision_id, revision_number, content, type, created_at_utc, summary, rationale) VALUES ($1, $2, (SELECT last_revision_id FROM note_revised_current WHERE note_id = $2), COALESCE((SELECT MAX(revision_number) + 1 FROM note_revision WHERE note_id = $2), 1), $3, 'manual', $4, NULL, $5)",
         revision_id, note_id, content, now, rationale
     ).execute(&mut *tx).await?;
 
@@ -678,8 +723,8 @@ Output the enhanced note in clean markdown format. Do not add explanatory text b
 
     // Insert revision record
     sqlx::query!(
-        "INSERT INTO note_revision (id, note_id, created_at_utc, rationale, content, type) VALUES ($1, $2, $3, $4, $5, $6)",
-        revision_id, note_id, now, "AI-enhanced revision", revised_content, "ai_enhancement"
+        "INSERT INTO note_revision (id, note_id, created_at_utc, rationale, content, type, model) VALUES ($1, $2, $3, $4, $5, $6, $7)",
+        revision_id, note_id, now, "AI-enhanced revision", revised_content, "ai_enhancement", state.gen_model
     ).execute(&mut *tx).await?;
 
     // Update current revised content

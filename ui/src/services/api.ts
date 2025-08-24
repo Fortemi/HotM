@@ -62,6 +62,7 @@ interface NoteRevised {
   content: string;
   last_revision_id?: string;
   ai_metadata?: any;
+  model?: string;
 }
 
 interface Link {

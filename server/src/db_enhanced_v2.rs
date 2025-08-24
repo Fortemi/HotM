@@ -21,16 +21,19 @@ pub async fn generate_ai_revision_with_metadata(
         parsed_topics
     );
 
-    // Step 2: Generate enhanced content (focused on content improvement only)
-    let enhanced_content = generate_enhanced_content(state, content).await?;
+    // Step 2: Get related notes for contextual enhancement
+    let related_notes = get_related_notes_for_enhancement(state, note_id, content).await?;
+    
+    // Step 3: Generate enhanced content with related notes context
+    let enhanced_content = generate_enhanced_content_with_context(state, content, &related_notes).await?;
 
-    // Step 3: Extract metadata from the content (separate AI call)
+    // Step 4: Extract metadata from the content (separate AI call)
     let mut metadata = extract_metadata(state, content, &enhanced_content).await?;
 
-    // Step 4: Generate tags based on existing tags in the system, including parsed ones
+    // Step 5: Generate tags based on existing tags in the system, including parsed ones
     let mut ai_tags = generate_tags(state, &enhanced_content).await?;
 
-    // Step 5: Merge parsed tags and topics with AI-generated ones
+    // Step 6: Merge parsed tags and topics with AI-generated ones
     ai_tags.extend(parsed_tags);
     if let Some(topics_array) = metadata.get_mut("topics").and_then(|v| v.as_array_mut()) {
         for topic in parsed_topics {
@@ -38,13 +41,87 @@ pub async fn generate_ai_revision_with_metadata(
         }
     }
 
-    // Step 6: Store everything in the database
+    // Step 7: Store everything in the database
     store_enhanced_note(state, note_id, &enhanced_content, &metadata, &ai_tags).await?;
 
     // AI revision job is complete - embedding and linking will be handled by separate jobs
 
     tracing::info!(%note_id, "AI enhancement completed successfully");
     Ok(())
+}
+
+/// Get related notes with >50% similarity for contextual enhancement
+async fn get_related_notes_for_enhancement(
+    state: &AppState,
+    note_id: Uuid,
+    content: &str,
+) -> anyhow::Result<Vec<crate::models::SearchHit>> {
+    // Generate embedding for the current note to find related notes
+    let embeddings = crate::ollama::embed_texts(vec![content.to_string()], &state.embed_model).await?;
+    let query_vec = embeddings
+        .into_iter()
+        .next()
+        .unwrap_or_else(|| vec![0.0_f32; 768]);
+
+    // Find related notes with >50% similarity
+    let related_notes = crate::db::search_vector_filtered(state, query_vec, None, 10).await?;
+    let high_quality_related: Vec<_> = related_notes
+        .into_iter()
+        .filter(|hit| hit.score > 0.5 && hit.note_id != note_id)
+        .take(5)
+        .collect();
+
+    Ok(high_quality_related)
+}
+
+/// Generate enhanced content with context from related notes for more holistic enhancement
+async fn generate_enhanced_content_with_context(
+    state: &AppState,
+    content: &str,
+    related_notes: &[crate::models::SearchHit],
+) -> anyhow::Result<String> {
+    // Build context from related notes
+    let mut related_context = String::new();
+    if !related_notes.is_empty() {
+        related_context.push_str("Related concepts from the knowledge base:\n");
+        for hit in related_notes.iter().take(3) {
+            if let Some(snippet) = &hit.snippet {
+                related_context.push_str(&format!("- {}\n", snippet.chars().take(150).collect::<String>()));
+            }
+        }
+        related_context.push_str("\n");
+    }
+
+    let prompt = format!(
+        r#"You are an intelligent note-taking assistant. Your task is to enhance the following note by leveraging related concepts from the knowledge base to create a more holistic and contextual revision.
+
+Original Note:
+{}
+
+{}Please provide an enhanced version that:
+1. Preserves ALL original information and meaning
+2. Improves clarity and organization with proper markdown formatting
+3. Identifies and highlights key concepts
+4. Makes connections to related concepts where relevant (without overwhelming the original content)
+5. Adds contextual insights that help place this note within the broader knowledge landscape
+6. Maintains a professional yet accessible tone
+7. Formats any code blocks, math expressions, or diagrams properly
+
+Guidelines:
+- Only reference related concepts when they genuinely enhance understanding
+- Do not force connections that don't make sense
+- Keep the focus on the original note's content
+- Add value through context, not just length
+
+Output the enhanced note in clean markdown format. Do not add any labels, markers, or metadata."#,
+        content,
+        related_context
+    );
+
+    let enhanced = crate::ollama::generate(&state.gen_model, &prompt).await?;
+
+    // Clean up any accidental markers
+    Ok(clean_enhanced_content(&enhanced))
 }
 
 /// Generate enhanced content - focused solely on improving the note's content
@@ -202,9 +279,9 @@ async fn store_enhanced_note(
 
     // Insert revision record
     sqlx::query!(
-        "INSERT INTO note_revision (id, note_id, revision_number, created_at_utc, rationale, content, type) 
-         VALUES ($1, $2, $3, $4, $5, $6, $7)",
-        revision_id, note_id, revision_number, now, "AI-enhanced revision", enhanced_content, "ai_enhancement"
+        "INSERT INTO note_revision (id, note_id, revision_number, created_at_utc, rationale, content, type, model) 
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8)",
+        revision_id, note_id, revision_number, now, "AI-enhanced revision", enhanced_content, "ai_enhancement", state.gen_model
     ).execute(&mut *tx).await?;
 
     // Update current revised content with metadata
@@ -616,4 +693,351 @@ fn chunk_text(text: &str, max_len: usize) -> Vec<String> {
     }
 
     chunks
+}
+
+/// Generate a contextual title for a note based on its content, metadata, and related notes
+pub async fn generate_note_title(
+    state: &AppState,
+    content: &str,
+    metadata: &serde_json::Value,
+    related_notes: &[crate::models::SearchHit],
+) -> anyhow::Result<String> {
+    // Build context from related notes
+    let mut related_context = String::new();
+    if !related_notes.is_empty() {
+        related_context.push_str("Related concepts from your knowledge base:\n");
+        for hit in related_notes.iter().take(3) {
+            if let Some(snippet) = &hit.snippet {
+                related_context.push_str(&format!("- {}\n", snippet.chars().take(100).collect::<String>()));
+            }
+        }
+        related_context.push('\n');
+    }
+
+    // Extract key topics and categories from metadata
+    let topics = metadata.get("topics")
+        .and_then(|v| v.as_array())
+        .map(|arr| {
+            arr.iter()
+                .filter_map(|v| v.as_str())
+                .take(3)
+                .collect::<Vec<_>>()
+                .join(", ")
+        })
+        .filter(|s| !s.is_empty());
+
+    let categories = metadata.get("categories")
+        .and_then(|v| v.as_array())
+        .map(|arr| {
+            arr.iter()
+                .filter_map(|v| v.as_str())
+                .take(2)
+                .collect::<Vec<_>>()
+                .join(", ")
+        })
+        .filter(|s| !s.is_empty());
+
+    // Build metadata context
+    let mut metadata_context = String::new();
+    if let Some(topics_str) = topics {
+        metadata_context.push_str(&format!("Key topics: {}\n", topics_str));
+    }
+    if let Some(categories_str) = categories {
+        metadata_context.push_str(&format!("Categories: {}\n", categories_str));
+    }
+
+    let content_preview = content.chars().take(500).collect::<String>();
+    
+    let prompt = format!(
+        r#"You are an expert at creating concise, descriptive titles for notes and documents. Your task is to generate a clear, informative title that captures the essence of the content and its place in the broader knowledge base.
+
+Content to title:
+{}
+
+{}{}
+
+Guidelines for the title:
+1. Keep it between 3-8 words
+2. Be specific and descriptive
+3. Capture the main concept or purpose
+4. Consider the context of related notes
+5. Use natural, readable language
+6. Avoid generic words like "Note", "Document", "Text"
+7. Focus on the actual subject matter
+
+Examples of good titles:
+- "Machine Learning Model Deployment Pipeline"
+- "React State Management Patterns"  
+- "Database Index Optimization Strategies"
+- "Team Meeting Notes - Project Alpha"
+- "Python Data Processing Workflow"
+
+Generate only the title, no quotes, no explanations."#,
+        content_preview,
+        metadata_context,
+        related_context
+    );
+
+    let title = crate::ollama::generate(&state.gen_model, &prompt).await?;
+    
+    // Clean up the title
+    let cleaned_title = title
+        .trim()
+        .replace('\n', " ")
+        .replace('"', "")
+        .chars()
+        .take(80) // Max 80 characters
+        .collect::<String>()
+        .trim()
+        .to_string();
+
+    // Fallback if title is too short or empty
+    if cleaned_title.len() < 3 {
+        Ok(format!("Note from {}", chrono::Utc::now().format("%Y-%m-%d")))
+    } else {
+        Ok(cleaned_title)
+    }
+}
+
+/// Check if a title already exists in the database (case-insensitive)
+async fn title_exists(state: &AppState, title: &str, exclude_note_id: Option<Uuid>) -> anyhow::Result<bool> {
+    let count = if let Some(note_id) = exclude_note_id {
+        let result = sqlx::query!(
+            "SELECT COUNT(*) as count FROM note WHERE LOWER(title) = LOWER($1) AND id != $2",
+            title,
+            note_id
+        )
+        .fetch_one(&state.pool)
+        .await?;
+        result.count.unwrap_or(0)
+    } else {
+        let result = sqlx::query!(
+            "SELECT COUNT(*) as count FROM note WHERE LOWER(title) = LOWER($1)",
+            title
+        )
+        .fetch_one(&state.pool)
+        .await?;
+        result.count.unwrap_or(0)
+    };
+    
+    Ok(count > 0)
+}
+
+/// Generate a unique, context-aware title with retry logic
+pub async fn generate_unique_title(
+    state: &AppState,
+    note_id: Uuid,
+    content: &str,
+    metadata: &serde_json::Value,
+    related_notes: &[crate::models::SearchHit],
+) -> anyhow::Result<String> {
+    const MAX_RETRIES: usize = 3;
+    let mut attempt = 0;
+
+    while attempt < MAX_RETRIES {
+        attempt += 1;
+        
+        tracing::info!("Title generation attempt {} for note {}", attempt, note_id);
+        
+        // Generate title with enhanced context awareness
+        let title = generate_contextual_unique_title(state, content, metadata, related_notes, attempt).await?;
+        
+        // Check if this title already exists
+        if !title_exists(state, &title, Some(note_id)).await? {
+            tracing::info!(%note_id, title = %title, attempt, "Generated unique title");
+            return Ok(title);
+        }
+        
+        tracing::warn!(%note_id, title = %title, attempt, "Title already exists, retrying");
+    }
+    
+    // If all retries failed, generate a fallback title with timestamp
+    let fallback_title = generate_fallback_unique_title(content).await?;
+    tracing::warn!(%note_id, title = %fallback_title, "Using fallback title after {} attempts", MAX_RETRIES);
+    Ok(fallback_title)
+}
+
+/// Generate a contextually-aware unique title
+async fn generate_contextual_unique_title(
+    state: &AppState,
+    content: &str,
+    metadata: &serde_json::Value,
+    related_notes: &[crate::models::SearchHit],
+    attempt: usize,
+) -> anyhow::Result<String> {
+    // Build enhanced context from related notes
+    let mut related_context = String::new();
+    if !related_notes.is_empty() {
+        related_context.push_str("Related concepts and their titles for differentiation:\n");
+        for hit in related_notes.iter().take(5) {
+            if let Some(snippet) = &hit.snippet {
+                related_context.push_str(&format!("- {}\n", snippet.chars().take(120).collect::<String>()));
+            }
+        }
+        related_context.push('\n');
+    }
+
+    // Extract key topics and categories from metadata for uniqueness
+    let topics = metadata.get("topics")
+        .and_then(|v| v.as_array())
+        .map(|arr| {
+            arr.iter()
+                .filter_map(|v| v.as_str())
+                .take(4)
+                .collect::<Vec<_>>()
+                .join(", ")
+        })
+        .filter(|s| !s.is_empty());
+
+    let categories = metadata.get("categories")
+        .and_then(|v| v.as_array())
+        .map(|arr| {
+            arr.iter()
+                .filter_map(|v| v.as_str())
+                .take(3)
+                .collect::<Vec<_>>()
+                .join(", ")
+        })
+        .filter(|s| !s.is_empty());
+
+    let keywords = metadata.get("keywords")
+        .and_then(|v| v.as_array())
+        .map(|arr| {
+            arr.iter()
+                .filter_map(|v| v.as_str())
+                .take(3)
+                .collect::<Vec<_>>()
+                .join(", ")
+        })
+        .filter(|s| !s.is_empty());
+
+    // Build metadata context
+    let mut metadata_context = String::new();
+    if let Some(topics_str) = topics {
+        metadata_context.push_str(&format!("Key topics: {}\n", topics_str));
+    }
+    if let Some(categories_str) = categories {
+        metadata_context.push_str(&format!("Categories: {}\n", categories_str));
+    }
+    if let Some(keywords_str) = keywords {
+        metadata_context.push_str(&format!("Important keywords: {}\n", keywords_str));
+    }
+
+    let content_preview = content.chars().take(600).collect::<String>();
+    
+    let uniqueness_guidance = match attempt {
+        1 => "Focus on the most distinctive aspect of this content.",
+        2 => "Emphasize specific technical details or unique angles that set this apart.",
+        _ => "Include specific terminology, methodologies, or unique identifiers to ensure distinctiveness.",
+    };
+    
+    let prompt = format!(
+        r#"You are an expert at creating highly distinctive, unique titles for technical notes and documents. Your task is to generate a title that is both informative and completely unique within a knowledge base.
+
+Content to title:
+{content_preview}
+
+{metadata_context}{related_context}CRITICAL REQUIREMENTS for uniqueness:
+1. The title MUST be highly specific and distinctive
+2. Include technical terminology or specific concepts that make it unique
+3. Avoid generic terms like "Introduction", "Overview", "Guide", "Basics"
+4. Use specific methodologies, frameworks, or unique aspects mentioned in the content
+5. {uniqueness_guidance}
+6. Length: 3-8 words maximum
+7. Be precise and technical rather than broad
+
+Examples of GOOD distinctive titles:
+- "LSTM Backpropagation Through Time Implementation"
+- "Redis Pub/Sub vs Apache Kafka Event Streaming"
+- "PostgreSQL MVCC Transaction Isolation Levels"
+- "React useEffect Cleanup Pattern Memory Leaks"
+- "Kubernetes StatefulSet Pod Disruption Budgets"
+
+Examples of BAD generic titles to AVOID:
+- "Machine Learning Basics"
+- "Database Overview" 
+- "Web Development Guide"
+- "Programming Concepts"
+- "Introduction to AI"
+
+Generate only the title, no quotes, no explanations. Make it as specific and technically distinctive as possible."#,
+        content_preview = content_preview,
+        metadata_context = metadata_context,
+        related_context = related_context,
+        uniqueness_guidance = uniqueness_guidance
+    );
+
+    let title = crate::ollama::generate(&state.gen_model, &prompt).await?;
+
+    // Clean up the title - more conservative cleaning
+    let mut cleaned_title = title
+        .trim()
+        .trim_matches('"')
+        .trim_matches('\'')
+        .replace("\n", " ");
+    
+    // Remove any prompt artifacts that might have leaked through
+    let artifacts_to_remove = [
+        "Title Output", "Output", "Title:", "Generated Title:", "Result:", 
+        "Answer:", "Test", "Example", "Sample", "Demo"
+    ];
+    
+    for artifact in &artifacts_to_remove {
+        if cleaned_title.starts_with(artifact) {
+            cleaned_title = cleaned_title.strip_prefix(artifact)
+                .unwrap_or(&cleaned_title)
+                .trim()
+                .to_string();
+        }
+    }
+    
+    // Filter characters and normalize whitespace
+    let cleaned_title = cleaned_title
+        .chars()
+        .filter(|c| c.is_alphanumeric() || c.is_whitespace() || ":-&()[]{}.,!?/".contains(*c))
+        .collect::<String>()
+        .split_whitespace()
+        .collect::<Vec<&str>>()
+        .join(" ");
+        
+    tracing::debug!("Title before cleaning: '{}'", title.trim());
+    tracing::debug!("Title after cleaning: '{}'", cleaned_title);
+
+    // Ensure minimum length for distinctiveness
+    if cleaned_title.len() < 10 {
+        return Err(anyhow::anyhow!("Generated title too short: {}", cleaned_title));
+    }
+
+    Ok(cleaned_title)
+}
+
+/// Generate a fallback title with timestamp to ensure uniqueness
+async fn generate_fallback_unique_title(content: &str) -> anyhow::Result<String> {
+    let first_words: String = content
+        .split_whitespace()
+        .take(4)
+        .collect::<Vec<&str>>()
+        .join(" ");
+    
+    let timestamp = chrono::Utc::now().format("%H%M%S").to_string();
+    Ok(format!("{} [{}]", first_words, timestamp))
+}
+
+/// Store the generated title for a note
+pub async fn store_note_title(
+    state: &AppState,
+    note_id: Uuid,
+    title: &str,
+) -> anyhow::Result<()> {
+    // Update the note title
+    sqlx::query!(
+        "UPDATE note SET title = $1, updated_at_utc = NOW() WHERE id = $2",
+        title,
+        note_id
+    )
+    .execute(&state.pool)
+    .await?;
+
+    tracing::info!(%note_id, title = %title, "Updated note title");
+    Ok(())
 }

@@ -207,6 +207,14 @@ pub async fn regenerate_ai(
         }
     }
 
+    // Queue title generation after other processing is complete (lowest priority)
+    match queue_job(&state.pool, Some(id), JobType::TitleGeneration, 2, None).await {
+        Ok(job_id) => job_ids.push(job_id),
+        Err(e) => {
+            tracing::warn!("Failed to queue title generation job for note {}: {}", id, e);
+        }
+    }
+
     tracing::info!("Queued regeneration jobs for note {}", id);
 
     Ok(Json(serde_json::json!({
@@ -264,5 +272,39 @@ pub async fn create_note_link(
         "from_note_id": id,
         "to_note_id": req.to_note_id,
         "rows_affected": result.rows_affected()
+    })))
+}
+
+// Update note title
+pub async fn update_note_title(
+    State(state): State<AppState>,
+    Path(id): Path<Uuid>,
+    Json(req): Json<UpdateNoteTitleRequest>,
+) -> Result<Json<serde_json::Value>, axum::http::StatusCode> {
+    crate::db_enhanced_v2::store_note_title(&state, id, &req.title)
+        .await
+        .map_err(|_| axum::http::StatusCode::INTERNAL_SERVER_ERROR)?;
+    
+    Ok(Json(serde_json::json!({
+        "status": "updated",
+        "note_id": id,
+        "title": req.title
+    })))
+}
+
+// Update original note content
+pub async fn update_original_content(
+    State(state): State<AppState>,
+    Path(id): Path<Uuid>,
+    Json(req): Json<UpdateOriginalContentRequest>,
+) -> Result<Json<serde_json::Value>, axum::http::StatusCode> {
+    crate::db::update_original_content(&state, id, &req.content)
+        .await
+        .map_err(|_| axum::http::StatusCode::INTERNAL_SERVER_ERROR)?;
+    
+    Ok(Json(serde_json::json!({
+        "status": "updated",
+        "note_id": id,
+        "content": req.content
     })))
 }

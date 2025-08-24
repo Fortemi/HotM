@@ -85,6 +85,7 @@ export interface Note {
   archived: boolean;
   revised_content?: string | null;
   ai_generated_title?: string | null;
+  revised_model?: string | null;
 }
 
 export function HallOfMind() {
@@ -278,7 +279,8 @@ export function HallOfMind() {
               tags: updatedNote.tags,
               starred: updatedNote.note.starred || false,
               archived: updatedNote.note.archived || false,
-              ai_generated_title: updatedNote.note.title
+              ai_generated_title: updatedNote.note.title,
+              revised_model: updatedNote.revised ? updatedNote.revised.model : null
             };
             
             setNotes(prev => prev.map(n => n.id === simpleNote.id ? simpleNote : n));
@@ -495,7 +497,8 @@ export function HallOfMind() {
             updatedAt: note.note.updated_at_utc,
             tags: note.tags,
             starred: note.note.starred || false,
-            archived: note.note.archived || false
+            archived: note.note.archived || false,
+            revised_model: note.revised ? note.revised.model : null
           };
         });
         setNotes(simpleNotes);
@@ -557,7 +560,8 @@ export function HallOfMind() {
         updatedAt: fullNote.note.updated_at_utc,
         tags: fullNote.tags,
         starred: fullNote.note.starred || false,
-        archived: fullNote.note.archived || false
+        archived: fullNote.note.archived || false,
+        revised_model: fullNote.revised ? fullNote.revised.model : null
       };
       
       // Mark note as processing - WebSocket events will clear this when jobs complete
@@ -885,7 +889,8 @@ export function HallOfMind() {
                     updatedAt: fullNote.note.updated_at_utc,
                     tags: fullNote.tags,
                     starred: fullNote.note.starred || false,
-                    archived: fullNote.note.archived || false
+                    archived: fullNote.note.archived || false,
+                    revised_model: fullNote.revised ? fullNote.revised.model : null
                   };
                 } catch (err) {
                   // Fallback to search result if can't load full note
@@ -898,7 +903,8 @@ export function HallOfMind() {
                     updatedAt: new Date().toISOString(),
                     tags: [],
                     starred: false,
-                    archived: false
+                    archived: false,
+                    revised_model: null
                   };
                 }
               })
@@ -947,7 +953,8 @@ export function HallOfMind() {
                   updatedAt: fullNote.note.updated_at_utc,
                   tags: fullNote.tags,
                   starred: fullNote.note.starred || false,
-                  archived: fullNote.note.archived || false
+                  archived: fullNote.note.archived || false,
+                  revised_model: fullNote.revised ? fullNote.revised.model : null
                 };
               } catch (err) {
                 // Fallback to search result if can't load full note
@@ -960,7 +967,8 @@ export function HallOfMind() {
                   updatedAt: new Date().toISOString(),
                   tags: [],
                   starred: false,
-                  archived: false
+                  archived: false,
+                  revised_model: null
                 };
               }
             })
@@ -1572,7 +1580,8 @@ export function HallOfMind() {
                                       tags: freshNote.tags,
                                       starred: freshNote.note.starred || false,
                                       archived: freshNote.note.archived || false,
-                                      ai_generated_title: freshNote.note.title
+                                      ai_generated_title: freshNote.note.title,
+                                      revised_model: freshNote.revised ? freshNote.revised.model : null
                                     };
                                     console.log(`Fetched note ${note.id} - starred: ${updatedNote.starred}, archived: ${updatedNote.archived}`);
                                     
@@ -1938,7 +1947,7 @@ export function HallOfMind() {
                       </CardContent>
                       <div className="border-t bg-muted/30 px-6 py-3">
                         <div className="flex items-center justify-between text-xs text-muted-foreground">
-                          <span>Enhanced with AI • Powered by gpt-oss:20b</span>
+                          <span>Enhanced with AI • Powered by {selectedNote.revised_model || 'gpt-oss:20b'}</span>
                           <span>{selectedNote.revised_content ? `${selectedNote.revised_content.length} characters` : 'Original content'}</span>
                         </div>
                       </div>
@@ -2039,7 +2048,8 @@ export function HallOfMind() {
                                 updatedAt: linkedNote.note.updated_at_utc,
                                 tags: linkedNote.tags,
                                 starred: linkedNote.note.starred || false,
-                                archived: linkedNote.note.archived || false
+                                archived: linkedNote.note.archived || false,
+                                revised_model: linkedNote.revised ? linkedNote.revised.model : null
                               };
                               
                               // Add to notes if not already there
@@ -2082,7 +2092,8 @@ export function HallOfMind() {
                                 updatedAt: linkedNote.note.updated_at_utc,
                                 tags: linkedNote.tags,
                                 starred: linkedNote.note.starred || false,
-                                archived: linkedNote.note.archived || false
+                                archived: linkedNote.note.archived || false,
+                                revised_model: linkedNote.revised ? linkedNote.revised.model : null
                               };
                               
                               // Add to notes if not already there
