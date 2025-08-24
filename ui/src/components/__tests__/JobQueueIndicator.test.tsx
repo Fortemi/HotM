@@ -1,6 +1,7 @@
-import { render, screen, waitFor, act } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { JobQueueIndicator } from '../JobQueueIndicator';
+import * as websocketModule from '@/services/websocket';
 
 // Mock the useWebSocket hook
 vi.mock('@/services/websocket', () => ({
@@ -8,7 +9,7 @@ vi.mock('@/services/websocket', () => ({
 }));
 
 describe('JobQueueIndicator', () => {
-  const mockUseWebSocket = vi.mocked(await import('@/services/websocket')).useWebSocket;
+  const mockUseWebSocket = vi.mocked(websocketModule.useWebSocket);
 
   beforeEach(() => {
     // Reset mock implementation
