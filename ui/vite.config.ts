@@ -25,10 +25,10 @@ export default defineConfig(async () => ({
           'mermaid-core': ['mermaid'],
           // Split large UI libraries
           'ui-vendor': ['@radix-ui/react-dialog', '@radix-ui/react-dropdown-menu', '@radix-ui/react-select'],
-          // Split charting libraries  
-          'chart-vendor': ['cytoscape'],
           // Split React ecosystem
-          'react-vendor': ['react', 'react-dom', 'react-router-dom']
+          'react-vendor': ['react', 'react-dom'],
+          // Split markdown and editor libraries
+          'editor-vendor': ['@uiw/react-md-editor', 'react-markdown']
         }
       }
     }
