@@ -3,7 +3,7 @@
 1) Database (Microsoft DocumentDB / PostgreSQL)
 - Create a database and user
 - Enable extension: `CREATE EXTENSION IF NOT EXISTS vector;`
-- Apply schema: `docs/04-data-model-pg.sql` (server runs migrations automatically)
+- Apply schema: `./data-model-pg.sql` (server runs migrations automatically)
 - Set `DATABASE_URL` for the server (and `TEST_DATABASE_URL` for tests)
 
 2) Ollama (local)

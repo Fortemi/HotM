@@ -13,7 +13,7 @@ This document describes the v1 architecture that centers NLP-driven revision, su
 - Security: Local-only by default; optional encryption-at-rest (Windows DPAPI) and audit log
 
 ## Data Model
-See `docs/04-data-model-pg.sql` for the PostgreSQL/DocumentDB schema.
+See `./data-model-pg.sql` for the PostgreSQL/DocumentDB schema.
 
 Key relations and document fields:
 - `note`, `note_original` (immutable text), `note_revised_current`, `note_revision` (history)

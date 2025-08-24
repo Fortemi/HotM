@@ -67,17 +67,17 @@ docker-compose up -d
 
 ## Documentation
 
-📚 **[Complete Documentation](docs/00-index.md)**
+📚 **[Complete Documentation](docs/index.md)**
 
 ### Key Sections
-- [Requirements & Specifications](docs/01-requirements/) - Functional and non-functional requirements
-- [API Specification](docs/02-specifications/api-specification.md) - REST API reference
-- [MCP Tools](docs/02-specifications/mcp-tools-spec.md) - AI assistant integration
-- [System Architecture](docs/03-architecture/system-architecture.md) - High-level design
-- [NLP Pipeline](docs/03-architecture/nlp-pipeline.md) - Text processing architecture
-- [Development Guide](docs/04-implementation/development-guide.md) - Setup and workflow
-- [Testing Strategy](docs/04-implementation/testing-strategy.md) - Test approach and coverage
-- [Docker Deployment](docs/05-deployment/docker-deployment.md) - Container deployment
+- [Requirements & Specifications](docs/requirements/) - Functional and non-functional requirements
+- [API Specification](docs/specifications/api-specification.md) - REST API reference
+- [MCP Tools](docs/specifications/mcp-tools-spec.md) - AI assistant integration
+- [System Architecture](docs/architecture/system-architecture.md) - High-level design
+- [NLP Pipeline](docs/architecture/nlp-pipeline.md) - Text processing architecture
+- [Development Guide](docs/implementation/development-guide.md) - Setup and workflow
+- [Testing Strategy](docs/implementation/testing-strategy.md) - Test approach and coverage
+- [Docker Deployment](docs/deployment/docker-deployment.md) - Container deployment
 
 ## Project Structure
 
@@ -128,7 +128,7 @@ cd server && cargo clippy
 cd ui && npm run lint
 ```
 
-See [Development Guide](docs/04-implementation/development-guide.md) for detailed instructions.
+See [Development Guide](docs/implementation/development-guide.md) for detailed instructions.
 
 ## Contributing
 
@@ -154,7 +154,7 @@ MIT License - see [LICENSE](LICENSE) file for details.
 
 ## Support
 
-- 📖 [Documentation](docs/00-index.md)
+- 📖 [Documentation](docs/index.md)
 - 🐛 [Issue Tracker](https://github.com/yourusername/hotm/issues)
 - 💬 [Discussions](https://github.com/yourusername/hotm/discussions)
 

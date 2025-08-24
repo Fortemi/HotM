@@ -18,7 +18,7 @@ Setup
 2) Enable extensions (once per DB):
    - `CREATE EXTENSION IF NOT EXISTS vector;`
    - `CREATE EXTENSION IF NOT EXISTS pg_trgm;` (optional)
-3) Apply schema in `docs/04-data-model-pg.sql`
+3) Apply schema in `./data-model-pg.sql`
 
 Search
 - Keyword: `to_tsvector('english', ...)` with GIN, use `plainto_tsquery`/`to_tsquery`

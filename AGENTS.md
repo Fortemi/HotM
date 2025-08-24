@@ -3,7 +3,7 @@
 ## Project Structure & Module Organization
 - `server/`: Rust Axum API. Key areas: `src/routes/`, `src/nlp/`, `src/mcp/` (planned), `src/workers/`, DB code in `src/db.rs`. Integration tests in `server/tests/`; SQL migrations in `server/migrations/`.
 - `ui/`: Tauri + React/TypeScript app. Frontend in `ui/src/`; Tauri backend in `ui/src-tauri/`; Vite config in `ui/vite.config.ts`.
-- `docs/`: Architecture, requirements, and implementation guides. Start at `docs/00-index.md`.
+- `docs/`: Architecture, requirements, and implementation guides. Start at `docs/index.md`.
 - `scripts/`: Utility scripts (e.g., `server/setup_ci_db.sh`). Root `.env.example` lists important vars.
 
 ## Build, Test, and Development Commands
@@ -27,4 +27,3 @@
 ## Security & Configuration Tips
 - Create `.env` from `.env.example`. Required: `DATABASE_URL`. Common: `TEST_DATABASE_URL`, `RUST_LOG`, `OLLAMA_URL`, `OLLAMA_*_MODEL`.
 - Keep data local. No secrets in code or logs. For search features, ensure `pgvector` is enabled: `psql $DATABASE_URL -c "CREATE EXTENSION IF NOT EXISTS vector;"`.
-

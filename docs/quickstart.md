@@ -202,9 +202,9 @@ OLLAMA_EMBEDDING_MODEL=nomic-embed-text
 
 ## Next Steps
 
-1. Review [API Specification v2](02-specifications/api-specification-v2.md)
-2. Explore [Testing Framework](09-testing-framework.md)
-3. Check [Development Guide](04-implementation/development-guide.md)
+1. Review [API Specification v2](specifications/api-specification-v2.md)
+2. Explore [Testing Framework](testing-framework.md)
+3. Check [Development Guide](implementation/development-guide.md)
 4. Read [CLAUDE.md](../CLAUDE.md) for project conventions
 
 ## Support

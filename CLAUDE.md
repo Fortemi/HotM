@@ -4,12 +4,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Documentation Structure
 Comprehensive documentation is available in the `docs/` directory:
-- [Documentation Index](docs/00-index.md) - Complete navigation guide
-- [Requirements](docs/01-requirements/) - Functional and non-functional requirements
-- [Specifications](docs/02-specifications/) - API, MCP, and data model specs
-- [Architecture](docs/03-architecture/) - System design and NLP pipeline
-- [Implementation](docs/04-implementation/) - Development and testing guides
-- [Deployment](docs/05-deployment/) - Installation and Docker deployment
+- [Documentation Index](docs/index.md) - Complete navigation guide
+- [Requirements](docs/requirements/) - Functional and non-functional requirements
+- [Specifications](docs/specifications/) - API, MCP, and data model specs
+- [Architecture](docs/architecture/) - System design and NLP pipeline
+- [Implementation](docs/implementation/) - Development and testing guides
+- [Deployment](docs/deployment/) - Installation and Docker deployment
 
 ## Project Overview
 
@@ -128,7 +128,7 @@ Channel configuration is stored in `release.json`.
 - `ui/src-tauri/tauri.conf.json` (Tauri config)
 - `ui/package.json` (Node.js frontend)
 - `README.md` (version badge)
-- `docs/02-specifications/api-specification.md`
+- `docs/specifications/api-specification.md`
 
 **Git Tags** (with channel suffixes):
 - `v0.2.0-alpha`, `v0.2.0-beta`, `v0.2.0-rc`, `v0.2.0` (stable)
@@ -271,7 +271,7 @@ The MCP server is embedded in the Rust API server and provides:
 - **Export**: `export_notes`
 - **System**: `health_check`
 
-See [MCP Tools Specification](docs/02-specifications/mcp-tools-spec.md) for details.
+See [MCP Tools Specification](docs/specifications/mcp-tools-spec.md) for details.
 
 ## Project Structure
 
@@ -311,7 +311,7 @@ hotm/
 - **E2E Tests**: Critical user journeys
 - **Test Organization**: Tests colocated with source, integration tests in `/tests`
 
-See [Testing Strategy](docs/04-implementation/testing-strategy.md) for comprehensive testing guide.
+See [Testing Strategy](docs/implementation/testing-strategy.md) for comprehensive testing guide.
 
 ## Environment Variables
 
