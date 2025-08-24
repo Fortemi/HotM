@@ -1,5 +1,4 @@
 use tauri::AppHandle;
-use std::io::Read;
 
 #[derive(Debug)]
 pub enum PlantUMLError {
@@ -106,8 +105,8 @@ pub fn render_plantuml(_app: &AppHandle, code: &str) -> Result<String, PlantUMLE
         Err(e) => {
             eprintln!("PlantUML: Request error: {}", e);
             return match e {
-                ureq::Error::Http(status, _) => {
-                    eprintln!("PlantUML: Server returned status {}", status);
+                ureq::Error::Http(http_error) => {
+                    eprintln!("PlantUML: Server returned HTTP error: {}", http_error);
                     Err(PlantUMLError::ServerNotAvailable)
                 }
                 _ => {
@@ -119,11 +118,13 @@ pub fn render_plantuml(_app: &AppHandle, code: &str) -> Result<String, PlantUMLE
     };
     
     // Read the SVG response
-    let mut svg = String::new();
-    if let Err(e) = response.into_reader().read_to_string(&mut svg) {
-        eprintln!("PlantUML: Failed to read response: {}", e);
-        return Err(PlantUMLError::RenderFailed(format!("Failed to read SVG response: {}", e)));
-    }
+    let svg = match response.into_string() {
+        Ok(svg) => svg,
+        Err(e) => {
+            eprintln!("PlantUML: Failed to read response: {}", e);
+            return Err(PlantUMLError::RenderFailed(format!("Failed to read SVG response: {}", e)));
+        }
+    };
     
     eprintln!("PlantUML: Successfully rendered diagram ({} bytes)", svg.len());
     Ok(svg)
