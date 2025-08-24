@@ -10,6 +10,7 @@ HotM is a local-first notes and analysis tool with immutable originals, NLP-powe
   - API (v1/v2), Data model, MCP tools, UI spec
 - Architecture: `architecture/` and `architecture-overview.md`
   - System design, NLP pipeline
+  - Stage 2: `architecture/stage-2-architecture.md` (sync, auth/billing, encryption, device model)
 - Implementation: `implementation/`
   - Development guide, Testing strategy
 - Data Model: `data-model-pg.sql`
