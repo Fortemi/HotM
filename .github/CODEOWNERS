@@ -1,0 +1,36 @@
+# CODEOWNERS
+# Replace placeholder teams with actual GitHub users/teams.
+# Ownership applies to PR review routing and protections.
+
+# Global fallback (create these teams to mirror agent profiles)
+* @s92501/agent-release-engineer @s92501/agent-security-privacy-reviewer
+
+# Backend (Rust API)
+/server/** @s92501/agent-backend-api-engineer @s92501/agent-security-privacy-reviewer
+
+# Database migrations (specific ownership)
+/server/migrations/** @s92501/agent-db-migration-specialist @s92501/agent-backend-api-engineer
+
+# Backend tests
+/server/tests/** @s92501/agent-qa-test-author @s92501/agent-backend-api-engineer
+
+# Frontend (Tauri/React)
+/ui/** @s92501/agent-ui-engineer @s92501/agent-qa-test-author
+
+# Frontend tests (more specific)
+/ui/src/**/__tests__/** @s92501/agent-qa-test-author @s92501/agent-ui-engineer
+
+# Documentation and policies
+/docs/OPERATING_POLICIES.md @s92501/agent-release-engineer @s92501/agent-security-privacy-reviewer @s92501/agent-eng-manager
+/docs/SDLC.md @s92501/agent-eng-manager @s92501/agent-program-manager @s92501/agent-release-engineer
+/docs/sops/** @s92501/agent-release-engineer @s92501/agent-compliance @s92501/agent-eng-manager
+/docs/agent-profiles.md @s92501/agent-program-manager @s92501/agent-eng-manager
+AGENTS.md @s92501/agent-program-manager
+
+# Workflows / DevOps
+/.github/** @s92501/agent-release-engineer
+
+# Config & deployments
+/.env.example @s92501/agent-security-privacy-reviewer
+/docker-compose*.yml @s92501/agent-release-engineer
+/documentdb.Dockerfile @s92501/agent-release-engineer

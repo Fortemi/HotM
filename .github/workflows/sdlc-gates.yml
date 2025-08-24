@@ -1,0 +1,43 @@
+name: SDLC Gates
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize]
+
+jobs:
+  validate-pr:
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+      contents: read
+    steps:
+      - name: Check PR template compliance
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const body = context.payload.pull_request?.body || '';
+            const requiredSections = [
+              '## Summary',
+              '## Checklists',
+              '### Security & Privacy',
+              '## Testing Notes',
+            ];
+            const missing = requiredSections.filter(s => !body.includes(s));
+            // Require at least one checked item in Server or UI checklist
+            const hasServerChecks = /### Server \(Rust\)[\s\S]*- \[x\]/i.test(body);
+            const hasUiChecks = /### UI \(Tauri\/React\)[\s\S]*- \[x\]/i.test(body);
+            if (missing.length || !(hasServerChecks || hasUiChecks)) {
+              core.setFailed(`PR template incomplete. Missing sections: ${missing.join(', ')}. Ensure at least one checklist is checked for Server or UI.`);
+            }
+
+      - name: Ensure codeowners reviewers requested
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const pr = context.payload.pull_request;
+            const reviewers = pr.requested_reviewers?.map(r => r.login) || [];
+            // Nudge only; GitHub auto-requests CODEOWNERS where possible
+            if (reviewers.length === 0) {
+              core.warning('No reviewers requested. Verify CODEOWNERS assignment.');
+            }
+
