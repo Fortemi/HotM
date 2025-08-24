@@ -16,7 +16,16 @@ HotM is a local-first notes and analysis tool with immutable originals, NLP-powe
 - Implementation: `implementation/`
   - Development guide, Testing strategy
 - Data Model: `data-model-pg.sql`
-- Deployment: `deployment/`, plus `storage-documentdb.md`
+- Deployment: `deployment/` 
+  - Current Docker deployment: `deployment/docker-deployment.md`
+  - **Unified Runtime (v0.2.0+)**: Complete deployment architecture refactor
+    - Overview: `deployment/unified-runtime-deployment-guide.md`
+    - Architecture: `deployment/unified-runtime-architecture.md` 
+    - Scenarios: `deployment/deployment-scenarios.md`
+    - Diagrams: `deployment/deployment-architecture-diagrams.md`
+    - Configuration: `deployment/unified-runtime-configuration.md`
+    - Migration & Security: `deployment/migration-and-security-guide.md`
+  - Storage: `storage-documentdb.md`
 - Guides: `quickstart.md`, `first-run.md`, `packaging-windows.md`, `installer-plan.md`
 - Testing: `testing-framework.md`
 - Policies & SDLC: `OPERATING_POLICIES.md`, `SDLC.md`, `sops/`, `agent-profiles.md`
