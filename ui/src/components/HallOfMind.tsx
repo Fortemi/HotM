@@ -225,7 +225,7 @@ export function HallOfMind() {
       
       console.log("Received note update:", { note_id, title, tags, has_ai_content, has_links });
       
-      // If this note is being processed, fetch the full updated note
+      // If this note is being processed, fetch the full updated note and show notification
       if (processingNotes.has(note_id)) {
         try {
           const updatedNote = await api.getNote(note_id);
@@ -244,9 +244,21 @@ export function HallOfMind() {
             
             setNotes(prev => prev.map(n => n.id === simpleNote.id ? simpleNote : n));
             
+            // Update selected note if it's the one being processed
             if (selectedNote?.id === simpleNote.id) {
               setSelectedNote(simpleNote);
               setRevisedContent(simpleNote.revised_content || simpleNote.content);
+              
+              // Update full note cache for metadata display
+              savedNotes.current.set(simpleNote.id, updatedNote);
+              
+              // Refresh metadata labels for the updated note
+              try {
+                const labels = await api.getMetadataLabels(simpleNote.id);
+                setNoteLabels(new Map(noteLabels.set(simpleNote.id, labels)));
+              } catch (error) {
+                console.error("Failed to refresh metadata labels:", error);
+              }
             }
             
             // Remove from processing set
@@ -255,6 +267,35 @@ export function HallOfMind() {
               newSet.delete(note_id);
               return newSet;
             });
+            
+            // Show Windows notification
+            try {
+              const { 
+                isPermissionGranted, 
+                requestPermission, 
+                sendNotification 
+              } = await import('@tauri-apps/plugin-notification');
+              
+              // Check/request notification permission
+              let hasPermission = await isPermissionGranted();
+              if (!hasPermission) {
+                const permission = await requestPermission();
+                hasPermission = permission === 'granted';
+              }
+              
+              if (hasPermission) {
+                await sendNotification({
+                  title: 'HotM - Processing Complete',
+                  body: `Note "${simpleNote.title}" has been processed with AI enhancements. Click to view.`,
+                  sound: 'default'
+                });
+                console.log("Notification sent for processed note:", note_id);
+              } else {
+                console.warn("Notification permission not granted");
+              }
+            } catch (error) {
+              console.error("Failed to send notification:", error);
+            }
             
             console.log("Note updated via WebSocket:", note_id);
           }
@@ -268,6 +309,23 @@ export function HallOfMind() {
             ? { ...note, tags: tags || note.tags }
             : note
         ));
+        
+        // If this note is currently selected, refresh its metadata
+        if (selectedNote?.id === note_id) {
+          try {
+            // Refresh the full note data
+            const updatedNote = await api.getNote(note_id);
+            savedNotes.current.set(note_id, updatedNote);
+            
+            // Refresh metadata labels
+            const labels = await api.getMetadataLabels(note_id);
+            setNoteLabels(new Map(noteLabels.set(note_id, labels)));
+            
+            console.log("Metadata refreshed for currently selected note:", note_id);
+          } catch (error) {
+            console.error("Failed to refresh metadata for selected note:", error);
+          }
+        }
       }
     };
     
@@ -277,6 +335,9 @@ export function HallOfMind() {
       window.removeEventListener('noteUpdated', handleNoteUpdate as unknown as EventListener);
     };
   }, [processingNotes, selectedNote, api]);
+
+  // Handle bringing app to foreground when notification is clicked
+  // This is handled by the notification system automatically in most cases
 
   useEffect(() => {
     // Set initial dark mode

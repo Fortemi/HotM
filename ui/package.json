@@ -30,6 +30,7 @@
     "@radix-ui/react-tooltip": "^1.2.8",
     "@tailwindcss/typography": "^0.5.16",
     "@tauri-apps/api": "2.4.0",
+    "@tauri-apps/plugin-notification": "^2.3.1",
     "@tauri-apps/plugin-opener": "2.2.3",
     "@types/pako": "^2.0.4",
     "@uiw/react-md-editor": "^4.0.8",
