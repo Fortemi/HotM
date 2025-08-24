@@ -30,8 +30,13 @@ if (Test-Path "src-tauri\target\release\bundle") {
 Write-Host "Building application (this may take several minutes)..." -ForegroundColor Yellow
 npm run tauri build
 
+# Extract version from package.json
+$packageJson = Get-Content "package.json" | ConvertFrom-Json
+$version = $packageJson.version
+
 # Check if build succeeded
-$msiPath = "src-tauri\target\release\bundle\msi\HotM_0.1.2_x64_en-US.msi"
+$msiPath = "src-tauri\target\release\bundle\msi\HotM_${version}_x64_en-US.msi"
+Write-Host "Looking for MSI at: $msiPath" -ForegroundColor Gray
 if (Test-Path $msiPath) {
     Write-Host ""
     Write-Host "✅ Build successful!" -ForegroundColor Green

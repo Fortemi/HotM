@@ -39,39 +39,51 @@ Before pushing ANY changes to GitHub:
 
 All shell-based test scripts have been removed - use `gh act` for consistent CI/CD parity.
 
-## Release Process
+## Version Management
 
-### Creating a New Release
+### Version Consistency
+All version numbers are automatically synchronized across:
+- `ui/package.json` - Frontend package version
+- `ui/src-tauri/Cargo.toml` - Tauri application version  
+- `ui/src-tauri/tauri.conf.json` - Tauri configuration version
+- `server/Cargo.toml` - Backend server version
+- `ui/build-windows.ps1` - Dynamically reads from package.json
 
-1. **Bump Version with Release Channel**:
+### Version Commands
 ```bash
-# Using current channel (default: beta)
-./scripts/bump_version.sh 0.2.0
+# Check current version status across all files
+./scripts/check_versions.sh
 
-# Set specific channel
-./scripts/bump_version.sh 0.2.0 alpha      # v0.2.0-alpha (prerelease)
-./scripts/bump_version.sh 0.2.0 beta       # v0.2.0-beta (prerelease)
-./scripts/bump_version.sh 0.2.0 rc         # v0.2.0-rc (prerelease)
-./scripts/bump_version.sh 0.2.0 stable     # v0.2.0 (full release)
+# Bump version across all project files
+./scripts/bump_version.sh 0.1.3           # Linux/WSL
+# OR (Windows PowerShell)
+./scripts/bump_version.ps1 0.1.3          # Windows PowerShell
 ```
 
-2. **Review and Commit**: 
+### Release Process
+
+1. **Check Version Consistency**:
 ```bash
-git diff                                    # Review changes
-git add -A && git commit -m "chore: bump version to 0.2.0-beta"
+./scripts/check_versions.sh               # Ensure all files match
 ```
 
-3. **Create and Push Tag**:
+2. **Bump Version**:
 ```bash
-git tag v0.2.0-beta                        # Create version tag with channel
-git push origin v0.2.0-beta                # Trigger release build
+./scripts/bump_version.sh 0.2.0          # Updates all config files
 ```
 
-4. **Automated Release**: GitHub Actions will:
-   - Build Windows MSI installer with component selection
-   - Create GitHub release with channel info
-   - Mark as prerelease for non-stable channels
-   - Upload MSI as release asset
+3. **Review and Test**:
+```bash
+git diff                                  # Review all changes
+cd ui && npm run build                    # Test build works
+```
+
+4. **Commit and Tag**:
+```bash
+git add . && git commit -m "bump: version 0.2.0"
+git tag v0.2.0
+git push && git push --tags
+```
 
 ### MSI Installer Components
 
