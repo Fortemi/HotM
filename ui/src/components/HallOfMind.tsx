@@ -250,8 +250,9 @@ export function HallOfMind() {
       
       console.log("Received note update:", { note_id, title, tags, has_ai_content, has_links });
       
-      // If this note is being processed, fetch the full updated note and show notification
-      if (processingNotes.has(note_id)) {
+      // Update any note that sends a NoteUpdated event
+      const existingNote = notes.find(n => n.id === note_id);
+      if (existingNote) {
         try {
           const updatedNote = await api.getNote(note_id);
           if (updatedNote.revised) {
@@ -320,21 +321,23 @@ export function HallOfMind() {
               }
             }
             
-            // Group notifications to prevent duplicates for multi-job pipelines
-            // Clear any existing timeout for this note
-            const existingTimeout = notificationTimeouts.current.get(note_id);
-            if (existingTimeout) {
-              clearTimeout(existingTimeout);
-            }
-            
-            // Set a new timeout to send notification after 2 seconds of no more updates
-            const notificationTimeout = setTimeout(async () => {
-              // Remove from processing set
-              setProcessingNotes(prev => {
-                const newSet = new Set(prev);
-                newSet.delete(note_id);
-                return newSet;
-              });
+            // Only show notifications for notes that were being processed
+            if (processingNotes.has(note_id)) {
+              // Group notifications to prevent duplicates for multi-job pipelines
+              // Clear any existing timeout for this note
+              const existingTimeout = notificationTimeouts.current.get(note_id);
+              if (existingTimeout) {
+                clearTimeout(existingTimeout);
+              }
+              
+              // Set a new timeout to send notification after 2 seconds of no more updates
+              const notificationTimeout = setTimeout(async () => {
+                // Remove from processing set
+                setProcessingNotes(prev => {
+                  const newSet = new Set(prev);
+                  newSet.delete(note_id);
+                  return newSet;
+                });
               
               // Send notification once all jobs for this note are complete
               try {
@@ -393,6 +396,8 @@ export function HallOfMind() {
             }, 2000); // Wait 2 seconds for additional updates
             
             notificationTimeouts.current.set(note_id, notificationTimeout);
+            
+            }
             
             console.log("Note updated via WebSocket:", note_id);
           }
