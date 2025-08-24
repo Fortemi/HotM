@@ -102,7 +102,6 @@ export function MermaidRenderer({ code, className = '' }: MermaidRendererProps) 
   const handleFitContent = () => {
     if (containerRef.current && scrollContainerRef.current) {
       const content = containerRef.current;
-      const scrollContainer = scrollContainerRef.current;
       
       // Get the natural size of the content
       const contentHeight = content.scrollHeight;
