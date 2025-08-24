@@ -670,8 +670,8 @@ pub struct SecurityConfig {
 
 pub enum AuthConfig {
     None,                          // Desktop mode
-    Simple { admin_key: String },  // Development mode
-    JWT { secret: String },        // Server mode
+    Simple { admin_key: String },  // Server development mode
+    JWT { secret: String },        // Server production mode
     OAuth { providers: Vec<OAuthProvider> }, // Enterprise mode
 }
 ```

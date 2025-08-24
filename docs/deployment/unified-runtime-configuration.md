@@ -50,7 +50,6 @@ pub enum RuntimeMode {
     Desktop,     // Desktop GUI application
     Server,      // HTTP server with web UI
     Hybrid,      // Desktop + Server simultaneously
-    Development, // Enhanced development mode
 }
 ```
 
@@ -392,15 +391,22 @@ export HOTM_REMOTE_AUTH=true
 export HOTM_DATABASE_URL=postgres://localhost:5432/hotm
 ```
 
-### 4. Development Mode Configuration
+### 4. Development Configuration
 
-**Development Configuration:**
+**Server Mode is the preferred development mode**, providing enhanced development features through configuration rather than a separate runtime mode.
+
+**Development Configuration (Server Mode):**
 ```toml
-# hotm.toml - Development Mode Configuration
+# hotm.toml - Development Configuration (Server Mode)
 [runtime]
-mode = "development"
+mode = "server"
+
+[server]
+bind_address = "127.0.0.1:53211"
+enable_tls = false
+cors_origins = ["http://localhost:3000", "http://localhost:8080"]
+cors_credentials = true
 hot_reload = true
-debug_level = "trace"
 dev_tools = true
 
 [development]
@@ -454,12 +460,29 @@ openapi_spec = "/api/openapi.json"
 try_it_out = true
 schemas_endpoint = "/api/schemas"
 
+[web_ui]
+enabled = true
+path = "/ui"
+auth_required = false
+dev_mode = true
+hot_reload = true
+
+[database]
+type = "postgresql"
+url = "postgres://dev:dev@localhost:5432/hotm_dev"
+reset_on_start = false
+auto_migrate = true
+
 [performance]
 worker_threads = 4
 cache_size = "100MB"
 batch_size = 25
 max_concurrent_jobs = 10
 enable_metrics = true
+
+[security]
+auth_required = false  # Disabled for development
+cors_permissive = true
 
 [logging]
 level = "trace"
@@ -474,7 +497,8 @@ request_logging = true
 **Development Environment Setup:**
 ```bash
 # Development environment variables
-export HOTM_MODE=development
+export HOTM_MODE=server
+export HOTM_DEV_MODE=true
 export HOTM_HOT_RELOAD=true
 export HOTM_DEBUG_LEVEL=trace
 export HOTM_MOCK_AI=true
@@ -789,7 +813,14 @@ impl Configuration {
                     return Err(ConfigError::MissingDesktopConfig);
                 }
             },
-            _ => {}
+            RuntimeMode::Hybrid => {
+                if self.desktop.is_none() || self.server.is_none() {
+                    return Err(ConfigError::MissingHybridConfigs);
+                }
+            },
+            RuntimeMode::Auto => {
+                // Auto mode will be detected at runtime
+            }
         }
         
         // Validate security requirements
@@ -812,7 +843,7 @@ impl Configuration {
 ```toml
 # test-config.toml - Configuration for testing
 [runtime]
-mode = "development"
+mode = "server"
 test_mode = true
 
 [database]
