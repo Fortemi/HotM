@@ -22,6 +22,11 @@ HotM is a local-first notes and analysis tool with immutable originals, NLP-powe
 - Policies & SDLC: `OPERATING_POLICIES.md`, `SDLC.md`, `sops/`, `agent-profiles.md`
 - Other: `openapi.json`, `mcp_tools.json`, `prompts/`
 
+## Plans
+- Consolidation: `plans/consolidation.md`
+- Cross-platform & headless: `plans/cross-platform.md`
+- Protocol/transport strategy: `plans/protocol-bridge.md`
+
 ## Quick Links
 - Project README: `../README.md`
 - API Health Check: http://127.0.0.1:53211/api/v1/health
