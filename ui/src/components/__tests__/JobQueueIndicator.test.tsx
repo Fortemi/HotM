@@ -28,16 +28,19 @@ describe('JobQueueIndicator', () => {
     vi.clearAllMocks();
   });
 
-  it('displays disconnected status when WebSocket is not connected', async () => {
+  it('displays button when WebSocket is not connected', async () => {
     render(<JobQueueIndicator />);
     
-    // Component should show disconnected status
+    // Component should render a button (the actual visible element)
     await waitFor(() => {
-      expect(screen.getByText('Disconnected')).toBeInTheDocument();
+      const button = screen.getByRole('button');
+      expect(button).toBeInTheDocument();
+      // Should have red status color for disconnected state
+      expect(button.querySelector('.text-red-500')).toBeInTheDocument();
     });
   });
 
-  it('displays processing status when jobs are running', async () => {
+  it('displays badge when jobs are running', async () => {
     // Mock connected state with running jobs
     mockUseWebSocket.mockReturnValue({
       connected: true,
@@ -52,12 +55,14 @@ describe('JobQueueIndicator', () => {
     render(<JobQueueIndicator />);
 
     await waitFor(() => {
-      expect(screen.getByText('Connected')).toBeInTheDocument();
       expect(screen.getByText('5')).toBeInTheDocument(); // Total jobs badge
+      const button = screen.getByRole('button');
+      // Should have blue status color for running state
+      expect(button.querySelector('.text-blue-500')).toBeInTheDocument();
     });
   });
 
-  it('displays connected status with no jobs', async () => {
+  it('displays no badge when no jobs are queued', async () => {
     // Mock connected state with no jobs
     mockUseWebSocket.mockReturnValue({
       connected: true,
@@ -72,9 +77,12 @@ describe('JobQueueIndicator', () => {
     render(<JobQueueIndicator />);
 
     await waitFor(() => {
-      expect(screen.getByText('Connected')).toBeInTheDocument();
+      const button = screen.getByRole('button');
+      expect(button).toBeInTheDocument();
       // No badge should be visible when totalJobs is 0
       expect(screen.queryByText('0')).not.toBeInTheDocument();
+      // Should have green status color for idle state
+      expect(button.querySelector('.text-green-500')).toBeInTheDocument();
     });
   });
 
@@ -93,12 +101,14 @@ describe('JobQueueIndicator', () => {
     render(<JobQueueIndicator />);
 
     await waitFor(() => {
-      expect(screen.getByText('Connected')).toBeInTheDocument();
       expect(screen.getByText('3')).toBeInTheDocument(); // Total jobs badge
+      const button = screen.getByRole('button');
+      // Should have yellow status color for pending state
+      expect(button.querySelector('.text-yellow-500')).toBeInTheDocument();
     });
   });
 
-  it('shows different status colors based on queue state', async () => {
+  it('displays correct icon based on queue state', async () => {
     // Mock running state
     mockUseWebSocket.mockReturnValue({
       connected: true,
@@ -113,8 +123,10 @@ describe('JobQueueIndicator', () => {
     render(<JobQueueIndicator />);
 
     await waitFor(() => {
-      expect(screen.getByText('Connected')).toBeInTheDocument();
       expect(screen.getByText('1')).toBeInTheDocument(); // Total jobs badge
+      // Should have loading icon for running state
+      const loadingIcon = screen.getByRole('button').querySelector('.lucide-loader-circle');
+      expect(loadingIcon).toBeInTheDocument();
     });
   });
 
