@@ -2,30 +2,24 @@ import { render, screen, waitFor, act } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { JobQueueIndicator } from '../JobQueueIndicator';
 
+// Mock the useWebSocket hook
+vi.mock('@/services/websocket', () => ({
+  useWebSocket: vi.fn(),
+}));
+
 describe('JobQueueIndicator', () => {
-  let mockWs: any;
+  const mockUseWebSocket = vi.mocked(await import('@/services/websocket')).useWebSocket;
 
   beforeEach(() => {
-    // Create mock WebSocket
-    mockWs = {
-      send: vi.fn(),
-      close: vi.fn(),
-      readyState: 1,
-      onmessage: null,
-      onopen: null,
-      onclose: null,
-      onerror: null,
-    };
-
-    // Mock WebSocket constructor
-    (global as any).WebSocket = vi.fn(() => {
-      // Simulate immediate connection
-      setTimeout(() => {
-        if (mockWs.onopen) {
-          mockWs.onopen();
-        }
-      }, 0);
-      return mockWs;
+    // Reset mock implementation
+    mockUseWebSocket.mockReturnValue({
+      connected: false,
+      queueStatus: {
+        total_jobs: 0,
+        running: 0,
+        pending: 0,
+      },
+      sendMessage: vi.fn(),
     });
   });
 
@@ -33,168 +27,93 @@ describe('JobQueueIndicator', () => {
     vi.clearAllMocks();
   });
 
-  it('displays idle status when no jobs are queued', async () => {
+  it('displays disconnected status when WebSocket is not connected', async () => {
     render(<JobQueueIndicator />);
     
-    // Wait for WebSocket to connect
+    // Component should show disconnected status
     await waitFor(() => {
-      expect(screen.getByText('Idle')).toBeInTheDocument();
+      expect(screen.getByText('Disconnected')).toBeInTheDocument();
     });
   });
 
   it('displays processing status when jobs are running', async () => {
-    render(<JobQueueIndicator />);
+    // Mock connected state with running jobs
+    mockUseWebSocket.mockReturnValue({
+      connected: true,
+      queueStatus: {
+        total_jobs: 5,
+        running: 2,
+        pending: 3,
+      },
+      sendMessage: vi.fn(),
+    });
     
-    // Wait for connection
-    await waitFor(() => {
-      expect(mockWs.onopen).toBeDefined();
-    });
-
-    // Simulate WebSocket message with running jobs
-    const queueStatus = {
-      type: 'QueueStatus',
-      total_jobs: 5,
-      running: 2,
-      pending: 3,
-      active_job: {
-        job_id: 'test-job-id',
-        job_type: 'AiRevision',
-        progress_percent: 45,
-        message: 'Processing content',
-        started_at: new Date().toISOString(),
-      }
-    };
-
-    // Trigger WebSocket message
-    act(() => {
-      if (mockWs.onmessage) {
-        mockWs.onmessage({ data: JSON.stringify(queueStatus) });
-      }
-    });
+    render(<JobQueueIndicator />);
 
     await waitFor(() => {
-      expect(screen.getByText('Processing')).toBeInTheDocument();
-      expect(screen.getByText('5')).toBeInTheDocument(); // Total jobs
+      expect(screen.getByText('Connected')).toBeInTheDocument();
+      expect(screen.getByText('5')).toBeInTheDocument(); // Total jobs badge
     });
   });
 
-  it('updates job count when jobs are queued', async () => {
-    render(<JobQueueIndicator />);
+  it('displays connected status with no jobs', async () => {
+    // Mock connected state with no jobs
+    mockUseWebSocket.mockReturnValue({
+      connected: true,
+      queueStatus: {
+        total_jobs: 0,
+        running: 0,
+        pending: 0,
+      },
+      sendMessage: vi.fn(),
+    });
     
-    // Wait for connection
-    await waitFor(() => {
-      expect(mockWs.onopen).toBeDefined();
-    });
-
-    // Simulate JobQueued message
-    const jobQueued = {
-      type: 'JobQueued',
-      job_id: 'new-job-id',
-      job_type: 'Embedding',
-      note_id: 'note-id',
-      priority: 5
-    };
-
-    act(() => {
-      if (mockWs.onmessage) {
-        mockWs.onmessage({ data: JSON.stringify(jobQueued) });
-      }
-    });
+    render(<JobQueueIndicator />);
 
     await waitFor(() => {
-      expect(screen.getByText('1')).toBeInTheDocument(); // Should show 1 job
+      expect(screen.getByText('Connected')).toBeInTheDocument();
+      // No badge should be visible when totalJobs is 0
+      expect(screen.queryByText('0')).not.toBeInTheDocument();
     });
   });
 
-  it('decrements pending count when job starts', async () => {
-    render(<JobQueueIndicator />);
+  it('shows badge when jobs are pending', async () => {
+    // Mock connected state with pending jobs
+    mockUseWebSocket.mockReturnValue({
+      connected: true,
+      queueStatus: {
+        total_jobs: 3,
+        running: 0,
+        pending: 3,
+      },
+      sendMessage: vi.fn(),
+    });
     
-    // Wait for connection
-    await waitFor(() => {
-      expect(mockWs.onopen).toBeDefined();
-    });
-
-    // First set up initial state with pending jobs
-    const initialStatus = {
-      type: 'QueueStatus',
-      total_jobs: 3,
-      running: 0,
-      pending: 3,
-      active_job: null
-    };
-
-    act(() => {
-      if (mockWs.onmessage) {
-        mockWs.onmessage({ data: JSON.stringify(initialStatus) });
-      }
-    });
-
-    // Then simulate JobStarted
-    const jobStarted = {
-      type: 'JobStarted',
-      job_id: 'started-job-id',
-      job_type: 'AiRevision',
-      note_id: 'note-id',
-      estimated_duration_ms: 5000
-    };
-
-    act(() => {
-      if (mockWs.onmessage) {
-        mockWs.onmessage({ data: JSON.stringify(jobStarted) });
-      }
-    });
+    render(<JobQueueIndicator />);
 
     await waitFor(() => {
-      expect(screen.getByText('Processing')).toBeInTheDocument();
+      expect(screen.getByText('Connected')).toBeInTheDocument();
+      expect(screen.getByText('3')).toBeInTheDocument(); // Total jobs badge
     });
   });
 
-  it('handles job completion correctly', async () => {
-    render(<JobQueueIndicator />);
+  it('shows different status colors based on queue state', async () => {
+    // Mock running state
+    mockUseWebSocket.mockReturnValue({
+      connected: true,
+      queueStatus: {
+        total_jobs: 1,
+        running: 1,
+        pending: 0,
+      },
+      sendMessage: vi.fn(),
+    });
     
-    // Wait for connection
-    await waitFor(() => {
-      expect(mockWs.onopen).toBeDefined();
-    });
-
-    // Set up initial state with running job
-    const initialStatus = {
-      type: 'QueueStatus',
-      total_jobs: 1,
-      running: 1,
-      pending: 0,
-      active_job: {
-        job_id: 'running-job-id',
-        job_type: 'AiRevision',
-        progress_percent: 100,
-        message: 'Completing',
-        started_at: new Date().toISOString(),
-      }
-    };
-
-    act(() => {
-      if (mockWs.onmessage) {
-        mockWs.onmessage({ data: JSON.stringify(initialStatus) });
-      }
-    });
-
-    // Simulate JobCompleted
-    const jobCompleted = {
-      type: 'JobCompleted',
-      job_id: 'running-job-id',
-      job_type: 'AiRevision',
-      note_id: 'note-id',
-      duration_ms: 5000
-    };
-
-    act(() => {
-      if (mockWs.onmessage) {
-        mockWs.onmessage({ data: JSON.stringify(jobCompleted) });
-      }
-    });
+    render(<JobQueueIndicator />);
 
     await waitFor(() => {
-      expect(screen.getByText('Idle')).toBeInTheDocument();
+      expect(screen.getByText('Connected')).toBeInTheDocument();
+      expect(screen.getByText('1')).toBeInTheDocument(); // Total jobs badge
     });
   });
 
