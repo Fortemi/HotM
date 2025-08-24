@@ -7,6 +7,29 @@ afterEach(() => {
   cleanup();
 });
 
+// Mock window.matchMedia for tests
+Object.defineProperty(window, 'matchMedia', {
+  writable: true,
+  value: (query: string) => ({
+    matches: false,
+    media: query,
+    onchange: null,
+    addListener: () => {},
+    removeListener: () => {},
+    addEventListener: () => {},
+    removeEventListener: () => {},
+    dispatchEvent: () => {},
+  }),
+});
+
+// Mock ResizeObserver
+global.ResizeObserver = class ResizeObserver {
+  constructor(callback: ResizeObserverCallback) {}
+  observe(target: Element) {}
+  unobserve(target: Element) {}
+  disconnect() {}
+};
+
 // Mock WebSocket for tests
 global.WebSocket = class MockWebSocket {
   url: string;
@@ -56,6 +79,14 @@ global.fetch = async (url: RequestInfo | URL, init?: RequestInit) => {
       notes: [],
       total: 0
     }), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' }
+    });
+  }
+  
+  // Mock labels endpoint
+  if (urlString.includes('/labels')) {
+    return new Response(JSON.stringify([]), {
       status: 200,
       headers: { 'Content-Type': 'application/json' }
     });
