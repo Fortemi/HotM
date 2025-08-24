@@ -48,5 +48,5 @@ HotM is a local-first notes and analysis tool with immutable originals, NLP-powe
 - API Health Check: http://127.0.0.1:53211/api/v1/health
 
 ## Version
-Current: 0.1.x (Alpha)
+Current: 0.2.0 (Beta) - Unified Runtime Architecture
 Last Updated: 2025-08-24

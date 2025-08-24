@@ -1,6 +1,6 @@
 [package]
 name = "hotm-ui"
-version = "0.1.2"
+version = "0.2.0"
 description = "HotM - Local-first notes and analysis tool"
 authors = ["HotM Team"]
 edition = "2021"
