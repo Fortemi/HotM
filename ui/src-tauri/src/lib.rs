@@ -153,13 +153,23 @@ pub fn run() {
             println!("HotM: Loading tray icon from: {:?}", icon_path);
             
             let icon = if icon_path.exists() {
-                match tauri::image::Image::from_path(&icon_path) {
-                    Ok(img) => {
-                        println!("HotM: Successfully loaded tray icon from file");
-                        img
+                match std::fs::read(&icon_path) {
+                    Ok(icon_data) => {
+                        match image::load_from_memory(&icon_data) {
+                            Ok(img) => {
+                                let rgba = img.to_rgba8();
+                                let (width, height) = rgba.dimensions();
+                                println!("HotM: Successfully loaded tray icon from file ({}x{})", width, height);
+                                tauri::image::Image::new_owned(rgba.into_raw(), width, height)
+                            },
+                            Err(e) => {
+                                println!("HotM: Failed to decode icon file, using default: {}", e);
+                                create_default_icon()
+                            }
+                        }
                     },
                     Err(e) => {
-                        println!("HotM: Failed to load icon file, using default: {}", e);
+                        println!("HotM: Failed to read icon file, using default: {}", e);
                         create_default_icon()
                     }
                 }
