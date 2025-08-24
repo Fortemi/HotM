@@ -117,8 +117,9 @@ pub fn render_plantuml(_app: &AppHandle, code: &str) -> Result<String, PlantUMLE
         }
     };
     
-    // Read the SVG response
-    let svg = match response.into_string() {
+    // Read the SVG response using ureq 3.x API
+    let mut body = response.into_body();
+    let svg = match body.read_to_string() {
         Ok(svg) => svg,
         Err(e) => {
             eprintln!("PlantUML: Failed to read response: {}", e);
