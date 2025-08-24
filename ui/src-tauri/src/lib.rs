@@ -148,10 +148,25 @@ pub fn run() {
             
             println!("HotM: Creating tray icon...");
             
-            // For now, use the programmatically generated icon
-            // In production, the icon files will be bundled with the app
-            println!("HotM: Creating default icon...");
-            let icon = create_default_icon();
+            // Use the bundled 32x32 icon for the system tray
+            let icon_path = app.path().resource_dir()?.join("icons").join("32x32.png");
+            println!("HotM: Loading tray icon from: {:?}", icon_path);
+            
+            let icon = if icon_path.exists() {
+                match tauri::image::Image::from_path(&icon_path) {
+                    Ok(img) => {
+                        println!("HotM: Successfully loaded tray icon from file");
+                        img
+                    },
+                    Err(e) => {
+                        println!("HotM: Failed to load icon file, using default: {}", e);
+                        create_default_icon()
+                    }
+                }
+            } else {
+                println!("HotM: Icon file not found, using default");
+                create_default_icon()
+            };
             
             // Create system tray
             let _tray = TrayIconBuilder::new()
