@@ -1,4 +1,5 @@
 use tauri::AppHandle;
+use std::io::Read;
 
 #[derive(Debug)]
 pub enum PlantUMLError {
@@ -102,24 +103,27 @@ pub fn render_plantuml(_app: &AppHandle, code: &str) -> Result<String, PlantUMLE
     // Make HTTP request to PlantUML server
     let response = match ureq::get(&url).call() {
         Ok(response) => response,
-        Err(ureq::Error::Status(code, _response)) => {
-            eprintln!("PlantUML: Server returned status {}", code);
-            return Err(PlantUMLError::ServerNotAvailable);
-        }
-        Err(ureq::Error::Transport(e)) => {
-            eprintln!("PlantUML: Transport error: {}", e);
-            return Err(PlantUMLError::NetworkError(format!("Failed to connect to PlantUML server: {}", e)));
+        Err(e) => {
+            eprintln!("PlantUML: Request error: {}", e);
+            return match e {
+                ureq::Error::Http(status, _) => {
+                    eprintln!("PlantUML: Server returned status {}", status);
+                    Err(PlantUMLError::ServerNotAvailable)
+                }
+                _ => {
+                    eprintln!("PlantUML: Transport/IO error");
+                    Err(PlantUMLError::NetworkError(format!("Failed to connect to PlantUML server: {}", e)))
+                }
+            };
         }
     };
     
     // Read the SVG response
-    let svg = match response.into_string() {
-        Ok(svg) => svg,
-        Err(e) => {
-            eprintln!("PlantUML: Failed to read response: {}", e);
-            return Err(PlantUMLError::RenderFailed(format!("Failed to read SVG response: {}", e)));
-        }
-    };
+    let mut svg = String::new();
+    if let Err(e) = response.into_reader().read_to_string(&mut svg) {
+        eprintln!("PlantUML: Failed to read response: {}", e);
+        return Err(PlantUMLError::RenderFailed(format!("Failed to read SVG response: {}", e)));
+    }
     
     eprintln!("PlantUML: Successfully rendered diagram ({} bytes)", svg.len());
     Ok(svg)
