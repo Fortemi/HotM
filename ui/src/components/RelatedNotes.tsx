@@ -94,6 +94,9 @@ export function RelatedNotes({ noteId, onSelectNote }: RelatedNotesProps) {
     );
   }
 
+  // Filter related notes by similarity threshold (> 50%)
+  const highQualityRelated = (relatedData?.related || []).filter((hit: SearchHit) => (hit?.score || 0) > 0.5);
+
   if (!relatedData || !relatedData.related || relatedData.related.length === 0) {
     return (
       <Card>
@@ -110,6 +113,24 @@ export function RelatedNotes({ noteId, onSelectNote }: RelatedNotesProps) {
     );
   }
 
+  if (highQualityRelated.length === 0) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Link2 className="h-4 w-4" />
+            Related Notes
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-sm text-muted-foreground">
+            No high-quality matches found. ({relatedData.related.length} potential matches below 50% similarity)
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <Card className="h-full flex flex-col overflow-hidden">
       <CardHeader className="pb-3 flex-shrink-0">
@@ -120,7 +141,7 @@ export function RelatedNotes({ noteId, onSelectNote }: RelatedNotesProps) {
       </CardHeader>
       <CardContent className="pt-0 flex-1 flex flex-col min-h-0 overflow-hidden">
         <div className="space-y-1 flex-shrink-0">
-          {(relatedData.related || []).slice(0, 5).map((hit: SearchHit, index: number) => {
+          {highQualityRelated.slice(0, 5).map((hit: SearchHit, index: number) => {
             // Generate a unique key based on note_id and index to avoid duplicates
             const uniqueKey = `${hit?.note_id || 'unknown'}-${index}`;
             
