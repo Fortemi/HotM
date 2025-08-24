@@ -18,6 +18,18 @@ export default defineConfig(async () => ({
       external: (id) => {
         // Exclude test files from production build
         return id.includes('.test.') || id.includes('__tests__') || id.includes('/test/');
+      },
+      output: {
+        manualChunks: {
+          // Split mermaid diagrams into separate chunks
+          'mermaid-core': ['mermaid'],
+          // Split large UI libraries
+          'ui-vendor': ['@radix-ui/react-dialog', '@radix-ui/react-dropdown-menu', '@radix-ui/react-select'],
+          // Split charting libraries  
+          'chart-vendor': ['cytoscape'],
+          // Split React ecosystem
+          'react-vendor': ['react', 'react-dom', 'react-router-dom']
+        }
       }
     }
   },
