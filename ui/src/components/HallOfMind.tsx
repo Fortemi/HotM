@@ -255,28 +255,24 @@ export function HallOfMind() {
         try {
           const updatedNote = await api.getNote(note_id);
           if (updatedNote.revised) {
-            // Check for title changes to trigger animation
+            // Simple animation logic: show animation when AI generates a title for the first time
             const currentNote = notes.find(n => n.id === updatedNote.note.id);
-            // For animation, we need to compare the actual stored AI title, not the display title
-            const oldAiTitle = currentNote?.ai_generated_title;
-            const newAiTitle = updatedNote.note.title;
+            const hadAiTitle = currentNote?.ai_generated_title;
+            const hasNewAiTitle = updatedNote.note.title;
             
-            // Calculate display titles for animation
-            const oldDisplayTitle = oldAiTitle || updatedNote.original.content.split('\n')[0].substring(0, 50) || "Untitled";
-            const newDisplayTitle = newAiTitle || updatedNote.original.content.split('\n')[0].substring(0, 50) || "Untitled";
-            
-            // Trigger title animation if AI-generated title changed (new title generated or existing title updated)
-            if (oldAiTitle !== newAiTitle && newAiTitle) {
+            // Trigger animation when AI title is generated for the first time
+            if (!hadAiTitle && hasNewAiTitle) {
+              const originalTitle = updatedNote.original.content.split('\n')[0].substring(0, 50) || "Untitled";
               setTitleAnimations(prev => new Map(prev.set(updatedNote.note.id, {
-                oldTitle: oldDisplayTitle,
-                newTitle: newDisplayTitle,
+                oldTitle: originalTitle,
+                newTitle: hasNewAiTitle,
                 isAnimating: true
               })));
             }
 
             const simpleNote = {
               id: updatedNote.note.id,
-              title: newDisplayTitle,
+              title: updatedNote.note.title || updatedNote.original.content.split('\n')[0].substring(0, 50) || "Untitled",
               content: updatedNote.original.content,
               revised_content: updatedNote.revised.content,
               createdAt: updatedNote.note.created_at_utc,
