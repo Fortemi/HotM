@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 interface TypingAnimationProps {
   oldText: string;
@@ -23,7 +23,7 @@ export function TypingAnimation({
 }: TypingAnimationProps) {
   const [currentText, setCurrentText] = useState(oldText);
   const [isAnimating, setIsAnimating] = useState(false);
-  const timeoutRef = useRef<NodeJS.Timeout>();
+  const timeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
   const eventQueueRef = useRef<TypingEvent[]>([]);
   const currentIndexRef = useRef(0);
   

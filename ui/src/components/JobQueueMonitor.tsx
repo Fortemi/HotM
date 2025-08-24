@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/
 import { Progress } from './ui/progress';
 import { Badge } from './ui/badge';
 import { ScrollArea } from './ui/scroll-area';
-import { Activity, Clock, CheckCircle2, XCircle, AlertCircle, Loader2 } from 'lucide-react';
+import { Clock, CheckCircle2, XCircle, AlertCircle, Loader2 } from 'lucide-react';
 import { useWebSocket, WsMessage } from '@/services/websocket';
 
 interface Job {
@@ -15,12 +15,6 @@ interface Job {
   started_at: string;
 }
 
-interface QueueStatus {
-  total_jobs: number;
-  running: number;
-  pending: number;
-  active_job?: Job;
-}
 
 interface CompletedJob {
   job_id: string;
@@ -56,9 +50,9 @@ const JobQueueMonitor: React.FC = () => {
 
         case 'JobProgress':
           if (message.job_id && typeof message.progress === 'number') {
-            setActiveJob(prev => prev?.job_id === message.job_id ? {
+            setActiveJob(prev => prev && prev.job_id === message.job_id ? {
               ...prev,
-              progress_percent: message.progress,
+              progress_percent: message.progress ?? prev.progress_percent,
               message: message.message || prev.message,
             } : prev);
           }

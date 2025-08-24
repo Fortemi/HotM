@@ -1,5 +1,5 @@
 // Shared WebSocket service for job queue updates
-import { createContext, useContext, useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 
 export interface WsMessage {
   type: 'QueueStatus' | 'JobQueued' | 'JobStarted' | 'JobProgress' | 'JobCompleted' | 'JobFailed' | 'NoteUpdated';
