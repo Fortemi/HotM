@@ -20,16 +20,13 @@ export default defineConfig(async () => ({
         return id.includes('.test.') || id.includes('__tests__') || id.includes('/test/');
       },
       output: {
-        manualChunks: {
-          // Split mermaid diagrams into separate chunks
-          'mermaid-core': ['mermaid'],
-          // Split large UI libraries
-          'ui-vendor': ['@radix-ui/react-dialog', '@radix-ui/react-dropdown-menu', '@radix-ui/react-select'],
-          // Split React ecosystem
-          'react-vendor': ['react', 'react-dom'],
-          // Split markdown and editor libraries
-          'editor-vendor': ['@uiw/react-md-editor', 'react-markdown']
-        }
+        // Temporarily disabled manual chunking to diagnose white screen issue
+        // manualChunks: {
+        //   'mermaid-core': ['mermaid'],
+        //   'ui-vendor': ['@radix-ui/react-dialog', '@radix-ui/react-dropdown-menu', '@radix-ui/react-select'],
+        //   'react-vendor': ['react', 'react-dom'],
+        //   'editor-vendor': ['@uiw/react-md-editor', 'react-markdown']
+        // }
       }
     }
   },
