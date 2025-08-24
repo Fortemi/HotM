@@ -11,6 +11,8 @@ HotM is a local-first notes and analysis tool with immutable originals, NLP-powe
 - Architecture: `architecture/` and `architecture-overview.md`
   - System design, NLP pipeline
   - Stage 2: `architecture/stage-2-architecture.md` (sync, auth/billing, encryption, device model)
+  - Client Sync Agent interfaces: `architecture/client-sync-agent.md`
+  - Decisions: `adr/ADR-001-journal-sync-lww.md`
 - Implementation: `implementation/`
   - Development guide, Testing strategy
 - Data Model: `data-model-pg.sql`
