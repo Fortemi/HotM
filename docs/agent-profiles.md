@@ -40,6 +40,12 @@ See: `agents/security-privacy-reviewer.md`
 
 ### QA & Test Author
 See: `agents/qa-test-author.md`
+
+### Language Tooling Agents
+- Docs Summarizer: `agents/docs-summarizer.md`
+- Release Notes Writer: `agents/release-notes-writer.md`
+- Spec Indexer: `agents/spec-indexer.md`
+- Issue Triage Summarizer: `agents/issue-triage-summarizer.md`
 - Purpose: Increase coverage on new logic.
 - Steps: Add Rust integration tests (`server/tests/*`) and Vitest specs (`ui/src/**/__tests__`).
 
