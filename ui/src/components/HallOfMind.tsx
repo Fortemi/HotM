@@ -490,7 +490,7 @@ export function HallOfMind() {
           console.log(`Loading note ${note.note.id}: starred=${note.note.starred}, archived=${note.note.archived}`);
           return {
             id: note.note.id,
-            title: note.original.content.split('\n')[0].substring(0, 50) || "Untitled",
+            title: note.note.title || note.original.content.split('\n')[0].substring(0, 50) || "Untitled",
             content: note.original.content,
             revised_content: note.revised ? note.revised.content : null,
             createdAt: note.note.created_at_utc,
@@ -498,6 +498,7 @@ export function HallOfMind() {
             tags: note.tags,
             starred: note.note.starred || false,
             archived: note.note.archived || false,
+            ai_generated_title: note.note.title,
             revised_model: note.revised ? note.revised.model : null
           };
         });
@@ -553,7 +554,7 @@ export function HallOfMind() {
       // Add to our notes list
       const simpleNote: Note = {
         id: fullNote.note.id,
-        title: fullNote.original.content.split('\n')[0].substring(0, 50) || "Untitled",
+        title: fullNote.note.title || fullNote.original.content.split('\n')[0].substring(0, 50) || "Untitled",
         content: fullNote.original.content,
         revised_content: fullNote.revised ? fullNote.revised.content : null,
         createdAt: fullNote.note.created_at_utc,
@@ -561,6 +562,7 @@ export function HallOfMind() {
         tags: fullNote.tags,
         starred: fullNote.note.starred || false,
         archived: fullNote.note.archived || false,
+        ai_generated_title: fullNote.note.title,
         revised_model: fullNote.revised ? fullNote.revised.model : null
       };
       
