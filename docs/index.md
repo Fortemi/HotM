@@ -27,6 +27,10 @@ HotM is a local-first notes and analysis tool with immutable originals, NLP-powe
 - Cross-platform & headless: `plans/cross-platform.md`
 - Protocol/transport strategy: `plans/protocol-bridge.md`
 
+## Agents
+- Profiles index: `agent-profiles.md`
+- All agents: `agents/`
+
 ## Quick Links
 - Project README: `../README.md`
 - API Health Check: http://127.0.0.1:53211/api/v1/health
