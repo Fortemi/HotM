@@ -1,0 +1,54 @@
+[package]
+name = "hotm-server"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+description = "HotM standalone HTTP API server"
+license.workspace = true
+
+[dependencies]
+# Workspace dependencies
+hotm-core = { path = "../hotm-core", features = ["full"] }
+
+# HTTP server dependencies
+axum.workspace = true
+tower-http.workspace = true
+axum-extra.workspace = true
+tokio.workspace = true
+tracing.workspace = true
+tracing-subscriber.workspace = true
+
+# Serialization
+serde.workspace = true
+serde_json.workspace = true
+uuid.workspace = true
+chrono.workspace = true
+
+# Database
+sqlx.workspace = true
+pgvector.workspace = true
+
+# HTTP client for Ollama
+reqwest.workspace = true
+
+# Error handling
+thiserror.workspace = true
+anyhow.workspace = true
+
+# Environment
+dotenvy.workspace = true
+
+# Utilities
+regex.workspace = true
+sha2.workspace = true
+hex.workspace = true
+
+[dev-dependencies]
+serde_json.workspace = true
+reqwest.workspace = true
+tokio-test.workspace = true
+tower.workspace = true
+hyper.workspace = true
+# wiremock.workspace = true  # Temporarily disabled
+fake.workspace = true
+rstest.workspace = true

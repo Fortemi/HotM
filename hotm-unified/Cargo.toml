@@ -1,0 +1,70 @@
+[package]
+name = "hotm-unified"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+description = "HotM unified runtime with mode selection"
+license.workspace = true
+
+[features]
+default = ["server", "desktop"]
+server = ["hotm-core/full", "hotm-core/axum"]
+desktop = [
+    "dep:tauri",
+    "dep:tauri-plugin-opener", 
+    "dep:tauri-plugin-shell",
+    "dep:tauri-plugin-notification",
+    "dep:tauri-plugin-global-shortcut",
+    "dep:image",
+    "dep:flate2",
+    "dep:ureq",
+    "dep:urlencoding",
+    "hotm-core/database",
+    "hotm-core/ollama"
+]
+hybrid = ["server", "desktop"]
+
+[build-dependencies]
+tauri-build = { workspace = true }
+
+[dependencies]
+# Workspace dependencies
+hotm-core = { path = "../hotm-core" }
+
+# Core dependencies
+serde.workspace = true
+serde_json.workspace = true
+tokio.workspace = true
+tracing.workspace = true
+tracing-subscriber.workspace = true
+anyhow.workspace = true
+dotenvy.workspace = true
+clap = { workspace = true }
+
+# HTTP server dependencies (always available for server mode)
+axum = { workspace = true }
+tower-http = { workspace = true }
+axum-extra = { workspace = true }
+uuid = { workspace = true }
+
+# Tauri dependencies (feature-gated)
+tauri = { workspace = true, optional = true }
+tauri-plugin-opener = { workspace = true, optional = true }
+tauri-plugin-shell = { workspace = true, optional = true }
+tauri-plugin-notification = { workspace = true, optional = true }
+tauri-plugin-global-shortcut = { workspace = true, optional = true }
+
+# Desktop-specific dependencies (feature-gated)  
+ureq = { workspace = true, optional = true }
+flate2 = { workspace = true, optional = true }
+image = { workspace = true, optional = true }
+urlencoding = { workspace = true, optional = true }
+
+# HTTP client
+reqwest.workspace = true
+
+# Stream utilities  
+futures.workspace = true
+
+[dev-dependencies]
+tokio-test.workspace = true

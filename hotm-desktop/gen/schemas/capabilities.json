@@ -1,0 +1,1 @@
+{"default":{"identifier":"default","description":"Capability for the main window","local":true,"windows":["main"],"permissions":["core:default","core:tray:default","core:window:allow-show","core:window:allow-hide","core:window:allow-set-focus","core:window:allow-is-visible","opener:default","shell:default","notification:default","global-shortcut:default"]}}

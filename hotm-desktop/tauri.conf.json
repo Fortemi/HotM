@@ -1,0 +1,56 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "HotM Desktop",
+  "version": "0.1.2",
+  "identifier": "com.hotm.desktop",
+  "build": {
+    "beforeDevCommand": "",
+    "devUrl": "http://localhost:1420",
+    "beforeBuildCommand": "",
+    "frontendDist": "../ui/dist"
+  },
+  "app": {
+    "windows": [
+      {
+        "label": "main",
+        "title": "Hall of the Mind - Desktop",
+        "width": 1200,
+        "height": 800,
+        "decorations": true,
+        "transparent": false,
+        "resizable": true,
+        "visible": true,
+        "skipTaskbar": false,
+        "center": true,
+        "focus": true
+      }
+    ],
+    "security": {
+      "csp": null
+    },
+    "trayIcon": {
+      "iconPath": "icons/32x32.png",
+      "tooltip": "Hall of the Mind"
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "resources": [
+      "icons/*"
+    ],
+    "windows": {
+      "wix": {
+        "language": "en-US"
+      },
+      "allowDowngrades": false
+    },
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png", 
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ]
+  }
+}

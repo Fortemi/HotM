@@ -1,0 +1,84 @@
+[workspace]
+members = [
+    "hotm-core",
+    "hotm-server", 
+    "hotm-desktop",
+    "hotm-unified"
+]
+resolver = "2"
+
+[workspace.package]
+version = "0.1.2"
+edition = "2021"
+authors = ["HotM Team"]
+description = "HotM - Local-first notes and analysis tool"
+license = "MIT"
+
+[workspace.dependencies]
+# Async runtime
+tokio = { version = "1", features = ["rt-multi-thread", "macros", "full"] }
+
+# Serialization
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+uuid = { version = "1", features = ["v4", "serde"] }
+chrono = { version = "0.4", features = ["clock", "serde"] }
+
+# HTTP Client/Server
+reqwest = { version = "0.12", features = ["json", "blocking"] }
+axum = { version = "0.7", features = ["macros", "ws"] }
+tower-http = { version = "0.5", features = ["cors"] }
+axum-extra = { version = "0.9", features = ["typed-header"] }
+
+# Database
+sqlx = { version = "0.8.6", default-features = false, features = ["runtime-tokio-rustls", "postgres", "uuid", "chrono", "json", "macros", "bigdecimal", "migrate"] }
+pgvector = { version = "0.4.1", features = ["sqlx", "postgres"] }
+
+# Logging
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+
+# Error handling
+thiserror = "1"
+anyhow = "1"
+
+# Cryptography
+sha2 = "0.10"
+hex = "0.4"
+
+# Environment
+dotenvy = "0.15"
+
+# Regex
+regex = "1"
+
+# Async utilities
+async-trait = "0.1"
+futures = "0.3"
+
+# CLI
+clap = { version = "4.0", features = ["derive"] }
+
+# Tauri dependencies
+tauri = { version = "2.4.0", features = ["tray-icon"] }
+tauri-plugin-opener = "2.2.3"
+tauri-plugin-shell = "2.3.0"
+tauri-plugin-notification = "2.3.1"
+tauri-plugin-global-shortcut = "2.3.0"
+
+# Additional dependencies
+ureq = "3.1"
+flate2 = "1.0"
+image = "0.25"
+urlencoding = "2.1"
+
+# Build dependencies
+tauri-build = { version = "2.4.0" }
+
+# Development dependencies
+tokio-test = "0.4"
+tower = { version = "0.4", features = ["util"] }
+hyper = { version = "1.0", features = ["full"] }
+# wiremock = "0.6"  # Temporarily disabled due to unstable let-chains feature requirement
+fake = "2.9"
+rstest = "0.18"

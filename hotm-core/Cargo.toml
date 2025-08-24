@@ -1,0 +1,42 @@
+[package]
+name = "hotm-core"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+description.workspace = true
+license.workspace = true
+
+[features]
+default = ["database", "ollama"]
+database = ["dep:sqlx", "dep:pgvector", "dep:async-trait"]
+ollama = ["dep:reqwest"]
+websocket = ["dep:axum", "dep:futures", "axum"]
+axum = []
+full = ["database", "ollama", "websocket"]
+
+[dependencies]
+# Core dependencies (always available)
+serde.workspace = true
+serde_json.workspace = true
+uuid.workspace = true
+chrono.workspace = true
+thiserror.workspace = true
+anyhow.workspace = true
+tracing.workspace = true
+tokio.workspace = true
+sha2.workspace = true
+hex.workspace = true
+regex.workspace = true
+dirs = "5.0"
+
+# Feature-gated dependencies
+sqlx = { workspace = true, optional = true }
+pgvector = { workspace = true, optional = true }
+reqwest = { workspace = true, optional = true }
+axum = { workspace = true, optional = true }
+async-trait = { workspace = true, optional = true }
+futures = { workspace = true, optional = true }
+
+[dev-dependencies]
+tokio-test.workspace = true
+tempfile = "3.8"

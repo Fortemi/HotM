@@ -1,0 +1,251 @@
+//! HotM Desktop - Tauri-based desktop application
+//! 
+//! This is the desktop application that provides a rich GUI interface
+//! for HotM. It can connect to a local or remote HotM server, or run
+//! with embedded server functionality.
+
+use tauri::{
+    tray::{TrayIconBuilder}, 
+    Manager, WindowEvent,
+};
+use tauri::menu::{MenuBuilder, MenuItemBuilder};
+use tauri_plugin_global_shortcut::GlobalShortcutExt;
+
+mod plantuml;
+mod commands;
+mod websocket;
+mod server;
+
+// Tauri command to render PlantUML
+#[tauri::command]
+async fn render_plantuml(app: tauri::AppHandle, code: String) -> Result<String, String> {
+    plantuml::render_plantuml(&app, &code)
+        .map_err(|e| e.to_string())
+}
+
+// Tauri command to ensure PlantUML JAR is available
+#[tauri::command]
+async fn ensure_plantuml(app: tauri::AppHandle) -> Result<(), String> {
+    plantuml::ensure_plantuml_jar(&app)
+        .await
+        .map_err(|e| e.to_string())
+}
+
+// Create a Hall of the Mind brain icon programmatically (purple gradient with brain shape)
+fn create_default_icon() -> tauri::image::Image<'static> {
+    const SIZE: u32 = 32;
+    let mut pixels = Vec::with_capacity((SIZE * SIZE * 4) as usize);
+    
+    for y in 0..SIZE {
+        for x in 0..SIZE {
+            // Create a purple-to-indigo gradient background
+            let diagonal_gradient = ((x + y) as f32 / (SIZE * 2) as f32 * 80.0) as u8;
+            let r = 76 + diagonal_gradient;  // Deep purple to lighter
+            let g = 41 + diagonal_gradient;
+            let b = 145 + diagonal_gradient;
+            
+            // Draw simplified brain shape
+            let cx = SIZE as f32 / 2.0;
+            let cy = SIZE as f32 / 2.0;
+            let fx = x as f32;
+            let fy = y as f32;
+            
+            // Left hemisphere (ellipse)
+            let left_dist = ((fx - (cx - 3.0)).powi(2) / 49.0 + (fy - cy).powi(2) / 81.0).sqrt();
+            let is_left_hemisphere = left_dist <= 1.0 && fx <= cx;
+            
+            // Right hemisphere (ellipse)
+            let right_dist = ((fx - (cx + 3.0)).powi(2) / 49.0 + (fy - cy).powi(2) / 81.0).sqrt();
+            let is_right_hemisphere = right_dist <= 1.0 && fx >= cx;
+            
+            // Central division line
+            let is_division = fx >= cx - 0.5 && fx <= cx + 0.5 && fy >= cy - 8.0 && fy <= cy + 6.0;
+            
+            // Brain folds (simplified wavy lines)
+            let fold1 = (fx >= cx - 6.0 && fx <= cx - 4.0 && fy >= cy - 3.0 && fy <= cy + 3.0) ||
+                       (fx >= cx + 4.0 && fx <= cx + 6.0 && fy >= cy - 3.0 && fy <= cy + 3.0);
+            
+            if is_left_hemisphere || is_right_hemisphere || is_division || fold1 {
+                // White for the brain shape
+                pixels.extend_from_slice(&[255, 255, 255, 255]);
+            } else {
+                // Purple gradient for background
+                pixels.extend_from_slice(&[r, g, b, 255]);
+            }
+        }
+    }
+    
+    tauri::image::Image::new_owned(pixels, SIZE, SIZE)
+}
+
+#[cfg_attr(mobile, tauri::mobile_entry_point)]
+pub fn run() {
+    // Check for command line arguments
+    let args: Vec<String> = std::env::args().collect();
+    let start_minimized = args.contains(&"--minimized".to_string()) || 
+                         args.contains(&"/minimized".to_string());
+    
+    println!("HotM Desktop: Starting Tauri application...");
+    if start_minimized {
+        println!("HotM Desktop: Starting in minimized mode");
+    }
+    
+    // Build the global shortcut plugin with handler
+    println!("HotM Desktop: Setting up global hotkey handler");
+    
+    let shortcut_plugin = tauri_plugin_global_shortcut::Builder::new()
+        .with_handler(move |app, _shortcut, event| {
+            // Handle hotkey events
+            if event.state == tauri_plugin_global_shortcut::ShortcutState::Pressed {
+                println!("HotM Desktop: Hotkey pressed - toggling window");
+                
+                if let Some(window) = app.get_webview_window("main") {
+                    if window.is_visible().unwrap_or(false) {
+                        println!("HotM Desktop: Hiding window");
+                        let _ = window.hide();
+                    } else {
+                        println!("HotM Desktop: Showing window");
+                        let _ = window.show();
+                        let _ = window.set_focus();
+                    }
+                }
+            }
+        })
+        .build();
+
+    tauri::Builder::default()
+        .plugin(tauri_plugin_opener::init())
+        .plugin(tauri_plugin_shell::init())
+        .plugin(tauri_plugin_notification::init())
+        .plugin(shortcut_plugin)
+        .invoke_handler(tauri::generate_handler![
+            render_plantuml,
+            ensure_plantuml,
+            commands::api_commands::get_server_health,
+            commands::api_commands::create_note,
+            commands::api_commands::get_note,
+            commands::api_commands::update_note,
+            commands::api_commands::delete_note,
+            commands::api_commands::search_notes,
+            commands::api_commands::semantic_search,
+            commands::api_commands::get_note_provenance,
+            commands::api_commands::set_note_tags,
+            commands::api_commands::set_note_collection,
+            websocket::start_websocket,
+            server::start_local_server,
+            server::stop_local_server,
+            server::get_local_server_status,
+        ])
+        .on_window_event(|window, event| {
+            println!("HotM Desktop: Window event: {:?}", event);
+            match event {
+                WindowEvent::CloseRequested { api, .. } => {
+                    // Instead of closing, hide the window to tray
+                    println!("HotM Desktop: Close requested, hiding to tray");
+                    let _ = window.hide();
+                    api.prevent_close();
+                }
+                _ => {}
+            }
+        })
+        .setup(move |app| {
+            println!("HotM Desktop: Running setup...");
+            
+            // Register the global hotkey
+            match app.global_shortcut().register("CommandOrControl+Alt+H") {
+                Ok(_) => println!("HotM Desktop: Global hotkey (Ctrl+Alt+H) registered successfully"),
+                Err(e) => println!("HotM Desktop: Failed to register hotkey: {}", e),
+            }
+            
+            // Create tray menu
+            println!("HotM Desktop: Creating menu items...");
+            let show = MenuItemBuilder::with_id("show", "Show Hall of the Mind").build(app)?;
+            let hide = MenuItemBuilder::with_id("hide", "Hide").build(app)?;
+            let quit = MenuItemBuilder::with_id("quit", "Quit").build(app)?;
+            
+            println!("HotM Desktop: Building menu...");
+            let menu = MenuBuilder::new(app)
+                .items(&[&show, &hide, &quit])
+                .build()?;
+            
+            // Clone app handle for menu events
+            let app_handle = app.handle().clone();
+            
+            println!("HotM Desktop: Creating tray icon...");
+            
+            // Use the bundled 32x32 icon for the system tray
+            let icon_path = app.path().resource_dir()?.join("icons").join("32x32.png");
+            println!("HotM Desktop: Loading tray icon from: {:?}", icon_path);
+            
+            let icon = if icon_path.exists() {
+                match std::fs::read(&icon_path) {
+                    Ok(icon_data) => {
+                        match image::load_from_memory(&icon_data) {
+                            Ok(img) => {
+                                let rgba = img.to_rgba8();
+                                let (width, height) = rgba.dimensions();
+                                println!("HotM Desktop: Successfully loaded tray icon from file ({}x{})", width, height);
+                                tauri::image::Image::new_owned(rgba.into_raw(), width, height)
+                            },
+                            Err(e) => {
+                                println!("HotM Desktop: Failed to decode icon file, using default: {}", e);
+                                create_default_icon()
+                            }
+                        }
+                    },
+                    Err(e) => {
+                        println!("HotM Desktop: Failed to read icon file, using default: {}", e);
+                        create_default_icon()
+                    }
+                }
+            } else {
+                println!("HotM Desktop: Icon file not found, using default");
+                create_default_icon()
+            };
+            
+            // Create system tray
+            let _tray = TrayIconBuilder::new()
+                .icon(icon)
+                .menu(&menu)
+                .tooltip("Hall of the Mind - Desktop")
+                .on_menu_event(move |_app, event| {
+                    println!("HotM Desktop: Tray menu event: {}", event.id.as_ref());
+                    match event.id.as_ref() {
+                        "show" => {
+                            if let Some(window) = app_handle.get_webview_window("main") {
+                                println!("HotM Desktop: Showing window");
+                                let _ = window.show();
+                                let _ = window.set_focus();
+                            }
+                        }
+                        "hide" => {
+                            if let Some(window) = app_handle.get_webview_window("main") {
+                                println!("HotM Desktop: Hiding window");
+                                let _ = window.hide();
+                            }
+                        }
+                        "quit" => {
+                            println!("HotM Desktop: Quitting application");
+                            std::process::exit(0);
+                        }
+                        _ => {}
+                    }
+                })
+                .build(app)?;
+            
+            // If started with --minimized, hide the window
+            if start_minimized {
+                if let Some(window) = app.get_webview_window("main") {
+                    println!("HotM Desktop: Hiding window for minimized start");
+                    let _ = window.hide();
+                }
+            }
+            
+            println!("HotM Desktop: Setup complete!");
+            println!("HotM Desktop: Press Ctrl+Alt+H to show/hide the window");
+            
+            Ok(())
+        })
+        .run(tauri::generate_context!())
+        .expect("error while running tauri application");
+}
