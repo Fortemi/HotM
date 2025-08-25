@@ -45,7 +45,7 @@ fn run_tauri_app() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     let builder = tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_shell::init())
-        .plugin(tauri_plugin_notification::init())
+        // .plugin(tauri_plugin_notification::init()) // Temporarily disabled due to config issue
         .plugin(shortcut_plugin)
         .invoke_handler(tauri::generate_handler![
             get_server_health,
