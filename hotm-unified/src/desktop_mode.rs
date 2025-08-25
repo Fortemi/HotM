@@ -5,6 +5,27 @@ pub fn run_desktop() -> anyhow::Result<()> {
     use tracing::info;
 
     info!("Starting desktop application...");
+    info!("Initializing Tauri builder with plugins...");
+    
+    info!("Setting up global shortcut handler...");
+    let shortcut_plugin = tauri_plugin_global_shortcut::Builder::new()
+        .with_handler(move |app, _shortcut, event| {
+            info!("Global shortcut triggered: {:?}", event);
+            // Handle hotkey events
+            if event.state == tauri_plugin_global_shortcut::ShortcutState::Pressed {
+                if let Some(window) = app.get_webview_window("main") {
+                    if window.is_visible().unwrap_or(false) {
+                        let _ = window.hide();
+                    } else {
+                        let _ = window.show();
+                        let _ = window.set_focus();
+                    }
+                }
+            }
+        })
+        .build();
+    
+    info!("Building Tauri application...");
 
     // Run the Tauri application on the main thread (this blocks until app closes)
     // Note: Tauri must run on the main thread for Windows event loop compatibility
@@ -46,7 +67,7 @@ fn run_tauri_app() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_shell::init())
         // .plugin(tauri_plugin_notification::init()) // Temporarily disabled due to config issue
-        .plugin(shortcut_plugin)
+        // .plugin(shortcut_plugin) // Temporarily disabled due to config issue
         .invoke_handler(tauri::generate_handler![
             get_server_health,
             discover_servers,
@@ -111,9 +132,12 @@ fn run_tauri_app() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
             }
         });
 
+    info!("Running Tauri application...");
     builder
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
+    
+    info!("Tauri application exited normally");
         
     Ok(())
 }
