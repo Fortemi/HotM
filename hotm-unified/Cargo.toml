@@ -67,5 +67,9 @@ reqwest.workspace = true
 # Stream utilities  
 futures.workspace = true
 
+# Windows-specific dependencies
+[target.'cfg(windows)'.dependencies]
+winapi = { version = "0.3", features = ["processthreadsapi", "securitybaseapi", "winnt", "handleapi", "ntdef"] }
+
 [dev-dependencies]
 tokio-test.workspace = true
