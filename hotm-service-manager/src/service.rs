@@ -8,7 +8,6 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 use std::time::Duration;
-use tokio::time::timeout;
 use tracing::{debug, info, warn, error};
 
 use crate::config::{ServiceConfiguration, ServiceDefinition};
@@ -503,7 +502,7 @@ impl ServiceManager {
     
     // Private helper methods
     
-    async fn is_service_installed(&self, service_name: &str) -> Result<bool> {
+    async fn is_service_installed(&self, _service_name: &str) -> Result<bool> {
         #[cfg(windows)]
         {
             use std::ffi::CString;
@@ -533,7 +532,7 @@ impl ServiceManager {
         Ok(false)
     }
     
-    async fn get_service_state(&self, service_name: &str) -> Result<ServiceState> {
+    async fn get_service_state(&self, _service_name: &str) -> Result<ServiceState> {
         #[cfg(windows)]
         {
             use std::ffi::CString;
@@ -669,7 +668,7 @@ impl ServiceManager {
         })
     }
     
-    async fn install_single_service(&self, install_info: &ServiceInstallInfo, force: bool) -> Result<()> {
+    async fn install_single_service(&self, _install_info: &ServiceInstallInfo, _force: bool) -> Result<()> {
         #[cfg(windows)]
         {
             use std::ffi::CString;
@@ -793,7 +792,7 @@ impl ServiceManager {
         }
     }
     
-    async fn uninstall_single_service(&self, service_name: &str) -> Result<()> {
+    async fn uninstall_single_service(&self, _service_name: &str) -> Result<()> {
         #[cfg(windows)]
         {
             use std::ffi::CString;
@@ -837,7 +836,7 @@ impl ServiceManager {
         }
     }
     
-    async fn start_single_service(&self, service_name: &str, timeout_duration: Duration) -> Result<()> {
+    async fn start_single_service(&self, _service_name: &str, _timeout_duration: Duration) -> Result<()> {
         #[cfg(windows)]
         {
             use std::ffi::CString;
@@ -908,7 +907,7 @@ impl ServiceManager {
         }
     }
     
-    async fn stop_single_service(&self, service_name: &str, timeout_duration: Duration) -> Result<()> {
+    async fn stop_single_service(&self, _service_name: &str, _timeout_duration: Duration) -> Result<()> {
         #[cfg(windows)]
         {
             use std::ffi::CString;

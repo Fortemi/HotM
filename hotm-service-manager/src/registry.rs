@@ -6,7 +6,7 @@
 use anyhow::{Result, anyhow};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use tracing::{info, warn, debug};
+use tracing::{info, debug};
 
 #[cfg(windows)]
 use winapi::um::{
@@ -304,7 +304,7 @@ impl RegistryManager {
     }
     
     /// Save HotM configuration to registry
-    pub fn save_hotm_config(&self, config: &HashMap<String, String>) -> Result<()> {
+    pub fn save_hotm_config(&self, _config: &HashMap<String, String>) -> Result<()> {
         info!("Saving HotM configuration to registry");
         
         #[cfg(windows)]

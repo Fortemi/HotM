@@ -3,7 +3,7 @@
 //! Implements intelligent recovery strategies for HotM services with
 //! escalation paths, retry logic, and comprehensive error handling.
 
-use anyhow::{Context, Result};
+use anyhow::{Context, Result, anyhow};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::time::Duration;
