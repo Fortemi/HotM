@@ -11,6 +11,7 @@ param(
     [switch]$SkipFrontend = $false,
     [switch]$OpenAfterBuild = $false,
     [switch]$CleanFirst = $false,
+    [switch]$SkipDatabase = $false,
     [string]$OutputDir = "dist\desktop-installer"
 )
 
@@ -47,6 +48,26 @@ function Write-Warning($Message) {
 
 function Write-Error($Message) {
     Write-Host "❌ $Message" -ForegroundColor $colors.Error
+}
+
+# Database cleanup flag
+$databaseStarted = $false
+
+# Cleanup function
+function Cleanup-Build {
+    if ($databaseStarted -and -not $SkipDatabase) {
+        Write-Host "`n" -NoNewline
+        Write-Host "🗑️  Build completed. Clean up temporary database? (y/N): " -ForegroundColor $colors.Warning -NoNewline
+        $response = Read-Host
+        if ($response -match "^[Yy]") {
+            Write-Step "Cleaning up temporary database"
+            & ".\scripts\test-db-manager.ps1" -Action stop
+            Write-Success "Database cleanup completed"
+        } else {
+            Write-Host "Database left running for faster subsequent builds" -ForegroundColor $colors.Info
+            Write-Host "To clean up later, run: .\scripts\test-db-manager.ps1 -Action stop" -ForegroundColor $colors.Info
+        }
+    }
 }
 
 # Main execution
@@ -103,6 +124,28 @@ try {
     }
     
     Write-Success "Pre-build validation passed"
+    
+    # Setup temporary database for build
+    if (-not $SkipDatabase) {
+        Write-Step "Setting up temporary build database"
+        
+        # Start test database
+        $dbResult = & ".\scripts\test-db-manager.ps1" -Action start
+        if ($LASTEXITCODE -eq 0) {
+            $databaseStarted = $true
+            Write-Success "Temporary database ready"
+        } else {
+            Write-Warning "Failed to start temporary database, attempting to use existing DATABASE_URL"
+            if (-not $env:DATABASE_URL) {
+                throw "No DATABASE_URL available and temporary database failed to start"
+            }
+        }
+    } else {
+        Write-Host "Skipping database setup (SkipDatabase flag set)" -ForegroundColor $colors.Warning
+        if (-not $env:DATABASE_URL) {
+            Write-Warning "No DATABASE_URL set - build may fail"
+        }
+    }
     
     # Build unified runtime if not skipped
     if (-not $SkipBuild) {
@@ -358,10 +401,16 @@ pause
         Invoke-Item $OutputDir
     }
     
+    # Offer database cleanup
+    Cleanup-Build
+    
 } catch {
     Write-Error "Build failed: $($_.Exception.Message)"
     Write-Host "`nStackTrace:" -ForegroundColor $colors.Error
     Write-Host $_.ScriptStackTrace -ForegroundColor $colors.Error
+    
+    # Offer database cleanup on failure too
+    Cleanup-Build
     exit 1
 }
 
