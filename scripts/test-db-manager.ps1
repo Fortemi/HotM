@@ -293,6 +293,26 @@ function Start-TestDatabase {
         $databaseUrl = "postgresql://hotm:hotm@localhost:${availablePort}/hotm"
         $env:DATABASE_URL = $databaseUrl
         
+        # Check if sqlx-cli is installed
+        $sqlxInstalled = $false
+        try {
+            & cargo sqlx --version 2>$null
+            if ($LASTEXITCODE -eq 0) {
+                $sqlxInstalled = $true
+                Write-Status "✅ sqlx-cli is already installed" $colors.Success
+            }
+        } catch { }
+        
+        if (-not $sqlxInstalled) {
+            Write-Status "📦 Installing sqlx-cli..." $colors.Progress
+            $output = & cargo install sqlx-cli --no-default-features --features postgres 2>&1
+            if ($LASTEXITCODE -ne 0) {
+                Write-Status "❌ Failed to install sqlx-cli: $output" $colors.Error
+                return $false
+            }
+            Write-Status "✅ sqlx-cli installed successfully" $colors.Success
+        }
+        
         Push-Location "server"
         $output = & cargo sqlx migrate run 2>&1
         $exitCode = $LASTEXITCODE

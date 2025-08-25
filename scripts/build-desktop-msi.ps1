@@ -151,9 +151,11 @@ try {
     if (-not $SkipBuild) {
         Write-Step "Building unified runtime"
         
-        # Load .env file if it exists
+        # Load .env file if it exists, but don't override DATABASE_URL if temp DB is running
         if (Test-Path ".env") {
             Write-Host "Loading environment from .env file..." -ForegroundColor $colors.Info
+            $tempDbUrl = $env:DATABASE_URL
+            
             Get-Content ".env" | ForEach-Object {
                 if ($_ -match "^\s*([^#][^=]+)=(.*)$") {
                     $name = $matches[1].Trim()
@@ -162,9 +164,15 @@ try {
                     if ($value -match '^"(.*)"$' -or $value -match "^'(.*)'$") {
                         $value = $matches[1]
                     }
-                    [Environment]::SetEnvironmentVariable($name, $value, "Process")
-                    if ($name -eq "DATABASE_URL") {
-                        Write-Host "Loaded DATABASE_URL: $($value -replace 'password=[^@]*', 'password=***')" -ForegroundColor $colors.Info
+                    
+                    # Don't override DATABASE_URL if we have a temp database running
+                    if ($name -eq "DATABASE_URL" -and $tempDbUrl -and $databaseStarted) {
+                        Write-Host "Skipping .env DATABASE_URL - using temp database: $tempDbUrl" -ForegroundColor $colors.Warning
+                    } else {
+                        [Environment]::SetEnvironmentVariable($name, $value, "Process")
+                        if ($name -eq "DATABASE_URL") {
+                            Write-Host "Loaded DATABASE_URL: $($value -replace 'password=[^@]*', 'password=***')" -ForegroundColor $colors.Info
+                        }
                     }
                 }
             }
