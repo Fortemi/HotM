@@ -276,7 +276,7 @@ impl RecoveryManager {
                 tokio::time::sleep(Duration::from_secs(self.config.restart_delay_seconds)).await;
                 
                 // Start the service
-                if StartServiceA(service, 0, ptr::null()) == 0 {
+                if StartServiceA(service, 0, core::ptr::null_mut()) == 0 {
                     let error = winapi::um::errhandlingapi::GetLastError();
                     CloseServiceHandle(service);
                     CloseServiceHandle(scm);

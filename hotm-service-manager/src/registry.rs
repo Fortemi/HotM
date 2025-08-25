@@ -167,7 +167,7 @@ impl RegistryManager {
                 }
                 
                 // Set service description
-                let description_cstr = CString::new(&config.description)?;
+                let description_cstr = CString::new(config.description.as_str())?;
                 let description_key = CString::new("Description")?;
                 RegSetValueExA(
                     key_handle,
@@ -305,7 +305,7 @@ impl RegistryManager {
             use winapi::shared::minwindef::*;
             use std::ptr;
             
-            let config_path_cstr = CString::new(&self.config_registry_path)?;
+            let config_path_cstr = CString::new(self.config_registry_path.as_str())?;
             
             unsafe {
                 let mut key_handle: HKEY = ptr::null_mut();
@@ -359,7 +359,7 @@ impl RegistryManager {
             use winapi::shared::minwindef::*;
             use std::ptr;
             
-            let config_path_cstr = CString::new(&self.config_registry_path)?;
+            let config_path_cstr = CString::new(self.config_registry_path.as_str())?;
             let mut config = HashMap::new();
             
             unsafe {
@@ -433,7 +433,7 @@ impl RegistryManager {
             use std::ffi::CString;
             use winapi::um::winreg::*;
             
-            let config_path_cstr = CString::new(&self.config_registry_path)?;
+            let config_path_cstr = CString::new(self.config_registry_path.as_str())?;
             
             unsafe {
                 let result = RegDeleteTreeA(HKEY_LOCAL_MACHINE, config_path_cstr.as_ptr());

@@ -667,9 +667,9 @@ impl ServiceManager {
                 cmd_line.push_str(&install_info.arguments.join(" "));
             }
             
-            let service_name = CString::new(&install_info.name)?;
+            let service_name = CString::new(install_info.name.as_str())?;
             let display_name = CString::new(format!("HotM {}", install_info.name))?;
-            let description = CString::new(&install_info.description)?;
+            let description = CString::new(install_info.description.as_str())?;
             let cmd_line_cstr = CString::new(cmd_line)?;
             
             unsafe {
@@ -843,7 +843,7 @@ impl ServiceManager {
                         return Err(anyhow!("Failed to open service: {}", service_name));
                     }
                     
-                    if StartServiceA(service, 0, ptr::null()) == 0 {
+                    if StartServiceA(service, 0, core::ptr::null_mut()) == 0 {
                         let error = winapi::um::errhandlingapi::GetLastError();
                         if error != winapi::shared::winerror::ERROR_SERVICE_ALREADY_RUNNING {
                             CloseServiceHandle(service);
@@ -1004,7 +1004,7 @@ pub async fn run_windows_service(service_manager: ServiceManager) -> Result<()> 
     })?;
     
     // Main service loop - run monitoring
-    let manager = service_manager_clone.lock().unwrap();
+    let mut manager = service_manager_clone.lock().unwrap();
     manager.run_monitor(Duration::from_secs(30), true).await?;
     
     // Tell the system that service has stopped

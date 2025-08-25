@@ -47,7 +47,7 @@ futures.workspace = true
 # System integration
 [target.'cfg(windows)'.dependencies]
 windows-service = "0.7"
-winapi = { version = "0.3", features = ["winsvc", "winreg", "errhandlingapi", "processthreadsapi", "handleapi"] }
+winapi = { version = "0.3", features = ["winsvc", "winreg", "errhandlingapi", "processthreadsapi", "handleapi", "tlhelp32", "winuser", "winbase", "minwindef"] }
 
 [build-dependencies]
 # Windows-specific build dependencies
