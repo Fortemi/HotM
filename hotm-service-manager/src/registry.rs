@@ -465,7 +465,6 @@ impl RegistryManager {
     fn read_registry_string(&self, key_handle: winapi::shared::minwindef::HKEY, value_name: &str) -> Result<String> {
         use std::ffi::CString;
         use winapi::um::winreg::*;
-        use winapi::shared::minwindef::*;
         use std::ptr;
         
         let value_name_cstr = CString::new(value_name)?;
@@ -499,7 +498,6 @@ impl RegistryManager {
     fn read_registry_dword(&self, key_handle: winapi::shared::minwindef::HKEY, value_name: &str) -> Result<u32> {
         use std::ffi::CString;
         use winapi::um::winreg::*;
-        use winapi::shared::minwindef::*;
         use std::ptr;
         
         let value_name_cstr = CString::new(value_name)?;
@@ -530,7 +528,6 @@ impl RegistryManager {
     fn read_registry_multi_string(&self, key_handle: winapi::shared::minwindef::HKEY, value_name: &str) -> Result<Vec<String>> {
         use std::ffi::CString;
         use winapi::um::winreg::*;
-        use winapi::shared::minwindef::*;
         use std::ptr;
         
         let value_name_cstr = CString::new(value_name)?;
@@ -615,7 +612,6 @@ impl RegistryManager {
     ) -> Result<()> {
         use std::ffi::CString;
         use winapi::um::winreg::*;
-        use winapi::shared::minwindef::*;
         use std::ptr;
         
         // Create Parameters subkey
@@ -661,7 +657,6 @@ impl RegistryManager {
     fn read_service_parameters(&self, key_handle: winapi::shared::minwindef::HKEY) -> Result<HashMap<String, String>> {
         use std::ffi::CString;
         use winapi::um::winreg::*;
-        use winapi::shared::minwindef::*;
         use std::ptr;
         
         let parameters_key = CString::new("Parameters")?;
