@@ -238,7 +238,7 @@ fn run_hybrid_mode_main_thread(command: Commands) -> anyhow::Result<()> {
         env::set_var("HOTM_API_URL", format!("http://{}:{}", bind_address, bind_port));
         
         // Start server in background thread with async runtime
-        let server_handle = thread::spawn(move || {
+        let _server_handle = thread::spawn(move || {
             let rt = tokio::runtime::Runtime::new().expect("Failed to create async runtime");
             rt.block_on(async {
                 match server_mode::run_server(config).await {
@@ -356,7 +356,7 @@ async fn run_async_modes(command: Commands) -> anyhow::Result<()> {
                 
                 #[cfg(all(feature = "server", feature = "desktop"))]
                 ForcedMode::Hybrid => {
-                    let config = AppConfig {
+                    let _config = AppConfig {
                         database_url: database_url
                             .or_else(|| env::var("DATABASE_URL").ok())
                             .unwrap_or_else(|| "postgres://hotm:hotm@localhost:5432/hotm_dev".to_string()),

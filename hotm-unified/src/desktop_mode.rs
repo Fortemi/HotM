@@ -3,6 +3,7 @@
 #[cfg(feature = "desktop")]
 pub fn run_desktop() -> anyhow::Result<()> {
     use tracing::info;
+    use tauri::Manager;  // Add this import for get_webview_window
 
     info!("Starting desktop application...");
     info!("Initializing Tauri builder with plugins...");
@@ -37,6 +38,7 @@ pub fn run_desktop() -> anyhow::Result<()> {
 
 #[cfg(feature = "desktop")]
 fn run_tauri_app() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    use tracing::info;
     use tauri::{
         Manager, WindowEvent,
     };
