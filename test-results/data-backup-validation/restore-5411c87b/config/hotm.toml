@@ -1,0 +1,25 @@
+
+# HotM Configuration - Test small dataset
+version = "0.2.0"
+deployment_mode = "test"
+
+[database]
+url = "sqlite://database/hotm.db"
+backup_enabled = true
+backup_interval_hours = 24
+
+[server]
+port = 53211
+host = "127.0.0.1"
+workers = 4
+
+[ai]
+ollama_url = "http://localhost:11434"
+model_name = "gpt-oss:20b"
+embedding_model = "nomic-embed-text"
+
+[backup]
+enabled = true
+compression = true
+retention_days = 30
+backup_directory = "backups"

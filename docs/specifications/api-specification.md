@@ -57,7 +57,7 @@ Response: 200 OK
   "db": true,
   "vector": true,
   "ollama": true,
-  "version": "0.1.2"
+  "version": "0.2.0"
 }
 ```
 

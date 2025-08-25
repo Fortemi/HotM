@@ -1,0 +1,14 @@
+{
+  "backup_id": "f72ab316",
+  "scenario_name": "Pre-Upgrade Full Backup",
+  "backup_type": "full",
+  "created_at": "2025-08-24T21:22:38.732332",
+  "source_path": "/home/manitcor/dev/hotm/test-results/data-backup-validation/test-dataset-large-7f985450",
+  "backup_path": "/home/manitcor/dev/hotm/test-results/data-backup-validation/backups/hotm_backup_full_20250824_212238_f72ab316.tar.gz",
+  "source_size_bytes": 6348944,
+  "backup_size_bytes": 178206,
+  "compression_enabled": true,
+  "encryption_enabled": true,
+  "retention_days": 90,
+  "checksum": "83e002b9e9d1aa2602ad7b38d4ee33898729e37856ece94eb9bdfe25c04b7ed6"
+}

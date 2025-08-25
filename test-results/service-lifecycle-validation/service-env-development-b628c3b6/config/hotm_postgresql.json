@@ -1,0 +1,24 @@
+{
+  "service_name": "HotM-PostgreSQL",
+  "display_name": "HotM PostgreSQL Database Service",
+  "description": "PostgreSQL database service for HotM with pgvector extension",
+  "executable_path": "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-development-b628c3b6/database\\postgresql\\bin\\pg_ctl.exe",
+  "startup_type": "Auto",
+  "dependencies": [],
+  "ports": [
+    54321
+  ],
+  "health_check_url": "postgresql://localhost:54321/hotm",
+  "deployment_mode": "Development",
+  "log_directory": "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-development-b628c3b6/logs",
+  "data_directory": "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-development-b628c3b6/data",
+  "recovery_settings": {
+    "max_restart_attempts": 3,
+    "restart_delay_seconds": 30,
+    "failure_actions": [
+      "restart",
+      "restart_with_recovery",
+      "manual_intervention"
+    ]
+  }
+}

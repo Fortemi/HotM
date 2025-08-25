@@ -1,10 +1,10 @@
 # HotM — Personal Notes, Interaction, and Analysis
 
-[![Version](https://img.shields.io/badge/version-0.1.2-blue)]()
+[![Version](https://img.shields.io/badge/version-0.2.0-blue)]()
 [![Platform](https://img.shields.io/badge/platform-Windows%2011-blue)]()
 [![License](https://img.shields.io/badge/license-MIT-green)]()
 
-HotM is a local-first notes and analysis tool with immutable originals, NLP-powered revisions, and hybrid search. Built with Rust (Axum API) and Tauri (React/TypeScript UI) for Windows 11.
+HotM is a local-first notes and analysis tool with immutable originals, NLP-powered revisions, and hybrid search. Built with unified Rust architecture supporting multiple deployment modes for Windows 11.
 
 ## Key Features
 - ✨ **Immutable Originals**: Your content is never modified, only enhanced
@@ -17,52 +17,47 @@ HotM is a local-first notes and analysis tool with immutable originals, NLP-powe
 - 🔒 **Privacy-First**: All data and processing stays local
 
 ## Status
-- **Current**: v0.1.0 Alpha - Core functionality implemented
-- **Architecture**: Rust API server + Tauri desktop app
-- **Database**: PostgreSQL/DocumentDB with pgvector
-- **NLP**: Ollama integration for local processing
-- **Next**: MCP server implementation, authentication, Docker deployment
+- **Current**: v0.2.0 Beta - Unified runtime with Windows installer
+- **Architecture**: Unified Rust binary with multiple deployment modes
+- **Database**: Embedded PostgreSQL with pgvector extension
+- **NLP**: Embedded Ollama AI service with model management
+- **Installer**: Professional Windows MSI with service management
+- **Next**: Windows Store deployment, MCP server enhancements
 
 ## Quick Start
 
-### Prerequisites
-- Windows 11 (primary) or Linux/macOS (development)
-- PostgreSQL 14+ with pgvector extension
-- Rust 1.70+ and Node.js 18+
-- Ollama (for NLP features)
+### End Users (Desktop Mode)
 
-### Installation
+**Download & Install:**
+1. Download `HotM-Setup.msi` from [releases](https://github.com/jmagly/hotm/releases)
+2. Run installer: `HotM-Setup.msi /quiet DEPLOYMENT_MODE=desktop`
+3. Launch HotM from Start Menu or Desktop
+4. Global hotkey: `Ctrl+Alt+H`
+
+### Developers (Linux/WSL)
+
+**Prerequisites:** Rust 1.70+, Node.js 18+, PostgreSQL with pgvector
 
 ```bash
-# Clone repository
-git clone https://github.com/yourusername/hotm.git
+# Clone unified runtime branch
+git clone -b unified-runtime https://github.com/jmagly/hotm.git
 cd hotm
 
 # Setup database
 export DATABASE_URL=postgres://user:pass@localhost:5432/hotm_dev
 psql $DATABASE_URL -c "CREATE EXTENSION IF NOT EXISTS vector;"
 
-# Pull Ollama models
-ollama pull gpt-oss:20b
-ollama pull nomic-embed-text
+# Run unified binary in server mode (development)
+cargo run --bin hotm-unified -- --mode server --config-file dev.toml
 
-# Run server (auto-runs migrations)
-cd server
-cargo run
-
-# Run UI (separate terminal)
-cd ui
-npm install
-npm run dev
+# Access web UI at http://localhost:53211
 ```
 
-### Docker Deployment
+### Windows MSI Development Build
 
-```bash
-# Run full stack with Docker Compose
-docker-compose up -d
-
-# Access at http://localhost:53211
+```powershell
+# Build and test desktop installer (see docs/deployment/desktop-development-guide.md)
+.\scripts\build-desktop-msi.ps1 -RunTests
 ```
 
 ## Documentation
@@ -83,18 +78,19 @@ docker-compose up -d
 
 ```
 hotm/
-├── server/          # Rust API server (Axum)
-│   ├── src/
-│   │   ├── routes/  # API endpoints
-│   │   ├── nlp/     # NLP pipeline
-│   │   ├── mcp/     # MCP server (planned)
-│   │   └── workers/ # Background jobs
-│   └── tests/       # Integration tests
-├── ui/              # Tauri desktop app
-│   ├── src/         # React frontend
-│   └── src-tauri/   # Rust backend
-├── docs/            # Comprehensive documentation
-└── scripts/         # Development utilities
+├── hotm-core/           # Shared business logic library
+├── hotm-server/         # HTTP server implementation
+├── hotm-desktop/        # Desktop GUI implementation
+├── hotm-unified/        # Unified runtime binary
+├── installer/           # Windows MSI installer (WiX)
+│   ├── hotm-installer.wxs
+│   ├── hotm-postgresql.wxs
+│   └── custom-actions/
+├── tests/               # Comprehensive test suite
+│   └── installer/       # Installer validation tests
+├── scripts/             # Build and deployment scripts
+├── ui/                  # React/TypeScript frontend
+└── docs/                # Architecture and deployment docs
 ```
 
 ## Configuration

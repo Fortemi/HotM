@@ -2,7 +2,7 @@
   "validation_info": {
     "framework": "HotM Service Lifecycle Validator",
     "version": "1.0.0",
-    "timestamp": "2025-08-24T21:11:02.251866",
+    "timestamp": "2025-08-24T21:22:44.078031",
     "deployment_modes": [
       "Desktop",
       "Server",
@@ -26,32 +26,32 @@
         "critical": true
       },
       "deployment_mode": "Desktop",
-      "success": false,
-      "duration": 0.0007991790771484375,
+      "success": true,
+      "duration": 0.0026519298553466797,
       "details": {
-        "success": false,
-        "message": "0/1 services properly installed",
+        "success": true,
+        "message": "1/1 services properly installed",
         "service_results": {
           "HotM-Server": {
-            "installed": false,
+            "installed": true,
             "executable_exists": true,
             "configuration_valid": true,
-            "dependencies_resolved": false
+            "dependencies_resolved": true
           }
         },
         "installation_checks": [
           "Executables: 1/1",
           "Configurations: 1/1",
-          "Dependencies: 0/1"
+          "Dependencies: 1/1"
         ]
       },
       "performance_metrics": {
-        "execution_time": 0.0007991790771484375,
+        "execution_time": 0.0026519298553466797,
         "within_timeout": true,
         "resource_usage": {}
       },
       "artifacts": {
-        "service_environment": "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-desktop-d38fe5fa",
+        "service_environment": "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-desktop-7f409496",
         "log_files": []
       }
     },
@@ -70,15 +70,15 @@
       },
       "deployment_mode": "Desktop",
       "success": true,
-      "duration": 0.25994038581848145,
+      "duration": 0.2635786533355713,
       "details": {
         "success": true,
         "message": "1/1 services started successfully in 0.26s",
         "startup_results": {
           "HotM-Server": {
             "started": true,
-            "startup_time": 0.1561126708984375,
-            "process_id": 2800,
+            "startup_time": 0.15824007987976074,
+            "process_id": 7456,
             "startup_errors": [],
             "within_expected_time": true,
             "startup_order_position": 0
@@ -87,15 +87,15 @@
         "startup_order": [
           "HotM-Server"
         ],
-        "total_startup_time": 0.25922584533691406
+        "total_startup_time": 0.2613353729248047
       },
       "performance_metrics": {
-        "execution_time": 0.25994038581848145,
+        "execution_time": 0.2635786533355713,
         "within_timeout": true,
         "resource_usage": {}
       },
       "artifacts": {
-        "service_environment": "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-desktop-23a128e0",
+        "service_environment": "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-desktop-b191da76",
         "log_files": []
       }
     },
@@ -111,11 +111,11 @@
         "critical": true
       },
       "deployment_mode": "Desktop",
-      "success": false,
-      "duration": 0.001971721649169922,
+      "success": true,
+      "duration": 0.021670103073120117,
       "details": {
-        "success": false,
-        "message": "0/1 services have resolved dependencies",
+        "success": true,
+        "message": "1/1 services have resolved dependencies",
         "dependency_checks": {
           "HotM-Server": {
             "service": "HotM-Server",
@@ -123,11 +123,11 @@
               "HotM-PostgreSQL",
               "HotM-Ollama"
             ],
-            "dependencies_available": [],
-            "missing_dependencies": [
-              "HotM-PostgreSQL",
-              "HotM-Ollama"
+            "dependencies_available": [
+              "HotM-PostgreSQL (external)",
+              "HotM-Ollama (external)"
             ],
+            "missing_dependencies": [],
             "circular_dependencies": false
           }
         },
@@ -139,12 +139,12 @@
         }
       },
       "performance_metrics": {
-        "execution_time": 0.001971721649169922,
+        "execution_time": 0.021670103073120117,
         "within_timeout": true,
         "resource_usage": {}
       },
       "artifacts": {
-        "service_environment": "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-desktop-6c5bb417",
+        "service_environment": "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-desktop-2ac264f8",
         "log_files": []
       }
     },
@@ -163,31 +163,31 @@
       },
       "deployment_mode": "Desktop",
       "success": true,
-      "duration": 0.08346915245056152,
+      "duration": 0.0891120433807373,
       "details": {
         "success": true,
         "message": "1/1 services passed health checks",
         "health_checks": {
           "HotM-Server": {
             "healthy": true,
-            "response_time": 0.07988253915246489,
+            "response_time": 0.08525347230634545,
             "health_check_url": "http://localhost:53211/api/v1/health",
             "status_code": 200,
             "details": "Service is healthy"
           }
         },
         "monitoring_metrics": {
-          "average_response_time": 0.07988253915246489,
+          "average_response_time": 0.08525347230634545,
           "health_check_success_rate": 100.0
         }
       },
       "performance_metrics": {
-        "execution_time": 0.08346915245056152,
+        "execution_time": 0.0891120433807373,
         "within_timeout": true,
         "resource_usage": {}
       },
       "artifacts": {
-        "service_environment": "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-desktop-c8acd146",
+        "service_environment": "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-desktop-4fce247a",
         "log_files": []
       }
     },
@@ -206,15 +206,15 @@
       },
       "deployment_mode": "Desktop",
       "success": true,
-      "duration": 1.2161526679992676,
+      "duration": 0.8066372871398926,
       "details": {
         "success": true,
         "message": "1/1 services recovered successfully",
         "recovery_tests": {
           "HotM-Server": {
             "recovered": true,
-            "failure_duration": 0.2096938600695015,
-            "recovery_time": 0.9870806534525782,
+            "failure_duration": 0.22257517922118153,
+            "recovery_time": 0.5482535630181626,
             "recovery_actions_attempted": [
               "restart"
             ],
@@ -222,17 +222,17 @@
           }
         },
         "recovery_metrics": {
-          "average_recovery_time": 0.9870806534525782,
+          "average_recovery_time": 0.5482535630181626,
           "recovery_success_rate": 100.0
         }
       },
       "performance_metrics": {
-        "execution_time": 1.2161526679992676,
+        "execution_time": 0.8066372871398926,
         "within_timeout": true,
         "resource_usage": {}
       },
       "artifacts": {
-        "service_environment": "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-desktop-60f96038",
+        "service_environment": "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-desktop-f3a3a424",
         "log_files": []
       }
     },
@@ -251,15 +251,15 @@
       },
       "deployment_mode": "Desktop",
       "success": true,
-      "duration": 0.2694587707519531,
+      "duration": 0.24545693397521973,
       "details": {
         "success": true,
-        "message": "1/1 services shutdown gracefully in 0.25s",
+        "message": "1/1 services shutdown gracefully in 0.24s",
         "shutdown_results": {
           "HotM-Server": {
             "stopped": true,
             "graceful": true,
-            "shutdown_time": 0.1985471248626709,
+            "shutdown_time": 0.18860912322998047,
             "cleanup_completed": true,
             "shutdown_order_position": 0
           }
@@ -267,15 +267,15 @@
         "shutdown_order": [
           "HotM-Server"
         ],
-        "total_shutdown_time": 0.2508575916290283
+        "total_shutdown_time": 0.2409684658050537
       },
       "performance_metrics": {
-        "execution_time": 0.2694587707519531,
+        "execution_time": 0.24545693397521973,
         "within_timeout": true,
         "resource_usage": {}
       },
       "artifacts": {
-        "service_environment": "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-desktop-deb4792b",
+        "service_environment": "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-desktop-dbbbfdc8",
         "log_files": []
       }
     },
@@ -292,26 +292,26 @@
       },
       "deployment_mode": "Desktop",
       "success": true,
-      "duration": 0.1914539337158203,
+      "duration": 0.2988910675048828,
       "details": {
         "success": true,
         "message": "1/1 services reloaded configuration successfully",
         "reload_results": {
           "HotM-Server": {
             "reloaded": true,
-            "reload_time": 0.18727607553316522,
+            "reload_time": 0.2647702231827984,
             "configuration_valid": true,
             "restart_required": false
           }
         }
       },
       "performance_metrics": {
-        "execution_time": 0.1914539337158203,
+        "execution_time": 0.2988910675048828,
         "within_timeout": true,
         "resource_usage": {}
       },
       "artifacts": {
-        "service_environment": "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-desktop-e3e84f2e",
+        "service_environment": "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-desktop-01e066d3",
         "log_files": []
       }
     },
@@ -330,15 +330,15 @@
       },
       "deployment_mode": "Desktop",
       "success": true,
-      "duration": 0.0008077621459960938,
+      "duration": 0.02564406394958496,
       "details": {
         "success": true,
         "message": "1/1 services within resource limits",
         "resource_checks": {
           "HotM-Server": {
             "within_limits": true,
-            "memory_mb": 98,
-            "cpu_percent": 6.468713727606416,
+            "memory_mb": 183,
+            "cpu_percent": 11.869222966930094,
             "ports_in_use": [
               53211
             ],
@@ -346,20 +346,20 @@
           }
         },
         "system_metrics": {
-          "total_memory_usage": 98,
-          "total_cpu_usage": 6.468713727606416,
+          "total_memory_usage": 183,
+          "total_cpu_usage": 11.869222966930094,
           "port_usage": [
             53211
           ]
         }
       },
       "performance_metrics": {
-        "execution_time": 0.0008077621459960938,
+        "execution_time": 0.02564406394958496,
         "within_timeout": true,
         "resource_usage": {}
       },
       "artifacts": {
-        "service_environment": "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-desktop-1dbb8c2b",
+        "service_environment": "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-desktop-68e97074",
         "log_files": []
       }
     },
@@ -378,7 +378,7 @@
       },
       "deployment_mode": "Desktop",
       "success": true,
-      "duration": 0.0008647441864013672,
+      "duration": 0.002248525619506836,
       "details": {
         "success": true,
         "message": "1/1 services have proper log management",
@@ -386,31 +386,31 @@
           "HotM-Server": {
             "logs_created": true,
             "log_files": [
-              "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-desktop-9d352782/logs/hotm-server.log",
-              "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-desktop-9d352782/logs/api.log",
-              "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-desktop-9d352782/logs/mcp.log"
+              "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-desktop-a4a4288a/logs/hotm-server.log",
+              "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-desktop-a4a4288a/logs/api.log",
+              "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-desktop-a4a4288a/logs/mcp.log"
             ],
             "total_log_size": 201,
             "rotation_needed": false
           }
         },
         "log_files": [
-          "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-desktop-9d352782/logs/hotm-server.log",
-          "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-desktop-9d352782/logs/api.log",
-          "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-desktop-9d352782/logs/mcp.log"
+          "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-desktop-a4a4288a/logs/hotm-server.log",
+          "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-desktop-a4a4288a/logs/api.log",
+          "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-desktop-a4a4288a/logs/mcp.log"
         ]
       },
       "performance_metrics": {
-        "execution_time": 0.0008647441864013672,
+        "execution_time": 0.002248525619506836,
         "within_timeout": true,
         "resource_usage": {}
       },
       "artifacts": {
-        "service_environment": "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-desktop-9d352782",
+        "service_environment": "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-desktop-a4a4288a",
         "log_files": [
-          "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-desktop-9d352782/logs/hotm-server.log",
-          "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-desktop-9d352782/logs/api.log",
-          "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-desktop-9d352782/logs/mcp.log"
+          "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-desktop-a4a4288a/logs/hotm-server.log",
+          "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-desktop-a4a4288a/logs/api.log",
+          "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-desktop-a4a4288a/logs/mcp.log"
         ]
       }
     },
@@ -429,7 +429,7 @@
       },
       "deployment_mode": "Desktop",
       "success": true,
-      "duration": 0.0006949901580810547,
+      "duration": 0.0026221275329589844,
       "details": {
         "success": true,
         "message": "1/1 services bound to network successfully",
@@ -451,12 +451,12 @@
         }
       },
       "performance_metrics": {
-        "execution_time": 0.0006949901580810547,
+        "execution_time": 0.0026221275329589844,
         "within_timeout": true,
         "resource_usage": {}
       },
       "artifacts": {
-        "service_environment": "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-desktop-add9e009",
+        "service_environment": "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-desktop-c15c9cbe",
         "log_files": []
       }
     },
@@ -475,7 +475,7 @@
       },
       "deployment_mode": "Server",
       "success": true,
-      "duration": 0.0008585453033447266,
+      "duration": 0.0022695064544677734,
       "details": {
         "success": true,
         "message": "3/3 services properly installed",
@@ -506,12 +506,12 @@
         ]
       },
       "performance_metrics": {
-        "execution_time": 0.0008585453033447266,
+        "execution_time": 0.0022695064544677734,
         "within_timeout": true,
         "resource_usage": {}
       },
       "artifacts": {
-        "service_environment": "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-server-0fbda44d",
+        "service_environment": "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-server-00bd453e",
         "log_files": []
       }
     },
@@ -530,31 +530,31 @@
       },
       "deployment_mode": "Server",
       "success": true,
-      "duration": 1.2792375087738037,
+      "duration": 1.286407709121704,
       "details": {
         "success": true,
         "message": "3/3 services started successfully in 1.28s",
         "startup_results": {
           "HotM-PostgreSQL": {
             "started": true,
-            "startup_time": 0.3041543960571289,
-            "process_id": 7667,
+            "startup_time": 0.304858922958374,
+            "process_id": 9239,
             "startup_errors": [],
             "within_expected_time": true,
             "startup_order_position": 0
           },
           "HotM-Ollama": {
             "started": true,
-            "startup_time": 0.5074782371520996,
-            "process_id": 8414,
+            "startup_time": 0.5105419158935547,
+            "process_id": 8454,
             "startup_errors": [],
             "within_expected_time": true,
             "startup_order_position": 1
           },
           "HotM-Server": {
             "started": true,
-            "startup_time": 0.15678071975708008,
-            "process_id": 2202,
+            "startup_time": 0.15685391426086426,
+            "process_id": 3270,
             "startup_errors": [],
             "within_expected_time": true,
             "startup_order_position": 2
@@ -565,15 +565,15 @@
           "HotM-Ollama",
           "HotM-Server"
         ],
-        "total_startup_time": 1.2783472537994385
+        "total_startup_time": 1.284735918045044
       },
       "performance_metrics": {
-        "execution_time": 1.2792375087738037,
+        "execution_time": 1.286407709121704,
         "within_timeout": true,
         "resource_usage": {}
       },
       "artifacts": {
-        "service_environment": "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-server-f8b43f8f",
+        "service_environment": "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-server-77ef7613",
         "log_files": []
       }
     },
@@ -590,7 +590,7 @@
       },
       "deployment_mode": "Server",
       "success": true,
-      "duration": 0.0010704994201660156,
+      "duration": 0.0315244197845459,
       "details": {
         "success": true,
         "message": "3/3 services have resolved dependencies",
@@ -633,12 +633,12 @@
         }
       },
       "performance_metrics": {
-        "execution_time": 0.0010704994201660156,
+        "execution_time": 0.0315244197845459,
         "within_timeout": true,
         "resource_usage": {}
       },
       "artifacts": {
-        "service_environment": "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-server-008d5ee1",
+        "service_environment": "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-server-222d1158",
         "log_files": []
       }
     },
@@ -657,45 +657,45 @@
       },
       "deployment_mode": "Server",
       "success": true,
-      "duration": 0.22666645050048828,
+      "duration": 0.16450858116149902,
       "details": {
         "success": true,
         "message": "3/3 services passed health checks",
         "health_checks": {
           "HotM-PostgreSQL": {
             "healthy": true,
-            "response_time": 0.08682406006738667,
+            "response_time": 0.04922371619802269,
             "health_check_url": "postgresql://localhost:54321/hotm",
             "status_code": 200,
             "details": "Service is healthy"
           },
           "HotM-Ollama": {
             "healthy": true,
-            "response_time": 0.04456530953007503,
+            "response_time": 0.09950688191604229,
             "health_check_url": "http://localhost:11434/api/health",
             "status_code": 200,
             "details": "Service is healthy"
           },
           "HotM-Server": {
             "healthy": true,
-            "response_time": 0.08567994293667132,
+            "response_time": 0.010269129131015005,
             "health_check_url": "http://localhost:53211/api/v1/health",
             "status_code": 200,
             "details": "Service is healthy"
           }
         },
         "monitoring_metrics": {
-          "average_response_time": 0.07235643751137767,
+          "average_response_time": 0.05299990908169333,
           "health_check_success_rate": 100.0
         }
       },
       "performance_metrics": {
-        "execution_time": 0.22666645050048828,
+        "execution_time": 0.16450858116149902,
         "within_timeout": true,
         "resource_usage": {}
       },
       "artifacts": {
-        "service_environment": "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-server-cb1aa604",
+        "service_environment": "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-server-ce56def9",
         "log_files": []
       }
     },
@@ -714,51 +714,51 @@
       },
       "deployment_mode": "Server",
       "success": false,
-      "duration": 2.0230636596679688,
+      "duration": 2.4031195640563965,
       "details": {
         "success": false,
         "message": "2/3 services recovered successfully",
         "recovery_tests": {
           "HotM-PostgreSQL": {
             "recovered": true,
-            "failure_duration": 0.40661289200129846,
-            "recovery_time": 0.5822058184501572,
+            "failure_duration": 0.4558532731511705,
+            "recovery_time": 0.3689314384686787,
             "recovery_actions_attempted": [
               "restart"
             ],
             "final_state": "running"
           },
           "HotM-Ollama": {
-            "recovered": false,
-            "failure_duration": 0.3951496937924849,
-            "recovery_time": 0.9769599153989048,
-            "recovery_actions_attempted": [
-              "restart"
-            ],
-            "final_state": "failed"
-          },
-          "HotM-Server": {
             "recovered": true,
-            "failure_duration": 0.3639843429369748,
-            "recovery_time": 0.5143191700386465,
+            "failure_duration": 0.3860295195619513,
+            "recovery_time": 0.4058655002402823,
             "recovery_actions_attempted": [
               "restart"
             ],
             "final_state": "running"
+          },
+          "HotM-Server": {
+            "recovered": false,
+            "failure_duration": 0.403283758158849,
+            "recovery_time": 0.29729321926210456,
+            "recovery_actions_attempted": [
+              "restart"
+            ],
+            "final_state": "failed"
           }
         },
         "recovery_metrics": {
-          "average_recovery_time": 0.6911616346292361,
+          "average_recovery_time": 0.35736338599035516,
           "recovery_success_rate": 66.66666666666666
         }
       },
       "performance_metrics": {
-        "execution_time": 2.0230636596679688,
+        "execution_time": 2.4031195640563965,
         "within_timeout": true,
         "resource_usage": {}
       },
       "artifacts": {
-        "service_environment": "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-server-6c45e47d",
+        "service_environment": "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-server-0d1f87ce",
         "log_files": []
       }
     },
@@ -777,29 +777,29 @@
       },
       "deployment_mode": "Server",
       "success": true,
-      "duration": 0.5043044090270996,
+      "duration": 0.6296544075012207,
       "details": {
         "success": true,
-        "message": "3/3 services shutdown gracefully in 0.50s",
+        "message": "3/3 services shutdown gracefully in 0.61s",
         "shutdown_results": {
           "HotM-Server": {
             "stopped": true,
             "graceful": true,
-            "shutdown_time": 0.0723717212677002,
+            "shutdown_time": 0.19884634017944336,
             "cleanup_completed": true,
             "shutdown_order_position": 0
           },
           "HotM-Ollama": {
             "stopped": true,
             "graceful": true,
-            "shutdown_time": 0.14644861221313477,
+            "shutdown_time": 0.11667966842651367,
             "cleanup_completed": true,
             "shutdown_order_position": 1
           },
           "HotM-PostgreSQL": {
             "stopped": true,
             "graceful": true,
-            "shutdown_time": 0.12593317031860352,
+            "shutdown_time": 0.13764071464538574,
             "cleanup_completed": true,
             "shutdown_order_position": 2
           }
@@ -809,15 +809,15 @@
           "HotM-Ollama",
           "HotM-PostgreSQL"
         ],
-        "total_shutdown_time": 0.5018057823181152
+        "total_shutdown_time": 0.6102421283721924
       },
       "performance_metrics": {
-        "execution_time": 0.5043044090270996,
+        "execution_time": 0.6296544075012207,
         "within_timeout": true,
         "resource_usage": {}
       },
       "artifacts": {
-        "service_environment": "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-server-cf74adbf",
+        "service_environment": "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-server-2be7dada",
         "log_files": []
       }
     },
@@ -834,26 +834,26 @@
       },
       "deployment_mode": "Server",
       "success": true,
-      "duration": 0.2537112236022949,
+      "duration": 0.18852019309997559,
       "details": {
         "success": true,
         "message": "1/1 services reloaded configuration successfully",
         "reload_results": {
           "HotM-Server": {
             "reloaded": true,
-            "reload_time": 0.22936031268223794,
+            "reload_time": 0.15253400104916423,
             "configuration_valid": true,
             "restart_required": false
           }
         }
       },
       "performance_metrics": {
-        "execution_time": 0.2537112236022949,
+        "execution_time": 0.18852019309997559,
         "within_timeout": true,
         "resource_usage": {}
       },
       "artifacts": {
-        "service_environment": "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-server-e49f6c78",
+        "service_environment": "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-server-e55dc0d5",
         "log_files": []
       }
     },
@@ -872,15 +872,15 @@
       },
       "deployment_mode": "Server",
       "success": true,
-      "duration": 0.0029621124267578125,
+      "duration": 0.032324790954589844,
       "details": {
         "success": true,
         "message": "3/3 services within resource limits",
         "resource_checks": {
           "HotM-PostgreSQL": {
             "within_limits": true,
-            "memory_mb": 468,
-            "cpu_percent": 13.944160457727158,
+            "memory_mb": 310,
+            "cpu_percent": 23.518418305276832,
             "ports_in_use": [
               54321
             ],
@@ -888,8 +888,8 @@
           },
           "HotM-Ollama": {
             "within_limits": true,
-            "memory_mb": 1099,
-            "cpu_percent": 49.92715642269776,
+            "memory_mb": 1656,
+            "cpu_percent": 21.97568563974206,
             "ports_in_use": [
               11434
             ],
@@ -897,8 +897,8 @@
           },
           "HotM-Server": {
             "within_limits": true,
-            "memory_mb": 145,
-            "cpu_percent": 11.122054845595185,
+            "memory_mb": 80,
+            "cpu_percent": 12.553918799352301,
             "ports_in_use": [
               53211
             ],
@@ -906,8 +906,8 @@
           }
         },
         "system_metrics": {
-          "total_memory_usage": 1712,
-          "total_cpu_usage": 74.9933717260201,
+          "total_memory_usage": 2046,
+          "total_cpu_usage": 58.048022744371195,
           "port_usage": [
             54321,
             11434,
@@ -916,12 +916,12 @@
         }
       },
       "performance_metrics": {
-        "execution_time": 0.0029621124267578125,
+        "execution_time": 0.032324790954589844,
         "within_timeout": true,
         "resource_usage": {}
       },
       "artifacts": {
-        "service_environment": "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-server-ba4b64b8",
+        "service_environment": "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-server-f87be397",
         "log_files": []
       }
     },
@@ -940,7 +940,7 @@
       },
       "deployment_mode": "Server",
       "success": true,
-      "duration": 0.0026140213012695312,
+      "duration": 0.00321197509765625,
       "details": {
         "success": true,
         "message": "3/3 services have proper log management",
@@ -948,8 +948,8 @@
           "HotM-PostgreSQL": {
             "logs_created": true,
             "log_files": [
-              "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-server-9dda3c90/logs/postgresql.log",
-              "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-server-9dda3c90/logs/postgresql_startup.log"
+              "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-server-3b86fd66/logs/postgresql.log",
+              "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-server-3b86fd66/logs/postgresql_startup.log"
             ],
             "total_log_size": 142,
             "rotation_needed": false
@@ -957,8 +957,8 @@
           "HotM-Ollama": {
             "logs_created": true,
             "log_files": [
-              "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-server-9dda3c90/logs/ollama.log",
-              "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-server-9dda3c90/logs/model_loading.log"
+              "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-server-3b86fd66/logs/ollama.log",
+              "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-server-3b86fd66/logs/model_loading.log"
             ],
             "total_log_size": 134,
             "rotation_needed": false
@@ -966,39 +966,39 @@
           "HotM-Server": {
             "logs_created": true,
             "log_files": [
-              "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-server-9dda3c90/logs/hotm-server.log",
-              "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-server-9dda3c90/logs/api.log",
-              "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-server-9dda3c90/logs/mcp.log"
+              "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-server-3b86fd66/logs/hotm-server.log",
+              "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-server-3b86fd66/logs/api.log",
+              "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-server-3b86fd66/logs/mcp.log"
             ],
             "total_log_size": 201,
             "rotation_needed": false
           }
         },
         "log_files": [
-          "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-server-9dda3c90/logs/postgresql.log",
-          "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-server-9dda3c90/logs/postgresql_startup.log",
-          "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-server-9dda3c90/logs/ollama.log",
-          "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-server-9dda3c90/logs/model_loading.log",
-          "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-server-9dda3c90/logs/hotm-server.log",
-          "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-server-9dda3c90/logs/api.log",
-          "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-server-9dda3c90/logs/mcp.log"
+          "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-server-3b86fd66/logs/postgresql.log",
+          "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-server-3b86fd66/logs/postgresql_startup.log",
+          "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-server-3b86fd66/logs/ollama.log",
+          "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-server-3b86fd66/logs/model_loading.log",
+          "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-server-3b86fd66/logs/hotm-server.log",
+          "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-server-3b86fd66/logs/api.log",
+          "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-server-3b86fd66/logs/mcp.log"
         ]
       },
       "performance_metrics": {
-        "execution_time": 0.0026140213012695312,
+        "execution_time": 0.00321197509765625,
         "within_timeout": true,
         "resource_usage": {}
       },
       "artifacts": {
-        "service_environment": "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-server-9dda3c90",
+        "service_environment": "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-server-3b86fd66",
         "log_files": [
-          "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-server-9dda3c90/logs/postgresql.log",
-          "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-server-9dda3c90/logs/postgresql_startup.log",
-          "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-server-9dda3c90/logs/ollama.log",
-          "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-server-9dda3c90/logs/model_loading.log",
-          "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-server-9dda3c90/logs/hotm-server.log",
-          "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-server-9dda3c90/logs/api.log",
-          "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-server-9dda3c90/logs/mcp.log"
+          "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-server-3b86fd66/logs/postgresql.log",
+          "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-server-3b86fd66/logs/postgresql_startup.log",
+          "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-server-3b86fd66/logs/ollama.log",
+          "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-server-3b86fd66/logs/model_loading.log",
+          "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-server-3b86fd66/logs/hotm-server.log",
+          "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-server-3b86fd66/logs/api.log",
+          "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-server-3b86fd66/logs/mcp.log"
         ]
       }
     },
@@ -1017,7 +1017,7 @@
       },
       "deployment_mode": "Server",
       "success": true,
-      "duration": 0.0014772415161132812,
+      "duration": 0.0018744468688964844,
       "details": {
         "success": true,
         "message": "3/3 services bound to network successfully",
@@ -1063,12 +1063,12 @@
         }
       },
       "performance_metrics": {
-        "execution_time": 0.0014772415161132812,
+        "execution_time": 0.0018744468688964844,
         "within_timeout": true,
         "resource_usage": {}
       },
       "artifacts": {
-        "service_environment": "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-server-ab07036c",
+        "service_environment": "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-server-5c9ad3d7",
         "log_files": []
       }
     },
@@ -1087,7 +1087,7 @@
       },
       "deployment_mode": "Hybrid",
       "success": true,
-      "duration": 0.0011911392211914062,
+      "duration": 0.002219676971435547,
       "details": {
         "success": true,
         "message": "3/3 services properly installed",
@@ -1118,12 +1118,12 @@
         ]
       },
       "performance_metrics": {
-        "execution_time": 0.0011911392211914062,
+        "execution_time": 0.002219676971435547,
         "within_timeout": true,
         "resource_usage": {}
       },
       "artifacts": {
-        "service_environment": "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-hybrid-665fcfc8",
+        "service_environment": "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-hybrid-caf7b592",
         "log_files": []
       }
     },
@@ -1142,643 +1142,31 @@
       },
       "deployment_mode": "Hybrid",
       "success": true,
-      "duration": 1.2738544940948486,
-      "details": {
-        "success": true,
-        "message": "3/3 services started successfully in 1.27s",
-        "startup_results": {
-          "HotM-PostgreSQL": {
-            "started": true,
-            "startup_time": 0.31197404861450195,
-            "process_id": 3163,
-            "startup_errors": [],
-            "within_expected_time": true,
-            "startup_order_position": 0
-          },
-          "HotM-Ollama": {
-            "started": true,
-            "startup_time": 0.500762939453125,
-            "process_id": 4208,
-            "startup_errors": [],
-            "within_expected_time": true,
-            "startup_order_position": 1
-          },
-          "HotM-Server": {
-            "started": true,
-            "startup_time": 0.1510782241821289,
-            "process_id": 1190,
-            "startup_errors": [],
-            "within_expected_time": true,
-            "startup_order_position": 2
-          }
-        },
-        "startup_order": [
-          "HotM-PostgreSQL",
-          "HotM-Ollama",
-          "HotM-Server"
-        ],
-        "total_startup_time": 1.2729363441467285
-      },
-      "performance_metrics": {
-        "execution_time": 1.2738544940948486,
-        "within_timeout": true,
-        "resource_usage": {}
-      },
-      "artifacts": {
-        "service_environment": "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-hybrid-e6995627",
-        "log_files": []
-      }
-    },
-    {
-      "test": {
-        "test_name": "Dependency Resolution",
-        "description": "Verify service dependencies are properly configured and enforced",
-        "service_names": [
-          "HotM-Server"
-        ],
-        "test_function": "test_dependency_resolution",
-        "timeout_seconds": 120,
-        "critical": true
-      },
-      "deployment_mode": "Hybrid",
-      "success": true,
-      "duration": 0.001066446304321289,
-      "details": {
-        "success": true,
-        "message": "3/3 services have resolved dependencies",
-        "dependency_checks": {
-          "HotM-PostgreSQL": {
-            "service": "HotM-PostgreSQL",
-            "dependencies": [],
-            "dependencies_available": [],
-            "missing_dependencies": [],
-            "circular_dependencies": false
-          },
-          "HotM-Ollama": {
-            "service": "HotM-Ollama",
-            "dependencies": [],
-            "dependencies_available": [],
-            "missing_dependencies": [],
-            "circular_dependencies": false
-          },
-          "HotM-Server": {
-            "service": "HotM-Server",
-            "dependencies": [
-              "HotM-PostgreSQL",
-              "HotM-Ollama"
-            ],
-            "dependencies_available": [
-              "HotM-PostgreSQL",
-              "HotM-Ollama"
-            ],
-            "missing_dependencies": [],
-            "circular_dependencies": false
-          }
-        },
-        "dependency_graph": {
-          "HotM-PostgreSQL": [],
-          "HotM-Ollama": [],
-          "HotM-Server": [
-            "HotM-PostgreSQL",
-            "HotM-Ollama"
-          ]
-        }
-      },
-      "performance_metrics": {
-        "execution_time": 0.001066446304321289,
-        "within_timeout": true,
-        "resource_usage": {}
-      },
-      "artifacts": {
-        "service_environment": "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-hybrid-0f881f32",
-        "log_files": []
-      }
-    },
-    {
-      "test": {
-        "test_name": "Health Monitoring",
-        "description": "Verify service health checks work correctly",
-        "service_names": [
-          "HotM-PostgreSQL",
-          "HotM-Ollama",
-          "HotM-Server"
-        ],
-        "test_function": "test_health_monitoring",
-        "timeout_seconds": 90,
-        "critical": false
-      },
-      "deployment_mode": "Hybrid",
-      "success": true,
-      "duration": 0.18160367012023926,
-      "details": {
-        "success": true,
-        "message": "3/3 services passed health checks",
-        "health_checks": {
-          "HotM-PostgreSQL": {
-            "healthy": true,
-            "response_time": 0.07920838761088725,
-            "health_check_url": "postgresql://localhost:54321/hotm",
-            "status_code": 200,
-            "details": "Service is healthy"
-          },
-          "HotM-Ollama": {
-            "healthy": true,
-            "response_time": 0.03369600218496737,
-            "health_check_url": "http://localhost:11434/api/health",
-            "status_code": 200,
-            "details": "Service is healthy"
-          },
-          "HotM-Server": {
-            "healthy": true,
-            "response_time": 0.06155610172270464,
-            "health_check_url": "http://localhost:53211/api/v1/health",
-            "status_code": 200,
-            "details": "Service is healthy"
-          }
-        },
-        "monitoring_metrics": {
-          "average_response_time": 0.058153497172853084,
-          "health_check_success_rate": 100.0
-        }
-      },
-      "performance_metrics": {
-        "execution_time": 0.18160367012023926,
-        "within_timeout": true,
-        "resource_usage": {}
-      },
-      "artifacts": {
-        "service_environment": "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-hybrid-497593c8",
-        "log_files": []
-      }
-    },
-    {
-      "test": {
-        "test_name": "Service Recovery",
-        "description": "Verify automatic service recovery mechanisms",
-        "service_names": [
-          "HotM-PostgreSQL",
-          "HotM-Ollama",
-          "HotM-Server"
-        ],
-        "test_function": "test_service_recovery",
-        "timeout_seconds": 300,
-        "critical": false
-      },
-      "deployment_mode": "Hybrid",
-      "success": true,
-      "duration": 2.2084121704101562,
-      "details": {
-        "success": true,
-        "message": "3/3 services recovered successfully",
-        "recovery_tests": {
-          "HotM-PostgreSQL": {
-            "recovered": true,
-            "failure_duration": 0.3233864932901869,
-            "recovery_time": 0.8018109501506068,
-            "recovery_actions_attempted": [
-              "restart"
-            ],
-            "final_state": "running"
-          },
-          "HotM-Ollama": {
-            "recovered": true,
-            "failure_duration": 0.19941093699852874,
-            "recovery_time": 0.28198680312987245,
-            "recovery_actions_attempted": [
-              "restart"
-            ],
-            "final_state": "running"
-          },
-          "HotM-Server": {
-            "recovered": true,
-            "failure_duration": 0.36098262441909956,
-            "recovery_time": 0.21376003157277373,
-            "recovery_actions_attempted": [
-              "restart"
-            ],
-            "final_state": "running"
-          }
-        },
-        "recovery_metrics": {
-          "average_recovery_time": 0.43251926161775095,
-          "recovery_success_rate": 100.0
-        }
-      },
-      "performance_metrics": {
-        "execution_time": 2.2084121704101562,
-        "within_timeout": true,
-        "resource_usage": {}
-      },
-      "artifacts": {
-        "service_environment": "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-hybrid-4d474248",
-        "log_files": []
-      }
-    },
-    {
-      "test": {
-        "test_name": "Graceful Shutdown",
-        "description": "Verify services shutdown gracefully in reverse dependency order",
-        "service_names": [
-          "HotM-PostgreSQL",
-          "HotM-Ollama",
-          "HotM-Server"
-        ],
-        "test_function": "test_graceful_shutdown",
-        "timeout_seconds": 120,
-        "critical": true
-      },
-      "deployment_mode": "Hybrid",
-      "success": true,
-      "duration": 0.5882322788238525,
-      "details": {
-        "success": true,
-        "message": "3/3 services shutdown gracefully in 0.59s",
-        "shutdown_results": {
-          "HotM-Server": {
-            "stopped": true,
-            "graceful": true,
-            "shutdown_time": 0.07572007179260254,
-            "cleanup_completed": true,
-            "shutdown_order_position": 0
-          },
-          "HotM-Ollama": {
-            "stopped": true,
-            "graceful": true,
-            "shutdown_time": 0.1974935531616211,
-            "cleanup_completed": true,
-            "shutdown_order_position": 1
-          },
-          "HotM-PostgreSQL": {
-            "stopped": true,
-            "graceful": true,
-            "shutdown_time": 0.1571662425994873,
-            "cleanup_completed": true,
-            "shutdown_order_position": 2
-          }
-        },
-        "shutdown_order": [
-          "HotM-Server",
-          "HotM-Ollama",
-          "HotM-PostgreSQL"
-        ],
-        "total_shutdown_time": 0.5851409435272217
-      },
-      "performance_metrics": {
-        "execution_time": 0.5882322788238525,
-        "within_timeout": true,
-        "resource_usage": {}
-      },
-      "artifacts": {
-        "service_environment": "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-hybrid-26b8269a",
-        "log_files": []
-      }
-    },
-    {
-      "test": {
-        "test_name": "Configuration Reload",
-        "description": "Verify services can reload configuration without restart",
-        "service_names": [
-          "HotM-Server"
-        ],
-        "test_function": "test_configuration_reload",
-        "timeout_seconds": 60,
-        "critical": false
-      },
-      "deployment_mode": "Hybrid",
-      "success": true,
-      "duration": 0.14852476119995117,
-      "details": {
-        "success": true,
-        "message": "1/1 services reloaded configuration successfully",
-        "reload_results": {
-          "HotM-Server": {
-            "reloaded": true,
-            "reload_time": 0.14651293364051468,
-            "configuration_valid": true,
-            "restart_required": false
-          }
-        }
-      },
-      "performance_metrics": {
-        "execution_time": 0.14852476119995117,
-        "within_timeout": true,
-        "resource_usage": {}
-      },
-      "artifacts": {
-        "service_environment": "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-hybrid-ba5b7118",
-        "log_files": []
-      }
-    },
-    {
-      "test": {
-        "test_name": "Resource Management",
-        "description": "Verify services manage system resources appropriately",
-        "service_names": [
-          "HotM-PostgreSQL",
-          "HotM-Ollama",
-          "HotM-Server"
-        ],
-        "test_function": "test_resource_management",
-        "timeout_seconds": 180,
-        "critical": false
-      },
-      "deployment_mode": "Hybrid",
-      "success": true,
-      "duration": 0.0010266304016113281,
-      "details": {
-        "success": true,
-        "message": "3/3 services within resource limits",
-        "resource_checks": {
-          "HotM-PostgreSQL": {
-            "within_limits": true,
-            "memory_mb": 122,
-            "cpu_percent": 24.218959658220143,
-            "ports_in_use": [
-              54321
-            ],
-            "resource_alerts": []
-          },
-          "HotM-Ollama": {
-            "within_limits": true,
-            "memory_mb": 1888,
-            "cpu_percent": 50.36126460990565,
-            "ports_in_use": [
-              11434
-            ],
-            "resource_alerts": []
-          },
-          "HotM-Server": {
-            "within_limits": true,
-            "memory_mb": 63,
-            "cpu_percent": 8.662395656354175,
-            "ports_in_use": [
-              53211
-            ],
-            "resource_alerts": []
-          }
-        },
-        "system_metrics": {
-          "total_memory_usage": 2073,
-          "total_cpu_usage": 83.24261992447997,
-          "port_usage": [
-            54321,
-            11434,
-            53211
-          ]
-        }
-      },
-      "performance_metrics": {
-        "execution_time": 0.0010266304016113281,
-        "within_timeout": true,
-        "resource_usage": {}
-      },
-      "artifacts": {
-        "service_environment": "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-hybrid-8fd0af88",
-        "log_files": []
-      }
-    },
-    {
-      "test": {
-        "test_name": "Log Management",
-        "description": "Verify service logging works correctly with rotation",
-        "service_names": [
-          "HotM-PostgreSQL",
-          "HotM-Ollama",
-          "HotM-Server"
-        ],
-        "test_function": "test_log_management",
-        "timeout_seconds": 90,
-        "critical": false
-      },
-      "deployment_mode": "Hybrid",
-      "success": true,
-      "duration": 0.0011320114135742188,
-      "details": {
-        "success": true,
-        "message": "3/3 services have proper log management",
-        "log_checks": {
-          "HotM-PostgreSQL": {
-            "logs_created": true,
-            "log_files": [
-              "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-hybrid-9837b62c/logs/postgresql.log",
-              "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-hybrid-9837b62c/logs/postgresql_startup.log"
-            ],
-            "total_log_size": 142,
-            "rotation_needed": false
-          },
-          "HotM-Ollama": {
-            "logs_created": true,
-            "log_files": [
-              "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-hybrid-9837b62c/logs/ollama.log",
-              "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-hybrid-9837b62c/logs/model_loading.log"
-            ],
-            "total_log_size": 134,
-            "rotation_needed": false
-          },
-          "HotM-Server": {
-            "logs_created": true,
-            "log_files": [
-              "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-hybrid-9837b62c/logs/hotm-server.log",
-              "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-hybrid-9837b62c/logs/api.log",
-              "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-hybrid-9837b62c/logs/mcp.log"
-            ],
-            "total_log_size": 201,
-            "rotation_needed": false
-          }
-        },
-        "log_files": [
-          "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-hybrid-9837b62c/logs/postgresql.log",
-          "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-hybrid-9837b62c/logs/postgresql_startup.log",
-          "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-hybrid-9837b62c/logs/ollama.log",
-          "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-hybrid-9837b62c/logs/model_loading.log",
-          "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-hybrid-9837b62c/logs/hotm-server.log",
-          "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-hybrid-9837b62c/logs/api.log",
-          "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-hybrid-9837b62c/logs/mcp.log"
-        ]
-      },
-      "performance_metrics": {
-        "execution_time": 0.0011320114135742188,
-        "within_timeout": true,
-        "resource_usage": {}
-      },
-      "artifacts": {
-        "service_environment": "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-hybrid-9837b62c",
-        "log_files": [
-          "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-hybrid-9837b62c/logs/postgresql.log",
-          "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-hybrid-9837b62c/logs/postgresql_startup.log",
-          "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-hybrid-9837b62c/logs/ollama.log",
-          "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-hybrid-9837b62c/logs/model_loading.log",
-          "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-hybrid-9837b62c/logs/hotm-server.log",
-          "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-hybrid-9837b62c/logs/api.log",
-          "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-hybrid-9837b62c/logs/mcp.log"
-        ]
-      }
-    },
-    {
-      "test": {
-        "test_name": "Network Binding",
-        "description": "Verify services bind to correct network interfaces and ports",
-        "service_names": [
-          "HotM-PostgreSQL",
-          "HotM-Ollama",
-          "HotM-Server"
-        ],
-        "test_function": "test_network_binding",
-        "timeout_seconds": 60,
-        "critical": true
-      },
-      "deployment_mode": "Hybrid",
-      "success": true,
-      "duration": 0.0008962154388427734,
-      "details": {
-        "success": true,
-        "message": "3/3 services bound to network successfully",
-        "binding_checks": {
-          "HotM-PostgreSQL": {
-            "bound_successfully": true,
-            "bound_ports": [
-              54321
-            ],
-            "binding_errors": [],
-            "listening_interfaces": [
-              "127.0.0.1",
-              "0.0.0.0"
-            ]
-          },
-          "HotM-Ollama": {
-            "bound_successfully": true,
-            "bound_ports": [
-              11434
-            ],
-            "binding_errors": [],
-            "listening_interfaces": [
-              "127.0.0.1",
-              "0.0.0.0"
-            ]
-          },
-          "HotM-Server": {
-            "bound_successfully": true,
-            "bound_ports": [
-              53211
-            ],
-            "binding_errors": [],
-            "listening_interfaces": [
-              "127.0.0.1",
-              "0.0.0.0"
-            ]
-          }
-        },
-        "port_allocations": {
-          "54321": "HotM-PostgreSQL",
-          "11434": "HotM-Ollama",
-          "53211": "HotM-Server"
-        }
-      },
-      "performance_metrics": {
-        "execution_time": 0.0008962154388427734,
-        "within_timeout": true,
-        "resource_usage": {}
-      },
-      "artifacts": {
-        "service_environment": "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-hybrid-a48503a0",
-        "log_files": []
-      }
-    },
-    {
-      "test": {
-        "test_name": "Service Installation",
-        "description": "Verify services are properly installed and registered",
-        "service_names": [
-          "HotM-PostgreSQL",
-          "HotM-Ollama",
-          "HotM-Server"
-        ],
-        "test_function": "test_service_installation",
-        "timeout_seconds": 60,
-        "critical": true
-      },
-      "deployment_mode": "Development",
-      "success": true,
-      "duration": 0.0009136199951171875,
-      "details": {
-        "success": true,
-        "message": "3/3 services properly installed",
-        "service_results": {
-          "HotM-PostgreSQL": {
-            "installed": true,
-            "executable_exists": true,
-            "configuration_valid": true,
-            "dependencies_resolved": true
-          },
-          "HotM-Ollama": {
-            "installed": true,
-            "executable_exists": true,
-            "configuration_valid": true,
-            "dependencies_resolved": true
-          },
-          "HotM-Server": {
-            "installed": true,
-            "executable_exists": true,
-            "configuration_valid": true,
-            "dependencies_resolved": true
-          }
-        },
-        "installation_checks": [
-          "Executables: 3/3",
-          "Configurations: 3/3",
-          "Dependencies: 3/3"
-        ]
-      },
-      "performance_metrics": {
-        "execution_time": 0.0009136199951171875,
-        "within_timeout": true,
-        "resource_usage": {}
-      },
-      "artifacts": {
-        "service_environment": "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-development-ad01c4d0",
-        "log_files": []
-      }
-    },
-    {
-      "test": {
-        "test_name": "Service Startup",
-        "description": "Verify services start in correct order and within expected timeframes",
-        "service_names": [
-          "HotM-PostgreSQL",
-          "HotM-Ollama",
-          "HotM-Server"
-        ],
-        "test_function": "test_service_startup",
-        "timeout_seconds": 180,
-        "critical": true
-      },
-      "deployment_mode": "Development",
-      "success": true,
-      "duration": 1.2758867740631104,
+      "duration": 1.2806522846221924,
       "details": {
         "success": true,
         "message": "3/3 services started successfully in 1.28s",
         "startup_results": {
           "HotM-PostgreSQL": {
             "started": true,
-            "startup_time": 0.3090498447418213,
-            "process_id": 3351,
+            "startup_time": 0.3117861747741699,
+            "process_id": 4607,
             "startup_errors": [],
             "within_expected_time": true,
             "startup_order_position": 0
           },
           "HotM-Ollama": {
             "started": true,
-            "startup_time": 0.506044864654541,
-            "process_id": 9577,
+            "startup_time": 0.5003983974456787,
+            "process_id": 7902,
             "startup_errors": [],
             "within_expected_time": true,
             "startup_order_position": 1
           },
           "HotM-Server": {
             "started": true,
-            "startup_time": 0.15057754516601562,
-            "process_id": 5752,
+            "startup_time": 0.1572256088256836,
+            "process_id": 1001,
             "startup_errors": [],
             "within_expected_time": true,
             "startup_order_position": 2
@@ -1789,15 +1177,15 @@
           "HotM-Ollama",
           "HotM-Server"
         ],
-        "total_startup_time": 1.2750701904296875
+        "total_startup_time": 1.2784838676452637
       },
       "performance_metrics": {
-        "execution_time": 1.2758867740631104,
+        "execution_time": 1.2806522846221924,
         "within_timeout": true,
         "resource_usage": {}
       },
       "artifacts": {
-        "service_environment": "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-development-008c9c60",
+        "service_environment": "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-hybrid-3df06598",
         "log_files": []
       }
     },
@@ -1812,9 +1200,9 @@
         "timeout_seconds": 120,
         "critical": true
       },
-      "deployment_mode": "Development",
+      "deployment_mode": "Hybrid",
       "success": true,
-      "duration": 0.0010025501251220703,
+      "duration": 0.03228282928466797,
       "details": {
         "success": true,
         "message": "3/3 services have resolved dependencies",
@@ -1857,12 +1245,12 @@
         }
       },
       "performance_metrics": {
-        "execution_time": 0.0010025501251220703,
+        "execution_time": 0.03228282928466797,
         "within_timeout": true,
         "resource_usage": {}
       },
       "artifacts": {
-        "service_environment": "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-development-0b8e6d24",
+        "service_environment": "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-hybrid-44c7ee9d",
         "log_files": []
       }
     },
@@ -1879,47 +1267,47 @@
         "timeout_seconds": 90,
         "critical": false
       },
-      "deployment_mode": "Development",
+      "deployment_mode": "Hybrid",
       "success": true,
-      "duration": 0.2261962890625,
+      "duration": 0.11658549308776855,
       "details": {
         "success": true,
         "message": "3/3 services passed health checks",
         "health_checks": {
           "HotM-PostgreSQL": {
             "healthy": true,
-            "response_time": 0.04564323597525265,
+            "response_time": 0.04485526099904598,
             "health_check_url": "postgresql://localhost:54321/hotm",
             "status_code": 200,
             "details": "Service is healthy"
           },
           "HotM-Ollama": {
             "healthy": true,
-            "response_time": 0.08673582680931945,
+            "response_time": 0.015417902894886395,
             "health_check_url": "http://localhost:11434/api/health",
             "status_code": 200,
             "details": "Service is healthy"
           },
           "HotM-Server": {
             "healthy": true,
-            "response_time": 0.08497263681793679,
+            "response_time": 0.05015580817179309,
             "health_check_url": "http://localhost:53211/api/v1/health",
             "status_code": 200,
             "details": "Service is healthy"
           }
         },
         "monitoring_metrics": {
-          "average_response_time": 0.07245056653416963,
+          "average_response_time": 0.036809657355241825,
           "health_check_success_rate": 100.0
         }
       },
       "performance_metrics": {
-        "execution_time": 0.2261962890625,
+        "execution_time": 0.11658549308776855,
         "within_timeout": true,
         "resource_usage": {}
       },
       "artifacts": {
-        "service_environment": "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-development-65fadc94",
+        "service_environment": "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-hybrid-4832e359",
         "log_files": []
       }
     },
@@ -1936,53 +1324,53 @@
         "timeout_seconds": 300,
         "critical": false
       },
-      "deployment_mode": "Development",
+      "deployment_mode": "Hybrid",
       "success": false,
-      "duration": 2.6490652561187744,
+      "duration": 3.0847527980804443,
       "details": {
         "success": false,
         "message": "2/3 services recovered successfully",
         "recovery_tests": {
           "HotM-PostgreSQL": {
-            "recovered": true,
-            "failure_duration": 0.278250280201481,
-            "recovery_time": 0.7295954647855307,
+            "recovered": false,
+            "failure_duration": 0.46494854276990205,
+            "recovery_time": 0.31176106172520995,
             "recovery_actions_attempted": [
               "restart"
             ],
-            "final_state": "running"
+            "final_state": "failed"
           },
           "HotM-Ollama": {
             "recovered": true,
-            "failure_duration": 0.1146833847210576,
-            "recovery_time": 0.9538071694133063,
+            "failure_duration": 0.40928090886847734,
+            "recovery_time": 0.5529197309380507,
             "recovery_actions_attempted": [
               "restart"
             ],
             "final_state": "running"
           },
           "HotM-Server": {
-            "recovered": false,
-            "failure_duration": 0.13964475439819302,
-            "recovery_time": 0.3597756635928822,
+            "recovered": true,
+            "failure_duration": 0.4168798380953427,
+            "recovery_time": 0.8543591364091201,
             "recovery_actions_attempted": [
               "restart"
             ],
-            "final_state": "failed"
+            "final_state": "running"
           }
         },
         "recovery_metrics": {
-          "average_recovery_time": 0.6810594325972398,
+          "average_recovery_time": 0.5730133096907936,
           "recovery_success_rate": 66.66666666666666
         }
       },
       "performance_metrics": {
-        "execution_time": 2.6490652561187744,
+        "execution_time": 3.0847527980804443,
         "within_timeout": true,
         "resource_usage": {}
       },
       "artifacts": {
-        "service_environment": "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-development-4dd1f9f6",
+        "service_environment": "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-hybrid-866b5f7f",
         "log_files": []
       }
     },
@@ -1999,9 +1387,9 @@
         "timeout_seconds": 120,
         "critical": true
       },
-      "deployment_mode": "Development",
+      "deployment_mode": "Hybrid",
       "success": true,
-      "duration": 0.5856235027313232,
+      "duration": 0.6050729751586914,
       "details": {
         "success": true,
         "message": "3/3 services shutdown gracefully in 0.58s",
@@ -2009,22 +1397,22 @@
           "HotM-Server": {
             "stopped": true,
             "graceful": true,
-            "shutdown_time": 0.11493730545043945,
+            "shutdown_time": 0.12876677513122559,
             "cleanup_completed": true,
             "shutdown_order_position": 0
           },
           "HotM-Ollama": {
             "stopped": true,
             "graceful": true,
-            "shutdown_time": 0.14147400856018066,
+            "shutdown_time": 0.20137667655944824,
             "cleanup_completed": true,
             "shutdown_order_position": 1
           },
           "HotM-PostgreSQL": {
             "stopped": true,
-            "graceful": false,
-            "shutdown_time": 0.17348265647888184,
-            "cleanup_completed": false,
+            "graceful": true,
+            "shutdown_time": 0.09671592712402344,
+            "cleanup_completed": true,
             "shutdown_order_position": 2
           }
         },
@@ -2033,15 +1421,15 @@
           "HotM-Ollama",
           "HotM-PostgreSQL"
         ],
-        "total_shutdown_time": 0.5844271183013916
+        "total_shutdown_time": 0.5839152336120605
       },
       "performance_metrics": {
-        "execution_time": 0.5856235027313232,
+        "execution_time": 0.6050729751586914,
         "within_timeout": true,
         "resource_usage": {}
       },
       "artifacts": {
-        "service_environment": "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-development-bf594cec",
+        "service_environment": "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-hybrid-87423cc6",
         "log_files": []
       }
     },
@@ -2056,28 +1444,28 @@
         "timeout_seconds": 60,
         "critical": false
       },
-      "deployment_mode": "Development",
+      "deployment_mode": "Hybrid",
       "success": true,
-      "duration": 0.177093505859375,
+      "duration": 0.10499334335327148,
       "details": {
         "success": true,
         "message": "1/1 services reloaded configuration successfully",
         "reload_results": {
           "HotM-Server": {
             "reloaded": true,
-            "reload_time": 0.16969972146605133,
+            "reload_time": 0.10055333628654868,
             "configuration_valid": true,
             "restart_required": false
           }
         }
       },
       "performance_metrics": {
-        "execution_time": 0.177093505859375,
+        "execution_time": 0.10499334335327148,
         "within_timeout": true,
         "resource_usage": {}
       },
       "artifacts": {
-        "service_environment": "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-development-033f1f1d",
+        "service_environment": "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-hybrid-ca7cf42d",
         "log_files": []
       }
     },
@@ -2094,17 +1482,17 @@
         "timeout_seconds": 180,
         "critical": false
       },
-      "deployment_mode": "Development",
+      "deployment_mode": "Hybrid",
       "success": true,
-      "duration": 0.0010418891906738281,
+      "duration": 0.00112152099609375,
       "details": {
         "success": true,
         "message": "3/3 services within resource limits",
         "resource_checks": {
           "HotM-PostgreSQL": {
             "within_limits": true,
-            "memory_mb": 164,
-            "cpu_percent": 7.593776459299695,
+            "memory_mb": 198,
+            "cpu_percent": 20.95183761754899,
             "ports_in_use": [
               54321
             ],
@@ -2112,8 +1500,8 @@
           },
           "HotM-Ollama": {
             "within_limits": true,
-            "memory_mb": 2392,
-            "cpu_percent": 37.88233962125612,
+            "memory_mb": 2341,
+            "cpu_percent": 10.35771170585871,
             "ports_in_use": [
               11434
             ],
@@ -2121,8 +1509,8 @@
           },
           "HotM-Server": {
             "within_limits": true,
-            "memory_mb": 194,
-            "cpu_percent": 5.6381094776030904,
+            "memory_mb": 91,
+            "cpu_percent": 14.205446609677905,
             "ports_in_use": [
               53211
             ],
@@ -2130,8 +1518,8 @@
           }
         },
         "system_metrics": {
-          "total_memory_usage": 2750,
-          "total_cpu_usage": 51.11422555815891,
+          "total_memory_usage": 2630,
+          "total_cpu_usage": 45.5149959330856,
           "port_usage": [
             54321,
             11434,
@@ -2140,12 +1528,12 @@
         }
       },
       "performance_metrics": {
-        "execution_time": 0.0010418891906738281,
+        "execution_time": 0.00112152099609375,
         "within_timeout": true,
         "resource_usage": {}
       },
       "artifacts": {
-        "service_environment": "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-development-7c289070",
+        "service_environment": "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-hybrid-e0140b61",
         "log_files": []
       }
     },
@@ -2162,9 +1550,9 @@
         "timeout_seconds": 90,
         "critical": false
       },
-      "deployment_mode": "Development",
+      "deployment_mode": "Hybrid",
       "success": true,
-      "duration": 0.0012691020965576172,
+      "duration": 0.0012722015380859375,
       "details": {
         "success": true,
         "message": "3/3 services have proper log management",
@@ -2172,8 +1560,8 @@
           "HotM-PostgreSQL": {
             "logs_created": true,
             "log_files": [
-              "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-development-49cb9c18/logs/postgresql.log",
-              "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-development-49cb9c18/logs/postgresql_startup.log"
+              "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-hybrid-03813863/logs/postgresql.log",
+              "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-hybrid-03813863/logs/postgresql_startup.log"
             ],
             "total_log_size": 142,
             "rotation_needed": false
@@ -2181,8 +1569,8 @@
           "HotM-Ollama": {
             "logs_created": true,
             "log_files": [
-              "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-development-49cb9c18/logs/ollama.log",
-              "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-development-49cb9c18/logs/model_loading.log"
+              "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-hybrid-03813863/logs/ollama.log",
+              "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-hybrid-03813863/logs/model_loading.log"
             ],
             "total_log_size": 134,
             "rotation_needed": false
@@ -2190,39 +1578,39 @@
           "HotM-Server": {
             "logs_created": true,
             "log_files": [
-              "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-development-49cb9c18/logs/hotm-server.log",
-              "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-development-49cb9c18/logs/api.log",
-              "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-development-49cb9c18/logs/mcp.log"
+              "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-hybrid-03813863/logs/hotm-server.log",
+              "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-hybrid-03813863/logs/api.log",
+              "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-hybrid-03813863/logs/mcp.log"
             ],
             "total_log_size": 201,
             "rotation_needed": false
           }
         },
         "log_files": [
-          "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-development-49cb9c18/logs/postgresql.log",
-          "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-development-49cb9c18/logs/postgresql_startup.log",
-          "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-development-49cb9c18/logs/ollama.log",
-          "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-development-49cb9c18/logs/model_loading.log",
-          "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-development-49cb9c18/logs/hotm-server.log",
-          "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-development-49cb9c18/logs/api.log",
-          "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-development-49cb9c18/logs/mcp.log"
+          "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-hybrid-03813863/logs/postgresql.log",
+          "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-hybrid-03813863/logs/postgresql_startup.log",
+          "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-hybrid-03813863/logs/ollama.log",
+          "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-hybrid-03813863/logs/model_loading.log",
+          "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-hybrid-03813863/logs/hotm-server.log",
+          "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-hybrid-03813863/logs/api.log",
+          "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-hybrid-03813863/logs/mcp.log"
         ]
       },
       "performance_metrics": {
-        "execution_time": 0.0012691020965576172,
+        "execution_time": 0.0012722015380859375,
         "within_timeout": true,
         "resource_usage": {}
       },
       "artifacts": {
-        "service_environment": "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-development-49cb9c18",
+        "service_environment": "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-hybrid-03813863",
         "log_files": [
-          "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-development-49cb9c18/logs/postgresql.log",
-          "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-development-49cb9c18/logs/postgresql_startup.log",
-          "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-development-49cb9c18/logs/ollama.log",
-          "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-development-49cb9c18/logs/model_loading.log",
-          "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-development-49cb9c18/logs/hotm-server.log",
-          "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-development-49cb9c18/logs/api.log",
-          "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-development-49cb9c18/logs/mcp.log"
+          "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-hybrid-03813863/logs/postgresql.log",
+          "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-hybrid-03813863/logs/postgresql_startup.log",
+          "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-hybrid-03813863/logs/ollama.log",
+          "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-hybrid-03813863/logs/model_loading.log",
+          "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-hybrid-03813863/logs/hotm-server.log",
+          "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-hybrid-03813863/logs/api.log",
+          "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-hybrid-03813863/logs/mcp.log"
         ]
       }
     },
@@ -2239,9 +1627,9 @@
         "timeout_seconds": 60,
         "critical": true
       },
-      "deployment_mode": "Development",
+      "deployment_mode": "Hybrid",
       "success": true,
-      "duration": 0.0008845329284667969,
+      "duration": 0.0009052753448486328,
       "details": {
         "success": true,
         "message": "3/3 services bound to network successfully",
@@ -2287,30 +1675,642 @@
         }
       },
       "performance_metrics": {
-        "execution_time": 0.0008845329284667969,
+        "execution_time": 0.0009052753448486328,
         "within_timeout": true,
         "resource_usage": {}
       },
       "artifacts": {
-        "service_environment": "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-development-43d54719",
+        "service_environment": "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-hybrid-28c4ad46",
+        "log_files": []
+      }
+    },
+    {
+      "test": {
+        "test_name": "Service Installation",
+        "description": "Verify services are properly installed and registered",
+        "service_names": [
+          "HotM-PostgreSQL",
+          "HotM-Ollama",
+          "HotM-Server"
+        ],
+        "test_function": "test_service_installation",
+        "timeout_seconds": 60,
+        "critical": true
+      },
+      "deployment_mode": "Development",
+      "success": true,
+      "duration": 0.0009906291961669922,
+      "details": {
+        "success": true,
+        "message": "3/3 services properly installed",
+        "service_results": {
+          "HotM-PostgreSQL": {
+            "installed": true,
+            "executable_exists": true,
+            "configuration_valid": true,
+            "dependencies_resolved": true
+          },
+          "HotM-Ollama": {
+            "installed": true,
+            "executable_exists": true,
+            "configuration_valid": true,
+            "dependencies_resolved": true
+          },
+          "HotM-Server": {
+            "installed": true,
+            "executable_exists": true,
+            "configuration_valid": true,
+            "dependencies_resolved": true
+          }
+        },
+        "installation_checks": [
+          "Executables: 3/3",
+          "Configurations: 3/3",
+          "Dependencies: 3/3"
+        ]
+      },
+      "performance_metrics": {
+        "execution_time": 0.0009906291961669922,
+        "within_timeout": true,
+        "resource_usage": {}
+      },
+      "artifacts": {
+        "service_environment": "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-development-21919f30",
+        "log_files": []
+      }
+    },
+    {
+      "test": {
+        "test_name": "Service Startup",
+        "description": "Verify services start in correct order and within expected timeframes",
+        "service_names": [
+          "HotM-PostgreSQL",
+          "HotM-Ollama",
+          "HotM-Server"
+        ],
+        "test_function": "test_service_startup",
+        "timeout_seconds": 180,
+        "critical": true
+      },
+      "deployment_mode": "Development",
+      "success": true,
+      "duration": 1.2783918380737305,
+      "details": {
+        "success": true,
+        "message": "3/3 services started successfully in 1.28s",
+        "startup_results": {
+          "HotM-PostgreSQL": {
+            "started": true,
+            "startup_time": 0.30864691734313965,
+            "process_id": 7133,
+            "startup_errors": [],
+            "within_expected_time": true,
+            "startup_order_position": 0
+          },
+          "HotM-Ollama": {
+            "started": true,
+            "startup_time": 0.5029139518737793,
+            "process_id": 9641,
+            "startup_errors": [],
+            "within_expected_time": true,
+            "startup_order_position": 1
+          },
+          "HotM-Server": {
+            "started": true,
+            "startup_time": 0.153564453125,
+            "process_id": 6941,
+            "startup_errors": [],
+            "within_expected_time": true,
+            "startup_order_position": 2
+          }
+        },
+        "startup_order": [
+          "HotM-PostgreSQL",
+          "HotM-Ollama",
+          "HotM-Server"
+        ],
+        "total_startup_time": 1.2774677276611328
+      },
+      "performance_metrics": {
+        "execution_time": 1.2783918380737305,
+        "within_timeout": true,
+        "resource_usage": {}
+      },
+      "artifacts": {
+        "service_environment": "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-development-dd2247e5",
+        "log_files": []
+      }
+    },
+    {
+      "test": {
+        "test_name": "Dependency Resolution",
+        "description": "Verify service dependencies are properly configured and enforced",
+        "service_names": [
+          "HotM-Server"
+        ],
+        "test_function": "test_dependency_resolution",
+        "timeout_seconds": 120,
+        "critical": true
+      },
+      "deployment_mode": "Development",
+      "success": true,
+      "duration": 0.0015616416931152344,
+      "details": {
+        "success": true,
+        "message": "3/3 services have resolved dependencies",
+        "dependency_checks": {
+          "HotM-PostgreSQL": {
+            "service": "HotM-PostgreSQL",
+            "dependencies": [],
+            "dependencies_available": [],
+            "missing_dependencies": [],
+            "circular_dependencies": false
+          },
+          "HotM-Ollama": {
+            "service": "HotM-Ollama",
+            "dependencies": [],
+            "dependencies_available": [],
+            "missing_dependencies": [],
+            "circular_dependencies": false
+          },
+          "HotM-Server": {
+            "service": "HotM-Server",
+            "dependencies": [
+              "HotM-PostgreSQL",
+              "HotM-Ollama"
+            ],
+            "dependencies_available": [
+              "HotM-PostgreSQL",
+              "HotM-Ollama"
+            ],
+            "missing_dependencies": [],
+            "circular_dependencies": false
+          }
+        },
+        "dependency_graph": {
+          "HotM-PostgreSQL": [],
+          "HotM-Ollama": [],
+          "HotM-Server": [
+            "HotM-PostgreSQL",
+            "HotM-Ollama"
+          ]
+        }
+      },
+      "performance_metrics": {
+        "execution_time": 0.0015616416931152344,
+        "within_timeout": true,
+        "resource_usage": {}
+      },
+      "artifacts": {
+        "service_environment": "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-development-0da73675",
+        "log_files": []
+      }
+    },
+    {
+      "test": {
+        "test_name": "Health Monitoring",
+        "description": "Verify service health checks work correctly",
+        "service_names": [
+          "HotM-PostgreSQL",
+          "HotM-Ollama",
+          "HotM-Server"
+        ],
+        "test_function": "test_health_monitoring",
+        "timeout_seconds": 90,
+        "critical": false
+      },
+      "deployment_mode": "Development",
+      "success": true,
+      "duration": 0.1282482147216797,
+      "details": {
+        "success": true,
+        "message": "3/3 services passed health checks",
+        "health_checks": {
+          "HotM-PostgreSQL": {
+            "healthy": true,
+            "response_time": 0.04386520042577065,
+            "health_check_url": "postgresql://localhost:54321/hotm",
+            "status_code": 200,
+            "details": "Service is healthy"
+          },
+          "HotM-Ollama": {
+            "healthy": true,
+            "response_time": 0.06763414229719936,
+            "health_check_url": "http://localhost:11434/api/health",
+            "status_code": 200,
+            "details": "Service is healthy"
+          },
+          "HotM-Server": {
+            "healthy": true,
+            "response_time": 0.01186383655914738,
+            "health_check_url": "http://localhost:53211/api/v1/health",
+            "status_code": 200,
+            "details": "Service is healthy"
+          }
+        },
+        "monitoring_metrics": {
+          "average_response_time": 0.0411210597607058,
+          "health_check_success_rate": 100.0
+        }
+      },
+      "performance_metrics": {
+        "execution_time": 0.1282482147216797,
+        "within_timeout": true,
+        "resource_usage": {}
+      },
+      "artifacts": {
+        "service_environment": "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-development-feafe803",
+        "log_files": []
+      }
+    },
+    {
+      "test": {
+        "test_name": "Service Recovery",
+        "description": "Verify automatic service recovery mechanisms",
+        "service_names": [
+          "HotM-PostgreSQL",
+          "HotM-Ollama",
+          "HotM-Server"
+        ],
+        "test_function": "test_service_recovery",
+        "timeout_seconds": 300,
+        "critical": false
+      },
+      "deployment_mode": "Development",
+      "success": false,
+      "duration": 3.176889181137085,
+      "details": {
+        "success": false,
+        "message": "2/3 services recovered successfully",
+        "recovery_tests": {
+          "HotM-PostgreSQL": {
+            "recovered": false,
+            "failure_duration": 0.32512079491617385,
+            "recovery_time": 0.38490440239310514,
+            "recovery_actions_attempted": [
+              "restart"
+            ],
+            "final_state": "failed"
+          },
+          "HotM-Ollama": {
+            "recovered": true,
+            "failure_duration": 0.44342430857543225,
+            "recovery_time": 0.8862787472735489,
+            "recovery_actions_attempted": [
+              "restart"
+            ],
+            "final_state": "running"
+          },
+          "HotM-Server": {
+            "recovered": true,
+            "failure_duration": 0.4853789286993375,
+            "recovery_time": 0.6177206161487987,
+            "recovery_actions_attempted": [
+              "restart"
+            ],
+            "final_state": "running"
+          }
+        },
+        "recovery_metrics": {
+          "average_recovery_time": 0.629634588605151,
+          "recovery_success_rate": 66.66666666666666
+        }
+      },
+      "performance_metrics": {
+        "execution_time": 3.176889181137085,
+        "within_timeout": true,
+        "resource_usage": {}
+      },
+      "artifacts": {
+        "service_environment": "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-development-34ffc32e",
+        "log_files": []
+      }
+    },
+    {
+      "test": {
+        "test_name": "Graceful Shutdown",
+        "description": "Verify services shutdown gracefully in reverse dependency order",
+        "service_names": [
+          "HotM-PostgreSQL",
+          "HotM-Ollama",
+          "HotM-Server"
+        ],
+        "test_function": "test_graceful_shutdown",
+        "timeout_seconds": 120,
+        "critical": true
+      },
+      "deployment_mode": "Development",
+      "success": true,
+      "duration": 0.6090388298034668,
+      "details": {
+        "success": true,
+        "message": "3/3 services shutdown gracefully in 0.61s",
+        "shutdown_results": {
+          "HotM-Server": {
+            "stopped": true,
+            "graceful": true,
+            "shutdown_time": 0.17471790313720703,
+            "cleanup_completed": true,
+            "shutdown_order_position": 0
+          },
+          "HotM-Ollama": {
+            "stopped": true,
+            "graceful": true,
+            "shutdown_time": 0.08160710334777832,
+            "cleanup_completed": true,
+            "shutdown_order_position": 1
+          },
+          "HotM-PostgreSQL": {
+            "stopped": true,
+            "graceful": true,
+            "shutdown_time": 0.1951141357421875,
+            "cleanup_completed": true,
+            "shutdown_order_position": 2
+          }
+        },
+        "shutdown_order": [
+          "HotM-Server",
+          "HotM-Ollama",
+          "HotM-PostgreSQL"
+        ],
+        "total_shutdown_time": 0.6075890064239502
+      },
+      "performance_metrics": {
+        "execution_time": 0.6090388298034668,
+        "within_timeout": true,
+        "resource_usage": {}
+      },
+      "artifacts": {
+        "service_environment": "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-development-98869739",
+        "log_files": []
+      }
+    },
+    {
+      "test": {
+        "test_name": "Configuration Reload",
+        "description": "Verify services can reload configuration without restart",
+        "service_names": [
+          "HotM-Server"
+        ],
+        "test_function": "test_configuration_reload",
+        "timeout_seconds": 60,
+        "critical": false
+      },
+      "deployment_mode": "Development",
+      "success": true,
+      "duration": 0.10604190826416016,
+      "details": {
+        "success": true,
+        "message": "1/1 services reloaded configuration successfully",
+        "reload_results": {
+          "HotM-Server": {
+            "reloaded": true,
+            "reload_time": 0.1007073853280624,
+            "configuration_valid": true,
+            "restart_required": false
+          }
+        }
+      },
+      "performance_metrics": {
+        "execution_time": 0.10604190826416016,
+        "within_timeout": true,
+        "resource_usage": {}
+      },
+      "artifacts": {
+        "service_environment": "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-development-5372ab26",
+        "log_files": []
+      }
+    },
+    {
+      "test": {
+        "test_name": "Resource Management",
+        "description": "Verify services manage system resources appropriately",
+        "service_names": [
+          "HotM-PostgreSQL",
+          "HotM-Ollama",
+          "HotM-Server"
+        ],
+        "test_function": "test_resource_management",
+        "timeout_seconds": 180,
+        "critical": false
+      },
+      "deployment_mode": "Development",
+      "success": true,
+      "duration": 0.0011086463928222656,
+      "details": {
+        "success": true,
+        "message": "3/3 services within resource limits",
+        "resource_checks": {
+          "HotM-PostgreSQL": {
+            "within_limits": true,
+            "memory_mb": 341,
+            "cpu_percent": 22.303585992348335,
+            "ports_in_use": [
+              54321
+            ],
+            "resource_alerts": []
+          },
+          "HotM-Ollama": {
+            "within_limits": true,
+            "memory_mb": 2019,
+            "cpu_percent": 15.452864627424159,
+            "ports_in_use": [
+              11434
+            ],
+            "resource_alerts": []
+          },
+          "HotM-Server": {
+            "within_limits": true,
+            "memory_mb": 78,
+            "cpu_percent": 13.732914713530302,
+            "ports_in_use": [
+              53211
+            ],
+            "resource_alerts": []
+          }
+        },
+        "system_metrics": {
+          "total_memory_usage": 2438,
+          "total_cpu_usage": 51.4893653333028,
+          "port_usage": [
+            54321,
+            11434,
+            53211
+          ]
+        }
+      },
+      "performance_metrics": {
+        "execution_time": 0.0011086463928222656,
+        "within_timeout": true,
+        "resource_usage": {}
+      },
+      "artifacts": {
+        "service_environment": "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-development-5ba92f0f",
+        "log_files": []
+      }
+    },
+    {
+      "test": {
+        "test_name": "Log Management",
+        "description": "Verify service logging works correctly with rotation",
+        "service_names": [
+          "HotM-PostgreSQL",
+          "HotM-Ollama",
+          "HotM-Server"
+        ],
+        "test_function": "test_log_management",
+        "timeout_seconds": 90,
+        "critical": false
+      },
+      "deployment_mode": "Development",
+      "success": true,
+      "duration": 0.0012688636779785156,
+      "details": {
+        "success": true,
+        "message": "3/3 services have proper log management",
+        "log_checks": {
+          "HotM-PostgreSQL": {
+            "logs_created": true,
+            "log_files": [
+              "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-development-b628c3b6/logs/postgresql.log",
+              "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-development-b628c3b6/logs/postgresql_startup.log"
+            ],
+            "total_log_size": 142,
+            "rotation_needed": false
+          },
+          "HotM-Ollama": {
+            "logs_created": true,
+            "log_files": [
+              "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-development-b628c3b6/logs/ollama.log",
+              "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-development-b628c3b6/logs/model_loading.log"
+            ],
+            "total_log_size": 134,
+            "rotation_needed": false
+          },
+          "HotM-Server": {
+            "logs_created": true,
+            "log_files": [
+              "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-development-b628c3b6/logs/hotm-server.log",
+              "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-development-b628c3b6/logs/api.log",
+              "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-development-b628c3b6/logs/mcp.log"
+            ],
+            "total_log_size": 201,
+            "rotation_needed": false
+          }
+        },
+        "log_files": [
+          "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-development-b628c3b6/logs/postgresql.log",
+          "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-development-b628c3b6/logs/postgresql_startup.log",
+          "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-development-b628c3b6/logs/ollama.log",
+          "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-development-b628c3b6/logs/model_loading.log",
+          "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-development-b628c3b6/logs/hotm-server.log",
+          "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-development-b628c3b6/logs/api.log",
+          "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-development-b628c3b6/logs/mcp.log"
+        ]
+      },
+      "performance_metrics": {
+        "execution_time": 0.0012688636779785156,
+        "within_timeout": true,
+        "resource_usage": {}
+      },
+      "artifacts": {
+        "service_environment": "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-development-b628c3b6",
+        "log_files": [
+          "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-development-b628c3b6/logs/postgresql.log",
+          "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-development-b628c3b6/logs/postgresql_startup.log",
+          "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-development-b628c3b6/logs/ollama.log",
+          "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-development-b628c3b6/logs/model_loading.log",
+          "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-development-b628c3b6/logs/hotm-server.log",
+          "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-development-b628c3b6/logs/api.log",
+          "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-development-b628c3b6/logs/mcp.log"
+        ]
+      }
+    },
+    {
+      "test": {
+        "test_name": "Network Binding",
+        "description": "Verify services bind to correct network interfaces and ports",
+        "service_names": [
+          "HotM-PostgreSQL",
+          "HotM-Ollama",
+          "HotM-Server"
+        ],
+        "test_function": "test_network_binding",
+        "timeout_seconds": 60,
+        "critical": true
+      },
+      "deployment_mode": "Development",
+      "success": true,
+      "duration": 0.0008628368377685547,
+      "details": {
+        "success": true,
+        "message": "3/3 services bound to network successfully",
+        "binding_checks": {
+          "HotM-PostgreSQL": {
+            "bound_successfully": true,
+            "bound_ports": [
+              54321
+            ],
+            "binding_errors": [],
+            "listening_interfaces": [
+              "127.0.0.1",
+              "0.0.0.0"
+            ]
+          },
+          "HotM-Ollama": {
+            "bound_successfully": true,
+            "bound_ports": [
+              11434
+            ],
+            "binding_errors": [],
+            "listening_interfaces": [
+              "127.0.0.1",
+              "0.0.0.0"
+            ]
+          },
+          "HotM-Server": {
+            "bound_successfully": true,
+            "bound_ports": [
+              53211
+            ],
+            "binding_errors": [],
+            "listening_interfaces": [
+              "127.0.0.1",
+              "0.0.0.0"
+            ]
+          }
+        },
+        "port_allocations": {
+          "54321": "HotM-PostgreSQL",
+          "11434": "HotM-Ollama",
+          "53211": "HotM-Server"
+        }
+      },
+      "performance_metrics": {
+        "execution_time": 0.0008628368377685547,
+        "within_timeout": true,
+        "resource_usage": {}
+      },
+      "artifacts": {
+        "service_environment": "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-development-af1d7a34",
         "log_files": []
       }
     }
   ],
   "summary": {
     "total_tests": 40,
-    "passed": 36,
-    "failed": 4,
-    "critical_failures": 2,
-    "average_duration": 0.3911623954772949,
+    "passed": 37,
+    "failed": 3,
+    "critical_failures": 0,
+    "average_duration": 0.4259047329425812,
     "deployment_mode_results": {
       "Desktop": {
         "deployment_mode": "Desktop",
         "tests_run": 10,
-        "tests_passed": 8,
-        "tests_failed": 2,
-        "critical_failures": 2,
-        "total_duration": 2.0268619060516357
+        "tests_passed": 10,
+        "tests_failed": 0,
+        "critical_failures": 0,
+        "total_duration": 1.760159969329834
       },
       "Server": {
         "deployment_mode": "Server",
@@ -2318,15 +2318,15 @@
         "tests_passed": 9,
         "tests_failed": 1,
         "critical_failures": 0,
-        "total_duration": 4.2972729206085205
+        "total_duration": 4.744478464126587
       },
       "Hybrid": {
         "deployment_mode": "Hybrid",
         "tests_run": 10,
-        "tests_passed": 10,
-        "tests_failed": 0,
+        "tests_passed": 9,
+        "tests_failed": 1,
         "critical_failures": 0,
-        "total_duration": 4.414016962051392
+        "total_duration": 5.230868816375732
       },
       "Development": {
         "deployment_mode": "Development",
@@ -2334,7 +2334,7 @@
         "tests_passed": 9,
         "tests_failed": 1,
         "critical_failures": 0,
-        "total_duration": 4.919933080673218
+        "total_duration": 5.305476427078247
       }
     }
   }

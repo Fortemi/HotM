@@ -1,0 +1,8 @@
+{
+  "deployment_mode": "Desktop",
+  "services": [
+    "HotM-Server"
+  ],
+  "created_at": "2025-08-24T21:22:45.267162",
+  "environment_id": "dbbbfdc8"
+}

@@ -1,0 +1,12 @@
+{
+  "id": 13,
+  "type": "test_data",
+  "size": "medium",
+  "content": "Test data file 13 for medium dataset",
+  "created_at": "2025-08-24T21:22:38.322491",
+  "metadata": {
+    "test": true,
+    "index": 13,
+    "large_content": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+  }
+}
