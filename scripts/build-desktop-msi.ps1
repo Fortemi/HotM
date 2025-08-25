@@ -109,6 +109,7 @@ try {
         
         # Build Rust workspace
         Write-Host "Building Rust workspace..." -ForegroundColor $colors.Info
+        $env:SQLX_OFFLINE = "true"
         cargo build --workspace --release
         if ($LASTEXITCODE -ne 0) { throw "Cargo build failed" }
         
