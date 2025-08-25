@@ -16,6 +16,7 @@
         "maximizable": true,
         "minimizable": true,
         "closable": true,
+        "url": "app://localhost",
         "userAgent": null,
         "dragDropEnabled": true,
         "center": true,
