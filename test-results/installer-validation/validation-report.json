@@ -2,14 +2,14 @@
   "validation_info": {
     "framework": "HotM Installer Validation Framework",
     "version": "1.0.0",
-    "timestamp": "2025-08-24T20:59:46.694051",
-    "duration": 0.006154,
+    "timestamp": "2025-08-24T21:23:20.226844",
+    "duration": 0.001213,
     "project_root": "/home/manitcor/dev/hotm"
   },
   "statistics": {
     "total": 27,
-    "passed": 10,
-    "failed": 1,
+    "passed": 11,
+    "failed": 0,
     "warnings": 16,
     "errors": 0,
     "skipped": 0
@@ -26,13 +26,13 @@
   },
   "results": [
     {
-      "test_name": "Installer XML Structure",
+      "test_name": "Installer Structure Validation",
       "category": "Structure",
-      "status": "Fail",
-      "message": "Missing required elements: Package",
-      "duration": 0.0014138221740722656,
+      "status": "Pass",
+      "message": "All critical installer components are present",
+      "duration": 0.00035119056701660156,
       "details": {},
-      "timestamp": "2025-08-24T20:59:46.691365",
+      "timestamp": "2025-08-24T21:23:20.226097",
       "artifacts": []
     },
     {
@@ -40,9 +40,9 @@
       "category": "Config",
       "status": "Warning",
       "message": "Deployment mode not explicitly set in config",
-      "duration": 0.000576019287109375,
+      "duration": 3.7670135498046875e-05,
       "details": {},
-      "timestamp": "2025-08-24T20:59:46.692008",
+      "timestamp": "2025-08-24T21:23:20.226183",
       "artifacts": []
     },
     {
@@ -50,9 +50,9 @@
       "category": "Config",
       "status": "Warning",
       "message": "Service HotM-Server not configured",
-      "duration": 0.0006172657012939453,
+      "duration": 5.340576171875e-05,
       "details": {},
-      "timestamp": "2025-08-24T20:59:46.692048",
+      "timestamp": "2025-08-24T21:23:20.226198",
       "artifacts": []
     },
     {
@@ -60,9 +60,9 @@
       "category": "Config",
       "status": "Warning",
       "message": "Port 53211 not configured",
-      "duration": 0.0006315708160400391,
+      "duration": 6.461143493652344e-05,
       "details": {},
-      "timestamp": "2025-08-24T20:59:46.692062",
+      "timestamp": "2025-08-24T21:23:20.226209",
       "artifacts": []
     },
     {
@@ -70,9 +70,9 @@
       "category": "Config",
       "status": "Pass",
       "message": "Configuration file is valid",
-      "duration": 0.000640869140625,
+      "duration": 7.2479248046875e-05,
       "details": {},
-      "timestamp": "2025-08-24T20:59:46.692071",
+      "timestamp": "2025-08-24T21:23:20.226217",
       "artifacts": []
     },
     {
@@ -80,9 +80,9 @@
       "category": "Config",
       "status": "Warning",
       "message": "Deployment mode not explicitly set in config",
-      "duration": 0.0009999275207519531,
+      "duration": 0.00011873245239257812,
       "details": {},
-      "timestamp": "2025-08-24T20:59:46.692432",
+      "timestamp": "2025-08-24T21:23:20.226264",
       "artifacts": []
     },
     {
@@ -90,9 +90,9 @@
       "category": "Config",
       "status": "Warning",
       "message": "Service HotM-PostgreSQL not configured",
-      "duration": 0.0010426044464111328,
+      "duration": 0.0001380443572998047,
       "details": {},
-      "timestamp": "2025-08-24T20:59:46.692473",
+      "timestamp": "2025-08-24T21:23:20.226283",
       "artifacts": []
     },
     {
@@ -100,9 +100,9 @@
       "category": "Config",
       "status": "Warning",
       "message": "Service HotM-Ollama not configured",
-      "duration": 0.0010595321655273438,
+      "duration": 0.00015234947204589844,
       "details": {},
-      "timestamp": "2025-08-24T20:59:46.692490",
+      "timestamp": "2025-08-24T21:23:20.226297",
       "artifacts": []
     },
     {
@@ -110,9 +110,9 @@
       "category": "Config",
       "status": "Warning",
       "message": "Service HotM-Server not configured",
-      "duration": 0.0010733604431152344,
+      "duration": 0.0001728534698486328,
       "details": {},
-      "timestamp": "2025-08-24T20:59:46.692504",
+      "timestamp": "2025-08-24T21:23:20.226318",
       "artifacts": []
     },
     {
@@ -120,9 +120,9 @@
       "category": "Config",
       "status": "Pass",
       "message": "Configuration file is valid",
-      "duration": 0.0010836124420166016,
+      "duration": 0.00018262863159179688,
       "details": {},
-      "timestamp": "2025-08-24T20:59:46.692514",
+      "timestamp": "2025-08-24T21:23:20.226327",
       "artifacts": []
     },
     {
@@ -130,9 +130,9 @@
       "category": "Config",
       "status": "Warning",
       "message": "Deployment mode not explicitly set in config",
-      "duration": 0.001310110092163086,
+      "duration": 0.00021123886108398438,
       "details": {},
-      "timestamp": "2025-08-24T20:59:46.692741",
+      "timestamp": "2025-08-24T21:23:20.226356",
       "artifacts": []
     },
     {
@@ -140,9 +140,9 @@
       "category": "Config",
       "status": "Warning",
       "message": "Service HotM-PostgreSQL not configured",
-      "duration": 0.0013439655303955078,
+      "duration": 0.00022339820861816406,
       "details": {},
-      "timestamp": "2025-08-24T20:59:46.692775",
+      "timestamp": "2025-08-24T21:23:20.226368",
       "artifacts": []
     },
     {
@@ -150,9 +150,9 @@
       "category": "Config",
       "status": "Warning",
       "message": "Service HotM-Ollama not configured",
-      "duration": 0.0013582706451416016,
+      "duration": 0.00023651123046875,
       "details": {},
-      "timestamp": "2025-08-24T20:59:46.692789",
+      "timestamp": "2025-08-24T21:23:20.226381",
       "artifacts": []
     },
     {
@@ -160,9 +160,9 @@
       "category": "Config",
       "status": "Warning",
       "message": "Service HotM-Server not configured",
-      "duration": 0.0013718605041503906,
+      "duration": 0.0002486705780029297,
       "details": {},
-      "timestamp": "2025-08-24T20:59:46.692802",
+      "timestamp": "2025-08-24T21:23:20.226393",
       "artifacts": []
     },
     {
@@ -170,9 +170,9 @@
       "category": "Config",
       "status": "Pass",
       "message": "Configuration file is valid",
-      "duration": 0.0013818740844726562,
+      "duration": 0.0002579689025878906,
       "details": {},
-      "timestamp": "2025-08-24T20:59:46.692812",
+      "timestamp": "2025-08-24T21:23:20.226403",
       "artifacts": []
     },
     {
@@ -180,9 +180,9 @@
       "category": "Config",
       "status": "Warning",
       "message": "Deployment mode not explicitly set in config",
-      "duration": 0.001861572265625,
+      "duration": 0.00028395652770996094,
       "details": {},
-      "timestamp": "2025-08-24T20:59:46.693293",
+      "timestamp": "2025-08-24T21:23:20.226429",
       "artifacts": []
     },
     {
@@ -190,9 +190,9 @@
       "category": "Config",
       "status": "Warning",
       "message": "Service HotM-PostgreSQL not configured",
-      "duration": 0.0019025802612304688,
+      "duration": 0.00029778480529785156,
       "details": {},
-      "timestamp": "2025-08-24T20:59:46.693333",
+      "timestamp": "2025-08-24T21:23:20.226442",
       "artifacts": []
     },
     {
@@ -200,9 +200,9 @@
       "category": "Config",
       "status": "Warning",
       "message": "Service HotM-Ollama not configured",
-      "duration": 0.001920461654663086,
+      "duration": 0.0003094673156738281,
       "details": {},
-      "timestamp": "2025-08-24T20:59:46.693351",
+      "timestamp": "2025-08-24T21:23:20.226454",
       "artifacts": []
     },
     {
@@ -210,9 +210,9 @@
       "category": "Config",
       "status": "Warning",
       "message": "Service HotM-Server not configured",
-      "duration": 0.0019354820251464844,
+      "duration": 0.0003223419189453125,
       "details": {},
-      "timestamp": "2025-08-24T20:59:46.693366",
+      "timestamp": "2025-08-24T21:23:20.226467",
       "artifacts": []
     },
     {
@@ -220,9 +220,9 @@
       "category": "Config",
       "status": "Pass",
       "message": "Configuration file is valid",
-      "duration": 0.0019462108612060547,
+      "duration": 0.000331878662109375,
       "details": {},
-      "timestamp": "2025-08-24T20:59:46.693377",
+      "timestamp": "2025-08-24T21:23:20.226476",
       "artifacts": []
     },
     {
@@ -230,9 +230,9 @@
       "category": "Service",
       "status": "Pass",
       "message": "All service dependencies are configured",
-      "duration": 0.00021266937255859375,
+      "duration": 1.6450881958007812e-05,
       "details": {},
-      "timestamp": "2025-08-24T20:59:46.693615",
+      "timestamp": "2025-08-24T21:23:20.226514",
       "artifacts": []
     },
     {
@@ -240,9 +240,9 @@
       "category": "Upgrade",
       "status": "Warning",
       "message": "Limited data preservation configuration detected",
-      "duration": 3.4809112548828125e-05,
+      "duration": 1.9073486328125e-05,
       "details": {},
-      "timestamp": "2025-08-24T20:59:46.693702",
+      "timestamp": "2025-08-24T21:23:20.226554",
       "artifacts": []
     },
     {
@@ -250,9 +250,9 @@
       "category": "Upgrade",
       "status": "Pass",
       "message": "Upgrade configuration is present",
-      "duration": 4.649162292480469e-05,
+      "duration": 2.6702880859375e-05,
       "details": {},
-      "timestamp": "2025-08-24T20:59:46.693714",
+      "timestamp": "2025-08-24T21:23:20.226561",
       "artifacts": []
     },
     {
@@ -260,9 +260,9 @@
       "category": "Security",
       "status": "Pass",
       "message": "Service security configurations are present",
-      "duration": 3.814697265625e-05,
+      "duration": 2.765655517578125e-05,
       "details": {},
-      "timestamp": "2025-08-24T20:59:46.693774",
+      "timestamp": "2025-08-24T21:23:20.226610",
       "artifacts": []
     },
     {
@@ -270,9 +270,9 @@
       "category": "Framework",
       "status": "Pass",
       "message": "Test framework structure is complete",
-      "duration": 6.532669067382812e-05,
+      "duration": 5.602836608886719e-05,
       "details": {},
-      "timestamp": "2025-08-24T20:59:46.693869",
+      "timestamp": "2025-08-24T21:23:20.226687",
       "artifacts": []
     },
     {
@@ -280,9 +280,9 @@
       "category": "PowerShell",
       "status": "Pass",
       "message": "PowerShell modules are properly structured",
-      "duration": 5.030632019042969e-05,
+      "duration": 4.982948303222656e-05,
       "details": {},
-      "timestamp": "2025-08-24T20:59:46.693947",
+      "timestamp": "2025-08-24T21:23:20.226761",
       "artifacts": []
     },
     {
@@ -290,9 +290,9 @@
       "category": "Scenario",
       "status": "Pass",
       "message": "Installation scenarios are well covered",
-      "duration": 4.601478576660156e-05,
+      "duration": 3.409385681152344e-05,
       "details": {},
-      "timestamp": "2025-08-24T20:59:46.694022",
+      "timestamp": "2025-08-24T21:23:20.226817",
       "artifacts": []
     }
   ],
@@ -402,9 +402,7 @@
     }
   },
   "recommendations": [
-    "Address 1 critical validation failures before production deployment",
     "Review 16 warning items to improve installation reliability",
-    "Review installer component structure and ensure all required files are present",
     "Validate deployment mode configuration files for completeness"
   ]
 }

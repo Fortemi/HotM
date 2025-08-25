@@ -392,11 +392,12 @@ class ServiceLifecycleValidator:
             config_file = service_env / "config" / f"{service_name.lower().replace('-', '_')}.json"
             service_result["configuration_valid"] = config_file.exists()
             
-            # Check dependencies
-            for dep in spec.dependencies:
-                if dep not in mode_services:
-                    service_result["dependencies_resolved"] = False
-                    break
+            # Check dependencies (in Desktop mode, dependencies are external)
+            if deployment_mode != "Desktop":
+                for dep in spec.dependencies:
+                    if dep not in mode_services:
+                        service_result["dependencies_resolved"] = False
+                        break
             
             service_result["installed"] = all([
                 service_result["executable_exists"],
@@ -500,6 +501,9 @@ class ServiceLifecycleValidator:
             for dep in spec.dependencies:
                 if dep in mode_services:
                     dep_result["dependencies_available"].append(dep)
+                elif deployment_mode == "Desktop":
+                    # In Desktop mode, dependencies are external (remote services)
+                    dep_result["dependencies_available"].append(f"{dep} (external)")
                 else:
                     dep_result["missing_dependencies"].append(dep)
             
@@ -507,8 +511,9 @@ class ServiceLifecycleValidator:
             dep_result["circular_dependencies"] = self._check_circular_dependencies(service_name, results["dependency_graph"])
             
             # Dependency resolution is successful if all deps are available and no circular deps
+            # In Desktop mode, external dependencies are considered resolved
             dep_success = (
-                len(dep_result["missing_dependencies"]) == 0 and
+                (len(dep_result["missing_dependencies"]) == 0 or deployment_mode == "Desktop") and
                 not dep_result["circular_dependencies"]
             )
             

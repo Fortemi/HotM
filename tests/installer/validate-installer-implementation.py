@@ -158,10 +158,18 @@ class InstallerValidator:
             missing_elements = []
             
             for element in required_elements:
-                # Find elements in the WiX namespace
+                # Find elements in the WiX namespace, try multiple approaches
                 namespace = root.tag.split('}')[0] + '}' if '}' in root.tag else ''
                 xpath = f".//{namespace}{element}"
-                if not root.find(xpath):
+                
+                # Try with namespace first, then without namespace
+                found_element = root.find(xpath)
+                if found_element is None:
+                    # Try without namespace as fallback
+                    xpath_no_ns = f".//{element}"
+                    found_element = root.find(xpath_no_ns)
+                
+                if found_element is None:
                     missing_elements.append(element)
             
             if missing_elements:

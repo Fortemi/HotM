@@ -576,9 +576,10 @@ handlers = ["file"]
                 # Add encryption simulation delay
                 time.sleep(0.2)
             
-            # Create compressed archive (simulated)
+            # Create compressed archive (fixed path handling)
+            archive_base = str(backup_file.with_suffix("").with_suffix(""))  # Remove both .tar and .gz
             shutil.make_archive(
-                str(backup_file.with_suffix("")),
+                archive_base,
                 "gztar",
                 str(source_data)
             )
@@ -586,9 +587,10 @@ handlers = ["file"]
             backup_filename += ".tar"
             backup_file = backup_dir / backup_filename
             
-            # Create uncompressed archive
+            # Create uncompressed archive (fixed path handling)
+            archive_base = str(backup_file.with_suffix(""))  # Remove .tar
             shutil.make_archive(
-                str(backup_file.with_suffix("")),
+                archive_base,
                 "tar", 
                 str(source_data)
             )
