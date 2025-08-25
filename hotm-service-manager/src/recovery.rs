@@ -3,11 +3,11 @@
 //! Implements intelligent recovery strategies for HotM services with
 //! escalation paths, retry logic, and comprehensive error handling.
 
-use anyhow::{Context, Result, anyhow};
+use anyhow::{Context, Result};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::time::Duration;
-use tokio::time::{sleep, timeout};
+use tokio::time::timeout;
 use tracing::{info, warn, error, debug};
 
 use crate::config::RecoveryConfiguration;
@@ -15,10 +15,8 @@ use crate::monitor::HealthResult;
 
 #[cfg(windows)]
 use winapi::um::{
-    winnt::*,
     winbase::*,
     securitybaseapi::*,
-    winuser::*,
     reason::*,
 };
 
@@ -36,10 +34,15 @@ pub enum RecoveryAction {
 }
 
 #[derive(Debug, Clone)]
+#[allow(dead_code)]
 pub struct RecoveryAttempt {
+    #[allow(dead_code)]
     pub service_name: String,
+    #[allow(dead_code)]
     pub action: RecoveryAction,
+    #[allow(dead_code)]
     pub attempt_number: u32,
+    #[allow(dead_code)]
     pub started_at: chrono::DateTime<chrono::Utc>,
     pub completed_at: Option<chrono::DateTime<chrono::Utc>>,
     pub success: Option<bool>,
@@ -47,11 +50,17 @@ pub struct RecoveryAttempt {
 }
 
 #[derive(Debug, Clone)]
+#[allow(dead_code)]
 pub struct RecoveryStrategy {
+    #[allow(dead_code)]
     pub service_name: String,
+    #[allow(dead_code)]
     pub actions: Vec<RecoveryAction>,
+    #[allow(dead_code)]
     pub max_attempts: u32,
+    #[allow(dead_code)]
     pub escalation_delay: Duration,
+    #[allow(dead_code)]
     pub success_threshold: f32,
 }
 
@@ -177,7 +186,7 @@ impl RecoveryManager {
         &self,
         service_name: &str,
         health_result: &HealthResult,
-        strategy: &RecoveryStrategy
+        _strategy: &RecoveryStrategy
     ) -> Result<RecoveryAction> {
         // Analyze health result to determine best recovery action
         let current_attempts = *self.current_attempts.get(service_name).unwrap_or(&0);
@@ -717,6 +726,7 @@ impl RecoveryManager {
     }
     
     /// Get recovery history for a service
+    #[allow(dead_code)]
     pub fn get_recovery_history(&self, service_name: Option<&str>) -> Vec<&RecoveryAttempt> {
         self.recovery_history.iter()
             .filter(|attempt| {
@@ -726,6 +736,7 @@ impl RecoveryManager {
     }
     
     /// Reset recovery attempt counters
+    #[allow(dead_code)]
     pub fn reset_recovery_counters(&mut self, service_name: Option<&str>) {
         match service_name {
             Some(name) => {

@@ -5,8 +5,7 @@
 
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use std::process::Command;
-use tracing::{info, warn, error, debug};
+use tracing::{info, error, debug};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ServiceStatus {

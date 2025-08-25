@@ -89,9 +89,13 @@ struct AppState {
     database: hotm_core::database::db::DatabasePool,
     ollama_client: hotm_core::ollama::client::OllamaClient,
     ws_broadcaster: hotm_core::websocket::broadcaster::WsBroadcaster,
+    #[allow(dead_code)]
     embed_model: String,
+    #[allow(dead_code)]
     generation_model: String,
+    #[allow(dead_code)]
     note_repository: Arc<PostgresNoteRepository>,
+    #[allow(dead_code)]
     job_queue: Arc<PostgresJobQueue>,
 }
 

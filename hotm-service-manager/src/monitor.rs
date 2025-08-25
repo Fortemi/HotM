@@ -3,8 +3,7 @@
 //! Provides comprehensive health monitoring for HotM services with
 //! configurable thresholds and detailed diagnostics.
 
-use anyhow::{Context, Result, anyhow};
-use async_trait::async_trait;
+use anyhow::{Context, Result};
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -12,7 +11,7 @@ use std::net::SocketAddr;
 use std::str::FromStr;
 use std::time::{Duration, Instant};
 use tokio::net::TcpStream;
-use tracing::{debug, warn, error};
+use tracing::{debug, error};
 
 use crate::config::MonitoringConfiguration;
 
@@ -297,11 +296,8 @@ impl ServiceMonitor {
         
         #[cfg(windows)]
         {
-            use std::ffi::CString;
             use winapi::um::tlhelp32::*;
             use winapi::um::handleapi::*;
-            use winapi::um::winnt::*;
-            use std::ptr;
             
             let process_name = check.endpoint.to_lowercase();
             
@@ -316,9 +312,9 @@ impl ServiceMonitor {
                 
                 if Process32First(snapshot, &mut entry) != 0 {
                     loop {
-                        let current_process = String::from_utf8_lossy(unsafe {
+                        let current_process = String::from_utf8_lossy(
                             std::slice::from_raw_parts(entry.szExeFile.as_ptr() as *const u8, entry.szExeFile.len())
-                        })
+                        )
                             .to_string()
                             .trim_end_matches('\0')
                             .to_lowercase();
@@ -347,7 +343,7 @@ impl ServiceMonitor {
         Ok(std::path::Path::new(&check.endpoint).exists())
     }
     
-    async fn custom_check(&self, check: &HealthCheckDefinition, command: &str) -> Result<bool> {
+    async fn custom_check(&self, _check: &HealthCheckDefinition, command: &str) -> Result<bool> {
         debug!("Custom check: {}", command);
         
         let output = tokio::process::Command::new("cmd")

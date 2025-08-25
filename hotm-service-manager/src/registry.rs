@@ -3,16 +3,14 @@
 //! Handles service configuration storage, event log registration,
 //! and registry-based configuration management.
 
-use anyhow::{Context, Result, anyhow};
+use anyhow::{Result, anyhow};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use tracing::{info, warn, error, debug};
+use tracing::{info, warn, debug};
 
 #[cfg(windows)]
 use winapi::um::{
     winnt::*,
-    winreg::*,
-    winsvc::*,
 };
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -34,10 +32,13 @@ pub struct RegistryRecoveryAction {
 }
 
 pub struct RegistryManager {
+    #[allow(dead_code)]
     service_registry_path: String,
+    #[allow(dead_code)]
     config_registry_path: String,
 }
 
+#[allow(dead_code)]
 impl RegistryManager {
     pub fn new() -> Result<Self> {
         Ok(Self {
@@ -145,6 +146,7 @@ impl RegistryManager {
     }
     
     /// Save service configuration to registry
+    #[allow(dead_code)]
     pub fn save_service_config(&self, config: &RegistryServiceConfig) -> Result<()> {
         info!("Saving service configuration to registry: {}", config.service_name);
         
@@ -569,11 +571,10 @@ impl RegistryManager {
     #[cfg(windows)]
     fn set_service_recovery_actions(
         &self,
-        key_handle: winapi::shared::minwindef::HKEY,
+        _key_handle: winapi::shared::minwindef::HKEY,
         recovery_actions: &[RegistryRecoveryAction]
     ) -> Result<()> {
         use winapi::um::winsvc::*;
-        use std::mem;
         
         // Convert recovery actions to Windows format
         let mut actions: Vec<SC_ACTION> = recovery_actions.iter().map(|action| {
@@ -584,7 +585,7 @@ impl RegistryManager {
         }).collect();
         
         // Create failure actions structure
-        let mut failure_actions = SERVICE_FAILURE_ACTIONSW {
+        let _failure_actions = SERVICE_FAILURE_ACTIONSW {
             dwResetPeriod: 86400, // Reset after 24 hours
             lpRebootMsg: std::ptr::null_mut(),
             lpCommand: std::ptr::null_mut(),
@@ -598,7 +599,7 @@ impl RegistryManager {
     }
     
     #[cfg(windows)]
-    fn read_service_recovery_actions(&self, key_handle: winapi::shared::minwindef::HKEY) -> Result<Vec<RegistryRecoveryAction>> {
+    fn read_service_recovery_actions(&self, _key_handle: winapi::shared::minwindef::HKEY) -> Result<Vec<RegistryRecoveryAction>> {
         // Read custom recovery actions from registry
         // Implementation would depend on how we store the recovery actions
         Ok(Vec::new())

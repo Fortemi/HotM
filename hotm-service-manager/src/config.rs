@@ -115,6 +115,7 @@ impl ServiceConfiguration {
         }
     }
     
+    #[allow(dead_code)]
     pub async fn save(&self, config_path: &Path) -> Result<()> {
         info!("Saving service configuration to: {}", config_path.display());
         
@@ -395,10 +396,12 @@ impl Default for LoggingConfiguration {
 
 // Configuration validation and helper functions
 impl ServiceDefinition {
+    #[allow(dead_code)]
     pub fn get_full_executable_path(&self, install_path: &Path) -> std::path::PathBuf {
         install_path.join(&self.executable_path)
     }
     
+    #[allow(dead_code)]
     pub fn get_working_directory(&self, data_path: &Path) -> std::path::PathBuf {
         match &self.working_directory {
             Some(dir) => {
@@ -409,6 +412,7 @@ impl ServiceDefinition {
         }
     }
     
+    #[allow(dead_code)]
     pub fn get_expanded_arguments(&self, install_path: &Path, data_path: &Path) -> Vec<String> {
         self.arguments.iter().map(|arg| {
             arg.replace("{DATA_PATH}", &data_path.to_string_lossy())
@@ -416,6 +420,7 @@ impl ServiceDefinition {
         }).collect()
     }
     
+    #[allow(dead_code)]
     pub fn get_expanded_environment(&self, install_path: &Path, data_path: &Path) -> HashMap<String, String> {
         self.environment.iter().map(|(key, value)| {
             let expanded_value = value

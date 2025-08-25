@@ -4,27 +4,21 @@
 //! and Windows service integration for HotM components.
 
 use anyhow::{Context, Result, anyhow};
-use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 use std::time::Duration;
-use tokio::time::{sleep, timeout};
+use tokio::time::timeout;
 use tracing::{debug, info, warn, error};
-use uuid::Uuid;
 
 use crate::config::{ServiceConfiguration, ServiceDefinition};
 use crate::monitor::{HealthResult, ServiceMonitor};
-use crate::recovery::{RecoveryManager, RecoveryAction};
+use crate::recovery::RecoveryManager;
 use crate::registry::RegistryManager;
 
 #[cfg(windows)]
 use winapi::um::{
     winnt::*,
-    winsvc::*,
-    winbase::*,
-    errhandlingapi::*,
-    handleapi::*,
 };
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -51,34 +45,48 @@ pub struct ServiceStatus {
 }
 
 #[derive(Debug, Clone)]
+#[allow(dead_code)]
 pub struct ServiceInstallInfo {
     pub name: String,
     pub executable_path: PathBuf,
+    #[allow(dead_code)]
     pub working_directory: PathBuf,
     pub arguments: Vec<String>,
+    #[allow(dead_code)]
     pub dependencies: Vec<String>,
     pub description: String,
+    #[allow(dead_code)]
     pub startup_type: ServiceStartupType,
+    #[allow(dead_code)]
     pub account: ServiceAccount,
 }
 
 #[derive(Debug, Clone)]
+#[allow(dead_code)]
 pub enum ServiceStartupType {
     Automatic,
+    #[allow(dead_code)]
     AutomaticDelayed,
+    #[allow(dead_code)]
     Manual,
+    #[allow(dead_code)]
     Disabled,
 }
 
 #[derive(Debug, Clone)]
+#[allow(dead_code)]
 pub enum ServiceAccount {
+    #[allow(dead_code)]
     LocalSystem,
+    #[allow(dead_code)]
     LocalService,
     NetworkService,
+    #[allow(dead_code)]
     User { username: String, password: String },
 }
 
 pub struct ServiceManager {
+    #[allow(dead_code)]
     config: ServiceConfiguration,
     registry: RegistryManager,
     monitor: ServiceMonitor,
@@ -256,7 +264,7 @@ impl ServiceManager {
     }
     
     /// Stop all services in reverse dependency order
-    pub async fn stop_all_services(&self, force: bool, service_timeout: Duration) -> Result<()> {
+    pub async fn stop_all_services(&self, _force: bool, service_timeout: Duration) -> Result<()> {
         info!("Stopping all HotM services");
         
         let mut service_order = self.get_service_dependency_order()?;
@@ -572,7 +580,7 @@ impl ServiceManager {
         Ok(ServiceState::NotInstalled)
     }
     
-    async fn get_service_uptime(&self, service_name: &str) -> Result<Duration> {
+    async fn get_service_uptime(&self, _service_name: &str) -> Result<Duration> {
         // Implementation would query service start time and calculate uptime
         Ok(Duration::from_secs(0))
     }
@@ -664,8 +672,7 @@ impl ServiceManager {
     async fn install_single_service(&self, install_info: &ServiceInstallInfo, force: bool) -> Result<()> {
         #[cfg(windows)]
         {
-            use std::ffi::{CString, OsStr};
-            use std::os::windows::ffi::OsStrExt;
+            use std::ffi::CString;
             use winapi::um::winsvc::*;
             use std::ptr;
             
@@ -977,7 +984,6 @@ impl ServiceManager {
 pub async fn run_windows_service(service_manager: ServiceManager) -> Result<()> {
     use windows_service::{
         service::{ServiceControl, ServiceControlAccept, ServiceExitCode, ServiceState, ServiceStatus, ServiceType},
-        service_dispatcher,
         service_control_handler::{self, ServiceControlHandlerResult},
     };
     use std::sync::{Arc, Mutex};

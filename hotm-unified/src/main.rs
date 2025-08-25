@@ -39,12 +39,17 @@ struct DetectedEnvironment {
 }
 
 #[derive(Debug)]
+#[allow(dead_code)]
 enum ValidationError {
     ServerModeRequiresDatabaseUrl,
     ServerModeRequiresPortAvailable,
+    #[allow(dead_code)]
     DesktopModeNotSupported,
+    #[allow(dead_code)]
     ServerModeNotSupported,
+    #[allow(dead_code)]
     HybridModeNotSupported,
+    #[allow(dead_code)]
     NoFeaturesEnabled,
 }
 
