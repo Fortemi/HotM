@@ -10,7 +10,7 @@ pub fn run_desktop() -> anyhow::Result<()> {
     
     info!("Setting up global shortcut handler...");
     let shortcut_plugin = tauri_plugin_global_shortcut::Builder::new()
-        .with_handler(move |app, _shortcut, event| {
+        .with_handler(move |app: &tauri::AppHandle, _shortcut, event| {
             info!("Global shortcut triggered: {:?}", event);
             // Handle hotkey events
             if event.state == tauri_plugin_global_shortcut::ShortcutState::Pressed {
@@ -50,7 +50,7 @@ fn run_tauri_app() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
                          args.contains(&"/minimized".to_string());
 
     let shortcut_plugin = tauri_plugin_global_shortcut::Builder::new()
-        .with_handler(move |app, _shortcut, event| {
+        .with_handler(move |app: &tauri::AppHandle, _shortcut, event| {
             // Handle hotkey events
             if event.state == tauri_plugin_global_shortcut::ShortcutState::Pressed {
                 if let Some(window) = app.get_webview_window("main") {
