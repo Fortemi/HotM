@@ -107,8 +107,37 @@ try {
     if (-not $SkipBuild) {
         Write-Step "Building unified runtime"
         
+        # Load .env file if it exists
+        if (Test-Path ".env") {
+            Write-Host "Loading environment from .env file..." -ForegroundColor $colors.Info
+            Get-Content ".env" | ForEach-Object {
+                if ($_ -match "^\s*([^#][^=]+)=(.*)$") {
+                    $name = $matches[1].Trim()
+                    $value = $matches[2].Trim()
+                    # Remove quotes if present
+                    if ($value -match '^"(.*)"$' -or $value -match "^'(.*)'$") {
+                        $value = $matches[1]
+                    }
+                    [Environment]::SetEnvironmentVariable($name, $value, "Process")
+                    if ($name -eq "DATABASE_URL") {
+                        Write-Host "Loaded DATABASE_URL: $($value -replace 'password=[^@]*', 'password=***')" -ForegroundColor $colors.Info
+                    }
+                }
+            }
+        } else {
+            Write-Warning ".env file not found - using existing environment variables"
+        }
+        
         # Build Rust workspace
         Write-Host "Building Rust workspace..." -ForegroundColor $colors.Info
+        
+        # Verify DATABASE_URL is set
+        if ($env:DATABASE_URL) {
+            Write-Host "Final DATABASE_URL: $($env:DATABASE_URL -replace 'password=[^@]*', 'password=***')" -ForegroundColor $colors.Info
+        } else {
+            Write-Warning "No DATABASE_URL set - build may fail"
+        }
+        
         cargo build --workspace --release
         if ($LASTEXITCODE -ne 0) { throw "Cargo build failed" }
         
