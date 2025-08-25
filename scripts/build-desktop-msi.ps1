@@ -8,6 +8,7 @@ param(
     [switch]$RunTests = $false,
     [switch]$SkipTests = $false,
     [switch]$SkipBuild = $false,
+    [switch]$SkipFrontend = $false,
     [switch]$OpenAfterBuild = $false,
     [switch]$CleanFirst = $false,
     [string]$OutputDir = "dist\desktop-installer"
@@ -141,17 +142,21 @@ try {
         cargo build --workspace --release
         if ($LASTEXITCODE -ne 0) { throw "Cargo build failed" }
         
-        # Build frontend
-        Write-Step "Building React frontend"
-        Push-Location "ui"
-        try {
-            npm install
-            if ($LASTEXITCODE -ne 0) { throw "npm install failed" }
-            
-            npm run build
-            if ($LASTEXITCODE -ne 0) { throw "npm build failed" }
-        } finally {
-            Pop-Location
+        # Build frontend (unless skipped)
+        if (-not $SkipFrontend) {
+            Write-Step "Building React frontend"
+            Push-Location "ui"
+            try {
+                npm install
+                if ($LASTEXITCODE -ne 0) { throw "npm install failed" }
+                
+                npm run build
+                if ($LASTEXITCODE -ne 0) { throw "npm build failed" }
+            } finally {
+                Pop-Location
+            }
+        } else {
+            Write-Host "Skipping frontend build (SkipFrontend flag set)" -ForegroundColor $colors.Warning
         }
         
         Write-Success "Build completed successfully"
@@ -279,12 +284,16 @@ telemetry = false
         Write-Warning "hotm-unified.exe not found - may need to run build first"
     }
     
-    # Copy UI bundle
-    if (Test-Path "ui\dist") {
-        Copy-Item "ui\dist" "$OutputDir\ui-bundle" -Recurse -Force
-        Write-Success "Copied UI bundle"
+    # Copy UI bundle (if built)
+    if (-not $SkipFrontend) {
+        if (Test-Path "ui\dist") {
+            Copy-Item "ui\dist" "$OutputDir\ui-bundle" -Recurse -Force
+            Write-Success "Copied UI bundle"
+        } else {
+            Write-Warning "UI bundle not found - may need to build frontend first"
+        }
     } else {
-        Write-Warning "UI bundle not found - may need to build frontend first"
+        Write-Host "Skipping UI bundle copy (frontend build was skipped)" -ForegroundColor $colors.Info
     }
     
     # Create simple installer script (placeholder for MSI)
