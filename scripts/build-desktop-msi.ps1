@@ -107,31 +107,10 @@ try {
     if (-not $SkipBuild) {
         Write-Step "Building unified runtime"
         
-        # Build Rust workspace (without database connection)
+        # Build Rust workspace
         Write-Host "Building Rust workspace..." -ForegroundColor $colors.Info
-        Write-Host "Note: Building without database connection - queries will be verified at runtime" -ForegroundColor $colors.Warning
-        
-        # Set dummy DATABASE_URL to prevent SQLx URL parsing errors during build
-        # Queries will be verified when the application connects to the database at runtime
-        Remove-Item Env:SQLX_OFFLINE -ErrorAction SilentlyContinue
-        $env:DATABASE_URL = "postgres://dummy:dummy@localhost:5432/dummy"
-        
-        # Build core components first (may skip service manager if it has issues)
-        cargo build --release -p hotm-core -p hotm-unified
-        if ($LASTEXITCODE -ne 0) { 
-            Write-Warning "Core build failed, trying workspace build..."
-            cargo build --workspace --release
-            if ($LASTEXITCODE -ne 0) { throw "Cargo build failed" }
-        } else {
-            Write-Success "Core components built successfully"
-            # Try to build service manager separately
-            cargo build --release -p hotm-service-manager
-            if ($LASTEXITCODE -ne 0) {
-                Write-Warning "Service manager build failed - desktop features may be limited"
-            } else {
-                Write-Success "Service manager built successfully"
-            }
-        }
+        cargo build --workspace --release
+        if ($LASTEXITCODE -ne 0) { throw "Cargo build failed" }
         
         # Build frontend
         Write-Step "Building React frontend"
