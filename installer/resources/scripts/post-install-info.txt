@@ -1,0 +1,38 @@
+HotM Installation Complete!
+
+Thank you for installing HotM (Hall of Mind) - your local-first notes and analysis tool.
+
+GETTING STARTED
+===============
+
+1. Desktop Mode:
+   - Click the HotM icon on your desktop or Start menu
+   - The application will automatically start all required services
+   - Access the web interface at http://localhost:53211
+
+2. Server Mode:
+   - Use HotM Service Manager to configure and start services
+   - Configure client connections to point to this server
+   - Monitor services through the Service Manager interface
+
+3. First Run:
+   - The system will automatically check dependencies
+   - Required AI models will be downloaded on first use
+   - Default configuration files are created in the config directory
+
+IMPORTANT NOTES
+===============
+
+• HotM requires internet access for initial model downloads
+• PostgreSQL and Ollama services run locally by default
+• Data is stored locally and never transmitted without your consent
+• Check the documentation in the installation folder for advanced configuration
+
+SUPPORT
+=======
+
+• Documentation: See the 'docs' folder in your installation directory
+• Issues: https://github.com/jmagly/hotm/issues
+• Configuration: Edit files in the 'config' folder as needed
+
+The HotM Team

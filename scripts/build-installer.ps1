@@ -24,7 +24,7 @@ $BuildPhases = @(
     @{Name = "Build Unified Runtime"; Script = "Invoke-UnifiedRuntimeBuild"; Required = $true},
     @{Name = "Download Dependencies"; Script = "Invoke-DependencyDownload"; Required = $IncludeDependencies},
     @{Name = "Build Custom Actions"; Script = "Invoke-CustomActionsBuild"; Required = $true},
-    @{Name = "Generate WiX Installer"; Script = "Invoke-WiXBuild"; Required = $true},
+    @{Name = "Generate Inno Setup Installer"; Script = "Invoke-InnoSetupBuild"; Required = $true},
     @{Name = "Run Test Suite"; Script = "Invoke-TestSuite"; Required = $RunTests},
     @{Name = "Generate Documentation"; Script = "Invoke-DocumentationGeneration"; Required = $true},
     @{Name = "Create Distribution Package"; Script = "Invoke-DistributionPackaging"; Required = $true}
@@ -47,7 +47,7 @@ function Invoke-PreBuildValidation {
     Update-BuildProgress "Pre-build Validation"
     
     # Check required tools
-    $requiredTools = @("cargo", "npm", "wix", "candle", "light", "cl")  # cl for C++ compiler
+    $requiredTools = @("cargo", "npm", "iscc", "cl")  # iscc = Inno Setup compiler, cl for C++ compiler
     foreach ($tool in $requiredTools) {
         if (-not (Get-Command $tool -ErrorAction SilentlyContinue)) {
             throw "Required tool not found: $tool"
@@ -69,7 +69,7 @@ function Invoke-PreBuildValidation {
     $requiredPaths = @(
         "hotm-unified/Cargo.toml",
         "hotm-core/Cargo.toml",
-        "installer/hotm-installer.wxs"
+        "installer/hotm-installer.iss"
     )
     
     foreach ($path in $requiredPaths) {
@@ -208,86 +208,93 @@ cl /LD /EHsc /I"$env:PROGRAMFILES\Microsoft SDKs\Windows\v7.1\Include" installer
     }
 }
 
-function Invoke-WiXBuild {
-    Update-BuildProgress "Generating WiX Installer"
+function Invoke-InnoSetupBuild {
+    Update-BuildProgress "Generating Inno Setup Installer"
     
-    # Copy binaries to installer resources
-    Copy-Item "target/release/hotm-unified.exe" "installer/resources/binaries/hotm.exe" -Force
-    
-    # Set up WiX variables
-    $wixVars = @{
-        "Version" = $Version
-        "Channel" = $Channel
-        "ResourcesPath" = "resources/"
-    }
-    
-    $wixSources = @(
-        "installer/hotm-installer.wxs",
-        "installer/hotm-services.wxs", 
-        "installer/hotm-postgresql.wxs",
-        "installer/hotm-ollama.wxs",
-        "installer/hotm-ui.wxs"
-    )
-    
-    # Compile WiX sources
-    $wixObjects = @()
-    foreach ($source in $wixSources) {
-        if (Test-Path $source) {
-            $obj = $source -replace "\.wxs$", ".wixobj"
-            $wixObjects += $obj
-            
-            $candleArgs = @(
-                "-arch", "x64",
-                "-dVersion=$Version",
-                "-dChannel=$Channel",
-                "-dResourcesPath=resources/",
-                "-out", $obj,
-                $source
-            )
-            
-            Write-Host "   Compiling: $source" -ForegroundColor Gray
-            $result = & candle @candleArgs 2>&1
-            if ($LASTEXITCODE -ne 0) {
-                throw "WiX compilation failed for $source`: $result"
-            }
-        }
-    }
-    
-    # Link MSI
-    $msiName = "HotM-$Version-$Channel-x64.msi"
-    $msiPath = "$OutputDir/$msiName"
-    
+    # Ensure output directory exists
     New-Item -ItemType Directory -Path $OutputDir -Force | Out-Null
     
-    $lightArgs = @(
-        "-ext", "WixUIExtension",
-        "-ext", "WixUtilExtension",
-        "-out", $msiPath
-    ) + $wixObjects
+    # Ensure installer resources directory exists
+    $installerResourcesPath = "installer/resources/binaries"
+    New-Item -ItemType Directory -Path $installerResourcesPath -Force | Out-Null
     
-    Write-Host "   Linking: $msiName" -ForegroundColor Gray
-    $result = & light @lightArgs 2>&1
-    if ($LASTEXITCODE -ne 0) {
-        throw "WiX linking failed: $result"
+    # Copy binaries to installer resources
+    if (Test-Path "target/release/hotm-unified.exe") {
+        Copy-Item "target/release/hotm-unified.exe" "$installerResourcesPath/hotm-unified.exe" -Force
+        Write-Host "   Copied hotm-unified.exe to installer resources" -ForegroundColor Gray
+    } else {
+        throw "hotm-unified.exe not found in target/release/"
     }
     
-    if (Test-Path $msiPath) {
-        $fileInfo = Get-Item $msiPath
-        Write-Host "✅ MSI installer created: $msiPath ($([math]::Round($fileInfo.Length / 1MB, 2)) MB)" -ForegroundColor Green
+    # Copy service manager if it exists
+    if (Test-Path "target/release/hotm-service-manager.exe") {
+        Copy-Item "target/release/hotm-service-manager.exe" "$installerResourcesPath/hotm-service-manager.exe" -Force
+        Write-Host "   Copied hotm-service-manager.exe to installer resources" -ForegroundColor Gray
+    }
+    
+    # Prepare Inno Setup script with dynamic version
+    $issScript = "installer/hotm-installer.iss"
+    $tempIssScript = "installer/hotm-installer-temp.iss"
+    
+    # Read the template script and replace version placeholder
+    $scriptContent = Get-Content $issScript -Raw
+    $scriptContent = $scriptContent -replace '#define MyAppVersion GetVersionNumbersString\("resources\\binaries\\hotm-unified\.exe"\)', "#define MyAppVersion `"$Version`""
+    $scriptContent = $scriptContent -replace '#define MyAppChannel "dev"', "#define MyAppChannel `"$Channel`""
+    
+    # Write temporary script with version
+    $scriptContent | Set-Content $tempIssScript -Encoding UTF8
+    
+    # Build with Inno Setup
+    $installerName = "HotM-$Version-$Channel-Setup.exe"
+    
+    $isccArgs = @(
+        "/Q",  # Quiet mode
+        "/DMyAppVersion=$Version",
+        "/DMyAppChannel=$Channel", 
+        "/DOutputDir=..\dist\installer",
+        "/DOutputBaseFilename=HotM-$Version-$Channel-Setup",
+        $tempIssScript
+    )
+    
+    Write-Host "   Compiling Inno Setup script..." -ForegroundColor Gray
+    Write-Host "   Command: iscc $($isccArgs -join ' ')" -ForegroundColor DarkGray
+    
+    $result = & iscc @isccArgs 2>&1
+    $exitCode = $LASTEXITCODE
+    
+    # Clean up temporary script
+    if (Test-Path $tempIssScript) {
+        Remove-Item $tempIssScript -Force
+    }
+    
+    if ($exitCode -ne 0) {
+        Write-Host "   Inno Setup compilation output:" -ForegroundColor Red
+        Write-Host $result -ForegroundColor Red
+        throw "Inno Setup compilation failed with exit code $exitCode"
+    }
+    
+    # Check if installer was created
+    $installerPath = "$OutputDir/$installerName"
+    if (Test-Path $installerPath) {
+        $fileInfo = Get-Item $installerPath
+        Write-Host "✅ Installer created: $installerPath ($([math]::Round($fileInfo.Length / 1MB, 2)) MB)" -ForegroundColor Green
     } else {
-        throw "MSI installer was not created"
+        Write-Host "   Expected installer path: $installerPath" -ForegroundColor Red
+        Write-Host "   Inno Setup output:" -ForegroundColor Red
+        Write-Host $result -ForegroundColor Red
+        throw "Installer was not created at expected location"
     }
 }
 
 function Invoke-TestSuite {
     Update-BuildProgress "Running Test Suite"
     
-    $msiPath = "$OutputDir/HotM-$Version-$Channel-x64.msi"
+    $installerPath = "$OutputDir/HotM-$Version-$Channel-Setup.exe"
     $testScript = "installer/resources/scripts/test-installer.ps1"
     
     if (Test-Path $testScript) {
         Write-Host "   Running installer test suite..." -ForegroundColor Gray
-        $result = & powershell -File $testScript -InstallerPath $msiPath -TestMode "quick" -OutputPath "$OutputDir/test-results" 2>&1
+        $result = & powershell -File $testScript -InstallerPath $installerPath -TestMode "quick" -OutputPath "$OutputDir/test-results" 2>&1
         
         if ($LASTEXITCODE -eq 0) {
             Write-Host "✅ All tests passed" -ForegroundColor Green
