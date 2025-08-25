@@ -52,7 +52,7 @@ function Test-PostgreSQLConnection {
 function Start-TestDatabase {
     Write-Status "🚀 Starting temporary test database..." $colors.Info
     Write-Status "   Database: $DbName" $colors.Info
-    Write-Status "   Host: $DbHost:$DbPort" $colors.Info
+    Write-Status "   Host: ${DbHost}:${DbPort}" $colors.Info
     Write-Status "   User: $DbUser" $colors.Info
     
     # Check if PostgreSQL service is running
@@ -140,7 +140,7 @@ function Start-TestDatabase {
     }
     
     # Export DATABASE_URL
-    $databaseUrl = "postgresql://$DbUser`:$DbPassword@$DbHost`:$DbPort/$DbName"
+    $databaseUrl = "postgresql://${DbUser}:${DbPassword}@${DbHost}:${DbPort}/$DbName"
     $env:DATABASE_URL = $databaseUrl
     [Environment]::SetEnvironmentVariable("DATABASE_URL", $databaseUrl, "Process")
     
@@ -192,7 +192,7 @@ function Get-DatabaseStatus {
     # Connection test
     $canConnect = Test-PostgreSQLConnection -Host $DbHost -Port $DbPort -User $DbUser
     $connectionStatus = if ($canConnect) { "Available ✅" } else { "Unavailable ❌" }
-    Write-Status "Connection ($DbHost`:$DbPort): $connectionStatus"
+    Write-Status "Connection (${DbHost}:${DbPort}): $connectionStatus"
     
     # Database existence
     if ($canConnect) {
