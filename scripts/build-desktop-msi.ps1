@@ -109,6 +109,17 @@ try {
         
         # Build Rust workspace
         Write-Host "Building Rust workspace..." -ForegroundColor $colors.Info
+        
+        # Check if SQLx query cache exists, if not prepare it
+        if (-not (Test-Path "hotm-core\sqlx-data.json")) {
+            Write-Host "Preparing SQLx query cache..." -ForegroundColor $colors.Info
+            $env:DATABASE_URL = "postgres://hotm:hotm_local@localhost:54321/hotm"
+            cargo sqlx prepare --workspace
+            if ($LASTEXITCODE -ne 0) {
+                Write-Warning "SQLx prepare failed, using offline mode"
+            }
+        }
+        
         $env:SQLX_OFFLINE = "true"
         cargo build --workspace --release
         if ($LASTEXITCODE -ne 0) { throw "Cargo build failed" }
