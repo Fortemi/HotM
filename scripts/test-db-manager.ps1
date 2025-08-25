@@ -1,15 +1,17 @@
 # HotM Test Database Manager
-# Manages temporary PostgreSQL instances for build and test processes
+# Manages temporary PostgreSQL Docker containers for build and test processes
 
 [CmdletBinding()]
 param(
     [ValidateSet("start", "stop", "status", "reset")]
     [string]$Action = "start",
+    [string]$ContainerName = "hotm-build-db",
     [string]$DbName = "hotm_build_temp",
     [string]$DbUser = "postgres",
     [string]$DbPassword = "postgres",
     [string]$DbHost = "localhost",
-    [int]$DbPort = 5433,
+    [int]$StartPort = 5433,
+    [int]$EndPort = 5440,
     [switch]$Force
 )
 
@@ -28,36 +30,67 @@ function Write-Status($Message, $Color = "White") {
     Write-Host $Message -ForegroundColor $Color
 }
 
-function Test-PostgreSQLService {
+function Test-DockerAvailability {
     try {
-        $services = Get-Service -Name "postgresql*" -ErrorAction SilentlyContinue
-        if ($services) {
-            Write-Status "Found PostgreSQL services:" $colors.Info
-            foreach ($service in $services) {
-                Write-Status "   - $($service.Name): $($service.Status)" $colors.Info
-            }
-            $runningServices = $services | Where-Object { $_.Status -eq "Running" }
-            return $runningServices.Count -gt 0
+        $dockerPath = Get-Command docker -ErrorAction Stop
+        Write-Status "✅ Found Docker at: $($dockerPath.Source)" $colors.Success
+        
+        # Test Docker daemon
+        $output = & docker version --format json 2>&1
+        if ($LASTEXITCODE -eq 0) {
+            $dockerInfo = $output | ConvertFrom-Json
+            Write-Status "✅ Docker daemon is running (version $($dockerInfo.Server.Version))" $colors.Success
+            return $true
         } else {
-            Write-Status "No PostgreSQL services found with name pattern 'postgresql*'" $colors.Warning
-            Write-Status "Checking for common PostgreSQL service names..." $colors.Info
-            
-            $commonNames = @("postgresql", "PostgreSQL", "postgres", "pgsql")
-            foreach ($name in $commonNames) {
-                $service = Get-Service -Name $name -ErrorAction SilentlyContinue
-                if ($service) {
-                    Write-Status "   Found service: $name ($($service.Status))" $colors.Info
-                    if ($service.Status -eq "Running") {
-                        return $true
-                    }
-                }
-            }
-            
-            Write-Status "No running PostgreSQL services detected" $colors.Warning
+            Write-Status "❌ Docker daemon is not running: $output" $colors.Error
             return $false
         }
     } catch {
-        Write-Status "Error checking PostgreSQL services: $($_.Exception.Message)" $colors.Error
+        Write-Status "❌ Docker not found in PATH" $colors.Error
+        Write-Status "Please install Docker Desktop: https://www.docker.com/products/docker-desktop/" $colors.Warning
+        return $false
+    }
+}
+
+function Find-AvailablePort {
+    param([int]$StartPort, [int]$EndPort)
+    
+    Write-Status "🔍 Looking for available port between $StartPort and $EndPort..." $colors.Info
+    
+    for ($port = $StartPort; $port -le $EndPort; $port++) {
+        try {
+            $listener = [System.Net.Sockets.TcpListener]::new([System.Net.IPAddress]::Any, $port)
+            $listener.Start()
+            $listener.Stop()
+            Write-Status "✅ Port $port is available" $colors.Success
+            return $port
+        } catch {
+            Write-Status "   Port $port is in use" $colors.Info
+        }
+    }
+    
+    Write-Status "❌ No available ports found in range $StartPort-$EndPort" $colors.Error
+    return $null
+}
+
+function Test-ContainerExists {
+    param([string]$ContainerName)
+    
+    try {
+        $output = & docker ps -a --filter "name=^$ContainerName$" --format "{{.Names}}" 2>$null
+        return $output -eq $ContainerName
+    } catch {
+        return $false
+    }
+}
+
+function Test-ContainerRunning {
+    param([string]$ContainerName)
+    
+    try {
+        $output = & docker ps --filter "name=^$ContainerName$" --format "{{.Names}}" 2>$null
+        return $output -eq $ContainerName
+    } catch {
         return $false
     }
 }
@@ -99,40 +132,75 @@ function Test-PostgreSQLConnection {
 }
 
 function Start-TestDatabase {
-    Write-Status "🚀 Starting temporary test database..." $colors.Info
+    Write-Status "🚀 Starting temporary test database container..." $colors.Info
+    Write-Status "   Container: $ContainerName" $colors.Info
     Write-Status "   Database: $DbName" $colors.Info
-    Write-Status "   Host: ${DbHost}:${DbPort}" $colors.Info
     Write-Status "   User: $DbUser" $colors.Info
     
-    # Check for required PostgreSQL commands
-    Write-Status "🔍 Checking for required PostgreSQL tools..." $colors.Info
-    $requiredCommands = @("pg_isready", "psql", "createdb", "dropdb")
-    $missingCommands = @()
+    # Check Docker availability
+    if (-not (Test-DockerAvailability)) {
+        return $false
+    }
     
-    foreach ($cmd in $requiredCommands) {
-        try {
-            $cmdPath = Get-Command $cmd -ErrorAction Stop
-            Write-Status "   ✅ Found $cmd at: $($cmdPath.Source)" $colors.Success
-        } catch {
-            $missingCommands += $cmd
-            Write-Status "   ❌ Missing: $cmd" $colors.Error
+    # Find available port
+    $availablePort = Find-AvailablePort -StartPort $StartPort -EndPort $EndPort
+    if (-not $availablePort) {
+        Write-Status "❌ No available ports found" $colors.Error
+        return $false
+    }
+    
+    Write-Status "🔌 Using port: $availablePort" $colors.Info
+    
+    # Check if container already exists
+    if (Test-ContainerExists -ContainerName $ContainerName) {
+        if (Test-ContainerRunning -ContainerName $ContainerName) {
+            if ($Force) {
+                Write-Status "🗑️  Stopping and removing existing container..." $colors.Warning
+                & docker stop $ContainerName 2>$null
+                & docker rm $ContainerName 2>$null
+            } else {
+                Write-Status "⚠️  Container '$ContainerName' already running" $colors.Warning
+                Write-Status "Use -Force to recreate the container" $colors.Info
+                
+                # Get existing container port
+                $existingPort = & docker port $ContainerName 5432 2>$null
+                if ($existingPort) {
+                    $port = ($existingPort -split ":")[1]
+                    Write-Status "ℹ️  Existing container is using port $port" $colors.Info
+                    $availablePort = [int]$port
+                }
+            }
+        } else {
+            Write-Status "🗑️  Removing stopped container..." $colors.Info
+            & docker rm $ContainerName 2>$null
         }
     }
     
-    if ($missingCommands.Count -gt 0) {
-        Write-Status "❌ Missing PostgreSQL tools: $($missingCommands -join ', ')" $colors.Error
-        Write-Status "Please install PostgreSQL client tools or add them to your PATH" $colors.Warning
-        Write-Status "Common installation paths to check:" $colors.Info
-        Write-Status "   - C:\Program Files\PostgreSQL\<version>\bin" $colors.Info
-        Write-Status "   - C:\Program Files (x86)\PostgreSQL\<version>\bin" $colors.Info
-        return $false
-    }
-    
-    # Check if PostgreSQL service is running
-    if (-not (Test-PostgreSQLService)) {
-        Write-Status "❌ PostgreSQL service is not running" $colors.Error
-        Write-Status "Please start PostgreSQL service and try again" $colors.Warning
-        return $false
+    # Start new PostgreSQL container if needed
+    if ($Force -or -not (Test-ContainerRunning -ContainerName $ContainerName)) {
+        Write-Status "🐳 Starting PostgreSQL container..." $colors.Progress
+        Write-Status "   Image: postgres:17-alpine" $colors.Info
+        Write-Status "   Port mapping: ${availablePort}:5432" $colors.Info
+        
+        $dockerCommand = @(
+            "run", "-d",
+            "--name", $ContainerName,
+            "-p", "${availablePort}:5432",
+            "-e", "POSTGRES_DB=$DbName",
+            "-e", "POSTGRES_USER=$DbUser", 
+            "-e", "POSTGRES_PASSWORD=$DbPassword",
+            "postgres:17-alpine"
+        )
+        
+        Write-Status "Running: docker $($dockerCommand -join ' ')" $colors.Info
+        
+        $output = & docker @dockerCommand 2>&1
+        if ($LASTEXITCODE -ne 0) {
+            Write-Status "❌ Failed to start container: $output" $colors.Error
+            return $false
+        }
+        
+        Write-Status "✅ Container started: $($output.Substring(0, 12))" $colors.Success
     }
     
     # Wait for PostgreSQL to be ready
@@ -141,9 +209,14 @@ function Start-TestDatabase {
     $attempt = 1
     
     while ($attempt -le $maxAttempts) {
-        if (Test-PostgreSQLConnection -DbHostParam $DbHost -Port $DbPort -User $DbUser) {
-            Write-Status "✅ PostgreSQL is ready" $colors.Success
-            break
+        try {
+            $output = & docker exec $ContainerName pg_isready -U $DbUser -d $DbName 2>$null
+            if ($LASTEXITCODE -eq 0) {
+                Write-Status "✅ PostgreSQL is ready" $colors.Success
+                break
+            }
+        } catch {
+            # Container might still be starting
         }
         
         Write-Status "   Attempt $attempt/$maxAttempts - waiting for PostgreSQL..." $colors.Progress
@@ -152,132 +225,137 @@ function Start-TestDatabase {
     }
     
     if ($attempt -gt $maxAttempts) {
-        Write-Status "❌ PostgreSQL connection timeout" $colors.Error
+        Write-Status "❌ PostgreSQL startup timeout" $colors.Error
+        Write-Status "Container logs:" $colors.Error
+        & docker logs $ContainerName --tail 10
         return $false
     }
     
-    # Set environment for database operations
-    $env:PGPASSWORD = $DbPassword
-    
-    # Check if database already exists
-    Write-Status "🔍 Checking if database '$DbName' already exists..." $colors.Info
-    $dbExists = $false
+    # Install pgvector extension
+    Write-Status "🧩 Installing pgvector extension..." $colors.Progress
     try {
-        $env:PGPASSWORD = $DbPassword
-        Write-Status "Running: psql -h $DbHost -p $DbPort -U $DbUser -d postgres -c \"SELECT 1 FROM pg_database WHERE datname='$DbName'\" -t" $colors.Info
-        
-        $result = & psql -h $DbHost -p $DbPort -U $DbUser -d postgres -c "SELECT 1 FROM pg_database WHERE datname='$DbName'" -t 2>&1
-        $exitCode = $LASTEXITCODE
-        
-        Write-Status "psql output: $result" $colors.Info
-        Write-Status "psql exit code: $exitCode" $colors.Info
-        
-        if ($exitCode -eq 0) {
-            $dbExists = $result -match "1"
-            if ($dbExists) {
-                Write-Status "✅ Database '$DbName' already exists" $colors.Success
-            } else {
-                Write-Status "ℹ️  Database '$DbName' does not exist" $colors.Info
-            }
-        } else {
-            Write-Status "❌ Failed to check database existence: $result" $colors.Error
-            throw "Unable to query database list"
-        }
-    } catch {
-        Write-Status "❌ Exception checking database existence: $($_.Exception.Message)" $colors.Error
-        throw "Database existence check failed: $($_.Exception.Message)"
-    }
-    
-    if ($dbExists -and -not $Force) {
-        Write-Status "⚠️  Database '$DbName' already exists" $colors.Warning
-        Write-Status "Use -Force to recreate the database" $colors.Info
-    } else {
-        if ($dbExists -and $Force) {
-            Write-Status "🗑️  Dropping existing database..." $colors.Warning
-            try {
-                & dropdb -h $DbHost -p $DbPort -U $DbUser $DbName 2>$null
-            } catch {
-                # Database might be in use, try to terminate connections
-                & psql -h $DbHost -p $DbPort -U $DbUser -d postgres -c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname='$DbName';" 2>$null
-                Start-Sleep -Seconds 2
-                & dropdb -h $DbHost -p $DbPort -U $DbUser $DbName 2>$null
-            }
-        }
-        
-        # Create the test database
-        Write-Status "📦 Creating database '$DbName'..." $colors.Progress
-        try {
-            Write-Status "Running: createdb -h $DbHost -p $DbPort -U $DbUser $DbName" $colors.Info
-            
-            $createDbOutput = & createdb -h $DbHost -p $DbPort -U $DbUser $DbName 2>&1
-            $exitCode = $LASTEXITCODE
-            
-            Write-Status "createdb output: $createDbOutput" $colors.Info
-            Write-Status "createdb exit code: $exitCode" $colors.Info
-            
-            if ($exitCode -ne 0) {
-                Write-Status "❌ createdb failed with exit code: $exitCode" $colors.Error
-                Write-Status "createdb error output: $createDbOutput" $colors.Error
-                throw "createdb failed with exit code $exitCode"
-            }
-            Write-Status "✅ Database created successfully" $colors.Success
-        } catch {
-            Write-Status "❌ Failed to create database: $($_.Exception.Message)" $colors.Error
-            return $false
-        }
-    }
-    
-    # Create pgvector extension
-    Write-Status "🧩 Setting up pgvector extension..." $colors.Progress
-    try {
-        & psql -h $DbHost -p $DbPort -U $DbUser -d $DbName -c "CREATE EXTENSION IF NOT EXISTS vector;" 2>$null
+        $output = & docker exec $ContainerName psql -U $DbUser -d $DbName -c "CREATE EXTENSION IF NOT EXISTS vector;" 2>&1
         if ($LASTEXITCODE -ne 0) {
-            throw "pgvector extension creation failed"
+            Write-Status "⚠️  pgvector extension not available in postgres:17-alpine" $colors.Warning
+            Write-Status "Container output: $output" $colors.Warning
+            Write-Status "Switching to postgres:17 with pgvector..." $colors.Info
+            
+            # Stop current container and start one with pgvector
+            & docker stop $ContainerName 2>$null
+            & docker rm $ContainerName 2>$null
+            
+            $dockerCommand = @(
+                "run", "-d",
+                "--name", $ContainerName,
+                "-p", "${availablePort}:5432",
+                "-e", "POSTGRES_DB=$DbName",
+                "-e", "POSTGRES_USER=$DbUser", 
+                "-e", "POSTGRES_PASSWORD=$DbPassword",
+                "pgvector/pgvector:pg17"
+            )
+            
+            $output = & docker @dockerCommand 2>&1
+            if ($LASTEXITCODE -ne 0) {
+                Write-Status "❌ Failed to start pgvector container: $output" $colors.Error
+                return $false
+            }
+            
+            # Wait again for the new container
+            Start-Sleep -Seconds 5
+            $attempt = 1
+            while ($attempt -le 15) {
+                try {
+                    $output = & docker exec $ContainerName pg_isready -U $DbUser -d $DbName 2>$null
+                    if ($LASTEXITCODE -eq 0) {
+                        break
+                    }
+                } catch { }
+                Start-Sleep -Seconds 2
+                $attempt++
+            }
+            
+            # Try pgvector again
+            $output = & docker exec $ContainerName psql -U $DbUser -d $DbName -c "CREATE EXTENSION IF NOT EXISTS vector;" 2>&1
+            if ($LASTEXITCODE -ne 0) {
+                Write-Status "❌ Failed to create pgvector extension: $output" $colors.Error
+                return $false
+            }
         }
         Write-Status "✅ pgvector extension ready" $colors.Success
     } catch {
-        Write-Status "❌ Failed to create pgvector extension: $($_.Exception.Message)" $colors.Error
-        Write-Status "Make sure pgvector is installed on your PostgreSQL instance" $colors.Warning
+        Write-Status "❌ Exception setting up pgvector: $($_.Exception.Message)" $colors.Error
+        return $false
+    }
+    
+    # Run database migrations
+    Write-Status "🔧 Running database migrations..." $colors.Progress
+    try {
+        $databaseUrl = "postgresql://${DbUser}:${DbPassword}@${DbHost}:${availablePort}/$DbName"
+        $env:DATABASE_URL = $databaseUrl
+        
+        Push-Location "server"
+        $output = & sqlx migrate run 2>&1
+        $exitCode = $LASTEXITCODE
+        Pop-Location
+        
+        if ($exitCode -ne 0) {
+            Write-Status "❌ Migration failed: $output" $colors.Error
+            return $false
+        }
+        Write-Status "✅ Database migrations completed" $colors.Success
+    } catch {
+        Write-Status "❌ Exception running migrations: $($_.Exception.Message)" $colors.Error
         return $false
     }
     
     # Export DATABASE_URL
-    $databaseUrl = "postgresql://${DbUser}:${DbPassword}@${DbHost}:${DbPort}/$DbName"
+    $databaseUrl = "postgresql://${DbUser}:${DbPassword}@${DbHost}:${availablePort}/$DbName"
     $env:DATABASE_URL = $databaseUrl
     [Environment]::SetEnvironmentVariable("DATABASE_URL", $databaseUrl, "Process")
     
     Write-Status "" 
     Write-Status "✅ Test database ready!" $colors.Success
     Write-Status "DATABASE_URL: $($databaseUrl -replace $DbPassword, '***')" $colors.Info
+    Write-Status "Container: $ContainerName" $colors.Info
+    Write-Status "Port: $availablePort" $colors.Info
     Write-Status ""
     
     return $true
 }
 
 function Stop-TestDatabase {
-    Write-Status "🛑 Stopping test database..." $colors.Info
+    Write-Status "🛑 Stopping test database container..." $colors.Info
     
-    $env:PGPASSWORD = $DbPassword
-    
-    try {
-        # Terminate active connections
-        & psql -h $DbHost -p $DbPort -U $DbUser -d postgres -c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname='$DbName';" 2>$null
-        Start-Sleep -Seconds 2
+    if (Test-ContainerRunning -ContainerName $ContainerName) {
+        Write-Status "🐳 Stopping container '$ContainerName'..." $colors.Progress
         
-        # Drop the database
-        & dropdb -h $DbHost -p $DbPort -U $DbUser $DbName 2>$null
+        $output = & docker stop $ContainerName 2>&1
         if ($LASTEXITCODE -eq 0) {
-            Write-Status "✅ Test database '$DbName' dropped successfully" $colors.Success
+            Write-Status "✅ Container stopped successfully" $colors.Success
         } else {
-            Write-Status "⚠️  Database might not exist or already dropped" $colors.Warning
+            Write-Status "⚠️  Error stopping container: $output" $colors.Warning
         }
-    } catch {
-        Write-Status "⚠️  Error stopping database: $($_.Exception.Message)" $colors.Warning
+        
+        # Remove container
+        Write-Status "🗑️  Removing container..." $colors.Progress
+        $output = & docker rm $ContainerName 2>&1
+        if ($LASTEXITCODE -eq 0) {
+            Write-Status "✅ Container removed successfully" $colors.Success
+        } else {
+            Write-Status "⚠️  Error removing container: $output" $colors.Warning
+        }
+    } else {
+        if (Test-ContainerExists -ContainerName $ContainerName) {
+            Write-Status "🗑️  Removing stopped container..." $colors.Progress
+            & docker rm $ContainerName 2>$null
+            Write-Status "✅ Container removed" $colors.Success
+        } else {
+            Write-Status "ℹ️  No container '$ContainerName' found" $colors.Info
+        }
     }
     
     # Clear environment variables
     Remove-Item Env:DATABASE_URL -ErrorAction SilentlyContinue
-    Remove-Item Env:PGPASSWORD -ErrorAction SilentlyContinue
     
     Write-Status "🧹 Environment cleaned up" $colors.Info
 }
@@ -286,44 +364,65 @@ function Get-DatabaseStatus {
     Write-Status "📊 Database Status Report" $colors.Info
     Write-Status "========================" $colors.Info
     
-    # PostgreSQL service status
-    $pgService = Test-PostgreSQLService
-    $serviceStatus = if ($pgService) { "Running ✅" } else { "Stopped ❌" }
-    Write-Status "PostgreSQL Service: $serviceStatus"
+    # Docker status
+    $dockerAvailable = Test-DockerAvailability
     
-    # Connection test
-    $canConnect = Test-PostgreSQLConnection -DbHostParam $DbHost -Port $DbPort -User $DbUser
-    $connectionStatus = if ($canConnect) { "Available ✅" } else { "Unavailable ❌" }
-    Write-Status "Connection (${DbHost}:${DbPort}): $connectionStatus"
+    # Container status
+    $containerExists = Test-ContainerExists -ContainerName $ContainerName
+    $containerRunning = Test-ContainerRunning -ContainerName $ContainerName
     
-    # Database existence
-    if ($canConnect) {
-        $env:PGPASSWORD = $DbPassword
-        try {
-            $result = & psql -h $DbHost -p $DbPort -U $DbUser -d postgres -c "SELECT 1 FROM pg_database WHERE datname='$DbName'" -t 2>$null
-            $dbExists = $result -match "1"
-            $dbStatus = if ($dbExists) { "Exists ✅" } else { "Not Found ❌" }
-            Write-Status "Database '$DbName': $dbStatus"
+    if ($containerExists) {
+        if ($containerRunning) {
+            Write-Status "Container '$ContainerName': Running ✅" $colors.Success
             
-            if ($dbExists) {
-                # Check pgvector extension
-                $vectorResult = & psql -h $DbHost -p $DbPort -U $DbUser -d $DbName -c "SELECT 1 FROM pg_extension WHERE extname='vector'" -t 2>$null
-                $vectorExists = $vectorResult -match "1"
-                $vectorStatus = if ($vectorExists) { "Installed ✅" } else { "Not Installed ❌" }
-                Write-Status "pgvector Extension: $vectorStatus"
+            # Get container details
+            try {
+                $containerInfo = & docker inspect $ContainerName --format "{{.NetworkSettings.Ports}}" 2>$null | ConvertFrom-Json
+                $portMapping = $containerInfo.'5432/tcp'
+                if ($portMapping) {
+                    $hostPort = $portMapping[0].HostPort
+                    Write-Status "   Port mapping: ${hostPort}:5432" $colors.Info
+                }
+            } catch {
+                Write-Status "   Port mapping: Unable to determine" $colors.Warning
             }
-        } catch {
-            Write-Status "Database '$DbName': Error checking ⚠️"
+            
+            # Test database connectivity
+            try {
+                $output = & docker exec $ContainerName pg_isready -U $DbUser -d $DbName 2>$null
+                if ($LASTEXITCODE -eq 0) {
+                    Write-Status "   PostgreSQL: Ready ✅" $colors.Success
+                } else {
+                    Write-Status "   PostgreSQL: Not Ready ❌" $colors.Error
+                }
+            } catch {
+                Write-Status "   PostgreSQL: Error checking ⚠️" $colors.Warning
+            }
+            
+            # Check pgvector extension
+            try {
+                $output = & docker exec $ContainerName psql -U $DbUser -d $DbName -c "SELECT 1 FROM pg_extension WHERE extname='vector'" -t 2>$null
+                $vectorExists = $output -match "1"
+                $vectorStatus = if ($vectorExists) { "Installed ✅" } else { "Not Installed ❌" }
+                Write-Status "   pgvector Extension: $vectorStatus" $colors.Info
+            } catch {
+                Write-Status "   pgvector Extension: Error checking ⚠️" $colors.Warning
+            }
+            
+        } else {
+            Write-Status "Container '$ContainerName': Stopped ⏹️" $colors.Warning
         }
+    } else {
+        Write-Status "Container '$ContainerName': Not Found ❌" $colors.Error
     }
     
     # Environment variables
     $currentDbUrl = $env:DATABASE_URL
     if ($currentDbUrl) {
-        Write-Status "DATABASE_URL: Set ✅"
-        Write-Status "   Value: $($currentDbUrl -replace $DbPassword, '***')"
+        Write-Status "DATABASE_URL: Set ✅" $colors.Success
+        Write-Status "   Value: $($currentDbUrl -replace $DbPassword, '***')" $colors.Info
     } else {
-        Write-Status "DATABASE_URL: Not Set ❌"
+        Write-Status "DATABASE_URL: Not Set ❌" $colors.Error
     }
     
     Write-Status ""

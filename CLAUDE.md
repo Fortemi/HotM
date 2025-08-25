@@ -209,11 +209,12 @@ sudo apt-get install -y postgresql-client
 ```
 
 **Windows (for MSI installer builds):**
-- **PostgreSQL**: Install PostgreSQL with client tools from https://www.postgresql.org/download/windows/
-  - Required for SQLx compile-time query verification during Rust builds
-  - Ensure `pg_isready`, `psql`, `createdb`, `dropdb` are in PATH
-  - Typically installed to `C:\Program Files\PostgreSQL\<version>\bin`
+- **Docker Desktop**: Install from https://www.docker.com/products/docker-desktop/
+  - Required for temporary PostgreSQL test containers during builds
+  - Ensures isolated, reproducible database environments for SQLx compilation
 - **Inno Setup**: Install from https://jrsoftware.org/isinfo.php (for MSI installer creation)
+
+**Note**: The build process now uses Docker containers for database setup, eliminating the need to install PostgreSQL locally. The temporary database containers are automatically created, configured with pgvector, migrated, and cleaned up.
 
 ### Ollama Models (for NLP features)
 ```bash
