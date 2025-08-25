@@ -28,14 +28,14 @@ describe('HallOfMind Title Handling', () => {
   const createMockNote = (overrides: Partial<NoteFull> = {}): NoteFull => ({
     note: {
       id: 'test-note-id',
-      collection_id: null,
+      collection_id: undefined,
       format: 'markdown',
       source: 'user',
       created_at_utc: '2024-08-24T12:00:00Z',
       updated_at_utc: '2024-08-24T12:00:00Z',
       starred: false,
       archived: false,
-      title: null, // No AI title initially
+      title: undefined, // No AI title initially
       ...overrides.note,
     },
     original: {
@@ -45,7 +45,7 @@ describe('HallOfMind Title Handling', () => {
     },
     revised: {
       content: 'This is the revised content',
-      last_revision_id: null,
+      last_revision_id: undefined,
       ai_metadata: null,
       model: 'gpt-oss:20b',
       ...overrides.revised,

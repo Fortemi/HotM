@@ -20,7 +20,7 @@ import { Switch } from './ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 import { Badge } from './ui/badge';
 import { Separator } from './ui/separator';
-import { Alert, AlertDescription } from './ui/alert-dialog';
+import { Alert, AlertDescription } from './ui/alert';
 import { 
   Save, 
   X, 

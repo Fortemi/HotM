@@ -14,34 +14,28 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { Badge } from './ui/badge';
 import { Progress } from './ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 import { Separator } from './ui/separator';
-import { Alert, AlertDescription } from './ui/alert-dialog';
+import { Alert, AlertDescription } from './ui/alert';
 import { 
   Shield, 
-  Database, 
   Download, 
   Upload,
   Settings,
   Monitor,
-  AlertTriangle,
   CheckCircle,
   Clock,
   HardDrive,
   Cpu,
-  Network,
   Users,
   Key,
-  FileText,
   TrendingUp,
   Calendar,
   Archive,
   RefreshCw,
   Play,
-  Square,
   Trash2,
   Plus,
   Eye,
@@ -53,13 +47,10 @@ import {
   ServiceOperationResult,
   InstallationStatus,
   BackupConfiguration,
-  DiagnosticInfo
 } from '../types/serviceTypes';
 import { useServiceStatus } from '../hooks/useServiceStatus';
 import { StatusIndicator } from './common/StatusIndicator';
 import { ConfirmationDialog } from './common/ConfirmationDialog';
-import { LoadingSpinner, OperationProgress, MultiStepProgress } from './common/ProgressIndicator';
-import { ErrorDisplay } from './common/ErrorDisplay';
 
 interface SystemMetrics {
   cpuUsage: number;
@@ -92,13 +83,13 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
   onBackup,
   onRestore
 }) => {
-  const { services, systemHealth, loading, refreshStatus } = useServiceStatus();
+  const { services, systemHealth, loading: _loading, refreshStatus } = useServiceStatus();
   
   const [systemMetrics, setSystemMetrics] = useState<SystemMetrics | null>(null);
   const [installationStatuses, setInstallationStatuses] = useState<InstallationStatus[]>([]);
   const [backupConfig, setBackupConfig] = useState<BackupConfiguration | null>(null);
   const [maintenanceTasks, setMaintenanceTasks] = useState<MaintenanceTask[]>([]);
-  const [selectedOperation, setSelectedOperation] = useState<string | null>(null);
+  const [_selectedOperation, _setSelectedOperation] = useState<string | null>(null);
   const [confirmDialog, setConfirmDialog] = useState<{
     open: boolean;
     operation: string;
@@ -840,7 +831,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
         confirmText={confirmDialog.operation.charAt(0).toUpperCase() + confirmDialog.operation.slice(1)}
         severity={confirmDialog.operation === 'uninstall' ? 'error' : 'info'}
         destructive={confirmDialog.operation === 'uninstall'}
-        onConfirm={executeOperation}
+        onConfirm={async () => { await executeOperation(); }}
       />
     </div>
   );

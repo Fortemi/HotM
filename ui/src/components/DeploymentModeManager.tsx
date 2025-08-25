@@ -13,10 +13,9 @@ import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
 import { Switch } from './ui/switch';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { Badge } from './ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
-import { Alert, AlertDescription } from './ui/alert-dialog';
+import { Alert, AlertDescription } from './ui/alert';
 import { Separator } from './ui/separator';
 import { 
   Monitor, 
@@ -29,7 +28,6 @@ import {
   Info,
   Save,
   RefreshCw,
-  Zap,
   Shield,
   Database,
   Brain,
@@ -40,7 +38,6 @@ import {
   DeploymentConfiguration,
   DeploymentMode,
   DeploymentModeManagerProps,
-  ServiceOperationResult
 } from '../types/serviceTypes';
 import {
   validateDeploymentConfiguration
@@ -59,7 +56,7 @@ export const DeploymentModeManager: React.FC<DeploymentModeManagerProps> = ({
 }) => {
   const [configuration, setConfiguration] = useState<DeploymentConfiguration>(currentConfiguration);
   const [originalConfiguration, setOriginalConfiguration] = useState<DeploymentConfiguration>(currentConfiguration);
-  const [loading, setLoading] = useState(false);
+  const [_loading, _setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [validationResult, setValidationResult] = useState<{
     valid: boolean;
@@ -425,7 +422,7 @@ export const DeploymentModeManager: React.FC<DeploymentModeManagerProps> = ({
                 </div>
                 <Switch
                   checked={configuration.services.postgresql.enabled}
-                  onCheckedChange={(enabled) => 
+                  onCheckedChange={(enabled: boolean) => 
                     handleServiceChange('postgresql', 'enabled', enabled)
                   }
                 />
@@ -438,7 +435,7 @@ export const DeploymentModeManager: React.FC<DeploymentModeManagerProps> = ({
                   <Label>Run as standalone service</Label>
                   <Switch
                     checked={configuration.services.postgresql.standalone}
-                    onCheckedChange={(standalone) => 
+                    onCheckedChange={(standalone: boolean) => 
                       handleServiceChange('postgresql', 'standalone', standalone)
                     }
                   />
@@ -497,7 +494,7 @@ export const DeploymentModeManager: React.FC<DeploymentModeManagerProps> = ({
                 </div>
                 <Switch
                   checked={configuration.services.ollama.enabled}
-                  onCheckedChange={(enabled) => 
+                  onCheckedChange={(enabled: boolean) => 
                     handleServiceChange('ollama', 'enabled', enabled)
                   }
                 />
@@ -510,7 +507,7 @@ export const DeploymentModeManager: React.FC<DeploymentModeManagerProps> = ({
                   <Label>Run as standalone service</Label>
                   <Switch
                     checked={configuration.services.ollama.standalone}
-                    onCheckedChange={(standalone) => 
+                    onCheckedChange={(standalone: boolean) => 
                       handleServiceChange('ollama', 'standalone', standalone)
                     }
                   />
@@ -570,7 +567,7 @@ export const DeploymentModeManager: React.FC<DeploymentModeManagerProps> = ({
                 </div>
                 <Switch
                   checked={configuration.services.hotmServer.enabled}
-                  onCheckedChange={(enabled) => 
+                  onCheckedChange={(enabled: boolean) => 
                     handleServiceChange('hotmServer', 'enabled', enabled)
                   }
                 />
@@ -649,7 +646,7 @@ export const DeploymentModeManager: React.FC<DeploymentModeManagerProps> = ({
                   </div>
                   <Switch
                     checked={configuration.useHttps || false}
-                    onCheckedChange={(useHttps) => 
+                    onCheckedChange={(useHttps: boolean) => 
                       handleConfigurationChange('useHttps', useHttps)
                     }
                   />
@@ -740,7 +737,7 @@ export const DeploymentModeManager: React.FC<DeploymentModeManagerProps> = ({
       {/* Footer Actions */}
       <div className="flex items-center justify-between p-4 border-t bg-muted/20 rounded-lg">
         <div className="flex items-center gap-2">
-          {loading && <LoadingSpinner size="sm" />}
+          {saving && <LoadingSpinner size="sm" />}
           {hasChanges() && (
             <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200">
               Unsaved Changes
@@ -752,7 +749,7 @@ export const DeploymentModeManager: React.FC<DeploymentModeManagerProps> = ({
           <Button
             variant="outline"
             onClick={() => setConfiguration(originalConfiguration)}
-            disabled={loading || saving || !hasChanges()}
+            disabled={saving || !hasChanges()}
           >
             <RefreshCw className="h-4 w-4 mr-2" />
             Reset
@@ -760,7 +757,7 @@ export const DeploymentModeManager: React.FC<DeploymentModeManagerProps> = ({
           
           <Button
             onClick={handleSave}
-            disabled={loading || saving || !validationResult?.valid || !hasChanges()}
+            disabled={saving || !validationResult?.valid || !hasChanges()}
           >
             {saving ? (
               <LoadingSpinner size="sm" message="Saving..." />
@@ -790,7 +787,13 @@ export const DeploymentModeManager: React.FC<DeploymentModeManagerProps> = ({
         }
         confirmText={confirmDialog.action === 'switch' ? 'Switch Mode' : 'Save'}
         severity="info"
-        onConfirm={confirmDialog.action === 'switch' ? executeModeSwitch : executeSave}
+        onConfirm={async () => { 
+          if (confirmDialog.action === 'switch') {
+            await executeModeSwitch();
+          } else {
+            await executeSave();
+          }
+        }}
         loading={saving}
       />
     </div>

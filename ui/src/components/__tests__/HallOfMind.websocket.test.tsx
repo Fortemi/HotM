@@ -35,14 +35,14 @@ describe('HallOfMind WebSocket Integration', () => {
   const createMockNoteFull = (overrides: Partial<NoteFull> = {}): NoteFull => ({
     note: {
       id: 'test-note-id',
-      collection_id: null,
+      collection_id: undefined,
       format: 'markdown',
       source: 'user',
       created_at_utc: '2024-08-24T12:00:00Z',
       updated_at_utc: '2024-08-24T12:00:00Z',
       starred: false,
       archived: false,
-      title: null,
+      title: undefined,
       ...overrides.note,
     },
     original: {
@@ -52,7 +52,7 @@ describe('HallOfMind WebSocket Integration', () => {
     },
     revised: {
       content: 'Revised content',
-      last_revision_id: null,
+      last_revision_id: undefined,
       ai_metadata: null,
       model: 'gpt-oss:20b',
       ...overrides.revised,
@@ -151,8 +151,8 @@ describe('HallOfMind WebSocket Integration', () => {
       });
 
       const testNote = createMockNoteFull({
-        note: { id: 'test-note', title: null },
-        original: { content: 'Test content' },
+        note: { id: 'test-note', title: undefined },
+        original: { content: 'Test content', hash: 'test-hash' },
       });
 
       mockApi.getRecentNotes.mockResolvedValue([testNote]);
@@ -172,7 +172,7 @@ describe('HallOfMind WebSocket Integration', () => {
     it('loads notes successfully with WebSocket integration', async () => {
       const testNote = createMockNoteFull({
         note: { id: 'websocket-note', title: 'WebSocket Test Note' },
-        original: { content: 'Content for WebSocket testing' },
+        original: { content: 'Content for WebSocket testing', hash: 'websocket-hash' },
       });
 
       mockApi.getRecentNotes.mockResolvedValue([testNote]);
@@ -232,8 +232,8 @@ describe('HallOfMind WebSocket Integration', () => {
   describe('Animation Integration', () => {
     it('can trigger typing animation through component updates', async () => {
       const noteWithoutTitle = createMockNoteFull({
-        note: { id: 'animation-test', title: null },
-        original: { content: 'Original content for animation' },
+        note: { id: 'animation-test', title: undefined },
+        original: { content: 'Original content for animation', hash: 'animation-hash' },
       });
 
       mockApi.getRecentNotes.mockResolvedValue([noteWithoutTitle]);
