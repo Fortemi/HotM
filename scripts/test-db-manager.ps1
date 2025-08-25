@@ -63,7 +63,7 @@ function Test-PostgreSQLService {
 }
 
 function Test-PostgreSQLConnection {
-    param([string]$Host, [int]$Port, [string]$User)
+    param([string]$DbHostParam, [int]$Port, [string]$User)
     
     # Check if pg_isready is available
     try {
@@ -77,9 +77,9 @@ function Test-PostgreSQLConnection {
     
     try {
         $env:PGPASSWORD = $DbPassword
-        Write-Status "Testing connection to ${Host}:${Port} as user '$User'..." $colors.Info
+        Write-Status "Testing connection to ${DbHostParam}:${Port} as user '$User'..." $colors.Info
         
-        $output = & pg_isready -h $Host -p $Port -U $User 2>&1
+        $output = & pg_isready -h $DbHostParam -p $Port -U $User 2>&1
         $exitCode = $LASTEXITCODE
         
         Write-Status "pg_isready output: $output" $colors.Info
@@ -141,7 +141,7 @@ function Start-TestDatabase {
     $attempt = 1
     
     while ($attempt -le $maxAttempts) {
-        if (Test-PostgreSQLConnection -Host $DbHost -Port $DbPort -User $DbUser) {
+        if (Test-PostgreSQLConnection -DbHostParam $DbHost -Port $DbPort -User $DbUser) {
             Write-Status "✅ PostgreSQL is ready" $colors.Success
             break
         }
@@ -292,7 +292,7 @@ function Get-DatabaseStatus {
     Write-Status "PostgreSQL Service: $serviceStatus"
     
     # Connection test
-    $canConnect = Test-PostgreSQLConnection -Host $DbHost -Port $DbPort -User $DbUser
+    $canConnect = Test-PostgreSQLConnection -DbHostParam $DbHost -Port $DbPort -User $DbUser
     $connectionStatus = if ($canConnect) { "Available ✅" } else { "Unavailable ❌" }
     Write-Status "Connection (${DbHost}:${DbPort}): $connectionStatus"
     

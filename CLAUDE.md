@@ -198,10 +198,22 @@ sqlx migrate run
 ```
 
 ### System Prerequisites
+
+**Linux/WSL:**
 ```bash
 # Install Graphviz (required for PlantUML diagram rendering)
 sudo apt-get install -y graphviz
+
+# Install PostgreSQL client tools (required for build processes)
+sudo apt-get install -y postgresql-client
 ```
+
+**Windows (for MSI installer builds):**
+- **PostgreSQL**: Install PostgreSQL with client tools from https://www.postgresql.org/download/windows/
+  - Required for SQLx compile-time query verification during Rust builds
+  - Ensure `pg_isready`, `psql`, `createdb`, `dropdb` are in PATH
+  - Typically installed to `C:\Program Files\PostgreSQL\<version>\bin`
+- **Inno Setup**: Install from https://jrsoftware.org/isinfo.php (for MSI installer creation)
 
 ### Ollama Models (for NLP features)
 ```bash
