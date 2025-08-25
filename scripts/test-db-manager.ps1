@@ -30,9 +30,34 @@ function Write-Status($Message, $Color = "White") {
 
 function Test-PostgreSQLService {
     try {
-        $service = Get-Service -Name "postgresql*" -ErrorAction SilentlyContinue
-        return $service -and $service.Status -eq "Running"
+        $services = Get-Service -Name "postgresql*" -ErrorAction SilentlyContinue
+        if ($services) {
+            Write-Status "Found PostgreSQL services:" $colors.Info
+            foreach ($service in $services) {
+                Write-Status "   - $($service.Name): $($service.Status)" $colors.Info
+            }
+            $runningServices = $services | Where-Object { $_.Status -eq "Running" }
+            return $runningServices.Count -gt 0
+        } else {
+            Write-Status "No PostgreSQL services found with name pattern 'postgresql*'" $colors.Warning
+            Write-Status "Checking for common PostgreSQL service names..." $colors.Info
+            
+            $commonNames = @("postgresql", "PostgreSQL", "postgres", "pgsql")
+            foreach ($name in $commonNames) {
+                $service = Get-Service -Name $name -ErrorAction SilentlyContinue
+                if ($service) {
+                    Write-Status "   Found service: $name ($($service.Status))" $colors.Info
+                    if ($service.Status -eq "Running") {
+                        return $true
+                    }
+                }
+            }
+            
+            Write-Status "No running PostgreSQL services detected" $colors.Warning
+            return $false
+        }
     } catch {
+        Write-Status "Error checking PostgreSQL services: $($_.Exception.Message)" $colors.Error
         return $false
     }
 }
@@ -40,11 +65,35 @@ function Test-PostgreSQLService {
 function Test-PostgreSQLConnection {
     param([string]$Host, [int]$Port, [string]$User)
     
+    # Check if pg_isready is available
+    try {
+        $pgReadyPath = Get-Command pg_isready -ErrorAction Stop
+        Write-Status "Using pg_isready from: $($pgReadyPath.Source)" $colors.Info
+    } catch {
+        Write-Status "pg_isready command not found in PATH" $colors.Error
+        Write-Status "Current PATH: $env:PATH" $colors.Error
+        return $false
+    }
+    
     try {
         $env:PGPASSWORD = $DbPassword
-        $result = & pg_isready -h $Host -p $Port -U $User 2>$null
-        return $LASTEXITCODE -eq 0
+        Write-Status "Testing connection to ${Host}:${Port} as user '$User'..." $colors.Info
+        
+        $output = & pg_isready -h $Host -p $Port -U $User 2>&1
+        $exitCode = $LASTEXITCODE
+        
+        Write-Status "pg_isready output: $output" $colors.Info
+        Write-Status "pg_isready exit code: $exitCode" $colors.Info
+        
+        if ($exitCode -eq 0) {
+            Write-Status "✅ PostgreSQL connection successful" $colors.Success
+            return $true
+        } else {
+            Write-Status "❌ PostgreSQL connection failed (exit code: $exitCode)" $colors.Error
+            return $false
+        }
     } catch {
+        Write-Status "❌ Exception testing PostgreSQL connection: $($_.Exception.Message)" $colors.Error
         return $false
     }
 }
@@ -54,6 +103,30 @@ function Start-TestDatabase {
     Write-Status "   Database: $DbName" $colors.Info
     Write-Status "   Host: ${DbHost}:${DbPort}" $colors.Info
     Write-Status "   User: $DbUser" $colors.Info
+    
+    # Check for required PostgreSQL commands
+    Write-Status "🔍 Checking for required PostgreSQL tools..." $colors.Info
+    $requiredCommands = @("pg_isready", "psql", "createdb", "dropdb")
+    $missingCommands = @()
+    
+    foreach ($cmd in $requiredCommands) {
+        try {
+            $cmdPath = Get-Command $cmd -ErrorAction Stop
+            Write-Status "   ✅ Found $cmd at: $($cmdPath.Source)" $colors.Success
+        } catch {
+            $missingCommands += $cmd
+            Write-Status "   ❌ Missing: $cmd" $colors.Error
+        }
+    }
+    
+    if ($missingCommands.Count -gt 0) {
+        Write-Status "❌ Missing PostgreSQL tools: $($missingCommands -join ', ')" $colors.Error
+        Write-Status "Please install PostgreSQL client tools or add them to your PATH" $colors.Warning
+        Write-Status "Common installation paths to check:" $colors.Info
+        Write-Status "   - C:\Program Files\PostgreSQL\<version>\bin" $colors.Info
+        Write-Status "   - C:\Program Files (x86)\PostgreSQL\<version>\bin" $colors.Info
+        return $false
+    }
     
     # Check if PostgreSQL service is running
     if (-not (Test-PostgreSQLService)) {
@@ -87,12 +160,32 @@ function Start-TestDatabase {
     $env:PGPASSWORD = $DbPassword
     
     # Check if database already exists
+    Write-Status "🔍 Checking if database '$DbName' already exists..." $colors.Info
     $dbExists = $false
     try {
-        $result = & psql -h $DbHost -p $DbPort -U $DbUser -d postgres -c "SELECT 1 FROM pg_database WHERE datname='$DbName'" -t 2>$null
-        $dbExists = $result -match "1"
+        $env:PGPASSWORD = $DbPassword
+        Write-Status "Running: psql -h $DbHost -p $DbPort -U $DbUser -d postgres -c \"SELECT 1 FROM pg_database WHERE datname='$DbName'\" -t" $colors.Info
+        
+        $result = & psql -h $DbHost -p $DbPort -U $DbUser -d postgres -c "SELECT 1 FROM pg_database WHERE datname='$DbName'" -t 2>&1
+        $exitCode = $LASTEXITCODE
+        
+        Write-Status "psql output: $result" $colors.Info
+        Write-Status "psql exit code: $exitCode" $colors.Info
+        
+        if ($exitCode -eq 0) {
+            $dbExists = $result -match "1"
+            if ($dbExists) {
+                Write-Status "✅ Database '$DbName' already exists" $colors.Success
+            } else {
+                Write-Status "ℹ️  Database '$DbName' does not exist" $colors.Info
+            }
+        } else {
+            Write-Status "❌ Failed to check database existence: $result" $colors.Error
+            throw "Unable to query database list"
+        }
     } catch {
-        # Database might not exist, that's ok
+        Write-Status "❌ Exception checking database existence: $($_.Exception.Message)" $colors.Error
+        throw "Database existence check failed: $($_.Exception.Message)"
     }
     
     if ($dbExists -and -not $Force) {
@@ -114,9 +207,18 @@ function Start-TestDatabase {
         # Create the test database
         Write-Status "📦 Creating database '$DbName'..." $colors.Progress
         try {
-            & createdb -h $DbHost -p $DbPort -U $DbUser $DbName
-            if ($LASTEXITCODE -ne 0) {
-                throw "createdb failed with exit code $LASTEXITCODE"
+            Write-Status "Running: createdb -h $DbHost -p $DbPort -U $DbUser $DbName" $colors.Info
+            
+            $createDbOutput = & createdb -h $DbHost -p $DbPort -U $DbUser $DbName 2>&1
+            $exitCode = $LASTEXITCODE
+            
+            Write-Status "createdb output: $createDbOutput" $colors.Info
+            Write-Status "createdb exit code: $exitCode" $colors.Info
+            
+            if ($exitCode -ne 0) {
+                Write-Status "❌ createdb failed with exit code: $exitCode" $colors.Error
+                Write-Status "createdb error output: $createDbOutput" $colors.Error
+                throw "createdb failed with exit code $exitCode"
             }
             Write-Status "✅ Database created successfully" $colors.Success
         } catch {
