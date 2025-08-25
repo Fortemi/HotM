@@ -61,7 +61,7 @@ function Cleanup-Build {
         $response = Read-Host
         if ($response -match "^[Yy]") {
             Write-Step "Cleaning up temporary database"
-            & ".\scripts\test-db-manager.ps1" -Action stop
+            & "$PSScriptRoot\test-db-manager.ps1" -Action stop
             Write-Success "Database cleanup completed"
         } else {
             Write-Host "Database left running for faster subsequent builds" -ForegroundColor $colors.Info
@@ -130,7 +130,7 @@ try {
         Write-Step "Setting up temporary build database"
         
         # Start test database
-        $dbResult = & ".\scripts\test-db-manager.ps1" -Action start
+        $dbResult = & "$PSScriptRoot\test-db-manager.ps1" -Action start
         if ($LASTEXITCODE -eq 0) {
             $databaseStarted = $true
             Write-Success "Temporary database ready"
@@ -182,7 +182,7 @@ try {
             Write-Warning "No DATABASE_URL set - build may fail"
         }
         
-        cargo build --workspace --release
+        cargo build --release
         if ($LASTEXITCODE -ne 0) { throw "Cargo build failed" }
         
         # Build frontend (unless skipped)

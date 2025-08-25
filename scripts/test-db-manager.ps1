@@ -6,9 +6,9 @@ param(
     [ValidateSet("start", "stop", "status", "reset")]
     [string]$Action = "start",
     [string]$ContainerName = "hotm-build-db",
-    [string]$DbName = "hotm_build_temp",
-    [string]$DbUser = "postgres",
-    [string]$DbPassword = "postgres",
+    [string]$DbName = "hotm",
+    [string]$DbUser = "hotm",
+    [string]$DbPassword = "hotm",
     [string]$DbHost = "localhost",
     [int]$StartPort = 5433,
     [int]$EndPort = 5440,
@@ -290,11 +290,11 @@ function Start-TestDatabase {
     # Run database migrations
     Write-Status "🔧 Running database migrations..." $colors.Progress
     try {
-        $databaseUrl = "postgresql://${DbUser}:${DbPassword}@${DbHost}:${availablePort}/$DbName"
+        $databaseUrl = "postgresql://hotm:hotm@localhost:${availablePort}/hotm"
         $env:DATABASE_URL = $databaseUrl
         
         Push-Location "server"
-        $output = & sqlx migrate run 2>&1
+        $output = & cargo sqlx migrate run 2>&1
         $exitCode = $LASTEXITCODE
         Pop-Location
         
@@ -308,14 +308,14 @@ function Start-TestDatabase {
         return $false
     }
     
-    # Export DATABASE_URL
-    $databaseUrl = "postgresql://${DbUser}:${DbPassword}@${DbHost}:${availablePort}/$DbName"
+    # Export simple DATABASE_URL (no need to hide password for temp db)
+    $databaseUrl = "postgresql://hotm:hotm@localhost:${availablePort}/hotm"
     $env:DATABASE_URL = $databaseUrl
     [Environment]::SetEnvironmentVariable("DATABASE_URL", $databaseUrl, "Process")
     
     Write-Status "" 
     Write-Status "✅ Test database ready!" $colors.Success
-    Write-Status "DATABASE_URL: $($databaseUrl -replace $DbPassword, '***')" $colors.Info
+    Write-Status "DATABASE_URL: $databaseUrl" $colors.Info
     Write-Status "Container: $ContainerName" $colors.Info
     Write-Status "Port: $availablePort" $colors.Info
     Write-Status ""
@@ -420,7 +420,7 @@ function Get-DatabaseStatus {
     $currentDbUrl = $env:DATABASE_URL
     if ($currentDbUrl) {
         Write-Status "DATABASE_URL: Set ✅" $colors.Success
-        Write-Status "   Value: $($currentDbUrl -replace $DbPassword, '***')" $colors.Info
+        Write-Status "   Value: $currentDbUrl" $colors.Info
     } else {
         Write-Status "DATABASE_URL: Not Set ❌" $colors.Error
     }
