@@ -152,8 +152,7 @@ enum Commands {
     },
 }
 
-#[tokio::main]
-async fn main() -> anyhow::Result<()> {
+fn main() -> anyhow::Result<()> {
     // Initialize tracing
     tracing_subscriber::registry()
         .with(
@@ -177,7 +176,101 @@ async fn main() -> anyhow::Result<()> {
         }
     });
 
+    // Desktop and hybrid modes must handle main thread for Windows UI compatibility
     match command {
+        Commands::Desktop { .. } => {
+            run_desktop_mode_main_thread(command)
+        },
+        #[cfg(all(feature = "server", feature = "desktop"))]
+        Commands::Hybrid { .. } => {
+            run_hybrid_mode_main_thread(command)
+        },
+        _ => {
+            // All other modes can use async runtime
+            let rt = tokio::runtime::Runtime::new()?;
+            rt.block_on(async { run_async_modes(command).await })
+        }
+    }
+}
+
+#[cfg(feature = "desktop")]
+fn run_desktop_mode_main_thread(command: Commands) -> anyhow::Result<()> {
+    if let Commands::Desktop { api_url } = command {
+        info!("Starting HotM in desktop mode");
+        
+        // Validate desktop mode support
+        validate_mode_support(&ForcedMode::Desktop)
+            .map_err(|e| anyhow::anyhow!("Desktop mode validation failed: {}", e))?;
+        
+        // Set API URL for desktop app  
+        std::env::set_var("HOTM_API_URL", &api_url);
+        
+        // Run Tauri on main thread (blocks until app closes)
+        desktop_mode::run_desktop()
+    } else {
+        unreachable!("run_desktop_mode_main_thread called with non-desktop command")
+    }
+}
+
+#[cfg(all(feature = "server", feature = "desktop"))]
+fn run_hybrid_mode_main_thread(command: Commands) -> anyhow::Result<()> {
+    if let Commands::Hybrid { database_url, bind_address, bind_port } = command {
+        use std::thread;
+        use tracing::{info, error};
+        
+        info!("Starting HotM in hybrid mode (server + desktop)");
+        
+        // Validate both modes
+        validate_mode_support(&ForcedMode::Server)?;
+        validate_mode_support(&ForcedMode::Desktop)?;
+        
+        // Prepare server config
+        let config = AppConfig {
+            database_url: database_url
+                .or_else(|| env::var("DATABASE_URL").ok())
+                .unwrap_or_else(|| "postgres://hotm:hotm@localhost:5432/hotm_dev".to_string()),
+            bind_address: bind_address.clone(),
+            bind_port,
+            ..Default::default()
+        };
+        
+        // Set API URL for desktop to connect to local server
+        env::set_var("HOTM_API_URL", format!("http://{}:{}", bind_address, bind_port));
+        
+        // Start server in background thread with async runtime
+        let server_handle = thread::spawn(move || {
+            let rt = tokio::runtime::Runtime::new().expect("Failed to create async runtime");
+            rt.block_on(async {
+                match server_mode::run_server(config).await {
+                    Ok(()) => info!("Server completed successfully"),
+                    Err(e) => error!("Server failed: {}", e),
+                }
+            });
+        });
+        
+        // Give server time to start
+        thread::sleep(std::time::Duration::from_millis(1000));
+        
+        // Run desktop on main thread (blocks until desktop closes)
+        let desktop_result = desktop_mode::run_desktop();
+        
+        // Desktop closed, server thread will be terminated when process exits
+        desktop_result
+    } else {
+        unreachable!("run_hybrid_mode_main_thread called with non-hybrid command")
+    }
+}
+
+async fn run_async_modes(command: Commands) -> anyhow::Result<()> {
+    match command {
+        // Desktop and hybrid modes should never reach here - they're handled on main thread
+        Commands::Desktop { .. } => {
+            unreachable!("Desktop mode should be handled on main thread")
+        },
+        #[cfg(all(feature = "server", feature = "desktop"))]
+        Commands::Hybrid { .. } => {
+            unreachable!("Hybrid mode should be handled on main thread")  
+        },
         #[cfg(feature = "server")]
         Commands::Server {
             database_url,
@@ -203,87 +296,7 @@ async fn main() -> anyhow::Result<()> {
             server_mode::run_server(config).await
         }
         
-        #[cfg(feature = "desktop")]
-        Commands::Desktop { api_url } => {
-            info!("Starting HotM in desktop mode");
-            
-            // Validate desktop mode support
-            validate_mode_support(&ForcedMode::Desktop)
-                .map_err(|e| anyhow::anyhow!("Desktop mode validation failed: {}", e))?;
-            
-            // Set API URL for desktop app
-            env::set_var("HOTM_API_URL", api_url);
-            
-            desktop_mode::run_desktop().await
-        }
-        
-        #[cfg(all(feature = "server", feature = "desktop"))]
-        Commands::Hybrid {
-            database_url,
-            bind_address,
-            bind_port,
-        } => {
-            info!("Starting HotM in hybrid mode (server + desktop)");
-            
-            // Validate hybrid mode requirements
-            let env = detect_environment(&bind_address, bind_port).await;
-            validate_mode_support(&ForcedMode::Hybrid)
-                .map_err(|e| anyhow::anyhow!("Hybrid mode validation failed: {}", e))?;
-            validate_mode_configuration(&ForcedMode::Hybrid, &env, database_url.as_ref())
-                .map_err(|e| anyhow::anyhow!("Hybrid mode configuration validation failed: {}", e))?;
-            
-            let config = AppConfig {
-                database_url: database_url
-                    .or_else(|| env::var("DATABASE_URL").ok())
-                    .unwrap_or_else(|| "postgres://hotm:hotm@localhost:5432/hotm_dev".to_string()),
-                bind_address: bind_address.clone(),
-                bind_port,
-                ..Default::default()
-            };
-            
-            // Set API URL for desktop to connect to local server
-            env::set_var("HOTM_API_URL", format!("http://{}:{}", bind_address, bind_port));
-            
-            // Start server and desktop concurrently
-            let server_handle = tokio::spawn(server_mode::run_server(config));
-            let desktop_handle = tokio::spawn(desktop_mode::run_desktop());
-            
-            // Wait for either to complete with improved error handling
-            tokio::select! {
-                result = server_handle => {
-                    match result {
-                        Ok(Ok(())) => {
-                            info!("Server completed successfully");
-                            Ok(())
-                        },
-                        Ok(Err(e)) => {
-                            error!("Server failed: {}", e);
-                            Err(anyhow::anyhow!("Server component failed: {}", e))
-                        },
-                        Err(e) => {
-                            error!("Server task panicked: {}", e);
-                            Err(anyhow::anyhow!("Server task panicked: {}", e))
-                        }
-                    }
-                }
-                result = desktop_handle => {
-                    match result {
-                        Ok(Ok(())) => {
-                            info!("Desktop completed successfully");
-                            Ok(())
-                        },
-                        Ok(Err(e)) => {
-                            error!("Desktop failed: {}", e);
-                            Err(anyhow::anyhow!("Desktop component failed: {}", e))
-                        },
-                        Err(e) => {
-                            error!("Desktop task panicked: {}", e);
-                            Err(anyhow::anyhow!("Desktop task panicked: {}", e))
-                        }
-                    }
-                }
-            }
-        }
+        // Desktop and hybrid modes are handled on main thread, not here
         
         #[cfg(any(feature = "server", feature = "desktop"))]
         Commands::Auto {
@@ -338,7 +351,7 @@ async fn main() -> anyhow::Result<()> {
                         "http://127.0.0.1:53211".to_string()
                     };
                     env::set_var("HOTM_API_URL", api_url);
-                    desktop_mode::run_desktop().await
+                    Err(anyhow::anyhow!("Desktop mode must run on main thread - this should not be reachable in auto mode"))
                 },
                 
                 #[cfg(all(feature = "server", feature = "desktop"))]
@@ -354,27 +367,7 @@ async fn main() -> anyhow::Result<()> {
                     
                     env::set_var("HOTM_API_URL", format!("http://{}:{}", bind_address, bind_port));
                     
-                    let server_handle = tokio::spawn(server_mode::run_server(config));
-                    let desktop_handle = tokio::spawn(desktop_mode::run_desktop());
-                    
-                    tokio::select! {
-                        result = server_handle => {
-                            match result {
-                                Ok(Ok(())) => info!("Server completed successfully"),
-                                Ok(Err(e)) => error!("Server failed: {}", e),
-                                Err(e) => error!("Server task panicked: {}", e),
-                            }
-                        }
-                        result = desktop_handle => {
-                            match result {
-                                Ok(Ok(())) => info!("Desktop completed successfully"),
-                                Ok(Err(e)) => error!("Desktop failed: {}", e),
-                                Err(e) => error!("Desktop task panicked: {}", e),
-                            }
-                        }
-                    }
-                    
-                    Ok(())
+                    Err(anyhow::anyhow!("Hybrid mode detected in auto mode - this should be handled at main thread level"))
                 }
                 
                 // Handle unsupported modes at compile time

@@ -1,20 +1,16 @@
 //! Desktop mode implementation for unified runtime
 
 #[cfg(feature = "desktop")]
-pub async fn run_desktop() -> anyhow::Result<()> {
+pub fn run_desktop() -> anyhow::Result<()> {
     use tracing::info;
 
     info!("Starting desktop application...");
 
-    // Run the Tauri application (this blocks until app closes)
-    let result = tokio::task::spawn_blocking(|| {
-        run_tauri_app()
-    }).await;
-    
-    match result {
-        Ok(Ok(())) => Ok(()),
-        Ok(Err(e)) => Err(anyhow::anyhow!("Tauri application failed: {}", e)),
-        Err(e) => Err(anyhow::anyhow!("Desktop task panicked: {}", e)),
+    // Run the Tauri application on the main thread (this blocks until app closes)
+    // Note: Tauri must run on the main thread for Windows event loop compatibility
+    match run_tauri_app() {
+        Ok(()) => Ok(()),
+        Err(e) => Err(anyhow::anyhow!("Tauri application failed: {}", e)),
     }
 }
 
