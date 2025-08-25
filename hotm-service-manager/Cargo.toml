@@ -53,6 +53,7 @@ winapi = { version = "0.3", features = ["winsvc", "winreg", "errhandlingapi", "p
 # Windows-specific build dependencies
 [target.'cfg(windows)'.build-dependencies]
 winres = "0.1"
+winapi = { version = "0.3", features = ["winnt"] }
 
 [dev-dependencies]
 tokio-test.workspace = true
