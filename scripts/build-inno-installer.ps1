@@ -37,14 +37,20 @@ if (-not (Test-Path $InputDir)) {
 # Validate key files exist
 $requiredFiles = @(
     "$InputDir\hotm-unified.exe",
-    "$InputDir\desktop-config.toml",
-    "$InputDir\ui-bundle"
+    "$InputDir\desktop-config.toml"
 )
 
 foreach ($file in $requiredFiles) {
     if (-not (Test-Path $file)) {
         throw "Required file not found: $file"
     }
+}
+
+# UI bundle is optional when using Tauri build (UI is bundled in exe)
+if (Test-Path "$InputDir\ui-bundle") {
+    Write-Host "Found separate UI bundle (will be included)" -ForegroundColor Gray
+} else {
+    Write-Host "No separate UI bundle found (assuming Tauri build with embedded UI)" -ForegroundColor Gray
 }
 
 Write-Host "✅ Input validation passed" -ForegroundColor Green
@@ -68,14 +74,29 @@ Write-Host "   ✓ Copied runtime executable" -ForegroundColor Green
 Copy-Item "$InputDir\desktop-config.toml" "installer\resources\config\desktop-config.toml" -Force
 Write-Host "   ✓ Copied desktop configuration" -ForegroundColor Green
 
-# Copy UI bundle
-if (Test-Path "installer\resources\ui-bundle") {
-    Remove-Item -Recurse -Force "installer\resources\ui-bundle"
+# Copy UI bundle if it exists (optional with Tauri build)
+if (Test-Path "$InputDir\ui-bundle") {
+    if (Test-Path "installer\resources\ui-bundle") {
+        Remove-Item -Recurse -Force "installer\resources\ui-bundle"
+    }
+    Copy-Item -Recurse "$InputDir\ui-bundle" "installer\resources\ui-bundle" -Force
+    Write-Host "   ✓ Copied UI bundle" -ForegroundColor Green
+} else {
+    Write-Host "   ✓ UI bundle embedded in executable (Tauri build)" -ForegroundColor Green
 }
-Copy-Item -Recurse "$InputDir\ui-bundle" "installer\resources\ui-bundle" -Force
-Write-Host "   ✓ Copied UI bundle" -ForegroundColor Green
 
 # Create dynamic Inno Setup script
+# Check if UI bundle exists to determine if we need to include it separately
+$uiBundleSection = if (Test-Path "$InputDir\ui-bundle") {
+@"
+
+; UI bundle (separate files)
+Source: "resources\ui-bundle\*"; DestDir: "{app}\ui"; Flags: ignoreversion recursesubdirs; Components: ui
+"@
+} else {
+    "; UI is embedded in the executable (Tauri build)"
+}
+
 $issTemplate = @"
 ; HotM (Hall of Mind) Inno Setup Installer Script
 ; Generated from desktop build output
@@ -131,9 +152,7 @@ Source: "resources\binaries\hotm-unified.exe"; DestDir: "{app}"; Flags: ignoreve
 
 ; Configuration
 Source: "resources\config\desktop-config.toml"; DestDir: "{app}\config"; Flags: ignoreversion; Components: core
-
-; UI bundle
-Source: "resources\ui-bundle\*"; DestDir: "{app}\ui"; Flags: ignoreversion recursesubdirs; Components: ui
+$uiBundleSection
 
 ; Documentation 
 Source: "..\README.md"; DestDir: "{app}"; DestName: "README.txt"; Flags: ignoreversion; Components: core

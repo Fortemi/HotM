@@ -149,7 +149,7 @@ try {
     
     # Build unified runtime if not skipped
     if (-not $SkipBuild) {
-        Write-Step "Building unified runtime"
+        Write-Step "Building unified runtime with Tauri"
         
         # Load .env file if it exists, but don't override DATABASE_URL if temp DB is running
         if (Test-Path ".env") {
@@ -180,9 +180,6 @@ try {
             Write-Warning ".env file not found - using existing environment variables"
         }
         
-        # Build Rust workspace
-        Write-Host "Building Rust workspace..." -ForegroundColor $colors.Info
-        
         # Verify DATABASE_URL is set
         if ($env:DATABASE_URL) {
             Write-Host "Final DATABASE_URL: $($env:DATABASE_URL -replace 'password=[^@]*', 'password=***')" -ForegroundColor $colors.Info
@@ -190,17 +187,16 @@ try {
             Write-Warning "No DATABASE_URL set - build may fail"
         }
         
-        cargo build --release
-        if ($LASTEXITCODE -ne 0) { throw "Cargo build failed" }
-        
-        # Build frontend (unless skipped)
+        # Build frontend first (required for Tauri build)
         if (-not $SkipFrontend) {
             Write-Step "Building React frontend"
             Push-Location "ui"
             try {
+                Write-Host "Installing dependencies..." -ForegroundColor $colors.Info
                 npm install
                 if ($LASTEXITCODE -ne 0) { throw "npm install failed" }
                 
+                Write-Host "Building frontend..." -ForegroundColor $colors.Info
                 npm run build
                 if ($LASTEXITCODE -ne 0) { throw "npm build failed" }
             } finally {
@@ -210,7 +206,31 @@ try {
             Write-Host "Skipping frontend build (SkipFrontend flag set)" -ForegroundColor $colors.Warning
         }
         
-        Write-Success "Build completed successfully"
+        # Build unified runtime with Tauri (bundles UI)
+        Write-Host "Building unified runtime with Tauri..." -ForegroundColor $colors.Info
+        
+        Push-Location "hotm-unified"
+        try {
+            # Check if tauri CLI is installed
+            $tauriInstalled = $false
+            try {
+                cargo tauri --version | Out-Null
+                $tauriInstalled = $true
+            } catch {
+                Write-Warning "Tauri CLI not found, installing..."
+                cargo install tauri-cli
+                if ($LASTEXITCODE -ne 0) { throw "Failed to install Tauri CLI" }
+            }
+            
+            # Build with Tauri to properly bundle UI
+            Write-Host "Running Tauri build (this bundles the UI)..." -ForegroundColor $colors.Info
+            cargo tauri build
+            if ($LASTEXITCODE -ne 0) { throw "Tauri build failed" }
+            
+            Write-Success "Tauri build completed successfully"
+        } finally {
+            Pop-Location
+        }
     }
     
     # Run tests if requested
@@ -327,25 +347,24 @@ telemetry = false
     # Copy binaries and assets to output directory
     Write-Step "Packaging desktop installer components"
     
-    # Copy unified runtime binary
-    if (Test-Path "target\release\hotm-unified.exe") {
-        Copy-Item "target\release\hotm-unified.exe" "$OutputDir\" -Force
-        Write-Success "Copied hotm-unified.exe"
+    # Copy unified runtime binary (Tauri build output includes bundled UI)
+    $tauriBuildPath = "hotm-unified\target\release\hotm-unified.exe"
+    $fallbackPath = "target\release\hotm-unified.exe"
+    
+    if (Test-Path $tauriBuildPath) {
+        Copy-Item $tauriBuildPath "$OutputDir\" -Force
+        Write-Success "Copied Tauri-built hotm-unified.exe (with bundled UI)"
+    } elseif (Test-Path $fallbackPath) {
+        Copy-Item $fallbackPath "$OutputDir\" -Force
+        Write-Warning "Using standard build output - UI may not be bundled properly"
+        Write-Warning "Run with Tauri build for proper UI bundling"
     } else {
         Write-Warning "hotm-unified.exe not found - may need to run build first"
     }
     
-    # Copy UI bundle (if built)
-    if (-not $SkipFrontend) {
-        if (Test-Path "ui\dist") {
-            Copy-Item "ui\dist" "$OutputDir\ui-bundle" -Recurse -Force
-            Write-Success "Copied UI bundle"
-        } else {
-            Write-Warning "UI bundle not found - may need to build frontend first"
-        }
-    } else {
-        Write-Host "Skipping UI bundle copy (frontend build was skipped)" -ForegroundColor $colors.Info
-    }
+    # Note: When using Tauri build, the UI is bundled into the executable
+    # so we don't need to copy the UI bundle separately
+    Write-Host "Note: Tauri build bundles UI directly into the executable" -ForegroundColor $colors.Info
     
     # Create simple installer script (placeholder for MSI)
     $installerScript = @"
