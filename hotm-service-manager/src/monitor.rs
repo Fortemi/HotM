@@ -316,7 +316,9 @@ impl ServiceMonitor {
                 
                 if Process32First(snapshot, &mut entry) != 0 {
                     loop {
-                        let current_process = String::from_utf8_lossy(&entry.szExeFile[..])
+                        let current_process = String::from_utf8_lossy(unsafe {
+                            std::slice::from_raw_parts(entry.szExeFile.as_ptr() as *const u8, entry.szExeFile.len())
+                        })
                             .to_string()
                             .trim_end_matches('\0')
                             .to_lowercase();

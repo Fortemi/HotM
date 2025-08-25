@@ -18,6 +18,15 @@ use crate::monitor::{HealthResult, ServiceMonitor};
 use crate::recovery::{RecoveryManager, RecoveryAction};
 use crate::registry::RegistryManager;
 
+#[cfg(windows)]
+use winapi::um::{
+    winnt::*,
+    winsvc::*,
+    winbase::*,
+    errhandlingapi::*,
+    handleapi::*,
+};
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum ServiceState {
     NotInstalled,
@@ -750,7 +759,7 @@ impl ServiceManager {
                     },
                 ];
                 
-                let mut failure_actions = SERVICE_FAILURE_ACTIONSA {
+                let mut failure_actions = SERVICE_FAILURE_ACTIONSW {
                     dwResetPeriod: 86400, // 24 hours
                     lpRebootMsg: ptr::null_mut(),
                     lpCommand: ptr::null_mut(),

@@ -8,6 +8,13 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use tracing::{info, warn, error, debug};
 
+#[cfg(windows)]
+use winapi::um::{
+    winnt::*,
+    winreg::*,
+    winsvc::*,
+};
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RegistryServiceConfig {
     pub service_name: String,
@@ -577,7 +584,7 @@ impl RegistryManager {
         }).collect();
         
         // Create failure actions structure
-        let mut failure_actions = SERVICE_FAILURE_ACTIONSA {
+        let mut failure_actions = SERVICE_FAILURE_ACTIONSW {
             dwResetPeriod: 86400, // Reset after 24 hours
             lpRebootMsg: std::ptr::null_mut(),
             lpCommand: std::ptr::null_mut(),

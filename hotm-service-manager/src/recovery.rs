@@ -13,6 +13,15 @@ use tracing::{info, warn, error, debug};
 use crate::config::RecoveryConfiguration;
 use crate::monitor::HealthResult;
 
+#[cfg(windows)]
+use winapi::um::{
+    winnt::*,
+    winbase::*,
+    securitybaseapi::*,
+    winuser::*,
+    reason::*,
+};
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum RecoveryAction {
     ServiceRestart { service_name: String },
@@ -613,8 +622,8 @@ impl RecoveryManager {
                         std::ptr::null_mut(),
                         1,
                         0,
-                        messages.as_ptr(),
-                        std::ptr::null()
+                        messages.as_ptr() as *mut *const i8,
+                        std::ptr::null_mut()
                     );
                     DeregisterEventSource(event_log);
                 }
