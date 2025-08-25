@@ -22,12 +22,12 @@ Write-Host ""
 $BuildPhases = @(
     @{Name = "Pre-build Validation"; Script = "Invoke-PreBuildValidation"; Required = $true},
     @{Name = "Build Unified Runtime"; Script = "Invoke-UnifiedRuntimeBuild"; Required = $true},
-    @{Name = "Download Dependencies"; Script = "Invoke-DependencyDownload"; Required = $IncludeDependencies},
+    @{Name = "Download Dependencies"; Script = "Invoke-DependencyDownload"; Required = $false},
     @{Name = "Build Custom Actions"; Script = "Invoke-CustomActionsBuild"; Required = $false},
     @{Name = "Generate Inno Setup Installer"; Script = "Invoke-InnoSetupBuild"; Required = $true},
     @{Name = "Run Test Suite"; Script = "Invoke-TestSuite"; Required = $RunTests},
-    @{Name = "Generate Documentation"; Script = "Invoke-DocumentationGeneration"; Required = $true},
-    @{Name = "Create Distribution Package"; Script = "Invoke-DistributionPackaging"; Required = $true}
+    @{Name = "Generate Documentation"; Script = "Invoke-DocumentationGeneration"; Required = $false},
+    @{Name = "Create Distribution Package"; Script = "Invoke-DistributionPackaging"; Required = $false}
 )
 
 $script:CurrentPhase = 0
