@@ -87,7 +87,7 @@ function Invoke-UnifiedRuntimeBuild {
     Update-BuildProgress "Building Unified Runtime"
     
     # Clean previous builds
-    if (Test-Path "target/release" -and $Force) {
+    if ((Test-Path "target/release") -and $Force) {
         Remove-Item -Recurse -Force "target/release"
         Write-Host "   Cleaned previous builds" -ForegroundColor Gray
     }
