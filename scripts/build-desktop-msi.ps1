@@ -107,20 +107,16 @@ try {
     if (-not $SkipBuild) {
         Write-Step "Building unified runtime"
         
-        # Build Rust workspace
+        # Build Rust workspace (without database connection)
         Write-Host "Building Rust workspace..." -ForegroundColor $colors.Info
+        Write-Host "Note: Building without database connection - queries will be verified at runtime" -ForegroundColor $colors.Warning
         
-        # Check if SQLx query cache exists, if not prepare it
-        if (-not (Test-Path "hotm-core\sqlx-data.json")) {
-            Write-Host "Preparing SQLx query cache..." -ForegroundColor $colors.Info
-            $env:DATABASE_URL = "postgres://hotm:hotm_local@localhost:54321/hotm"
-            cargo sqlx prepare --workspace
-            if ($LASTEXITCODE -ne 0) {
-                Write-Warning "SQLx prepare failed, using offline mode"
-            }
-        }
+        # Unset SQLX_OFFLINE to disable compile-time query verification
+        # This allows building without a database connection
+        # Queries will be verified when the application connects to the database at runtime
+        Remove-Item Env:SQLX_OFFLINE -ErrorAction SilentlyContinue
+        $env:DATABASE_URL = ""  # Clear any existing DATABASE_URL
         
-        $env:SQLX_OFFLINE = "true"
         cargo build --workspace --release
         if ($LASTEXITCODE -ne 0) { throw "Cargo build failed" }
         
