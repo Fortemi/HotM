@@ -89,9 +89,7 @@
     "shell": {
       "open": true
     },
-    "notification": {
-      "identifier": "com.hotm.unified"
-    },
+    "notification": {},
     "global-shortcut": {}
   }
 }
