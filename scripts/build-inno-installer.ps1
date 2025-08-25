@@ -80,7 +80,7 @@ $issTemplate = @"
 ; HotM (Hall of Mind) Inno Setup Installer Script
 ; Generated from desktop build output
 
-#define MyAppName "HotM (Hall of Mind)"
+#define MyAppName "HotM (Hall of the Mind)"
 #define MyAppVersion "$Version"
 #define MyAppChannel "$Channel"
 #define MyAppPublisher "HotM Project"
@@ -139,9 +139,9 @@ Source: "resources\ui-bundle\*"; DestDir: "{app}\ui"; Flags: ignoreversion recur
 Source: "..\README.md"; DestDir: "{app}"; DestName: "README.txt"; Flags: ignoreversion; Components: core
 
 [Icons]
-Name: "{group}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Parameters: "--mode desktop"; WorkingDir: "{app}"; Components: shortcuts
+Name: "{group}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Parameters: "desktop"; WorkingDir: "{app}"; Components: shortcuts
 Name: "{group}\{cm:UninstallProgram,{#MyAppName}}"; Filename: "{uninstallexe}"; Components: shortcuts
-Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Parameters: "--mode desktop"; WorkingDir: "{app}"; Tasks: desktopicon
+Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Parameters: "desktop"; WorkingDir: "{app}"; Tasks: desktopicon
 
 [Tasks]
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Components: shortcuts
@@ -151,7 +151,7 @@ Root: HKLM; Subkey: "SOFTWARE\HotM"; ValueType: string; ValueName: "InstallPath"
 Root: HKLM; Subkey: "SOFTWARE\HotM"; ValueType: string; ValueName: "Version"; ValueData: "{#MyAppVersion}"
 
 [Run]
-Filename: "{app}\{#MyAppExeName}"; Parameters: "--mode desktop"; WorkingDir: "{app}"; Description: "{cm:LaunchProgram,{#MyAppName}}"; Flags: nowait postinstall skipifsilent; Components: ui
+Filename: "{app}\{#MyAppExeName}"; Parameters: "desktop"; WorkingDir: "{app}"; Description: "{cm:LaunchProgram,{#MyAppName}}"; Flags: nowait postinstall skipifsilent; Components: ui
 
 [Code]
 function InitializeSetup(): Boolean;
