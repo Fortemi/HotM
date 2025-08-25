@@ -23,7 +23,7 @@ $BuildPhases = @(
     @{Name = "Pre-build Validation"; Script = "Invoke-PreBuildValidation"; Required = $true},
     @{Name = "Build Unified Runtime"; Script = "Invoke-UnifiedRuntimeBuild"; Required = $true},
     @{Name = "Download Dependencies"; Script = "Invoke-DependencyDownload"; Required = $IncludeDependencies},
-    @{Name = "Build Custom Actions"; Script = "Invoke-CustomActionsBuild"; Required = $true},
+    @{Name = "Build Custom Actions"; Script = "Invoke-CustomActionsBuild"; Required = $false},
     @{Name = "Generate Inno Setup Installer"; Script = "Invoke-InnoSetupBuild"; Required = $true},
     @{Name = "Run Test Suite"; Script = "Invoke-TestSuite"; Required = $RunTests},
     @{Name = "Generate Documentation"; Script = "Invoke-DocumentationGeneration"; Required = $true},
@@ -47,7 +47,7 @@ function Invoke-PreBuildValidation {
     Update-BuildProgress "Pre-build Validation"
     
     # Check required tools
-    $requiredTools = @("cargo", "npm", "iscc", "cl")  # iscc = Inno Setup compiler, cl for C++ compiler
+    $requiredTools = @("cargo", "npm", "iscc")  # iscc = Inno Setup compiler
     foreach ($tool in $requiredTools) {
         if (-not (Get-Command $tool -ErrorAction SilentlyContinue)) {
             throw "Required tool not found: $tool"
