@@ -1,0 +1,352 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi"
+     xmlns:util="http://schemas.microsoft.com/wix/UtilExtension">
+  
+  <Fragment Id="ServiceComponents">
+    <!-- Service Management Components -->
+    <DirectoryRef Id="BinFolder">
+      <!-- HotM Server Service Component -->
+      <Component Id="HotMServerService" Guid="*">
+        <Condition>INSTALL_SERVER = "1" OR INSTALL_HYBRID = "1"</Condition>
+        
+        <!-- Service executable is the unified binary with server mode -->
+        <File Id="HotMServerServiceExe" 
+              Source="$(var.ResourcesPath)binaries\hotm.exe" 
+              KeyPath="no" />
+        
+        <!-- Install HotM Server as Windows Service -->
+        <ServiceInstall Id="HotMMainService"
+                       Type="ownProcess"
+                       Name="HotM-Server"
+                       DisplayName="Hall of the Mind Server"
+                       Description="Local HTTP API server for Hall of the Mind notes and analysis"
+                       Start="auto"
+                       Account="NetworkService"
+                       ErrorControl="normal"
+                       Arguments="--mode server --service --port [HOTM_SERVER_PORT] --config &quot;[ConfigDataFolder]server-config.toml&quot;"
+                       Interactive="no" />
+        
+        <ServiceControl Id="StartHotMMainService"
+                       Name="HotM-Server"
+                       Start="install"
+                       Stop="both"
+                       Remove="uninstall"
+                       Wait="yes" />
+        
+        <!-- Service recovery configuration -->
+        <ServiceConfig Id="HotMMainServiceRecovery"
+                      ServiceName="HotM-Server"
+                      FirstFailureActionType="restart"
+                      SecondFailureActionType="restart"
+                      ThirdFailureActionType="restart"
+                      RestartServiceDelayInSeconds="15"
+                      ResetPeriodInDays="1" />
+        
+        <!-- Service dependencies -->
+        <ServiceDependency Id="HotMServerDepPostgreSQL">HotM-PostgreSQL</ServiceDependency>
+        <ServiceDependency Id="HotMServerDepOllama">HotM-Ollama</ServiceDependency>
+      </Component>
+      
+      <!-- Service Manager Utility -->
+      <Component Id="ServiceManagerUtility" Guid="*">
+        <File Id="ServiceManagerExe" 
+              Source="$(var.ResourcesPath)binaries\hotm-service-manager.exe" />
+        
+        <!-- Service manager configuration -->
+        <RegistryValue Root="HKLM"
+                       Key="Software\HotM\ServiceManager"
+                       Name="InstallPath"
+                       Type="string"
+                       Value="[BinFolder]"
+                       KeyPath="yes" />
+        
+        <RegistryValue Root="HKLM"
+                       Key="Software\HotM\ServiceManager"
+                       Name="DataPath"
+                       Type="string"
+                       Value="[ConfigDataFolder]" />
+        
+        <RegistryValue Root="HKLM"
+                       Key="Software\HotM\ServiceManager"
+                       Name="Version"
+                       Type="string"
+                       Value="$(var.ProductVersion)" />
+        
+        <RegistryValue Root="HKLM"
+                       Key="Software\HotM\ServiceManager"
+                       Name="MonitoringEnabled"
+                       Type="integer"
+                       Value="1" />
+        
+        <RegistryValue Root="HKLM"
+                       Key="Software\HotM\ServiceManager"
+                       Name="AutoRecoveryEnabled"
+                       Type="integer"
+                       Value="1" />
+      </Component>
+      
+      <!-- Service Manager PowerShell Module -->
+      <Component Id="ServiceManagerModule" Guid="*">
+        <File Id="ServiceManagerPSModule" 
+              Source="$(var.ResourcesPath)scripts\HotM-ServiceManager.psm1" />
+        
+        <!-- PowerShell module manifest -->
+        <File Id="ServiceManagerManifest" 
+              Source="$(var.ResourcesPath)scripts\HotM-ServiceManager.psd1" />
+        
+        <!-- Module registration -->
+        <RegistryValue Root="HKLM"
+                       Key="Software\Microsoft\PowerShell\1\Modules\HotM-ServiceManager"
+                       Name="ModuleBase"
+                       Type="string"
+                       Value="[ScriptsFolder]"
+                       KeyPath="yes" />
+      </Component>
+    </DirectoryRef>
+    
+    <!-- Service Configuration Files -->
+    <DirectoryRef Id="ConfigDataFolder">
+      <Component Id="ServiceConfigs" Guid="*">
+        <Condition>INSTALL_SERVER = "1" OR INSTALL_HYBRID = "1"</Condition>
+        
+        <File Id="ServerServiceConfig" 
+              Source="$(var.ResourcesPath)config\server-service.toml" />
+        
+        <File Id="ServiceDependencyConfig" 
+              Source="$(var.ResourcesPath)config\service-dependencies.toml" />
+        
+        <File Id="ServiceStartupConfig" 
+              Source="$(var.ResourcesPath)config\service-startup.toml" />
+        
+        <!-- Permissions for service configuration files -->
+        <CreateFolder Directory="ConfigDataFolder">
+          <Permission User="NETWORK SERVICE" GenericRead="yes" />
+          <Permission User="Administrators" GenericAll="yes" />
+        </CreateFolder>
+      </Component>
+    </DirectoryRef>
+    
+    <!-- Registry entries for service configuration -->
+    <DirectoryRef Id="TARGETDIR">
+      <Component Id="ServiceRegistry" Guid="*">
+        <Condition>INSTALL_SERVER = "1" OR INSTALL_HYBRID = "1"</Condition>
+        
+        <!-- Main service configuration -->
+        <RegistryValue Root="HKLM"
+                       Key="Software\HotM\Services\Server"
+                       Name="ServiceName"
+                       Type="string"
+                       Value="HotM-Server"
+                       KeyPath="yes" />
+        
+        <RegistryValue Root="HKLM"
+                       Key="Software\HotM\Services\Server"
+                       Name="Port"
+                       Type="integer"
+                       Value="[HOTM_SERVER_PORT]" />
+        
+        <RegistryValue Root="HKLM"
+                       Key="Software\HotM\Services\Server"
+                       Name="ConfigPath"
+                       Type="string"
+                       Value="[ConfigDataFolder]server-service.toml" />
+        
+        <RegistryValue Root="HKLM"
+                       Key="Software\HotM\Services\Server"
+                       Name="LogPath"
+                       Type="string"
+                       Value="[LogsFolder]server.log" />
+        
+        <RegistryValue Root="HKLM"
+                       Key="Software\HotM\Services\Server"
+                       Name="StartupType"
+                       Type="string"
+                       Value="auto" />
+        
+        <!-- Service dependency tracking -->
+        <RegistryValue Root="HKLM"
+                       Key="Software\HotM\Services\Dependencies"
+                       Name="PostgreSQL"
+                       Type="string"
+                       Value="HotM-PostgreSQL" />
+        
+        <RegistryValue Root="HKLM"
+                       Key="Software\HotM\Services\Dependencies"
+                       Name="Ollama"
+                       Type="string"
+                       Value="HotM-Ollama" />
+        
+        <!-- Health monitoring configuration -->
+        <RegistryValue Root="HKLM"
+                       Key="Software\HotM\Services\HealthCheck"
+                       Name="Enabled"
+                       Type="integer"
+                       Value="1" />
+        
+        <RegistryValue Root="HKLM"
+                       Key="Software\HotM\Services\HealthCheck"
+                       Name="IntervalSeconds"
+                       Type="integer"
+                       Value="60" />
+        
+        <RegistryValue Root="HKLM"
+                       Key="Software\HotM\Services\HealthCheck"
+                       Name="TimeoutSeconds"
+                       Type="integer"
+                       Value="30" />
+      </Component>
+      
+      <!-- Event Log Registration -->
+      <Component Id="EventLogRegistration" Guid="*">
+        <Condition>INSTALL_SERVER = "1" OR INSTALL_HYBRID = "1"</Condition>
+        
+        <!-- Register event log source for HotM services -->
+        <RegistryValue Root="HKLM"
+                       Key="SYSTEM\CurrentControlSet\Services\EventLog\Application\HotM-Server"
+                       Name="EventMessageFile"
+                       Type="string"
+                       Value="[BinFolder]hotm.exe"
+                       KeyPath="yes" />
+        
+        <RegistryValue Root="HKLM"
+                       Key="SYSTEM\CurrentControlSet\Services\EventLog\Application\HotM-Server"
+                       Name="TypesSupported"
+                       Type="integer"
+                       Value="7" />
+      </Component>
+    </DirectoryRef>
+    
+    <!-- Service Management Scripts -->
+    <DirectoryRef Id="ScriptsFolder">
+      <Component Id="ServiceScripts" Guid="*">
+        <File Id="StartServicesScript" 
+              Source="$(var.ResourcesPath)scripts\start-services.ps1" />
+        
+        <File Id="StopServicesScript" 
+              Source="$(var.ResourcesPath)scripts\stop-services.ps1" />
+        
+        <File Id="RestartServicesScript" 
+              Source="$(var.ResourcesPath)scripts\restart-services.ps1" />
+        
+        <File Id="ServiceStatusScript" 
+              Source="$(var.ResourcesPath)scripts\service-status.ps1" />
+        
+        <File Id="ServiceHealthCheckScript" 
+              Source="$(var.ResourcesPath)scripts\service-health.ps1" />
+        
+        <File Id="ServiceDiagnosticsScript" 
+              Source="$(var.ResourcesPath)scripts\service-diagnostics.ps1" />
+      </Component>
+    </DirectoryRef>
+    
+    <!-- Windows Firewall Configuration -->
+    <DirectoryRef Id="TARGETDIR">
+      <Component Id="FirewallRules" Guid="*">
+        <Condition>INSTALL_SERVER = "1" OR INSTALL_HYBRID = "1"</Condition>
+        
+        <!-- Firewall rule for HotM Server -->
+        <util:FirewallException Id="HotMServerFirewall"
+                               Name="Hall of the Mind Server"
+                               Port="[HOTM_SERVER_PORT]"
+                               Protocol="tcp"
+                               Scope="localSubnet"
+                               IgnoreFailure="yes"
+                               Description="Allow inbound connections to HotM Server API" />
+        
+        <!-- Firewall rule for PostgreSQL (if embedded) -->
+        <util:FirewallException Id="HotMPostgreSQLFirewall"
+                               Name="HotM PostgreSQL Database"
+                               Port="[POSTGRES_PORT]"
+                               Protocol="tcp"
+                               Scope="localSubnet"
+                               IgnoreFailure="yes"
+                               Description="Allow local connections to HotM embedded PostgreSQL"
+                               Profile="private">
+          <Condition>INSTALL_EMBEDDED_DB = "1"</Condition>
+        </util:FirewallException>
+        
+        <!-- Firewall rule for Ollama (if embedded) -->
+        <util:FirewallException Id="HotMOllamaFirewall"
+                               Name="HotM Ollama AI Service"
+                               Port="[OLLAMA_PORT]"
+                               Protocol="tcp"
+                               Scope="localSubnet"
+                               IgnoreFailure="yes"
+                               Description="Allow local connections to HotM embedded Ollama service"
+                               Profile="private">
+          <Condition>INSTALL_EMBEDDED_OLLAMA = "1"</Condition>
+        </util:FirewallException>
+      </Component>
+    </DirectoryRef>
+    
+    <!-- Scheduled Tasks for Service Monitoring -->
+    <DirectoryRef Id="TARGETDIR">
+      <Component Id="ScheduledTasks" Guid="*">
+        <Condition>INSTALL_SERVER = "1" OR INSTALL_HYBRID = "1"</Condition>
+        
+        <!-- Health check scheduled task -->
+        <RegistryValue Root="HKLM"
+                       Key="Software\HotM\ScheduledTasks"
+                       Name="HealthCheck"
+                       Type="string"
+                       Value="Enabled"
+                       KeyPath="yes" />
+      </Component>
+    </DirectoryRef>
+    
+    <!-- Custom Actions for Service Management -->
+    <CustomAction Id="ConfigureServiceStartup"
+                  BinaryKey="HotMInstallerHelper"
+                  DllEntry="ConfigureServiceStartup"
+                  Execute="deferred"
+                  Impersonate="no"
+                  Return="check" />
+    
+    <CustomAction Id="SetupServiceMonitoring"
+                  BinaryKey="HotMInstallerHelper"
+                  DllEntry="SetupServiceMonitoring"
+                  Execute="deferred"
+                  Impersonate="no"
+                  Return="check" />
+    
+    <CustomAction Id="ValidateServiceHealth"
+                  BinaryKey="HotMInstallerHelper"
+                  DllEntry="ValidateServiceHealth"
+                  Execute="deferred"
+                  Impersonate="no"
+                  Return="check" />
+    
+    <!-- Service startup sequencing -->
+    <InstallExecuteSequence>
+      <Custom Action="ConfigureServiceStartup" After="StartServices">
+        <![CDATA[NOT Installed AND (INSTALL_SERVER = "1" OR INSTALL_HYBRID = "1")]]>
+      </Custom>
+      
+      <Custom Action="SetupServiceMonitoring" After="ConfigureServiceStartup">
+        <![CDATA[NOT Installed AND (INSTALL_SERVER = "1" OR INSTALL_HYBRID = "1")]]>
+      </Custom>
+      
+      <Custom Action="ValidateServiceHealth" Before="InstallFinalize">
+        <![CDATA[NOT Installed AND (INSTALL_SERVER = "1" OR INSTALL_HYBRID = "1")]]>
+      </Custom>
+    </InstallExecuteSequence>
+    
+    <!-- Service Features Definition -->
+    <Feature Id="ServiceManagementFeature"
+             Title="Service Management"
+             Description="Windows service management and monitoring tools"
+             Level="1"
+             Display="expand">
+      <Condition Level="1">INSTALL_SERVER = "1" OR INSTALL_HYBRID = "1"</Condition>
+      
+      <ComponentRef Id="HotMServerService" />
+      <ComponentRef Id="ServiceManagerUtility" />
+      <ComponentRef Id="ServiceConfigs" />
+      <ComponentRef Id="ServiceRegistry" />
+      <ComponentRef Id="EventLogRegistration" />
+      <ComponentRef Id="ServiceScripts" />
+      <ComponentRef Id="FirewallRules" />
+      <ComponentRef Id="ScheduledTasks" />
+    </Feature>
+  </Fragment>
+</Wix>

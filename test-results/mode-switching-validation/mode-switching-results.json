@@ -1,0 +1,493 @@
+{
+  "validation_info": {
+    "framework": "HotM Mode Switching Validator",
+    "version": "1.0.0",
+    "timestamp": "2025-08-24T21:07:21.426971",
+    "total_scenarios": 8
+  },
+  "scenarios": [
+    {
+      "scenario": {
+        "name": "Desktop to Hybrid",
+        "description": "Add server capabilities to desktop installation",
+        "from_mode": "Desktop",
+        "to_mode": "Hybrid",
+        "data_preservation_required": true,
+        "service_reconfiguration_required": true,
+        "network_access_change": true,
+        "expected_duration_max": 300,
+        "rollback_supported": true
+      },
+      "success": true,
+      "duration": 0.022930383682250977,
+      "validation_results": {
+        "success": true,
+        "integrity_score": 90,
+        "failed_tests": [],
+        "warnings": [
+          "Interface Availability"
+        ],
+        "test_results": {
+          "Data Preservation": {
+            "passed": true,
+            "message": "All data preserved successfully"
+          },
+          "Service Configuration": {
+            "passed": true,
+            "message": "Service configuration valid"
+          },
+          "Network Access": {
+            "passed": true,
+            "message": "Network access configuration correct"
+          },
+          "Interface Availability": {
+            "passed": false,
+            "message": "Web interface expected but not available"
+          },
+          "Configuration Consistency": {
+            "passed": true,
+            "message": "Configuration consistency validated"
+          }
+        }
+      },
+      "rollback_result": {
+        "success": true,
+        "integrity_score": 100,
+        "message": "Rollback completed successfully",
+        "deployment_path": "/home/manitcor/dev/hotm/test-results/mode-switching-validation/switched-desktop-16eeff6c"
+      },
+      "performance_metrics": {
+        "switch_duration": 0.022930383682250977,
+        "within_expected_time": true,
+        "data_integrity_score": 90,
+        "rollback_successful": true
+      },
+      "artifacts": {
+        "source_backup": "/home/manitcor/dev/hotm/test-results/mode-switching-validation/state-backup-d8f71e6c",
+        "target_deployment": "/home/manitcor/dev/hotm/test-results/mode-switching-validation/switched-hybrid-c1854332"
+      }
+    },
+    {
+      "scenario": {
+        "name": "Server to Hybrid",
+        "description": "Add desktop interface to server installation",
+        "from_mode": "Server",
+        "to_mode": "Hybrid",
+        "data_preservation_required": true,
+        "service_reconfiguration_required": false,
+        "network_access_change": false,
+        "expected_duration_max": 180,
+        "rollback_supported": true
+      },
+      "success": true,
+      "duration": 0.017913103103637695,
+      "validation_results": {
+        "success": true,
+        "integrity_score": 90,
+        "failed_tests": [],
+        "warnings": [
+          "Interface Availability"
+        ],
+        "test_results": {
+          "Data Preservation": {
+            "passed": true,
+            "message": "All data preserved successfully"
+          },
+          "Service Configuration": {
+            "passed": true,
+            "message": "Service configuration valid"
+          },
+          "Interface Availability": {
+            "passed": false,
+            "message": "Desktop interface expected but not available"
+          },
+          "Configuration Consistency": {
+            "passed": true,
+            "message": "Configuration consistency validated"
+          }
+        }
+      },
+      "rollback_result": {
+        "success": true,
+        "integrity_score": 100,
+        "message": "Rollback completed successfully",
+        "deployment_path": "/home/manitcor/dev/hotm/test-results/mode-switching-validation/switched-server-a6fbd61a"
+      },
+      "performance_metrics": {
+        "switch_duration": 0.017913103103637695,
+        "within_expected_time": true,
+        "data_integrity_score": 90,
+        "rollback_successful": true
+      },
+      "artifacts": {
+        "source_backup": "/home/manitcor/dev/hotm/test-results/mode-switching-validation/state-backup-90fbb621",
+        "target_deployment": "/home/manitcor/dev/hotm/test-results/mode-switching-validation/switched-hybrid-3de03737"
+      }
+    },
+    {
+      "scenario": {
+        "name": "Desktop to Development",
+        "description": "Enable development features on desktop installation",
+        "from_mode": "Desktop",
+        "to_mode": "Development",
+        "data_preservation_required": true,
+        "service_reconfiguration_required": true,
+        "network_access_change": true,
+        "expected_duration_max": 360,
+        "rollback_supported": true
+      },
+      "success": true,
+      "duration": 0.01854729652404785,
+      "validation_results": {
+        "success": true,
+        "integrity_score": 90,
+        "failed_tests": [],
+        "warnings": [
+          "Interface Availability"
+        ],
+        "test_results": {
+          "Data Preservation": {
+            "passed": true,
+            "message": "All data preserved successfully"
+          },
+          "Service Configuration": {
+            "passed": true,
+            "message": "Service configuration valid"
+          },
+          "Network Access": {
+            "passed": true,
+            "message": "Network access configuration correct"
+          },
+          "Interface Availability": {
+            "passed": false,
+            "message": "Web interface expected but not available"
+          },
+          "Configuration Consistency": {
+            "passed": true,
+            "message": "Configuration consistency validated"
+          }
+        }
+      },
+      "rollback_result": {
+        "success": true,
+        "integrity_score": 100,
+        "message": "Rollback completed successfully",
+        "deployment_path": "/home/manitcor/dev/hotm/test-results/mode-switching-validation/switched-desktop-8ed74418"
+      },
+      "performance_metrics": {
+        "switch_duration": 0.01854729652404785,
+        "within_expected_time": true,
+        "data_integrity_score": 90,
+        "rollback_successful": true
+      },
+      "artifacts": {
+        "source_backup": "/home/manitcor/dev/hotm/test-results/mode-switching-validation/state-backup-285ac287",
+        "target_deployment": "/home/manitcor/dev/hotm/test-results/mode-switching-validation/switched-development-7f500a77"
+      }
+    },
+    {
+      "scenario": {
+        "name": "Hybrid to Desktop",
+        "description": "Remove server capabilities, keep desktop interface",
+        "from_mode": "Hybrid",
+        "to_mode": "Desktop",
+        "data_preservation_required": true,
+        "service_reconfiguration_required": true,
+        "network_access_change": true,
+        "expected_duration_max": 240,
+        "rollback_supported": true
+      },
+      "success": true,
+      "duration": 0.01899433135986328,
+      "validation_results": {
+        "success": true,
+        "integrity_score": 100,
+        "failed_tests": [],
+        "warnings": [],
+        "test_results": {
+          "Data Preservation": {
+            "passed": true,
+            "message": "All data preserved successfully"
+          },
+          "Service Configuration": {
+            "passed": true,
+            "message": "Service configuration valid"
+          },
+          "Network Access": {
+            "passed": true,
+            "message": "Network access configuration correct"
+          },
+          "Interface Availability": {
+            "passed": true,
+            "message": "Interface availability correct"
+          },
+          "Configuration Consistency": {
+            "passed": true,
+            "message": "Configuration consistency validated"
+          }
+        }
+      },
+      "rollback_result": {
+        "success": true,
+        "integrity_score": 100,
+        "message": "Rollback completed successfully",
+        "deployment_path": "/home/manitcor/dev/hotm/test-results/mode-switching-validation/switched-hybrid-2cd0a2ed"
+      },
+      "performance_metrics": {
+        "switch_duration": 0.01899433135986328,
+        "within_expected_time": true,
+        "data_integrity_score": 100,
+        "rollback_successful": true
+      },
+      "artifacts": {
+        "source_backup": "/home/manitcor/dev/hotm/test-results/mode-switching-validation/state-backup-ecfb748d",
+        "target_deployment": "/home/manitcor/dev/hotm/test-results/mode-switching-validation/switched-desktop-ce15a5b8"
+      }
+    },
+    {
+      "scenario": {
+        "name": "Hybrid to Server",
+        "description": "Remove desktop interface, keep server capabilities",
+        "from_mode": "Hybrid",
+        "to_mode": "Server",
+        "data_preservation_required": true,
+        "service_reconfiguration_required": false,
+        "network_access_change": false,
+        "expected_duration_max": 120,
+        "rollback_supported": true
+      },
+      "success": true,
+      "duration": 0.018665075302124023,
+      "validation_results": {
+        "success": true,
+        "integrity_score": 100,
+        "failed_tests": [],
+        "warnings": [],
+        "test_results": {
+          "Data Preservation": {
+            "passed": true,
+            "message": "All data preserved successfully"
+          },
+          "Service Configuration": {
+            "passed": true,
+            "message": "Service configuration valid"
+          },
+          "Interface Availability": {
+            "passed": true,
+            "message": "Interface availability correct"
+          },
+          "Configuration Consistency": {
+            "passed": true,
+            "message": "Configuration consistency validated"
+          }
+        }
+      },
+      "rollback_result": {
+        "success": true,
+        "integrity_score": 100,
+        "message": "Rollback completed successfully",
+        "deployment_path": "/home/manitcor/dev/hotm/test-results/mode-switching-validation/switched-hybrid-88b8b6de"
+      },
+      "performance_metrics": {
+        "switch_duration": 0.018665075302124023,
+        "within_expected_time": true,
+        "data_integrity_score": 100,
+        "rollback_successful": true
+      },
+      "artifacts": {
+        "source_backup": "/home/manitcor/dev/hotm/test-results/mode-switching-validation/state-backup-6f9aef4e",
+        "target_deployment": "/home/manitcor/dev/hotm/test-results/mode-switching-validation/switched-server-30f0addd"
+      }
+    },
+    {
+      "scenario": {
+        "name": "Development to Desktop",
+        "description": "Disable development features, keep desktop functionality",
+        "from_mode": "Development",
+        "to_mode": "Desktop",
+        "data_preservation_required": true,
+        "service_reconfiguration_required": true,
+        "network_access_change": true,
+        "expected_duration_max": 180,
+        "rollback_supported": true
+      },
+      "success": true,
+      "duration": 0.016601085662841797,
+      "validation_results": {
+        "success": true,
+        "integrity_score": 100,
+        "failed_tests": [],
+        "warnings": [],
+        "test_results": {
+          "Data Preservation": {
+            "passed": true,
+            "message": "All data preserved successfully"
+          },
+          "Service Configuration": {
+            "passed": true,
+            "message": "Service configuration valid"
+          },
+          "Network Access": {
+            "passed": true,
+            "message": "Network access configuration correct"
+          },
+          "Interface Availability": {
+            "passed": true,
+            "message": "Interface availability correct"
+          },
+          "Configuration Consistency": {
+            "passed": true,
+            "message": "Configuration consistency validated"
+          }
+        }
+      },
+      "rollback_result": {
+        "success": true,
+        "integrity_score": 100,
+        "message": "Rollback completed successfully",
+        "deployment_path": "/home/manitcor/dev/hotm/test-results/mode-switching-validation/switched-development-ba4a542a"
+      },
+      "performance_metrics": {
+        "switch_duration": 0.016601085662841797,
+        "within_expected_time": true,
+        "data_integrity_score": 100,
+        "rollback_successful": true
+      },
+      "artifacts": {
+        "source_backup": "/home/manitcor/dev/hotm/test-results/mode-switching-validation/state-backup-4e44635e",
+        "target_deployment": "/home/manitcor/dev/hotm/test-results/mode-switching-validation/switched-desktop-cad2273f"
+      }
+    },
+    {
+      "scenario": {
+        "name": "Server to Desktop",
+        "description": "Convert server installation to desktop use",
+        "from_mode": "Server",
+        "to_mode": "Desktop",
+        "data_preservation_required": true,
+        "service_reconfiguration_required": true,
+        "network_access_change": true,
+        "expected_duration_max": 300,
+        "rollback_supported": true
+      },
+      "success": true,
+      "duration": 0.017488479614257812,
+      "validation_results": {
+        "success": true,
+        "integrity_score": 90,
+        "failed_tests": [],
+        "warnings": [
+          "Interface Availability"
+        ],
+        "test_results": {
+          "Data Preservation": {
+            "passed": true,
+            "message": "All data preserved successfully"
+          },
+          "Service Configuration": {
+            "passed": true,
+            "message": "Service configuration valid"
+          },
+          "Network Access": {
+            "passed": true,
+            "message": "Network access configuration correct"
+          },
+          "Interface Availability": {
+            "passed": false,
+            "message": "Desktop interface expected but not available"
+          },
+          "Configuration Consistency": {
+            "passed": true,
+            "message": "Configuration consistency validated"
+          }
+        }
+      },
+      "rollback_result": {
+        "success": true,
+        "integrity_score": 100,
+        "message": "Rollback completed successfully",
+        "deployment_path": "/home/manitcor/dev/hotm/test-results/mode-switching-validation/switched-server-2c5b159c"
+      },
+      "performance_metrics": {
+        "switch_duration": 0.017488479614257812,
+        "within_expected_time": true,
+        "data_integrity_score": 90,
+        "rollback_successful": true
+      },
+      "artifacts": {
+        "source_backup": "/home/manitcor/dev/hotm/test-results/mode-switching-validation/state-backup-756f3ac7",
+        "target_deployment": "/home/manitcor/dev/hotm/test-results/mode-switching-validation/switched-desktop-b9e2b51e"
+      }
+    },
+    {
+      "scenario": {
+        "name": "Desktop to Server",
+        "description": "Convert desktop installation to server use",
+        "from_mode": "Desktop",
+        "to_mode": "Server",
+        "data_preservation_required": true,
+        "service_reconfiguration_required": true,
+        "network_access_change": true,
+        "expected_duration_max": 360,
+        "rollback_supported": true
+      },
+      "success": true,
+      "duration": 0.020496129989624023,
+      "validation_results": {
+        "success": true,
+        "integrity_score": 90,
+        "failed_tests": [],
+        "warnings": [
+          "Interface Availability"
+        ],
+        "test_results": {
+          "Data Preservation": {
+            "passed": true,
+            "message": "All data preserved successfully"
+          },
+          "Service Configuration": {
+            "passed": true,
+            "message": "Service configuration valid"
+          },
+          "Network Access": {
+            "passed": true,
+            "message": "Network access configuration correct"
+          },
+          "Interface Availability": {
+            "passed": false,
+            "message": "Web interface expected but not available"
+          },
+          "Configuration Consistency": {
+            "passed": true,
+            "message": "Configuration consistency validated"
+          }
+        }
+      },
+      "rollback_result": {
+        "success": true,
+        "integrity_score": 100,
+        "message": "Rollback completed successfully",
+        "deployment_path": "/home/manitcor/dev/hotm/test-results/mode-switching-validation/switched-desktop-79aa9029"
+      },
+      "performance_metrics": {
+        "switch_duration": 0.020496129989624023,
+        "within_expected_time": true,
+        "data_integrity_score": 90,
+        "rollback_successful": true
+      },
+      "artifacts": {
+        "source_backup": "/home/manitcor/dev/hotm/test-results/mode-switching-validation/state-backup-06d62900",
+        "target_deployment": "/home/manitcor/dev/hotm/test-results/mode-switching-validation/switched-server-85d15c1e"
+      }
+    }
+  ],
+  "summary": {
+    "total_tests": 8,
+    "passed": 8,
+    "failed": 0,
+    "rollbacks_tested": 8,
+    "rollbacks_successful": 8,
+    "average_duration": 0.018954485654830933,
+    "average_integrity_score": 93.75
+  }
+}

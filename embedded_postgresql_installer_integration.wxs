@@ -1,0 +1,357 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+  <Fragment>
+    <!-- PostgreSQL Embedded Database Components -->
+    <DirectoryRef Id="INSTALLDIR">
+      <!-- Database binaries and libraries -->
+      <Directory Id="DatabaseDir" Name="database">
+        <Directory Id="PostgreSQLDir" Name="postgresql">
+          <Directory Id="PgBinDir" Name="bin">
+            <Component Id="PostgreSQLBinaries" Guid="*">
+              <Condition>INSTALL_EMBEDDED_DB = "1"</Condition>
+              <File Id="PostgresExe" Source="$(var.ResourcesPath)postgresql\bin\postgres.exe" KeyPath="yes" />
+              <File Id="InitdbExe" Source="$(var.ResourcesPath)postgresql\bin\initdb.exe" />
+              <File Id="PgCtlExe" Source="$(var.ResourcesPath)postgresql\bin\pg_ctl.exe" />
+              <File Id="PsqlExe" Source="$(var.ResourcesPath)postgresql\bin\psql.exe" />
+              <File Id="PgDumpExe" Source="$(var.ResourcesPath)postgresql\bin\pg_dump.exe" />
+              <File Id="PgRestoreExe" Source="$(var.ResourcesPath)postgresql\bin\pg_restore.exe" />
+              <File Id="PgIsreadyExe" Source="$(var.ResourcesPath)postgresql\bin\pg_isready.exe" />
+              <File Id="CreatedbExe" Source="$(var.ResourcesPath)postgresql\bin\createdb.exe" />
+            </Component>
+          </Directory>
+          
+          <Directory Id="PgLibDir" Name="lib">
+            <Directory Id="PgLibPostgresqlDir" Name="postgresql">
+              <Component Id="PostgreSQLLibraries" Guid="*">
+                <Condition>INSTALL_EMBEDDED_DB = "1"</Condition>
+                <File Id="VectorDll" Source="$(var.ResourcesPath)postgresql\lib\vector.dll" KeyPath="yes" />
+                <File Id="UuidOsspDll" Source="$(var.ResourcesPath)postgresql\lib\uuid-ossp.dll" />
+                <!-- Additional PostgreSQL libraries -->
+                <File Id="LibpqDll" Source="$(var.ResourcesPath)postgresql\lib\libpq.dll" />
+                <File Id="LibintlDll" Source="$(var.ResourcesPath)postgresql\lib\libintl.dll" />
+                <File Id="LibcryptoDll" Source="$(var.ResourcesPath)postgresql\lib\libcrypto-1_1-x64.dll" />
+                <File Id="LibsslDll" Source="$(var.ResourcesPath)postgresql\lib\libssl-1_1-x64.dll" />
+              </Component>
+            </Directory>
+          </Directory>
+          
+          <Directory Id="PgShareDir" Name="share">
+            <Directory Id="PgSharePostgresqlDir" Name="postgresql">
+              <Directory Id="PgExtensionDir" Name="extension">
+                <Component Id="PostgreSQLExtensions" Guid="*">
+                  <Condition>INSTALL_EMBEDDED_DB = "1"</Condition>
+                  <File Id="VectorControl" Source="$(var.ResourcesPath)postgresql\share\extension\vector.control" KeyPath="yes" />
+                  <File Id="VectorSql" Source="$(var.ResourcesPath)postgresql\share\extension\vector--0.7.4.sql" />
+                  <File Id="UuidOsspControl" Source="$(var.ResourcesPath)postgresql\share\extension\uuid-ossp.control" />
+                  <File Id="UuidOsspSql" Source="$(var.ResourcesPath)postgresql\share\extension\uuid-ossp--1.1.sql" />
+                </Component>
+              </Directory>
+            </Directory>
+          </Directory>
+          
+          <Directory Id="PgTemplatesDir" Name="templates">
+            <Component Id="PostgreSQLTemplates" Guid="*">
+              <Condition>INSTALL_EMBEDDED_DB = "1"</Condition>
+              <File Id="PostgresqlConfTemplate" Source="$(var.ResourcesPath)templates\postgresql.conf.template" KeyPath="yes" />
+              <File Id="PgHbaConfTemplate" Source="$(var.ResourcesPath)templates\pg_hba.conf.template" />
+              <File Id="RecoveryConfTemplate" Source="$(var.ResourcesPath)templates\recovery.conf.template" />
+            </Component>
+          </Directory>
+        </Directory>
+        
+        <Directory Id="DbScriptsDir" Name="scripts">
+          <Component Id="DatabaseScripts" Guid="*">
+            <Condition>INSTALL_EMBEDDED_DB = "1"</Condition>
+            <File Id="InitClusterScript" Source="$(var.ResourcesPath)scripts\init-cluster.ps1" KeyPath="yes" />
+            <File Id="BackupDatabaseScript" Source="$(var.ResourcesPath)scripts\backup-database.ps1" />
+            <File Id="RestoreDatabaseScript" Source="$(var.ResourcesPath)scripts\restore-database.ps1" />
+            <File Id="MigrateSchemaScript" Source="$(var.ResourcesPath)scripts\migrate-schema.ps1" />
+            <File Id="HealthCheckScript" Source="$(var.ResourcesPath)scripts\health-check.ps1" />
+          </Component>
+        </Directory>
+      </Directory>
+      
+      <!-- HotM Database Manager -->
+      <Directory Id="BinDir" Name="bin">
+        <Component Id="HotmDbManager" Guid="*">
+          <Condition>INSTALL_EMBEDDED_DB = "1"</Condition>
+          <File Id="HotmDbManagerExe" Source="$(var.ResourcesPath)hotm-db-manager.exe" KeyPath="yes" />
+          <File Id="HotmRecoveryExe" Source="$(var.ResourcesPath)hotm-recovery.exe" />
+          <File Id="HotmInstallerHelperExe" Source="$(var.ResourcesPath)hotm-installer-helper.exe" />
+          
+          <!-- Install PostgreSQL Windows service -->
+          <ServiceInstall Id="HotmPostgreSQLService"
+                         Type="ownProcess"
+                         Name="HotM-PostgreSQL"
+                         DisplayName="HotM PostgreSQL Database Service"
+                         Description="Embedded PostgreSQL database server for Hall of the Mind"
+                         Start="auto"
+                         Account="LocalService"
+                         ErrorControl="normal"
+                         Arguments="service --cluster-path &quot;[PROGRAMDATADIR]HotM\database\cluster&quot; --port [POSTGRES_PORT]" />
+          
+          <ServiceControl Id="StartHotmPostgreSQLService"
+                         Name="HotM-PostgreSQL"
+                         Start="install"
+                         Stop="both"
+                         Remove="uninstall" />
+          
+          <!-- Service recovery configuration -->
+          <ServiceConfig Id="HotmPostgreSQLRecovery"
+                        ServiceName="HotM-PostgreSQL"
+                        FirstFailureActionType="restart"
+                        SecondFailureActionType="restart" 
+                        ThirdFailureActionType="restart"
+                        RestartServiceDelayInSeconds="10"
+                        ResetPeriodInDays="1" />
+        </Component>
+      </Directory>
+    </DirectoryRef>
+    
+    <!-- Data directory structure in ProgramData -->
+    <DirectoryRef Id="CommonAppDataFolder">
+      <Directory Id="HotMDataDir" Name="HotM">
+        <Directory Id="DatabaseDataDir" Name="database">
+          <Directory Id="ClusterDataDir" Name="cluster">
+            <Component Id="DatabaseDataDirs" Guid="*">
+              <Condition>INSTALL_EMBEDDED_DB = "1"</Condition>
+              <CreateFolder />
+              
+              <!-- Set appropriate permissions for PostgreSQL data directory -->
+              <Permission User="[LogonUser]" GenericAll="yes" />
+              <Permission User="NT AUTHORITY\LocalService" GenericAll="yes" />
+              <Permission User="Administrators" GenericAll="yes" />
+            </Component>
+          </Directory>
+          
+          <Directory Id="BackupsDataDir" Name="backups">
+            <Directory Id="DailyBackupsDir" Name="daily" />
+            <Directory Id="WeeklyBackupsDir" Name="weekly" />  
+            <Directory Id="PreUpgradeBackupsDir" Name="pre-upgrade" />
+            <Directory Id="ManualBackupsDir" Name="manual" />
+            <Directory Id="EmergencyBackupsDir" Name="emergency" />
+            
+            <Component Id="BackupDirs" Guid="*">
+              <Condition>INSTALL_EMBEDDED_DB = "1"</Condition>
+              <CreateFolder Directory="DailyBackupsDir" />
+              <CreateFolder Directory="WeeklyBackupsDir" />
+              <CreateFolder Directory="PreUpgradeBackupsDir" />
+              <CreateFolder Directory="ManualBackupsDir" />
+              <CreateFolder Directory="EmergencyBackupsDir" />
+            </Component>
+          </Directory>
+          
+          <Directory Id="MigrationDataDir" Name="migration">
+            <Component Id="MigrationDir" Guid="*">
+              <Condition>INSTALL_EMBEDDED_DB = "1"</Condition>
+              <CreateFolder />
+            </Component>
+          </Directory>
+        </Directory>
+        
+        <Directory Id="ConfigDataDir" Name="config">
+          <Component Id="ConfigDir" Guid="*">
+            <Condition>INSTALL_EMBEDDED_DB = "1"</Condition>
+            <CreateFolder />
+            
+            <!-- Create default configuration files -->
+            <File Id="DefaultDatabaseConfig" Source="$(var.ResourcesPath)config\database.toml" />
+            <File Id="DefaultBackupConfig" Source="$(var.ResourcesPath)config\backup.toml" />
+          </Component>
+        </Directory>
+        
+        <Directory Id="LogsDataDir" Name="logs">
+          <Directory Id="PostgreSQLLogsDir" Name="postgresql">
+            <Component Id="LogsDirs" Guid="*">
+              <Condition>INSTALL_EMBEDDED_DB = "1"</Condition>
+              <CreateFolder />
+              
+              <!-- Permissions for log directories -->
+              <Permission User="NT AUTHORITY\LocalService" GenericAll="yes" />
+              <Permission User="Administrators" GenericRead="yes" />
+            </Component>
+          </Directory>
+        </Directory>
+      </Directory>
+    </DirectoryRef>
+    
+    <!-- Custom installation dialog for database options -->
+    <UI>
+      <Dialog Id="DatabaseOptionsDlg" Width="370" Height="270" Title="[ProductName] Setup">
+        <Control Id="Title" Type="Text" X="15" Y="6" Width="200" Height="15" Transparent="yes" NoPrefix="yes">
+          <Text>{\WixUI_Font_Title}Database Configuration</Text>
+        </Control>
+        
+        <Control Id="Description" Type="Text" X="25" Y="23" Width="280" Height="30" Transparent="yes" NoPrefix="yes">
+          <Text>Choose your database deployment option for Hall of the Mind.</Text>
+        </Control>
+        
+        <Control Id="BannerBitmap" Type="Bitmap" X="0" Y="0" Width="370" Height="44" TabSkip="no" Text="WixUI_Bmp_Banner" />
+        <Control Id="BannerLine" Type="Line" X="0" Y="44" Width="370" Height="0" />
+        
+        <Control Id="EmbeddedDbRadio" Type="RadioButtonGroup" X="25" Y="70" Width="300" Height="80" 
+                 Property="DATABASE_OPTION" Text="DatabaseChoices">
+          <RadioButtonGroup Property="DATABASE_OPTION">
+            <RadioButton Value="embedded" X="0" Y="0" Width="300" Height="15" Text="Embedded PostgreSQL (Recommended)" />
+            <RadioButton Value="external" X="0" Y="20" Width="300" Height="15" Text="External PostgreSQL Connection" />
+          </RadioButtonGroup>
+        </Control>
+        
+        <Control Id="EmbeddedDescription" Type="Text" X="35" Y="105" Width="300" Height="25" Transparent="yes" NoPrefix="yes">
+          <Text>Installs and manages PostgreSQL automatically. No configuration required.</Text>
+        </Control>
+        
+        <Control Id="ExternalDescription" Type="Text" X="35" Y="125" Width="300" Height="40" Transparent="yes" NoPrefix="yes">
+          <Text>Connect to existing PostgreSQL instance. Requires manual setup of pgvector extension and database creation.</Text>
+        </Control>
+        
+        <Control Id="PortLabel" Type="Text" X="25" Y="175" Width="80" Height="12" Transparent="yes" NoPrefix="yes">
+          <Text>PostgreSQL Port:</Text>
+        </Control>
+        
+        <Control Id="PortEdit" Type="Edit" X="110" Y="172" Width="60" Height="18" Property="POSTGRES_PORT">
+          <Condition Action="enable">DATABASE_OPTION = "embedded"</Condition>
+          <Condition Action="disable">DATABASE_OPTION = "external"</Condition>
+        </Control>
+        
+        <Control Id="PortNote" Type="Text" X="180" Y="175" Width="150" Height="25" Transparent="yes" NoPrefix="yes">
+          <Text>(Default: 54321, avoids conflicts with standard PostgreSQL)</Text>
+        </Control>
+        
+        <Control Id="BottomLine" Type="Line" X="0" Y="234" Width="370" Height="0" />
+        
+        <Control Id="Back" Type="PushButton" X="180" Y="243" Width="56" Height="17" Text="&amp;Back">
+          <Publish Event="NewDialog" Value="ComponentsDlg">1</Publish>
+        </Control>
+        
+        <Control Id="Next" Type="PushButton" X="236" Y="243" Width="56" Height="17" Default="yes" Text="&amp;Next">
+          <Publish Event="NewDialog" Value="VerifyReadyDlg">1</Publish>
+        </Control>
+        
+        <Control Id="Cancel" Type="PushButton" X="304" Y="243" Width="56" Height="17" Cancel="yes" Text="Cancel">
+          <Publish Event="SpawnDialog" Value="CancelDlg">1</Publish>
+        </Control>
+      </Dialog>
+      
+      <!-- Modify install sequence to include database dialog -->
+      <InstallUISequence>
+        <Show Dialog="DatabaseOptionsDlg" After="ComponentsDlg">INSTALL_SERVER = "1"</Show>
+      </InstallUISequence>
+    </UI>
+    
+    <!-- Installation properties -->
+    <Property Id="DATABASE_OPTION" Value="embedded" />
+    <Property Id="POSTGRES_PORT" Value="54321" />
+    <Property Id="INSTALL_EMBEDDED_DB" Value="1" />
+    
+    <!-- Conditional installation based on database option -->
+    <Condition Message="Embedded PostgreSQL installation failed. Please check system requirements.">
+      <![CDATA[DATABASE_OPTION <> "embedded" OR Installed]]>
+    </Condition>
+    
+    <!-- Custom actions for database initialization -->
+    <CustomAction Id="InitializeDatabase" 
+                  BinaryKey="HotmInstallerHelper"
+                  DllEntry="InitializeEmbeddedPostgreSQL"
+                  Execute="deferred"
+                  Impersonate="no"
+                  Return="check" />
+    
+    <CustomAction Id="ConfigureDatabase"
+                  BinaryKey="HotmInstallerHelper" 
+                  DllEntry="ConfigureEmbeddedPostgreSQL"
+                  Execute="deferred"
+                  Impersonate="no"
+                  Return="check" />
+                  
+    <CustomAction Id="StartDatabaseService"
+                  BinaryKey="HotmInstallerHelper"
+                  DllEntry="StartDatabaseService"
+                  Execute="deferred" 
+                  Impersonate="no"
+                  Return="check" />
+    
+    <!-- Custom action scheduling -->
+    <InstallExecuteSequence>
+      <Custom Action="InitializeDatabase" After="InstallServices">
+        <![CDATA[NOT Installed AND INSTALL_EMBEDDED_DB = "1"]]>
+      </Custom>
+      <Custom Action="ConfigureDatabase" After="InitializeDatabase">
+        <![CDATA[NOT Installed AND INSTALL_EMBEDDED_DB = "1"]]>
+      </Custom>
+      <Custom Action="StartDatabaseService" After="ConfigureDatabase">
+        <![CDATA[NOT Installed AND INSTALL_EMBEDDED_DB = "1"]]>
+      </Custom>
+    </InstallExecuteSequence>
+    
+    <!-- Feature definition for embedded PostgreSQL -->
+    <Feature Id="EmbeddedDatabaseFeature"
+             Title="Embedded PostgreSQL Database" 
+             Description="Complete embedded PostgreSQL installation with pgvector extension"
+             Level="1"
+             Display="expand">
+      <Condition Level="1">INSTALL_EMBEDDED_DB = "1"</Condition>
+      <ComponentRef Id="PostgreSQLBinaries" />
+      <ComponentRef Id="PostgreSQLLibraries" />
+      <ComponentRef Id="PostgreSQLExtensions" />
+      <ComponentRef Id="PostgreSQLTemplates" />
+      <ComponentRef Id="DatabaseScripts" />
+      <ComponentRef Id="HotmDbManager" />
+      <ComponentRef Id="DatabaseDataDirs" />
+      <ComponentRef Id="BackupDirs" />
+      <ComponentRef Id="MigrationDir" />
+      <ComponentRef Id="ConfigDir" />
+      <ComponentRef Id="LogsDirs" />
+    </Feature>
+    
+    <!-- Registry entries for database configuration -->
+    <DirectoryRef Id="TARGETDIR">
+      <Component Id="DatabaseRegistry" Guid="*">
+        <Condition>INSTALL_EMBEDDED_DB = "1"</Condition>
+        
+        <!-- Database configuration registry -->
+        <RegistryValue Root="HKLM" 
+                       Key="Software\HotM\Database"
+                       Name="Type" 
+                       Type="string" 
+                       Value="embedded" 
+                       KeyPath="yes"/>
+        
+        <RegistryValue Root="HKLM" 
+                       Key="Software\HotM\Database"
+                       Name="Port" 
+                       Type="integer" 
+                       Value="[POSTGRES_PORT]" />
+        
+        <RegistryValue Root="HKLM" 
+                       Key="Software\HotM\Database"
+                       Name="ClusterPath" 
+                       Type="string" 
+                       Value="[PROGRAMDATADIR]HotM\database\cluster" />
+        
+        <RegistryValue Root="HKLM" 
+                       Key="Software\HotM\Database"
+                       Name="BackupPath" 
+                       Type="string" 
+                       Value="[PROGRAMDATADIR]HotM\database\backups" />
+        
+        <RegistryValue Root="HKLM" 
+                       Key="Software\HotM\Database"
+                       Name="Version" 
+                       Type="string" 
+                       Value="15.8" />
+        
+        <RegistryValue Root="HKLM" 
+                       Key="Software\HotM\Database"
+                       Name="PgVectorVersion" 
+                       Type="string" 
+                       Value="0.7.4" />
+      </Component>
+    </DirectoryRef>
+    
+    <!-- Reference the registry component in the feature -->
+    <FeatureRef Id="EmbeddedDatabaseFeature">
+      <ComponentRef Id="DatabaseRegistry" />
+    </FeatureRef>
+  </Fragment>
+</Wix>

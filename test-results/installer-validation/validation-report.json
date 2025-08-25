@@ -1,0 +1,410 @@
+{
+  "validation_info": {
+    "framework": "HotM Installer Validation Framework",
+    "version": "1.0.0",
+    "timestamp": "2025-08-24T20:59:46.694051",
+    "duration": 0.006154,
+    "project_root": "/home/manitcor/dev/hotm"
+  },
+  "statistics": {
+    "total": 27,
+    "passed": 10,
+    "failed": 1,
+    "warnings": 16,
+    "errors": 0,
+    "skipped": 0
+  },
+  "categories": {
+    "Structure": 1,
+    "Config": 19,
+    "Service": 1,
+    "Upgrade": 2,
+    "Security": 1,
+    "Framework": 1,
+    "PowerShell": 1,
+    "Scenario": 1
+  },
+  "results": [
+    {
+      "test_name": "Installer XML Structure",
+      "category": "Structure",
+      "status": "Fail",
+      "message": "Missing required elements: Package",
+      "duration": 0.0014138221740722656,
+      "details": {},
+      "timestamp": "2025-08-24T20:59:46.691365",
+      "artifacts": []
+    },
+    {
+      "test_name": "Desktop Mode Setting",
+      "category": "Config",
+      "status": "Warning",
+      "message": "Deployment mode not explicitly set in config",
+      "duration": 0.000576019287109375,
+      "details": {},
+      "timestamp": "2025-08-24T20:59:46.692008",
+      "artifacts": []
+    },
+    {
+      "test_name": "Desktop Service Config",
+      "category": "Config",
+      "status": "Warning",
+      "message": "Service HotM-Server not configured",
+      "duration": 0.0006172657012939453,
+      "details": {},
+      "timestamp": "2025-08-24T20:59:46.692048",
+      "artifacts": []
+    },
+    {
+      "test_name": "Desktop Port Config",
+      "category": "Config",
+      "status": "Warning",
+      "message": "Port 53211 not configured",
+      "duration": 0.0006315708160400391,
+      "details": {},
+      "timestamp": "2025-08-24T20:59:46.692062",
+      "artifacts": []
+    },
+    {
+      "test_name": "Desktop Configuration",
+      "category": "Config",
+      "status": "Pass",
+      "message": "Configuration file is valid",
+      "duration": 0.000640869140625,
+      "details": {},
+      "timestamp": "2025-08-24T20:59:46.692071",
+      "artifacts": []
+    },
+    {
+      "test_name": "Server Mode Setting",
+      "category": "Config",
+      "status": "Warning",
+      "message": "Deployment mode not explicitly set in config",
+      "duration": 0.0009999275207519531,
+      "details": {},
+      "timestamp": "2025-08-24T20:59:46.692432",
+      "artifacts": []
+    },
+    {
+      "test_name": "Server Service Config",
+      "category": "Config",
+      "status": "Warning",
+      "message": "Service HotM-PostgreSQL not configured",
+      "duration": 0.0010426044464111328,
+      "details": {},
+      "timestamp": "2025-08-24T20:59:46.692473",
+      "artifacts": []
+    },
+    {
+      "test_name": "Server Service Config",
+      "category": "Config",
+      "status": "Warning",
+      "message": "Service HotM-Ollama not configured",
+      "duration": 0.0010595321655273438,
+      "details": {},
+      "timestamp": "2025-08-24T20:59:46.692490",
+      "artifacts": []
+    },
+    {
+      "test_name": "Server Service Config",
+      "category": "Config",
+      "status": "Warning",
+      "message": "Service HotM-Server not configured",
+      "duration": 0.0010733604431152344,
+      "details": {},
+      "timestamp": "2025-08-24T20:59:46.692504",
+      "artifacts": []
+    },
+    {
+      "test_name": "Server Configuration",
+      "category": "Config",
+      "status": "Pass",
+      "message": "Configuration file is valid",
+      "duration": 0.0010836124420166016,
+      "details": {},
+      "timestamp": "2025-08-24T20:59:46.692514",
+      "artifacts": []
+    },
+    {
+      "test_name": "Hybrid Mode Setting",
+      "category": "Config",
+      "status": "Warning",
+      "message": "Deployment mode not explicitly set in config",
+      "duration": 0.001310110092163086,
+      "details": {},
+      "timestamp": "2025-08-24T20:59:46.692741",
+      "artifacts": []
+    },
+    {
+      "test_name": "Hybrid Service Config",
+      "category": "Config",
+      "status": "Warning",
+      "message": "Service HotM-PostgreSQL not configured",
+      "duration": 0.0013439655303955078,
+      "details": {},
+      "timestamp": "2025-08-24T20:59:46.692775",
+      "artifacts": []
+    },
+    {
+      "test_name": "Hybrid Service Config",
+      "category": "Config",
+      "status": "Warning",
+      "message": "Service HotM-Ollama not configured",
+      "duration": 0.0013582706451416016,
+      "details": {},
+      "timestamp": "2025-08-24T20:59:46.692789",
+      "artifacts": []
+    },
+    {
+      "test_name": "Hybrid Service Config",
+      "category": "Config",
+      "status": "Warning",
+      "message": "Service HotM-Server not configured",
+      "duration": 0.0013718605041503906,
+      "details": {},
+      "timestamp": "2025-08-24T20:59:46.692802",
+      "artifacts": []
+    },
+    {
+      "test_name": "Hybrid Configuration",
+      "category": "Config",
+      "status": "Pass",
+      "message": "Configuration file is valid",
+      "duration": 0.0013818740844726562,
+      "details": {},
+      "timestamp": "2025-08-24T20:59:46.692812",
+      "artifacts": []
+    },
+    {
+      "test_name": "Development Mode Setting",
+      "category": "Config",
+      "status": "Warning",
+      "message": "Deployment mode not explicitly set in config",
+      "duration": 0.001861572265625,
+      "details": {},
+      "timestamp": "2025-08-24T20:59:46.693293",
+      "artifacts": []
+    },
+    {
+      "test_name": "Development Service Config",
+      "category": "Config",
+      "status": "Warning",
+      "message": "Service HotM-PostgreSQL not configured",
+      "duration": 0.0019025802612304688,
+      "details": {},
+      "timestamp": "2025-08-24T20:59:46.693333",
+      "artifacts": []
+    },
+    {
+      "test_name": "Development Service Config",
+      "category": "Config",
+      "status": "Warning",
+      "message": "Service HotM-Ollama not configured",
+      "duration": 0.001920461654663086,
+      "details": {},
+      "timestamp": "2025-08-24T20:59:46.693351",
+      "artifacts": []
+    },
+    {
+      "test_name": "Development Service Config",
+      "category": "Config",
+      "status": "Warning",
+      "message": "Service HotM-Server not configured",
+      "duration": 0.0019354820251464844,
+      "details": {},
+      "timestamp": "2025-08-24T20:59:46.693366",
+      "artifacts": []
+    },
+    {
+      "test_name": "Development Configuration",
+      "category": "Config",
+      "status": "Pass",
+      "message": "Configuration file is valid",
+      "duration": 0.0019462108612060547,
+      "details": {},
+      "timestamp": "2025-08-24T20:59:46.693377",
+      "artifacts": []
+    },
+    {
+      "test_name": "Service Dependencies",
+      "category": "Service",
+      "status": "Pass",
+      "message": "All service dependencies are configured",
+      "duration": 0.00021266937255859375,
+      "details": {},
+      "timestamp": "2025-08-24T20:59:46.693615",
+      "artifacts": []
+    },
+    {
+      "test_name": "Data Preservation",
+      "category": "Upgrade",
+      "status": "Warning",
+      "message": "Limited data preservation configuration detected",
+      "duration": 3.4809112548828125e-05,
+      "details": {},
+      "timestamp": "2025-08-24T20:59:46.693702",
+      "artifacts": []
+    },
+    {
+      "test_name": "Upgrade Path Validation",
+      "category": "Upgrade",
+      "status": "Pass",
+      "message": "Upgrade configuration is present",
+      "duration": 4.649162292480469e-05,
+      "details": {},
+      "timestamp": "2025-08-24T20:59:46.693714",
+      "artifacts": []
+    },
+    {
+      "test_name": "Service Security",
+      "category": "Security",
+      "status": "Pass",
+      "message": "Service security configurations are present",
+      "duration": 3.814697265625e-05,
+      "details": {},
+      "timestamp": "2025-08-24T20:59:46.693774",
+      "artifacts": []
+    },
+    {
+      "test_name": "Test Framework Completeness",
+      "category": "Framework",
+      "status": "Pass",
+      "message": "Test framework structure is complete",
+      "duration": 6.532669067382812e-05,
+      "details": {},
+      "timestamp": "2025-08-24T20:59:46.693869",
+      "artifacts": []
+    },
+    {
+      "test_name": "PowerShell Module Validation",
+      "category": "PowerShell",
+      "status": "Pass",
+      "message": "PowerShell modules are properly structured",
+      "duration": 5.030632019042969e-05,
+      "details": {},
+      "timestamp": "2025-08-24T20:59:46.693947",
+      "artifacts": []
+    },
+    {
+      "test_name": "Installation Scenario Coverage",
+      "category": "Scenario",
+      "status": "Pass",
+      "message": "Installation scenarios are well covered",
+      "duration": 4.601478576660156e-05,
+      "details": {},
+      "timestamp": "2025-08-24T20:59:46.694022",
+      "artifacts": []
+    }
+  ],
+  "deployment_modes": {
+    "Desktop": {
+      "name": "Desktop Mode",
+      "description": "Personal knowledge management installation",
+      "expected_services": [
+        "HotM-Server"
+      ],
+      "expected_ports": [
+        53211
+      ],
+      "install_arguments": [
+        "/quiet",
+        "DEPLOYMENT_MODE=desktop"
+      ],
+      "features": [
+        "Desktop",
+        "LocalServer"
+      ],
+      "data_location": "%LOCALAPPDATA%\\HotM",
+      "config_file": "desktop-mode.toml"
+    },
+    "Server": {
+      "name": "Server Mode",
+      "description": "Team collaboration hub installation",
+      "expected_services": [
+        "HotM-PostgreSQL",
+        "HotM-Ollama",
+        "HotM-Server"
+      ],
+      "expected_ports": [
+        54321,
+        11434,
+        53211
+      ],
+      "install_arguments": [
+        "/quiet",
+        "DEPLOYMENT_MODE=server"
+      ],
+      "features": [
+        "Server",
+        "Database",
+        "AIService",
+        "WebUI"
+      ],
+      "data_location": "%ProgramData%\\HotM",
+      "config_file": "server-mode.toml"
+    },
+    "Hybrid": {
+      "name": "Hybrid Mode",
+      "description": "Desktop and server capabilities combined",
+      "expected_services": [
+        "HotM-PostgreSQL",
+        "HotM-Ollama",
+        "HotM-Server"
+      ],
+      "expected_ports": [
+        54321,
+        11434,
+        53211
+      ],
+      "install_arguments": [
+        "/quiet",
+        "DEPLOYMENT_MODE=hybrid"
+      ],
+      "features": [
+        "Desktop",
+        "Server",
+        "Database",
+        "AIService",
+        "LocalServer",
+        "WebUI"
+      ],
+      "data_location": "%ProgramData%\\HotM",
+      "config_file": "hybrid-mode.toml"
+    },
+    "Development": {
+      "name": "Development Mode",
+      "description": "Enhanced developer environment",
+      "expected_services": [
+        "HotM-PostgreSQL",
+        "HotM-Ollama",
+        "HotM-Server"
+      ],
+      "expected_ports": [
+        54321,
+        11434,
+        53211
+      ],
+      "install_arguments": [
+        "/quiet",
+        "DEPLOYMENT_MODE=development",
+        "ENABLE_DEBUG=1"
+      ],
+      "features": [
+        "Desktop",
+        "Server",
+        "Database",
+        "AIService",
+        "Development",
+        "Debugging"
+      ],
+      "data_location": "%ProgramData%\\HotM",
+      "config_file": "development-mode.toml"
+    }
+  },
+  "recommendations": [
+    "Address 1 critical validation failures before production deployment",
+    "Review 16 warning items to improve installation reliability",
+    "Review installer component structure and ensure all required files are present",
+    "Validate deployment mode configuration files for completeness"
+  ]
+}

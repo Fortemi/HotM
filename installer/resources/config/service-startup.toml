@@ -1,0 +1,51 @@
+# HotM Service Startup Configuration
+# Controls how services are started and managed during system boot
+
+[startup]
+# Boot sequence integration
+boot_delay_seconds = 30
+wait_for_network = true
+wait_for_system_ready = true
+max_boot_wait_seconds = 300
+
+# Auto-start configuration
+auto_start_enabled = true
+auto_start_delay_seconds = 10
+startup_check_interval_seconds = 5
+
+[monitoring]
+# Service monitoring during startup
+enabled = true
+health_check_enabled = true
+startup_monitoring_duration_seconds = 300
+failure_threshold = 3
+
+# Recovery during startup
+auto_recovery_enabled = true
+max_recovery_attempts = 5
+recovery_escalation_enabled = true
+
+[notifications]
+# Event logging
+event_log_enabled = true
+event_log_source = "HotM-ServiceManager"
+
+# System notifications
+system_notifications = true
+startup_completion_notification = true
+failure_notifications = true
+
+[performance]
+# Resource management during startup
+cpu_priority = "normal"
+io_priority = "normal"
+memory_limit_mb = 0  # 0 = no limit
+startup_concurrency = 1
+
+[environment]
+# Environment variables for all services
+HOTM_SERVICE_MODE = "production"
+HOTM_LOG_LEVEL = "info"
+HOTM_CONFIG_PATH = "%PROGRAMDATA%\\HotM\\config"
+HOTM_DATA_PATH = "%PROGRAMDATA%\\HotM\\data"
+HOTM_LOGS_PATH = "%PROGRAMDATA%\\HotM\\logs"

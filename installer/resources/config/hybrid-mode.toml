@@ -1,0 +1,305 @@
+# HotM Hybrid Mode Configuration
+# Combines desktop interface with server capabilities
+# Best of both worlds for power users and small teams
+
+[runtime]
+mode = "hybrid"
+version = "0.2.0"
+debug_mode = false
+log_level = "info"
+
+[desktop]
+show_gui = true
+system_tray = true
+auto_start = true
+global_hotkey = "Ctrl+Alt+H"
+minimize_on_close = true
+start_minimized = false
+theme = "system"
+window_state = "normal"
+remember_window_position = true
+single_instance = true
+
+[desktop.hybrid]
+# Hybrid-specific desktop settings
+show_server_status = true
+show_connection_count = true
+show_api_endpoint = true
+enable_server_controls = true
+minimize_when_serving = true
+
+[server]
+bind_address = "0.0.0.0:53211"  # Accept external connections
+enable_web_ui = true
+enable_api = true
+enable_websocket = true
+enable_cors = true
+api_key_required = false  # Optional for hybrid mode
+max_request_size = "50MB"
+request_timeout = 45
+worker_threads = 0  # Use all cores
+compression = true
+
+[server.hybrid]
+# Hybrid-specific server settings
+auto_start_server = true
+stop_server_on_exit = true
+require_confirmation_for_external = false
+show_qr_code_for_mobile = true
+enable_local_network_discovery = true
+
+[server.security]
+# Security for hybrid mode
+local_connections_trusted = true  # Trust local connections
+api_key_for_external_only = true
+rate_limit_external_only = true
+cors_for_external_only = true
+
+[database]
+type = "postgresql"
+host = "localhost"
+port = 54321
+database = "hotm"
+username = "hotm"
+password = ""
+ssl_mode = "disable"
+pool_size = 30  # Balanced for hybrid
+connection_timeout = 30
+embedded = true
+auto_migrate = true
+backup_enabled = true
+
+[database.hybrid]
+# Hybrid-specific database settings
+local_optimization = true
+network_optimization = true
+connection_pool_sharing = true
+smart_caching = true
+
+[database.backup]
+schedule = "daily"
+retention_days = 30
+compression = true
+location = "auto"
+incremental_backup = true
+
+[ollama]
+host = "localhost"
+port = 11434
+generation_model = "gpt-oss:20b"
+embedding_model = "nomic-embed-text"
+context_window = 4096
+temperature = 0.7
+top_p = 0.9
+embedded = true
+auto_pull_models = true
+model_cache_dir = "auto"
+
+[ollama.hybrid]
+# Hybrid-specific Ollama settings
+start_with_desktop = true
+serve_network_requests = true
+priority_local_requests = true
+memory_limit = "6GB"
+concurrent_requests = 8
+
+[search]
+full_text_enabled = true
+semantic_search_enabled = true
+rerank_enabled = true
+max_results = 75  # Balanced for hybrid
+similarity_threshold = 0.7
+
+[search.indexing]
+auto_index = true
+index_batch_size = 100
+embedding_batch_size = 32
+reindex_interval = "18h"
+background_indexing = true
+network_aware_indexing = true  # Adjust based on network activity
+
+[search.hybrid]
+# Hybrid-specific search settings
+local_index_priority = true
+network_index_sharing = false  # Keep indexes local
+smart_prefetching = true
+adaptive_batch_size = true
+
+[nlp]
+auto_summarize = true
+auto_tag = true
+auto_link = true
+min_note_length = 75
+processing_delay = "5s"
+
+[nlp.hybrid]
+# Hybrid-specific NLP settings
+prioritize_local_notes = true
+batch_network_requests = true
+adaptive_processing = true  # Adjust based on system load
+queue_external_requests = true
+
+[performance]
+worker_threads = 0  # Use all cores
+cache_size = "200MB"  # Larger cache for hybrid
+cache_ttl = "90m"
+batch_size = 50
+concurrent_requests = 25
+
+[performance.hybrid]
+# Hybrid-specific performance settings
+adaptive_resource_allocation = true
+desktop_priority = true  # Prioritize desktop responsiveness
+network_throttling = false
+memory_limit = "1GB"
+cpu_limit = 75  # Max 75% CPU usage
+
+[performance.smart_scaling]
+# Smart scaling based on usage
+enabled = true
+scale_based_on_connections = true
+scale_based_on_cpu = true
+scale_based_on_memory = true
+min_workers = 2
+max_workers = 8
+
+[logging]
+level = "info"
+format = "json"
+file_enabled = true
+file_path = "auto"
+max_file_size = "25MB"
+max_files = 5
+console_enabled = true
+
+[logging.hybrid]
+# Hybrid-specific logging
+separate_server_logs = false
+log_client_connections = true
+log_api_requests = true
+log_desktop_events = true
+structured_desktop_logs = false  # Keep desktop logs human-readable
+
+[security]
+api_key_length = 48
+session_timeout = "12h"
+csrf_protection = true
+secure_headers = true
+rate_limiting = true
+
+[security.hybrid]
+# Hybrid-specific security
+trust_local_network = true
+api_key_optional_local = true
+different_rules_for_local = true
+auto_generate_certificates = false
+
+[security.cors]
+enabled = true
+allowed_origins = ["http://localhost:*", "http://127.0.0.1:*", "http://192.168.*:*", "http://10.*:*"]
+allowed_methods = ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
+allowed_headers = ["Content-Type", "Authorization", "X-API-Key"]
+max_age = 86400
+
+[ui]
+theme = "system"
+font_family = "system"
+font_size = 14
+editor_theme = "default"
+syntax_highlighting = true
+line_numbers = true
+word_wrap = true
+
+[ui.hybrid]
+# Hybrid-specific UI settings
+show_server_panel = true
+show_network_status = true
+show_client_list = false  # Privacy consideration
+enable_remote_shutdown = false
+server_controls_in_tray = true
+
+[ui.web]
+# Web UI for external access
+enable_registration = false
+enable_guest_access = false
+session_timeout = "12h"
+max_upload_size = "50MB"
+enable_sharing = true
+responsive_design = true
+
+[integration]
+mcp_enabled = true
+webhook_enabled = true
+export_formats = ["markdown", "json", "pdf", "html"]
+
+[integration.hybrid]
+# Hybrid-specific integrations
+expose_mcp_externally = false  # Keep MCP local only
+webhook_local_only = false
+sync_settings_across_clients = false
+
+[integration.mcp]
+server_name = "hotm-hybrid"
+tools_enabled = true
+capabilities = [
+    "notes", "search", "tags", "collections",
+    "links", "export", "analytics"
+]
+
+[backup]
+auto_backup = true
+backup_interval = "daily"
+backup_retention = 30
+compression = true
+encryption = false
+
+[backup.hybrid]
+# Hybrid-specific backup
+backup_on_server_start = false
+backup_on_server_stop = true
+verify_backups = true
+prompt_before_network_backup = true
+
+[networking]
+# Network-specific settings for hybrid mode
+enable_mdns = true  # Multicast DNS for discovery
+enable_upnp = false  # UPnP port forwarding
+advertise_service = true
+service_name = "HotM"
+
+[networking.discovery]
+# Network discovery settings
+enabled = true
+announce_interval = "5m"
+response_timeout = "10s"
+max_clients = 10
+require_same_subnet = true
+
+[networking.security]
+# Network security
+require_authentication = false  # For local network
+allow_anonymous_read = false
+allow_anonymous_write = false
+ip_whitelist = []  # Empty = allow all local IPs
+ip_blacklist = []
+
+[monitoring]
+# Monitoring for hybrid mode
+enabled = true
+metrics_endpoint = "/metrics"
+health_endpoint = "/health"
+desktop_metrics = true
+server_metrics = true
+
+[monitoring.hybrid]
+# Hybrid-specific monitoring
+track_desktop_usage = true
+track_server_usage = true
+track_network_performance = true
+alert_on_high_external_usage = false
+
+[experimental]
+ai_chat = true
+collaborative_editing = false  # Disabled for hybrid by default
+plugin_system = false
+advanced_analytics = true

@@ -1,0 +1,371 @@
+{
+  "validation_info": {
+    "framework": "HotM Data Backup Validator",
+    "version": "1.0.0",
+    "timestamp": "2025-08-24T21:14:08.901261",
+    "total_scenarios": 5
+  },
+  "scenario_results": [
+    {
+      "scenario": {
+        "name": "Manual Full Backup",
+        "description": "User-initiated full backup of all data",
+        "backup_type": "full",
+        "data_size": "medium",
+        "trigger_type": "manual",
+        "compression_enabled": true,
+        "encryption_enabled": false,
+        "expected_duration_max": 300,
+        "retention_days": 30
+      },
+      "success": false,
+      "duration": 0.032347679138183594,
+      "backup_result": {
+        "success": false,
+        "backup_path": "/home/manitcor/dev/hotm/test-results/data-backup-validation/backups/hotm_backup_full_20250824_211408_3b32d0ce.tar.gz",
+        "metadata_path": "/home/manitcor/dev/hotm/test-results/data-backup-validation/backups/hotm_backup_full_20250824_211408_3b32d0ce.tar.gz.json",
+        "backup_id": "3b32d0ce",
+        "duration": 0.00890493392944336,
+        "source_size_mb": 0.30785083770751953,
+        "backup_size_mb": 0.0,
+        "compression_ratio": 0.0,
+        "backup_speed_mbps": 3.0785083770751953,
+        "metadata": {
+          "backup_id": "3b32d0ce",
+          "scenario_name": "Manual Full Backup",
+          "backup_type": "full",
+          "created_at": "2025-08-24T21:14:08.933537",
+          "source_path": "/home/manitcor/dev/hotm/test-results/data-backup-validation/test-dataset-medium-2317b547",
+          "backup_path": "/home/manitcor/dev/hotm/test-results/data-backup-validation/backups/hotm_backup_full_20250824_211408_3b32d0ce.tar.gz",
+          "source_size_bytes": 322805,
+          "backup_size_bytes": 0,
+          "compression_enabled": true,
+          "encryption_enabled": false,
+          "retention_days": 30,
+          "checksum": ""
+        }
+      },
+      "validation_results": {
+        "success": false,
+        "integrity_score": 0,
+        "failed_checks": [
+          "Backup Creation"
+        ],
+        "warnings": [],
+        "check_results": {}
+      },
+      "restore_result": null,
+      "performance_metrics": {
+        "backup_duration": 0.00890493392944336,
+        "backup_size_mb": 0.0,
+        "compression_ratio": 0.0,
+        "backup_speed_mbps": 3.0785083770751953,
+        "within_expected_time": true
+      },
+      "artifacts": {
+        "test_dataset": "/home/manitcor/dev/hotm/test-results/data-backup-validation/test-dataset-medium-2317b547",
+        "backup_file": "/home/manitcor/dev/hotm/test-results/data-backup-validation/backups/hotm_backup_full_20250824_211408_3b32d0ce.tar.gz",
+        "restore_location": ""
+      }
+    },
+    {
+      "scenario": {
+        "name": "Scheduled Incremental Backup",
+        "description": "Automated incremental backup capturing changes",
+        "backup_type": "incremental",
+        "data_size": "small",
+        "trigger_type": "scheduled",
+        "compression_enabled": true,
+        "encryption_enabled": false,
+        "expected_duration_max": 60,
+        "retention_days": 7
+      },
+      "success": false,
+      "duration": 0.019473791122436523,
+      "backup_result": {
+        "success": false,
+        "backup_path": "/home/manitcor/dev/hotm/test-results/data-backup-validation/backups/hotm_backup_incremental_20250824_211408_de1f5ec3.tar.gz",
+        "metadata_path": "/home/manitcor/dev/hotm/test-results/data-backup-validation/backups/hotm_backup_incremental_20250824_211408_de1f5ec3.tar.gz.json",
+        "backup_id": "de1f5ec3",
+        "duration": 0.0019588470458984375,
+        "source_size_mb": 0.05565166473388672,
+        "backup_size_mb": 0.0,
+        "compression_ratio": 0.0,
+        "backup_speed_mbps": 0.5565166473388672,
+        "metadata": {
+          "backup_id": "de1f5ec3",
+          "scenario_name": "Scheduled Incremental Backup",
+          "backup_type": "incremental",
+          "created_at": "2025-08-24T21:14:08.953051",
+          "source_path": "/home/manitcor/dev/hotm/test-results/data-backup-validation/test-dataset-small-69bb786c",
+          "backup_path": "/home/manitcor/dev/hotm/test-results/data-backup-validation/backups/hotm_backup_incremental_20250824_211408_de1f5ec3.tar.gz",
+          "source_size_bytes": 58355,
+          "backup_size_bytes": 0,
+          "compression_enabled": true,
+          "encryption_enabled": false,
+          "retention_days": 7,
+          "checksum": ""
+        }
+      },
+      "validation_results": {
+        "success": false,
+        "integrity_score": 0,
+        "failed_checks": [
+          "Backup Creation"
+        ],
+        "warnings": [],
+        "check_results": {}
+      },
+      "restore_result": null,
+      "performance_metrics": {
+        "backup_duration": 0.0019588470458984375,
+        "backup_size_mb": 0.0,
+        "compression_ratio": 0.0,
+        "backup_speed_mbps": 0.5565166473388672,
+        "within_expected_time": true
+      },
+      "artifacts": {
+        "test_dataset": "/home/manitcor/dev/hotm/test-results/data-backup-validation/test-dataset-small-69bb786c",
+        "backup_file": "/home/manitcor/dev/hotm/test-results/data-backup-validation/backups/hotm_backup_incremental_20250824_211408_de1f5ec3.tar.gz",
+        "restore_location": ""
+      }
+    },
+    {
+      "scenario": {
+        "name": "Pre-Upgrade Full Backup",
+        "description": "Automatic backup before system upgrade",
+        "backup_type": "full",
+        "data_size": "large",
+        "trigger_type": "pre_upgrade",
+        "compression_enabled": true,
+        "encryption_enabled": true,
+        "expected_duration_max": 600,
+        "retention_days": 90
+      },
+      "success": false,
+      "duration": 0.3358311653137207,
+      "backup_result": {
+        "success": false,
+        "backup_path": "/home/manitcor/dev/hotm/test-results/data-backup-validation/backups/hotm_backup_full_20250824_211408_6a1f76e8.tar.gz",
+        "metadata_path": "/home/manitcor/dev/hotm/test-results/data-backup-validation/backups/hotm_backup_full_20250824_211408_6a1f76e8.tar.gz.json",
+        "backup_id": "6a1f76e8",
+        "duration": 0.2912778854370117,
+        "source_size_mb": 6.0548248291015625,
+        "backup_size_mb": 0.0,
+        "compression_ratio": 0.0,
+        "backup_speed_mbps": 20.787107885026536,
+        "metadata": {
+          "backup_id": "6a1f76e8",
+          "scenario_name": "Pre-Upgrade Full Backup",
+          "backup_type": "full",
+          "created_at": "2025-08-24T21:14:09.288881",
+          "source_path": "/home/manitcor/dev/hotm/test-results/data-backup-validation/test-dataset-large-e317199a",
+          "backup_path": "/home/manitcor/dev/hotm/test-results/data-backup-validation/backups/hotm_backup_full_20250824_211408_6a1f76e8.tar.gz",
+          "source_size_bytes": 6348944,
+          "backup_size_bytes": 0,
+          "compression_enabled": true,
+          "encryption_enabled": true,
+          "retention_days": 90,
+          "checksum": ""
+        }
+      },
+      "validation_results": {
+        "success": false,
+        "integrity_score": 0,
+        "failed_checks": [
+          "Backup Creation"
+        ],
+        "warnings": [],
+        "check_results": {}
+      },
+      "restore_result": null,
+      "performance_metrics": {
+        "backup_duration": 0.2912778854370117,
+        "backup_size_mb": 0.0,
+        "compression_ratio": 0.0,
+        "backup_speed_mbps": 20.787107885026536,
+        "within_expected_time": true
+      },
+      "artifacts": {
+        "test_dataset": "/home/manitcor/dev/hotm/test-results/data-backup-validation/test-dataset-large-e317199a",
+        "backup_file": "/home/manitcor/dev/hotm/test-results/data-backup-validation/backups/hotm_backup_full_20250824_211408_6a1f76e8.tar.gz",
+        "restore_location": ""
+      }
+    },
+    {
+      "scenario": {
+        "name": "Encrypted Full Backup",
+        "description": "Secure encrypted backup for sensitive data",
+        "backup_type": "full",
+        "data_size": "medium",
+        "trigger_type": "manual",
+        "compression_enabled": true,
+        "encryption_enabled": true,
+        "expected_duration_max": 420,
+        "retention_days": 365
+      },
+      "success": false,
+      "duration": 0.26682233810424805,
+      "backup_result": {
+        "success": false,
+        "backup_path": "/home/manitcor/dev/hotm/test-results/data-backup-validation/backups/hotm_backup_full_20250824_211409_cf1469d5.tar.gz",
+        "metadata_path": "/home/manitcor/dev/hotm/test-results/data-backup-validation/backups/hotm_backup_full_20250824_211409_cf1469d5.tar.gz.json",
+        "backup_id": "cf1469d5",
+        "duration": 0.21150922775268555,
+        "source_size_mb": 0.30785083770751953,
+        "backup_size_mb": 0.0,
+        "compression_ratio": 0.0,
+        "backup_speed_mbps": 1.4554960130036725,
+        "metadata": {
+          "backup_id": "cf1469d5",
+          "scenario_name": "Encrypted Full Backup",
+          "backup_type": "full",
+          "created_at": "2025-08-24T21:14:09.555728",
+          "source_path": "/home/manitcor/dev/hotm/test-results/data-backup-validation/test-dataset-medium-6cca48c4",
+          "backup_path": "/home/manitcor/dev/hotm/test-results/data-backup-validation/backups/hotm_backup_full_20250824_211409_cf1469d5.tar.gz",
+          "source_size_bytes": 322805,
+          "backup_size_bytes": 0,
+          "compression_enabled": true,
+          "encryption_enabled": true,
+          "retention_days": 365,
+          "checksum": ""
+        }
+      },
+      "validation_results": {
+        "success": false,
+        "integrity_score": 0,
+        "failed_checks": [
+          "Backup Creation"
+        ],
+        "warnings": [],
+        "check_results": {}
+      },
+      "restore_result": null,
+      "performance_metrics": {
+        "backup_duration": 0.21150922775268555,
+        "backup_size_mb": 0.0,
+        "compression_ratio": 0.0,
+        "backup_speed_mbps": 1.4554960130036725,
+        "within_expected_time": true
+      },
+      "artifacts": {
+        "test_dataset": "/home/manitcor/dev/hotm/test-results/data-backup-validation/test-dataset-medium-6cca48c4",
+        "backup_file": "/home/manitcor/dev/hotm/test-results/data-backup-validation/backups/hotm_backup_full_20250824_211409_cf1469d5.tar.gz",
+        "restore_location": ""
+      }
+    },
+    {
+      "scenario": {
+        "name": "Large Dataset Backup",
+        "description": "Backup performance test with large dataset",
+        "backup_type": "full",
+        "data_size": "large",
+        "trigger_type": "manual",
+        "compression_enabled": false,
+        "encryption_enabled": false,
+        "expected_duration_max": 900,
+        "retention_days": 30
+      },
+      "success": true,
+      "duration": 0.12708234786987305,
+      "backup_result": {
+        "success": true,
+        "backup_path": "/home/manitcor/dev/hotm/test-results/data-backup-validation/backups/hotm_backup_full_20250824_211409_1d807fe5.tar",
+        "metadata_path": "/home/manitcor/dev/hotm/test-results/data-backup-validation/backups/hotm_backup_full_20250824_211409_1d807fe5.tar.json",
+        "backup_id": "1d807fe5",
+        "duration": 0.008753538131713867,
+        "source_size_mb": 6.0548248291015625,
+        "backup_size_mb": 6.25,
+        "compression_ratio": 1.032234651935818,
+        "backup_speed_mbps": 60.548248291015625,
+        "metadata": {
+          "backup_id": "1d807fe5",
+          "scenario_name": "Large Dataset Backup",
+          "backup_type": "full",
+          "created_at": "2025-08-24T21:14:09.644506",
+          "source_path": "/home/manitcor/dev/hotm/test-results/data-backup-validation/test-dataset-large-6059ca6d",
+          "backup_path": "/home/manitcor/dev/hotm/test-results/data-backup-validation/backups/hotm_backup_full_20250824_211409_1d807fe5.tar",
+          "source_size_bytes": 6348944,
+          "backup_size_bytes": 6553600,
+          "compression_enabled": false,
+          "encryption_enabled": false,
+          "retention_days": 30,
+          "checksum": "fe07cd3c8b88d619a40674322128445e5ecc53fa1e6ce03cbbb2d492439bc8bd"
+        }
+      },
+      "validation_results": {
+        "success": true,
+        "integrity_score": 100,
+        "failed_checks": [],
+        "warnings": [],
+        "check_results": {
+          "Database Consistency": {
+            "passed": true,
+            "message": "Database Consistency completed successfully",
+            "critical": true
+          },
+          "File Checksum Validation": {
+            "passed": true,
+            "message": "File Checksum Validation completed successfully",
+            "critical": true
+          },
+          "Backup Archive Integrity": {
+            "passed": true,
+            "message": "Backup Archive Integrity completed successfully",
+            "critical": true
+          },
+          "Data Completeness": {
+            "passed": true,
+            "message": "Data Completeness completed successfully",
+            "critical": true
+          },
+          "Configuration Backup": {
+            "passed": true,
+            "message": "Configuration Backup completed successfully",
+            "critical": true
+          },
+          "Metadata Preservation": {
+            "passed": true,
+            "message": "Metadata Preservation completed successfully",
+            "critical": false
+          },
+          "Incremental Chain Validity": {
+            "passed": true,
+            "message": "Incremental Chain Validity completed successfully",
+            "critical": true
+          }
+        }
+      },
+      "restore_result": {
+        "success": true,
+        "restore_path": "/home/manitcor/dev/hotm/test-results/data-backup-validation/restore-0dc638dc",
+        "duration": 0.0069580078125,
+        "restored_files": 109,
+        "restored_size_mb": 6.0548248291015625,
+        "restore_speed_mbps": 60.548248291015625
+      },
+      "performance_metrics": {
+        "backup_duration": 0.008753538131713867,
+        "backup_size_mb": 6.25,
+        "compression_ratio": 1.032234651935818,
+        "backup_speed_mbps": 60.548248291015625,
+        "within_expected_time": true
+      },
+      "artifacts": {
+        "test_dataset": "/home/manitcor/dev/hotm/test-results/data-backup-validation/test-dataset-large-6059ca6d",
+        "backup_file": "/home/manitcor/dev/hotm/test-results/data-backup-validation/backups/hotm_backup_full_20250824_211409_1d807fe5.tar",
+        "restore_location": "/home/manitcor/dev/hotm/test-results/data-backup-validation/restore-0dc638dc"
+      }
+    }
+  ],
+  "summary": {
+    "total_tests": 5,
+    "passed": 1,
+    "failed": 4,
+    "critical_failures": 4,
+    "average_duration": 0.1563114643096924,
+    "average_integrity_score": 20.0,
+    "total_backup_size_mb": 6.25,
+    "average_backup_speed_mbps": 17.28517544269198
+  }
+}

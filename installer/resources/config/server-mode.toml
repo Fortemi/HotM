@@ -1,0 +1,287 @@
+# HotM Server Mode Configuration
+# Optimized for team collaboration and network deployment
+
+[runtime]
+mode = "server"
+version = "0.2.0"
+debug_mode = false
+log_level = "info"
+
+# Desktop GUI disabled in pure server mode
+[desktop]
+show_gui = false
+system_tray = false
+auto_start = false
+global_hotkey = ""
+minimize_on_close = false
+start_minimized = false
+
+[server]
+bind_address = "0.0.0.0:53211"  # Accept connections from all interfaces
+enable_web_ui = true
+enable_api = true
+enable_websocket = true
+enable_cors = true
+api_key_required = true  # Security for network deployment
+max_request_size = "100MB"  # Larger uploads for server
+request_timeout = 60  # Longer timeout for complex operations
+worker_threads = 0  # Use all cores
+compression = true
+
+[server.network]
+# Network-specific settings
+keep_alive = true
+tcp_nodelay = true
+max_connections = 1000
+connection_timeout = 30
+read_timeout = 30
+write_timeout = 30
+
+[server.ssl]
+# SSL/TLS configuration (optional)
+enabled = false
+cert_file = ""
+key_file = ""
+ca_file = ""
+verify_client = false
+
+[database]
+type = "postgresql"
+host = "localhost"
+port = 54321
+database = "hotm"
+username = "hotm"
+password = ""  # Set during installation
+ssl_mode = "disable"  # Enable for production
+pool_size = 50  # Larger pool for server
+connection_timeout = 30
+embedded = true
+auto_migrate = true
+backup_enabled = true
+
+[database.postgresql]
+# PostgreSQL-specific server settings
+max_connections = 200
+shared_buffers = "256MB"
+effective_cache_size = "1GB"
+maintenance_work_mem = "64MB"
+checkpoint_completion_target = 0.9
+wal_buffers = "16MB"
+default_statistics_target = 100
+
+[database.backup]
+schedule = "daily"
+retention_days = 90  # Longer retention for server
+compression = true
+location = "auto"
+verify_backups = true
+
+[database.monitoring]
+# Database monitoring
+slow_query_log = true
+slow_query_threshold = "1s"
+log_connections = false
+log_disconnections = false
+log_statement = "ddl"  # Log DDL statements
+
+[ollama]
+host = "localhost"
+port = 11434
+generation_model = "gpt-oss:20b"
+embedding_model = "nomic-embed-text"
+context_window = 4096
+temperature = 0.7
+top_p = 0.9
+embedded = true
+auto_pull_models = true
+model_cache_dir = "auto"
+
+[ollama.server]
+# Server-specific Ollama settings
+concurrent_requests = 10
+max_loaded_models = 2
+model_timeout = "30m"
+memory_limit = "8GB"
+gpu_memory_fraction = 0.9
+
+[search]
+full_text_enabled = true
+semantic_search_enabled = true
+rerank_enabled = true
+max_results = 100  # Larger result set for server
+similarity_threshold = 0.7
+
+[search.indexing]
+auto_index = true
+index_batch_size = 200  # Larger batches for server
+embedding_batch_size = 64  # Larger batches
+reindex_interval = "12h"  # More frequent reindexing
+parallel_indexing = true
+
+[search.cache]
+# Search result caching
+enabled = true
+ttl = "1h"
+max_size = "100MB"
+eviction_policy = "lru"
+
+[nlp]
+auto_summarize = true
+auto_tag = true
+auto_link = true
+min_note_length = 50  # Process shorter notes on server
+processing_delay = "2s"  # Faster processing
+
+[nlp.server]
+# Server-specific NLP settings
+parallel_processing = true
+max_concurrent_jobs = 10
+job_timeout = "5m"
+retry_failed_jobs = true
+job_queue_size = 1000
+
+[performance]
+worker_threads = 0  # Use all cores
+cache_size = "500MB"  # Larger cache
+cache_ttl = "2h"
+batch_size = 100  # Larger batches
+concurrent_requests = 50  # Higher concurrency
+
+[performance.server]
+# Server-specific performance settings
+memory_limit = "4GB"
+connection_pooling = true
+request_coalescing = true
+background_jobs = true
+maintenance_window = "02:00-04:00"
+
+[logging]
+level = "info"
+format = "json"  # Structured logging for server
+file_enabled = true
+file_path = "auto"
+max_file_size = "50MB"  # Larger log files
+max_files = 10  # More log files
+console_enabled = true
+syslog_enabled = false
+
+[logging.access]
+# Access logging
+enabled = true
+format = "combined"
+include_user_agent = true
+include_referrer = true
+log_body = false  # Don't log request bodies
+
+[security]
+api_key_length = 64  # Longer keys for server
+session_timeout = "8h"  # Shorter sessions for security
+csrf_protection = true
+secure_headers = true
+rate_limiting = true
+content_security_policy = true
+
+[security.authentication]
+# Authentication settings
+require_api_key = true
+api_key_in_header = true
+api_key_header = "X-API-Key"
+session_cookie_secure = false  # Set to true with HTTPS
+session_cookie_httponly = true
+
+[security.cors]
+enabled = true
+allowed_origins = ["*"]  # Configure for production
+allowed_methods = ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
+allowed_headers = ["Content-Type", "Authorization", "X-API-Key"]
+max_age = 86400
+
+[security.rate_limiting]
+# Rate limiting configuration
+enabled = true
+requests_per_minute = 1000
+burst_size = 100
+key_generator = "ip"  # ip, user, api_key
+skip_authenticated = false
+
+[ui]
+theme = "system"
+font_family = "system"
+font_size = 14
+editor_theme = "default"
+syntax_highlighting = true
+line_numbers = true
+word_wrap = true
+
+[ui.web]
+# Web UI specific settings
+enable_registration = false  # Disable public registration
+enable_guest_access = false
+session_timeout = "8h"
+max_upload_size = "100MB"
+enable_sharing = true
+
+[integration]
+mcp_enabled = true
+webhook_enabled = true
+export_formats = ["markdown", "json", "pdf", "html"]
+
+[integration.webhooks]
+# Webhook configuration
+enabled = true
+max_retries = 3
+retry_delay = "1s"
+timeout = "30s"
+verify_ssl = true
+
+[integration.mcp]
+server_name = "hotm-server"
+tools_enabled = true
+capabilities = [
+    "notes", "search", "tags", "collections",
+    "links", "export", "analytics", "users"
+]
+
+[backup]
+auto_backup = true
+backup_interval = "daily"
+backup_retention = 90  # days
+compression = true
+encryption = false  # Enable for production
+
+[backup.server]
+# Server-specific backup settings
+incremental_backup = true
+parallel_backup = true
+verify_backups = true
+offsite_backup = false  # Configure external backup
+backup_window = "02:00-04:00"
+
+[monitoring]
+# Server monitoring and metrics
+enabled = true
+metrics_endpoint = "/metrics"
+health_endpoint = "/health"
+prometheus_compatible = true
+
+[monitoring.metrics]
+# Metrics collection
+collect_system_metrics = true
+collect_app_metrics = true
+collect_database_metrics = true
+collect_ollama_metrics = true
+retention_days = 30
+
+[monitoring.alerts]
+# Alert configuration
+enabled = false  # Configure external alerting
+disk_usage_threshold = 90
+memory_usage_threshold = 90
+error_rate_threshold = 5  # percent
+response_time_threshold = "5s"
+
+[experimental]
+ai_chat = true  # Enable for server mode
+collaborative_editing = true
+plugin_system = false
+advanced_analytics = true

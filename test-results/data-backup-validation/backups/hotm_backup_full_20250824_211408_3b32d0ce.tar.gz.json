@@ -1,0 +1,14 @@
+{
+  "backup_id": "3b32d0ce",
+  "scenario_name": "Manual Full Backup",
+  "backup_type": "full",
+  "created_at": "2025-08-24T21:14:08.933537",
+  "source_path": "/home/manitcor/dev/hotm/test-results/data-backup-validation/test-dataset-medium-2317b547",
+  "backup_path": "/home/manitcor/dev/hotm/test-results/data-backup-validation/backups/hotm_backup_full_20250824_211408_3b32d0ce.tar.gz",
+  "source_size_bytes": 322805,
+  "backup_size_bytes": 0,
+  "compression_enabled": true,
+  "encryption_enabled": false,
+  "retention_days": 30,
+  "checksum": ""
+}

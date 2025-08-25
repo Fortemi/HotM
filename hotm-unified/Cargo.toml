@@ -40,6 +40,7 @@ tracing-subscriber.workspace = true
 anyhow.workspace = true
 dotenvy.workspace = true
 clap = { workspace = true }
+chrono.workspace = true
 
 # HTTP server dependencies (always available for server mode)
 axum = { workspace = true }

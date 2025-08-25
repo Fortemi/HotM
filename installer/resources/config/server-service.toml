@@ -1,0 +1,43 @@
+# HotM Server Service Configuration
+# This file configures the HotM Server Windows service
+
+[service]
+name = "HotM-Server"
+display_name = "Hall of the Mind Server"
+description = "Local HTTP API server for Hall of the Mind notes and analysis"
+executable = "hotm.exe"
+arguments = ["--mode", "server", "--service", "--port", "53211"]
+start_type = "auto"
+account = "NetworkService"
+error_control = "normal"
+interactive = false
+
+[service.dependencies]
+required = ["HotM-PostgreSQL", "HotM-Ollama"]
+optional = []
+
+[service.recovery]
+first_failure_action = "restart"
+second_failure_action = "restart"
+third_failure_action = "restart"
+restart_delay_seconds = 15
+reset_period_days = 1
+
+[health_check]
+enabled = true
+endpoint = "http://127.0.0.1:53211/health"
+method = "GET"
+timeout_seconds = 30
+interval_seconds = 60
+max_failures = 3
+
+[logging]
+level = "info"
+file = "server.log"
+max_size_mb = 100
+max_files = 10
+
+[environment]
+RUST_LOG = "hotm_server=info,axum=info"
+DATABASE_URL = "postgres://hotm:hotm@127.0.0.1:5432/hotm"
+OLLAMA_URL = "http://127.0.0.1:11434"

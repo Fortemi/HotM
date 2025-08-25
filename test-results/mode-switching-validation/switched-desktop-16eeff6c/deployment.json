@@ -1,0 +1,16 @@
+{
+  "mode": "Desktop",
+  "version": "0.2.0",
+  "created_at": "2025-08-24T21:07:21.442888",
+  "services": [
+    "HotM-Server"
+  ],
+  "ports": [
+    53211
+  ],
+  "capabilities": [
+    "desktop_interface"
+  ],
+  "previous_mode": "Hybrid",
+  "switched_at": "2025-08-24T21:07:21.450854"
+}

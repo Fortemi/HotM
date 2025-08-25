@@ -1,0 +1,14 @@
+{
+  "backup_id": "1d807fe5",
+  "scenario_name": "Large Dataset Backup",
+  "backup_type": "full",
+  "created_at": "2025-08-24T21:14:09.644506",
+  "source_path": "/home/manitcor/dev/hotm/test-results/data-backup-validation/test-dataset-large-6059ca6d",
+  "backup_path": "/home/manitcor/dev/hotm/test-results/data-backup-validation/backups/hotm_backup_full_20250824_211409_1d807fe5.tar",
+  "source_size_bytes": 6348944,
+  "backup_size_bytes": 6553600,
+  "compression_enabled": false,
+  "encryption_enabled": false,
+  "retention_days": 30,
+  "checksum": "fe07cd3c8b88d619a40674322128445e5ecc53fa1e6ce03cbbb2d492439bc8bd"
+}

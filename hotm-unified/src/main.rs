@@ -16,6 +16,9 @@ mod server_mode;
 #[cfg(feature = "desktop")]
 mod desktop_mode;
 
+#[cfg(feature = "desktop")]
+mod service_commands;
+
 mod config;
 
 use config::AppConfig;

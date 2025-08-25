@@ -1,0 +1,453 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi"
+     xmlns:util="http://schemas.microsoft.com/wix/UtilExtension">
+  
+  <Fragment Id="PostgreSQLComponents">
+    <!-- PostgreSQL Embedded Database Components -->
+    <DirectoryRef Id="PostgreSQLFolder">
+      <!-- PostgreSQL binaries -->
+      <Directory Id="PgBinFolder" Name="bin">
+        <Component Id="PostgreSQLBinaries" Guid="*">
+          <Condition>INSTALL_EMBEDDED_DB = "1"</Condition>
+          <File Id="PostgresExe" Source="$(var.ResourcesPath)postgresql\bin\postgres.exe" KeyPath="yes" />
+          <File Id="InitdbExe" Source="$(var.ResourcesPath)postgresql\bin\initdb.exe" />
+          <File Id="PgCtlExe" Source="$(var.ResourcesPath)postgresql\bin\pg_ctl.exe" />
+          <File Id="PsqlExe" Source="$(var.ResourcesPath)postgresql\bin\psql.exe" />
+          <File Id="PgDumpExe" Source="$(var.ResourcesPath)postgresql\bin\pg_dump.exe" />
+          <File Id="PgRestoreExe" Source="$(var.ResourcesPath)postgresql\bin\pg_restore.exe" />
+          <File Id="PgIsreadyExe" Source="$(var.ResourcesPath)postgresql\bin\pg_isready.exe" />
+          <File Id="CreatedbExe" Source="$(var.ResourcesPath)postgresql\bin\createdb.exe" />
+          <File Id="DropdbExe" Source="$(var.ResourcesPath)postgresql\bin\dropdb.exe" />
+          <File Id="CreateuserExe" Source="$(var.ResourcesPath)postgresql\bin\createuser.exe" />
+          <File Id="VacuumdbExe" Source="$(var.ResourcesPath)postgresql\bin\vacuumdb.exe" />
+        </Component>
+      </Directory>
+      
+      <!-- PostgreSQL libraries -->
+      <Directory Id="PgLibFolder" Name="lib">
+        <Component Id="PostgreSQLLibraries" Guid="*">
+          <Condition>INSTALL_EMBEDDED_DB = "1"</Condition>
+          <!-- Core PostgreSQL libraries -->
+          <File Id="LibpqDll" Source="$(var.ResourcesPath)postgresql\lib\libpq.dll" KeyPath="yes" />
+          <File Id="LibintlDll" Source="$(var.ResourcesPath)postgresql\lib\libintl-8.dll" />
+          <File Id="LibicuucDll" Source="$(var.ResourcesPath)postgresql\lib\libicuuc.dll" />
+          <File Id="LibicudtDll" Source="$(var.ResourcesPath)postgresql\lib\libicudt.dll" />
+          <File Id="LibicuinDll" Source="$(var.ResourcesPath)postgresql\lib\libicuin.dll" />
+          <!-- SSL/Crypto libraries -->
+          <File Id="LibcryptoDll" Source="$(var.ResourcesPath)postgresql\lib\libcrypto-1_1-x64.dll" />
+          <File Id="LibsslDll" Source="$(var.ResourcesPath)postgresql\lib\libssl-1_1-x64.dll" />
+          <!-- pgvector extension -->
+          <File Id="VectorDll" Source="$(var.ResourcesPath)postgresql\lib\vector.dll" />
+        </Component>
+      </Directory>
+      
+      <!-- PostgreSQL extensions and share files -->
+      <Directory Id="PgShareFolder" Name="share">
+        <Directory Id="PgExtensionFolder" Name="extension">
+          <Component Id="PostgreSQLExtensions" Guid="*">
+            <Condition>INSTALL_EMBEDDED_DB = "1"</Condition>
+            <!-- pgvector extension files -->
+            <File Id="VectorControl" Source="$(var.ResourcesPath)postgresql\share\extension\vector.control" KeyPath="yes" />
+            <File Id="VectorSql" Source="$(var.ResourcesPath)postgresql\share\extension\vector--0.7.4.sql" />
+            <File Id="VectorUpgradeSql" Source="$(var.ResourcesPath)postgresql\share\extension\vector--0.7.3--0.7.4.sql" />
+            <!-- UUID extension -->
+            <File Id="UuidOsspControl" Source="$(var.ResourcesPath)postgresql\share\extension\uuid-ossp.control" />
+            <File Id="UuidOsspSql" Source="$(var.ResourcesPath)postgresql\share\extension\uuid-ossp--1.1.sql" />
+            <!-- Other useful extensions -->
+            <File Id="BtreeGinControl" Source="$(var.ResourcesPath)postgresql\share\extension\btree_gin.control" />
+            <File Id="BtreeGinSql" Source="$(var.ResourcesPath)postgresql\share\extension\btree_gin--1.3.sql" />
+          </Component>
+        </Directory>
+        
+        <!-- PostgreSQL timezone data -->
+        <Directory Id="PgTimezoneFolder" Name="timezone">
+          <Component Id="PostgreSQLTimezone" Guid="*">
+            <Condition>INSTALL_EMBEDDED_DB = "1"</Condition>
+            <File Id="TimezoneDefault" Source="$(var.ResourcesPath)postgresql\share\timezone\Default" KeyPath="yes" />
+            <!-- Additional timezone files would be listed here -->
+          </Component>
+        </Directory>
+      </Directory>
+    </DirectoryRef>
+    
+    <!-- Database data directories -->
+    <DirectoryRef Id="DatabaseDataFolder">
+      <Directory Id="ClusterFolder" Name="cluster">
+        <Component Id="DatabaseClusterDirs" Guid="*">
+          <Condition>INSTALL_EMBEDDED_DB = "1"</Condition>
+          <CreateFolder Directory="ClusterFolder">
+            <Permission User="NETWORK SERVICE" GenericAll="yes" />
+            <Permission User="Administrators" GenericAll="yes" />
+            <Permission User="Users" GenericRead="yes" />
+          </CreateFolder>
+        </Component>
+      </Directory>
+      
+      <Directory Id="BackupsFolder" Name="backups">
+        <Component Id="DatabaseBackupDirs" Guid="*">
+          <Condition>INSTALL_EMBEDDED_DB = "1"</Condition>
+          <CreateFolder Directory="BackupsFolder">
+            <Permission User="NETWORK SERVICE" GenericAll="yes" />
+            <Permission User="Administrators" GenericAll="yes" />
+          </CreateFolder>
+          
+          <CreateFolder Directory="DailyBackupsFolder">
+            <Permission User="NETWORK SERVICE" GenericAll="yes" />
+          </CreateFolder>
+          
+          <CreateFolder Directory="WeeklyBackupsFolder">
+            <Permission User="NETWORK SERVICE" GenericAll="yes" />
+          </CreateFolder>
+          
+          <CreateFolder Directory="PreUpgradeBackupsFolder">
+            <Permission User="NETWORK SERVICE" GenericAll="yes" />
+          </CreateFolder>
+          
+          <CreateFolder Directory="ManualBackupsFolder">
+            <Permission User="NETWORK SERVICE" GenericAll="yes" />
+            <Permission User="Users" GenericWrite="yes" />
+          </CreateFolder>
+        </Component>
+      </Directory>
+    </DirectoryRef>
+    
+    <!-- PostgreSQL Windows Service -->
+    <DirectoryRef id="BinFolder">
+      <Component Id="PostgreSQLService" Guid="*">
+        <Condition>INSTALL_EMBEDDED_DB = "1" AND (INSTALL_SERVER = "1" OR INSTALL_HYBRID = "1")</Condition>
+        
+        <!-- PostgreSQL Windows Service Installation -->
+        <ServiceInstall Id="HotMPostgreSQLService"
+                       Type="ownProcess"
+                       Name="HotM-PostgreSQL"
+                       DisplayName="HotM PostgreSQL Database Service"
+                       Description="Embedded PostgreSQL database server for Hall of the Mind"
+                       Start="auto"
+                       Account="NetworkService"
+                       ErrorControl="normal"
+                       Arguments="-D &quot;[ClusterFolder]&quot; -p [POSTGRES_PORT] -k &quot;[HotMDataFolder]sockets&quot;"
+                       Interactive="no" />
+        
+        <ServiceControl Id="StartHotMPostgreSQLService"
+                       Name="HotM-PostgreSQL"
+                       Start="install"
+                       Stop="both"
+                       Remove="uninstall"
+                       Wait="yes" />
+        
+        <!-- Service recovery configuration -->
+        <ServiceConfig Id="HotMPostgreSQLRecovery"
+                      ServiceName="HotM-PostgreSQL"
+                      FirstFailureActionType="restart"
+                      SecondFailureActionType="restart"
+                      ThirdFailureActionType="restart"
+                      RestartServiceDelayInSeconds="10"
+                      ResetPeriodInDays="1" />
+        
+        <!-- Environment variables for PostgreSQL service -->
+        <Environment Id="PgData"
+                    Name="PGDATA"
+                    Action="set"
+                    Permanent="no"
+                    System="yes"
+                    Value="[ClusterFolder]" />
+        
+        <Environment Id="PgPort"
+                    Name="PGPORT"
+                    Action="set"
+                    Permanent="no"
+                    System="yes"
+                    Value="[POSTGRES_PORT]" />
+      </Component>
+    </DirectoryRef>
+    
+    <!-- Database management scripts -->
+    <DirectoryRef Id="ScriptsFolder">
+      <Component Id="DatabaseScripts" Guid="*">
+        <Condition>INSTALL_EMBEDDED_DB = "1"</Condition>
+        <File Id="InitClusterScript" Source="$(var.ResourcesPath)scripts\init-cluster.ps1" KeyPath="yes" />
+        <File Id="BackupDatabaseScript" Source="$(var.ResourcesPath)scripts\backup-database.ps1" />
+        <File Id="RestoreDatabaseScript" Source="$(var.ResourcesPath)scripts\restore-database.ps1" />
+        <File Id="MigrateSchemaScript" Source="$(var.ResourcesPath)scripts\migrate-schema.ps1" />
+        <File Id="DatabaseHealthScript" Source="$(var.ResourcesPath)scripts\database-health.ps1" />
+        <File Id="VacuumDatabaseScript" Source="$(var.ResourcesPath)scripts\vacuum-database.ps1" />
+        <File Id="RepairDatabaseScript" Source="$(var.ResourcesPath)scripts\repair-database.ps1" />
+      </Component>
+    </DirectoryRef>
+    
+    <!-- Configuration templates -->
+    <DirectoryRef Id="ConfigFolder">
+      <Component Id="DatabaseConfigTemplates" Guid="*">
+        <Condition>INSTALL_EMBEDDED_DB = "1"</Condition>
+        <File Id="PostgresqlConfTemplate" Source="$(var.ResourcesPath)templates\postgresql.conf.template" KeyPath="yes" />
+        <File Id="PgHbaConfTemplate" Source="$(var.ResourcesPath)templates\pg_hba.conf.template" />
+        <File Id="RecoveryConfTemplate" Source="$(var.ResourcesPath)templates\recovery.conf.template" />
+        <File Id="PostgresqlAutoConfTemplate" Source="$(var.ResourcesPath)templates\postgresql.auto.conf.template" />
+      </Component>
+    </DirectoryRef>
+    
+    <!-- Registry configuration for PostgreSQL -->
+    <DirectoryRef Id="TARGETDIR">
+      <Component Id="PostgreSQLRegistry" Guid="*">
+        <Condition>INSTALL_EMBEDDED_DB = "1"</Condition>
+        
+        <!-- Main PostgreSQL configuration -->
+        <RegistryValue Root="HKLM"
+                       Key="Software\HotM\Database"
+                       Name="Type"
+                       Type="string"
+                       Value="postgresql"
+                       KeyPath="yes" />
+        
+        <RegistryValue Root="HKLM"
+                       Key="Software\HotM\Database"
+                       Name="Version"
+                       Type="string"
+                       Value="15.8" />
+        
+        <RegistryValue Root="HKLM"
+                       Key="Software\HotM\Database"
+                       Name="InstallPath"
+                       Type="string"
+                       Value="[PostgreSQLFolder]" />
+        
+        <RegistryValue Root="HKLM"
+                       Key="Software\HotM\Database"
+                       Name="DataPath"
+                       Type="string"
+                       Value="[ClusterFolder]" />
+        
+        <RegistryValue Root="HKLM"
+                       Key="Software\HotM\Database"
+                       Name="BackupPath"
+                       Type="string"
+                       Value="[BackupsFolder]" />
+        
+        <RegistryValue Root="HKLM"
+                       Key="Software\HotM\Database"
+                       Name="Port"
+                       Type="integer"
+                       Value="[POSTGRES_PORT]" />
+        
+        <RegistryValue Root="HKLM"
+                       Key="Software\HotM\Database"
+                       Name="ServiceInstalled"
+                       Type="integer"
+                       Value="1" />
+        
+        <!-- pgvector configuration -->
+        <RegistryValue Root="HKLM"
+                       Key="Software\HotM\Database\Extensions"
+                       Name="pgvector"
+                       Type="string"
+                       Value="0.7.4" />
+        
+        <RegistryValue Root="HKLM"
+                       Key="Software\HotM\Database\Extensions"
+                       Name="uuid-ossp"
+                       Type="string"
+                       Value="1.1" />
+        
+        <!-- Connection configuration -->
+        <RegistryValue Root="HKLM"
+                       Key="Software\HotM\Database\Connection"
+                       Name="Host"
+                       Type="string"
+                       Value="localhost" />
+        
+        <RegistryValue Root="HKLM"
+                       Key="Software\HotM\Database\Connection"
+                       Name="Database"
+                       Type="string"
+                       Value="hotm" />
+        
+        <RegistryValue Root="HKLM"
+                       Key="Software\HotM\Database\Connection"
+                       Name="Username"
+                       Type="string"
+                       Value="hotm" />
+      </Component>
+    </DirectoryRef>
+    
+    <!-- Database options dialog -->
+    <UI>
+      <Dialog Id="DatabaseOptionsDlg" Width="370" Height="270" Title="[ProductName] Setup">
+        <Control Id="Title" Type="Text" X="15" Y="6" Width="200" Height="15" Transparent="yes" NoPrefix="yes">
+          <Text>{\WixUI_Font_Title}Database Configuration</Text>
+        </Control>
+        
+        <Control Id="Description" Type="Text" X="25" Y="23" Width="280" Height="30" Transparent="yes" NoPrefix="yes">
+          <Text>Configure the database for Hall of the Mind data storage.</Text>
+        </Control>
+        
+        <Control Id="BannerBitmap" Type="Bitmap" X="0" Y="0" Width="370" Height="44" TabSkip="no" Text="WixUI_Bmp_Banner" />
+        <Control Id="BannerLine" Type="Line" X="0" Y="44" Width="370" Height="0" />
+        
+        <!-- Database option selection -->
+        <Control Id="DatabaseOptionGroup" Type="RadioButtonGroup" X="25" Y="70" Width="320" Height="80" 
+                 Property="DATABASE_OPTION" Text="DatabaseChoices">
+          <RadioButtonGroup Property="DATABASE_OPTION">
+            <RadioButton Value="embedded" X="0" Y="0" Width="320" Height="15" 
+                        Text="Embedded PostgreSQL with pgvector (Recommended)" />
+            <RadioButton Value="external" X="0" Y="20" Width="320" Height="15" 
+                        Text="Connect to existing PostgreSQL database" />
+            <RadioButton Value="sqlite" X="0" Y="40" Width="320" Height="15" 
+                        Text="Lightweight SQLite database (Desktop mode only)" />
+          </RadioButtonGroup>
+        </Control>
+        
+        <!-- Option descriptions -->
+        <Control Id="EmbeddedDescription" Type="Text" X="35" Y="115" Width="300" Height="30" Transparent="yes" NoPrefix="yes">
+          <Text>Installs and manages PostgreSQL automatically. Includes pgvector for AI features. Requires ~200MB disk space.</Text>
+          <Condition Action="show">DATABASE_OPTION = "embedded"</Condition>
+          <Condition Action="hide">DATABASE_OPTION &lt;&gt; "embedded"</Condition>
+        </Control>
+        
+        <Control Id="ExternalDescription" Type="Text" X="35" Y="115" Width="300" Height="30" Transparent="yes" NoPrefix="yes">
+          <Text>Connect to existing PostgreSQL instance. Requires manual setup of pgvector extension and database creation.</Text>
+          <Condition Action="show">DATABASE_OPTION = "external"</Condition>
+          <Condition Action="hide">DATABASE_OPTION &lt;&gt; "external"</Condition>
+        </Control>
+        
+        <Control Id="SqliteDescription" Type="Text" X="35" Y="115" Width="300" Height="30" Transparent="yes" NoPrefix="yes">
+          <Text>Lightweight file-based database. No AI features or multi-user support. Best for simple desktop usage.</Text>
+          <Condition Action="show">DATABASE_OPTION = "sqlite"</Condition>
+          <Condition Action="hide">DATABASE_OPTION &lt;&gt; "sqlite"</Condition>
+        </Control>
+        
+        <!-- Port configuration -->
+        <Control Id="PortLabel" Type="Text" X="25" Y="170" Width="80" Height="12" Transparent="yes" NoPrefix="yes">
+          <Text>PostgreSQL Port:</Text>
+          <Condition Action="show">DATABASE_OPTION = "embedded"</Condition>
+          <Condition Action="hide">DATABASE_OPTION &lt;&gt; "embedded"</Condition>
+        </Control>
+        
+        <Control Id="PortEdit" Type="Edit" X="110" Y="167" Width="60" Height="18" Property="POSTGRES_PORT">
+          <Condition Action="enable">DATABASE_OPTION = "embedded"</Condition>
+          <Condition Action="disable">DATABASE_OPTION &lt;&gt; "embedded"</Condition>
+        </Control>
+        
+        <Control Id="PortNote" Type="Text" X="180" Y="170" Width="160" Height="20" Transparent="yes" NoPrefix="yes">
+          <Text>(Default: 54321, avoids conflicts with standard PostgreSQL)</Text>
+          <Condition Action="show">DATABASE_OPTION = "embedded"</Condition>
+          <Condition Action="hide">DATABASE_OPTION &lt;&gt; "embedded"</Condition>
+        </Control>
+        
+        <!-- Performance optimization checkbox -->
+        <Control Id="OptimizeCheckBox" Type="CheckBox" X="25" Y="195" Width="320" Height="15" 
+                 Property="OPTIMIZE_DATABASE" CheckBoxValue="1">
+          <Text>Optimize database configuration for this system (Recommended)</Text>
+          <Condition Action="show">DATABASE_OPTION = "embedded"</Condition>
+          <Condition Action="hide">DATABASE_OPTION &lt;&gt; "embedded"</Condition>
+        </Control>
+        
+        <Control Id="BottomLine" Type="Line" X="0" Y="234" Width="370" Height="0" />
+        
+        <Control Id="Back" Type="PushButton" X="180" Y="243" Width="56" Height="17" Text="&amp;Back">
+          <Publish Event="NewDialog" Value="DeploymentModeDlg">1</Publish>
+        </Control>
+        
+        <Control Id="Next" Type="PushButton" X="236" Y="243" Width="56" Height="17" Default="yes" Text="&amp;Next">
+          <!-- Set database installation properties -->
+          <Publish Property="INSTALL_EMBEDDED_DB" Value="1">DATABASE_OPTION = "embedded"</Publish>
+          <Publish Property="INSTALL_EMBEDDED_DB" Value="0">DATABASE_OPTION &lt;&gt; "embedded"</Publish>
+          
+          <Publish Event="NewDialog" Value="OllamaOptionsDlg">1</Publish>
+        </Control>
+        
+        <Control Id="Cancel" Type="PushButton" X="304" Y="243" Width="56" Height="17" Cancel="yes" Text="Cancel">
+          <Publish Event="SpawnDialog" Value="CancelDlg">1</Publish>
+        </Control>
+      </Dialog>
+      
+      <!-- Add to install sequence -->
+      <InstallUISequence>
+        <Show Dialog="DatabaseOptionsDlg" After="DeploymentModeDlg">
+          DEPLOYMENT_MODE = "server" OR DEPLOYMENT_MODE = "hybrid" OR DEPLOYMENT_MODE = "development"
+        </Show>
+      </InstallUISequence>
+    </UI>
+    
+    <!-- Installation properties -->
+    <Property Id="DATABASE_OPTION" Value="embedded" />
+    <Property Id="POSTGRES_PORT" Value="54321" />
+    <Property Id="INSTALL_EMBEDDED_DB" Value="1" />
+    <Property Id="OPTIMIZE_DATABASE" Value="1" />
+    
+    <!-- Custom actions for database setup -->
+    <CustomAction Id="InitializePostgreSQL"
+                  BinaryKey="HotMInstallerHelper"
+                  DllEntry="InitializeEmbeddedPostgreSQL"
+                  Execute="deferred"
+                  Impersonate="no"
+                  Return="check" />
+    
+    <CustomAction Id="ConfigurePostgreSQL"
+                  BinaryKey="HotMInstallerHelper"
+                  DllEntry="ConfigureEmbeddedPostgreSQL"
+                  Execute="deferred"
+                  Impersonate="no"
+                  Return="check" />
+    
+    <CustomAction Id="OptimizeDatabase"
+                  BinaryKey="HotMInstallerHelper"
+                  DllEntry="OptimizeEmbeddedPostgreSQL"
+                  Execute="deferred"
+                  Impersonate="no"
+                  Return="check" />
+    
+    <CustomAction Id="StartPostgreSQLService"
+                  BinaryKey="HotMInstallerHelper"
+                  DllEntry="StartPostgreSQLService"
+                  Execute="deferred"
+                  Impersonate="no"
+                  Return="check" />
+    
+    <!-- Custom action scheduling -->
+    <InstallExecuteSequence>
+      <Custom Action="InitializePostgreSQL" After="InstallServices">
+        <![CDATA[NOT Installed AND INSTALL_EMBEDDED_DB = "1"]]>
+      </Custom>
+      
+      <Custom Action="ConfigurePostgreSQL" After="InitializePostgreSQL">
+        <![CDATA[NOT Installed AND INSTALL_EMBEDDED_DB = "1"]]>
+      </Custom>
+      
+      <Custom Action="OptimizeDatabase" After="ConfigurePostgreSQL">
+        <![CDATA[NOT Installed AND INSTALL_EMBEDDED_DB = "1" AND OPTIMIZE_DATABASE = "1"]]>
+      </Custom>
+      
+      <Custom Action="StartPostgreSQLService" After="OptimizeDatabase">
+        <![CDATA[NOT Installed AND INSTALL_EMBEDDED_DB = "1"]]>
+      </Custom>
+    </InstallExecuteSequence>
+    
+    <!-- Feature definition for PostgreSQL -->
+    <Feature Id="EmbeddedDatabaseFeature"
+             Title="Embedded PostgreSQL Database"
+             Description="Complete PostgreSQL installation with pgvector extension for AI features"
+             Level="1"
+             Display="expand">
+      <Condition Level="1">INSTALL_EMBEDDED_DB = "1"</Condition>
+      
+      <ComponentRef Id="PostgreSQLBinaries" />
+      <ComponentRef Id="PostgreSQLLibraries" />
+      <ComponentRef Id="PostgreSQLExtensions" />
+      <ComponentRef Id="PostgreSQLTimezone" />
+      <ComponentRef Id="DatabaseClusterDirs" />
+      <ComponentRef Id="DatabaseBackupDirs" />
+      <ComponentRef Id="DatabaseScripts" />
+      <ComponentRef Id="DatabaseConfigTemplates" />
+      <ComponentRef Id="PostgreSQLRegistry" />
+      
+      <!-- Service component only for server/hybrid modes -->
+      <Feature Id="PostgreSQLServiceFeature"
+               Title="PostgreSQL Windows Service"
+               Description="Run PostgreSQL as a Windows service for server/hybrid deployments"
+               Level="1">
+        <Condition Level="1">INSTALL_SERVER = "1" OR INSTALL_HYBRID = "1"</Condition>
+        <ComponentRef Id="PostgreSQLService" />
+      </Feature>
+    </Feature>
+  </Fragment>
+</Wix>

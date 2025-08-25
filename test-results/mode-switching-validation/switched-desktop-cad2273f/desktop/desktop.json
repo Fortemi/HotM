@@ -1,0 +1,6 @@
+{
+  "mode": "Development",
+  "auto_start": true,
+  "minimize_to_tray": true,
+  "show_notifications": true
+}

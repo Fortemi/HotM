@@ -1,0 +1,24 @@
+{
+  "service_name": "HotM-Ollama",
+  "display_name": "HotM Ollama AI Service",
+  "description": "Ollama AI model service for HotM natural language processing",
+  "executable_path": "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-development-ad01c4d0/ollama\\ollama.exe",
+  "startup_type": "Auto",
+  "dependencies": [],
+  "ports": [
+    11434
+  ],
+  "health_check_url": "http://localhost:11434/api/health",
+  "deployment_mode": "Development",
+  "log_directory": "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-development-ad01c4d0/logs",
+  "data_directory": "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-development-ad01c4d0/data",
+  "recovery_settings": {
+    "max_restart_attempts": 3,
+    "restart_delay_seconds": 30,
+    "failure_actions": [
+      "restart",
+      "model_reload",
+      "manual_intervention"
+    ]
+  }
+}

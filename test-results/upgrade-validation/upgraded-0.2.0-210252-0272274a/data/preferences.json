@@ -1,0 +1,9 @@
+{
+  "theme": "dark",
+  "auto_save": true,
+  "default_collection": "Work",
+  "ai_features_enabled": true,
+  "ai_enhancement_enabled": true,
+  "auto_tag_generation": true,
+  "search_history_limit": 100
+}

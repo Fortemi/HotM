@@ -1,0 +1,289 @@
+{
+  "validation_info": {
+    "framework": "HotM Upgrade Path Validator",
+    "version": "1.0.0",
+    "timestamp": "2025-08-24T21:02:52.216106",
+    "total_scenarios": 4
+  },
+  "scenarios": [
+    {
+      "scenario": {
+        "name": "v0.1.0 to v0.2.0 Desktop",
+        "description": "Upgrade from v0.1.0 unified runtime to v0.2.0 modular architecture (Desktop mode)",
+        "from_version": "0.1.0",
+        "to_version": "0.2.0",
+        "deployment_mode": "Desktop",
+        "data_preservation_required": true,
+        "config_migration_required": true,
+        "service_continuity_required": true,
+        "expected_duration_max": 300
+      },
+      "success": true,
+      "duration": 0.042414188385009766,
+      "validation_results": {
+        "success": true,
+        "integrity_score": 100,
+        "failed_tests": [],
+        "warnings": [],
+        "test_results": {
+          "Note Data Preservation": {
+            "passed": true,
+            "message": "Note Data Preservation completed successfully",
+            "critical": true
+          },
+          "Collection Structure Preservation": {
+            "passed": true,
+            "message": "Collection Structure Preservation completed successfully",
+            "critical": true
+          },
+          "Search Index Integrity": {
+            "passed": true,
+            "message": "Search Index Integrity completed successfully",
+            "critical": false
+          },
+          "User Settings Preservation": {
+            "passed": true,
+            "message": "User Settings Preservation completed successfully",
+            "critical": true
+          },
+          "AI Model Configuration": {
+            "passed": true,
+            "message": "AI Model Configuration completed successfully",
+            "critical": false
+          },
+          "Database Schema Migration": {
+            "passed": true,
+            "message": "Database Schema Migration completed successfully",
+            "critical": true
+          },
+          "Service Configuration Migration": {
+            "passed": true,
+            "message": "Service Configuration Migration completed successfully",
+            "critical": true
+          }
+        }
+      },
+      "performance_metrics": {
+        "upgrade_duration": 0.042414188385009766,
+        "within_expected_time": true,
+        "data_integrity_score": 100
+      },
+      "artifacts": {
+        "source_backup": "/home/manitcor/dev/hotm/test-results/upgrade-validation/backup-20250824-210252-6591ea61",
+        "target_install": "/home/manitcor/dev/hotm/test-results/upgrade-validation/upgraded-0.2.0-210252-0272274a"
+      }
+    },
+    {
+      "scenario": {
+        "name": "v0.1.0 to v0.2.0 Server",
+        "description": "Upgrade from v0.1.0 unified runtime to v0.2.0 modular architecture (Server mode)",
+        "from_version": "0.1.0",
+        "to_version": "0.2.0",
+        "deployment_mode": "Server",
+        "data_preservation_required": true,
+        "config_migration_required": true,
+        "service_continuity_required": true,
+        "expected_duration_max": 600
+      },
+      "success": true,
+      "duration": 0.027252674102783203,
+      "validation_results": {
+        "success": true,
+        "integrity_score": 100,
+        "failed_tests": [],
+        "warnings": [],
+        "test_results": {
+          "Note Data Preservation": {
+            "passed": true,
+            "message": "Note Data Preservation completed successfully",
+            "critical": true
+          },
+          "Collection Structure Preservation": {
+            "passed": true,
+            "message": "Collection Structure Preservation completed successfully",
+            "critical": true
+          },
+          "Search Index Integrity": {
+            "passed": true,
+            "message": "Search Index Integrity completed successfully",
+            "critical": false
+          },
+          "User Settings Preservation": {
+            "passed": true,
+            "message": "User Settings Preservation completed successfully",
+            "critical": true
+          },
+          "AI Model Configuration": {
+            "passed": true,
+            "message": "AI Model Configuration completed successfully",
+            "critical": false
+          },
+          "Database Schema Migration": {
+            "passed": true,
+            "message": "Database Schema Migration completed successfully",
+            "critical": true
+          },
+          "Service Configuration Migration": {
+            "passed": true,
+            "message": "Service Configuration Migration completed successfully",
+            "critical": true
+          }
+        }
+      },
+      "performance_metrics": {
+        "upgrade_duration": 0.027252674102783203,
+        "within_expected_time": true,
+        "data_integrity_score": 100
+      },
+      "artifacts": {
+        "source_backup": "/home/manitcor/dev/hotm/test-results/upgrade-validation/backup-20250824-210252-38c2b0e1",
+        "target_install": "/home/manitcor/dev/hotm/test-results/upgrade-validation/upgraded-0.2.0-210252-9d13927f"
+      }
+    },
+    {
+      "scenario": {
+        "name": "v0.2.0 to v0.2.1 Patch",
+        "description": "Patch upgrade maintaining all configurations",
+        "from_version": "0.2.0",
+        "to_version": "0.2.1",
+        "deployment_mode": "Hybrid",
+        "data_preservation_required": true,
+        "config_migration_required": false,
+        "service_continuity_required": true,
+        "expected_duration_max": 120
+      },
+      "success": true,
+      "duration": 0.038373470306396484,
+      "validation_results": {
+        "success": true,
+        "integrity_score": 100,
+        "failed_tests": [],
+        "warnings": [],
+        "test_results": {
+          "Note Data Preservation": {
+            "passed": true,
+            "message": "Note Data Preservation completed successfully",
+            "critical": true
+          },
+          "Collection Structure Preservation": {
+            "passed": true,
+            "message": "Collection Structure Preservation completed successfully",
+            "critical": true
+          },
+          "Search Index Integrity": {
+            "passed": true,
+            "message": "Search Index Integrity completed successfully",
+            "critical": false
+          },
+          "User Settings Preservation": {
+            "passed": true,
+            "message": "User Settings Preservation completed successfully",
+            "critical": true
+          },
+          "AI Model Configuration": {
+            "passed": true,
+            "message": "AI Model Configuration completed successfully",
+            "critical": false
+          },
+          "Database Schema Migration": {
+            "passed": true,
+            "message": "Database Schema Migration completed successfully",
+            "critical": true
+          },
+          "Service Configuration Migration": {
+            "passed": true,
+            "message": "Service Configuration Migration completed successfully",
+            "critical": true
+          }
+        }
+      },
+      "performance_metrics": {
+        "upgrade_duration": 0.038373470306396484,
+        "within_expected_time": true,
+        "data_integrity_score": 100
+      },
+      "artifacts": {
+        "source_backup": "/home/manitcor/dev/hotm/test-results/upgrade-validation/backup-20250824-210252-8d171244",
+        "target_install": "/home/manitcor/dev/hotm/test-results/upgrade-validation/upgraded-0.2.1-210252-6a347581"
+      }
+    },
+    {
+      "scenario": {
+        "name": "v0.1.5 to v0.3.0 Major",
+        "description": "Major version upgrade with schema changes",
+        "from_version": "0.1.5",
+        "to_version": "0.3.0",
+        "deployment_mode": "Development",
+        "data_preservation_required": true,
+        "config_migration_required": true,
+        "service_continuity_required": false,
+        "expected_duration_max": 900
+      },
+      "success": true,
+      "duration": 0.020918846130371094,
+      "validation_results": {
+        "success": true,
+        "integrity_score": 95,
+        "failed_tests": [
+          "AI Model Configuration"
+        ],
+        "warnings": [
+          "AI Model Configuration"
+        ],
+        "test_results": {
+          "Note Data Preservation": {
+            "passed": true,
+            "message": "Note Data Preservation completed successfully",
+            "critical": true
+          },
+          "Collection Structure Preservation": {
+            "passed": true,
+            "message": "Collection Structure Preservation completed successfully",
+            "critical": true
+          },
+          "Search Index Integrity": {
+            "passed": true,
+            "message": "Search Index Integrity completed successfully",
+            "critical": false
+          },
+          "User Settings Preservation": {
+            "passed": true,
+            "message": "User Settings Preservation completed successfully",
+            "critical": true
+          },
+          "AI Model Configuration": {
+            "passed": false,
+            "message": "AI Model Configuration failed",
+            "critical": false
+          },
+          "Database Schema Migration": {
+            "passed": true,
+            "message": "Database Schema Migration completed successfully",
+            "critical": true
+          },
+          "Service Configuration Migration": {
+            "passed": true,
+            "message": "Service Configuration Migration completed successfully",
+            "critical": true
+          }
+        }
+      },
+      "performance_metrics": {
+        "upgrade_duration": 0.020918846130371094,
+        "within_expected_time": true,
+        "data_integrity_score": 95
+      },
+      "artifacts": {
+        "source_backup": "/home/manitcor/dev/hotm/test-results/upgrade-validation/backup-20250824-210252-089827aa",
+        "target_install": "/home/manitcor/dev/hotm/test-results/upgrade-validation/upgraded-0.3.0-210252-307c283e"
+      }
+    }
+  ],
+  "summary": {
+    "total_tests": 4,
+    "passed": 4,
+    "failed": 0,
+    "average_duration": 0.03223979473114014,
+    "average_integrity_score": 98.75
+  }
+}

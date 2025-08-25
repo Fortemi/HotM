@@ -1,0 +1,42 @@
+# HotM Service Dependencies Configuration
+# Defines service startup order and dependency relationships
+
+[dependencies]
+
+# PostgreSQL service - no dependencies (starts first)
+[dependencies.postgresql]
+service_name = "HotM-PostgreSQL"
+depends_on = []
+startup_priority = 1
+startup_timeout_seconds = 120
+health_check_delay_seconds = 10
+
+# Ollama service - depends on PostgreSQL for model storage
+[dependencies.ollama]
+service_name = "HotM-Ollama"
+depends_on = ["HotM-PostgreSQL"]
+startup_priority = 2
+startup_timeout_seconds = 180
+health_check_delay_seconds = 30
+
+# HotM Server - depends on both PostgreSQL and Ollama
+[dependencies.server]
+service_name = "HotM-Server"
+depends_on = ["HotM-PostgreSQL", "HotM-Ollama"]
+startup_priority = 3
+startup_timeout_seconds = 60
+health_check_delay_seconds = 5
+
+[startup_sequence]
+# Global startup configuration
+max_concurrent_starts = 1
+inter_service_delay_seconds = 5
+total_timeout_seconds = 600
+retry_attempts = 3
+retry_delay_seconds = 10
+
+[shutdown_sequence]
+# Shutdown in reverse order
+shutdown_timeout_seconds = 300
+force_kill_timeout_seconds = 60
+graceful_shutdown = true

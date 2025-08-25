@@ -1,0 +1,344 @@
+# HotM Development Mode Configuration
+# Enhanced features for developers with debugging and development tools
+
+[runtime]
+mode = "development"
+version = "0.2.0"
+debug_mode = true  # Enable debug features
+log_level = "debug"  # Verbose logging for development
+
+[desktop]
+show_gui = true
+system_tray = true
+auto_start = false  # Don't auto-start in dev mode
+global_hotkey = "Ctrl+Alt+H"
+minimize_on_close = false  # Keep visible for debugging
+start_minimized = false
+theme = "system"
+window_state = "normal"
+remember_window_position = true
+single_instance = false  # Allow multiple instances for testing
+
+[desktop.development]
+# Development-specific desktop settings
+show_debug_panel = true
+show_performance_metrics = true
+show_log_viewer = true
+enable_developer_tools = true
+auto_reload_on_change = true
+show_internal_state = true
+
+[server]
+bind_address = "127.0.0.1:53211"  # Local only for development
+enable_web_ui = true
+enable_api = true
+enable_websocket = true
+enable_cors = true
+api_key_required = false  # Easier development
+max_request_size = "100MB"
+request_timeout = 120  # Longer timeout for debugging
+worker_threads = 2  # Fewer threads for easier debugging
+compression = false  # Disable for easier inspection
+
+[server.development]
+# Development-specific server settings
+hot_reload = true
+auto_restart_on_crash = true
+detailed_error_responses = true
+enable_debug_endpoints = true
+serve_source_maps = true
+enable_cors_debug = true
+log_all_requests = true
+
+[server.debug]
+# Debug endpoints and features
+enable_debug_routes = true
+debug_route_prefix = "/debug"
+enable_metrics_debug = true
+enable_health_debug = true
+enable_config_debug = true
+enable_state_debug = true
+
+[database]
+type = "postgresql"
+host = "localhost"
+port = 54321
+database = "hotm_dev"  # Separate dev database
+username = "hotm"
+password = ""
+ssl_mode = "disable"
+pool_size = 10  # Smaller pool for development
+connection_timeout = 60  # Longer timeout for debugging
+embedded = true
+auto_migrate = true
+backup_enabled = false  # Disable backups in dev mode
+
+[database.development]
+# Development-specific database settings
+log_queries = true
+log_slow_queries = true
+slow_query_threshold = "100ms"  # Lower threshold
+enable_query_analyzer = true
+reset_on_restart = false
+seed_test_data = true
+
+[database.testing]
+# Testing database features
+enable_test_fixtures = true
+enable_transaction_rollback = true
+parallel_test_support = true
+test_database_suffix = "_test"
+
+[ollama]
+host = "localhost"
+port = 11434
+generation_model = "gpt-oss:20b"
+embedding_model = "nomic-embed-text"
+context_window = 4096
+temperature = 0.7
+top_p = 0.9
+embedded = true
+auto_pull_models = true
+model_cache_dir = "auto"
+
+[ollama.development]
+# Development-specific Ollama settings
+enable_debug_logging = true
+log_model_responses = true
+log_model_performance = true
+enable_mock_responses = false  # For offline development
+concurrent_requests = 4  # Lower for debugging
+timeout_multiplier = 2  # Longer timeouts
+
+[ollama.testing]
+# Testing features for AI models
+enable_deterministic_mode = false
+fixed_seed = 42
+cache_responses = true  # Cache for consistent tests
+enable_model_mocking = true
+
+[search]
+full_text_enabled = true
+semantic_search_enabled = true
+rerank_enabled = true
+max_results = 100
+similarity_threshold = 0.6  # Lower threshold for testing
+
+[search.development]
+# Development-specific search settings
+log_search_queries = true
+log_search_results = true
+enable_search_debugging = true
+explain_search_scores = true
+cache_search_results = false  # Always fresh results
+
+[nlp]
+auto_summarize = true
+auto_tag = true
+auto_link = true
+min_note_length = 10  # Lower for testing
+processing_delay = "1s"  # Faster processing for development
+
+[nlp.development]
+# Development-specific NLP settings
+log_processing_pipeline = true
+save_intermediate_results = true
+enable_pipeline_debugging = true
+mock_ai_responses = false
+validate_outputs = true
+enable_profiling = true
+
+[performance]
+worker_threads = 2  # Fewer for easier debugging
+cache_size = "100MB"
+cache_ttl = "30m"  # Shorter for development
+batch_size = 10  # Smaller batches
+concurrent_requests = 10
+
+[performance.development]
+# Development-specific performance settings
+enable_profiling = true
+profile_memory_usage = true
+profile_cpu_usage = true
+profile_io_operations = true
+enable_benchmarking = true
+performance_warnings = true
+
+[performance.debugging]
+# Performance debugging tools
+slow_operation_threshold = "1s"
+memory_leak_detection = true
+deadlock_detection = true
+resource_leak_detection = true
+
+[logging]
+level = "debug"  # Verbose logging
+format = "text"  # Human-readable for development
+file_enabled = true
+file_path = "auto"
+max_file_size = "100MB"  # Larger log files
+max_files = 10  # More log files
+console_enabled = true
+
+[logging.development]
+# Development-specific logging
+log_file_per_component = true
+include_source_location = true
+include_thread_id = true
+include_request_id = true
+color_coding = true
+structured_console_output = false
+
+[logging.components]
+# Component-specific debug levels
+server = "debug"
+database = "debug"
+ollama = "debug"
+nlp = "debug"
+search = "debug"
+websocket = "debug"
+ui = "debug"
+
+[security]
+api_key_length = 32
+session_timeout = "24h"  # Longer for development
+csrf_protection = false  # Disabled for easier testing
+secure_headers = false  # Disabled for development
+rate_limiting = false  # Disabled for testing
+
+[security.development]
+# Development-specific security settings
+disable_security_for_localhost = true
+allow_insecure_connections = true
+log_security_events = true
+bypass_authentication = false  # Keep some security
+
+[security.cors]
+enabled = true
+allowed_origins = ["*"]  # Permissive for development
+allowed_methods = ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"]
+allowed_headers = ["*"]
+max_age = 86400
+
+[ui]
+theme = "system"
+font_family = "system"
+font_size = 14
+editor_theme = "default"
+syntax_highlighting = true
+line_numbers = true
+word_wrap = true
+
+[ui.development]
+# Development-specific UI settings
+show_debug_info = true
+show_component_boundaries = true
+enable_hot_reload = true
+enable_react_devtools = true
+show_performance_overlay = true
+enable_experimental_features = true
+
+[ui.editor]
+auto_save = false  # Disabled for development
+auto_save_delay = "10s"
+vim_mode = false
+spell_check = false  # Might interfere with code
+markdown_preview = true
+live_preview = true
+enable_code_folding = true
+
+[integration]
+mcp_enabled = true
+webhook_enabled = true
+export_formats = ["markdown", "json", "pdf", "html", "raw"]
+
+[integration.development]
+# Development-specific integrations
+expose_internal_apis = true
+enable_webhook_debugging = true
+log_integration_events = true
+enable_integration_mocking = true
+
+[integration.mcp]
+server_name = "hotm-dev"
+tools_enabled = true
+debug_mode = true
+capabilities = [
+    "notes", "search", "tags", "collections",
+    "links", "export", "analytics", "debug"
+]
+
+[backup]
+auto_backup = false  # Disabled for development
+backup_interval = "never"
+backup_retention = 7
+compression = false  # Easier to inspect
+encryption = false
+
+[testing]
+# Testing framework integration
+enabled = true
+test_data_path = "auto"
+enable_fixtures = true
+enable_mocking = true
+parallel_tests = false  # Avoid conflicts
+cleanup_after_tests = true
+
+[testing.database]
+# Database testing
+use_test_database = true
+reset_between_tests = true
+seed_test_data = true
+enable_transactions = true
+
+[testing.api]
+# API testing
+mock_external_services = false
+record_http_interactions = true
+replay_http_interactions = true
+validate_api_responses = true
+
+[development_tools]
+# Development-specific tools
+enable_code_generation = true
+enable_api_documentation = true
+enable_schema_introspection = true
+enable_query_playground = true
+enable_websocket_debugger = true
+
+[development_tools.debugging]
+# Debugging tools
+enable_breakpoints = true
+enable_step_debugging = false  # For IDE integration
+enable_memory_profiling = true
+enable_cpu_profiling = true
+
+[development_tools.hot_reload]
+# Hot reload configuration
+enabled = true
+watch_paths = ["src", "config", "templates"]
+ignore_patterns = [".git", "node_modules", "target"]
+reload_delay = "500ms"
+
+[monitoring]
+enabled = true
+metrics_endpoint = "/debug/metrics"
+health_endpoint = "/debug/health"
+prometheus_compatible = true
+
+[monitoring.development]
+# Development-specific monitoring
+detailed_metrics = true
+custom_metrics = true
+debug_metrics = true
+export_trace_data = true
+
+[experimental]
+# All experimental features enabled for development
+ai_chat = true
+collaborative_editing = true
+plugin_system = true
+advanced_analytics = true
+experimental_ui = true
+new_search_algorithms = true
+beta_features = true

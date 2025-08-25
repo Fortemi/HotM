@@ -1,0 +1,207 @@
+# HotM Default Configuration Template
+# This file contains the baseline configuration for HotM
+# Mode-specific configurations will override these defaults
+
+[runtime]
+mode = "desktop"  # Override: desktop, server, hybrid, development
+version = "0.2.0"
+first_run_completed = false
+debug_mode = false
+log_level = "info"
+
+[desktop]
+show_gui = true
+system_tray = true
+auto_start = false
+global_hotkey = "Ctrl+Alt+H"
+minimize_on_close = true
+start_minimized = false
+theme = "system"  # system, light, dark
+window_state = "normal"  # normal, maximized, minimized
+
+[server]
+bind_address = "127.0.0.1:53211"
+enable_web_ui = true
+enable_api = true
+enable_websocket = true
+enable_cors = false
+cors_origins = []
+api_key_required = false
+max_request_size = "10MB"
+request_timeout = 30
+worker_threads = 0  # 0 = auto (use all cores)
+
+[database]
+type = "postgresql"  # postgresql, sqlite
+host = "localhost"
+port = 54321
+database = "hotm"
+username = "hotm"
+password = ""  # Will be set during installation
+ssl_mode = "disable"
+pool_size = 20
+connection_timeout = 30
+embedded = true
+auto_migrate = true
+backup_enabled = true
+
+[database.backup]
+schedule = "daily"  # daily, weekly, monthly
+retention_days = 30
+compression = true
+location = "auto"  # auto uses data directory
+
+[ollama]
+host = "localhost"
+port = 11434
+generation_model = "gpt-oss:20b"
+embedding_model = "nomic-embed-text"
+context_window = 4096
+temperature = 0.7
+top_p = 0.9
+embedded = true
+auto_pull_models = true
+model_cache_dir = "auto"  # auto uses data directory
+
+[ollama.models]
+# Model-specific configurations
+[ollama.models."gpt-oss:20b"]
+context_window = 4096
+temperature = 0.7
+system_prompt = "You are a helpful AI assistant for note-taking and analysis."
+
+[ollama.models."nomic-embed-text"]
+dimensions = 768
+batch_size = 32
+
+[search]
+# Search and indexing configuration
+full_text_enabled = true
+semantic_search_enabled = true
+rerank_enabled = true
+max_results = 50
+similarity_threshold = 0.7
+
+[search.indexing]
+auto_index = true
+index_batch_size = 100
+embedding_batch_size = 32
+reindex_interval = "24h"
+
+[nlp]
+# Natural language processing settings
+auto_summarize = true
+auto_tag = true
+auto_link = true
+min_note_length = 100  # Minimum length for NLP processing
+processing_delay = "5s"  # Delay before processing new notes
+
+[nlp.summarization]
+max_length = 200
+min_length = 50
+style = "concise"  # concise, detailed, bullet_points
+
+[nlp.tagging]
+max_tags = 10
+confidence_threshold = 0.8
+include_entities = true
+
+[nlp.linking]
+auto_link_notes = true
+similarity_threshold = 0.8
+max_links_per_note = 10
+
+[performance]
+# Performance and caching settings
+worker_threads = 0  # 0 = auto
+cache_size = "100MB"
+cache_ttl = "1h"
+batch_size = 25
+concurrent_requests = 10
+
+[performance.limits]
+max_note_size = "1MB"
+max_notes_per_batch = 100
+max_upload_size = "10MB"
+rate_limit_requests = 1000
+rate_limit_window = "1h"
+
+[logging]
+# Logging configuration
+level = "info"  # trace, debug, info, warn, error
+format = "json"  # json, text
+file_enabled = true
+file_path = "auto"  # auto uses data directory
+max_file_size = "10MB"
+max_files = 5
+console_enabled = true
+
+[logging.components]
+# Component-specific log levels
+server = "info"
+database = "info"
+ollama = "info"
+nlp = "info"
+search = "info"
+websocket = "info"
+
+[security]
+# Security settings
+api_key_length = 32
+session_timeout = "24h"
+csrf_protection = true
+secure_headers = true
+rate_limiting = true
+
+[security.cors]
+enabled = false
+allowed_origins = ["http://localhost:3000"]
+allowed_methods = ["GET", "POST", "PUT", "DELETE"]
+allowed_headers = ["Content-Type", "Authorization"]
+max_age = 86400
+
+[ui]
+# User interface settings
+theme = "system"  # system, light, dark
+font_family = "system"
+font_size = 14
+editor_theme = "default"
+syntax_highlighting = true
+line_numbers = true
+word_wrap = true
+
+[ui.editor]
+auto_save = true
+auto_save_delay = "5s"
+vim_mode = false
+spell_check = true
+markdown_preview = true
+
+[integration]
+# External integrations
+mcp_enabled = true
+webhook_enabled = false
+export_formats = ["markdown", "json", "pdf"]
+
+[integration.mcp]
+server_name = "hotm"
+tools_enabled = true
+capabilities = [
+    "notes", "search", "tags", "collections",
+    "links", "export", "analytics"
+]
+
+[backup]
+# Backup and sync settings
+auto_backup = true
+backup_interval = "daily"
+backup_retention = 30  # days
+compression = true
+encryption = false
+
+[experimental]
+# Experimental features (may be unstable)
+ai_chat = false
+collaborative_editing = false
+plugin_system = false
+advanced_analytics = false

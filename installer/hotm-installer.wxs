@@ -1,0 +1,361 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi"
+     xmlns:util="http://schemas.microsoft.com/wix/UtilExtension">
+
+  <!-- Product Definition -->
+  <Product Id="*"
+           Name="Hall of the Mind $(var.Version)"
+           Language="1033"
+           Version="$(var.Version)"
+           Manufacturer="HotM Team"
+           UpgradeCode="{12345678-1234-5678-9ABC-123456789ABC}">
+
+    <Package InstallerVersion="400"
+             Compressed="yes"
+             InstallScope="perMachine"
+             Platform="x64"
+             InstallPrivileges="elevated"
+             Description="HotM - Local-first notes and analysis tool with unified runtime"
+             Comments="Supports Desktop, Server, Hybrid, and Development deployment modes"
+             Manufacturer="HotM Team" />
+
+    <!-- Media and Cab Settings -->
+    <MediaTemplate EmbedCab="yes" />
+
+    <!-- Upgrade Rules -->
+    <MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed."
+                  Schedule="afterInstallInitialize"
+                  AllowSameVersionUpgrades="yes" />
+
+    <!-- Custom Properties -->
+    <Property Id="INSTALLFOLDER" Value="[ProgramFiles64Folder]HotM\" />
+    <Property Id="APPLICATIONFOLDER" Secure="yes" />
+    
+    <!-- Deployment Mode Selection Properties -->
+    <Property Id="DEPLOYMENT_MODE" Value="desktop" />
+    <Property Id="INSTALL_DESKTOP" Value="1" />
+    <Property Id="INSTALL_SERVER" Value="0" />
+    <Property Id="INSTALL_HYBRID" Value="0" />
+    <Property Id="INSTALL_DEVELOPMENT" Value="0" />
+    
+    <!-- Service Configuration Properties -->
+    <Property Id="POSTGRES_PORT" Value="54321" />
+    <Property Id="OLLAMA_PORT" Value="11434" />
+    <Property Id="HOTM_SERVER_PORT" Value="53211" />
+    
+    <!-- Feature Selection Properties -->
+    <Property Id="INSTALL_EMBEDDED_DB" Value="1" />
+    <Property Id="INSTALL_EMBEDDED_OLLAMA" Value="1" />
+    <Property Id="AUTO_START_SERVICES" Value="1" />
+    <Property Id="ADD_TO_STARTUP" Value="1" />
+    
+    <!-- System Requirements -->
+    <Condition Message="This application requires Windows 10 or later.">
+      <![CDATA[Installed OR (VersionNT >= 1000)]]>
+    </Condition>
+    
+    <Condition Message="This application requires a 64-bit operating system.">
+      <![CDATA[Installed OR VersionNT64]]>
+    </Condition>
+
+    <!-- Directory Structure -->
+    <Directory Id="TARGETDIR" Name="SourceDir">
+      <Directory Id="ProgramFiles64Folder">
+        <Directory Id="INSTALLFOLDER" Name="HotM">
+          <Directory Id="BinFolder" Name="bin" />
+          <Directory Id="ConfigFolder" Name="config" />
+          <Directory Id="ScriptsFolder" Name="scripts" />
+          <Directory Id="DatabaseFolder" Name="database">
+            <Directory Id="PostgreSQLFolder" Name="postgresql">
+              <Directory Id="PgBinFolder" Name="bin" />
+              <Directory Id="PgLibFolder" Name="lib" />
+              <Directory Id="PgShareFolder" Name="share">
+                <Directory Id="PgExtensionFolder" Name="extension" />
+              </Directory>
+            </Directory>
+          </Directory>
+          <Directory Id="OllamaFolder" Name="ollama" />
+        </Directory>
+      </Directory>
+      
+      <Directory Id="ProgramMenuFolder">
+        <Directory Id="ApplicationProgramsFolder" Name="Hall of the Mind" />
+      </Directory>
+      
+      <Directory Id="DesktopFolder" Name="Desktop" />
+      <Directory Id="StartupFolder" Name="Startup" />
+      
+      <Directory Id="CommonAppDataFolder">
+        <Directory Id="HotMDataFolder" Name="HotM">
+          <Directory Id="DatabaseDataFolder" Name="database">
+            <Directory Id="ClusterFolder" Name="cluster" />
+            <Directory Id="BackupsFolder" Name="backups">
+              <Directory Id="DailyBackupsFolder" Name="daily" />
+              <Directory Id="WeeklyBackupsFolder" Name="weekly" />
+              <Directory Id="PreUpgradeBackupsFolder" Name="pre-upgrade" />
+              <Directory Id="ManualBackupsFolder" Name="manual" />
+            </Directory>
+          </Directory>
+          <Directory Id="OllamaDataFolder" Name="ollama">
+            <Directory Id="ModelsFolder" Name="models" />
+          </Directory>
+          <Directory Id="LogsFolder" Name="logs" />
+          <Directory Id="ConfigDataFolder" Name="config" />
+        </Directory>
+      </Directory>
+    </Directory>
+
+    <!-- Main Application Components -->
+    <ComponentGroup Id="MainApplication">
+      <Component Id="HotMUnifiedBinary" Directory="BinFolder" Guid="*">
+        <File Id="HotMUnifiedExe" 
+              Source="$(var.ResourcesPath)binaries\hotm.exe" 
+              KeyPath="yes">
+          <Shortcut Id="ApplicationStartMenuShortcut"
+                    Directory="ApplicationProgramsFolder"
+                    Name="Hall of the Mind"
+                    Description="Local-first notes and analysis tool"
+                    Icon="HotMIcon.exe"
+                    IconIndex="0"
+                    WorkingDirectory="BinFolder" />
+        </File>
+        
+        <!-- Registry entries for application -->
+        <RegistryValue Root="HKLM"
+                       Key="Software\HotM\Application"
+                       Name="InstallPath"
+                       Type="string"
+                       Value="[INSTALLFOLDER]"
+                       KeyPath="no" />
+        
+        <RegistryValue Root="HKLM"
+                       Key="Software\HotM\Application"
+                       Name="Version"
+                       Type="string"
+                       Value="$(var.Version)"
+                       KeyPath="no" />
+        
+        <RegistryValue Root="HKLM"
+                       Key="Software\HotM\Application"
+                       Name="DeploymentMode"
+                       Type="string"
+                       Value="[DEPLOYMENT_MODE]"
+                       KeyPath="no" />
+      </Component>
+      
+      <Component Id="ConfigurationFiles" Directory="ConfigFolder" Guid="*">
+        <File Id="DefaultConfig" 
+              Source="$(var.ResourcesPath)config\default-config.toml" />
+        
+        <File Id="DesktopModeConfig" 
+              Source="$(var.ResourcesPath)config\desktop-mode.toml" />
+        
+        <File Id="ServerModeConfig" 
+              Source="$(var.ResourcesPath)config\server-mode.toml" />
+        
+        <File Id="HybridModeConfig" 
+              Source="$(var.ResourcesPath)config\hybrid-mode.toml" />
+        
+        <File Id="DevelopmentModeConfig" 
+              Source="$(var.ResourcesPath)config\development-mode.toml" />
+      </Component>
+      
+      <Component Id="ManagementScripts" Directory="ScriptsFolder" Guid="*">
+        <File Id="ServiceManagerScript" 
+              Source="$(var.ResourcesPath)scripts\manage-services.ps1" />
+        
+        <File Id="FirstRunSetupScript" 
+              Source="$(var.ResourcesPath)scripts\first-run-setup.ps1" />
+        
+        <File Id="SystemCheckScript" 
+              Source="$(var.ResourcesPath)scripts\system-check.ps1" />
+        
+        <File Id="DiagnosticsScript" 
+              Source="$(var.ResourcesPath)scripts\diagnostics.ps1" />
+      </Component>
+      
+      <Component Id="DataDirectories" Directory="HotMDataFolder" Guid="*">
+        <CreateFolder Directory="HotMDataFolder">
+          <Permission User="Users" GenericRead="yes" GenericWrite="yes" />
+          <Permission User="Administrators" GenericAll="yes" />
+        </CreateFolder>
+        
+        <CreateFolder Directory="LogsFolder">
+          <Permission User="Users" GenericRead="yes" GenericWrite="yes" />
+          <Permission User="NETWORK SERVICE" GenericAll="yes" />
+        </CreateFolder>
+        
+        <CreateFolder Directory="ConfigDataFolder">
+          <Permission User="Users" GenericRead="yes" GenericWrite="yes" />
+          <Permission User="Administrators" GenericAll="yes" />
+        </CreateFolder>
+      </Component>
+    </ComponentGroup>
+
+    <!-- Desktop Shortcuts Component -->
+    <Component Id="DesktopShortcuts" Directory="DesktopFolder" Guid="*">
+      <Condition>INSTALL_DESKTOP = "1"</Condition>
+      
+      <Shortcut Id="DesktopShortcut"
+                Name="Hall of the Mind"
+                Description="Local-first notes and analysis tool"
+                Target="[BinFolder]hotm.exe"
+                Arguments="--mode desktop"
+                WorkingDirectory="BinFolder"
+                Icon="HotMIcon.exe"
+                IconIndex="0" />
+      
+      <RegistryValue Root="HKCU"
+                     Key="Software\HotM\Shortcuts"
+                     Name="Desktop"
+                     Type="integer"
+                     Value="1"
+                     KeyPath="yes" />
+    </Component>
+
+    <!-- Startup Integration Component -->
+    <Component Id="StartupIntegration" Directory="StartupFolder" Guid="*">
+      <Condition>ADD_TO_STARTUP = "1" AND INSTALL_DESKTOP = "1"</Condition>
+      
+      <Shortcut Id="StartupShortcut"
+                Name="Hall of the Mind"
+                Description="Hall of the Mind - Notes and Analysis"
+                Target="[BinFolder]hotm.exe"
+                Arguments="--mode desktop --minimized --auto-start"
+                WorkingDirectory="BinFolder"
+                Icon="HotMIcon.exe"
+                IconIndex="0" />
+      
+      <RegistryValue Root="HKCU"
+                     Key="Software\HotM\Startup"
+                     Name="AutoStart"
+                     Type="integer"
+                     Value="1"
+                     KeyPath="yes" />
+    </Component>
+
+    <!-- Features Definition -->
+    <Feature Id="MainFeature"
+             Title="HotM Unified Runtime"
+             Description="Core HotM application with unified runtime"
+             Level="1"
+             ConfigurableDirectory="INSTALLFOLDER"
+             Display="expand">
+      
+      <ComponentGroupRef Id="MainApplication" />
+      
+      <Feature Id="DesktopFeature"
+               Title="Desktop Mode"
+               Description="Rich desktop interface for individual users"
+               Level="1">
+        <Condition Level="1">INSTALL_DESKTOP = "1"</Condition>
+        <ComponentRef Id="DesktopShortcuts" />
+        <ComponentRef Id="StartupIntegration" />
+      </Feature>
+      
+      <Feature Id="ServerFeature"
+               Title="Server Mode"
+               Description="Network server for team collaboration"
+               Level="2">
+        <Condition Level="1">INSTALL_SERVER = "1"</Condition>
+      </Feature>
+      
+      <Feature Id="HybridFeature"
+               Title="Hybrid Mode"
+               Description="Desktop and server capabilities combined"
+               Level="2">
+        <Condition Level="1">INSTALL_HYBRID = "1"</Condition>
+        <ComponentRef Id="DesktopShortcuts" />
+      </Feature>
+      
+      <Feature Id="DevelopmentFeature"
+               Title="Development Mode"
+               Description="Enhanced features for developers"
+               Level="3">
+        <Condition Level="1">INSTALL_DEVELOPMENT = "1"</Condition>
+      </Feature>
+      
+      <!-- Include service management for server and hybrid modes -->
+      <FeatureRef Id="ServiceManagementFeature" />
+    </Feature>
+
+    <!-- Custom Actions -->
+    <Binary Id="HotMInstallerHelper" SourceFile="$(var.ResourcesPath)custom-actions\hotm-installer-helper.dll" />
+    
+    <!-- System Compatibility Check -->
+    <CustomAction Id="SystemCompatibilityCheck"
+                  BinaryKey="HotMInstallerHelper"
+                  DllEntry="CheckSystemCompatibility"
+                  Execute="immediate"
+                  Return="check" />
+    
+    <!-- Port Conflict Resolution -->
+    <CustomAction Id="PortConflictResolution"
+                  BinaryKey="HotMInstallerHelper"
+                  DllEntry="ResolvePortConflicts"
+                  Execute="immediate"
+                  Return="check" />
+    
+    <!-- Service Configuration -->
+    <CustomAction Id="ConfigureServices"
+                  BinaryKey="HotMInstallerHelper"
+                  DllEntry="ConfigureServices"
+                  Execute="deferred"
+                  Impersonate="no"
+                  Return="check" />
+    
+    <!-- Post-Install Validation -->
+    <CustomAction Id="PostInstallValidation"
+                  BinaryKey="HotMInstallerHelper"
+                  DllEntry="ValidateInstallation"
+                  Execute="deferred"
+                  Impersonate="no"
+                  Return="check" />
+
+    <!-- Installation Sequence -->
+    <InstallExecuteSequence>
+      <Custom Action="SystemCompatibilityCheck" Before="LaunchConditions">
+        NOT Installed
+      </Custom>
+      
+      <Custom Action="PortConflictResolution" After="CostFinalize">
+        NOT Installed AND (INSTALL_SERVER = "1" OR INSTALL_HYBRID = "1")
+      </Custom>
+      
+      <Custom Action="ConfigureServices" After="InstallFiles">
+        NOT Installed AND (INSTALL_SERVER = "1" OR INSTALL_HYBRID = "1")
+      </Custom>
+      
+      <Custom Action="PostInstallValidation" Before="InstallFinalize">
+        NOT Installed
+      </Custom>
+    </InstallExecuteSequence>
+
+    <!-- UI Sequence -->
+    <InstallUISequence>
+      <Custom Action="SystemCompatibilityCheck" Before="LaunchConditions">
+        NOT Installed
+      </Custom>
+      
+      <Custom Action="PortConflictResolution" After="CostFinalize">
+        NOT Installed AND (INSTALL_SERVER = "1" OR INSTALL_HYBRID = "1")
+      </Custom>
+    </InstallUISequence>
+
+    <!-- Icon -->
+    <Icon Id="HotMIcon.exe" SourceFile="$(var.ResourcesPath)binaries\hotm.exe" />
+    
+    <!-- Add/Remove Programs Properties -->
+    <Property Id="ARPPRODUCTICON" Value="HotMIcon.exe" />
+    <Property Id="ARPHELPLINK" Value="https://github.com/hotm/hotm" />
+    <Property Id="ARPURLINFOABOUT" Value="https://github.com/hotm/hotm" />
+    <Property Id="ARPNOMODIFY" Value="1" />
+    <Property Id="ARPNOREPAIR" Value="1" />
+    
+    <!-- Reference other components -->
+    <FragmentRef Id="PostgreSQLComponents" />
+    <FragmentRef Id="OllamaComponents" />
+    <FragmentRef Id="ServiceComponents" />
+    <FragmentRef Id="UIComponents" />
+  </Product>
+</Wix>

@@ -1,0 +1,15 @@
+
+# Logging Configuration - large dataset
+[logging]
+level = "info"
+format = "json"
+rotation = "daily"
+max_files = 7
+
+[loggers.hotm]
+level = "debug"
+handlers = ["file", "console"]
+
+[loggers.backup]
+level = "info" 
+handlers = ["file"]

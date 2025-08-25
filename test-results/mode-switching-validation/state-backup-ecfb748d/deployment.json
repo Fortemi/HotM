@@ -1,0 +1,22 @@
+{
+  "mode": "Hybrid",
+  "version": "0.2.0",
+  "created_at": "2025-08-24T21:07:21.514687",
+  "services": [
+    "HotM-PostgreSQL",
+    "HotM-Ollama",
+    "HotM-Server"
+  ],
+  "ports": [
+    54321,
+    11434,
+    53211
+  ],
+  "capabilities": [
+    "desktop_interface",
+    "web_interface",
+    "network_access",
+    "embedded_database",
+    "ai_processing"
+  ]
+}

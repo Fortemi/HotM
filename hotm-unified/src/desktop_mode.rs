@@ -66,6 +66,14 @@ fn run_tauri_app() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
             set_note_collection_command,
             render_plantuml,
             ensure_plantuml,
+            // Service management commands
+            crate::service_commands::get_service_status,
+            crate::service_commands::start_service,
+            crate::service_commands::stop_service,
+            crate::service_commands::restart_service,
+            crate::service_commands::get_system_health,
+            crate::service_commands::repair_service,
+            crate::service_commands::check_admin_privileges,
         ])
         .setup(move |app| {
             let _app_handle = app.handle().clone();

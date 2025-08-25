@@ -1,0 +1,12 @@
+deployment_mode = "desktop"
+version = "0.2.0"
+server_port = 53211
+log_level = "info"
+database_url = "sqlite://data/hotm.db"
+database_embedded = false
+network_interface = "127.0.0.1"
+cors_enabled = false
+web_interface_enabled = false
+desktop_interface_enabled = true
+system_tray_enabled = true
+global_hotkey = "Ctrl+Alt+H"

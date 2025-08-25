@@ -1,0 +1,6 @@
+version = "0.1.0"
+deployment_mode = "server"
+database_url = "postgresql://localhost:54321/hotm"
+ollama_url = "http://localhost:11434"
+server_port = 53211
+log_level = "info"

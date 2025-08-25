@@ -1,0 +1,27 @@
+{
+  "service_name": "HotM-Server",
+  "display_name": "HotM API Server",
+  "description": "Main HotM API server with web interface and MCP integration",
+  "executable_path": "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-development-033f1f1d/bin\\hotm.exe",
+  "startup_type": "Auto",
+  "dependencies": [
+    "HotM-PostgreSQL",
+    "HotM-Ollama"
+  ],
+  "ports": [
+    53211
+  ],
+  "health_check_url": "http://localhost:53211/api/v1/health",
+  "deployment_mode": "Development",
+  "log_directory": "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-development-033f1f1d/logs",
+  "data_directory": "/home/manitcor/dev/hotm/test-results/service-lifecycle-validation/service-env-development-033f1f1d/data",
+  "recovery_settings": {
+    "max_restart_attempts": 3,
+    "restart_delay_seconds": 30,
+    "failure_actions": [
+      "restart",
+      "dependency_check",
+      "configuration_reload"
+    ]
+  }
+}

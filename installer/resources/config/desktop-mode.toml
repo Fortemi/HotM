@@ -1,0 +1,192 @@
+# HotM Desktop Mode Configuration
+# Optimized for individual users and personal knowledge management
+
+[runtime]
+mode = "desktop"
+version = "0.2.0"
+debug_mode = false
+log_level = "info"
+
+[desktop]
+show_gui = true
+system_tray = true
+auto_start = true  # Start with Windows
+global_hotkey = "Ctrl+Alt+H"
+minimize_on_close = true
+start_minimized = false
+theme = "system"
+window_state = "normal"
+remember_window_position = true
+single_instance = true
+
+[desktop.notifications]
+enabled = true
+show_sync_status = false
+show_backup_status = true
+show_errors = true
+
+# Server disabled in pure desktop mode
+[server]
+bind_address = "127.0.0.1:0"  # Disabled
+enable_web_ui = false
+enable_api = false
+enable_websocket = false
+enable_cors = false
+api_key_required = false
+
+[database]
+type = "sqlite"  # SQLite for desktop simplicity
+host = "localhost"
+port = 0
+database = "hotm.db"
+username = ""
+password = ""
+ssl_mode = "disable"
+pool_size = 5  # Smaller pool for desktop
+connection_timeout = 30
+embedded = true
+auto_migrate = true
+backup_enabled = true
+
+[database.sqlite]
+# SQLite-specific settings
+file_path = "auto"  # auto uses data directory
+journal_mode = "WAL"
+synchronous = "NORMAL"
+cache_size = "64MB"
+temp_store = "MEMORY"
+optimize_on_close = true
+
+[database.backup]
+schedule = "daily"
+retention_days = 14  # Shorter retention for desktop
+compression = true
+location = "auto"
+
+[ollama]
+host = "localhost"
+port = 11434
+generation_model = "gpt-oss:20b"
+embedding_model = "nomic-embed-text"
+context_window = 4096
+temperature = 0.7
+top_p = 0.9
+embedded = true
+auto_pull_models = true
+model_cache_dir = "auto"
+
+[ollama.desktop]
+# Desktop-specific Ollama settings
+start_with_app = true
+auto_shutdown = true  # Shutdown when app closes
+cpu_only = false  # Use GPU if available
+memory_limit = "4GB"  # Limit Ollama memory usage
+
+[search]
+full_text_enabled = true
+semantic_search_enabled = true
+rerank_enabled = true
+max_results = 25  # Smaller result set for desktop
+similarity_threshold = 0.7
+
+[search.indexing]
+auto_index = true
+index_batch_size = 50  # Smaller batches
+embedding_batch_size = 16  # Smaller batches
+reindex_interval = "24h"
+background_indexing = true  # Don't block UI
+
+[nlp]
+auto_summarize = true
+auto_tag = true
+auto_link = true
+min_note_length = 100
+processing_delay = "10s"  # Longer delay to avoid interrupting user
+
+[nlp.desktop]
+# Desktop-specific NLP settings
+process_in_background = true
+low_priority = true  # Don't interfere with other apps
+batch_process = true  # Process multiple notes together
+
+[performance]
+worker_threads = 2  # Conservative for desktop
+cache_size = "50MB"  # Smaller cache
+cache_ttl = "1h"
+batch_size = 10  # Smaller batches
+concurrent_requests = 5  # Lower concurrency
+
+[performance.desktop]
+# Desktop-specific performance settings
+memory_limit = "500MB"  # Limit memory usage
+cpu_limit = 50  # Max 50% CPU usage
+idle_optimization = true  # Reduce activity when idle
+battery_optimization = true  # Optimize for battery life
+
+[logging]
+level = "warn"  # Less verbose logging
+format = "text"  # Human-readable format
+file_enabled = true
+file_path = "auto"
+max_file_size = "5MB"  # Smaller log files
+max_files = 3  # Fewer log files
+console_enabled = false  # No console in desktop mode
+
+[security]
+api_key_length = 32
+session_timeout = "24h"
+csrf_protection = false  # Not needed for desktop
+secure_headers = false  # Not needed for desktop
+rate_limiting = false  # Not needed for desktop
+
+[ui]
+theme = "system"
+font_family = "system"
+font_size = 14
+editor_theme = "default"
+syntax_highlighting = true
+line_numbers = true
+word_wrap = true
+
+[ui.desktop]
+# Desktop-specific UI settings
+window_transparency = false
+always_on_top = false
+minimize_to_tray = true
+close_to_tray = true
+show_splash_screen = true
+remember_tabs = true
+
+[ui.editor]
+auto_save = true
+auto_save_delay = "3s"  # Faster auto-save
+vim_mode = false
+spell_check = true
+markdown_preview = true
+live_preview = true
+distraction_free_mode = false
+
+[integration]
+mcp_enabled = false  # Disabled for desktop
+webhook_enabled = false
+export_formats = ["markdown", "pdf"]
+
+[backup]
+auto_backup = true
+backup_interval = "daily"
+backup_retention = 14  # days
+compression = true
+encryption = false
+
+[backup.desktop]
+# Desktop-specific backup settings
+backup_on_close = true
+incremental_backup = true
+local_only = true  # No cloud backup by default
+prompt_before_backup = false
+
+[experimental]
+ai_chat = false
+collaborative_editing = false
+plugin_system = false
+advanced_analytics = false

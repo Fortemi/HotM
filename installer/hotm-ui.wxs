@@ -1,0 +1,388 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi"
+     xmlns:util="http://schemas.microsoft.com/wix/UtilExtension">
+  
+  <Fragment Id="UIComponents">
+    <!-- Professional Installer UI with Deployment Mode Selection -->
+    <UI Id="HotMInstallerUI">
+      <TextStyle Id="WixUI_Font_Normal" FaceName="Segoe UI" Size="8" />
+      <TextStyle Id="WixUI_Font_Bigger" FaceName="Segoe UI" Size="12" />
+      <TextStyle Id="WixUI_Font_Title" FaceName="Segoe UI" Size="16" Bold="yes" />
+      <TextStyle Id="WixUI_Font_Emphasis" FaceName="Segoe UI" Size="8" Bold="yes" />
+      
+      <!-- Properties for UI state -->
+      <Property Id="DefaultUIFont" Value="WixUI_Font_Normal" />
+      <Property Id="WixUI_Mode" Value="InstallDir" />
+      <Property Id="ARPNOMODIFY" Value="1" />
+      
+      <!-- Welcome Dialog -->
+      <Dialog Id="WelcomeDlg" Width="370" Height="270" Title="[ProductName] Setup">
+        <Control Id="Next" Type="PushButton" X="236" Y="243" Width="56" Height="17" Default="yes" Text="&amp;Next">
+          <Publish Event="NewDialog" Value="LicenseAgreementDlg">1</Publish>
+        </Control>
+        <Control Id="Cancel" Type="PushButton" X="304" Y="243" Width="56" Height="17" Cancel="yes" Text="Cancel">
+          <Publish Event="SpawnDialog" Value="CancelDlg">1</Publish>
+        </Control>
+        
+        <Control Id="Bitmap" Type="Bitmap" X="0" Y="0" Width="370" Height="234" TabSkip="no" Text="WixUI_Bmp_Dialog" />
+        <Control Id="Title" Type="Text" X="135" Y="20" Width="220" Height="60" Transparent="yes" NoPrefix="yes">
+          <Text>{\WixUI_Font_Title}Welcome to Hall of the Mind Setup</Text>
+        </Control>
+        
+        <Control Id="Description" Type="Text" X="135" Y="70" Width="220" Height="80" Transparent="yes" NoPrefix="yes">
+          <Text>This installer will guide you through setting up Hall of the Mind, a local-first notes and analysis tool with AI-powered features.
+
+Choose from multiple deployment modes to fit your use case:
+• Desktop - Personal knowledge management
+• Server - Team collaboration hub  
+• Hybrid - Desktop + server capabilities
+• Development - Enhanced developer features</Text>
+        </Control>
+        
+        <Control Id="VersionLabel" Type="Text" X="135" Y="180" Width="220" Height="15" Transparent="yes" NoPrefix="yes">
+          <Text>Version [ProductVersion] - $(var.Channel) Channel</Text>
+        </Control>
+      </Dialog>
+      
+      <!-- License Agreement Dialog -->
+      <Dialog Id="LicenseAgreementDlg" Width="370" Height="270" Title="[ProductName] Setup">
+        <Control Id="LicenseText" Type="ScrollableText" X="20" Y="60" Width="330" Height="140" Sunken="yes" TabSkip="no">
+          <Text SourceFile="$(var.ResourcesPath)license.rtf" />
+        </Control>
+        
+        <Control Id="Print" Type="PushButton" X="112" Y="243" Width="56" Height="17" Text="&amp;Print">
+          <Publish Event="DoAction" Value="WixPrintEula">1</Publish>
+        </Control>
+        <Control Id="Back" Type="PushButton" X="180" Y="243" Width="56" Height="17" Text="&amp;Back">
+          <Publish Event="NewDialog" Value="WelcomeDlg">1</Publish>
+        </Control>
+        <Control Id="Next" Type="PushButton" X="236" Y="243" Width="56" Height="17" Default="yes" Text="&amp;Next" Disabled="yes">
+          <Publish Event="NewDialog" Value="DeploymentModeDlg">LicenseAccepted = "1"</Publish>
+        </Control>
+        <Control Id="Cancel" Type="PushButton" X="304" Y="243" Width="56" Height="17" Cancel="yes" Text="Cancel">
+          <Publish Event="SpawnDialog" Value="CancelDlg">1</Publish>
+        </Control>
+        
+        <Control Id="BannerBitmap" Type="Bitmap" X="0" Y="0" Width="370" Height="44" TabSkip="no" Text="WixUI_Bmp_Banner" />
+        <Control Id="BannerLine" Type="Line" X="0" Y="44" Width="370" Height="0" />
+        <Control Id="BottomLine" Type="Line" X="0" Y="234" Width="370" Height="0" />
+        
+        <Control Id="Title" Type="Text" X="15" Y="6" Width="200" Height="15" Transparent="yes" NoPrefix="yes">
+          <Text>{\WixUI_Font_Title}License Agreement</Text>
+        </Control>
+        <Control Id="Description" Type="Text" X="25" Y="23" Width="280" Height="15" Transparent="yes" NoPrefix="yes">
+          <Text>Please read the following license agreement carefully.</Text>
+        </Control>
+        
+        <Control Id="LicenseAcceptedCheckBox" Type="CheckBox" X="20" Y="207" Width="330" Height="18" Property="LicenseAccepted" CheckBoxValue="1">
+          <Text>I &amp;accept the terms in the License Agreement</Text>
+          <Publish Property="NextEnabled" Value="1">1</Publish>
+          <Publish Property="NextEnabled" Value="0">NOT LicenseAccepted</Publish>
+        </Control>
+      </Dialog>
+      
+      <!-- Deployment Mode Selection Dialog -->
+      <Dialog Id="DeploymentModeDlg" Width="370" Height="270" Title="[ProductName] Setup">
+        <Control Id="Title" Type="Text" X="15" Y="6" Width="200" Height="15" Transparent="yes" NoPrefix="yes">
+          <Text>{\WixUI_Font_Title}Choose Deployment Mode</Text>
+        </Control>
+        
+        <Control Id="Description" Type="Text" X="25" Y="23" Width="280" Height="30" Transparent="yes" NoPrefix="yes">
+          <Text>Select the deployment mode that best fits your use case.</Text>
+        </Control>
+        
+        <Control Id="BannerBitmap" Type="Bitmap" X="0" Y="0" Width="370" Height="44" TabSkip="no" Text="WixUI_Bmp_Banner" />
+        <Control Id="BannerLine" Type="Line" X="0" Y="44" Width="370" Height="0" />
+        
+        <!-- Deployment mode radio buttons -->
+        <Control Id="DeploymentModeGroup" Type="RadioButtonGroup" X="25" Y="60" Width="320" Height="160" 
+                 Property="DEPLOYMENT_MODE" Text="DeploymentModes">
+          <RadioButtonGroup Property="DEPLOYMENT_MODE">
+            <RadioButton Value="desktop" X="0" Y="0" Width="320" Height="15" 
+                        Text="🖥️ Desktop Mode - Personal knowledge management" />
+            <RadioButton Value="server" X="0" Y="40" Width="320" Height="15" 
+                        Text="🖧 Server Mode - Team collaboration and network deployment" />
+            <RadioButton Value="hybrid" X="0" Y="80" Width="320" Height="15" 
+                        Text="🔀 Hybrid Mode - Desktop interface with server capabilities" />
+            <RadioButton Value="development" X="0" Y="120" Width="320" Height="15" 
+                        Text="🛠️ Development Mode - Enhanced features for developers" />
+          </RadioButtonGroup>
+        </Control>
+        
+        <!-- Mode descriptions -->
+        <Control Id="DesktopDescription" Type="Text" X="45" Y="75" Width="300" Height="25" Transparent="yes" NoPrefix="yes">
+          <Text>Ideal for individual use. Rich desktop interface with local storage and optional AI features.</Text>
+          <Condition Action="show">DEPLOYMENT_MODE = "desktop"</Condition>
+          <Condition Action="hide">DEPLOYMENT_MODE &lt;&gt; "desktop"</Condition>
+        </Control>
+        
+        <Control Id="ServerDescription" Type="Text" X="45" Y="115" Width="300" Height="25" Transparent="yes" NoPrefix="yes">
+          <Text>Perfect for teams. HTTP API server with web interface, database, and AI services.</Text>
+          <Condition Action="show">DEPLOYMENT_MODE = "server"</Condition>
+          <Condition Action="hide">DEPLOYMENT_MODE &lt;&gt; "server"</Condition>
+        </Control>
+        
+        <Control Id="HybridDescription" Type="Text" X="45" Y="155" Width="300" Height="25" Transparent="yes" NoPrefix="yes">
+          <Text>Best of both worlds. Desktop app that also runs as a server for sharing with others.</Text>
+          <Condition Action="show">DEPLOYMENT_MODE = "hybrid"</Condition>
+          <Condition Action="hide">DEPLOYMENT_MODE &lt;&gt; "hybrid"</Condition>
+        </Control>
+        
+        <Control Id="DevelopmentDescription" Type="Text" X="45" Y="195" Width="300" Height="25" Transparent="yes" NoPrefix="yes">
+          <Text>For developers. Includes debugging tools, API documentation, and development utilities.</Text>
+          <Condition Action="show">DEPLOYMENT_MODE = "development"</Condition>
+          <Condition Action="hide">DEPLOYMENT_MODE &lt;&gt; "development"</Condition>
+        </Control>
+        
+        <Control Id="BottomLine" Type="Line" X="0" Y="234" Width="370" Height="0" />
+        
+        <Control Id="Back" Type="PushButton" X="180" Y="243" Width="56" Height="17" Text="&amp;Back">
+          <Publish Event="NewDialog" Value="LicenseAgreementDlg">1</Publish>
+        </Control>
+        
+        <Control Id="Next" Type="PushButton" X="236" Y="243" Width="56" Height="17" Default="yes" Text="&amp;Next">
+          <!-- Set deployment mode properties based on selection -->
+          <Publish Property="INSTALL_DESKTOP" Value="1">DEPLOYMENT_MODE = "desktop"</Publish>
+          <Publish Property="INSTALL_DESKTOP" Value="0">DEPLOYMENT_MODE &lt;&gt; "desktop"</Publish>
+          
+          <Publish Property="INSTALL_SERVER" Value="1">DEPLOYMENT_MODE = "server"</Publish>
+          <Publish Property="INSTALL_SERVER" Value="0">DEPLOYMENT_MODE &lt;&gt; "server"</Publish>
+          
+          <Publish Property="INSTALL_HYBRID" Value="1">DEPLOYMENT_MODE = "hybrid"</Publish>
+          <Publish Property="INSTALL_HYBRID" Value="0">DEPLOYMENT_MODE &lt;&gt; "hybrid"</Publish>
+          
+          <Publish Property="INSTALL_DEVELOPMENT" Value="1">DEPLOYMENT_MODE = "development"</Publish>
+          <Publish Property="INSTALL_DEVELOPMENT" Value="0">DEPLOYMENT_MODE &lt;&gt; "development"</Publish>
+          
+          <!-- Navigate to appropriate next dialog based on mode -->
+          <Publish Event="NewDialog" Value="InstallDirDlg">DEPLOYMENT_MODE = "desktop"</Publish>
+          <Publish Event="NewDialog" Value="DatabaseOptionsDlg">DEPLOYMENT_MODE = "server" OR DEPLOYMENT_MODE = "hybrid" OR DEPLOYMENT_MODE = "development"</Publish>
+        </Control>
+        
+        <Control Id="Cancel" Type="PushButton" X="304" Y="243" Width="56" Height="17" Cancel="yes" Text="Cancel">
+          <Publish Event="SpawnDialog" Value="CancelDlg">1</Publish>
+        </Control>
+      </Dialog>
+      
+      <!-- Installation Directory Dialog -->
+      <Dialog Id="InstallDirDlg" Width="370" Height="270" Title="[ProductName] Setup">
+        <Control Id="Title" Type="Text" X="15" Y="6" Width="200" Height="15" Transparent="yes" NoPrefix="yes">
+          <Text>{\WixUI_Font_Title}Destination Folder</Text>
+        </Control>
+        
+        <Control Id="Description" Type="Text" X="25" Y="23" Width="280" Height="15" Transparent="yes" NoPrefix="yes">
+          <Text>Click Change to install to a different folder.</Text>
+        </Control>
+        
+        <Control Id="BannerBitmap" Type="Bitmap" X="0" Y="0" Width="370" Height="44" TabSkip="no" Text="WixUI_Bmp_Banner" />
+        <Control Id="BannerLine" Type="Line" X="0" Y="44" Width="370" Height="0" />
+        
+        <Control Id="FolderLabel" Type="Text" X="25" Y="60" Width="290" Height="10" NoPrefix="yes">
+          <Text>Install [ProductName] to:</Text>
+        </Control>
+        
+        <Control Id="Folder" Type="PathEdit" X="25" Y="72" Width="320" Height="18" Property="INSTALLFOLDER" />
+        
+        <Control Id="ChangeFolder" Type="PushButton" X="25" Y="95" Width="56" Height="17" Text="&amp;Change...">
+          <Publish Event="SpawnDialog" Value="BrowseDlg">1</Publish>
+        </Control>
+        
+        <!-- Disk space information -->
+        <Control Id="DiskCostButton" Type="PushButton" X="25" Y="140" Width="80" Height="17" Text="&amp;Disk Usage">
+          <Publish Event="SpawnDialog" Value="DiskCostDlg">1</Publish>
+        </Control>
+        
+        <Control Id="RequirementsLabel" Type="Text" X="25" Y="170" Width="320" Height="40" Transparent="yes" NoPrefix="yes">
+          <Text>System Requirements:
+• Windows 10 or later (64-bit)
+• 4 GB RAM minimum, 8 GB recommended
+• 2 GB free disk space (more for AI models)</Text>
+        </Control>
+        
+        <Control Id="BottomLine" Type="Line" X="0" Y="234" Width="370" Height="0" />
+        
+        <Control Id="Back" Type="PushButton" X="180" Y="243" Width="56" Height="17" Text="&amp;Back">
+          <Publish Event="NewDialog" Value="DeploymentModeDlg">1</Publish>
+        </Control>
+        
+        <Control Id="Next" Type="PushButton" X="236" Y="243" Width="56" Height="17" Default="yes" Text="&amp;Next">
+          <Publish Event="NewDialog" Value="StartupOptionsDlg">DEPLOYMENT_MODE = "desktop" OR DEPLOYMENT_MODE = "hybrid"</Publish>
+          <Publish Event="NewDialog" Value="VerifyReadyDlg">DEPLOYMENT_MODE = "development"</Publish>
+        </Control>
+        
+        <Control Id="Cancel" Type="PushButton" X="304" Y="243" Width="56" Height="17" Cancel="yes" Text="Cancel">
+          <Publish Event="SpawnDialog" Value="CancelDlg">1</Publish>
+        </Control>
+      </Dialog>
+      
+      <!-- Startup Options Dialog -->
+      <Dialog Id="StartupOptionsDlg" Width="370" Height="270" Title="[ProductName] Setup">
+        <Control Id="Title" Type="Text" X="15" Y="6" Width="200" Height="15" Transparent="yes" NoPrefix="yes">
+          <Text>{\WixUI_Font_Title}Startup Options</Text>
+        </Control>
+        
+        <Control Id="Description" Type="Text" X="25" Y="23" Width="280" Height="30" Transparent="yes" NoPrefix="yes">
+          <Text>Configure how Hall of the Mind integrates with Windows startup.</Text>
+        </Control>
+        
+        <Control Id="BannerBitmap" Type="Bitmap" X="0" Y="0" Width="370" Height="44" TabSkip="no" Text="WixUI_Bmp_Banner" />
+        <Control Id="BannerLine" Type="Line" X="0" Y="44" Width="370" Height="0" />
+        
+        <Control Id="AutoStartCheckBox" Type="CheckBox" X="25" Y="70" Width="320" Height="17" 
+                 Property="ADD_TO_STARTUP" CheckBoxValue="1">
+          <Text>Start Hall of the Mind when Windows starts (minimized to system tray)</Text>
+        </Control>
+        
+        <Control Id="AutoStartDescription" Type="Text" X="45" Y="90" Width="300" Height="40" Transparent="yes" NoPrefix="yes">
+          <Text>When enabled, the application starts automatically and runs in the background. Use Ctrl+Alt+H to show/hide the main window.</Text>
+        </Control>
+        
+        <Control Id="DesktopShortcutCheckBox" Type="CheckBox" X="25" Y="140" Width="320" Height="17" 
+                 Property="CREATE_DESKTOP_SHORTCUT" CheckBoxValue="1">
+          <Text>Create desktop shortcut</Text>
+        </Control>
+        
+        <Control Id="StartMenuCheckBox" Type="CheckBox" X="25" Y="160" Width="320" Height="17" 
+                 Property="CREATE_START_MENU_SHORTCUT" CheckBoxValue="1">
+          <Text>Create Start Menu shortcuts</Text>
+        </Control>
+        
+        <Control Id="GlobalHotkeyLabel" Type="Text" X="25" Y="190" Width="320" Height="25" Transparent="yes" NoPrefix="yes">
+          <Text>Global Hotkey: Ctrl+Alt+H (always available to show/hide the application)</Text>
+        </Control>
+        
+        <Control Id="BottomLine" Type="Line" X="0" Y="234" Width="370" Height="0" />
+        
+        <Control Id="Back" Type="PushButton" X="180" Y="243" Width="56" Height="17" Text="&amp;Back">
+          <Publish Event="NewDialog" Value="InstallDirDlg">1</Publish>
+        </Control>
+        
+        <Control Id="Next" Type="PushButton" X="236" Y="243" Width="56" Height="17" Default="yes" Text="&amp;Next">
+          <Publish Event="NewDialog" Value="VerifyReadyDlg">1</Publish>
+        </Control>
+        
+        <Control Id="Cancel" Type="PushButton" X="304" Y="243" Width="56" Height="17" Cancel="yes" Text="Cancel">
+          <Publish Event="SpawnDialog" Value="CancelDlg">1</Publish>
+        </Control>
+      </Dialog>
+      
+      <!-- Ready to Install Dialog -->
+      <Dialog Id="VerifyReadyDlg" Width="370" Height="270" Title="[ProductName] Setup">
+        <Control Id="Title" Type="Text" X="15" Y="6" Width="200" Height="15" Transparent="yes" NoPrefix="yes">
+          <Text>{\WixUI_Font_Title}Ready to Install</Text>
+        </Control>
+        
+        <Control Id="Description" Type="Text" X="25" Y="23" Width="280" Height="15" Transparent="yes" NoPrefix="yes">
+          <Text>The installer is ready to begin the installation.</Text>
+        </Control>
+        
+        <Control Id="BannerBitmap" Type="Bitmap" X="0" Y="0" Width="370" Height="44" TabSkip="no" Text="WixUI_Bmp_Banner" />
+        <Control Id="BannerLine" Type="Line" X="0" Y="44" Width="370" Height="0" />
+        
+        <Control Id="InstallationSummary" Type="Text" X="25" Y="60" Width="320" Height="160" Transparent="yes" NoPrefix="yes">
+          <Text>Installation Summary:
+
+Deployment Mode: [DEPLOYMENT_MODE]
+Installation Directory: [INSTALLFOLDER]
+
+Components to be installed:
+• HotM Unified Runtime
+• Configuration files and scripts
+• Desktop shortcuts and system integration
+
+The installation process will:
+1. Copy application files
+2. Configure selected deployment mode
+3. Set up system integration
+4. Initialize services (if applicable)
+5. Validate installation
+
+Click Install to begin the installation.</Text>
+        </Control>
+        
+        <Control Id="BottomLine" Type="Line" X="0" Y="234" Width="370" Height="0" />
+        
+        <Control Id="Back" Type="PushButton" X="180" Y="243" Width="56" Height="17" Text="&amp;Back">
+          <Publish Event="NewDialog" Value="StartupOptionsDlg">DEPLOYMENT_MODE = "desktop" OR DEPLOYMENT_MODE = "hybrid"</Publish>
+          <Publish Event="NewDialog" Value="InstallDirDlg">DEPLOYMENT_MODE = "development"</Publish>
+          <Publish Event="NewDialog" Value="OllamaOptionsDlg">DEPLOYMENT_MODE = "server"</Publish>
+        </Control>
+        
+        <Control Id="Install" Type="PushButton" X="236" Y="243" Width="56" Height="17" Default="yes" Text="&amp;Install">
+          <Publish Event="EndDialog" Value="Return">1</Publish>
+        </Control>
+        
+        <Control Id="Cancel" Type="PushButton" X="304" Y="243" Width="56" Height="17" Cancel="yes" Text="Cancel">
+          <Publish Event="SpawnDialog" Value="CancelDlg">1</Publish>
+        </Control>
+      </Dialog>
+      
+      <!-- Progress Dialog -->
+      <Dialog Id="ProgressDlg" Width="370" Height="270" Title="[ProductName] Setup" Modeless="yes">
+        <Control Id="BannerBitmap" Type="Bitmap" X="0" Y="0" Width="370" Height="44" TabSkip="no" Text="WixUI_Bmp_Banner" />
+        <Control Id="BannerLine" Type="Line" X="0" Y="44" Width="370" Height="0" />
+        
+        <Control Id="Title" Type="Text" X="15" Y="6" Width="200" Height="15" Transparent="yes" NoPrefix="yes">
+          <Text>{\WixUI_Font_Title}Installing [ProductName]</Text>
+        </Control>
+        
+        <Control Id="Text" Type="Text" X="25" Y="23" Width="280" Height="15" Transparent="yes" NoPrefix="yes">
+          <Text>Please wait while the installer configures Hall of the Mind.</Text>
+        </Control>
+        
+        <Control Id="StatusLabel" Type="Text" X="25" Y="60" Width="320" Height="15" NoPrefix="yes">
+          <Text>Status:</Text>
+        </Control>
+        
+        <Control Id="ActionText" Type="Text" X="70" Y="60" Width="275" Height="15" NoPrefix="yes">
+          <Text>[ActionText]</Text>
+        </Control>
+        
+        <Control Id="ProgressBar" Type="ProgressBar" X="25" Y="80" Width="320" Height="15" ProgressBlocks="yes" Text="[ProgressText]" />
+        
+        <Control Id="TimeRemaining" Type="Text" X="25" Y="105" Width="320" Height="15" Transparent="yes" NoPrefix="yes">
+          <Text>Estimated time remaining: [TimeRemaining]</Text>
+        </Control>
+        
+        <Control Id="DetailText" Type="Text" X="25" Y="130" Width="320" Height="80" Transparent="yes" NoPrefix="yes">
+          <Text>The installer is performing the following operations:
+
+• Copying application files
+• Configuring deployment mode
+• Setting up system integration
+• Installing services (if applicable)
+• Validating installation
+
+This process may take several minutes depending on your system and selected options.</Text>
+        </Control>
+        
+        <Control Id="Cancel" Type="PushButton" X="304" Y="243" Width="56" Height="17" Cancel="yes" Text="Cancel">
+          <Publish Event="SpawnDialog" Value="CancelDlg">1</Publish>
+        </Control>
+      </Dialog>
+      
+      <!-- Installation Sequence -->
+      <InstallUISequence>
+        <Show Dialog="WelcomeDlg" Before="ProgressDlg">NOT Installed</Show>
+        <Show Dialog="ProgressDlg" After="WelcomeDlg" />
+      </InstallUISequence>
+      
+      <!-- AdminUISequence for elevated installs -->
+      <AdminUISequence>
+        <Show Dialog="WelcomeDlg" Before="ProgressDlg" />
+        <Show Dialog="ProgressDlg" After="WelcomeDlg" />
+      </AdminUISequence>
+      
+      <!-- Properties for UI behavior -->
+      <Property Id="CREATE_DESKTOP_SHORTCUT" Value="1" />
+      <Property Id="CREATE_START_MENU_SHORTCUT" Value="1" />
+    </UI>
+    
+    <!-- Reference standard WiX UI components -->
+    <UIRef Id="WixUI_Common" />
+    
+    <!-- Bitmaps for UI -->
+    <Binary Id="WixUI_Bmp_Dialog" SourceFile="$(var.ResourcesPath)bitmaps\dialog.bmp" />
+    <Binary Id="WixUI_Bmp_Banner" SourceFile="$(var.ResourcesPath)bitmaps\banner.bmp" />
+  </Fragment>
+</Wix>

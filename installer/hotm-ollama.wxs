@@ -1,0 +1,305 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi"
+     xmlns:util="http://schemas.microsoft.com/wix/UtilExtension">
+  
+  <Fragment Id="OllamaComponents">
+    <!-- Ollama Embedded Service Components -->
+    <DirectoryRef Id="OllamaFolder">
+      <!-- Ollama executable and supporting files -->
+      <Component Id="OllamaBinary" Guid="*">
+        <Condition>INSTALL_EMBEDDED_OLLAMA = "1"</Condition>
+        <File Id="OllamaExe" 
+              Source="$(var.ResourcesPath)ollama\ollama.exe" 
+              KeyPath="yes" />
+      </Component>
+      
+      <Component Id="OllamaScripts" Guid="*">
+        <Condition>INSTALL_EMBEDDED_OLLAMA = "1"</Condition>
+        <File Id="OllamaManagementScript" 
+              Source="$(var.ResourcesPath)scripts\manage-ollama.ps1" />
+        <File Id="ModelDownloadScript" 
+              Source="$(var.ResourcesPath)scripts\download-models.ps1" />
+        <File Id="OllamaHealthCheckScript" 
+              Source="$(var.ResourcesPath)scripts\ollama-health.ps1" />
+      </Component>
+    </DirectoryRef>
+    
+    <!-- Data directories for Ollama -->
+    <DirectoryRef Id="OllamaDataFolder">
+      <Component Id="OllamaDataDirs" Guid="*">
+        <Condition>INSTALL_EMBEDDED_OLLAMA = "1"</Condition>
+        <CreateFolder Directory="OllamaDataFolder">
+          <Permission User="Users" GenericRead="yes" GenericWrite="yes" />
+          <Permission User="NETWORK SERVICE" GenericAll="yes" />
+          <Permission User="Administrators" GenericAll="yes" />
+        </CreateFolder>
+        
+        <CreateFolder Directory="ModelsFolder">
+          <Permission User="Users" GenericRead="yes" GenericWrite="yes" />
+          <Permission User="NETWORK SERVICE" GenericAll="yes" />
+        </CreateFolder>
+      </Component>
+    </DirectoryRef>
+    
+    <!-- Ollama Windows Service Configuration -->
+    <DirectoryRef Id="BinFolder">
+      <Component Id="OllamaService" Guid="*">
+        <Condition>INSTALL_EMBEDDED_OLLAMA = "1" AND (INSTALL_SERVER = "1" OR INSTALL_HYBRID = "1")</Condition>
+        
+        <!-- Install Ollama as Windows Service -->
+        <ServiceInstall Id="HotMOllamaService"
+                       Type="ownProcess"
+                       Name="HotM-Ollama"
+                       DisplayName="HotM Ollama AI Service"
+                       Description="Local AI service for Hall of the Mind natural language processing"
+                       Start="auto"
+                       Account="NetworkService"
+                       ErrorControl="normal"
+                       Arguments="serve --host 127.0.0.1 --port [OLLAMA_PORT] --data [OllamaDataFolder]"
+                       Interactive="no" />
+        
+        <ServiceControl Id="StartHotMOllamaService"
+                       Name="HotM-Ollama"
+                       Start="install"
+                       Stop="both"
+                       Remove="uninstall"
+                       Wait="yes" />
+        
+        <!-- Service recovery configuration -->
+        <ServiceConfig Id="HotMOllamaRecovery"
+                      ServiceName="HotM-Ollama"
+                      FirstFailureActionType="restart"
+                      SecondFailureActionType="restart"
+                      ThirdFailureActionType="restart"
+                      RestartServiceDelayInSeconds="30"
+                      ResetPeriodInDays="1" />
+        
+        <!-- Environment variables for Ollama service -->
+        <Environment Id="OllamaModelsPath"
+                    Name="OLLAMA_MODELS"
+                    Action="set"
+                    Permanent="no"
+                    System="yes"
+                    Value="[OllamaDataFolder]models" />
+        
+        <Environment Id="OllamaHost"
+                    Name="OLLAMA_HOST"
+                    Action="set"
+                    Permanent="no"
+                    System="yes"
+                    Value="127.0.0.1:[OLLAMA_PORT]" />
+        
+        <Environment Id="OllamaKeepAlive"
+                    Name="OLLAMA_KEEP_ALIVE"
+                    Action="set"
+                    Permanent="no"
+                    System="yes"
+                    Value="24h" />
+      </Component>
+    </DirectoryRef>
+    
+    <!-- Registry entries for Ollama configuration -->
+    <DirectoryRef Id="TARGETDIR">
+      <Component Id="OllamaRegistry" Guid="*">
+        <Condition>INSTALL_EMBEDDED_OLLAMA = "1"</Condition>
+        
+        <RegistryValue Root="HKLM"
+                       Key="Software\HotM\Ollama"
+                       Name="InstallPath"
+                       Type="string"
+                       Value="[OllamaFolder]"
+                       KeyPath="yes" />
+        
+        <RegistryValue Root="HKLM"
+                       Key="Software\HotM\Ollama"
+                       Name="DataPath"
+                       Type="string"
+                       Value="[OllamaDataFolder]" />
+        
+        <RegistryValue Root="HKLM"
+                       Key="Software\HotM\Ollama"
+                       Name="ModelsPath"
+                       Type="string"
+                       Value="[ModelsFolder]" />
+        
+        <RegistryValue Root="HKLM"
+                       Key="Software\HotM\Ollama"
+                       Name="Port"
+                       Type="integer"
+                       Value="[OLLAMA_PORT]" />
+        
+        <RegistryValue Root="HKLM"
+                       Key="Software\HotM\Ollama"
+                       Name="ServiceInstalled"
+                       Type="integer"
+                       Value="1" />
+        
+        <RegistryValue Root="HKLM"
+                       Key="Software\HotM\Ollama"
+                       Name="Version"
+                       Type="string"
+                       Value="0.5.1" />
+      </Component>
+    </DirectoryRef>
+    
+    <!-- Custom UI dialog for Ollama options -->
+    <UI>
+      <Dialog Id="OllamaOptionsDlg" Width="370" Height="270" Title="[ProductName] Setup">
+        <Control Id="Title" Type="Text" X="15" Y="6" Width="200" Height="15" Transparent="yes" NoPrefix="yes">
+          <Text>{\WixUI_Font_Title}AI Service Configuration</Text>
+        </Control>
+        
+        <Control Id="Description" Type="Text" X="25" Y="23" Width="280" Height="30" Transparent="yes" NoPrefix="yes">
+          <Text>Configure local AI processing for natural language features.</Text>
+        </Control>
+        
+        <Control Id="BannerBitmap" Type="Bitmap" X="0" Y="0" Width="370" Height="44" TabSkip="no" Text="WixUI_Bmp_Banner" />
+        <Control Id="BannerLine" Type="Line" X="0" Y="44" Width="370" Height="0" />
+        
+        <!-- Ollama installation option -->
+        <Control Id="EmbeddedOllamaCheckBox" Type="CheckBox" X="25" Y="70" Width="300" Height="17"
+                 Property="INSTALL_EMBEDDED_OLLAMA" CheckBoxValue="1">
+          <Text>Install embedded Ollama AI service (Recommended)</Text>
+        </Control>
+        
+        <Control Id="EmbeddedOllamaDescription" Type="Text" X="35" Y="90" Width="300" Height="30" Transparent="yes" NoPrefix="yes">
+          <Text>Includes Ollama for local AI processing. Models will be downloaded on first use.</Text>
+        </Control>
+        
+        <!-- Model selection -->
+        <Control Id="ModelsLabel" Type="Text" X="25" Y="125" Width="120" Height="12" Transparent="yes" NoPrefix="yes">
+          <Text>AI Models to Download:</Text>
+        </Control>
+        
+        <Control Id="GptOssCheckBox" Type="CheckBox" X="35" Y="140" Width="280" Height="15"
+                 Property="DOWNLOAD_GPT_OSS" CheckBoxValue="1">
+          <Text>GPT-OSS:20B - Text generation and summarization (8GB)</Text>
+          <Condition Action="enable">INSTALL_EMBEDDED_OLLAMA = "1"</Condition>
+          <Condition Action="disable">INSTALL_EMBEDDED_OLLAMA = "0"</Condition>
+        </Control>
+        
+        <Control Id="NomicEmbedCheckBox" Type="CheckBox" X="35" Y="155" Width="280" Height="15"
+                 Property="DOWNLOAD_NOMIC_EMBED" CheckBoxValue="1">
+          <Text>Nomic-Embed-Text - Semantic search embeddings (274MB)</Text>
+          <Condition Action="enable">INSTALL_EMBEDDED_OLLAMA = "1"</Condition>
+          <Condition Action="disable">INSTALL_EMBEDDED_OLLAMA = "0"</Condition>
+        </Control>
+        
+        <Control Id="ModelNote" Type="Text" X="35" Y="175" Width="300" Height="25" Transparent="yes" NoPrefix="yes">
+          <Text>Note: Models can be downloaded later if needed. Internet connection required.</Text>
+        </Control>
+        
+        <!-- Port configuration -->
+        <Control Id="PortLabel" Type="Text" X="25" Y="205" Width="80" Height="12" Transparent="yes" NoPrefix="yes">
+          <Text>Ollama Port:</Text>
+        </Control>
+        
+        <Control Id="PortEdit" Type="Edit" X="110" Y="202" Width="60" Height="18" Property="OLLAMA_PORT">
+          <Condition Action="enable">INSTALL_EMBEDDED_OLLAMA = "1"</Condition>
+          <Condition Action="disable">INSTALL_EMBEDDED_OLLAMA = "0"</Condition>
+        </Control>
+        
+        <Control Id="PortNote" Type="Text" X="180" Y="205" Width="150" Height="12" Transparent="yes" NoPrefix="yes">
+          <Text>(Default: 11434)</Text>
+        </Control>
+        
+        <Control Id="BottomLine" Type="Line" X="0" Y="234" Width="370" Height="0" />
+        
+        <Control Id="Back" Type="PushButton" X="180" Y="243" Width="56" Height="17" Text="&amp;Back">
+          <Publish Event="NewDialog" Value="DatabaseOptionsDlg">1</Publish>
+        </Control>
+        
+        <Control Id="Next" Type="PushButton" X="236" Y="243" Width="56" Height="17" Default="yes" Text="&amp;Next">
+          <Publish Event="NewDialog" Value="VerifyReadyDlg">1</Publish>
+        </Control>
+        
+        <Control Id="Cancel" Type="PushButton" X="304" Y="243" Width="56" Height="17" Cancel="yes" Text="Cancel">
+          <Publish Event="SpawnDialog" Value="CancelDlg">1</Publish>
+        </Control>
+      </Dialog>
+      
+      <!-- Add to install sequence -->
+      <InstallUISequence>
+        <Show Dialog="OllamaOptionsDlg" After="DatabaseOptionsDlg">
+          INSTALL_SERVER = "1" OR INSTALL_HYBRID = "1"
+        </Show>
+      </InstallUISequence>
+    </UI>
+    
+    <!-- Installation properties for Ollama -->
+    <Property Id="INSTALL_EMBEDDED_OLLAMA" Value="1" />
+    <Property Id="DOWNLOAD_GPT_OSS" Value="1" />
+    <Property Id="DOWNLOAD_NOMIC_EMBED" Value="1" />
+    <Property Id="OLLAMA_PORT" Value="11434" />
+    
+    <!-- Custom actions for Ollama setup -->
+    <CustomAction Id="InstallOllamaService"
+                  BinaryKey="HotMInstallerHelper"
+                  DllEntry="InstallOllamaService"
+                  Execute="deferred"
+                  Impersonate="no"
+                  Return="check" />
+    
+    <CustomAction Id="ConfigureOllama"
+                  BinaryKey="HotMInstallerHelper"
+                  DllEntry="ConfigureOllama"
+                  Execute="deferred"
+                  Impersonate="no"
+                  Return="check" />
+    
+    <CustomAction Id="DownloadModels"
+                  BinaryKey="HotMInstallerHelper"
+                  DllEntry="DownloadOllamaModels"
+                  Execute="deferred"
+                  Impersonate="no"
+                  Return="check" />
+    
+    <CustomAction Id="StartOllamaService"
+                  BinaryKey="HotMInstallerHelper"
+                  DllEntry="StartOllamaService"
+                  Execute="deferred"
+                  Impersonate="no"
+                  Return="check" />
+    
+    <!-- Custom action scheduling -->
+    <InstallExecuteSequence>
+      <Custom Action="InstallOllamaService" After="InstallServices">
+        <![CDATA[NOT Installed AND INSTALL_EMBEDDED_OLLAMA = "1"]]>
+      </Custom>
+      
+      <Custom Action="ConfigureOllama" After="InstallOllamaService">
+        <![CDATA[NOT Installed AND INSTALL_EMBEDDED_OLLAMA = "1"]]>
+      </Custom>
+      
+      <Custom Action="DownloadModels" After="ConfigureOllama">
+        <![CDATA[NOT Installed AND INSTALL_EMBEDDED_OLLAMA = "1" AND (DOWNLOAD_GPT_OSS = "1" OR DOWNLOAD_NOMIC_EMBED = "1")]]>
+      </Custom>
+      
+      <Custom Action="StartOllamaService" After="DownloadModels">
+        <![CDATA[NOT Installed AND INSTALL_EMBEDDED_OLLAMA = "1"]]>
+      </Custom>
+    </InstallExecuteSequence>
+    
+    <!-- Feature definition for Ollama -->
+    <Feature Id="EmbeddedOllamaFeature"
+             Title="Embedded Ollama AI Service"
+             Description="Local AI service for natural language processing and semantic search"
+             Level="1"
+             Display="expand">
+      <Condition Level="1">INSTALL_EMBEDDED_OLLAMA = "1"</Condition>
+      <ComponentRef Id="OllamaBinary" />
+      <ComponentRef Id="OllamaScripts" />
+      <ComponentRef Id="OllamaDataDirs" />
+      <ComponentRef Id="OllamaRegistry" />
+      
+      <!-- Service component only for server/hybrid modes -->
+      <Feature Id="OllamaServiceFeature"
+               Title="Ollama Windows Service"
+               Description="Run Ollama as a Windows service for server/hybrid deployments"
+               Level="1">
+        <Condition Level="1">INSTALL_SERVER = "1" OR INSTALL_HYBRID = "1"</Condition>
+        <ComponentRef Id="OllamaService" />
+      </Feature>
+    </Feature>
+  </Fragment>
+</Wix>

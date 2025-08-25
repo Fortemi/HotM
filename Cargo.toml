@@ -3,7 +3,8 @@ members = [
     "hotm-core",
     "hotm-server", 
     "hotm-desktop",
-    "hotm-unified"
+    "hotm-unified",
+    "hotm-service-manager"
 ]
 resolver = "2"
 
@@ -74,6 +75,14 @@ urlencoding = "2.1"
 
 # Build dependencies
 tauri-build = { version = "2.4.0" }
+
+# Configuration management
+toml = "0.8"
+
+# Windows-specific dependencies (used by service manager)
+windows-service = "0.7"
+winapi = { version = "0.3", features = ["winsvc", "winreg", "errhandlingapi", "processthreadsapi", "handleapi", "winuser", "winbase", "winnt", "tlhelp32"] }
+winres = "0.1"
 
 # Development dependencies
 tokio-test = "0.4"
