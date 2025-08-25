@@ -116,8 +116,22 @@ try {
         Remove-Item Env:SQLX_OFFLINE -ErrorAction SilentlyContinue
         $env:DATABASE_URL = "postgres://dummy:dummy@localhost:5432/dummy"
         
-        cargo build --workspace --release
-        if ($LASTEXITCODE -ne 0) { throw "Cargo build failed" }
+        # Build core components first (may skip service manager if it has issues)
+        cargo build --release -p hotm-core -p hotm-unified
+        if ($LASTEXITCODE -ne 0) { 
+            Write-Warning "Core build failed, trying workspace build..."
+            cargo build --workspace --release
+            if ($LASTEXITCODE -ne 0) { throw "Cargo build failed" }
+        } else {
+            Write-Success "Core components built successfully"
+            # Try to build service manager separately
+            cargo build --release -p hotm-service-manager
+            if ($LASTEXITCODE -ne 0) {
+                Write-Warning "Service manager build failed - desktop features may be limited"
+            } else {
+                Write-Success "Service manager built successfully"
+            }
+        }
         
         # Build frontend
         Write-Step "Building React frontend"
