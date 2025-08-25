@@ -111,11 +111,10 @@ try {
         Write-Host "Building Rust workspace..." -ForegroundColor $colors.Info
         Write-Host "Note: Building without database connection - queries will be verified at runtime" -ForegroundColor $colors.Warning
         
-        # Unset SQLX_OFFLINE to disable compile-time query verification
-        # This allows building without a database connection
+        # Set dummy DATABASE_URL to prevent SQLx URL parsing errors during build
         # Queries will be verified when the application connects to the database at runtime
         Remove-Item Env:SQLX_OFFLINE -ErrorAction SilentlyContinue
-        $env:DATABASE_URL = ""  # Clear any existing DATABASE_URL
+        $env:DATABASE_URL = "postgres://dummy:dummy@localhost:5432/dummy"
         
         cargo build --workspace --release
         if ($LASTEXITCODE -ne 0) { throw "Cargo build failed" }
