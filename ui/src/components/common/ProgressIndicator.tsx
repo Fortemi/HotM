@@ -17,7 +17,6 @@ import {
   Clock, 
   X,
   Play,
-  Pause,
   Square
 } from 'lucide-react';
 

@@ -11,11 +11,8 @@ import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
-import { Switch } from './ui/switch';
 import { Badge } from './ui/badge';
-import { Separator } from './ui/separator';
 import { ScrollArea } from './ui/scroll-area';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 import { 
   FileText, 
   Download, 
@@ -24,9 +21,7 @@ import {
   RefreshCw, 
   Play, 
   Pause,
-  Square,
   Trash2,
-  AlertCircle,
   Info,
   AlertTriangle,
   XCircle,
@@ -60,7 +55,7 @@ interface ServiceLogsState {
 export const ServiceLogs: React.FC<ServiceLogsProps> = ({
   className = '',
   services = [],
-  defaultFilter,
+  defaultFilter: _defaultFilter,
   maxEntries = 1000,
   enableExport = true
 }) => {
@@ -81,10 +76,10 @@ export const ServiceLogs: React.FC<ServiceLogsProps> = ({
   
   // Use the service logs hook
   const {
-    logs,
+    logs: _logs,
     loading,
     error,
-    filter,
+    filter: _filter,
     totalCount,
     hasMore,
     setFilter,

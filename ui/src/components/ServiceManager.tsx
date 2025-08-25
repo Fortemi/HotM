@@ -10,7 +10,6 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
-import { Alert, AlertDescription } from './ui/alert-dialog';
 import { Progress } from './ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 import { Separator } from './ui/separator';
@@ -27,10 +26,8 @@ import {
   Cpu,
   HardDrive,
   Network,
-  Zap,
   Shield,
   Monitor,
-  FileText
 } from 'lucide-react';
 
 // Import new components and hooks
@@ -77,7 +74,7 @@ const ServiceManager: React.FC<ServiceManagerProps> = ({
   } = useServiceStatus();
 
   const [autoRefresh, setAutoRefresh] = useState(true);
-  const [selectedService, setSelectedService] = useState<string | null>(null);
+  const [_selectedService, __setSelectedService] = useState<string | null>(null);
   const [operationDialog, setOperationDialog] = useState<{
     open: boolean;
     service: string;
@@ -193,10 +190,10 @@ const ServiceManager: React.FC<ServiceManagerProps> = ({
           </div>
         )}
         
-        {performance.responseTime > 0 && (
+        {(performance.responseTime ?? 0) > 0 && (
           <div className="flex items-center gap-2">
             <Activity className="h-4 w-4 text-muted-foreground" />
-            <span>Response: {performance.responseTime.toFixed(1)}ms</span>
+            <span>Response: {performance.responseTime?.toFixed(1)}ms</span>
           </div>
         )}
         
@@ -421,7 +418,7 @@ const ServiceManager: React.FC<ServiceManagerProps> = ({
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => setSelectedService(service.name)}
+                        onClick={() => __setSelectedService(service.name)}
                       >
                         <Settings className="h-4 w-4 mr-1" />
                         Configure

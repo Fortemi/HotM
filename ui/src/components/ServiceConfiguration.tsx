@@ -14,12 +14,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
-import { Textarea } from './ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { Switch } from './ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 import { Badge } from './ui/badge';
-import { Separator } from './ui/separator';
 import { Alert, AlertDescription } from './ui/alert';
 import { 
   Save, 
@@ -39,9 +37,10 @@ import {
   Trash2
 } from 'lucide-react';
 
+import type { 
+  ServiceConfiguration as ServiceConfigurationType, 
+} from '../types/serviceTypes';
 import { 
-  ServiceConfiguration, 
-  ServiceConfigurationProps, 
   ServiceOperationResult,
   LogLevel,
   PortValidationResult 
@@ -60,9 +59,9 @@ interface ServiceConfigurationComponentProps {
   serviceName: string;
   isOpen: boolean;
   onClose: () => void;
-  onSave: (config: ServiceConfiguration) => Promise<ServiceOperationResult>;
-  initialConfiguration?: ServiceConfiguration;
-  existingConfigurations?: ServiceConfiguration[];
+  onSave: (config: ServiceConfigurationType) => Promise<ServiceOperationResult>;
+  initialConfiguration?: ServiceConfigurationType;
+  existingConfigurations?: ServiceConfigurationType[];
   readonly?: boolean;
   className?: string;
 }
@@ -80,11 +79,11 @@ export const ServiceConfiguration: React.FC<ServiceConfigurationComponentProps> 
   readonly = false,
   className = ''
 }) => {
-  const [configuration, setConfiguration] = useState<ServiceConfiguration>(() => 
+  const [configuration, setConfiguration] = useState<ServiceConfigurationType>(() => 
     initialConfiguration || getDefaultConfiguration(serviceName)
   );
-  const [originalConfiguration, setOriginalConfiguration] = useState<ServiceConfiguration | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [originalConfiguration, setOriginalConfiguration] = useState<ServiceConfigurationType | null>(null);
+  const [_loading, _setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [validationResult, setValidationResult] = useState<{
     valid: boolean;
@@ -119,7 +118,7 @@ export const ServiceConfiguration: React.FC<ServiceConfigurationComponentProps> 
   /**
    * Handle input changes with validation
    */
-  const handleInputChange = (field: keyof ServiceConfiguration, value: any) => {
+  const handleInputChange = (field: keyof ServiceConfigurationType, value: any) => {
     setConfiguration(prev => ({
       ...prev,
       [field]: value
@@ -225,7 +224,7 @@ export const ServiceConfiguration: React.FC<ServiceConfigurationComponentProps> 
     const changes: { field: string; oldValue: string; newValue: string }[] = [];
     
     Object.keys(configuration).forEach(key => {
-      const field = key as keyof ServiceConfiguration;
+      const field = key as keyof ServiceConfigurationType;
       const oldVal = originalConfiguration[field];
       const newVal = configuration[field];
       
@@ -691,7 +690,7 @@ export const ServiceConfiguration: React.FC<ServiceConfigurationComponentProps> 
         <div className="p-6 border-t bg-gray-50">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              {loading && <LoadingSpinner size="sm" />}
+              {_loading && <LoadingSpinner size="sm" />}
               {hasChanges() && originalConfiguration && requiresRestart(originalConfiguration, configuration) && (
                 <Alert className="bg-yellow-50 border-yellow-200 p-2">
                   <AlertCircle className="h-4 w-4 text-yellow-600" />
@@ -707,7 +706,7 @@ export const ServiceConfiguration: React.FC<ServiceConfigurationComponentProps> 
                 <Button
                   variant="outline"
                   onClick={resetConfiguration}
-                  disabled={loading || saving}
+                  disabled={_loading || saving}
                 >
                   <RefreshCw className="h-4 w-4 mr-2" />
                   Reset
@@ -721,7 +720,7 @@ export const ServiceConfiguration: React.FC<ServiceConfigurationComponentProps> 
               {!readonly && (
                 <Button
                   onClick={handleSave}
-                  disabled={loading || saving || !validationResult?.valid || !hasChanges()}
+                  disabled={_loading || saving || !validationResult?.valid || !hasChanges()}
                 >
                   {saving ? (
                     <LoadingSpinner size="sm" message="Saving..." />
@@ -757,8 +756,8 @@ export const ServiceConfiguration: React.FC<ServiceConfigurationComponentProps> 
 /**
  * Get default configuration for a service
  */
-function getDefaultConfiguration(serviceName: string): ServiceConfiguration {
-  const baseConfig: ServiceConfiguration = {
+function getDefaultConfiguration(serviceName: string): ServiceConfigurationType {
+  const baseConfig: ServiceConfigurationType = {
     name: serviceName,
     port: 53211,
     maxMemoryMB: 512,

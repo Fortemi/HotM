@@ -169,7 +169,7 @@ export function validateServiceConfiguration(
   }
 
   // Validate environment variables
-  for (const [key, value] of Object.entries(config.environmentVariables)) {
+  for (const [key, _value] of Object.entries(config.environmentVariables)) {
     if (!key || key.trim().length === 0) {
       errors.push('Environment variable names cannot be empty');
     }

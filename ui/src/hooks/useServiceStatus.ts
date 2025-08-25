@@ -29,7 +29,7 @@ export function useServiceStatus(): UseServiceStatusReturn {
   
   const wsRef = useRef<WebSocket | null>(null);
   const eventCallbacksRef = useRef<Set<(event: ServiceEvent) => void>>(new Set());
-  const reconnectTimeoutRef = useRef<NodeJS.Timeout>();
+  const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   /**
    * Establishes WebSocket connection for real-time updates
@@ -340,18 +340,18 @@ export function useServiceStatus(): UseServiceStatusReturn {
 /**
  * Hook for managing service configurations
  */
-export function useServiceConfiguration(serviceName: string) {
-  const [configuration, setConfiguration] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+export function useServiceConfiguration(_serviceName: string) {
+  const [_configuration, _setConfiguration] = useState(null);
+  const [_loading, _setLoading] = useState(false);
+  const [_error, _setError] = useState(null);
 
   // Implementation would go here - this is a placeholder
   return {
-    configuration,
-    loading,
-    error,
-    updateConfiguration: async (config: any) => ({ success: true, message: 'Updated', timestamp: new Date().toISOString() }),
-    validateConfiguration: async (config: any) => ({ valid: true, errors: [] }),
+    configuration: _configuration,
+    loading: _loading,
+    error: _error,
+    updateConfiguration: async (_config: any) => ({ success: true, message: 'Updated', timestamp: new Date().toISOString() }),
+    validateConfiguration: async (_config: any) => ({ valid: true, errors: [] }),
     resetConfiguration: async () => ({ success: true, message: 'Reset', timestamp: new Date().toISOString() })
   };
 }
@@ -360,21 +360,21 @@ export function useServiceConfiguration(serviceName: string) {
  * Hook for managing service logs
  */
 export function useServiceLogs() {
-  const [logs, setLogs] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const [_logs, _setLogs] = useState([]);
+  const [_loading, _setLoading] = useState(false);
+  const [_error, _setError] = useState(null);
 
   // Implementation would go here - this is a placeholder
   return {
-    logs,
-    loading,
-    error,
+    logs: _logs,
+    loading: _loading,
+    error: _error,
     filter: {},
     totalCount: 0,
     hasMore: false,
-    setFilter: () => {},
+    setFilter: (_filter?: any) => {},
     loadMore: async () => {},
-    exportLogs: async () => new Blob(),
+    exportLogs: async (_format?: any) => new Blob(),
     clearLogs: async () => ({ success: true, message: 'Cleared', timestamp: new Date().toISOString() })
   };
 }

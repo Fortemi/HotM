@@ -25,17 +25,21 @@ describe('HallOfMind Title Handling', () => {
   const mockUseWebSocket = vi.mocked(websocketModule.useWebSocket);
 
   // Sample note data
-  const createMockNote = (overrides: Partial<NoteFull> = {}): NoteFull => ({
+  const createMockNote = (overrides: {
+    note?: Partial<NoteFull['note']>;
+    original?: Partial<NoteFull['original']>;
+    revised?: Partial<NoteFull['revised']> | null;
+    tags?: NoteFull['tags'];
+    links?: NoteFull['links'];
+  } = {}): NoteFull => ({
     note: {
       id: 'test-note-id',
-      collection_id: undefined,
       format: 'markdown',
       source: 'user',
       created_at_utc: '2024-08-24T12:00:00Z',
       updated_at_utc: '2024-08-24T12:00:00Z',
       starred: false,
       archived: false,
-      title: undefined, // No AI title initially
       ...overrides.note,
     },
     original: {
@@ -43,17 +47,16 @@ describe('HallOfMind Title Handling', () => {
       hash: 'test-hash',
       ...overrides.original,
     },
-    revised: {
+    revised: overrides.revised === null ? {
+      content: '',
+    } : {
       content: 'This is the revised content',
-      last_revision_id: undefined,
-      ai_metadata: null,
       model: 'gpt-oss:20b',
       ...overrides.revised,
     },
-    tags: ['test'],
-    links: [],
+    tags: overrides.tags || ['test'],
+    links: overrides.links || [],
     labels: [],
-    ...overrides,
   });
 
   beforeEach(() => {
@@ -86,7 +89,7 @@ describe('HallOfMind Title Handling', () => {
       const noteWithoutAiTitle = createMockNote({
         note: { 
           id: 'test-note-1',
-          title: null // No AI title
+          title: undefined // No AI title
         },
         original: {
           content: 'My First Note Content\nWith multiple lines',
@@ -131,7 +134,7 @@ describe('HallOfMind Title Handling', () => {
       const noteWithEmptyContent = createMockNote({
         note: { 
           id: 'test-note-3',
-          title: null
+          title: undefined
         },
         original: {
           content: '', // Empty content
@@ -153,7 +156,7 @@ describe('HallOfMind Title Handling', () => {
       const noteWithLongContent = createMockNote({
         note: { 
           id: 'test-note-4',
-          title: null
+          title: undefined
         },
         original: {
           content: 'This is a very long note title that should be truncated because it exceeds the 50 character limit that we have set for display purposes',
@@ -178,7 +181,7 @@ describe('HallOfMind Title Handling', () => {
       const initialNote = createMockNote({
         note: { 
           id: 'animation-note-1',
-          title: null
+          title: undefined
         },
         original: {
           content: 'Original content for animation test',
@@ -249,7 +252,7 @@ describe('HallOfMind Title Handling', () => {
       const newNote = createMockNote({
         note: { 
           id: 'workflow-note',
-          title: null
+          title: undefined
         },
         original: {
           content: 'Brand new note content',
@@ -271,7 +274,7 @@ describe('HallOfMind Title Handling', () => {
       const revisedNote = createMockNote({
         note: { 
           id: 'workflow-note',
-          title: null // Still no AI title
+          title: undefined // Still no AI title
         },
         original: {
           content: 'Brand new note content',

@@ -32,17 +32,21 @@ describe('HallOfMind WebSocket Integration', () => {
   const mockUseWebSocket = vi.mocked(websocketModule.useWebSocket);
 
   // Sample data factory
-  const createMockNoteFull = (overrides: Partial<NoteFull> = {}): NoteFull => ({
+  const createMockNoteFull = (overrides: {
+    note?: Partial<NoteFull['note']>;
+    original?: Partial<NoteFull['original']>;
+    revised?: Partial<NoteFull['revised']> | null;
+    tags?: NoteFull['tags'];
+    links?: NoteFull['links'];
+  } = {}): NoteFull => ({
     note: {
       id: 'test-note-id',
-      collection_id: undefined,
       format: 'markdown',
       source: 'user',
       created_at_utc: '2024-08-24T12:00:00Z',
       updated_at_utc: '2024-08-24T12:00:00Z',
       starred: false,
       archived: false,
-      title: undefined,
       ...overrides.note,
     },
     original: {
@@ -50,17 +54,16 @@ describe('HallOfMind WebSocket Integration', () => {
       hash: 'test-hash',
       ...overrides.original,
     },
-    revised: {
+    revised: overrides.revised === null ? {
+      content: '',
+    } : {
       content: 'Revised content',
-      last_revision_id: undefined,
-      ai_metadata: null,
       model: 'gpt-oss:20b',
       ...overrides.revised,
     },
-    tags: ['test'],
-    links: [],
+    tags: overrides.tags || ['test'],
+    links: overrides.links || [],
     labels: [],
-    ...overrides,
   });
 
   beforeEach(() => {

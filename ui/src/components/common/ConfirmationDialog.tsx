@@ -16,7 +16,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '../ui/alert-dialog';
-import { Button } from '../ui/button';
 import { AlertTriangle, Info, AlertCircle, CheckCircle } from 'lucide-react';
 
 export type ConfirmationSeverity = 'info' | 'warning' | 'error' | 'success';
@@ -133,7 +132,7 @@ export interface ServiceConfirmationDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   serviceName: string;
-  operation: 'start' | 'stop' | 'restart' | 'install' | 'uninstall';
+  operation: 'start' | 'stop' | 'restart' | 'install' | 'uninstall' | 'configure';
   onConfirm: () => void | Promise<void>;
   loading?: boolean;
   hasUnsavedChanges?: boolean;

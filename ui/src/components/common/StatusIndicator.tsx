@@ -49,7 +49,7 @@ interface StatusDotProps {
  */
 export const StatusIndicator: React.FC<StatusIndicatorProps> = ({
   status,
-  health,
+  health: _health,
   size = 'md',
   showText = true,
   showIcon = true,
