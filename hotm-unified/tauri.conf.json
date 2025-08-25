@@ -16,7 +16,6 @@
         "maximizable": true,
         "minimizable": true,
         "closable": true,
-        "url": "http://localhost:3000",
         "userAgent": null,
         "dragDropEnabled": true,
         "center": true,
@@ -48,7 +47,7 @@
     "beforeDevCommand": "",
     "beforeBuildCommand": "",
     "devUrl": "http://localhost:3000",
-    "frontendDist": "../dist",
+    "frontendDist": "../ui/dist",
     "runner": null
   },
   "bundle": {
