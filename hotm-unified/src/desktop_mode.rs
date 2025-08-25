@@ -8,23 +8,24 @@ pub fn run_desktop() -> anyhow::Result<()> {
     info!("Starting desktop application...");
     info!("Initializing Tauri builder with plugins...");
     
-    info!("Setting up global shortcut handler...");
-    let shortcut_plugin = tauri_plugin_global_shortcut::Builder::new()
-        .with_handler(move |app: &tauri::AppHandle, _shortcut, event| {
-            info!("Global shortcut triggered: {:?}", event);
-            // Handle hotkey events
-            if event.state == tauri_plugin_global_shortcut::ShortcutState::Pressed {
-                if let Some(window) = app.get_webview_window("main") {
-                    if window.is_visible().unwrap_or(false) {
-                        let _ = window.hide();
-                    } else {
-                        let _ = window.show();
-                        let _ = window.set_focus();
-                    }
-                }
-            }
-        })
-        .build();
+    // Temporarily disabled due to plugin configuration issues
+    // info!("Setting up global shortcut handler...");
+    // let shortcut_plugin = tauri_plugin_global_shortcut::Builder::new()
+    //     .with_handler(move |app: &tauri::AppHandle, _shortcut, event| {
+    //         info!("Global shortcut triggered: {:?}", event);
+    //         // Handle hotkey events
+    //         if event.state == tauri_plugin_global_shortcut::ShortcutState::Pressed {
+    //             if let Some(window) = app.get_webview_window("main") {
+    //                 if window.is_visible().unwrap_or(false) {
+    //                     let _ = window.hide();
+    //                 } else {
+    //                     let _ = window.show();
+    //                     let _ = window.set_focus();
+    //                 }
+    //             }
+    //         }
+    //     })
+    //     .build();
     
     info!("Building Tauri application...");
 
@@ -42,28 +43,29 @@ fn run_tauri_app() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     use tauri::{
         Manager, WindowEvent,
     };
-    use tauri_plugin_global_shortcut::GlobalShortcutExt;
+    // use tauri_plugin_global_shortcut::GlobalShortcutExt; // Temporarily disabled
     
     // Check for command line arguments
     let args: Vec<String> = std::env::args().collect();
     let start_minimized = args.contains(&"--minimized".to_string()) || 
                          args.contains(&"/minimized".to_string());
 
-    let shortcut_plugin = tauri_plugin_global_shortcut::Builder::new()
-        .with_handler(move |app: &tauri::AppHandle, _shortcut, event| {
-            // Handle hotkey events
-            if event.state == tauri_plugin_global_shortcut::ShortcutState::Pressed {
-                if let Some(window) = app.get_webview_window("main") {
-                    if window.is_visible().unwrap_or(false) {
-                        let _ = window.hide();
-                    } else {
-                        let _ = window.show();
-                        let _ = window.set_focus();
-                    }
-                }
-            }
-        })
-        .build();
+    // Temporarily disabled due to plugin configuration issues
+    // let shortcut_plugin = tauri_plugin_global_shortcut::Builder::new()
+    //     .with_handler(move |app: &tauri::AppHandle, _shortcut, event| {
+    //         // Handle hotkey events
+    //         if event.state == tauri_plugin_global_shortcut::ShortcutState::Pressed {
+    //             if let Some(window) = app.get_webview_window("main") {
+    //                 if window.is_visible().unwrap_or(false) {
+    //                     let _ = window.hide();
+    //                 } else {
+    //                     let _ = window.show();
+    //                     let _ = window.set_focus();
+    //                 }
+    //             }
+    //         }
+    //     })
+    //     .build();
 
     let builder = tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
@@ -106,10 +108,11 @@ fn run_tauri_app() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
                 println!("HotM Desktop: No servers discovered, using default URL");
             }
             
-            // Register global shortcut for quick access
-            let _ = app.global_shortcut()
-                .register("CmdOrCtrl+Alt+H");
-                // Note: handler is now registered in plugin setup
+            // Temporarily disabled - global shortcut plugin not loaded
+            // // Register global shortcut for quick access
+            // let _ = app.global_shortcut()
+            //     .register("CmdOrCtrl+Alt+H");
+            //     // Note: handler is now registered in plugin setup
 
             // Setup system tray
             setup_system_tray(app)?;
