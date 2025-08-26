@@ -132,4 +132,4 @@ bin/act
 # Keep important files
 !.gitkeep
 !.github/
-!.sqlx/
+!.sqlx/hotm-unified/ui-dist

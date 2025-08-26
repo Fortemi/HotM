@@ -234,6 +234,31 @@ try {
         }
         Write-Host "UI dist found at ui\dist" -ForegroundColor $colors.Info
         
+        # Copy UI dist to where hotm-unified expects it (if not already there)
+        # Tauri needs the dist files to be accessible relative to the build directory
+        if (-not (Test-Path "hotm-unified\ui-dist")) {
+            Write-Host "Creating symlink to UI dist for Tauri build..." -ForegroundColor $colors.Info
+            # On Windows, create a junction (directory symlink)
+            $sourceFullPath = (Resolve-Path "ui\dist").Path
+            $targetPath = "hotm-unified\ui-dist"
+            
+            # Remove if exists
+            if (Test-Path $targetPath) {
+                Remove-Item $targetPath -Recurse -Force
+            }
+            
+            # Try to create a junction (doesn't require admin on Windows)
+            $result = cmd /c mklink /J "$targetPath" "$sourceFullPath" 2>&1
+            if ($LASTEXITCODE -eq 0) {
+                Write-Success "Created junction to UI dist"
+            } else {
+                # Fallback to copying if junction fails
+                Write-Warning "Could not create junction, copying UI dist instead"
+                Copy-Item -Recurse "ui\dist" "hotm-unified\ui-dist"
+                Write-Success "Copied UI dist to hotm-unified\ui-dist"
+            }
+        }
+        
         Push-Location "hotm-unified"
         try {
             # Check if tauri CLI is installed (it's @tauri-apps/cli)

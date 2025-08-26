@@ -47,7 +47,7 @@
     "beforeDevCommand": "",
     "beforeBuildCommand": "",
     "devUrl": "http://localhost:3000",
-    "frontendDist": "../ui/dist",
+    "frontendDist": "ui-dist",
     "runner": null
   },
   "bundle": {
