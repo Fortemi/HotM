@@ -188,12 +188,14 @@ try {
                 }
             }
             
-            # Restore temp database URL if it was set
-            if ($tempDbUrl) {
-                [Environment]::SetEnvironmentVariable("DATABASE_URL", $tempDbUrl, "Process")
-            }
         } else {
             Write-Warning ".env file not found - using existing environment variables"
+        }
+        
+        # Restore temp database URL if it was set (do this outside the .env block)
+        if ($tempDbUrl) {
+            [Environment]::SetEnvironmentVariable("DATABASE_URL", $tempDbUrl, "Process")
+            Write-Host "Restored temp database URL" -ForegroundColor $colors.Info
         }
         
         # Verify DATABASE_URL is set
@@ -224,6 +226,13 @@ try {
         
         # Build unified runtime with Tauri (bundles UI)
         Write-Host "Building unified runtime with Tauri..." -ForegroundColor $colors.Info
+        
+        # Verify UI dist is available
+        if (-not (Test-Path "ui\dist\index.html")) {
+            Write-Error "UI dist not found at ui\dist - frontend build may have failed"
+            throw "Missing UI dist files"
+        }
+        Write-Host "UI dist found at ui\dist" -ForegroundColor $colors.Info
         
         Push-Location "hotm-unified"
         try {

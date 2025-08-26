@@ -113,11 +113,17 @@ fn run_tauri_app() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
             if let Some(window) = app.get_webview_window("main") {
                 info!("Main window created successfully");
                 
-                // If the UI doesn't load, inject a fallback HTML
-                // This helps diagnose if the issue is with asset loading
-                window.eval(r#"
-                    if (!document.body || document.body.innerHTML.trim() === '') {
-                        console.log('UI not loaded, injecting fallback content');
+                // After a short delay, check if UI loaded and inject fallback if needed
+                // The delay gives the bundled UI time to load
+                let window_clone = window.clone();
+                std::thread::spawn(move || {
+                    std::thread::sleep(std::time::Duration::from_secs(2));
+                    
+                    // If the UI doesn't load, inject a fallback HTML
+                    // This helps diagnose if the issue is with asset loading
+                    window_clone.eval(r#"
+                    if (!document.body || document.body.innerHTML.trim() === '' || !document.getElementById('root').hasChildNodes()) {
+                        console.log('UI not loaded after 2 seconds, injecting fallback content');
                         document.body.innerHTML = `
                             <div style="font-family: system-ui, -apple-system, sans-serif; padding: 40px; text-align: center;">
                                 <h1>Hall of the Mind - Desktop</h1>
@@ -145,7 +151,8 @@ fn run_tauri_app() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
                             });
                     }
                 "#).unwrap_or_else(|e| {
-                    eprintln!("Failed to inject fallback HTML: {}", e);
+                        eprintln!("Failed to inject fallback HTML: {}", e);
+                    });
                 });
             }
             
