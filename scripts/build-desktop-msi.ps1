@@ -224,42 +224,10 @@ try {
             Write-Host "Skipping frontend build (SkipFrontend flag set)" -ForegroundColor $colors.Warning
         }
         
-        # Build unified runtime with Tauri (bundles UI)
-        Write-Host "Building unified runtime with Tauri..." -ForegroundColor $colors.Info
+        # Build Tauri app from UI directory (has proper Tauri setup)
+        Write-Host "Building Tauri desktop app..." -ForegroundColor $colors.Info
         
-        # Verify UI dist is available
-        if (-not (Test-Path "ui\dist\index.html")) {
-            Write-Error "UI dist not found at ui\dist - frontend build may have failed"
-            throw "Missing UI dist files"
-        }
-        Write-Host "UI dist found at ui\dist" -ForegroundColor $colors.Info
-        
-        # Copy UI dist to where hotm-unified expects it (if not already there)
-        # Tauri needs the dist files to be accessible relative to the build directory
-        if (-not (Test-Path "hotm-unified\ui-dist")) {
-            Write-Host "Creating symlink to UI dist for Tauri build..." -ForegroundColor $colors.Info
-            # On Windows, create a junction (directory symlink)
-            $sourceFullPath = (Resolve-Path "ui\dist").Path
-            $targetPath = "hotm-unified\ui-dist"
-            
-            # Remove if exists
-            if (Test-Path $targetPath) {
-                Remove-Item $targetPath -Recurse -Force
-            }
-            
-            # Try to create a junction (doesn't require admin on Windows)
-            $result = cmd /c mklink /J "$targetPath" "$sourceFullPath" 2>&1
-            if ($LASTEXITCODE -eq 0) {
-                Write-Success "Created junction to UI dist"
-            } else {
-                # Fallback to copying if junction fails
-                Write-Warning "Could not create junction, copying UI dist instead"
-                Copy-Item -Recurse "ui\dist" "hotm-unified\ui-dist"
-                Write-Success "Copied UI dist to hotm-unified\ui-dist"
-            }
-        }
-        
-        Push-Location "hotm-unified"
+        Push-Location "ui"
         try {
             # Check if tauri CLI is installed (it's @tauri-apps/cli)
             $tauriInstalled = $false
@@ -413,24 +381,33 @@ telemetry = false
     # Copy binaries and assets to output directory
     Write-Step "Packaging desktop installer components"
     
-    # Copy unified runtime binary (Tauri build output includes bundled UI)
-    # Tauri builds to the main target directory, not hotm-unified subdirectory
-    $tauriBuildPath = "target\release\hotm-unified.exe"
+    # Copy Tauri build output (from ui/src-tauri build)
+    $tauriBuildPath = "ui\src-tauri\target\release\hotm-ui.exe"
+    $tauriBuildPathAlt = "ui\target\release\hotm-ui.exe"
     
     if (Test-Path $tauriBuildPath) {
-        Copy-Item $tauriBuildPath "$OutputDir\" -Force
-        Write-Success "Copied Tauri-built hotm-unified.exe (with bundled UI)"
-        
-        # Also copy the generated MSI if it exists
-        $tauriMsiPath = "target\release\bundle\msi\*.msi"
-        if (Test-Path $tauriMsiPath) {
-            $msiFiles = Get-ChildItem $tauriMsiPath
-            Write-Host "Found Tauri-generated MSI: $($msiFiles[0].Name)" -ForegroundColor $colors.Info
-            Copy-Item $msiFiles[0].FullName "$OutputDir\tauri-generated.msi" -Force
-        }
+        Copy-Item $tauriBuildPath "$OutputDir\hotm-desktop.exe" -Force
+        Write-Success "Copied Tauri-built desktop app (with bundled UI)"
+    } elseif (Test-Path $tauriBuildPathAlt) {
+        Copy-Item $tauriBuildPathAlt "$OutputDir\hotm-desktop.exe" -Force
+        Write-Success "Copied Tauri-built desktop app (with bundled UI)"
     } else {
-        Write-Warning "hotm-unified.exe not found at: $tauriBuildPath"
-        Write-Warning "Build may have failed or output is in different location"
+        Write-Warning "Tauri executable not found - build may have failed"
+        Write-Warning "Expected at: $tauriBuildPath"
+    }
+    
+    # Also copy the generated MSI if it exists
+    $tauriMsiPath = "ui\src-tauri\target\release\bundle\msi\*.msi"
+    $tauriMsiPathAlt = "ui\target\release\bundle\msi\*.msi"
+    
+    if (Test-Path $tauriMsiPath) {
+        $msiFiles = Get-ChildItem $tauriMsiPath
+        Write-Host "Found Tauri-generated MSI: $($msiFiles[0].Name)" -ForegroundColor $colors.Info
+        Copy-Item $msiFiles[0].FullName "$OutputDir\tauri-generated.msi" -Force
+    } elseif (Test-Path $tauriMsiPathAlt) {
+        $msiFiles = Get-ChildItem $tauriMsiPathAlt
+        Write-Host "Found Tauri-generated MSI: $($msiFiles[0].Name)" -ForegroundColor $colors.Info
+        Copy-Item $msiFiles[0].FullName "$OutputDir\tauri-generated.msi" -Force
     }
     
     # Note: When using Tauri build, the UI is bundled into the executable

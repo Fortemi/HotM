@@ -35,8 +35,21 @@ if (-not (Test-Path $InputDir)) {
 }
 
 # Validate key files exist
+# Check for either hotm-unified.exe or hotm-desktop.exe
+$exePath = if (Test-Path "$InputDir\hotm-desktop.exe") {
+    "$InputDir\hotm-desktop.exe"
+} elseif (Test-Path "$InputDir\hotm-unified.exe") {
+    "$InputDir\hotm-unified.exe"
+} else {
+    $null
+}
+
+if (-not $exePath) {
+    throw "Required executable not found in $InputDir (looked for hotm-desktop.exe or hotm-unified.exe)"
+}
+
 $requiredFiles = @(
-    "$InputDir\hotm-unified.exe",
+    $exePath,
     "$InputDir\desktop-config.toml"
 )
 
@@ -68,8 +81,10 @@ New-Item -ItemType Directory -Path $installerResourcesPath -Force | Out-Null
 # Copy desktop build artifacts to installer resources
 Write-Host "📦 Preparing installer resources..." -ForegroundColor Yellow
 
-Copy-Item "$InputDir\hotm-unified.exe" "$installerResourcesPath\hotm-unified.exe" -Force
-Write-Host "   ✓ Copied runtime executable" -ForegroundColor Green
+# Copy the executable (whichever name it has)
+$exeName = Split-Path $exePath -Leaf
+Copy-Item $exePath "$installerResourcesPath\$exeName" -Force
+Write-Host "   ✓ Copied runtime executable ($exeName)" -ForegroundColor Green
 
 Copy-Item "$InputDir\desktop-config.toml" "installer\resources\config\desktop-config.toml" -Force
 Write-Host "   ✓ Copied desktop configuration" -ForegroundColor Green
@@ -106,7 +121,7 @@ $issTemplate = @"
 #define MyAppChannel "$Channel"
 #define MyAppPublisher "HotM Project"
 #define MyAppURL "https://github.com/jmagly/hotm"
-#define MyAppExeName "hotm-unified.exe"
+#define MyAppExeName "$exeName"
 #define MyAppDescription "Local-first notes and analysis tool with AI-powered insights"
 
 [Setup]
@@ -148,7 +163,7 @@ Name: "shortcuts"; Description: "Desktop && Start Menu Shortcuts"; Types: full
 
 [Files]
 ; Core application
-Source: "resources\binaries\hotm-unified.exe"; DestDir: "{app}"; Flags: ignoreversion; Components: core
+Source: "resources\binaries\$exeName"; DestDir: "{app}"; Flags: ignoreversion; Components: core
 
 ; Configuration
 Source: "resources\config\desktop-config.toml"; DestDir: "{app}\config"; Flags: ignoreversion; Components: core
