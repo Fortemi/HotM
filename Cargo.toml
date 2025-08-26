@@ -4,7 +4,8 @@ members = [
     "hotm-server", 
     "hotm-desktop",
     "hotm-unified",
-    "hotm-service-manager"
+    "hotm-service-manager",
+    "ui/src-tauri"
 ]
 resolver = "2"
 
