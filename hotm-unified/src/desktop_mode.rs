@@ -3,7 +3,6 @@
 #[cfg(feature = "desktop")]
 pub fn run_desktop() -> anyhow::Result<()> {
     use tracing::info;
-    use tauri::Manager;  // Add this import for get_webview_window
 
     info!("Starting desktop application...");
     info!("Initializing Tauri builder with plugins...");
@@ -106,6 +105,48 @@ fn run_tauri_app() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
                 std::env::set_var("HOTM_API_URL", &server_url);
             } else {
                 println!("HotM Desktop: No servers discovered, using default URL");
+                // Set a default URL for the API
+                std::env::set_var("HOTM_API_URL", "http://localhost:53211");
+            }
+            
+            // Debug: Check if window is created and what URL it's loading
+            if let Some(window) = app.get_webview_window("main") {
+                info!("Main window created successfully");
+                
+                // If the UI doesn't load, inject a fallback HTML
+                // This helps diagnose if the issue is with asset loading
+                window.eval(r#"
+                    if (!document.body || document.body.innerHTML.trim() === '') {
+                        console.log('UI not loaded, injecting fallback content');
+                        document.body.innerHTML = `
+                            <div style="font-family: system-ui, -apple-system, sans-serif; padding: 40px; text-align: center;">
+                                <h1>Hall of the Mind - Desktop</h1>
+                                <p>Connecting to HotM server...</p>
+                                <p style="color: #666;">If this message persists, the UI bundle may not be properly loaded.</p>
+                                <p style="margin-top: 20px;">
+                                    <small>API URL: ${window.location.origin || 'Unknown'}</small>
+                                </p>
+                                <div id="server-status" style="margin-top: 20px; color: #888;">
+                                    Checking server status...
+                                </div>
+                            </div>
+                        `;
+                        
+                        // Try to connect to the API
+                        fetch('http://localhost:53211/api/v1/health')
+                            .then(response => response.json())
+                            .then(data => {
+                                document.getElementById('server-status').innerHTML = 
+                                    '<span style="color: green;">✓ Server is running</span>';
+                            })
+                            .catch(err => {
+                                document.getElementById('server-status').innerHTML = 
+                                    '<span style="color: red;">✗ Server not responding on port 53211</span>';
+                            });
+                    }
+                "#).unwrap_or_else(|e| {
+                    eprintln!("Failed to inject fallback HTML: {}", e);
+                });
             }
             
             // Temporarily disabled - global shortcut plugin not loaded

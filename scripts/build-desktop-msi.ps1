@@ -364,18 +364,23 @@ telemetry = false
     Write-Step "Packaging desktop installer components"
     
     # Copy unified runtime binary (Tauri build output includes bundled UI)
-    $tauriBuildPath = "hotm-unified\target\release\hotm-unified.exe"
-    $fallbackPath = "target\release\hotm-unified.exe"
+    # Tauri builds to the main target directory, not hotm-unified subdirectory
+    $tauriBuildPath = "target\release\hotm-unified.exe"
     
     if (Test-Path $tauriBuildPath) {
         Copy-Item $tauriBuildPath "$OutputDir\" -Force
         Write-Success "Copied Tauri-built hotm-unified.exe (with bundled UI)"
-    } elseif (Test-Path $fallbackPath) {
-        Copy-Item $fallbackPath "$OutputDir\" -Force
-        Write-Warning "Using standard build output - UI may not be bundled properly"
-        Write-Warning "Run with Tauri build for proper UI bundling"
+        
+        # Also copy the generated MSI if it exists
+        $tauriMsiPath = "target\release\bundle\msi\*.msi"
+        if (Test-Path $tauriMsiPath) {
+            $msiFiles = Get-ChildItem $tauriMsiPath
+            Write-Host "Found Tauri-generated MSI: $($msiFiles[0].Name)" -ForegroundColor $colors.Info
+            Copy-Item $msiFiles[0].FullName "$OutputDir\tauri-generated.msi" -Force
+        }
     } else {
-        Write-Warning "hotm-unified.exe not found - may need to run build first"
+        Write-Warning "hotm-unified.exe not found at: $tauriBuildPath"
+        Write-Warning "Build may have failed or output is in different location"
     }
     
     # Note: When using Tauri build, the UI is bundled into the executable

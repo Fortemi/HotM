@@ -233,6 +233,78 @@ function Start-TestDatabase {
     
     # Install pgvector extension
     Write-Status "🧩 Installing pgvector extension..." $colors.Progress
+    
+    # On Windows, check if we have a local pgvector build
+    if ($env:PGROOT -and (Test-Path "$env:PGROOT\include\server\extension\vector")) {
+        Write-Status "📦 Found Windows pgvector build at: $env:PGROOT\include\server\extension\vector" $colors.Cyan
+        Write-Status "Note: Windows pgvector DLL won't work in Linux container" $colors.Warning
+        Write-Status "Using ankane/pgvector image with pre-installed pgvector..." $colors.Info
+        
+        # Stop current container and start one with pgvector
+        & docker stop $ContainerName 2>$null
+        & docker rm $ContainerName 2>$null
+        
+        # Use ankane/pgvector image which has pgvector pre-installed
+        $dockerCommand = @(
+            "run", "-d",
+            "--name", $ContainerName,
+            "-p", "${Port}:5432",
+            "-e", "POSTGRES_USER=$DbUser",
+            "-e", "POSTGRES_PASSWORD=$DbPassword",
+            "-e", "POSTGRES_DB=$DbName",
+            "ankane/pgvector:latest"
+        )
+        
+        Write-Status "🐳 Starting PostgreSQL with pgvector support..." $colors.Progress
+        $output = & docker @dockerCommand 2>&1
+        if ($LASTEXITCODE -ne 0) {
+            Write-Status "❌ Failed to start pgvector container" $colors.Error
+            Write-Status "Error: $output" $colors.Error
+            return $false
+        }
+        
+        # Wait for new container to be ready
+        Write-Status "⏳ Waiting for PostgreSQL with pgvector to be ready..." $colors.Progress
+        $maxAttempts = 30
+        $attempt = 1
+        
+        while ($attempt -le $maxAttempts) {
+            try {
+                $output = & docker exec $ContainerName pg_isready -U $DbUser -d $DbName 2>$null
+                if ($LASTEXITCODE -eq 0) {
+                    Write-Status "✅ PostgreSQL with pgvector is ready" $colors.Success
+                    break
+                }
+            } catch {
+                # Container might still be starting
+            }
+            
+            Start-Sleep -Seconds 2
+            $attempt++
+        }
+    }
+    
+    # Now try to enable the extension
+    try {
+        $output = & docker exec $ContainerName psql -U $DbUser -d $DbName -c "CREATE EXTENSION IF NOT EXISTS vector;" 2>&1
+        if ($LASTEXITCODE -ne 0) {
+            Write-Status "⚠️  pgvector extension not available" $colors.Warning
+            Write-Status "Container output: $output" $colors.Warning
+            Write-Status "Note: For Windows builds, SQLx offline mode doesn't require pgvector at compile time" $colors.Cyan
+        } else {
+            Write-Status "✅ pgvector extension enabled" $colors.Success
+        }
+    } catch {
+        Write-Status "⚠️  Could not enable pgvector extension" $colors.Warning
+        Write-Status "Note: Continuing anyway - SQLx offline mode handles this" $colors.Info
+    }
+    
+    return $true
+}
+
+# Original fallback code for non-Windows systems
+function Start-TestDatabase-Fallback {
+    # Keep original logic for Linux/Mac
     try {
         $output = & docker exec $ContainerName psql -U $DbUser -d $DbName -c "CREATE EXTENSION IF NOT EXISTS vector;" 2>&1
         if ($LASTEXITCODE -ne 0) {
