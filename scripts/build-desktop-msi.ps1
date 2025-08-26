@@ -211,15 +211,31 @@ try {
         
         Push-Location "hotm-unified"
         try {
-            # Check if tauri CLI is installed
+            # Check if tauri CLI is installed (it's @tauri-apps/cli)
             $tauriInstalled = $false
             try {
-                cargo tauri --version | Out-Null
-                $tauriInstalled = $true
+                $tauriCheck = cargo tauri --version 2>&1
+                if ($LASTEXITCODE -eq 0) {
+                    $tauriInstalled = $true
+                    Write-Host "Tauri CLI found: $tauriCheck" -ForegroundColor $colors.Info
+                }
             } catch {
-                Write-Warning "Tauri CLI not found, installing..."
-                cargo install tauri-cli
-                if ($LASTEXITCODE -ne 0) { throw "Failed to install Tauri CLI" }
+                # Silent catch - will install below
+            }
+            
+            if (-not $tauriInstalled) {
+                Write-Warning "Tauri CLI not found, installing @tauri-apps/cli..."
+                Write-Host "This may take a few minutes on first install..." -ForegroundColor $colors.Info
+                
+                # Install Tauri CLI via cargo
+                cargo install tauri-cli --version "^2.0.0"
+                if ($LASTEXITCODE -ne 0) { 
+                    Write-Error "Failed to install Tauri CLI via cargo"
+                    Write-Host "Alternatively, you can install it globally via npm:" -ForegroundColor $colors.Warning
+                    Write-Host "  npm install -g @tauri-apps/cli" -ForegroundColor $colors.Info
+                    throw "Failed to install Tauri CLI"
+                }
+                Write-Success "Tauri CLI installed successfully"
             }
             
             # Build with Tauri to properly bundle UI
