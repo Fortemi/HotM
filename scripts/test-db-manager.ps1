@@ -236,7 +236,7 @@ function Start-TestDatabase {
     
     # On Windows, check if we have a local pgvector build
     if ($env:PGROOT -and (Test-Path "$env:PGROOT\include\server\extension\vector")) {
-        Write-Status "📦 Found Windows pgvector build at: $env:PGROOT\include\server\extension\vector" $colors.Cyan
+        Write-Status "📦 Found Windows pgvector build at: $env:PGROOT\include\server\extension\vector" $colors.Info
         Write-Status "Note: Windows pgvector DLL won't work in Linux container" $colors.Warning
         Write-Status "Using ankane/pgvector image with pre-installed pgvector..." $colors.Info
         
@@ -248,7 +248,7 @@ function Start-TestDatabase {
         $dockerCommand = @(
             "run", "-d",
             "--name", $ContainerName,
-            "-p", "${Port}:5432",
+            "-p", "${availablePort}:5432",
             "-e", "POSTGRES_USER=$DbUser",
             "-e", "POSTGRES_PASSWORD=$DbPassword",
             "-e", "POSTGRES_DB=$DbName",
