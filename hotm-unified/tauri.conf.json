@@ -31,7 +31,6 @@
         "alwaysOnTop": false,
         "contentProtected": false,
         "skipTaskbar": false,
-        "theme": "auto",
         "titleBarStyle": "Visible"
       }
     ],
