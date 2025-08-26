@@ -133,7 +133,11 @@ try {
         $dbResult = & "$PSScriptRoot\test-db-manager.ps1" -Action start
         if ($LASTEXITCODE -eq 0) {
             $databaseStarted = $true
+            
+            # The test-db-manager sets DATABASE_URL, capture it
+            $tempDbUrl = $env:DATABASE_URL
             Write-Success "Temporary database ready"
+            Write-Host "Using temp database: $($tempDbUrl -replace 'password=[^@]*', 'password=***')" -ForegroundColor $colors.Info
         } else {
             Write-Warning "Failed to start temporary database, attempting to use existing DATABASE_URL"
             if (-not $env:DATABASE_URL) {
@@ -151,10 +155,16 @@ try {
     if (-not $SkipBuild) {
         Write-Step "Building unified runtime with Tauri"
         
+        # Save temp database URL before loading .env
+        $tempDbUrl = $null
+        if ($databaseStarted) {
+            $tempDbUrl = $env:DATABASE_URL
+            Write-Host "Preserving temp database URL: $($tempDbUrl -replace 'password=[^@]*', 'password=***')" -ForegroundColor $colors.Info
+        }
+        
         # Load .env file if it exists, but don't override DATABASE_URL if temp DB is running
         if (Test-Path ".env") {
-            Write-Host "Loading environment from .env file..." -ForegroundColor $colors.Info
-            $tempDbUrl = $env:DATABASE_URL
+            Write-Host "Loading other environment variables from .env file..." -ForegroundColor $colors.Info
             
             Get-Content ".env" | ForEach-Object {
                 if ($_ -match "^\s*([^#][^=]+)=(.*)$") {
@@ -166,15 +176,21 @@ try {
                     }
                     
                     # Don't override DATABASE_URL if we have a temp database running
-                    if ($name -eq "DATABASE_URL" -and $tempDbUrl -and $databaseStarted) {
-                        Write-Host "Skipping .env DATABASE_URL - using temp database: $tempDbUrl" -ForegroundColor $colors.Warning
+                    if ($name -eq "DATABASE_URL" -and $databaseStarted) {
+                        Write-Host "Ignoring .env DATABASE_URL - using temp database instead" -ForegroundColor $colors.Warning
                     } else {
                         [Environment]::SetEnvironmentVariable($name, $value, "Process")
-                        if ($name -eq "DATABASE_URL") {
-                            Write-Host "Loaded DATABASE_URL: $($value -replace 'password=[^@]*', 'password=***')" -ForegroundColor $colors.Info
+                        if ($name -ne "DATABASE_URL") {
+                            # Log other env vars being set (not DATABASE_URL)
+                            Write-Host "Loaded from .env: $name" -ForegroundColor $colors.Info
                         }
                     }
                 }
+            }
+            
+            # Restore temp database URL if it was set
+            if ($tempDbUrl) {
+                [Environment]::SetEnvironmentVariable("DATABASE_URL", $tempDbUrl, "Process")
             }
         } else {
             Write-Warning ".env file not found - using existing environment variables"
