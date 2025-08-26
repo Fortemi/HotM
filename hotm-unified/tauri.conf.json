@@ -1,6 +1,6 @@
 {
   "$schema": "https://schema.tauri.app/config/2.0.0",
-  "productName": "HotM Unified",
+  "productName": "HotM-Unified",
   "version": "0.1.0",
   "identifier": "com.hotm.unified",
   "app": {
