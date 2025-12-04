@@ -2,23 +2,28 @@ version: '3.8'
 
 services:
   postgres:
-    image: pgvector/pgvector:pg14
+    image: pgvector/pgvector:pg16
     container_name: hotm-postgres-dev
     environment:
       POSTGRES_USER: hotm
       POSTGRES_PASSWORD: hotm_dev_pass
       POSTGRES_DB: hotm_dev
     ports:
-      - "5432:5432"
+      - "5433:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - hotm_postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U hotm"]
-      interval: 10s
+      test: ["CMD-SHELL", "pg_isready -U hotm -d hotm_dev"]
+      interval: 5s
       timeout: 5s
       retries: 5
+    command: >
+      postgres
+      -c shared_preload_libraries='vector'
+      -c max_connections=200
+      -c shared_buffers=256MB
 
-  # Ollama is running natively on host
+  # Optional: Ollama for local AI processing (uncomment if not running natively)
   # ollama:
   #   image: ollama/ollama:latest
   #   container_name: hotm-ollama-dev
@@ -26,7 +31,14 @@ services:
   #     - "11434:11434"
   #   volumes:
   #     - ollama_data:/root/.ollama
+  #   deploy:
+  #     resources:
+  #       reservations:
+  #         devices:
+  #           - driver: nvidia
+  #             count: all
+  #             capabilities: [gpu]
 
 volumes:
-  postgres_data:
+  hotm_postgres_data:
   ollama_data:
