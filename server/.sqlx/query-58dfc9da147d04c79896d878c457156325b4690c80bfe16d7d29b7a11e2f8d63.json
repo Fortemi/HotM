@@ -15,7 +15,8 @@
                 "ai_revision",
                 "embedding",
                 "linking",
-                "context_update"
+                "context_update",
+                "title_generation"
               ]
             }
           }

@@ -17,31 +17,51 @@ async fn tags_collections_links_roundtrip() {
         .unwrap();
 
     // add tag
-    sqlx::query!(
+    sqlx::query(
         "INSERT INTO tag (name, created_at_utc) VALUES ('project-x', NOW()) ON CONFLICT DO NOTHING"
     )
     .execute(&state.pool)
     .await
     .unwrap();
-    sqlx::query!("INSERT INTO note_tag (note_id, tag_name, source) VALUES ($1, 'project-x', 'manual') ON CONFLICT DO NOTHING", a).execute(&state.pool).await.unwrap();
 
-    // create collection and assign
-    let cid = Uuid::new_v4();
-    sqlx::query!(
-        "INSERT INTO collection (id, name, created_at_utc) VALUES ($1, 'Work', NOW())",
-        cid
+    sqlx::query(
+        "INSERT INTO note_tag (note_id, tag_name, source) VALUES ($1, 'project-x', 'manual') ON CONFLICT DO NOTHING"
     )
+    .bind(a)
     .execute(&state.pool)
     .await
     .unwrap();
-    sqlx::query!("UPDATE note SET collection_id = $1 WHERE id = $2", cid, a)
+
+    // create collection and assign (use unique name for test isolation)
+    let cid = Uuid::new_v4();
+    let collection_name = format!("Work-{}", cid); // Unique per test run
+    sqlx::query(
+        "INSERT INTO collection (id, name, created_at_utc) VALUES ($1, $2, NOW())"
+    )
+    .bind(cid)
+    .bind(&collection_name)
+    .execute(&state.pool)
+    .await
+    .unwrap();
+
+    sqlx::query("UPDATE note SET collection_id = $1 WHERE id = $2")
+        .bind(cid)
+        .bind(a)
         .execute(&state.pool)
         .await
         .unwrap();
 
     // link a -> b
     let lid = Uuid::new_v4();
-    sqlx::query!("INSERT INTO link (id, from_note_id, to_note_id, kind, score, created_at_utc) VALUES ($1, $2, $3, 'related', 0.9, NOW())", lid, a, b).execute(&state.pool).await.unwrap();
+    sqlx::query(
+        "INSERT INTO link (id, from_note_id, to_note_id, kind, score, created_at_utc) VALUES ($1, $2, $3, 'related', 0.9, NOW())"
+    )
+    .bind(lid)
+    .bind(a)
+    .bind(b)
+    .execute(&state.pool)
+    .await
+    .unwrap();
 
     // search filter by tag and collection
     let hits_tag = hotm_server::db::search_fts_filtered(&state, "alpha", Some("tag:project-x"), 10)

@@ -27,40 +27,62 @@ vi.mock('@tauri-apps/api', () => ({
   },
 }));
 
+// Type for partial note overrides
+interface MockNoteOverrides {
+  note?: {
+    id?: string;
+    collection_id?: string;
+    format?: string;
+    source?: string;
+    created_at_utc?: string;
+    updated_at_utc?: string;
+    starred?: boolean;
+    archived?: boolean;
+    title?: string;
+  };
+  original?: {
+    content?: string;
+    hash?: string;
+  };
+  revised?: {
+    content?: string;
+    last_revision_id?: string;
+    ai_metadata?: Record<string, unknown>;
+    model?: string;
+  };
+  tags?: string[];
+}
+
 describe('HallOfMind WebSocket Integration', () => {
   const mockApi = vi.mocked(apiModule.api);
   const mockUseWebSocket = vi.mocked(websocketModule.useWebSocket);
 
   // Sample data factory
-  const createMockNoteFull = (overrides: Partial<NoteFull> = {}): NoteFull => ({
+  const createMockNoteFull = (overrides: MockNoteOverrides = {}): NoteFull => ({
     note: {
-      id: 'test-note-id',
-      collection_id: null,
-      format: 'markdown',
-      source: 'user',
-      created_at_utc: '2024-08-24T12:00:00Z',
-      updated_at_utc: '2024-08-24T12:00:00Z',
-      starred: false,
-      archived: false,
-      title: null,
-      ...overrides.note,
+      id: overrides.note?.id ?? 'test-note-id',
+      collection_id: overrides.note?.collection_id,
+      format: overrides.note?.format ?? 'markdown',
+      source: overrides.note?.source ?? 'user',
+      created_at_utc: overrides.note?.created_at_utc ?? '2024-08-24T12:00:00Z',
+      updated_at_utc: overrides.note?.updated_at_utc ?? '2024-08-24T12:00:00Z',
+      starred: overrides.note?.starred ?? false,
+      archived: overrides.note?.archived ?? false,
+      title: overrides.note?.title,
     },
     original: {
-      content: 'Test note content',
-      hash: 'test-hash',
-      ...overrides.original,
+      content: overrides.original?.content ?? 'Test note content',
+      hash: overrides.original?.hash ?? 'test-hash',
     },
     revised: {
-      content: 'Revised content',
-      last_revision_id: null,
-      ai_metadata: null,
-      model: 'gpt-oss:20b',
-      ...overrides.revised,
+      content: overrides.revised?.content ?? 'Revised content',
+      last_revision_id: overrides.revised?.last_revision_id,
+      ai_metadata: overrides.revised?.ai_metadata,
+      model: overrides.revised?.model ?? 'gpt-oss:20b',
     },
-    tags: ['test'],
+    tags: overrides.tags ?? ['test'],
     links: [],
     labels: [],
-    ...overrides,
   });
 
   beforeEach(() => {
@@ -151,7 +173,7 @@ describe('HallOfMind WebSocket Integration', () => {
       });
 
       const testNote = createMockNoteFull({
-        note: { id: 'test-note', title: null },
+        note: { id: 'test-note' },
         original: { content: 'Test content' },
       });
 
@@ -232,7 +254,7 @@ describe('HallOfMind WebSocket Integration', () => {
   describe('Animation Integration', () => {
     it('can trigger typing animation through component updates', async () => {
       const noteWithoutTitle = createMockNoteFull({
-        note: { id: 'animation-test', title: null },
+        note: { id: 'animation-test' },
         original: { content: 'Original content for animation' },
       });
 

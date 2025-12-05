@@ -3,6 +3,7 @@ mod tests {
     use hotm_server::db::{fetch_note, insert_note, AppState};
     use std::time::Duration;
     use tokio::time::sleep;
+    use sqlx::Row;
 
     #[tokio::test]
     async fn test_ai_revision_generation() {
@@ -33,11 +34,11 @@ mod tests {
             let mock_revised_content = "# Test Note\n\nThis is a **test note** for AI revision testing. It should be enhanced with *markdown formatting*.\n\n- Enhanced with headers\n- Added bold and italic text\n- Improved structure";
 
             // Directly update the database with mock revision (simulating AI pipeline)
-            sqlx::query!(
-                "INSERT INTO note_revised_current (note_id, content, ai_metadata) VALUES ($1, $2, '{}') ON CONFLICT (note_id) DO UPDATE SET content = $2, ai_metadata = '{}'",
-                note_id,
-                mock_revised_content
+            sqlx::query(
+                "INSERT INTO note_revised_current (note_id, content, ai_metadata) VALUES ($1, $2, '{}') ON CONFLICT (note_id) DO UPDATE SET content = $2, ai_metadata = '{}'"
             )
+            .bind(note_id)
+            .bind(mock_revised_content)
             .execute(&state.pool)
             .await
             .expect("Failed to insert mock revision");
@@ -111,16 +112,17 @@ mod tests {
         sleep(Duration::from_secs(5)).await;
 
         // Query for embeddings
-        let embeddings = sqlx::query!(
-            "SELECT COUNT(*) as count FROM embedding WHERE note_id = $1",
-            note_id
+        let embeddings_row = sqlx::query(
+            "SELECT COUNT(*) as count FROM embedding WHERE note_id = $1"
         )
+        .bind(note_id)
         .fetch_one(&state.pool)
         .await
         .expect("Failed to query embeddings");
 
+        let count: i64 = embeddings_row.get("count");
         assert!(
-            embeddings.count.unwrap_or(0) > 0,
+            count > 0,
             "Embeddings should be generated for the note"
         );
     }

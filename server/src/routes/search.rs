@@ -361,7 +361,8 @@ Provide a brief summary (2-3 sentences) explaining how this note fits into the b
     }))
 }
 
-fn rrf_fuse(a: Vec<SearchHit>, b: Vec<SearchHit>, limit: usize) -> Vec<SearchHit> {
+// Make rrf_fuse public for testing
+pub fn rrf_fuse(a: Vec<SearchHit>, b: Vec<SearchHit>, limit: usize) -> Vec<SearchHit> {
     use std::collections::HashMap;
     let mut rank_a: HashMap<Uuid, usize> = HashMap::new();
     let mut rank_b: HashMap<Uuid, usize> = HashMap::new();
@@ -459,4 +460,42 @@ Keep it concise and actionable."#,
             }))
         }
     }
+}
+
+// =============================================================================
+// TEST HELPER FUNCTIONS
+// =============================================================================
+// These functions expose private helper functions for unit testing
+
+#[cfg(test)]
+pub fn safe_truncate_test(s: &str, max_len: usize) -> &str {
+    safe_truncate(s, max_len)
+}
+
+#[cfg(test)]
+pub fn calculate_set_overlap_test(set1: &HashSet<String>, set2: &HashSet<String>) -> f32 {
+    calculate_set_overlap(set1, set2)
+}
+
+#[cfg(test)]
+pub fn extract_metadata_field_test(meta: &serde_json::Value, field: &str) -> HashSet<String> {
+    extract_metadata_field(meta, field)
+}
+
+#[cfg(test)]
+pub fn extract_entity_field_test(entities: &serde_json::Value, field: &str) -> HashSet<String> {
+    extract_entity_field(entities, field)
+}
+
+#[cfg(test)]
+pub fn calculate_metadata_overlap_test(
+    source_meta: &serde_json::Value,
+    target_meta: &serde_json::Value,
+) -> f32 {
+    calculate_metadata_overlap(source_meta, target_meta)
+}
+
+#[cfg(test)]
+pub fn rrf_fuse_test(a: Vec<SearchHit>, b: Vec<SearchHit>, limit: usize) -> Vec<SearchHit> {
+    rrf_fuse(a, b, limit)
 }

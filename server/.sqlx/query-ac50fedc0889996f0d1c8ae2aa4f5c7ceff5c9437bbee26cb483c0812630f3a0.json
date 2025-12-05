@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT id, collection_id, format, source, created_at_utc, updated_at_utc, starred, archived, last_accessed_at, metadata FROM note WHERE id = $1",
+  "query": "SELECT id, collection_id, format, source, created_at_utc, updated_at_utc, starred, archived, last_accessed_at, title, metadata FROM note WHERE id = $1",
   "describe": {
     "columns": [
       {
@@ -50,6 +50,11 @@
       },
       {
         "ordinal": 9,
+        "name": "title",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 10,
         "name": "metadata",
         "type_info": "Jsonb"
       }
@@ -69,8 +74,9 @@
       true,
       true,
       true,
+      true,
       false
     ]
   },
-  "hash": "2c9768bebbbd841e61da44b55466389a6d2d3b5cf3aec3134fb23aaad4821296"
+  "hash": "ac50fedc0889996f0d1c8ae2aa4f5c7ceff5c9437bbee26cb483c0812630f3a0"
 }

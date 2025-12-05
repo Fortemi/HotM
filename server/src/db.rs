@@ -174,12 +174,13 @@ pub async fn list_notes(
     let limit = req.limit.unwrap_or(50).min(100);
     let offset = req.offset.unwrap_or(0);
 
-    // Build the filter clause
+    // Build the filter clause (always exclude soft-deleted notes unless explicitly requested)
     let filter_clause = match filter {
-        "starred" => "AND n.starred = true AND n.archived = false",
-        "archived" => "AND n.archived = true",
-        "recent" => "AND n.last_accessed_at IS NOT NULL AND n.archived = false",
-        _ => "", // "all" filter should show everything, including archived
+        "starred" => "AND n.starred = true AND n.archived = false AND n.deleted_at IS NULL",
+        "archived" => "AND n.archived = true AND n.deleted_at IS NULL",
+        "recent" => "AND n.last_accessed_at IS NOT NULL AND n.archived = false AND n.deleted_at IS NULL",
+        "deleted" | "trash" => "AND n.deleted_at IS NOT NULL", // Show only soft-deleted notes
+        _ => "AND n.deleted_at IS NULL", // "all" filter shows non-deleted notes
     };
 
     // Build the order clause
@@ -486,8 +487,8 @@ pub async fn update_revised(
 }
 
 pub async fn search_fts(state: &AppState, q: &str, limit: i64) -> anyhow::Result<Vec<SearchHit>> {
-    // Use plainto_tsquery for safety
-    let rows = sqlx::query!(
+    // Use plainto_tsquery for safety - runtime query for soft delete compatibility
+    let rows = sqlx::query(
         r#"
         SELECT n.id as note_id,
                ts_rank(nrc.tsv, plainto_tsquery('english', $1)) AS score,
@@ -496,23 +497,28 @@ pub async fn search_fts(state: &AppState, q: &str, limit: i64) -> anyhow::Result
         JOIN note n ON n.id = nrc.note_id
         WHERE nrc.tsv @@ plainto_tsquery('english', $1)
           AND (n.archived IS FALSE OR n.archived IS NULL)
+          AND n.deleted_at IS NULL
         ORDER BY score DESC
         LIMIT $2
         "#,
-        q,
-        limit
     )
+    .bind(q)
+    .bind(limit)
     .fetch_all(&state.pool)
     .await?;
 
-    Ok(rows
-        .into_iter()
-        .map(|r| SearchHit {
-            note_id: r.note_id,
-            score: r.score.unwrap_or(0.0),
-            snippet: r.snippet,
-        })
-        .collect())
+    let mut results = Vec::new();
+    for row in rows {
+        let note_id: Uuid = row.try_get("note_id")?;
+        let score: f32 = row.try_get::<Option<f32>, _>("score")?.unwrap_or(0.0);
+        let snippet: Option<String> = row.try_get("snippet")?;
+        results.push(SearchHit {
+            note_id,
+            score,
+            snippet,
+        });
+    }
+    Ok(results)
 }
 
 pub async fn search_fts_filtered(
@@ -528,7 +534,7 @@ pub async fn search_fts_filtered(
     qb.push_bind(q);
     qb.push(")) AS score, substring(nrc.content for 200) AS snippet FROM note_revised_current nrc JOIN note n ON n.id = nrc.note_id WHERE nrc.tsv @@ plainto_tsquery('english', ");
     qb.push_bind(q);
-    qb.push(") AND (n.archived IS FALSE OR n.archived IS NULL)");
+    qb.push(") AND (n.archived IS FALSE OR n.archived IS NULL) AND n.deleted_at IS NULL");
 
     if let Some(f) = filters {
         for token in f.split_whitespace() {
@@ -624,6 +630,7 @@ pub async fn search_vector(
         FROM embedding e
         JOIN note n ON n.id = e.note_id
         WHERE (n.archived IS FALSE OR n.archived IS NULL)
+          AND n.deleted_at IS NULL
         ORDER BY e.vector <=> $1::vector
         LIMIT $2
         "#,
@@ -655,7 +662,7 @@ pub async fn search_vector_filtered(
     let vec_param = pgvector::Vector::from(query_vec.clone());
     let mut qb = sqlx::QueryBuilder::new("SELECT e.note_id AS note_id, 1.0 - (e.vector <=> ");
     qb.push_bind(vec_param.clone());
-    qb.push("::vector) AS score FROM embedding e JOIN note n ON n.id = e.note_id WHERE (n.archived IS FALSE OR n.archived IS NULL)");
+    qb.push("::vector) AS score FROM embedding e JOIN note n ON n.id = e.note_id WHERE (n.archived IS FALSE OR n.archived IS NULL) AND n.deleted_at IS NULL");
 
     if let Some(f) = filters {
         for token in f.split_whitespace() {

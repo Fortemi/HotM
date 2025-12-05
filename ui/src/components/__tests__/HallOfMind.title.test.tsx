@@ -20,40 +20,62 @@ vi.mock('../TypingAnimation', () => ({
   }),
 }));
 
+// Type for partial note overrides
+interface MockNoteOverrides {
+  note?: {
+    id?: string;
+    collection_id?: string;
+    format?: string;
+    source?: string;
+    created_at_utc?: string;
+    updated_at_utc?: string;
+    starred?: boolean;
+    archived?: boolean;
+    title?: string;
+  };
+  original?: {
+    content?: string;
+    hash?: string;
+  };
+  revised?: {
+    content?: string;
+    last_revision_id?: string;
+    ai_metadata?: Record<string, unknown>;
+    model?: string;
+  };
+  tags?: string[];
+}
+
 describe('HallOfMind Title Handling', () => {
   const mockApi = vi.mocked(apiModule.api);
   const mockUseWebSocket = vi.mocked(websocketModule.useWebSocket);
 
   // Sample note data
-  const createMockNote = (overrides: Partial<NoteFull> = {}): NoteFull => ({
+  const createMockNote = (overrides: MockNoteOverrides = {}): NoteFull => ({
     note: {
-      id: 'test-note-id',
-      collection_id: null,
-      format: 'markdown',
-      source: 'user',
-      created_at_utc: '2024-08-24T12:00:00Z',
-      updated_at_utc: '2024-08-24T12:00:00Z',
-      starred: false,
-      archived: false,
-      title: null, // No AI title initially
-      ...overrides.note,
+      id: overrides.note?.id ?? 'test-note-id',
+      collection_id: overrides.note?.collection_id,
+      format: overrides.note?.format ?? 'markdown',
+      source: overrides.note?.source ?? 'user',
+      created_at_utc: overrides.note?.created_at_utc ?? '2024-08-24T12:00:00Z',
+      updated_at_utc: overrides.note?.updated_at_utc ?? '2024-08-24T12:00:00Z',
+      starred: overrides.note?.starred ?? false,
+      archived: overrides.note?.archived ?? false,
+      title: overrides.note?.title,
     },
     original: {
-      content: 'This is the original note content for testing title display',
-      hash: 'test-hash',
-      ...overrides.original,
+      content: overrides.original?.content ?? 'This is the original note content for testing title display',
+      hash: overrides.original?.hash ?? 'test-hash',
     },
     revised: {
-      content: 'This is the revised content',
-      last_revision_id: null,
-      ai_metadata: null,
-      model: 'gpt-oss:20b',
-      ...overrides.revised,
+      content: overrides.revised?.content ?? 'This is the revised content',
+      last_revision_id: overrides.revised?.last_revision_id,
+      ai_metadata: overrides.revised?.ai_metadata,
+      model: overrides.revised?.model ?? 'gpt-oss:20b',
     },
-    tags: ['test'],
+    tags: overrides.tags ?? ['test'],
     links: [],
     labels: [],
-    ...overrides,
   });
 
   beforeEach(() => {
@@ -84,10 +106,7 @@ describe('HallOfMind Title Handling', () => {
   describe('Title Display Logic', () => {
     it('displays original content as title for new notes without AI title', async () => {
       const noteWithoutAiTitle = createMockNote({
-        note: { 
-          id: 'test-note-1',
-          title: null // No AI title
-        },
+        note: { id: 'test-note-1' },
         original: {
           content: 'My First Note Content\nWith multiple lines',
           hash: 'hash1',
@@ -129,10 +148,7 @@ describe('HallOfMind Title Handling', () => {
 
     it('handles empty original content gracefully', async () => {
       const noteWithEmptyContent = createMockNote({
-        note: { 
-          id: 'test-note-3',
-          title: null
-        },
+        note: { id: 'test-note-3' },
         original: {
           content: '', // Empty content
           hash: 'hash3',
@@ -151,10 +167,7 @@ describe('HallOfMind Title Handling', () => {
 
     it('truncates long original content to 50 characters', async () => {
       const noteWithLongContent = createMockNote({
-        note: { 
-          id: 'test-note-4',
-          title: null
-        },
+        note: { id: 'test-note-4' },
         original: {
           content: 'This is a very long note title that should be truncated because it exceeds the 50 character limit that we have set for display purposes',
           hash: 'hash4',
@@ -176,10 +189,7 @@ describe('HallOfMind Title Handling', () => {
     it('triggers title animation when AI generates title for first time', async () => {
       // Start with note without AI title
       const initialNote = createMockNote({
-        note: { 
-          id: 'animation-note-1',
-          title: null
-        },
+        note: { id: 'animation-note-1' },
         original: {
           content: 'Original content for animation test',
           hash: 'anim-hash1',
@@ -247,10 +257,7 @@ describe('HallOfMind Title Handling', () => {
       
       // Step 1: New note created (no AI title yet)
       const newNote = createMockNote({
-        note: { 
-          id: 'workflow-note',
-          title: null
-        },
+        note: { id: 'workflow-note' },
         original: {
           content: 'Brand new note content',
           hash: 'workflow-hash',
@@ -269,10 +276,7 @@ describe('HallOfMind Title Handling', () => {
 
       // Step 2: AI revision completes (still no title)
       const revisedNote = createMockNote({
-        note: { 
-          id: 'workflow-note',
-          title: null // Still no AI title
-        },
+        note: { id: 'workflow-note' },
         original: {
           content: 'Brand new note content',
           hash: 'workflow-hash',
@@ -321,16 +325,11 @@ describe('HallOfMind Title Handling', () => {
 
   describe('Edge Cases and Error Handling', () => {
     it('handles malformed note data gracefully', async () => {
-      const malformedNote = {
-        note: {
-          id: 'malformed-note',
-          // Missing required fields
-        },
-        original: {
-          content: 'Some content',
-        },
-        // Missing other required fields
-      } as any;
+      // Use createMockNote with minimal data to test graceful handling
+      const malformedNote = createMockNote({
+        note: { id: 'malformed-note' },
+        original: { content: 'Some content', hash: 'some-hash' },
+      });
 
       mockApi.getRecentNotes.mockResolvedValue([malformedNote]);
       

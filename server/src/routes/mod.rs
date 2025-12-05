@@ -6,3 +6,6 @@ pub mod notes;
 pub mod provenance;
 pub mod search;
 pub mod taxonomy;
+
+#[cfg(test)]
+mod tests;

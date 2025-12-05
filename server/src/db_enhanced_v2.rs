@@ -124,32 +124,6 @@ Output the enhanced note in clean markdown format. Do not add any labels, marker
     Ok(clean_enhanced_content(&enhanced))
 }
 
-/// Generate enhanced content - focused solely on improving the note's content
-async fn generate_enhanced_content(state: &AppState, content: &str) -> anyhow::Result<String> {
-    let prompt = format!(
-        r#"You are an intelligent note-taking assistant. Your task is to enhance the following note.
-
-Original Note:
-{}
-
-Please provide an enhanced version that:
-1. Preserves ALL original information and meaning
-2. Improves clarity and organization
-3. Adds proper markdown formatting (headers, lists, emphasis)
-4. Identifies and highlights key concepts
-5. Formats any code blocks, math expressions, or diagrams properly
-6. Maintains a professional yet accessible tone
-
-Output the enhanced note in clean markdown format. Do not add any labels, markers, or metadata."#,
-        content
-    );
-
-    let enhanced = crate::ollama::generate(&state.gen_model, &prompt).await?;
-
-    // Clean up any accidental markers
-    Ok(clean_enhanced_content(&enhanced))
-}
-
 /// Extract metadata from the content
 async fn extract_metadata(
     state: &AppState,

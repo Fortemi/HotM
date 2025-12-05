@@ -50,6 +50,14 @@ async fn main() -> anyhow::Result<()> {
         .route("/api/v1/notes/:id", get(routes::notes::get_note))
         .route("/api/v1/notes/:id", delete(routes::notes::delete_note))
         .route(
+            "/api/v1/notes/:id/hard-delete",
+            delete(routes::notes::hard_delete_note),
+        )
+        .route(
+            "/api/v1/notes/:id/restore",
+            post(routes::notes::restore_note),
+        )
+        .route(
             "/api/v1/notes/:id/status",
             put(routes::notes::update_note_status),
         )

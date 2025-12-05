@@ -75,19 +75,57 @@ pub async fn update_note_status(
     })))
 }
 
-// Delete a note
+// Soft delete a note (sets deleted_at timestamp)
 pub async fn delete_note(
     State(state): State<AppState>,
     Path(id): Path<Uuid>,
 ) -> Result<Json<serde_json::Value>, axum::http::StatusCode> {
-    // Delete the note and all related data (CASCADE will handle related records)
-    sqlx::query!("DELETE FROM note WHERE id = $1", id)
+    // Soft delete: set deleted_at timestamp instead of hard delete
+    // Using runtime query for soft delete column compatibility
+    sqlx::query("UPDATE note SET deleted_at = NOW() WHERE id = $1 AND deleted_at IS NULL")
+        .bind(id)
         .execute(&state.pool)
         .await
         .map_err(|_| axum::http::StatusCode::INTERNAL_SERVER_ERROR)?;
 
     Ok(Json(serde_json::json!({
         "status": "deleted",
+        "note_id": id
+    })))
+}
+
+// Permanently delete a note (hard delete)
+pub async fn hard_delete_note(
+    State(state): State<AppState>,
+    Path(id): Path<Uuid>,
+) -> Result<Json<serde_json::Value>, axum::http::StatusCode> {
+    // Hard delete: permanently remove the note and all related data
+    sqlx::query!("DELETE FROM note WHERE id = $1", id)
+        .execute(&state.pool)
+        .await
+        .map_err(|_| axum::http::StatusCode::INTERNAL_SERVER_ERROR)?;
+
+    Ok(Json(serde_json::json!({
+        "status": "permanently_deleted",
+        "note_id": id
+    })))
+}
+
+// Restore a soft-deleted note
+pub async fn restore_note(
+    State(state): State<AppState>,
+    Path(id): Path<Uuid>,
+) -> Result<Json<serde_json::Value>, axum::http::StatusCode> {
+    // Restore: clear the deleted_at timestamp
+    // Using runtime query for soft delete column compatibility
+    sqlx::query("UPDATE note SET deleted_at = NULL WHERE id = $1 AND deleted_at IS NOT NULL")
+        .bind(id)
+        .execute(&state.pool)
+        .await
+        .map_err(|_| axum::http::StatusCode::INTERNAL_SERVER_ERROR)?;
+
+    Ok(Json(serde_json::json!({
+        "status": "restored",
         "note_id": id
     })))
 }

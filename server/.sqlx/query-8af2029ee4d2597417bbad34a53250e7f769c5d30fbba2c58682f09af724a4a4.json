@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT content, last_revision_id, ai_metadata FROM note_revised_current WHERE note_id = $1",
+  "query": "SELECT nrc.content, nrc.last_revision_id, nrc.ai_metadata, nr.model \n         FROM note_revised_current nrc\n         LEFT JOIN note_revision nr ON nr.id = nrc.last_revision_id\n         WHERE nrc.note_id = $1",
   "describe": {
     "columns": [
       {
@@ -17,6 +17,11 @@
         "ordinal": 2,
         "name": "ai_metadata",
         "type_info": "Jsonb"
+      },
+      {
+        "ordinal": 3,
+        "name": "model",
+        "type_info": "Text"
       }
     ],
     "parameters": {
@@ -27,8 +32,9 @@
     "nullable": [
       false,
       true,
+      true,
       true
     ]
   },
-  "hash": "76e06d722ef2556ac214b75bfb82e8ebd6d66c388df9bb11b53d78465f928550"
+  "hash": "8af2029ee4d2597417bbad34a53250e7f769c5d30fbba2c58682f09af724a4a4"
 }
