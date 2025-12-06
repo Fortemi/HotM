@@ -4,8 +4,8 @@
 -- This file consolidates all migrations into a single greenfield schema
 -- for rapid testing and development iteration.
 --
--- Source migrations: 0001-0006
--- Generated: 2025-12-04
+-- Source migrations: 0001-0007
+-- Generated: 2025-12-05
 -- Version: 0.1.0 (Alpha)
 -- ============================================================================
 
@@ -44,7 +44,8 @@ CREATE TABLE note (
   last_accessed_at TIMESTAMPTZ,
   access_count INTEGER DEFAULT 0,
   metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
-  title TEXT  -- Migration 0005: Title generation support
+  title TEXT,  -- Migration 0005: Title generation support
+  deleted_at TIMESTAMPTZ DEFAULT NULL  -- Migration 0007: Soft delete support
 );
 
 -- Original note content (immutable)
@@ -219,6 +220,7 @@ CREATE INDEX idx_note_archived ON note(archived) WHERE archived = TRUE;
 CREATE INDEX idx_note_last_accessed ON note(last_accessed_at DESC NULLS LAST);
 CREATE INDEX idx_note_access_count ON note(access_count DESC);
 CREATE INDEX idx_note_title ON note(title);  -- Migration 0005: Title searches
+CREATE INDEX idx_note_deleted_at ON note(deleted_at) WHERE deleted_at IS NULL;  -- Migration 0007: Fast non-deleted queries
 
 -- Note original indices
 CREATE INDEX idx_note_original_user_edited ON note_original(user_last_edited_at DESC);

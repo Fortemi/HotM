@@ -24,8 +24,20 @@ impl AppState {
             .max_connections(10)
             .connect(url)
             .await?;
-        // Run migrations
-        sqlx::migrate!().run(&pool).await?;
+        // Run migrations - skip if schema already exists (clean-schema.sql rebuild)
+        // This allows both migration-based and greenfield schema approaches to work
+        match sqlx::migrate!().run(&pool).await {
+            Ok(_) => tracing::info!("Migrations applied successfully"),
+            Err(e) => {
+                // Check if the error is because types/tables already exist (greenfield rebuild)
+                let err_msg = format!("{}", e);
+                if err_msg.contains("already exists") {
+                    tracing::info!("Schema already exists (likely from clean-schema.sql rebuild), skipping migrations");
+                } else {
+                    return Err(e.into());
+                }
+            }
+        }
         let embed_model =
             std::env::var("OLLAMA_EMBED_MODEL").unwrap_or_else(|_| DEFAULT_EMBED_MODEL.to_string());
         let gen_model =
