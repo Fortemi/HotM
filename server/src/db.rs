@@ -24,18 +24,14 @@ impl AppState {
             .max_connections(10)
             .connect(url)
             .await?;
-        // Run migrations - skip if schema already exists (clean-schema.sql rebuild)
-        // This allows both migration-based and greenfield schema approaches to work
-        match sqlx::migrate!().run(&pool).await {
-            Ok(_) => tracing::info!("Migrations applied successfully"),
-            Err(e) => {
-                // Check if the error is because types/tables already exist (greenfield rebuild)
-                let err_msg = format!("{}", e);
-                if err_msg.contains("already exists") {
-                    tracing::info!("Schema already exists (likely from clean-schema.sql rebuild), skipping migrations");
-                } else {
-                    return Err(e.into());
-                }
+        // Greenfield phase: Schema managed via scripts/schema/clean-schema.sql
+        // Future: Migrations will be used once schema stabilizes post-alpha
+        // For now, migrations directory is empty - schema applied via rebuild scripts
+        if let Err(e) = sqlx::migrate!().run(&pool).await {
+            let err_msg = format!("{}", e);
+            // Ignore "no migrations" or "already exists" errors during greenfield
+            if !err_msg.contains("already exists") && !err_msg.contains("no migrations") {
+                tracing::warn!("Migration warning (greenfield phase): {}", err_msg);
             }
         }
         let embed_model =
