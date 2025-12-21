@@ -1,0 +1,22 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(\"/c/Program Files/PostgreSQL/17/bin/pg_ctl.exe\" -D \"/c/Program Files/PostgreSQL/17/data\" start)",
+      "Bash(\"/c/Program Files/PostgreSQL/17/bin/psql.exe\" -U postgres -h localhost -p 5432 -c \"CREATE DATABASE hotm_test_pgvector;\")",
+      "Bash(cat:*)",
+      "Bash(\"/c/Program Files/PostgreSQL/17/bin/pg_ctl.exe\" -D \"/c/Program Files/PostgreSQL/17/data\" stop)",
+      "Bash(\"/c/Program Files/PostgreSQL/17/bin/pg_ctl.exe\" -D \"/c/Program Files/PostgreSQL/17/data\" -l \"/c/Program Files/PostgreSQL/17/data/log/postgresql.log\" start)",
+      "Bash(export PGPASSWORD=hotm_dev)",
+      "Bash(\"/c/Program Files/PostgreSQL/17/bin/psql.exe\" -U postgres -h localhost -p 5432 -c \"ALTER USER postgres WITH PASSWORD ''hotm_dev'';\")",
+      "Bash(\"/c/Program Files/PostgreSQL/17/bin/psql.exe\" -U postgres -h localhost -p 5432 -c \"CREATE DATABASE hotm_dev;\")",
+      "Bash(\"/c/Program Files/PostgreSQL/17/bin/psql.exe\" -U postgres -h localhost -p 5432 -d hotm_dev -c \"CREATE EXTENSION IF NOT EXISTS vector;\")",
+      "Bash(\"/c/Program Files/PostgreSQL/17/bin/psql.exe\":*)",
+      "Bash(tasklist:*)",
+      "Bash(findstr:*)",
+      "Bash(\"/c/Program Files/PostgreSQL/17/bin/pg_isready.exe\" -h localhost -p 5432)",
+      "Bash(taskkill:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

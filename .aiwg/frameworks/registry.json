@@ -1,0 +1,22 @@
+{
+  "version": "1.0.0",
+  "created": "2025-12-16T23:52:03.218Z",
+  "frameworks": {
+    "sdlc-complete": {
+      "id": "sdlc-complete",
+      "type": "framework",
+      "version": "1.0.0",
+      "install-date": "2025-12-16T23:52:03.219Z",
+      "repo-path": "frameworks/sdlc-complete/repo",
+      "health": "healthy"
+    },
+    "media-marketing-kit": {
+      "id": "media-marketing-kit",
+      "type": "framework",
+      "version": "1.0.0",
+      "install-date": "2025-12-16T23:52:03.219Z",
+      "repo-path": "frameworks/media-marketing-kit/repo",
+      "health": "healthy"
+    }
+  }
+}
