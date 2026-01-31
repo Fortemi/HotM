@@ -341,50 +341,22 @@ export function HallOfMind() {
               
               // Send notification once all jobs for this note are complete
               try {
-                // Check if we're running in Tauri environment
-                if (typeof window !== 'undefined' && (window as any).__TAURI__) {
-                  const { 
-                    isPermissionGranted, 
-                    requestPermission, 
-                    sendNotification 
-                  } = await import('@tauri-apps/plugin-notification');
-                  
-                  // Check/request notification permission
-                  let hasPermission = await isPermissionGranted();
-                  if (!hasPermission) {
-                    const permission = await requestPermission();
-                    hasPermission = permission === 'granted';
-                  }
-                  
-                  if (hasPermission) {
-                    await sendNotification({
-                      title: 'HotM - Processing Complete',
-                      body: `Note "${simpleNote.title}" has been processed with AI enhancements. Click to view.`,
-                      sound: 'default'
-                    });
-                    console.log("Grouped notification sent for processed note:", note_id);
-                  } else {
-                    console.warn("Notification permission not granted");
-                  }
-                } else {
-                  // Fallback for development/web environment
-                  console.log(`Note processing complete: ${simpleNote.title}`);
-                  
-                  // Try to use browser notifications as fallback
-                  if ('Notification' in window && Notification.permission === 'granted') {
+                console.log(`Note processing complete: ${simpleNote.title}`);
+                
+                // Use browser notifications
+                if ('Notification' in window && Notification.permission === 'granted') {
+                  new Notification('HotM - Processing Complete', {
+                    body: `Note "${simpleNote.title}" has been processed with AI enhancements.`,
+                    icon: '/favicon.ico'
+                  });
+                } else if ('Notification' in window && Notification.permission === 'default') {
+                  // Request permission and try again
+                  const permission = await Notification.requestPermission();
+                  if (permission === 'granted') {
                     new Notification('HotM - Processing Complete', {
                       body: `Note "${simpleNote.title}" has been processed with AI enhancements.`,
                       icon: '/favicon.ico'
                     });
-                  } else if ('Notification' in window && Notification.permission === 'default') {
-                    // Request permission and try again
-                    const permission = await Notification.requestPermission();
-                    if (permission === 'granted') {
-                      new Notification('HotM - Processing Complete', {
-                        body: `Note "${simpleNote.title}" has been processed with AI enhancements.`,
-                        icon: '/favicon.ico'
-                      });
-                    }
                   }
                 }
               } catch (error) {
@@ -393,6 +365,60 @@ export function HallOfMind() {
               
               // Clean up the timeout reference
               notificationTimeouts.current.delete(note_id);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
             }, 2000); // Wait 2 seconds for additional updates
             
             notificationTimeouts.current.set(note_id, notificationTimeout);
