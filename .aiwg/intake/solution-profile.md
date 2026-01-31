@@ -1,385 +1,374 @@
-# Solution Profile (Current System)
+# Solution Profile (Migration Target)
 
-**Document Type**: Existing System Profile
-**Generated**: 2025-12-04
-**Project**: HotM (Hall Of The Mind)
+**Document Type**: Production System Profile
+**Generated**: 2026-01-30
+**Project**: HotM Frontend (matric-memory Web Client)
 
-## Current Profile
+## Target Profile (Post-Migration)
 
-**Profile**: **Prototype** (transitioning to MVP)
+**Profile**: **Production**
 
 **Selection Rationale**:
-- **System Status**: Alpha (v0.1.2), core architecture in place but undergoing architectural reset
-- **Users**: Solo developer only (personal validation phase)
-- **Team Size**: 1 developer
-- **Process Maturity**: Moderate (CI/CD present, testing started, documentation exists)
-- **Privacy Focus**: Local-first architecture (non-negotiable principle)
-- **Current State**: Cleanup phase after failed single-exe integration attempt
+- **System Status**: Migration to production-ready SPA (v0.1.2 → v0.2.0)
+- **Users**: External users (100+ active users), web-based access
+- **Team Size**: Small team (1-3 developers, frontend/full-stack focused)
+- **Process Maturity**: Moderate (appropriate for small team, production SPA)
+- **Authentication Required**: Keycloak OIDC (multi-user, secure access)
+- **API Integration**: matric-memory production API (comprehensive REST endpoints)
+- **Deployment**: Static SPA via Nginx (existing pipeline, production-ready)
 
-**Actual**: Prototype moving toward MVP after architectural stabilization
+**Actual**: Production profile (external users, authenticated access, production API dependency)
 
-## Current State Characteristics
+## Target Profile Characteristics (Post-Migration)
 
 ### Security
-**Posture**: Minimal (appropriate for local-first personal tool)
+**Posture**: Strong (appropriate for production SPA with external users)
 
-**Controls Present**:
-- **Authentication**: Not needed (single-user local app)
-- **Authorization**: File system permissions
-- **Data Protection**: Immutable originals, local-only processing
-- **Secrets Management**: Environment variables (.env, not committed)
-- **Privacy**: All data and AI processing stays local (Ollama)
+**Controls Required**:
+- **Authentication**: Keycloak OIDC (Authorization Code Flow with PKCE)
+  - Short-lived access tokens (15-60 min TTL)
+  - Long-lived refresh tokens (automatic renewal)
+  - Secure token storage (in-memory or httpOnly cookies, NOT localStorage)
+- **Authorization**: Bearer token-based API access (matric-memory API validates tokens)
+- **Data Protection**:
+  - HTTPS/TLS for all traffic (SPA served over HTTPS, API calls over TLS)
+  - Token encryption in transit
+  - matric-memory API handles data encryption at rest
+- **Secrets Management**: Environment variables for API URLs and OIDC config (no secrets in frontend)
+- **Frontend Security**:
+  - XSS protection (React auto-escaping, CSP headers)
+  - CSRF protection (SameSite cookies, CORS configuration)
+  - Dependency security scanning (`npm audit`, Dependabot)
 
-**Gaps**:
-- No authentication (not needed for current use case)
-- No security scanning in CI (SAST/DAST not critical for personal tool)
-- No threat model (low risk for local-only application)
+**Security Implementation**:
+- Use proven OIDC libraries (`oidc-client-ts`, `react-oidc-context`)
+- Regular security audits of dependencies
+- Security headers in Nginx (CSP, X-Frame-Options, X-Content-Type-Options)
+- HTTPS-only (redirect HTTP → HTTPS)
 
-**Recommendation**: Security posture is appropriate for Prototype/MVP profile
-- Add basic auth if transitioning to multi-device server mode
-- Consider threat modeling if open sourcing (to prevent malicious contributions)
+**Recommendation**: Strong security posture required for Production profile
+- External users (100+) require proper authentication and authorization
+- User-generated content (notes) may contain sensitive information
+- Web-facing SPA requires XSS/CSRF protection
 
 ### Reliability
-**Current SLOs**: None (pre-production, personal use)
-- **Availability**: Not applicable (local app, user controls uptime)
-- **Latency**: Targeting <1s for search, <100ms for note retrieval (informal)
-- **Error Rate**: Unknown (no production telemetry)
+**Target SLOs** (Production profile):
+- **Availability**: 99.5% uptime (depends on matric-memory API and Nginx availability)
+- **Page Load**: <2s for initial SPA load (first contentful paint)
+- **API Latency**: <500ms p95 for matric-memory API calls
+- **Search Latency**: <1s total (API call + result rendering)
+- **Error Rate**: <1% failed API calls (excluding network issues)
 
-**Monitoring Maturity**: Minimal
-- Logs: Rust tracing framework (structured logging to console)
-- Metrics: None
-- Traces: None
-- Alerting: Not applicable (local app)
+**Monitoring Strategy** (Production profile):
+- **Frontend Error Tracking**: Sentry or similar (capture unhandled exceptions, API errors)
+- **API Call Metrics**: Track latency, success/failure rates (React Query dev tools or custom logging)
+- **User Analytics**: Optional privacy-friendly analytics (Plausible, self-hosted Matomo)
+- **Logs**: Structured frontend logs (API errors, auth failures, critical actions)
+- **Alerting**: Email or Slack alerts for critical errors (auth failures, API unavailability)
 
-**Recommendation**: Monitoring appropriate for Prototype
-- Add basic telemetry to track search performance during personal validation
-- Consider Jaeger tracing if debugging async/background job issues
-- Defer comprehensive observability until multi-user or open source release
+**Recommendation**: Production monitoring required
+- Frontend is dependent on matric-memory API (monitor API health proactively)
+- External users (100+) expect stable, responsive application
+- Error tracking helps identify and fix issues quickly
 
 ### Testing & Quality
-**Test Coverage**: Unknown (CI present but coverage not reported)
-- **Rust Backend**: 4 test files detected
-- **React Frontend**: 11 test files/directories
-- **CI**: GitHub Actions (backend-tests.yml, frontend-tests.yml)
+**Target Test Coverage**: 60%+ (Production profile, moderate coverage)
 
-**Test Types**:
-- Unit tests (Rust, React components)
-- Integration tests (likely server API endpoints)
-- No E2E tests detected (Playwright, Cypress)
+**Test Strategy** (Production profile):
+- **Unit Tests**: Jest or Vitest (React components, utility functions, API client logic)
+- **Component Tests**: React Testing Library (UI component behavior, user interactions)
+- **Integration Tests**: Mock matric-memory API responses, test error handling (network failures, auth errors)
+- **E2E Tests**: Playwright or Cypress (critical user journeys):
+  - Login flow (Keycloak OIDC → token retrieval → API call)
+  - Create note (form submission → API call → UI update)
+  - Search notes (query → results → filtering)
+  - Tag management (create, assign, remove tags)
+  - Logout (clear tokens, redirect to login)
 
-**Quality Gates**:
-- CI checks on push (tests, clippy, formatting)
-- Security audit (cargo audit, npm audit likely)
-- No coverage thresholds enforced
+**Quality Gates** (enforced in CI/CD):
+- ✅ TypeScript build passes (no type errors)
+- ✅ Linting passes (ESLint, no errors)
+- ✅ Unit tests pass (60%+ coverage)
+- ✅ Component tests pass
+- ✅ E2E smoke tests pass (staging environment)
+- ✅ Security scan passes (`npm audit`, no high/critical vulnerabilities)
+- ✅ Code review required (1+ reviewer approval before merge)
 
-**Recommendation**: Testing is adequate for Prototype, needs strengthening for MVP
-- **Target Coverage**: 60%+ for MVP (core note CRUD, search, linking)
-- **Add E2E tests**: Critical user journeys (create note → auto-link → search → retrieve)
-- **Performance tests**: Search latency benchmarks (track as note count grows)
+**Recommendation**: 60% coverage is appropriate for Production profile with small team
+- Focus tests on critical paths (auth, note CRUD, search)
+- E2E tests ensure end-to-end integration works (SPA → API → database)
+- Monitor test suite for flakiness (flaky tests reduce trust)
 
 ### Process Rigor
-**SDLC Adoption**: Partial
-- **Requirements**: None formalized (personal project, requirements in developer's head)
-- **Architecture**: Good documentation (README, docs/architecture/, docs/specifications/)
-- **Code Review**: Self-review (solo dev)
-- **Testing**: Present but coverage unknown
-- **CI/CD**: Automated (GitHub Actions)
-- **Documentation**: Comprehensive (README, API spec, architecture docs)
+**SDLC Adoption**: Moderate (appropriate for Production profile with small team)
 
-**Recommendation**: Process rigor appropriate for Prototype, scale up for MVP
-- **Add**: MVP scope document (feature checklist for personal validation)
-- **Add**: ADRs (Architecture Decision Records) to track key decisions (e.g., "Why client-server vs single-exe")
-- **Defer**: Formal requirements, multi-agent reviews, comprehensive traceability
+**Process Implementation**:
+- **Requirements**: Migration scope documented in intake (feature parity, API integration)
+- **Architecture**: Updated documentation (README, API integration guide, deployment guide)
+  - **ADD**: ADR for SPA migration ("Why remove Rust backend?")
+  - **ADD**: ADR for Keycloak OIDC ("Why OIDC over basic auth?")
+- **Code Review**: PR required, 1+ reviewer approval before merge
+- **Testing**: 60%+ coverage target (unit, component, integration, E2E)
+- **CI/CD**: GitHub Actions (frontend-tests.yml, e2e-tests.yml, deploy.yml)
+  - **REMOVE**: backend-tests.yml (no more Rust backend)
+  - **REMOVE**: release.yml (no more MSI builds)
+- **Documentation**: Comprehensive (README, API integration, deployment, migration guide)
 
-## Recommended Profile Adjustments
+**Key Artifacts** (required for Production profile):
+- ✅ Project Intake (completed: project-intake.md, solution-profile.md, option-matrix.md)
+- ✅ Migration Plan (defined in intake documents)
+- [ ] API Integration Guide (document matric-memory API endpoints, auth flow, error handling)
+- [ ] Deployment Guide (Nginx configuration, environment setup, CI/CD pipeline)
+- [ ] User Migration Guide (export from old HotM, import to matric-memory, SPA setup)
+- [ ] ADRs (key decisions: SPA migration, Keycloak OIDC, API-only architecture)
 
-**Current Profile**: Prototype (cleanup phase)
-**Recommended Profile**: MVP (after architectural stabilization)
+**Recommendation**: Moderate process rigor is appropriate for Production SPA with small team
+- Skip heavy governance (no change control board, no formal requirements templates)
+- Focus on critical artifacts (API integration, deployment, migration guides)
+- ADRs help document key decisions for future reference
 
-**Profile Transition Plan**:
+## Migration Roadmap (Prototype → Production)
 
-### Phase 1: Cleanup (Current - 1-2 weeks)
-**Goal**: Return to stable client-server architecture
+**Current State**: Tauri desktop app with embedded Rust API server (v0.1.2)
+**Target State**: Production SPA with Keycloak auth and matric-memory API integration (v0.2.0+)
 
-**Actions**:
-- Roll back single-exe integration work
-- Restore clean separation: Tauri client ↔ Axum server ↔ PostgreSQL ↔ Ollama
-- Verify CI passes (all tests green)
-- Document deployment options (Docker vs native)
+**Migration Timeline**: Flexible (quality over speed, no hard deadline)
 
-**Success Criteria**:
-- ✅ Client-server architecture working end-to-end
-- ✅ All tests passing in CI
-- ✅ Can create note → generate embedding → search → retrieve
-
-### Phase 2: MVP Scoping (1 week)
-**Goal**: Define minimal feature set for personal validation
-
-**Actions**:
-- Document MVP scope (see option-matrix.md for detailed breakdown)
-- Identify must-have features vs nice-to-have
-- Create iteration plan for 3-6 month validation period
-- Set up personal validation metrics (daily notes created, search success rate)
-
-**Success Criteria**:
-- ✅ MVP scope documented (features + non-features)
-- ✅ Iteration plan defined (bi-weekly or monthly milestones)
-- ✅ Validation metrics identified (qualitative + quantitative)
-
-### Phase 3: MVP Stabilization (2-4 weeks)
-**Goal**: Reach "daily use" quality for personal validation
+### Phase 1: Discovery & Preparation (Week 1-2)
+**Goal**: Validate matric-memory API and Keycloak readiness
 
 **Actions**:
-- Fix critical bugs blocking daily use
-- Add missing MVP features (if any)
-- Improve search quality (hybrid FTS + vector)
-- Enhance auto-linking accuracy
-- Polish Windows 11 UX (tray, global hotkey, native feel)
+- ✅ Complete intake documentation (project-intake.md, solution-profile.md, option-matrix.md)
+- Review matric-memory API specification (verify all needed endpoints exist)
+- Test matric-memory API endpoints (notes CRUD, search, tags, collections, semantic)
+- Configure Keycloak OIDC client (public client, PKCE flow, redirect URLs)
+- Test authorization code flow (login → token → API call → logout)
+- Verify CORS configuration (matric-memory allows frontend origin)
 
 **Success Criteria**:
-- ✅ Using daily for own knowledge management
-- ✅ Core workflows smooth (capture, search, link discovery)
-- ✅ 60%+ test coverage on critical paths
-- ✅ No blockers preventing daily use
+- ✅ All matric-memory API endpoints tested and working
+- ✅ Keycloak OIDC flow working end-to-end
+- ✅ No missing API endpoints or CORS issues
+- ✅ Team aligned on migration plan
 
-### Phase 4: Personal Validation (3-6 months)
-**Goal**: Prove concept through sustained personal use
+### Phase 2: Frontend Code Migration (Week 3-6)
+**Goal**: Remove Rust backend, add OIDC auth, integrate matric-memory API
 
 **Actions**:
-- Use HotM daily for knowledge management
-- Track friction points and UX improvements
-- Measure search quality and linking accuracy
-- Iterate on features based on real usage
-- Decide: Keep private, or open source?
+- **Remove**:
+  - Delete `server/` directory (all Rust backend code)
+  - Delete `ui/src-tauri/` directory (Tauri desktop wrapper)
+  - Remove desktop dependencies (`@tauri-apps/api`)
+  - Remove backend CI/CD workflows (`backend-tests.yml`, `release.yml`)
+- **Add**:
+  - Install OIDC client library (`oidc-client-ts` or `react-oidc-context`)
+  - Install React Router (`react-router-dom` v6)
+  - Install React Query (`@tanstack/react-query`)
+  - Create `ui/src/api/` (API client layer with token injection)
+  - Create `ui/src/auth/` (OIDC authentication module)
+- **Update**:
+  - Update NoteEditor, SearchBar, TagManager components (use API client)
+  - Preserve existing UI/UX patterns (minimal visual changes)
+  - Update routing for SPA navigation
 
 **Success Criteria**:
-- ✅ Daily use sustained for 3-6 months
-- ✅ Concept validated (solves personal problem effectively)
-- ✅ Decision made: Private tool, or share with others?
+- ✅ All Rust server code removed (zero `*.rs` files in `server/`)
+- ✅ All Tauri desktop code removed (zero `*.rs` files in `ui/src-tauri/`)
+- ✅ OIDC authentication working (login, token refresh, logout)
+- ✅ API client integrated (all components use matric-memory API)
+- ✅ Frontend builds successfully (`npm run build` produces static assets)
 
-## Tailoring Notes
+### Phase 3: Testing & Quality (Week 7-10)
+**Goal**: Achieve 60%+ test coverage, E2E tests passing
 
-**Strengths to Preserve**:
-- Privacy-first architecture (local-only processing)
-- Comprehensive documentation (README, specs, architecture)
-- Modern tech stack (Rust async, React 19, Tauri 2.4)
-- CI/CD automation (GitHub Actions)
-- Immutable storage design (provenance, audit trail)
-
-**Areas Needing Attention**:
-- Architecture cleanup (undo single-exe work)
-- MVP scope definition (what must work for personal validation?)
-- Test coverage (aim for 60%+ on core paths)
-- Deployment simplicity (install scripts, Docker Compose one-liner)
-
-**What to Skip** (appropriate for solo dev, personal tool):
-- Formal requirements management (can document as ADRs or issues)
-- Multi-agent artifact reviews (solo dev, self-review)
-- Comprehensive traceability (code → requirements → tests)
-- Security compliance (no PII of others, no regulatory requirements)
-- SLAs/SLOs (personal tool, no uptime commitments)
-
-## Improvement Roadmap
-
-### Phase 1: Cleanup (Immediate - 1-2 weeks)
-
-**Critical**:
-1. **Roll back single-exe integration**:
-   - Identify commits that introduced embedded server/PostgreSQL
-   - Create cleanup branch
-   - Remove conditional complexity for single-exe mode
-   - Restore clean client-server separation
-2. **Verify architecture works end-to-end**:
-   - Start PostgreSQL (Docker or native)
-   - Start Ollama (Docker or native)
-   - Start Axum server (cargo run)
-   - Start Tauri client (npm run tauri dev)
-   - Test: Create note → search → retrieve
-3. **Document deployment options**:
-   - Docker Compose (easiest for new users)
-   - Native (PostgreSQL + Ollama installed directly)
-   - Hybrid (mix of Docker and native)
+**Actions**:
+- **Unit Tests**:
+  - API client layer (mock API responses, test error handling)
+  - Utility functions (date formatting, data transformations)
+  - React hooks (custom hooks for auth, API data)
+- **Component Tests**:
+  - NoteEditor (form submission, validation)
+  - SearchBar (query input, result display)
+  - TagManager (create, assign, remove tags)
+- **Integration Tests**:
+  - Mock matric-memory API (test error cases: 401, 403, 404, 500)
+  - Auth flow (token expiration, refresh, logout)
+- **E2E Tests**:
+  - Login flow (Keycloak → token → redirect)
+  - Create note (form → API → UI update)
+  - Search notes (query → results → filtering)
+  - Logout (clear tokens, redirect)
 
 **Success Criteria**:
-- All CI tests pass (backend + frontend)
-- Can run full stack locally (PostgreSQL + Ollama + Axum + Tauri)
-- Documentation updated (README, deployment guide)
+- ✅ 60%+ test coverage (unit + component + integration)
+- ✅ E2E smoke tests passing (critical user journeys)
+- ✅ CI/CD passing (lint, tests, build)
+- ✅ No high/critical security vulnerabilities (`npm audit`)
 
-### Phase 2: MVP Definition (Short-term - 1 week)
+### Phase 4: Deployment & Staging (Week 11-12)
+**Goal**: Deploy to staging environment, validate with real matric-memory API
 
-**Important**:
-1. **Define MVP scope** (see option-matrix.md for details):
-   - **Must-Have**: Note CRUD, hybrid search, auto-linking, basic UX
-   - **Nice-to-Have**: MCP integration, advanced UX polish, MSI installer
-   - **Defer**: Multi-device sync, collaboration, single-exe packaging
-2. **Create iteration plan**:
-   - Bi-weekly or monthly milestones
-   - Feature prioritization based on personal workflow needs
-   - Testing strategy (60%+ coverage on core features)
-3. **Set up validation metrics**:
-   - Qualitative: Daily use friction points, UX notes
-   - Quantitative: Notes created, search success rate, link discovery accuracy
-
-**Success Criteria**:
-- MVP scope documented (checklist of features)
-- Iteration plan created (milestones, timelines)
-- Validation metrics defined (how to measure success)
-
-### Phase 3: MVP Stabilization (Medium-term - 2-4 weeks)
-
-**Feature Work**:
-1. **Core Features** (if not working):
-   - Note CRUD (create, read, update, delete with immutable originals)
-   - Hybrid search (PostgreSQL FTS + pgvector semantic search)
-   - Auto-linking (background job to discover related notes)
-   - Tagging (AI-generated tags from note content)
-2. **UX Polish**:
-   - Windows 11 native feel (Mica/Acrylic effects)
-   - System tray integration (minimize to tray, quick access)
-   - Global hotkey (Ctrl+Alt+H to show/hide)
-   - Markdown editor (with KaTeX math, Mermaid diagrams)
-3. **Quality**:
-   - Increase test coverage to 60%+
-   - Add E2E tests for critical user journeys
-   - Performance benchmarks (search latency, note count scaling)
+**Actions**:
+- Update CI/CD workflows:
+  - `frontend-tests.yml` (lint, unit tests, component tests, coverage)
+  - `e2e-tests.yml` (Playwright or Cypress E2E tests)
+  - `deploy.yml` (build static assets, deploy to Nginx)
+- Configure environments:
+  - `.env.development` (local matric-memory API, local Keycloak)
+  - `.env.staging` (staging matric-memory API, staging Keycloak)
+  - `.env.production` (production matric-memory API, production Keycloak)
+- Deploy to staging:
+  - Build static assets (`npm run build`)
+  - Copy to Nginx staging server
+  - Test with staging matric-memory API and Keycloak
+- Monitor for errors:
+  - Frontend error tracking (Sentry or similar)
+  - API call metrics (React Query dev tools)
 
 **Success Criteria**:
-- All MVP features working reliably
-- Using HotM daily without blockers
-- 60%+ test coverage on core paths
-- Performance acceptable for personal use (<1k notes)
+- ✅ Staging deployment successful (SPA accessible via browser)
+- ✅ Keycloak OIDC login working (staging realm)
+- ✅ matric-memory API integration working (staging API)
+- ✅ No critical errors in staging (error tracking confirms)
 
-### Phase 4: Personal Validation (Long-term - 3-6 months)
+### Phase 5: User Migration & Production Launch (Week 13+)
+**Goal**: Migrate existing users, launch production SPA
 
-**Validation Loop**:
-1. **Daily Use**:
-   - Capture quick notes throughout day
-   - Search for notes when needed
-   - Review auto-generated links and tags
-   - Track what works, what's frustrating
-2. **Iterate**:
-   - Fix bugs as encountered
-   - Improve search quality (precision/recall)
-   - Enhance linking accuracy (fewer false positives)
-   - Polish UX friction points
-3. **Measure Success**:
-   - Do I use it daily? (adoption)
-   - Does it save me time? (efficiency)
-   - Do I discover connections I'd otherwise miss? (insight)
-   - Would I recommend it to others? (value)
+**Actions**:
+- **User Migration**:
+  - Create export tool for existing HotM users (export notes, tags, collections to JSON)
+  - Coordinate with matric-memory team on bulk import API
+  - Test migration with sample user data (verify zero data loss)
+  - Write user migration guide (step-by-step instructions)
+- **Production Deployment**:
+  - Deploy SPA to production Nginx
+  - Configure production Keycloak (production realm, client)
+  - Point to production matric-memory API
+  - Enable monitoring (Sentry, analytics)
+- **User Onboarding**:
+  - Communicate migration to existing users
+  - Provide migration guide and support
+  - Monitor user feedback (track issues, feature requests)
 
-**Decision Point** (after 3-6 months):
-- **Keep Private**: Continue as personal tool, minimal maintenance
-- **Open Source**: Clean up code, write contributor guide, public release
-- **Pivot**: Concept didn't work, archive or pivot to different approach
+**Success Criteria**:
+- ✅ Production SPA deployed and accessible
+- ✅ Existing users migrated successfully (zero data loss)
+- ✅ No critical production errors (error tracking confirms)
+- ✅ User feedback positive (90%+ retention)
 
-## Profile Evolution Triggers
+## Tailoring Notes (Migration-Specific)
 
-**When to increase SDLC rigor** (transition from MVP to Production profile):
+**Strengths to Preserve from Current HotM**:
+- ✅ Existing React 19 UI components (Radix UI, TailwindCSS)
+- ✅ Markdown editor with KaTeX math and Mermaid diagrams
+- ✅ User-familiar UX patterns (minimize visual changes during migration)
+- ✅ Comprehensive documentation (README, API spec, architecture docs)
+- ✅ CI/CD automation (GitHub Actions - adapt for frontend-only)
 
-1. **Multi-User** (5+ active users):
-   - Add authentication/authorization
-   - Implement basic monitoring (uptime, error rates)
-   - Increase test coverage to 80%+
-   - Add deployment automation (CI/CD to staging/prod)
+**Architecture Changes (Migration Impact)**:
+- ❌ **Remove**: Tauri desktop wrapper (migrate to web-only SPA)
+- ❌ **Remove**: Rust API server (delegate to matric-memory API)
+- ❌ **Remove**: Direct PostgreSQL/pgvector access (API-only data access)
+- ❌ **Remove**: Embedded Ollama NLP processing (server-side processing)
+- ❌ **Remove**: Desktop-specific features (system tray, global hotkeys, Windows 11 native styling)
+- ✅ **Add**: Keycloak OIDC authentication (multi-user, secure access)
+- ✅ **Add**: matric-memory API client layer (centralized API communication)
+- ✅ **Add**: React Router for SPA navigation
+- ✅ **Add**: React Query for API data caching and state management
 
-2. **Open Source Release** (public GitHub repo):
-   - Add CONTRIBUTING.md (contributor guidelines)
-   - Set up issue templates (bug reports, feature requests)
-   - Implement PR review process (even if solo maintainer)
-   - Add security policy (SECURITY.md)
-   - Consider threat model (prevent malicious contributions)
+**What to Include** (Production profile with small team):
+- ✅ Migration scope document (intake forms - completed)
+- ✅ API integration guide (matric-memory endpoints, auth flow, error handling)
+- ✅ Deployment guide (Nginx configuration, environment setup, CI/CD)
+- ✅ User migration guide (export from old HotM, import to matric-memory)
+- ✅ ADRs for key decisions (SPA migration rationale, Keycloak OIDC choice)
+- ✅ 60%+ test coverage (unit, component, integration, E2E)
+- ✅ Code review (PR required, 1+ reviewer)
+- ✅ Monitoring (frontend error tracking, API call metrics)
 
-3. **Team Expansion** (2+ developers):
-   - Formalize requirements (ADRs, design docs)
-   - Implement code review (PR approvals required)
-   - Add architecture documentation (SAD, component diagrams)
-   - Use AIWG iteration workflow (Discovery + Delivery tracks)
+**What to Skip** (appropriate for small team, Production SPA):
+- ❌ Heavy governance (no change control board, no formal requirements templates)
+- ❌ Comprehensive traceability (lightweight ADRs sufficient)
+- ❌ Security compliance certifications (SOC2, ISO27001 - matric-memory team responsibility)
+- ❌ Formal SLAs (best-effort uptime, no contractual commitments)
+- ❌ Multi-agent artifact reviews (small team, peer review sufficient)
 
-4. **Commercial/Hosted Version** (if offering managed service):
-   - Add SLA/SLO monitoring
-   - Implement security compliance (SOC2, penetration testing)
-   - Add customer support infrastructure (ticketing, documentation)
-   - Implement billing/subscription (if monetizing)
+## Post-Migration Profile Evolution
 
-**When to keep lightweight** (stay at MVP profile):
-- Solo developer, personal use only
-- Pre-launch, validating concept
-- No external users or contributors
-- Privacy-first, local-only (no cloud dependencies)
+### When to Scale Up from Production Profile
 
-**Current Recommendation**: Stay at MVP profile for 3-6 month validation period. Reassess after personal validation confirms value.
+**Trigger 1: Significant User Growth (1,000+ active users)**
+- Upgrade monitoring (APM, distributed tracing)
+- Add performance testing (load testing)
+- Consider CDN for global distribution
+- Increase test coverage to 80%+
 
-## Metrics and Tracking
+**Trigger 2: Team Expansion (5+ developers)**
+- Formal code review process (2+ reviewers)
+- Comprehensive traceability (requirements → code → tests)
+- Architecture review cycle (ADRs for significant decisions)
 
-**Current Metrics** (GitHub repository):
-- Commits: 190 in last 6 months (~1.3/day)
-- Contributors: 1 (solo developer)
-- Test files: 4 Rust + 11 React
-- Documentation: Comprehensive (README, API spec, architecture)
-- CI/CD: 5 workflows (tests, release, gates, docs)
+**Trigger 3: Authentication Required**
+- Add OAuth/OIDC integration (Keycloak, Auth0, or similar)
+- Implement secure token management
+- Add user session handling
 
-**Proposed MVP Metrics** (personal validation):
+**Current Recommendation**: Production profile is appropriate for HotM frontend post-migration. Authentication deferred to later phase.
 
-### Development Metrics
-- Test coverage: Target 60%+ (currently unknown)
-- CI pass rate: Target 95%+ (all tests green before merge)
-- Documentation: Keep up-to-date with architecture changes
+## Metrics and Tracking (Post-Migration)
 
-### Usage Metrics (Qualitative)
-- Daily use: Yes/No (goal: Yes for 3-6 months)
-- Friction points: List (UX issues blocking workflow)
-- Search success: High/Medium/Low (subjective, can I find what I need?)
-- Link quality: High/Medium/Low (subjective, are auto-links useful?)
+### Migration Success Metrics
 
-### Performance Metrics (Quantitative)
-- Note count: Track as corpus grows
-- Search latency: <1s (P95) for hybrid search
-- Embedding generation: <10s per note (background job)
-- UI responsiveness: <100ms for note retrieval
+**Migration Progress**:
+- [ ] API discovery complete (all matric-memory endpoints tested)
+- [ ] Rust backend removed (zero `*.rs` files in `server/`)
+- [ ] Tauri desktop removed (zero `*.rs` files in `ui/src-tauri/`)
+- [ ] API client layer complete (`ui/src/api/`)
+- [ ] UI components updated (use API client, preserve UX)
+- [ ] 60%+ test coverage achieved
+- [ ] Staging deployment successful
+- [ ] Production deployment successful
 
-### Validation Metrics (3-6 months)
-- Sustained use: Did I use it daily?
-- Workflow integration: Did it become habit?
-- Value delivered: Did it solve the problem?
-- Share-worthy: Would I recommend it to others?
+**Development Velocity**:
+- Test coverage: Target 60%+
+- CI pass rate: Target 95%+
+- Deployment frequency: Weekly to staging
+
+### Production Metrics (Post-Launch)
+
+**Performance**:
+- Page load time: <2s p95
+- API call latency: <500ms p95
+- Search latency: <1s total
+- Error rate: <1% failed API calls
 
 ## Recommendations Summary
 
-**Immediate (This Week)**:
-1. ✅ Complete intake documents (done)
-2. 🔧 Roll back single-exe integration work
-3. ✅ Restore client-server architecture
-4. ✅ Verify end-to-end functionality
+**Immediate (Week 1-2)**:
+1. ✅ Complete intake documents
+2. 🔍 API discovery (test all matric-memory endpoints)
+3. 📋 Verify CORS configuration
 
-**Short-term (2-4 Weeks)**:
-5. 📋 Define MVP scope (must-have features)
-6. 🧪 Stabilize core features (note CRUD, search, linking)
-7. 📈 Increase test coverage (60%+ target)
-8. 🚀 Deploy for personal use (daily validation)
+**Short-term (Week 3-6)**:
+4. 🗑️ Remove Rust backend and Tauri desktop code
+5. ➕ Add React Router, React Query
+6. 🔌 Build API client layer (`ui/src/api/`)
+7. 🎨 Update UI components (preserve UX, use API client)
 
-**Medium-term (3-6 Months)**:
-9. 🔁 Iterate based on personal use (fix friction, improve quality)
-10. 📊 Track validation metrics (usage, search quality, link accuracy)
-11. 🤔 Decision point: Keep private, open source, or pivot?
+**Medium-term (Week 7-10)**:
+8. 🧪 Testing (60%+ coverage, E2E tests)
+9. 🚀 Deployment to staging
+10. 📊 Monitoring setup
 
-**Profile Recommendation**:
-- **Current**: Prototype (cleanup phase)
-- **Near-term**: MVP (after stabilization)
-- **Future**: Production (if multi-user) or stay at MVP (if personal tool)
+**Deferred (Post-MVP)**:
+- OAuth/OIDC authentication (Keycloak integration)
+- User session management
+- Multi-user access control
 
-**SDLC Framework Sizing**:
-- **Use**: Lightweight iteration workflow (`/flow-iteration-dual-track`)
-- **Use**: ADRs for key architecture decisions
-- **Use**: MVP scope document (feature checklist)
-- **Skip**: Formal requirements, multi-agent reviews, comprehensive traceability
-- **Defer**: Security compliance, SLAs, governance (not needed until multi-user)
+**Success Criteria for Production Launch**:
+- ✅ Zero Rust backend code remaining
+- ✅ All UI features use matric-memory API
+- ✅ 60%+ test coverage
+- ✅ Production deployed via Nginx
 
-**Success Criteria for MVP Transition**:
-- ✅ Architecture stable (client-server working end-to-end)
-- ✅ Core features working (note CRUD, search, linking)
-- ✅ Using daily without blockers (personal validation started)
-- ✅ 60%+ test coverage (quality baseline)
-- ✅ CI passing consistently (green builds)
-
-**Next Command**: After cleanup, use `/project-status` to track progress against MVP scope, or `/flow-iteration-dual-track 1` to start first iteration cycle.
+**Next Steps**: Review option-matrix.md, then start Inception with `/flow-concept-to-inception .`
