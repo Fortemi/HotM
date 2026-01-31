@@ -1,5 +1,15 @@
 # Docker Deployment Guide
 
+> **ARCHIVED**: This documentation is for the HotM Desktop Application (v0.1.x) which has been superseded by the React SPA architecture (v0.2.0+).
+>
+> **Status**: Historical reference only
+> **Archived**: 2026-01-31
+> **See**: `.aiwg/archive/desktop-era/` for complete desktop documentation
+> **Current Architecture**: React SPA consuming matric-memory API (see `.aiwg/architecture/adr/ADR-004-spa-migration.md`)
+> **Current Deployment**: Static SPA assets served via Nginx, backend managed by matric-memory repository
+
+---
+
 ## Overview
 Containerized deployment strategy for the HotM API server, enabling both local development and cloud deployment scenarios.
 
@@ -16,12 +26,12 @@ services:
     depends_on:
       - postgres
       - ollama
-  
+
   postgres:
     image: pgvector/pgvector:pg14
     volumes:
       - postgres_data:/var/lib/postgresql/data
-  
+
   ollama:
     image: ollama/ollama
     volumes:
@@ -287,7 +297,7 @@ http {
             proxy_set_header X-Real-IP $remote_addr;
             proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
             proxy_set_header X-Forwarded-Proto $scheme;
-            
+
             # WebSocket support
             proxy_http_version 1.1;
             proxy_set_header Upgrade $http_upgrade;

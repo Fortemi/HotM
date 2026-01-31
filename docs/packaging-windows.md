@@ -1,5 +1,14 @@
 # Packaging (Windows 11)
 
+> **ARCHIVED**: This documentation is for the HotM Desktop Application (v0.1.x) which has been superseded by the React SPA architecture (v0.2.0+).
+>
+> **Status**: Historical reference only
+> **Archived**: 2026-01-31
+> **See**: `.aiwg/archive/desktop-era/` for complete desktop documentation
+> **Current Architecture**: React SPA consuming matric-memory API (see `.aiwg/architecture/adr/ADR-004-spa-migration.md`)
+
+---
+
 MSI build
 - Prereqs: Rust (stable), Node.js LTS, Visual Studio C++ Build Tools, Wix Toolset (handled by Tauri)
 - From `ui/`:

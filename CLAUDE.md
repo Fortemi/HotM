@@ -4,17 +4,17 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Repository Purpose
 
-HotM is a local-first notes and analysis tool with immutable originals, NLP-powered revisions, and hybrid search. Built with Rust (Axum API) and Tauri (React/TypeScript UI) for Windows 11.
+HotM is a React-based single-page application (SPA) providing a rich web interface for note-taking and analysis. The application consumes the matric-memory API for immutable note storage, NLP-powered revisions, and hybrid search capabilities.
 
 ## Tech Stack
 
-- **Languages**: Rust (backend), TypeScript/React (frontend)
-- **Runtime**: Rust 1.70+, Node.js 18+
-- **Package Manager**: Cargo (Rust), npm (Node.js)
-- **Framework**: Axum (API server), Tauri + React 19 (desktop UI)
-- **Database**: PostgreSQL 14+ with pgvector extension
-- **NLP**: Ollama (local LLM inference)
-- **UI Libraries**: Radix UI, TailwindCSS, Vite
+- **Languages**: TypeScript/React
+- **Runtime**: Node.js 18+
+- **Package Manager**: npm
+- **Framework**: React 19 + Vite
+- **UI Libraries**: Radix UI, TailwindCSS, React Router
+- **API Client**: Fetch-based client for matric-memory API
+- **External API**: matric-memory (Rust API providing storage, search, and NLP features)
 
 ## Documentation Structure
 
@@ -24,7 +24,7 @@ Comprehensive documentation is available in the `docs/` directory:
 - [Specifications](docs/specifications/) - API, MCP, and data model specs
 - [Architecture](docs/architecture/) - System design and NLP pipeline
 - [Implementation](docs/implementation/) - Development and testing guides
-- [Deployment](docs/deployment/) - Installation and Docker deployment
+- [Deployment](docs/deployment/) - Installation and deployment
 
 ---
 
@@ -37,39 +37,36 @@ Comprehensive documentation is available in the `docs/` directory:
 **Act (GitHub Actions locally) is the AUTHORITATIVE standard for all testing**
 
 Before pushing ANY changes to GitHub:
-1. Run `gh act -j backend-tests` from repo root and wait for completion
-2. Run `gh act -j frontend-tests` from repo root and wait for completion
-3. Verify both exit code 0 and all tests passing
-4. Only push after confirming green local test runs for both backend and frontend
-5. If any tests fail, fix issues and repeat from step 1
+1. Run `gh act -j frontend-tests` from repo root and wait for completion
+2. Verify exit code 0 and all tests passing
+3. Only push after confirming green local test runs
+4. If any tests fail, fix issues and repeat from step 1
 
 **No exceptions - even for "simple" fixes. Act tests are the single source of truth.**
 
 #### Standard Test Commands (Use These)
-- **Full backend validation**: `gh act -j backend-tests` (Rust tests, clippy, formatting, security audit)
 - **Full frontend validation**: `gh act -j frontend-tests` (React tests, TypeScript build, coverage, security audit)
-- **Quick local iteration**: `cd server && cargo test` or `cd ui && npm test -- --run`
+- **Quick local iteration**: `cd ui && npm test -- --run`
 
 All shell-based test scripts have been removed - use `gh act` for consistent CI/CD parity.
 
 ### Key Technical Decisions
 
-1. **Immutable Originals**: Never modify original note content; all edits create new revisions
-2. **Local-First**: All processing happens locally; network mode requires explicit configuration
-3. **Hybrid Search**: Combines PostgreSQL full-text search with pgvector semantic search
-4. **Windows Focus**: Primary target is Windows 11 with native styling
-5. **MCP Integration**: Embedded MCP server in API for AI assistant integration
-6. **SOLID Principles**: Modular, testable architecture with dependency injection
-7. **Authentication**: Simple admin auth with API key generation for clients
-8. **Greenfield Schema**: Fast iteration via clean schema rebuild (see ADR-002)
+1. **Immutable Originals**: Never modify original note content; all edits create new revisions (handled by matric-memory API)
+2. **SPA Architecture**: React application consuming external matric-memory API
+3. **Hybrid Search**: Combines PostgreSQL full-text search with pgvector semantic search (via API)
+4. **API-Driven**: All data operations delegated to matric-memory API
+5. **Modular Components**: Reusable UI components with Radix UI primitives
+6. **Type Safety**: Full TypeScript coverage with strict mode
+7. **Responsive Design**: Mobile-first approach with TailwindCSS
 
 ### Testing Approach
 
 - **Target Coverage**: 60-80% overall
-- **Unit Tests**: Business logic and components
-- **Integration Tests**: API endpoints and services
+- **Unit Tests**: Component logic and utilities
+- **Integration Tests**: API client and data flows
 - **E2E Tests**: Critical user journeys
-- **Test Organization**: Tests colocated with source, integration tests in `/tests`
+- **Test Organization**: Tests colocated with source in `__tests__` directories
 
 See [Testing Strategy](docs/implementation/testing-strategy.md) for comprehensive testing guide.
 
@@ -79,34 +76,21 @@ See [Testing Strategy](docs/implementation/testing-strategy.md) for comprehensiv
 
 ## Development Commands
 
-### Rust Server (Axum API)
-```bash
-# Set database URL (required)
-export DATABASE_URL=postgres://user:pass@localhost:5432/hotm_dev
-
-# Run development server (port 53211)
-cd server
-RUST_LOG=hotm_server=info,axum=info cargo run
-
-# Run tests (use act for full validation)
-gh act -j backend-tests
-
-# One-command setup and run (checks Ollama, pulls models, ensures pgvector)
-./scripts/dev_server.sh
-```
-
-### Tauri UI (React + TypeScript)
+### React Application (SPA)
 ```bash
 cd ui
 
 # Install dependencies
 npm install
 
-# Development mode
+# Development mode (with hot reload)
 npm run dev
 
-# Build production app (creates MSI)
+# Build production bundle
 npm run build
+
+# Preview production build
+npm run preview
 
 # Type checking
 npm run typecheck
@@ -120,179 +104,82 @@ gh act -j frontend-tests
 
 ### Testing (Use Act - Authoritative Standard)
 ```bash
-# STANDARD: Run full backend test suite (includes tests, clippy, formatting, security)
-gh act -j backend-tests
-
 # STANDARD: Run full frontend test suite (includes tests, build, coverage, security)
 gh act -j frontend-tests
 
 # Quick local iteration only (not comprehensive)
-cd server && cargo test        # Basic Rust unit tests only
 cd ui && npm test -- --run     # Basic React unit tests only
-```
-
-### Database Setup
-
-**IMPORTANT**: HotM uses a **greenfield schema rebuild approach** for fast development iteration. See [ADR-002](.aiwg/architecture/ADR-002-database-schema-rebuild.md) for rationale.
-
-#### Quick Database Reset (Recommended for Development)
-
-**Linux/WSL:**
-```bash
-export DATABASE_URL=postgres://hotm:pass@localhost:5432/hotm_dev
-./scripts/schema/rebuild-schema.sh
-```
-
-**Windows PowerShell:**
-```powershell
-$env:DATABASE_URL='postgres://hotm:pass@localhost:5432/hotm_dev'
-.\scripts\schema\rebuild-schema.ps1
-```
-
-This drops all tables and recreates from a consolidated schema file (`scripts/schema/clean-schema.sql`) that includes all migrations (0001-0006). Typical rebuild time: <2 seconds.
-
-#### Traditional Migration Approach (CI/CD Validation)
-
-```bash
-# Ensure pgvector extension (required for embeddings)
-psql "$DATABASE_URL" -c "CREATE EXTENSION IF NOT EXISTS vector;"
-
-# Run migrations (from server directory)
-cd server
-sqlx migrate run
-```
-
-**Note**: Migrations are kept for historical reference and CI validation, but the clean schema rebuild is preferred for local development.
-
-#### SQLx Offline Mode
-
-After schema changes, update SQLx prepared queries:
-
-```bash
-cd server
-cargo sqlx prepare
-```
-
-#### Schema Files
-
-- **Consolidated Schema**: `scripts/schema/clean-schema.sql` (all migrations in one file)
-- **Migration History**: `server/migrations/0001-0006*.sql` (historical reference)
-- **Rebuild Scripts**: `scripts/schema/rebuild-schema.{sh,ps1}`
-- **Documentation**: `scripts/schema/README.md`
-
-See [Database Schema Management](scripts/schema/README.md) for detailed usage patterns.
-
-### Ollama Models (for NLP features)
-```bash
-# Pull required models
-ollama pull gpt-oss:20b        # Generation model
-ollama pull nomic-embed-text    # Embedding model
 ```
 
 ## Architecture
 
 ### Core Components
 
-**Storage Layer**: Microsoft DocumentDB (PostgreSQL-compatible)
-- JSONB documents for flexible schema evolution
-- Full-text search via tsvector/GIN indexes
-- Vector embeddings via pgvector (HNSW indexing)
-- Immutable original notes with versioned revisions
+**Web Application**: React SPA
+- Location: `ui/src/`
+- API client in `ui/src/api/`
+- Component library in `ui/src/components/`
+- React Router for navigation
+- State management with React hooks and context
 
-**API Server**: Rust Axum (port 53211)
-- Location: `server/src/`
-- Routes defined in `server/src/routes/`
-- Database models in `server/src/models.rs`
-- Ollama client in `server/src/ollama.rs`
-- Uses SQLx for async PostgreSQL with compile-time query verification
-
-**Desktop UI**: Tauri + React
-- Location: `ui/src/` (React) and `ui/src-tauri/` (Rust backend)
-- Windows 11 visual style (Mica/Acrylic effects)
-- Global hotkey: Ctrl+Alt+H
-- Tray application with MSI installer
-
-**NLP Pipeline**: Local Ollama
-- Revision/summarization via `gpt-oss:20b`
-- Semantic embeddings via `nomic-embed-text`
-- Hybrid search combining FTS and vector similarity
+**External API**: matric-memory
+- Rust-based HTTP API (separate repository)
+- Provides storage, search, and NLP pipeline
+- PostgreSQL backend with pgvector extension
+- Ollama integration for embeddings and generation
+- MCP server embedded for AI assistant integration
 
 ### Key Data Flow
 
-1. **Note Creation**: User input -> Normalize -> Store original -> Background NLP pipeline
-2. **NLP Pipeline**: Chunk -> Summarize/Revise -> Extract tags/entities -> Detect links -> Compute embeddings -> Update indexes
-3. **Search**: Query -> Hybrid retrieval (FTS + vector) -> Reciprocal Rank Fusion -> Optional re-ranking
-4. **Revision Display**: Fetch note -> Show revised by default -> Preserve link to immutable original
-5. **MCP Integration**: AI Assistant -> MCP Tools -> API Server -> Database
+1. **Note Creation**: User input -> API Client -> matric-memory API -> Background NLP pipeline
+2. **NLP Pipeline**: (Handled by matric-memory) Chunk -> Summarize/Revise -> Extract tags/entities -> Detect links -> Compute embeddings -> Update indexes
+3. **Search**: Query -> API Client -> matric-memory hybrid search (FTS + vector) -> Reciprocal Rank Fusion -> UI display
+4. **Revision Display**: Fetch note from API -> Show revised by default -> Preserve link to immutable original
+5. **MCP Integration**: AI Assistant -> MCP Tools -> matric-memory API -> Database
 
-### API Endpoints (v1)
+### API Client Integration
 
-Base URL: `http://127.0.0.1:53211/api/v1`
+The application uses a TypeScript API client (`ui/src/api/`) to communicate with matric-memory:
 
-- `POST /notes` - Create note
-- `GET /notes/{id}` - Get note with revisions
-- `PUT /notes/{id}/revised` - Update revision
-- `GET /search` - Hybrid search with filters
-- `POST /semantic` - Pure semantic search
-- `GET /notes/{id}/provenance` - Get revision history
-- `POST /notes/{id}/links` - Create dynamic links
-- `POST /tags`, `PUT /notes/{id}/tags` - Tag management
-- `POST /collections`, `PUT /notes/{id}/collection` - Collection management
+- **Notes API**: Create, read, update note metadata and revisions
+- **Search API**: Hybrid search, semantic search, filters
+- **Tags API**: Tag management and filtering
+- **Collections API**: Collection organization
+- **Links API**: Dynamic linking between notes
+- **Analytics API**: Usage metrics and provenance tracking
 
-### MCP Server Tools
-
-The MCP server is embedded in the Rust API server and provides:
-- **Note Management**: `create_note`, `get_note`, `update_note`, `delete_note`
-- **Search**: `search_notes`, `find_similar`
-- **Organization**: `set_tags`, `set_collection`
-- **Linking**: `link_notes`, `link_external`
-- **Analysis**: `get_provenance`, `analytics_query`
-- **Export**: `export_notes`
-- **System**: `health_check`
-
-See [MCP Tools Specification](docs/specifications/mcp-tools-spec.md) for details.
+See [API Specification](docs/specifications/api-specification.md) for endpoint details.
 
 ## Project Structure
 
 ```
 hotm/
-├── server/             # Rust Axum API server
+├── ui/                 # React SPA
 │   ├── src/
-│   │   ├── main.rs     # Server entry point
-│   │   ├── routes/     # API route handlers
-│   │   ├── models.rs   # Database models
-│   │   ├── db.rs       # Database connection pool
-│   │   └── ollama.rs   # Ollama client
-│   └── migrations/     # PostgreSQL schema migrations (historical reference)
-├── ui/                 # Tauri desktop application
-│   ├── src/            # React frontend
-│   ├── src-tauri/      # Rust backend for Tauri
-│   └── tests/          # Playwright E2E tests
+│   │   ├── api/        # matric-memory API client
+│   │   ├── components/ # React components
+│   │   ├── pages/      # Route pages
+│   │   ├── hooks/      # Custom React hooks
+│   │   ├── lib/        # Utilities and helpers
+│   │   └── styles/     # Global styles and theme
+│   ├── public/         # Static assets
+│   └── tests/          # E2E tests
 ├── docs/               # Architecture and design docs
 ├── .aiwg/              # SDLC artifacts (requirements, architecture, testing)
-└── scripts/            # Dev and deployment utilities
-    └── schema/         # Database schema management (clean-schema.sql, rebuild scripts)
+└── .github/            # CI/CD workflows
 ```
 
 ## Version Management
 
 ### Version Consistency
-All version numbers are automatically synchronized across:
-- `ui/package.json` - Frontend package version
-- `ui/src-tauri/Cargo.toml` - Tauri application version
-- `ui/src-tauri/tauri.conf.json` - Tauri configuration version
-- `server/Cargo.toml` - Backend server version
-- `ui/build-windows.ps1` - Dynamically reads from package.json
+Version is managed in:
+- `ui/package.json` - Application version
 
 ### Version Commands
 ```bash
-# Check current version status across all files
-./scripts/check_versions.sh
-
-# Bump version across all project files
-./scripts/bump_version.sh 0.1.3           # Linux/WSL
-# OR (Windows PowerShell)
-./scripts/bump_version.ps1 0.1.3          # Windows PowerShell
+# Update version in package.json
+npm version <major|minor|patch>
+# Example: npm version patch (0.1.2 -> 0.1.3)
 ```
 
 ### Release Channels
@@ -306,39 +193,27 @@ Release channels allow community testing while maintaining clean package version
 
 Channel configuration is stored in `release.json`.
 
-### MSI Installer Components
-
-The Windows MSI installer offers flexible deployment options:
-
-**Desktop Client**:
-- Tauri-based rich desktop interface
-- Global hotkey support (Ctrl+Alt+H)
-- System tray integration with auto-startup
-- Connects to local or remote HotM server
-
-**API Server (Centralized Deployment)**:
-- Rust HTTP API server (port 53211)
-- Windows Service installation
-- PostgreSQL database with pgvector
-- Ollama integration for NLP processing
-
 ## Environment Variables
 
-- `DATABASE_URL`: PostgreSQL/DocumentDB connection string (required)
-- `TEST_DATABASE_URL`: Test database for integration tests
-- `RUST_LOG`: Logging level (default: `hotm_server=info,axum=info`)
-- `OLLAMA_URL`: Ollama service URL (default: `http://localhost:11434`)
-- `OLLAMA_GENERATION_MODEL`: LLM for text generation (default: `gpt-oss:20b`)
-- `OLLAMA_EMBEDDING_MODEL`: Model for embeddings (default: `nomic-embed-text`)
-- `JWT_SECRET`: Secret for JWT tokens (v0.2.0+)
-- `API_KEY_SALT`: Salt for API key generation (v0.2.0+)
+Create a `.env` file in the `ui/` directory:
+
+- `VITE_API_BASE_URL`: matric-memory API base URL (default: `http://localhost:53211/api/v1`)
+- `VITE_API_TIMEOUT`: API request timeout in milliseconds (default: `30000`)
+- `VITE_APP_TITLE`: Application title (default: `HotM`)
+
+Example `.env`:
+```
+VITE_API_BASE_URL=http://localhost:53211/api/v1
+VITE_API_TIMEOUT=30000
+VITE_APP_TITLE=HotM
+```
 
 ## Important Files
 
-- `server/Cargo.toml` - Rust server dependencies
 - `ui/package.json` - Frontend dependencies and scripts
-- `ui/src-tauri/tauri.conf.json` - Tauri configuration
-- `scripts/schema/clean-schema.sql` - Database schema
+- `ui/vite.config.ts` - Vite build configuration
+- `ui/tailwind.config.js` - TailwindCSS styling
+- `ui/tsconfig.json` - TypeScript configuration
 - `.github/workflows/` - CI/CD pipelines
 - `release.json` - Release channel configuration
 
@@ -346,11 +221,10 @@ The Windows MSI installer offers flexible deployment options:
 
 | File | Purpose |
 |------|---------|
-| `server/Cargo.toml` | Rust backend dependencies |
 | `ui/package.json` | Frontend dependencies and npm scripts |
 | `ui/vite.config.ts` | Vite build configuration |
 | `ui/tailwind.config.js` | TailwindCSS styling |
-| `ui/src-tauri/tauri.conf.json` | Tauri app configuration |
+| `ui/tsconfig.json` | TypeScript configuration |
 | `.github/workflows/*.yml` | GitHub Actions CI/CD |
 | `.claude/settings.local.json` | Claude Code permissions |
 
@@ -386,9 +260,8 @@ This project uses the **AI Writing Guide SDLC framework** for software developme
 ### Claude Code Configuration
 
 Local permissions configured in `.claude/settings.local.json`:
-- PostgreSQL CLI commands allowed
-- Process management commands allowed
 - Read/write access to project files
+- Process management commands allowed
 
 ### Core Platform Orchestrator Role
 
@@ -513,12 +386,18 @@ Update user throughout with clear indicators:
 **Command Not Found**:
 - Run `/aiwg-refresh` to redeploy commands
 
+**API Connection Issues**:
+- Verify matric-memory API is running at configured `VITE_API_BASE_URL`
+- Check CORS configuration on matric-memory API
+- Verify network connectivity
+
 ## Resources
 
 - **AIWG Repository**: https://github.com/jmagly/ai-writing-guide
 - **Project Documentation**: [docs/index.md](docs/index.md)
 - **API Specification**: [docs/specifications/api-specification.md](docs/specifications/api-specification.md)
 - **Architecture**: [docs/architecture/system-architecture.md](docs/architecture/system-architecture.md)
+- **matric-memory API**: (Separate repository - consult API documentation)
 
 ---
 
