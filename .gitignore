@@ -21,13 +21,6 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# Rust
-**/*.rs.bk
-*.pdb
-Cargo.lock
-# Keep Cargo.lock for binary crates
-!/server/Cargo.lock
-
 # IDE
 .vscode/
 .idea/
@@ -63,7 +56,6 @@ tmp/
 *.sqlite3
 *.sqlite-journal
 *.sqlite-wal
-
 
 # Testing
 coverage/
@@ -122,7 +114,7 @@ $RECYCLE.BIN/
 *.msp
 *.lnk
 
-# Tauri
+# Tauri (legacy - keeping for historical builds)
 ui/src-tauri/target/
 ui/src-tauri/WixTools/
 
@@ -132,4 +124,3 @@ bin/act
 # Keep important files
 !.gitkeep
 !.github/
-!.sqlx/

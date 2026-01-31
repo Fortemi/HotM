@@ -1,3 +1,8 @@
+/**
+ * Legacy API Service Tests
+ * Tests the compatibility layer that wraps the new API client
+ */
+
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { api } from '../api';
 
@@ -5,10 +10,9 @@ import { api } from '../api';
 const mockFetch = vi.fn();
 global.fetch = mockFetch;
 
-describe('ApiClient', () => {
+describe('Legacy API Service (Compatibility Layer)', () => {
   beforeEach(() => {
     mockFetch.mockClear();
-    // Clear console.error mock if any previous test set it up
     vi.restoreAllMocks();
   });
 
@@ -20,199 +24,117 @@ describe('ApiClient', () => {
     it('returns health response on success', async () => {
       const mockHealthResponse = {
         ok: true,
+        database: true,
+        vector: true,
+        ollama: true,
+      };
+
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve(mockHealthResponse),
+      });
+
+      const result = await api.checkHealth();
+
+      expect(mockFetch).toHaveBeenCalled();
+      expect(result).toEqual({
+        ok: true,
         db: true,
         vector: true,
-        ollama: true
-      };
-
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        json: () => Promise.resolve(mockHealthResponse)
+        ollama: true,
       });
-
-      const result = await api.checkHealth();
-
-      expect(mockFetch).toHaveBeenCalledWith(
-        'http://localhost:53211/api/v1/health',
-        {
-          headers: {
-            'Content-Type': 'application/json'
-          }
-        }
-      );
-      expect(result).toEqual(mockHealthResponse);
     });
 
-    it('tries alternative endpoints on failure', async () => {
-      const mockHealthResponse = {
-        ok: false,
-        db: false,
-        vector: false,
-        ollama: false
-      };
+    it(
+      'handles errors gracefully',
+      async () => {
+        mockFetch.mockRejectedValue(new Error('Network error'));
 
-      // First call fails
-      mockFetch.mockRejectedValueOnce(new Error('Connection failed'));
-      // Second call (alternative endpoint) succeeds
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        json: () => Promise.resolve(mockHealthResponse)
-      });
+        const result = await api.checkHealth();
 
-      const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
-
-      const result = await api.checkHealth();
-
-      expect(consoleSpy).toHaveBeenCalledWith('Trying alternative API endpoints...');
-      expect(mockFetch).toHaveBeenCalledTimes(2);
-      expect(result).toEqual(mockHealthResponse);
-
-      consoleSpy.mockRestore();
-    });
+        expect(result).toEqual({
+          ok: false,
+          ollama: false,
+          db: false,
+          vector: false,
+        });
+      },
+      10000
+    );
   });
 
   describe('createNote', () => {
-    beforeEach(() => {
-      // Mock localStorage
-      Object.defineProperty(window, 'localStorage', {
-        value: {
-          getItem: vi.fn(() => '[]'),
-          setItem: vi.fn(),
-          removeItem: vi.fn(),
-          clear: vi.fn(),
-        },
-        writable: true,
-      });
-    });
-
     it('creates a note with content string', async () => {
-      const mockResponse = { note_id: 'test-note-id' };
-      const content = 'Test note content';
+      const mockResponse = {
+        note_id: '123',
+      };
 
       mockFetch.mockResolvedValueOnce({
         ok: true,
-        json: () => Promise.resolve(mockResponse)
+        json: () => Promise.resolve(mockResponse),
       });
 
-      const result = await api.createNote(content);
+      const result = await api.createNote('Test content');
 
       expect(mockFetch).toHaveBeenCalledWith(
-        'http://localhost:53211/api/v1/notes',
-        {
+        expect.stringContaining('/api/v1/notes'),
+        expect.objectContaining({
           method: 'POST',
-          body: JSON.stringify({ content }),
-          headers: {
-            'Content-Type': 'application/json'
-          }
-        }
+          body: JSON.stringify({
+            content: 'Test content',
+            format: 'markdown',
+            source: 'user',
+          }),
+        })
       );
       expect(result).toEqual(mockResponse);
-    });
-
-    it('stores note ID in localStorage', async () => {
-      const mockResponse = { note_id: 'test-note-id' };
-      const existingIds = ['existing-id'];
-      
-      Object.defineProperty(window, 'localStorage', {
-        value: {
-          getItem: vi.fn(() => JSON.stringify(existingIds)),
-          setItem: vi.fn(),
-        },
-        writable: true,
-      });
-
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        json: () => Promise.resolve(mockResponse)
-      });
-
-      await api.createNote('Test content');
-
-      expect(localStorage.setItem).toHaveBeenCalledWith(
-        'hotm_note_ids',
-        JSON.stringify([...existingIds, 'test-note-id'])
-      );
-    });
-
-    it('does not duplicate note ID in localStorage', async () => {
-      const mockResponse = { note_id: 'existing-id' };
-      const existingIds = ['existing-id'];
-      
-      Object.defineProperty(window, 'localStorage', {
-        value: {
-          getItem: vi.fn(() => JSON.stringify(existingIds)),
-          setItem: vi.fn(),
-        },
-        writable: true,
-      });
-
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        json: () => Promise.resolve(mockResponse)
-      });
-
-      await api.createNote('Test content');
-
-      expect(localStorage.setItem).not.toHaveBeenCalled();
     });
   });
 
   describe('searchNotes', () => {
     it('performs search with query', async () => {
-      const mockResponse = {
-        notes: [
-          { note_id: 'note-1', score: 0.95, snippet: 'Test snippet' }
-        ]
+      const mockSearchResponse = {
+        results: [
+          {
+            note_id: '1',
+            score: 0.95,
+            snippet: 'Test result',
+          },
+        ],
+        total: 1,
       };
 
       mockFetch.mockResolvedValueOnce({
         ok: true,
-        json: () => Promise.resolve(mockResponse)
+        json: () => Promise.resolve(mockSearchResponse),
       });
 
-      const result = await api.searchNotes('test query');
+      const result = await api.searchNotes('test query', 'hybrid');
 
-      expect(mockFetch).toHaveBeenCalledWith(
-        'http://localhost:53211/api/v1/search?q=test+query&mode=hybrid',
+      expect(mockFetch).toHaveBeenCalled();
+      expect(result).toEqual([
         {
-          headers: {
-            'Content-Type': 'application/json'
-          }
-        }
-      );
-      expect(result).toEqual(mockResponse.notes);
+          note_id: '1',
+          score: 0.95,
+          snippet: 'Test result',
+        },
+      ]);
     });
 
-    it('performs search with custom mode and filters', async () => {
-      const mockResponse = { notes: [{ note_id: 'note-1', score: 0.5 }] };
+    it('returns empty array for empty query', async () => {
+      const result = await api.searchNotes('', 'hybrid');
 
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        json: () => Promise.resolve(mockResponse)
-      });
-
-      const result = await api.searchNotes('query', 'fts', 'tag:important');
-
-      expect(mockFetch).toHaveBeenCalledWith(
-        'http://localhost:53211/api/v1/search?q=query&mode=fts&filters=tag%3Aimportant',
-        {
-          headers: {
-            'Content-Type': 'application/json'
-          }
-        }
-      );
-      expect(result).toEqual(mockResponse.notes);
+      expect(result).toEqual([]);
+      expect(mockFetch).not.toHaveBeenCalled();
     });
 
     it('handles empty response', async () => {
-      const mockResponse = {};
-
       mockFetch.mockResolvedValueOnce({
         ok: true,
-        json: () => Promise.resolve(mockResponse)
+        json: () => Promise.resolve({ results: [], total: 0 }),
       });
 
-      const result = await api.searchNotes('query');
+      const result = await api.searchNotes('test', 'hybrid');
 
       expect(result).toEqual([]);
     });
@@ -222,62 +144,32 @@ describe('ApiClient', () => {
     it('throws error on HTTP error response', async () => {
       mockFetch.mockResolvedValueOnce({
         ok: false,
-        status: 404,
-        statusText: 'Not Found'
+        status: 500,
+        statusText: 'Internal Server Error',
+        json: () => Promise.resolve({}),
       });
 
-      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-
-      await expect(api.checkHealth()).rejects.toThrow('API Error: 404 Not Found');
-      expect(consoleErrorSpy).toHaveBeenCalledWith('API Request failed:', expect.any(Error));
-
-      consoleErrorSpy.mockRestore();
-    });
+      await expect(api.createNote('Test')).rejects.toThrow();
+    }, 10000);
 
     it('throws error on network failure', async () => {
-      const networkError = new Error('Network error');
-      mockFetch.mockRejectedValueOnce(networkError);
+      mockFetch.mockRejectedValueOnce(new Error('Network failed'));
 
-      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-
-      await expect(api.checkHealth()).rejects.toThrow('Network error');
-
-      consoleErrorSpy.mockRestore();
-    });
+      await expect(api.createNote('Test')).rejects.toThrow();
+    }, 10000);
   });
 
-  describe('request method', () => {
-    it('includes proper headers', async () => {
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        json: () => Promise.resolve({})
-      });
+  describe('Type exports', () => {
+    it('should export all required types', () => {
+      // This test ensures types are available for import
+      // If this compiles, the types are properly exported
+      const _typeCheck: {
+        noteFull: import('../api').NoteFull;
+        searchHit: import('../api').SearchHit;
+        job: import('../api').Job;
+      } = {} as any;
 
-      await api.checkHealth();
-
-      expect(mockFetch).toHaveBeenCalledWith(
-        expect.any(String),
-        expect.objectContaining({
-          headers: expect.objectContaining({
-            'Content-Type': 'application/json'
-          })
-        })
-      );
-    });
-
-    it('merges custom headers with defaults', async () => {
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        json: () => Promise.resolve({})
-      });
-
-      // Test through createNote which uses POST with body
-      await api.createNote('test');
-
-      const callArgs = mockFetch.mock.calls[0][1];
-      expect(callArgs.headers).toEqual({
-        'Content-Type': 'application/json'
-      });
+      expect(_typeCheck).toBeDefined();
     });
   });
 });

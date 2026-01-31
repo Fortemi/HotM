@@ -19,13 +19,6 @@ vi.mock('../TypingAnimation', () => ({
   }),
 }));
 
-// Mock Tauri notifications
-vi.mock('@tauri-apps/api', () => ({
-  notification: {
-    isPermissionGranted: vi.fn().mockResolvedValue(true),
-    sendNotification: vi.fn().mockResolvedValue(undefined),
-  },
-}));
 
 // Type for partial note overrides
 interface MockNoteOverrides {
