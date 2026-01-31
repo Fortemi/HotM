@@ -14,34 +14,34 @@ on:
 
 jobs:
   frontend-tests:
-    name: Frontend Tests
+    name: Frontend Tests (React SPA)
     runs-on: ubuntu-latest
-    
+
     steps:
     - uses: actions/checkout@v3
-    
+
     - name: Setup Node.js
       uses: actions/setup-node@v3
       with:
         node-version: '20'
         cache: 'npm'
         cache-dependency-path: ui/package-lock.json
-    
+
     - name: Install dependencies
       run: |
         cd ui
         npm ci
-    
+
     - name: Type check
       run: |
         cd ui
         npm run build
-    
+
     - name: Run tests
       run: |
         cd ui
         npm test -- --run
-    
+
     - name: Generate coverage
       run: |
         cd ui
@@ -51,3 +51,15 @@ jobs:
       run: |
         cd ui
         npm audit --audit-level high
+
+    - name: Generate SBOM
+      run: |
+        cd ui
+        npx @cyclonedx/cyclonedx-npm --output-file sbom.json
+
+    - name: Upload SBOM
+      uses: actions/upload-artifact@v4
+      with:
+        name: sbom
+        path: ui/sbom.json
+        retention-days: 90

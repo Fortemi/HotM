@@ -5,63 +5,45 @@ on:
     tags:
       - 'v*'
 
-env:
-  RUST_BACKTRACE: 1
-
 permissions:
   contents: write
 
 jobs:
   build-release:
-    name: Build Release Assets
-    runs-on: windows-latest
-    
+    name: Build and Deploy SPA
+    runs-on: ubuntu-latest
+
     steps:
     - uses: actions/checkout@v3
-    
+
     - name: Setup Node.js
       uses: actions/setup-node@v3
       with:
         node-version: '20'
         cache: 'npm'
         cache-dependency-path: ui/package-lock.json
-    
-    - name: Install Rust
-      uses: actions-rs/toolchain@v1
-      with:
-        toolchain: stable
-        override: true
-        target: x86_64-pc-windows-msvc
-    
+
     - name: Install dependencies
       run: |
         cd ui
         npm ci
-    
-    - name: Build Tauri app
+
+    - name: Build React SPA
       run: |
         cd ui
-        npm run tauri build
-    
-    - name: Locate MSI file
-      shell: powershell
+        npm run build
+
+    - name: Create production artifact
       run: |
-        $msi = Get-ChildItem -Path "ui/src-tauri/target/release/bundle/msi" -Filter "*.msi" | Sort-Object LastWriteTime -Descending | Select-Object -First 1
-        if ($msi) {
-          echo "MSI_PATH=$($msi.FullName)" >> $env:GITHUB_ENV
-          echo "MSI_NAME=$($msi.Name)" >> $env:GITHUB_ENV
-          Write-Output "Found MSI: $($msi.FullName)"
-        } else {
-          Write-Error "No MSI file found"
-          exit 1
-        }
-    
+        cd ui/dist
+        tar -czf ../../hotm-spa.tar.gz .
+
     - name: Extract version and channel from tag
       shell: bash
       run: |
         TAG_NAME=${GITHUB_REF#refs/tags/v}
         echo "TAG_NAME=$TAG_NAME" >> $GITHUB_ENV
-        
+
         # Extract version and channel (e.g., "0.2.0-beta" -> version="0.2.0", channel="beta")
         if [[ "$TAG_NAME" =~ ^([0-9]+\.[0-9]+\.[0-9]+)-(.+)$ ]]; then
           VERSION="${BASH_REMATCH[1]}"
@@ -73,49 +55,49 @@ jobs:
           echo "Error: Invalid tag format. Expected v0.0.0 or v0.0.0-channel"
           exit 1
         fi
-        
+
         echo "VERSION=$VERSION" >> $GITHUB_ENV
         echo "CHANNEL=$CHANNEL" >> $GITHUB_ENV
         echo "DISPLAY_VERSION=${VERSION}$([ "$CHANNEL" != "stable" ] && echo "-$CHANNEL")" >> $GITHUB_ENV
-        
+
         echo "Release version: $VERSION"
         echo "Release channel: $CHANNEL"
-    
+
     - name: Create Release
       uses: softprops/action-gh-release@v2
       if: github.ref_type == 'tag'
       with:
-        name: HotM ${{ env.DISPLAY_VERSION }}
+        name: HotM SPA ${{ env.DISPLAY_VERSION }}
         body: |
-          ## HotM ${{ env.DISPLAY_VERSION }}
-          
+          ## HotM React SPA ${{ env.DISPLAY_VERSION }}
+
           **Release Channel**: ${{ env.CHANNEL }}
-          
+
           ### Download
-          
-          **Windows (MSI Installer)**: Download `${{ env.MSI_NAME }}` below
-          
+
+          **React SPA (tar.gz)**: Download `hotm-spa.tar.gz` below
+
           ### Installation
-          
-          1. Download the MSI file
-          2. Run the installer as administrator
-          3. Follow the installation wizard
-          4. HotM will be available in your Start Menu
-          
+
+          1. Download the SPA artifact
+          2. Extract to your web server directory
+          3. Configure environment variables for matric-memory API endpoint
+          4. Serve the static files with any web server (nginx, Apache, etc.)
+
           ### System Requirements
-          
-          - Windows 10 or Windows 11
-          - Microsoft Edge WebView2 Runtime (auto-installed)
-          
+
+          - Modern web browser (Chrome, Firefox, Edge, Safari)
+          - Network access to matric-memory API server
+
           ### Features
-          
+
           - Local-first notes with immutable originals
-          - AI-powered revisions and summarization (requires Ollama)
+          - AI-powered revisions and summarization
           - Hybrid search (full-text + semantic)
           - Automatic link detection
-          - Global hotkey: Ctrl+Alt+H
-          
+          - React 19 SPA architecture
+
           For setup instructions, see the [documentation](https://github.com/${{ github.repository }}/blob/main/CLAUDE.md).
         draft: false
         prerelease: ${{ env.CHANNEL != 'stable' }}
-        files: ${{ env.MSI_PATH }}
+        files: hotm-spa.tar.gz
