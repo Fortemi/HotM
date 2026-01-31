@@ -1,0 +1,19 @@
+# Playwright Test Artifacts
+
+# Test results
+test-results/
+playwright-report/
+blob-report/
+playwright/.cache/
+
+# Screenshots and videos
+screenshots/
+videos/
+traces/
+
+# Coverage reports
+coverage/
+.nyc_output/
+
+# Debug logs
+*.log
