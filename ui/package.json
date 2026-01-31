@@ -7,12 +7,15 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview",
-    "tauri": "tauri",
-    "verify-icons": "powershell -ExecutionPolicy Bypass -File verify-icons.ps1 || echo 'Icon verification skipped (icons should be in src-tauri/icons/)'",
     "build:full": "npm run build",
     "test": "vitest",
     "test:ui": "vitest --ui",
     "test:coverage": "vitest --coverage",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:headed": "playwright test --headed",
+    "test:e2e:debug": "playwright test --debug",
+    "test:e2e:report": "playwright show-report",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
@@ -29,9 +32,6 @@
     "@radix-ui/react-tabs": "^1.1.13",
     "@radix-ui/react-tooltip": "^1.2.8",
     "@tailwindcss/typography": "^0.5.16",
-    "@tauri-apps/api": "2.4.0",
-    "@tauri-apps/plugin-notification": "^2.3.1",
-    "@tauri-apps/plugin-opener": "2.2.3",
     "@types/pako": "^2.0.4",
     "@uiw/react-md-editor": "^4.0.8",
     "class-variance-authority": "^0.7.1",
@@ -50,7 +50,7 @@
     "tailwind-merge": "^3.3.1"
   },
   "devDependencies": {
-    "@tauri-apps/cli": "2.4.0",
+    "@playwright/test": "^1.58.1",
     "@testing-library/jest-dom": "^6.0.0",
     "@testing-library/react": "^16.1.0",
     "@testing-library/user-event": "^14.0.0",
