@@ -75,7 +75,6 @@ describe('HallOfMind Title Handling', () => {
     },
     tags: overrides.tags ?? ['test'],
     links: [],
-    labels: [],
   });
 
   beforeEach(() => {

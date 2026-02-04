@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Repository Purpose
 
-HotM is a React-based single-page application (SPA) providing a rich web interface for note-taking and analysis. The application consumes the matric-memory API for immutable note storage, NLP-powered revisions, and hybrid search capabilities.
+HotM (Hall of the Mind) is a React-based single-page application (SPA) providing a rich web interface for note-taking and analysis. The application consumes the Fortemi API for immutable note storage, NLP-powered revisions, and hybrid search capabilities.
 
 ## Tech Stack
 
@@ -13,8 +13,8 @@ HotM is a React-based single-page application (SPA) providing a rich web interfa
 - **Package Manager**: npm
 - **Framework**: React 19 + Vite
 - **UI Libraries**: Radix UI, TailwindCSS, React Router
-- **API Client**: Fetch-based client for matric-memory API
-- **External API**: matric-memory (Rust API providing storage, search, and NLP features)
+- **API Client**: Fetch-based client for Fortemi API
+- **External API**: Fortemi (pronounced "for-TAY-mee") - Rust API providing storage, search, and NLP features
 
 ## Documentation Structure
 
@@ -52,10 +52,10 @@ All shell-based test scripts have been removed - use `gh act` for consistent CI/
 
 ### Key Technical Decisions
 
-1. **Immutable Originals**: Never modify original note content; all edits create new revisions (handled by matric-memory API)
-2. **SPA Architecture**: React application consuming external matric-memory API
+1. **Immutable Originals**: Never modify original note content; all edits create new revisions (handled by Fortemi API)
+2. **SPA Architecture**: React application consuming external Fortemi API
 3. **Hybrid Search**: Combines PostgreSQL full-text search with pgvector semantic search (via API)
-4. **API-Driven**: All data operations delegated to matric-memory API
+4. **API-Driven**: All data operations delegated to Fortemi API
 5. **Modular Components**: Reusable UI components with Radix UI primitives
 6. **Type Safety**: Full TypeScript coverage with strict mode
 7. **Responsive Design**: Mobile-first approach with TailwindCSS
@@ -122,7 +122,7 @@ cd ui && npm test -- --run     # Basic React unit tests only
 - React Router for navigation
 - State management with React hooks and context
 
-**External API**: matric-memory
+**External API**: Fortemi
 - Rust-based HTTP API (separate repository)
 - Provides storage, search, and NLP pipeline
 - PostgreSQL backend with pgvector extension
@@ -131,15 +131,15 @@ cd ui && npm test -- --run     # Basic React unit tests only
 
 ### Key Data Flow
 
-1. **Note Creation**: User input -> API Client -> matric-memory API -> Background NLP pipeline
-2. **NLP Pipeline**: (Handled by matric-memory) Chunk -> Summarize/Revise -> Extract tags/entities -> Detect links -> Compute embeddings -> Update indexes
-3. **Search**: Query -> API Client -> matric-memory hybrid search (FTS + vector) -> Reciprocal Rank Fusion -> UI display
+1. **Note Creation**: User input -> API Client -> Fortemi API -> Background NLP pipeline
+2. **NLP Pipeline**: (Handled by Fortemi) Chunk -> Summarize/Revise -> Extract tags/entities -> Detect links -> Compute embeddings -> Update indexes
+3. **Search**: Query -> API Client -> Fortemi hybrid search (FTS + vector) -> Reciprocal Rank Fusion -> UI display
 4. **Revision Display**: Fetch note from API -> Show revised by default -> Preserve link to immutable original
-5. **MCP Integration**: AI Assistant -> MCP Tools -> matric-memory API -> Database
+5. **MCP Integration**: AI Assistant -> MCP Tools -> Fortemi API -> Database
 
 ### API Client Integration
 
-The application uses a TypeScript API client (`ui/src/api/`) to communicate with matric-memory:
+The application uses a TypeScript API client (`ui/src/api/`) to communicate with Fortemi:
 
 - **Notes API**: Create, read, update note metadata and revisions
 - **Search API**: Hybrid search, semantic search, filters
@@ -156,7 +156,7 @@ See [API Specification](docs/specifications/api-specification.md) for endpoint d
 hotm/
 ├── ui/                 # React SPA
 │   ├── src/
-│   │   ├── api/        # matric-memory API client
+│   │   ├── api/        # Fortemi API client
 │   │   ├── components/ # React components
 │   │   ├── pages/      # Route pages
 │   │   ├── hooks/      # Custom React hooks
@@ -197,13 +197,13 @@ Channel configuration is stored in `release.json`.
 
 Create a `.env` file in the `ui/` directory:
 
-- `VITE_API_BASE_URL`: matric-memory API base URL (default: `http://localhost:53211/api/v1`)
+- `VITE_API_BASE_URL`: Fortemi API base URL (default: `http://localhost:3000/api/v1`)
 - `VITE_API_TIMEOUT`: API request timeout in milliseconds (default: `30000`)
 - `VITE_APP_TITLE`: Application title (default: `HotM`)
 
 Example `.env`:
 ```
-VITE_API_BASE_URL=http://localhost:53211/api/v1
+VITE_API_BASE_URL=http://localhost:3000/api/v1
 VITE_API_TIMEOUT=30000
 VITE_APP_TITLE=HotM
 ```
@@ -387,8 +387,8 @@ Update user throughout with clear indicators:
 - Run `/aiwg-refresh` to redeploy commands
 
 **API Connection Issues**:
-- Verify matric-memory API is running at configured `VITE_API_BASE_URL`
-- Check CORS configuration on matric-memory API
+- Verify Fortemi API is running at configured `VITE_API_BASE_URL`
+- Check CORS configuration on Fortemi API
 - Verify network connectivity
 
 ## Resources
@@ -397,7 +397,7 @@ Update user throughout with clear indicators:
 - **Project Documentation**: [docs/index.md](docs/index.md)
 - **API Specification**: [docs/specifications/api-specification.md](docs/specifications/api-specification.md)
 - **Architecture**: [docs/architecture/system-architecture.md](docs/architecture/system-architecture.md)
-- **matric-memory API**: (Separate repository - consult API documentation)
+- **Fortemi API**: (Separate repository - consult API documentation)
 
 ---
 

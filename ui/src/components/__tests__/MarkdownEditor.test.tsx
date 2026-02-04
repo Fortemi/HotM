@@ -61,7 +61,7 @@ describe('MarkdownEditor', () => {
   describe('Mode Switching', () => {
     it('should switch to raw mode', () => {
       const onChange = vi.fn();
-      const { rerender } = render(<MarkdownEditor value="# Test" onChange={onChange} />);
+      render(<MarkdownEditor value="# Test" onChange={onChange} />);
 
       const rawTab = screen.getByText('Raw Markdown');
       fireEvent.click(rawTab);

@@ -1,23 +1,40 @@
-# matric-memory API Client
+# Fortemi API Client
 
-TypeScript API client for the matric-memory API used by HotM SPA.
+TypeScript API client for the Fortemi API used by HotM SPA.
 
 ## Overview
 
-This directory contains a complete, production-ready API client for interacting with the matric-memory backend API. The client is organized into modular components with comprehensive error handling, retry logic, and TypeScript type safety.
+This directory contains a complete, production-ready API client for interacting with the Fortemi backend API. The client is organized into modular components with comprehensive error handling, retry logic, and TypeScript type safety.
 
 ## Structure
 
 ```
 api/
-├── client.ts         # Base HTTP client with retry logic
-├── errors.ts         # Custom error types
-├── types.ts          # TypeScript interfaces for API entities
-├── notes.ts          # Notes CRUD operations
-├── search.ts         # Search operations (FTS, semantic, hybrid)
-├── tags.ts           # Tag management
-├── index.ts          # Public exports and configured client
-└── __tests__/        # Comprehensive test suite
+├── client.ts           # Base HTTP client with retry logic
+├── errors.ts           # Custom error types
+├── types.ts            # Core TypeScript interfaces
+├── types-extended.ts   # Extended types for Fortemi features
+├── index.ts            # Public exports and configured client
+│
+├── notes.ts            # Notes CRUD operations
+├── search.ts           # Search operations (FTS, semantic, hybrid)
+├── tags.ts             # Tag management
+│
+├── attachments.ts      # File attachments with EXIF/provenance
+├── auth.ts             # Authentication (OIDC/Keycloak)
+├── backup.ts           # Backup, export, restore operations
+├── collections.ts      # Note collection management
+├── concepts.ts         # SKOS concept schemes and vocabulary
+├── documents.ts        # Document type detection
+├── embeddings.ts       # Embedding configuration
+├── health.ts           # Knowledge health metrics
+├── links.ts            # Dynamic link management
+├── memory.ts           # Spatiotemporal memory search
+├── provenance.ts       # Device provenance tracking
+├── templates.ts        # Note templates with variables
+├── versions.ts         # Version history and diff
+│
+└── __tests__/          # Comprehensive test suite
 ```
 
 ## Usage
@@ -135,6 +152,154 @@ const health = await api.health();
 // Returns: { ok, database, ollama?, vector? }
 ```
 
+### SKOS Concept Browser
+
+```typescript
+// List concept schemes
+const schemes = await api.concepts.listSchemes();
+
+// Get top-level concepts in a scheme
+const topConcepts = await api.concepts.getTopConcepts('scheme-id');
+
+// Get narrower concepts (children)
+const narrower = await api.concepts.getNarrower('concept-id');
+
+// Get full concept details
+const concept = await api.concepts.getConceptFull('concept-id');
+
+// Search concepts
+const results = await api.concepts.listConcepts({
+  search: 'keyword',
+  scheme_id: 'scheme-id'
+});
+```
+
+### File Attachments
+
+```typescript
+// List attachments for a note
+const attachments = await api.attachments.listAttachments('note-id');
+
+// Upload a file
+const newAttachment = await api.attachments.uploadAttachment('note-id', file);
+
+// Get attachment metadata (EXIF, location, provenance)
+const metadata = await api.attachments.getMetadata('attachment-id');
+
+// Get download URL
+const url = await api.attachments.getDownloadUrl('attachment-id');
+
+// Delete attachment
+await api.attachments.deleteAttachment('attachment-id');
+```
+
+### Memory Search (Spatiotemporal)
+
+```typescript
+// Search by location
+const locationResults = await api.memory.searchByLocation({
+  latitude: 40.7128,
+  longitude: -74.006,
+  radius_meters: 1000
+});
+
+// Search by time range
+const timeResults = await api.memory.searchByTimeRange({
+  start_date: '2024-01-01T00:00:00Z',
+  end_date: '2024-12-31T23:59:59Z'
+});
+
+// Combined spatiotemporal search
+const combined = await api.memory.searchCombined({
+  latitude: 40.7128,
+  longitude: -74.006,
+  radius_meters: 5000,
+  start_date: '2024-01-01T00:00:00Z',
+  end_date: '2024-06-30T23:59:59Z'
+});
+```
+
+### Version History
+
+```typescript
+// List versions of a note
+const versions = await api.versions.listVersions('note-id');
+
+// Get specific version content
+const version = await api.versions.getVersion('note-id', 2);
+
+// Get diff between versions
+const diff = await api.versions.diffVersions('note-id', 1, 2);
+
+// Restore a previous version
+await api.versions.restoreVersion('note-id', 2);
+```
+
+### Knowledge Health Dashboard
+
+```typescript
+// Get knowledge base health metrics
+const health = await api.health.getKnowledgeHealth();
+// Returns: total_notes, orphan_notes, stale_notes, unlinked_notes,
+//          avg_links_per_note, tag_coverage, last_activity
+```
+
+### Templates
+
+```typescript
+// List all templates
+const templates = await api.templates.list();
+
+// Get template by ID
+const template = await api.templates.get('template-id');
+
+// Create a template
+const newTemplate = await api.templates.create({
+  name: 'Meeting Notes',
+  content: '# Meeting: {{title}}\n\nDate: {{date}}\n\nAttendees:\n- {{attendees}}',
+  default_tags: ['meetings']
+});
+
+// Update a template
+await api.templates.update('template-id', {
+  name: 'Updated Name'
+});
+
+// Delete a template
+await api.templates.delete('template-id');
+
+// Instantiate template with variables
+const noteContent = await api.templates.instantiate('template-id', {
+  title: 'Sprint Planning',
+  date: '2024-01-15',
+  attendees: 'Alice, Bob'
+});
+```
+
+### Backup & Export
+
+```typescript
+// List available backups
+const backups = await api.backup.listBackups();
+
+// Create a backup
+await api.backup.triggerBackup();
+
+// Download a database backup
+const blob = await api.backup.downloadDatabaseBackup('backup.db');
+
+// Restore from backup
+await api.backup.restoreDatabase({ filename: 'backup.db' });
+
+// Export knowledge shard
+const shard = await api.backup.exportKnowledgeShard({
+  collection_id: 'collection-id'
+});
+
+// Import knowledge shard
+await api.backup.importKnowledgeShard(shardFile);
+```
+
 ## Configuration
 
 ### Environment Variables
@@ -149,7 +314,7 @@ VITE_API_BASE_URL=http://localhost:3000
 VITE_API_BASE_URL=http://titan:3000
 
 # For production:
-VITE_API_BASE_URL=https://api.example.com
+VITE_API_BASE_URL=https://api.fortemi.example.com
 ```
 
 ### Custom Client Instance
@@ -312,7 +477,7 @@ Component/Hook
     ↓
   client.ts (HTTP, retry, errors)
     ↓
-  fetch() → matric-memory API
+  fetch() → Fortemi API
 ```
 
 ### Error Flow
@@ -335,6 +500,8 @@ Network Failure
 
 All endpoints use the `/api/v1` prefix:
 
+### Core Notes & Search
+
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | GET | `/health` | Health check |
@@ -353,6 +520,78 @@ All endpoints use the `/api/v1` prefix:
 | DELETE | `/api/v1/tags/:name` | Delete tag |
 | GET | `/api/v1/tags/stats` | Tag statistics |
 
+### SKOS Concepts
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/v1/concepts/schemes` | List concept schemes |
+| GET | `/api/v1/concepts/schemes/:id` | Get scheme details |
+| GET | `/api/v1/concepts/schemes/:id/top` | Get top-level concepts |
+| GET | `/api/v1/concepts` | List/search concepts |
+| GET | `/api/v1/concepts/:id` | Get concept |
+| GET | `/api/v1/concepts/:id/full` | Get concept with relations |
+| GET | `/api/v1/concepts/:id/narrower` | Get child concepts |
+| GET | `/api/v1/concepts/:id/broader` | Get parent concepts |
+| GET | `/api/v1/concepts/:id/related` | Get related concepts |
+
+### Attachments
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/v1/notes/:id/attachments` | List note attachments |
+| POST | `/api/v1/notes/:id/attachments` | Upload attachment |
+| GET | `/api/v1/attachments/:id` | Get attachment metadata |
+| GET | `/api/v1/attachments/:id/download` | Download attachment |
+| DELETE | `/api/v1/attachments/:id` | Delete attachment |
+
+### Memory Search
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/v1/memory/location` | Search by location |
+| GET | `/api/v1/memory/time` | Search by time range |
+| GET | `/api/v1/memory/combined` | Combined spatiotemporal search |
+
+### Versions
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/v1/notes/:id/versions` | List note versions |
+| GET | `/api/v1/notes/:id/versions/:version` | Get specific version |
+| GET | `/api/v1/notes/:id/versions/diff` | Compare versions |
+| POST | `/api/v1/notes/:id/versions/:version/restore` | Restore version |
+
+### Templates
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/v1/templates` | List templates |
+| POST | `/api/v1/templates` | Create template |
+| GET | `/api/v1/templates/:id` | Get template |
+| PATCH | `/api/v1/templates/:id` | Update template |
+| DELETE | `/api/v1/templates/:id` | Delete template |
+| POST | `/api/v1/templates/:id/instantiate` | Instantiate template |
+
+### Backup & Export
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/v1/backup/list` | List backups |
+| POST | `/api/v1/backup/trigger` | Create backup |
+| GET | `/api/v1/backup/download/:filename` | Download backup |
+| POST | `/api/v1/backup/restore` | Restore from backup |
+| POST | `/api/v1/backup/export/shard` | Export knowledge shard |
+| POST | `/api/v1/backup/import/shard` | Import knowledge shard |
+
+### Health Metrics
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/v1/health/knowledge` | Knowledge health metrics |
+| GET | `/api/v1/health/orphans` | List orphan notes |
+| GET | `/api/v1/health/stale` | List stale notes |
+| GET | `/api/v1/health/unlinked` | List unlinked notes |
+
 ## Best Practices
 
 1. **Use React Query**: Wrap API calls in React Query hooks for caching, optimistic updates, and background refetching
@@ -367,13 +606,13 @@ All endpoints use the `/api/v1` prefix:
 
 ## Related Documentation
 
-- [ADR-004: SPA Migration](../../../../.aiwg/architecture/adr/ADR-004-spa-migration.md) - Architecture decision for matric-memory integration
+- [ADR-004: SPA Migration](../../../../.aiwg/architecture/adr/ADR-004-spa-migration.md) - Architecture decision for Fortemi integration
 - [MVP Acceptance Criteria](../../../../.aiwg/requirements/mvp-acceptance-criteria-v2.md) - Feature requirements
-- [matric-memory API Specification](../../../../docs/specifications/api-specification.md) - Full API documentation
+- [Fortemi API Specification](../../../../docs/specifications/api-specification.md) - Full API documentation
 
 ## Maintainers
 
 - Frontend Team (HotM SPA)
-- Backend Team (matric-memory API)
+- Backend Team (Fortemi API)
 
-For API changes, coordinate with the matric-memory team to ensure contract compatibility.
+For API changes, coordinate with the Fortemi team to ensure contract compatibility.

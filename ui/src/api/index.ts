@@ -1,5 +1,5 @@
 /**
- * matric-memory API Client
+ * Fortemi API Client
  * Main entry point for all API operations
  */
 
@@ -8,8 +8,21 @@ import { createNotesApi } from './notes';
 import { createSearchApi } from './search';
 import { createTagsApi } from './tags';
 import { createExtendedApi } from './extended';
+import { createAuthApi } from './auth';
+import { createVersionsApi } from './versions';
+import { createAttachmentsApi } from './attachments';
+import { createConceptsApi } from './concepts';
+import { createCollectionsApi } from './collections';
+import { createTemplatesApi } from './templates';
+import { createDocumentsApi } from './documents';
+import { createHealthApi } from './health';
+import { createMemoryApi } from './memory';
+import { createBackupApi } from './backup';
+import { createEmbeddingsApi } from './embeddings';
+import { createLinksApi } from './links';
+import { createProvenanceApi } from './provenance';
 
-// Export types
+// Export core types
 export type {
   NoteMeta,
   NoteOriginal,
@@ -46,6 +59,89 @@ export type {
   UserMetadataLabel,
 } from './extended';
 
+// Export all new extended types
+export type {
+  TokenResponse,
+  ClientRegistration,
+  ClientRegistrationRequest,
+  ApiKey,
+  CreateApiKeyRequest,
+  CreateApiKeyResponse,
+  Attachment,
+  AttachmentListResponse,
+  AttachmentMetadata,
+  ExifData,
+  LocationData,
+  DeviceProvenance,
+  TemporalContext,
+  ProcessingStatus,
+  NoteVersion,
+  VersionListResponse,
+  VersionContentResponse,
+  VersionDiff,
+  ConceptScheme,
+  CreateConceptSchemeRequest,
+  Concept,
+  CreateConceptRequest,
+  ConceptFull,
+  ConceptRelation,
+  AddConceptRelationRequest,
+  SkosCollection,
+  CreateSkosCollectionRequest,
+  SkosCollectionWithMembers,
+  SetCollectionMembersRequest,
+  ConceptGovernanceStats,
+  ConceptListResponse,
+  ConceptAutocompleteResponse,
+  Collection,
+  CreateCollectionRequest,
+  CollectionWithNotes,
+  MoveNoteRequest,
+  Template,
+  CreateTemplateRequest,
+  TemplateVariable,
+  InstantiateTemplateRequest,
+  DocumentType,
+  CreateDocumentTypeRequest,
+  DetectDocumentTypeRequest,
+  DetectionResult,
+  DocumentTypeListResponse,
+  KnowledgeHealth,
+  OrphanTag,
+  StaleNote,
+  TagCooccurrence,
+  TagCooccurrenceResponse,
+  MemorySearchResult,
+  MemorySearchResponse,
+  LocationQuery,
+  LocationSearchResponse,
+  TimeRangeQuery,
+  TimeRangeSearchResponse,
+  CombinedSearchQuery,
+  CombinedSearchResponse,
+  BackupInfo,
+  BackupListResponse,
+  BackupMetadata,
+  BackupStatus,
+  KnowledgeShard,
+  CreateSnapshotRequest,
+  RestoreDatabaseRequest,
+  SwapBackupRequest,
+  EmbeddingSet,
+  CreateEmbeddingSetRequest,
+  EmbeddingConfig,
+  AddEmbeddingSetMembersRequest,
+  GraphNode,
+  GraphEdge,
+  GraphExploreResponse,
+  NoteLinksResponse,
+  ProvenanceActivity,
+  ProvenanceAgent,
+  ProvenanceResponse,
+  MemoryInfo,
+  RateLimitStatus,
+} from './types-extended';
+
 // Export error classes
 export {
   ApiError,
@@ -61,6 +157,19 @@ export { createNotesApi } from './notes';
 export { createSearchApi } from './search';
 export { createTagsApi } from './tags';
 export { createExtendedApi } from './extended';
+export { createAuthApi } from './auth';
+export { createVersionsApi } from './versions';
+export { createAttachmentsApi } from './attachments';
+export { createConceptsApi } from './concepts';
+export { createCollectionsApi } from './collections';
+export { createTemplatesApi } from './templates';
+export { createDocumentsApi } from './documents';
+export { createHealthApi } from './health';
+export { createMemoryApi } from './memory';
+export { createBackupApi } from './backup';
+export { createEmbeddingsApi } from './embeddings';
+export { createLinksApi } from './links';
+export { createProvenanceApi } from './provenance';
 
 // Export types for the API modules
 export type { ApiClient } from './client';
@@ -68,6 +177,19 @@ export type { NotesApi } from './notes';
 export type { SearchApi } from './search';
 export type { TagsApi } from './tags';
 export type { ExtendedApi } from './extended';
+export type { AuthApi } from './auth';
+export type { VersionsApi } from './versions';
+export type { AttachmentsApi } from './attachments';
+export type { ConceptsApi } from './concepts';
+export type { CollectionsApi } from './collections';
+export type { TemplatesApi } from './templates';
+export type { DocumentsApi } from './documents';
+export type { HealthApi } from './health';
+export type { MemoryApi } from './memory';
+export type { BackupApi } from './backup';
+export type { EmbeddingsApi } from './embeddings';
+export type { LinksApi } from './links';
+export type { ProvenanceApi } from './provenance';
 
 // Export compatibility layer
 export { api as compatApi } from './compat';
@@ -81,8 +203,8 @@ function getApiBaseUrl(): string {
     return import.meta.env.VITE_API_BASE_URL as string;
   }
 
-  // Default to HotM server port
-  return 'http://localhost:53211';
+  // Default to Fortemi server port (changed from 53211 to 3000)
+  return 'http://localhost:3000';
 }
 
 /**
@@ -98,17 +220,30 @@ export function createApi(baseUrl?: string) {
     search: createSearchApi(client),
     tags: createTagsApi(client),
     extended: createExtendedApi(client),
+    auth: createAuthApi(client),
+    versions: createVersionsApi(client),
+    attachments: createAttachmentsApi(client),
+    concepts: createConceptsApi(client),
+    collections: createCollectionsApi(client),
+    templates: createTemplatesApi(client),
+    documents: createDocumentsApi(client),
+    health: createHealthApi(client),
+    memory: createMemoryApi(client),
+    backup: createBackupApi(client),
+    embeddings: createEmbeddingsApi(client),
+    links: createLinksApi(client),
+    provenance: createProvenanceApi(client),
 
     /**
-     * Health check endpoint
+     * Quick health check endpoint (legacy)
      */
-    async health() {
+    async healthCheck() {
       return client.get<{
-        ok: boolean;
-        database: boolean;
-        ollama?: boolean;
-        vector?: boolean;
-      }>('/api/v1/health');
+        status: string;
+        version: string;
+        database: string;
+        ollama?: string;
+      }>('/health');
     },
   };
 }

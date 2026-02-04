@@ -75,7 +75,6 @@ describe('HallOfMind WebSocket Integration', () => {
     },
     tags: overrides.tags ?? ['test'],
     links: [],
-    labels: [],
   });
 
   beforeEach(() => {

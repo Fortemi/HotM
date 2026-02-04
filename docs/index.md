@@ -1,9 +1,9 @@
 # HotM Documentation Index
 
 ## Overview
-HotM is a web-based notes and analysis tool built as a React Single Page Application (SPA) consuming the matric-memory API. Provides hybrid search, NLP-powered content enhancement, and AI-assisted knowledge management.
+HotM is a web-based notes and analysis tool built as a React Single Page Application (SPA) consuming the Fortemi API. Provides hybrid search, NLP-powered content enhancement, and AI-assisted knowledge management.
 
-**Current Architecture**: React SPA (v0.2.0+) with matric-memory backend
+**Current Architecture**: React SPA (v0.2.0+) with Fortemi backend
 **Previous Architecture**: Tauri desktop app (v0.1.x) - see [Desktop Era Archive](.aiwg/archive/desktop-era/)
 
 ## Table of Contents
@@ -15,6 +15,12 @@ HotM is a web-based notes and analysis tool built as a React Single Page Applica
 ### Specifications
 - `specifications/`
   - API (v1/v2), Data model, MCP tools, UI spec
+
+### UX Design
+- `ux/`
+  - **Fortemi Integration**: Comprehensive UX design for six major features
+  - User personas, user flows, accessibility specifications
+  - SKOS Browser, File Attachments, Memory Search, Knowledge Health, Version History, Templates
 
 ### Architecture
 - `architecture/` and `architecture-overview.md`
@@ -30,10 +36,10 @@ HotM is a web-based notes and analysis tool built as a React Single Page Applica
   - Development guide, Testing strategy
 
 ### Data Model
-- `data-model-pg.sql` (reference only - backend managed by matric-memory)
+- `data-model-pg.sql` (reference only - backend managed by Fortemi)
 
 ### Deployment
-- **Current (SPA)**: Static assets served via Nginx, backend managed by matric-memory repository
+- **Current (SPA)**: Static assets served via Nginx, backend managed by Fortemi repository
 - **Archived (Desktop)**: `.aiwg/archive/desktop-era/docker-deployment.md`
 
 ### Guides
@@ -48,7 +54,7 @@ HotM is a web-based notes and analysis tool built as a React Single Page Applica
 ### Migration
 - **User Data Migration**: `.aiwg/migration/user-data-migration.md`
   - Export notes from desktop HotM
-  - Import to matric-memory API
+  - Import to Fortemi API
   - Data format compatibility
   - Rollback procedures
 
@@ -72,7 +78,7 @@ HotM is a web-based notes and analysis tool built as a React Single Page Applica
 
 ## Quick Links
 - Project README: `../README.md`
-- matric-memory API: [To be added - API documentation URL]
+- Fortemi API: [To be added - API documentation URL]
 - Migration Guide: `.aiwg/migration/user-data-migration.md`
 - Desktop Archive: `.aiwg/archive/desktop-era/`
 
@@ -88,7 +94,7 @@ HotM is a web-based notes and analysis tool built as a React Single Page Applica
            │ HTTPS
            ↓
 ┌─────────────────────┐
-│ matric-memory API   │  Production REST API
+│    Fortemi API      │  Production REST API
 │   (Remote Server)   │  (separate repository)
 └──────────┬──────────┘
            │
@@ -101,9 +107,9 @@ HotM is a web-based notes and analysis tool built as a React Single Page Applica
 
 **Key Characteristics**:
 - **Frontend**: React SPA with TypeScript, Vite, TailwindCSS, Radix UI
-- **Backend**: matric-memory API (separate repository)
-- **Storage**: Server-side PostgreSQL with pgvector (managed by matric-memory)
-- **NLP**: Server-side Ollama (managed by matric-memory)
+- **Backend**: Fortemi API (pronounced "for-TAY-mee") - separate repository
+- **Storage**: Server-side PostgreSQL with pgvector (managed by Fortemi)
+- **NLP**: Server-side Ollama (managed by Fortemi)
 - **Deployment**: Static assets via Nginx, no client installation
 - **Access**: Web-based, any device with browser
 - **Multi-User**: OIDC authentication via Keycloak (post-MVP)
@@ -172,7 +178,7 @@ Users migrating from the desktop app to the web SPA should reference:
 
 1. **Migration Guide**: `.aiwg/migration/user-data-migration.md`
    - Export notes from local PostgreSQL
-   - Import to matric-memory API
+   - Import to Fortemi API
    - Data format compatibility
    - Verification procedures
    - Rollback options

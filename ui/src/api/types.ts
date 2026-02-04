@@ -1,5 +1,5 @@
 /**
- * TypeScript type definitions for matric-memory API
+ * TypeScript type definitions for Fortemi API
  * Aligned with API specification from ADR-004
  */
 

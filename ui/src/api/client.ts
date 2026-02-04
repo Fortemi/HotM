@@ -1,5 +1,5 @@
 /**
- * Base HTTP client for matric-memory API
+ * Base HTTP client for Fortemi API
  * Handles requests, retries, and error handling
  */
 
