@@ -59,7 +59,18 @@ import {
   Type,
   ChevronRight,
   ChevronDown,
-  Folder
+  Folder,
+  FolderOpen,
+  Activity,
+  MapPin,
+  Network,
+  LayoutTemplate,
+  Shield,
+  Clock3,
+  Paperclip,
+  HardDrive,
+  BookMarked,
+  SlidersHorizontal,
 } from "lucide-react";
 import { api, NoteFull } from "@/services/api";
 import { MarkdownPreview } from "./MarkdownPreview";
@@ -73,6 +84,35 @@ import { SearchDropdown } from "./SearchDropdown";
 import JobQueueMonitor from "./JobQueueMonitor";
 import { JobQueueIndicator } from "./JobQueueIndicator";
 import { TypingAnimation } from "./TypingAnimation";
+import { CollectionsManager } from "./collections";
+import { KnowledgeHealthDashboard } from "./health/KnowledgeHealthDashboard";
+import { MemorySearch } from "./memory/MemorySearch";
+import { GraphExplorer } from "./graph";
+import { TemplateManager } from "./templates/TemplateManager";
+import { AdminPanel } from "./admin";
+import { TimelineView } from "./timeline";
+import { AttachmentsPanel } from "./attachments/AttachmentsPanel";
+import { ConceptBrowser } from "./concepts/ConceptBrowser";
+import { VersionHistory } from "./versions/VersionHistory";
+import { BackupManager } from "./backup/BackupManager";
+import { TagManager } from "./tags";
+import { AdvancedSearchFilters } from "./search";
+
+type AppView =
+  | "notes"
+  | "collections"
+  | "health"
+  | "memory-search"
+  | "graph"
+  | "templates"
+  | "admin"
+  | "timeline"
+  | "attachments"
+  | "concepts"
+  | "versions"
+  | "backup"
+  | "tags"
+  | "advanced-search";
 
 export interface Note {
   id: string;
@@ -127,6 +167,7 @@ export function HallOfMind() {
   const [newNoteContent, setNewNoteContent] = useState("");
   const [processingNotes, setProcessingNotes] = useState<Set<string>>(new Set());
   const [copiedState, setCopiedState] = useState<{ [key: string]: boolean }>({});
+  const [currentView, setCurrentView] = useState<AppView>("notes");
   
   // Refs for notification grouping and metadata caching
   const savedNotes = useRef<Map<string, NoteFull>>(new Map());
@@ -1438,6 +1479,130 @@ export function HallOfMind() {
               )}
             </SidebarGroup>
 
+            {/* Feature Navigation */}
+            <SidebarGroup>
+              <SidebarGroupLabel>Features</SidebarGroupLabel>
+              <SidebarMenu>
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    onClick={() => setCurrentView("notes")}
+                    className={currentView === "notes" ? "bg-primary/10" : ""}
+                  >
+                    <BookOpen className="h-4 w-4" />
+                    <span>Notes</span>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    onClick={() => setCurrentView("collections")}
+                    className={currentView === "collections" ? "bg-primary/10" : ""}
+                  >
+                    <FolderOpen className="h-4 w-4" />
+                    <span>Collections</span>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    onClick={() => setCurrentView("health")}
+                    className={currentView === "health" ? "bg-primary/10" : ""}
+                  >
+                    <Activity className="h-4 w-4" />
+                    <span>Health</span>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    onClick={() => setCurrentView("memory-search")}
+                    className={currentView === "memory-search" ? "bg-primary/10" : ""}
+                  >
+                    <MapPin className="h-4 w-4" />
+                    <span>Memory Search</span>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    onClick={() => setCurrentView("graph")}
+                    className={currentView === "graph" ? "bg-primary/10" : ""}
+                  >
+                    <Network className="h-4 w-4" />
+                    <span>Graph</span>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    onClick={() => setCurrentView("timeline")}
+                    className={currentView === "timeline" ? "bg-primary/10" : ""}
+                  >
+                    <Clock3 className="h-4 w-4" />
+                    <span>Timeline</span>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    onClick={() => setCurrentView("templates")}
+                    className={currentView === "templates" ? "bg-primary/10" : ""}
+                  >
+                    <LayoutTemplate className="h-4 w-4" />
+                    <span>Templates</span>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    onClick={() => setCurrentView("concepts")}
+                    className={currentView === "concepts" ? "bg-primary/10" : ""}
+                  >
+                    <BookMarked className="h-4 w-4" />
+                    <span>Concepts</span>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    onClick={() => setCurrentView("tags")}
+                    className={currentView === "tags" ? "bg-primary/10" : ""}
+                  >
+                    <Hash className="h-4 w-4" />
+                    <span>Tags</span>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    onClick={() => setCurrentView("advanced-search")}
+                    className={currentView === "advanced-search" ? "bg-primary/10" : ""}
+                  >
+                    <SlidersHorizontal className="h-4 w-4" />
+                    <span>Advanced Search</span>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    onClick={() => setCurrentView("attachments")}
+                    className={currentView === "attachments" ? "bg-primary/10" : ""}
+                  >
+                    <Paperclip className="h-4 w-4" />
+                    <span>Attachments</span>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    onClick={() => setCurrentView("backup")}
+                    className={currentView === "backup" ? "bg-primary/10" : ""}
+                  >
+                    <HardDrive className="h-4 w-4" />
+                    <span>Backup</span>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    onClick={() => setCurrentView("admin")}
+                    className={currentView === "admin" ? "bg-primary/10" : ""}
+                  >
+                    <Shield className="h-4 w-4" />
+                    <span>Admin</span>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              </SidebarMenu>
+            </SidebarGroup>
+
             <Separator className="my-2 flex-shrink-0" />
 
             <SidebarGroup className="flex-1 flex flex-col min-h-0">
@@ -1805,8 +1970,91 @@ export function HallOfMind() {
             </div>
           </header>
 
-          <main className="flex-1 p-6">
-            {selectedNote ? (
+          <main className="flex-1 p-6 overflow-auto">
+            {currentView === "collections" ? (
+              <CollectionsManager
+                onNoteSelect={(noteId) => {
+                  const note = notes.find(n => n.id === noteId);
+                  if (note) {
+                    setSelectedNote(note);
+                    setNoteContent(note.content);
+                    setRevisedContent(note.revised_content || note.content);
+                    setCurrentView("notes");
+                  }
+                }}
+              />
+            ) : currentView === "health" ? (
+              <KnowledgeHealthDashboard />
+            ) : currentView === "memory-search" ? (
+              <MemorySearch
+                isOpen={true}
+                onClose={() => setCurrentView("notes")}
+                onSelectResult={(result) => {
+                  const note = notes.find(n => n.id === result.note_id);
+                  if (note) {
+                    setSelectedNote(note);
+                    setNoteContent(note.content);
+                    setRevisedContent(note.revised_content || note.content);
+                    setCurrentView("notes");
+                  }
+                }}
+              />
+            ) : currentView === "graph" ? (
+              <GraphExplorer
+                onNoteSelect={(noteId) => {
+                  const note = notes.find(n => n.id === noteId);
+                  if (note) {
+                    setSelectedNote(note);
+                    setNoteContent(note.content);
+                    setRevisedContent(note.revised_content || note.content);
+                    setCurrentView("notes");
+                  }
+                }}
+              />
+            ) : currentView === "timeline" ? (
+              <TimelineView
+                onNoteSelect={(noteId) => {
+                  const note = notes.find(n => n.id === noteId);
+                  if (note) {
+                    setSelectedNote(note);
+                    setNoteContent(note.content);
+                    setRevisedContent(note.revised_content || note.content);
+                    setCurrentView("notes");
+                  }
+                }}
+              />
+            ) : currentView === "templates" ? (
+              <TemplateManager />
+            ) : currentView === "admin" ? (
+              <AdminPanel />
+            ) : currentView === "attachments" ? (
+              <AttachmentsPanel noteId={selectedNote?.id || ""} />
+            ) : currentView === "concepts" ? (
+              <ConceptBrowser
+                isOpen={true}
+                onClose={() => setCurrentView("notes")}
+              />
+            ) : currentView === "versions" ? (
+              <VersionHistory
+                noteId={selectedNote?.id || ""}
+                isOpen={true}
+                onClose={() => setCurrentView("notes")}
+              />
+            ) : currentView === "backup" ? (
+              <BackupManager />
+            ) : currentView === "tags" ? (
+              <TagManager />
+            ) : currentView === "advanced-search" ? (
+              <AdvancedSearchFilters
+                onSelectResult={(noteId) => {
+                  const note = notes.find((n) => n.id === noteId);
+                  if (note) {
+                    setSelectedNote(note);
+                    setCurrentView("notes");
+                  }
+                }}
+              />
+            ) : selectedNote ? (
               <div className="mx-auto max-w-4xl">
                 {(() => {
                   const fullNote = savedNotes.current.get(selectedNote.id);
