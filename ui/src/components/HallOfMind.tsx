@@ -156,6 +156,7 @@ export function HallOfMind() {
   const [quickNoteCollapsed, setQuickNoteCollapsed] = useState(false);
   const [quickAccessCollapsed, setQuickAccessCollapsed] = useState(false);
   const [tagsCollapsed, setTagsCollapsed] = useState(false);
+  const [featuresCollapsed, setFeaturesCollapsed] = useState(false);
   const [selectedTags, setSelectedTags] = useState<Set<string>>(new Set());
   const [tagSearchQuery, setTagSearchQuery] = useState("");
   const [availableTags, setAvailableTags] = useState<string[]>([]);
@@ -353,7 +354,7 @@ export function HallOfMind() {
                     timestamp: now
                   });
                 } catch (error) {
-                  console.error("Failed to refresh metadata labels:", error);
+                  // Labels endpoint not available in Fortemi API
                 }
               } else {
                 // Use cached data
@@ -547,20 +548,31 @@ export function HallOfMind() {
   const loadExistingNotes = async () => {
     try {
       setIsLoading(true);
-      const existingNotes = await api.getRecentNotes();
-      
-      if (existingNotes.length > 0) {
-        const simpleNotes = existingNotes.map(note => {
+
+      // Fetch note summaries first (fast, single request)
+      const summaries = await api.getNotes('created_at', 'all', 200);
+
+      if (summaries.length > 0) {
+        // Fetch full notes in parallel batches of 10
+        const batchSize = 10;
+        const fullNotes: NoteFull[] = [];
+        for (let i = 0; i < summaries.length; i += batchSize) {
+          const batch = summaries.slice(i, i + batchSize);
+          const results = await Promise.allSettled(
+            batch.map(s => api.getNote(s.id))
+          );
+          for (const result of results) {
+            if (result.status === 'fulfilled') {
+              fullNotes.push(result.value);
+            }
+          }
+        }
+
+        const simpleNotes = fullNotes.map(note => {
           // Store the full note data
           savedNotes.current.set(note.note.id, note);
-          
-          // Log if we have revised content
-          if (note.revised && note.revised.content) {
-            console.log(`Note ${note.note.id} has AI revision (${note.revised.content.length} chars)`);
-          }
-          
+
           // Create simplified version for UI
-          console.log(`Loading note ${note.note.id}: starred=${note.note.starred}, archived=${note.note.archived}`);
           return {
             id: note.note.id,
             title: note.note.title || note.original.content.split('\n')[0].substring(0, 50) || "Untitled",
@@ -576,7 +588,7 @@ export function HallOfMind() {
           };
         });
         setNotes(simpleNotes);
-        
+
         // If we have a selected note, update it with the fresh data
         if (selectedNote) {
           const updatedSelected = simpleNotes.find(n => n.id === selectedNote.id);
@@ -585,7 +597,7 @@ export function HallOfMind() {
             setNoteContent(updatedSelected.content);
           }
         }
-        
+
         console.log(`Loaded ${simpleNotes.length} notes from server`);
       } else {
         console.log("No existing notes found");
@@ -1234,6 +1246,144 @@ export function HallOfMind() {
           </SidebarHeader>
           
           <SidebarContent className="flex flex-col">
+            {/* Feature Navigation - Primary */}
+            <SidebarGroup>
+              <SidebarGroupLabel>
+                <button
+                  onClick={() => setFeaturesCollapsed(!featuresCollapsed)}
+                  className="flex items-center justify-between w-full hover:bg-accent/50 rounded px-1 py-0.5 transition-colors"
+                >
+                  <span>Navigate</span>
+                  {featuresCollapsed ? (
+                    <ChevronRight className="h-3 w-3" />
+                  ) : (
+                    <ChevronDown className="h-3 w-3" />
+                  )}
+                </button>
+              </SidebarGroupLabel>
+              {!featuresCollapsed && (
+                <SidebarMenu>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton
+                      onClick={() => setCurrentView("notes")}
+                      className={currentView === "notes" ? "bg-primary/10" : ""}
+                    >
+                      <BookOpen className="h-4 w-4" />
+                      <span>Notes</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton
+                      onClick={() => setCurrentView("collections")}
+                      className={currentView === "collections" ? "bg-primary/10" : ""}
+                    >
+                      <FolderOpen className="h-4 w-4" />
+                      <span>Collections</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton
+                      onClick={() => setCurrentView("tags")}
+                      className={currentView === "tags" ? "bg-primary/10" : ""}
+                    >
+                      <Hash className="h-4 w-4" />
+                      <span>Tags</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton
+                      onClick={() => setCurrentView("advanced-search")}
+                      className={currentView === "advanced-search" ? "bg-primary/10" : ""}
+                    >
+                      <SlidersHorizontal className="h-4 w-4" />
+                      <span>Advanced Search</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton
+                      onClick={() => setCurrentView("graph")}
+                      className={currentView === "graph" ? "bg-primary/10" : ""}
+                    >
+                      <Network className="h-4 w-4" />
+                      <span>Graph</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton
+                      onClick={() => setCurrentView("timeline")}
+                      className={currentView === "timeline" ? "bg-primary/10" : ""}
+                    >
+                      <Clock3 className="h-4 w-4" />
+                      <span>Timeline</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton
+                      onClick={() => setCurrentView("templates")}
+                      className={currentView === "templates" ? "bg-primary/10" : ""}
+                    >
+                      <LayoutTemplate className="h-4 w-4" />
+                      <span>Templates</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton
+                      onClick={() => setCurrentView("concepts")}
+                      className={currentView === "concepts" ? "bg-primary/10" : ""}
+                    >
+                      <BookMarked className="h-4 w-4" />
+                      <span>Concepts</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton
+                      onClick={() => setCurrentView("memory-search")}
+                      className={currentView === "memory-search" ? "bg-primary/10" : ""}
+                    >
+                      <MapPin className="h-4 w-4" />
+                      <span>Memory Search</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton
+                      onClick={() => setCurrentView("health")}
+                      className={currentView === "health" ? "bg-primary/10" : ""}
+                    >
+                      <Activity className="h-4 w-4" />
+                      <span>Health</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton
+                      onClick={() => setCurrentView("attachments")}
+                      className={currentView === "attachments" ? "bg-primary/10" : ""}
+                    >
+                      <Paperclip className="h-4 w-4" />
+                      <span>Attachments</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton
+                      onClick={() => setCurrentView("backup")}
+                      className={currentView === "backup" ? "bg-primary/10" : ""}
+                    >
+                      <HardDrive className="h-4 w-4" />
+                      <span>Backup</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton
+                      onClick={() => setCurrentView("admin")}
+                      className={currentView === "admin" ? "bg-primary/10" : ""}
+                    >
+                      <Shield className="h-4 w-4" />
+                      <span>Admin</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                </SidebarMenu>
+              )}
+            </SidebarGroup>
+
             <SidebarGroup>
               <SidebarGroupLabel>
                 <button
@@ -1479,130 +1629,6 @@ export function HallOfMind() {
               )}
             </SidebarGroup>
 
-            {/* Feature Navigation */}
-            <SidebarGroup>
-              <SidebarGroupLabel>Features</SidebarGroupLabel>
-              <SidebarMenu>
-                <SidebarMenuItem>
-                  <SidebarMenuButton
-                    onClick={() => setCurrentView("notes")}
-                    className={currentView === "notes" ? "bg-primary/10" : ""}
-                  >
-                    <BookOpen className="h-4 w-4" />
-                    <span>Notes</span>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-                <SidebarMenuItem>
-                  <SidebarMenuButton
-                    onClick={() => setCurrentView("collections")}
-                    className={currentView === "collections" ? "bg-primary/10" : ""}
-                  >
-                    <FolderOpen className="h-4 w-4" />
-                    <span>Collections</span>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-                <SidebarMenuItem>
-                  <SidebarMenuButton
-                    onClick={() => setCurrentView("health")}
-                    className={currentView === "health" ? "bg-primary/10" : ""}
-                  >
-                    <Activity className="h-4 w-4" />
-                    <span>Health</span>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-                <SidebarMenuItem>
-                  <SidebarMenuButton
-                    onClick={() => setCurrentView("memory-search")}
-                    className={currentView === "memory-search" ? "bg-primary/10" : ""}
-                  >
-                    <MapPin className="h-4 w-4" />
-                    <span>Memory Search</span>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-                <SidebarMenuItem>
-                  <SidebarMenuButton
-                    onClick={() => setCurrentView("graph")}
-                    className={currentView === "graph" ? "bg-primary/10" : ""}
-                  >
-                    <Network className="h-4 w-4" />
-                    <span>Graph</span>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-                <SidebarMenuItem>
-                  <SidebarMenuButton
-                    onClick={() => setCurrentView("timeline")}
-                    className={currentView === "timeline" ? "bg-primary/10" : ""}
-                  >
-                    <Clock3 className="h-4 w-4" />
-                    <span>Timeline</span>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-                <SidebarMenuItem>
-                  <SidebarMenuButton
-                    onClick={() => setCurrentView("templates")}
-                    className={currentView === "templates" ? "bg-primary/10" : ""}
-                  >
-                    <LayoutTemplate className="h-4 w-4" />
-                    <span>Templates</span>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-                <SidebarMenuItem>
-                  <SidebarMenuButton
-                    onClick={() => setCurrentView("concepts")}
-                    className={currentView === "concepts" ? "bg-primary/10" : ""}
-                  >
-                    <BookMarked className="h-4 w-4" />
-                    <span>Concepts</span>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-                <SidebarMenuItem>
-                  <SidebarMenuButton
-                    onClick={() => setCurrentView("tags")}
-                    className={currentView === "tags" ? "bg-primary/10" : ""}
-                  >
-                    <Hash className="h-4 w-4" />
-                    <span>Tags</span>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-                <SidebarMenuItem>
-                  <SidebarMenuButton
-                    onClick={() => setCurrentView("advanced-search")}
-                    className={currentView === "advanced-search" ? "bg-primary/10" : ""}
-                  >
-                    <SlidersHorizontal className="h-4 w-4" />
-                    <span>Advanced Search</span>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-                <SidebarMenuItem>
-                  <SidebarMenuButton
-                    onClick={() => setCurrentView("attachments")}
-                    className={currentView === "attachments" ? "bg-primary/10" : ""}
-                  >
-                    <Paperclip className="h-4 w-4" />
-                    <span>Attachments</span>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-                <SidebarMenuItem>
-                  <SidebarMenuButton
-                    onClick={() => setCurrentView("backup")}
-                    className={currentView === "backup" ? "bg-primary/10" : ""}
-                  >
-                    <HardDrive className="h-4 w-4" />
-                    <span>Backup</span>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-                <SidebarMenuItem>
-                  <SidebarMenuButton
-                    onClick={() => setCurrentView("admin")}
-                    className={currentView === "admin" ? "bg-primary/10" : ""}
-                  >
-                    <Shield className="h-4 w-4" />
-                    <span>Admin</span>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              </SidebarMenu>
-            </SidebarGroup>
-
             <Separator className="my-2 flex-shrink-0" />
 
             <SidebarGroup className="flex-1 flex flex-col min-h-0">
@@ -1800,7 +1826,7 @@ export function HallOfMind() {
                                       const labels = await api.getMetadataLabels(note.id);
                                       setNoteLabels(new Map(noteLabels.set(note.id, labels)));
                                     } catch (error) {
-                                      console.error("Failed to load labels:", error);
+                                      // Labels endpoint not available in Fortemi API
                                     }
                                     
                                     console.log("Note refreshed from server:", note.id);
@@ -1856,7 +1882,7 @@ export function HallOfMind() {
               >
                 {isDarkMode ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
               </Button>
-              <Button variant="ghost" size="icon">
+              <Button variant="ghost" size="icon" onClick={() => setCurrentView("admin")}>
                 <Settings className="h-4 w-4" />
               </Button>
             </div>

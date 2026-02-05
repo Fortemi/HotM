@@ -35,12 +35,22 @@ class WebSocketService {
   private handlers: Set<MessageHandler> = new Set();
   private connectionPromise: Promise<void> | null = null;
   private isClosing = false;
+  private isDisabled = false;
 
   constructor() {
-    // Don't auto-connect in constructor - wait for first subscription
+    // Check if WebSocket is disabled via environment variable
+    this.isDisabled = import.meta.env.VITE_DISABLE_WEBSOCKET === 'true';
+    if (this.isDisabled) {
+      console.log('WebSocket disabled via VITE_DISABLE_WEBSOCKET');
+    }
   }
 
   private connect(): Promise<void> {
+    // If WebSocket is disabled, don't attempt connection
+    if (this.isDisabled) {
+      return Promise.resolve();
+    }
+
     // If we're in the process of closing, don't create new connections
     if (this.isClosing) {
       return Promise.reject(new Error('Service is closing'));
@@ -69,7 +79,11 @@ class WebSocketService {
           this.reconnectTimeout = null;
         }
 
-        const wsUrl = `ws://localhost:53211/api/v1/ws`;
+        // Build WebSocket URL from API base URL
+        const apiBase = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
+        const wsProtocol = apiBase.startsWith('https') ? 'wss' : 'ws';
+        const wsHost = apiBase.replace(/^https?:\/\//, '');
+        const wsUrl = `${wsProtocol}://${wsHost}/api/v1/ws`;
         this.ws = new WebSocket(wsUrl);
 
         this.ws.onopen = () => {

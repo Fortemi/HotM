@@ -135,9 +135,15 @@ export function createExtendedApi(client: ApiClient) {
       const params: Record<string, string> = {
         sort_by: sortBy,
         sort_order: 'desc',
-        filter,
         limit: limit.toString(),
       };
+
+      // Map filter to Fortemi API params (no 'filter' query param)
+      if (filter === 'starred') {
+        params.starred = 'true';
+      } else if (filter === 'archived') {
+        params.archived = 'true';
+      }
 
       const response = await client.get<ListNotesResponse>(
         '/api/v1/notes',
