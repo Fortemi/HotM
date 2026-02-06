@@ -166,7 +166,7 @@ describe('Notes API', () => {
       expect(mockClient.post).toHaveBeenCalledWith('/api/v1/notes', {
         content: 'Test',
         format: 'markdown',
-        source: 'user'
+        source: 'manual'
       });
     });
 

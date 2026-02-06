@@ -4,7 +4,9 @@ import { Progress } from './ui/progress';
 import { Badge } from './ui/badge';
 import { ScrollArea } from './ui/scroll-area';
 import { Clock, CheckCircle2, XCircle, AlertCircle, Loader2 } from 'lucide-react';
-import { useWebSocket, WsMessage } from '@/services/websocket';
+import { useWebSocket } from '@/services/websocket';
+import webSocketService from '@/services/websocket';
+import type { WsMessage } from '@/services/websocket';
 
 interface Job {
   job_id: string;
@@ -14,7 +16,6 @@ interface Job {
   message?: string;
   started_at: string;
 }
-
 
 interface CompletedJob {
   job_id: string;
@@ -31,9 +32,9 @@ const JobQueueMonitor: React.FC = () => {
   const [activeJob, setActiveJob] = useState<Job | null>(null);
   const [completedJobs, setCompletedJobs] = useState<CompletedJob[]>([]);
 
-  // Subscribe to additional WebSocket messages for detailed job info
+  // Subscribe to WebSocket messages for detailed job info
   useEffect(() => {
-    const handleMessage = (message: WsMessage) => {
+    const unsubscribe = webSocketService.subscribe((message: WsMessage) => {
       switch (message.type) {
         case 'JobStarted':
           if (message.job_id && message.job_type) {
@@ -49,10 +50,10 @@ const JobQueueMonitor: React.FC = () => {
           break;
 
         case 'JobProgress':
-          if (message.job_id && typeof message.progress === 'number') {
+          if (message.job_id && typeof message.progress_percent === 'number') {
             setActiveJob(prev => prev && prev.job_id === message.job_id ? {
               ...prev,
-              progress_percent: message.progress ?? prev.progress_percent,
+              progress_percent: message.progress_percent ?? prev.progress_percent,
               message: message.message || prev.message,
             } : prev);
           }
@@ -61,7 +62,6 @@ const JobQueueMonitor: React.FC = () => {
         case 'JobCompleted':
         case 'JobFailed':
           if (message.job_id) {
-            // Add to completed jobs
             setCompletedJobs(prev => [
               {
                 job_id: message.job_id!,
@@ -72,33 +72,16 @@ const JobQueueMonitor: React.FC = () => {
                 error: message.error,
                 timestamp: new Date(),
               },
-              ...prev.slice(0, 9) // Keep only last 10 completed jobs
+              ...prev.slice(0, 9)
             ]);
 
-            // Clear active job if it matches
             setActiveJob(prev => prev?.job_id === message.job_id ? null : prev);
           }
           break;
       }
-    };
+    });
 
-    // This is a simplified approach - in a real implementation,
-    // you'd want to extend the useWebSocket hook to support custom handlers
-    const originalAddEventListener = window.addEventListener;
-    window.addEventListener = function(type: string, listener: any, options?: any) {
-      if (type === 'websocketMessage') {
-        // Custom handling for WebSocket messages
-        const wrappedListener = (event: any) => {
-          handleMessage(event.detail);
-        };
-        return originalAddEventListener.call(this, type, wrappedListener, options);
-      }
-      return originalAddEventListener.call(this, type, listener, options);
-    };
-
-    return () => {
-      // Cleanup if needed
-    };
+    return unsubscribe;
   }, []);
 
   const getJobTypeColor = (jobType: string) => {

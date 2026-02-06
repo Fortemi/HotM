@@ -1,19 +1,31 @@
 // Shared WebSocket service for job queue updates
 import { useEffect, useState } from 'react';
 
+export interface WsActiveJob {
+  job_id: string;
+  job_type: string;
+  progress_percent: number;
+  message?: string;
+  started_at?: string;
+}
+
 export interface WsMessage {
   type: 'QueueStatus' | 'JobQueued' | 'JobStarted' | 'JobProgress' | 'JobCompleted' | 'JobFailed' | 'NoteUpdated';
   job_id?: string;
   note_id?: string;
   job_type?: string;
   status?: string;
-  progress?: number;
+  progress_percent?: number;
   message?: string;
   error?: string;
+  retry_count?: number;
   duration_ms?: number;
+  estimated_duration_ms?: number;
+  priority?: number;
   total_jobs?: number;
   running?: number;
   pending?: number;
+  active_job?: WsActiveJob;
   title?: string;
   tags?: string[];
   has_ai_content?: boolean;

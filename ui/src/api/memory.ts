@@ -117,6 +117,20 @@ export function createMemoryApi(client: ApiClient) {
 
       return response.results;
     },
+
+    /**
+     * Get memory provenance chain for a note
+     * Returns spatial/temporal provenance data distinct from AI revision provenance
+     */
+    async getProvenance(noteId: string): Promise<Record<string, unknown>> {
+      if (!noteId || noteId.trim() === '') {
+        throw new Error('Note ID is required');
+      }
+
+      return client.get<Record<string, unknown>>(
+        `/api/v1/notes/${noteId}/memories/provenance`
+      );
+    },
   };
 }
 

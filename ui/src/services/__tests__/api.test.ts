@@ -83,7 +83,7 @@ describe('Legacy API Service (Compatibility Layer)', () => {
           body: JSON.stringify({
             content: 'Test content',
             format: 'markdown',
-            source: 'user',
+            source: 'manual',
           }),
         })
       );

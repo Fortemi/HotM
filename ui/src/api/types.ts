@@ -17,6 +17,7 @@ export interface NoteMeta {
   archived?: boolean;
   last_accessed_at?: string | null;
   title?: string | null;
+  metadata?: Record<string, unknown>;
 }
 
 /**
@@ -25,6 +26,8 @@ export interface NoteMeta {
 export interface NoteOriginal {
   content: string;
   hash: string;
+  user_created_at?: string;
+  user_last_edited_at?: string;
 }
 
 /**
@@ -35,6 +38,10 @@ export interface NoteRevised {
   last_revision_id?: string | null;
   ai_metadata?: Record<string, unknown>;
   model?: string | null;
+  ai_generated_at?: string;
+  user_last_edited_at?: string | null;
+  is_user_edited?: boolean;
+  generation_count?: number;
 }
 
 /**
@@ -92,6 +99,7 @@ export interface CreateNoteRequest {
  */
 export interface CreateNoteResponse {
   note_id: string;
+  status?: string;
 }
 
 /**
@@ -150,15 +158,17 @@ export interface TagStats {
  */
 export interface HealthResponse {
   ok: boolean;
-  database: boolean;
+  db: boolean;
+  database?: boolean; // v1 compat alias
   ollama?: boolean;
   vector?: boolean;
+  version?: string;
 }
 
 /**
  * Search mode
  */
-export type SearchMode = 'hybrid' | 'fts' | 'semantic';
+export type SearchMode = 'hybrid' | 'fts' | 'semantic' | 'vector';
 
 /**
  * Sort order
@@ -186,6 +196,10 @@ export interface SearchOptions {
   tags?: string[];
   starred?: boolean;
   archived?: boolean;
+  collection?: string;
+  before?: string;
+  after?: string;
+  filters?: string;
   limit?: number;
   offset?: number;
 }

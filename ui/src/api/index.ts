@@ -21,6 +21,8 @@ import { createBackupApi } from './backup';
 import { createEmbeddingsApi } from './embeddings';
 import { createLinksApi } from './links';
 import { createProvenanceApi } from './provenance';
+import { createEventsClient } from './events';
+import { createWebhooksApi } from './webhooks';
 
 // Export core types
 export type {
@@ -169,7 +171,18 @@ export { createMemoryApi } from './memory';
 export { createBackupApi } from './backup';
 export { createEmbeddingsApi } from './embeddings';
 export { createLinksApi } from './links';
+export type { LinkKind, CreateLinkRequest, CreateLinkResponse } from './links';
 export { createProvenanceApi } from './provenance';
+export { createEventsClient } from './events';
+export type { ServerEvent, EventsClient } from './events';
+export { createWebhooksApi } from './webhooks';
+export type {
+  Webhook,
+  CreateWebhookRequest,
+  UpdateWebhookRequest,
+  WebhookDelivery,
+  WebhooksApi,
+} from './webhooks';
 
 // Export types for the API modules
 export type { ApiClient } from './client';
@@ -233,6 +246,8 @@ export function createApi(baseUrl?: string) {
     embeddings: createEmbeddingsApi(client),
     links: createLinksApi(client),
     provenance: createProvenanceApi(client),
+    events: createEventsClient(url),
+    webhooks: createWebhooksApi(client),
 
     /**
      * Quick health check endpoint (legacy)

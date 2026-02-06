@@ -29,6 +29,10 @@ export function createSearchApi(client: ApiClient) {
         tags,
         starred,
         archived,
+        collection,
+        before,
+        after,
+        filters,
         limit,
         offset,
       } = options;
@@ -48,6 +52,22 @@ export function createSearchApi(client: ApiClient) {
 
       if (archived !== undefined) {
         params.archived = String(archived);
+      }
+
+      if (collection) {
+        params.collection = collection;
+      }
+
+      if (before) {
+        params.before = before;
+      }
+
+      if (after) {
+        params.after = after;
+      }
+
+      if (filters) {
+        params.filters = filters;
       }
 
       if (limit !== undefined) {
@@ -93,6 +113,37 @@ export function createSearchApi(client: ApiClient) {
       );
 
       return response.results;
+    },
+
+    /**
+     * Semantic search by raw text (POST /semantic)
+     * Unlike findSimilar which requires a note ID, this accepts arbitrary text
+     */
+    async semanticSearch(
+      text: string,
+      options: SimilarNotesOptions = {}
+    ): Promise<SearchResult[]> {
+      if (!text || text.trim() === '') {
+        throw new Error('Search text is required');
+      }
+
+      const { limit = 10, threshold } = options;
+
+      const body: Record<string, unknown> = {
+        text,
+        limit,
+      };
+
+      if (threshold !== undefined) {
+        body.threshold = threshold;
+      }
+
+      const response = await client.post<{ similar: SearchResult[] }>(
+        '/api/v1/semantic',
+        body
+      );
+
+      return response.similar;
     },
 
     /**
