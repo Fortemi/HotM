@@ -3,12 +3,20 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { HallOfMind } from '../HallOfMind';
 import * as apiModule from '@/services/api';
 import * as websocketModule from '@/services/websocket';
-import { NoteFull } from '@/services/api';
+import { NoteFull, NoteSummary } from '@/services/api';
 
 // Mock all external dependencies
 vi.mock('@/services/api');
+
+// Mock websocket service with both named and default exports
 vi.mock('@/services/websocket', () => ({
   useWebSocket: vi.fn(),
+  default: {
+    subscribe: vi.fn(() => vi.fn()), // Returns unsubscribe function
+    connect: vi.fn(),
+    disconnect: vi.fn(),
+    send: vi.fn(),
+  },
 }));
 
 // Mock TypingAnimation component for animation testing
@@ -77,15 +85,30 @@ describe('HallOfMind Title Handling', () => {
     links: [],
   });
 
+  // Helper to create note summary from NoteFull
+  const createNoteSummary = (note: NoteFull): NoteSummary => ({
+    id: note.note.id,
+    title: note.note.title || '',
+    snippet: note.original?.content?.slice(0, 100) || '',
+    created_at_utc: note.note.created_at_utc,
+    updated_at_utc: note.note.updated_at_utc,
+    starred: note.note.starred ?? false,
+    archived: note.note.archived ?? false,
+    tags: note.tags || [],
+    has_revision: !!note.revised?.content,
+    metadata: note.note.metadata || {},
+  });
+
   beforeEach(() => {
     // Reset all mocks
     vi.clearAllMocks();
-    
-    // Default API mocks
+
+    // Default API mocks - IMPORTANT: mock getNotes() which is called first
     mockApi.checkHealth.mockResolvedValue({ ok: true, db: true, vector: true, ollama: true });
+    mockApi.getNotes.mockResolvedValue([]); // This is called first in loadExistingNotes
     mockApi.getRecentNotes.mockResolvedValue([]);
     mockApi.getAllLabels.mockResolvedValue([]);
-    
+
     // Default WebSocket mock - disconnected initially
     mockUseWebSocket.mockReturnValue({
       connected: false,
@@ -112,8 +135,10 @@ describe('HallOfMind Title Handling', () => {
         },
       });
 
-      mockApi.getRecentNotes.mockResolvedValue([noteWithoutAiTitle]);
-      
+      // Mock both getNotes (returns summaries) and getNote (returns full note)
+      mockApi.getNotes.mockResolvedValue([createNoteSummary(noteWithoutAiTitle)]);
+      mockApi.getNote.mockResolvedValue(noteWithoutAiTitle);
+
       render(<HallOfMind />);
 
       await waitFor(() => {
@@ -124,7 +149,7 @@ describe('HallOfMind Title Handling', () => {
 
     it('displays AI-generated title when available', async () => {
       const noteWithAiTitle = createMockNote({
-        note: { 
+        note: {
           id: 'test-note-2',
           title: 'AI Generated Awesome Title' // Has AI title
         },
@@ -134,8 +159,9 @@ describe('HallOfMind Title Handling', () => {
         },
       });
 
-      mockApi.getRecentNotes.mockResolvedValue([noteWithAiTitle]);
-      
+      mockApi.getNotes.mockResolvedValue([createNoteSummary(noteWithAiTitle)]);
+      mockApi.getNote.mockResolvedValue(noteWithAiTitle);
+
       render(<HallOfMind />);
 
       await waitFor(() => {
@@ -154,8 +180,9 @@ describe('HallOfMind Title Handling', () => {
         },
       });
 
-      mockApi.getRecentNotes.mockResolvedValue([noteWithEmptyContent]);
-      
+      mockApi.getNotes.mockResolvedValue([createNoteSummary(noteWithEmptyContent)]);
+      mockApi.getNote.mockResolvedValue(noteWithEmptyContent);
+
       render(<HallOfMind />);
 
       await waitFor(() => {
@@ -173,8 +200,9 @@ describe('HallOfMind Title Handling', () => {
         },
       });
 
-      mockApi.getRecentNotes.mockResolvedValue([noteWithLongContent]);
-      
+      mockApi.getNotes.mockResolvedValue([createNoteSummary(noteWithLongContent)]);
+      mockApi.getNote.mockResolvedValue(noteWithLongContent);
+
       render(<HallOfMind />);
 
       await waitFor(() => {
@@ -195,8 +223,9 @@ describe('HallOfMind Title Handling', () => {
         },
       });
 
-      mockApi.getRecentNotes.mockResolvedValue([initialNote]);
-      
+      mockApi.getNotes.mockResolvedValue([createNoteSummary(initialNote)]);
+      mockApi.getNote.mockResolvedValue(initialNote);
+
       render(<HallOfMind />);
 
       // Wait for initial render
@@ -208,7 +237,7 @@ describe('HallOfMind Title Handling', () => {
       // Note: This would normally be triggered by the WebSocket event handler
       // For testing, we need to mock the getNote call that happens during updates
       const updatedNoteWithAiTitle = createMockNote({
-        note: { 
+        note: {
           id: 'animation-note-1',
           title: 'New AI Generated Title' // Now has AI title
         },
@@ -228,7 +257,7 @@ describe('HallOfMind Title Handling', () => {
     it('does not trigger animation for notes that already have AI titles', async () => {
       // Note already has AI title
       const noteWithExistingTitle = createMockNote({
-        note: { 
+        note: {
           id: 'animation-note-2',
           title: 'Existing AI Title'
         },
@@ -238,8 +267,9 @@ describe('HallOfMind Title Handling', () => {
         },
       });
 
-      mockApi.getRecentNotes.mockResolvedValue([noteWithExistingTitle]);
-      
+      mockApi.getNotes.mockResolvedValue([createNoteSummary(noteWithExistingTitle)]);
+      mockApi.getNote.mockResolvedValue(noteWithExistingTitle);
+
       render(<HallOfMind />);
 
       await waitFor(() => {
@@ -253,7 +283,7 @@ describe('HallOfMind Title Handling', () => {
   describe('Title Consistency Across Workflows', () => {
     it('maintains title consistency during new note → revise → title workflow', async () => {
       // This test simulates the full workflow: new note → AI revision → title generation
-      
+
       // Step 1: New note created (no AI title yet)
       const newNote = createMockNote({
         note: { id: 'workflow-note' },
@@ -264,8 +294,9 @@ describe('HallOfMind Title Handling', () => {
         revised: null as any, // No revision yet
       });
 
-      mockApi.getRecentNotes.mockResolvedValue([newNote]);
-      
+      mockApi.getNotes.mockResolvedValue([createNoteSummary(newNote)]);
+      mockApi.getNote.mockResolvedValue(newNote);
+
       render(<HallOfMind />);
 
       // Should show original content as title initially
@@ -290,7 +321,7 @@ describe('HallOfMind Title Handling', () => {
 
       // Simulate update
       mockApi.getNote.mockResolvedValue(revisedNote);
-      
+
       // Title should still be original content
       await waitFor(() => {
         expect(screen.getByText('Brand new note content')).toBeInTheDocument();
@@ -298,7 +329,7 @@ describe('HallOfMind Title Handling', () => {
 
       // Step 3: Title generation completes
       const titleGeneratedNote = createMockNote({
-        note: { 
+        note: {
           id: 'workflow-note',
           title: 'AI Generated Title From Content' // Now has AI title
         },
@@ -330,8 +361,9 @@ describe('HallOfMind Title Handling', () => {
         original: { content: 'Some content', hash: 'some-hash' },
       });
 
-      mockApi.getRecentNotes.mockResolvedValue([malformedNote]);
-      
+      mockApi.getNotes.mockResolvedValue([createNoteSummary(malformedNote)]);
+      mockApi.getNote.mockResolvedValue(malformedNote);
+
       render(<HallOfMind />);
 
       // Should not crash and should handle gracefully
@@ -342,11 +374,11 @@ describe('HallOfMind Title Handling', () => {
 
     it('handles API errors during title updates', async () => {
       const note = createMockNote();
-      mockApi.getRecentNotes.mockResolvedValue([note]);
-      
+      mockApi.getNotes.mockResolvedValue([createNoteSummary(note)]);
+
       // Mock API error for getNote call
       mockApi.getNote.mockRejectedValue(new Error('API Error'));
-      
+
       render(<HallOfMind />);
 
       // Should handle errors gracefully without crashing

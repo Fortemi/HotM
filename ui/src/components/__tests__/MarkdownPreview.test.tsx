@@ -28,7 +28,10 @@ vi.mock('../MermaidRenderer', () => ({
 describe('MarkdownPreview', () => {
   describe('Basic Markdown', () => {
     it('should render headings', () => {
-      render(<MarkdownPreview content="# H1\n## H2\n### H3" />);
+      const content = `# H1
+## H2
+### H3`;
+      render(<MarkdownPreview content={content} />);
 
       expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('H1');
       expect(screen.getByRole('heading', { level: 2 })).toHaveTextContent('H2');
@@ -36,7 +39,10 @@ describe('MarkdownPreview', () => {
     });
 
     it('should render paragraphs', () => {
-      render(<MarkdownPreview content="This is a paragraph.\n\nThis is another paragraph." />);
+      const content = `This is a paragraph.
+
+This is another paragraph.`;
+      render(<MarkdownPreview content={content} />);
 
       const paragraphs = screen.getAllByText(/This is/);
       expect(paragraphs).toHaveLength(2);
@@ -279,7 +285,8 @@ This is a **bold** paragraph with \`code\`.
     });
 
     it('should handle malformed markdown gracefully', () => {
-      const malformed = '# Unclosed **bold\n[Unclosed link(';
+      const malformed = `# Unclosed **bold
+[Unclosed link(`;
       render(<MarkdownPreview content={malformed} />);
 
       // Should render without crashing
@@ -289,7 +296,10 @@ This is a **bold** paragraph with \`code\`.
 
   describe('Accessibility', () => {
     it('should have proper heading hierarchy', () => {
-      const content = '# H1\n## H2\n### H3\n#### H4';
+      const content = `# H1
+## H2
+### H3
+#### H4`;
       render(<MarkdownPreview content={content} />);
 
       expect(screen.getByRole('heading', { level: 1 })).toBeInTheDocument();
@@ -306,7 +316,9 @@ This is a **bold** paragraph with \`code\`.
     });
 
     it('should render tables with proper structure', () => {
-      const table = '| H1 | H2 |\n|----|----|---|\n| C1 | C2 |';
+      const table = `| H1 | H2 |
+|----|----|
+| C1 | C2 |`;
       render(<MarkdownPreview content={table} />);
 
       expect(screen.getByText('H1')).toBeInTheDocument();

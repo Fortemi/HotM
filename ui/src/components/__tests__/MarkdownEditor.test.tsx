@@ -5,7 +5,8 @@
  */
 
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { MarkdownEditor } from '../MarkdownEditor';
 
 // Mock the MDEditor component
@@ -59,45 +60,59 @@ describe('MarkdownEditor', () => {
   });
 
   describe('Mode Switching', () => {
-    it('should switch to raw mode', () => {
+    it('should switch to raw mode', async () => {
+      const user = userEvent.setup();
       const onChange = vi.fn();
       render(<MarkdownEditor value="# Test" onChange={onChange} />);
 
       const rawTab = screen.getByText('Raw Markdown');
-      fireEvent.click(rawTab);
+      await user.click(rawTab);
 
       // Should render raw textarea
-      const textareas = screen.getAllByRole('textbox');
-      expect(textareas.length).toBeGreaterThan(0);
+      await waitFor(() => {
+        const textareas = screen.getAllByRole('textbox');
+        expect(textareas.length).toBeGreaterThan(0);
+      });
     });
 
-    it('should switch to preview mode', () => {
+    it('should switch to preview mode', async () => {
+      const user = userEvent.setup();
       const onChange = vi.fn();
       render(<MarkdownEditor value="# Test Content" onChange={onChange} />);
 
       const previewTab = screen.getByText('Preview Only');
-      fireEvent.click(previewTab);
+      await user.click(previewTab);
 
       // Should show preview
-      expect(screen.getByTestId('markdown-preview')).toBeInTheDocument();
-      expect(screen.getByText('# Test Content')).toBeInTheDocument();
+      await waitFor(() => {
+        const previewElement = screen.getByTestId('markdown-preview');
+        expect(previewElement).toBeInTheDocument();
+        expect(previewElement).toHaveTextContent('# Test Content');
+      });
     });
 
-    it('should maintain value across mode switches', () => {
+    it('should maintain value across mode switches', async () => {
+      const user = userEvent.setup();
       const onChange = vi.fn();
       const testValue = '# Header\n\nContent';
       render(<MarkdownEditor value={testValue} onChange={onChange} />);
 
       // Switch to raw mode
-      fireEvent.click(screen.getByText('Raw Markdown'));
+      await user.click(screen.getByText('Raw Markdown'));
 
-      const textarea = screen.getAllByRole('textbox')[0];
-      expect(textarea).toHaveValue(testValue);
+      await waitFor(() => {
+        const textarea = screen.getAllByRole('textbox')[0];
+        expect(textarea).toHaveValue(testValue);
+      });
 
       // Switch to preview mode
-      fireEvent.click(screen.getByText('Preview Only'));
+      await user.click(screen.getByText('Preview Only'));
 
-      expect(screen.getByText(testValue)).toBeInTheDocument();
+      await waitFor(() => {
+        const previewElement = screen.getByTestId('markdown-preview');
+        // toHaveTextContent normalizes whitespace, so check for both parts separately
+        expect(previewElement.textContent).toBe(testValue);
+      });
     });
   });
 
@@ -112,17 +127,19 @@ describe('MarkdownEditor', () => {
       expect(onChange).toHaveBeenCalledWith('# Updated');
     });
 
-    it('should call onChange in raw mode', () => {
+    it('should call onChange in raw mode', async () => {
+      const user = userEvent.setup();
       const onChange = vi.fn();
       render(<MarkdownEditor value="# Test" onChange={onChange} />);
 
       // Switch to raw mode
-      fireEvent.click(screen.getByText('Raw Markdown'));
+      await user.click(screen.getByText('Raw Markdown'));
 
-      const textarea = screen.getAllByRole('textbox')[0];
-      fireEvent.change(textarea, { target: { value: '# Updated Raw' } });
-
-      expect(onChange).toHaveBeenCalledWith('# Updated Raw');
+      await waitFor(() => {
+        const textarea = screen.getAllByRole('textbox')[0];
+        fireEvent.change(textarea, { target: { value: '# Updated Raw' } });
+        expect(onChange).toHaveBeenCalledWith('# Updated Raw');
+      });
     });
 
     it('should handle empty value', () => {
@@ -242,17 +259,20 @@ describe('MarkdownEditor', () => {
       expect(textarea).toHaveValue(specialContent);
     });
 
-    it('should handle rapid mode switching', () => {
+    it('should handle rapid mode switching', async () => {
+      const user = userEvent.setup();
       const onChange = vi.fn();
       render(<MarkdownEditor value="# Test" onChange={onChange} />);
 
       // Rapidly switch modes
-      fireEvent.click(screen.getByText('Raw Markdown'));
-      fireEvent.click(screen.getByText('Preview Only'));
-      fireEvent.click(screen.getByText('Side by Side'));
+      await user.click(screen.getByText('Raw Markdown'));
+      await user.click(screen.getByText('Preview Only'));
+      await user.click(screen.getByText('Side by Side'));
 
       // Should not crash
-      expect(screen.getByTestId('md-editor')).toBeInTheDocument();
+      await waitFor(() => {
+        expect(screen.getByTestId('md-editor')).toBeInTheDocument();
+      });
     });
 
     it('should handle onChange returning undefined', () => {

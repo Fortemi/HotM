@@ -3,12 +3,20 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { HallOfMind } from '../HallOfMind';
 import * as apiModule from '@/services/api';
 import * as websocketModule from '@/services/websocket';
-import { NoteFull } from '@/services/api';
+import { NoteFull, NoteSummary } from '@/services/api';
 
 // Mock all external dependencies
 vi.mock('@/services/api');
+
+// Mock websocket service with both named and default exports
 vi.mock('@/services/websocket', () => ({
   useWebSocket: vi.fn(),
+  default: {
+    subscribe: vi.fn(() => vi.fn()), // Returns unsubscribe function
+    connect: vi.fn(),
+    disconnect: vi.fn(),
+    send: vi.fn(),
+  },
 }));
 
 // Mock TypingAnimation component
@@ -77,15 +85,29 @@ describe('HallOfMind WebSocket Integration', () => {
     links: [],
   });
 
+  // Helper to create note summary from NoteFull
+  const createNoteSummary = (note: NoteFull): NoteSummary => ({
+    id: note.note.id,
+    title: note.note.title || '',
+    snippet: note.original?.content?.slice(0, 100) || '',
+    created_at_utc: note.note.created_at_utc,
+    updated_at_utc: note.note.updated_at_utc,
+    starred: note.note.starred ?? false,
+    archived: note.note.archived ?? false,
+    tags: note.tags || [],
+    has_revision: !!note.revised?.content,
+    metadata: note.note.metadata || {},
+  });
+
   beforeEach(() => {
     vi.clearAllMocks();
-    
-    // Default API mocks
+
+    // Default API mocks - IMPORTANT: mock getNotes() which is called first
     mockApi.checkHealth.mockResolvedValue({ ok: true, db: true, vector: true, ollama: true });
+    mockApi.getNotes.mockResolvedValue([]); // This is called first in loadExistingNotes
     mockApi.getRecentNotes.mockResolvedValue([]);
-    mockApi.getNotes.mockResolvedValue([]);
     mockApi.getAllLabels.mockResolvedValue([]);
-    
+
     // Default WebSocket mock
     mockUseWebSocket.mockReturnValue({
       connected: false,
@@ -115,8 +137,8 @@ describe('HallOfMind WebSocket Integration', () => {
         sendMessage: vi.fn(),
       });
 
-      mockApi.getRecentNotes.mockResolvedValue([]);
-      
+      mockApi.getNotes.mockResolvedValue([]);
+
       render(<HallOfMind />);
 
       // Component should render successfully with WebSocket integration
@@ -140,8 +162,8 @@ describe('HallOfMind WebSocket Integration', () => {
         sendMessage: vi.fn(),
       });
 
-      mockApi.getRecentNotes.mockResolvedValue([]);
-      
+      mockApi.getNotes.mockResolvedValue([]);
+
       render(<HallOfMind />);
 
       // Component should render successfully even when WebSocket is disconnected
@@ -169,8 +191,9 @@ describe('HallOfMind WebSocket Integration', () => {
         original: { content: 'Test content' },
       });
 
-      mockApi.getRecentNotes.mockResolvedValue([testNote]);
-      
+      mockApi.getNotes.mockResolvedValue([createNoteSummary(testNote)]);
+      mockApi.getNote.mockResolvedValue(testNote);
+
       render(<HallOfMind />);
 
       // Component should handle queue status changes
@@ -189,8 +212,9 @@ describe('HallOfMind WebSocket Integration', () => {
         original: { content: 'Content for WebSocket testing' },
       });
 
-      mockApi.getRecentNotes.mockResolvedValue([testNote]);
-      
+      mockApi.getNotes.mockResolvedValue([createNoteSummary(testNote)]);
+      mockApi.getNote.mockResolvedValue(testNote);
+
       render(<HallOfMind />);
 
       // Should load and display notes
@@ -204,8 +228,8 @@ describe('HallOfMind WebSocket Integration', () => {
 
     it('handles API errors gracefully with WebSocket active', async () => {
       // Mock API error
-      mockApi.getRecentNotes.mockRejectedValue(new Error('API Error'));
-      
+      mockApi.getNotes.mockRejectedValue(new Error('API Error'));
+
       render(<HallOfMind />);
 
       // Component should handle errors gracefully
@@ -232,8 +256,8 @@ describe('HallOfMind WebSocket Integration', () => {
       });
 
       // Also test with API that fails
-      mockApi.getRecentNotes.mockRejectedValue(new Error('Connection failed'));
-      
+      mockApi.getNotes.mockRejectedValue(new Error('Connection failed'));
+
       render(<HallOfMind />);
 
       // Component should still render despite connection issues
@@ -250,8 +274,9 @@ describe('HallOfMind WebSocket Integration', () => {
         original: { content: 'Original content for animation' },
       });
 
-      mockApi.getRecentNotes.mockResolvedValue([noteWithoutTitle]);
-      
+      mockApi.getNotes.mockResolvedValue([createNoteSummary(noteWithoutTitle)]);
+      mockApi.getNote.mockResolvedValue(noteWithoutTitle);
+
       render(<HallOfMind />);
 
       // Initial render should show original content
