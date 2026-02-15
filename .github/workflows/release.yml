@@ -7,6 +7,7 @@ on:
 
 permissions:
   contents: write
+  packages: write
 
 jobs:
   build-release:
@@ -63,6 +64,52 @@ jobs:
         echo "Release version: $VERSION"
         echo "Release channel: $CHANNEL"
 
+    - name: Log in to GHCR
+      env:
+        GHCR_REGISTRY: ghcr.io
+        GHCR_USERNAME: ${{ secrets.REGISTRY_USER }}
+      run: |
+        USERNAME="${GHCR_USERNAME:-fortemi}"
+        echo "${{ secrets.GH_PUBLISH_TOKEN }}" | docker login "${GHCR_REGISTRY}" -u "${USERNAME}" --password-stdin
+
+    - name: Build and push image to GHCR
+      env:
+        GHCR_REGISTRY: ghcr.io
+        GHCR_IMAGE_NAME: ${{ github.repository_owner }}/hotm-ui
+        FORTEMI_API_URL: https://memory.integrolabs.net
+      run: |
+        set -euo pipefail
+        IMAGE="$(echo "${GHCR_REGISTRY}/${GHCR_IMAGE_NAME}" | tr '[:upper:]' '[:lower:]')"
+        SHORT_SHA="${GITHUB_SHA::7}"
+
+        push_with_retry() {
+          local image="$1"
+          local max_attempts=3
+          local attempt=1
+          while [ $attempt -le $max_attempts ]; do
+            echo "Pushing ${image} (attempt ${attempt}/${max_attempts})"
+            if docker push "${image}"; then
+              return 0
+            fi
+            sleep $((attempt * 5))
+            attempt=$((attempt + 1))
+          done
+          echo "Failed to push ${image} after ${max_attempts} attempts"
+          return 1
+        }
+
+        docker build \
+          -f ui/Dockerfile \
+          --build-arg VITE_API_BASE_URL="${FORTEMI_API_URL}" \
+          -t "${IMAGE}:${VERSION}" \
+          -t "${IMAGE}:latest" \
+          -t "${IMAGE}:sha-${SHORT_SHA}" \
+          ui
+
+        push_with_retry "${IMAGE}:${VERSION}"
+        push_with_retry "${IMAGE}:latest"
+        push_with_retry "${IMAGE}:sha-${SHORT_SHA}"
+
     - name: Create Release
       uses: softprops/action-gh-release@v2
       if: github.ref_type == 'tag'
@@ -76,18 +123,19 @@ jobs:
           ### Download
 
           **React SPA (tar.gz)**: Download `hotm-spa.tar.gz` below
+          **Container (GHCR)**: `ghcr.io/${{ github.repository_owner }}/hotm-ui:${{ env.VERSION }}`
 
           ### Installation
 
           1. Download the SPA artifact
-          2. Extract to your web server directory
+          2. Extract to your static hosting directory
           3. Configure environment variables for matric-memory API endpoint
-          4. Serve the static files with any web server (nginx, Apache, etc.)
+          4. Serve the static files with your preferred static host (nginx, Apache, S3+CDN, etc.)
 
           ### System Requirements
 
           - Modern web browser (Chrome, Firefox, Edge, Safari)
-          - Network access to matric-memory API server
+          - Network access to Fortemi API
 
           ### Features
 

@@ -63,3 +63,61 @@ jobs:
         name: sbom
         path: ui/sbom.json
         retention-days: 90
+
+  publish-image-gitea:
+    name: Build and Push Image (Gitea)
+    runs-on: ubuntu-latest
+    needs: frontend-tests
+    if: github.event_name == 'push'
+    env:
+      GITEA_REGISTRY: git.integrolabs.net
+      IMAGE_NAME: hotm/hotm-ui
+      FORTEMI_API_URL: https://memory.integrolabs.net
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Log in to Gitea registry
+      run: |
+        REG_USER="${{ secrets.REGISTRY_USER }}"
+        if [ -z "${REG_USER}" ]; then
+          REG_USER="${{ gitea.actor }}"
+        fi
+        echo "${{ secrets.BUILD_REPO_TOKEN }}" | docker login "${GITEA_REGISTRY}" -u "${REG_USER}" --password-stdin
+
+    - name: Build and push image
+      run: |
+        set -euo pipefail
+        IMAGE="${GITEA_REGISTRY}/${IMAGE_NAME}"
+        SHORT_SHA="${GITHUB_SHA::7}"
+        BRANCH_TAG="${GITHUB_REF_NAME}"
+
+        push_with_retry() {
+          local image="$1"
+          local max_attempts=3
+          local attempt=1
+          while [ $attempt -le $max_attempts ]; do
+            echo "Pushing ${image} (attempt ${attempt}/${max_attempts})"
+            if docker push "${image}"; then
+              return 0
+            fi
+            sleep $((attempt * 5))
+            attempt=$((attempt + 1))
+          done
+          echo "Failed to push ${image} after ${max_attempts} attempts"
+          return 1
+        }
+
+        docker build \
+          -f ui/Dockerfile \
+          --build-arg VITE_API_BASE_URL="${FORTEMI_API_URL}" \
+          -t "${IMAGE}:${BRANCH_TAG}" \
+          -t "${IMAGE}:sha-${SHORT_SHA}" \
+          ui
+
+        if [ "${GITHUB_REF_NAME}" = "main" ]; then
+          docker tag "${IMAGE}:${BRANCH_TAG}" "${IMAGE}:latest"
+          push_with_retry "${IMAGE}:latest"
+        fi
+
+        push_with_retry "${IMAGE}:${BRANCH_TAG}"
+        push_with_retry "${IMAGE}:sha-${SHORT_SHA}"
