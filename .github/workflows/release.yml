@@ -1,4 +1,4 @@
-name: Release
+name: UI Release
 
 on:
   push:
@@ -10,8 +10,8 @@ permissions:
   packages: write
 
 jobs:
-  build-release:
-    name: Build and Deploy SPA
+  release-artifacts:
+    name: Release Artifacts and Public Image
     runs-on: ubuntu-latest
 
     steps:
@@ -72,7 +72,7 @@ jobs:
         USERNAME="${GHCR_USERNAME:-fortemi}"
         echo "${{ secrets.GH_PUBLISH_TOKEN }}" | docker login "${GHCR_REGISTRY}" -u "${USERNAME}" --password-stdin
 
-    - name: Build and push image to GHCR
+    - name: Publish UI image to GHCR (public)
       env:
         GHCR_REGISTRY: ghcr.io
         GHCR_IMAGE_NAME: ${{ github.repository_owner }}/hotm-ui

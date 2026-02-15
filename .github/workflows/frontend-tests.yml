@@ -1,4 +1,4 @@
-name: Frontend Tests
+name: UI CI
 
 on:
   push:
@@ -13,8 +13,8 @@ on:
       - '.github/workflows/frontend-tests.yml'
 
 jobs:
-  frontend-tests:
-    name: Frontend Tests (React SPA)
+  ui-quality-checks:
+    name: UI Quality Checks
     runs-on: ubuntu-latest
 
     steps:
@@ -64,10 +64,10 @@ jobs:
         path: ui/sbom.json
         retention-days: 90
 
-  publish-image-gitea:
-    name: Build and Push Image (Gitea)
+  publish-ui-image-internal:
+    name: Publish UI Image (Internal Registry)
     runs-on: ubuntu-latest
-    needs: frontend-tests
+    needs: ui-quality-checks
     if: github.event_name == 'push'
     env:
       GITEA_REGISTRY: git.integrolabs.net
@@ -76,15 +76,18 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
-    - name: Log in to Gitea registry
+    - name: Log in to internal registry
       run: |
         REG_USER="${{ secrets.REGISTRY_USER }}"
         if [ -z "${REG_USER}" ]; then
-          REG_USER="${{ gitea.actor }}"
+          REG_USER="${{ github.actor }}"
+        fi
+        if [ -z "${REG_USER}" ]; then
+          REG_USER="fortemi"
         fi
         echo "${{ secrets.BUILD_REPO_TOKEN }}" | docker login "${GITEA_REGISTRY}" -u "${REG_USER}" --password-stdin
 
-    - name: Build and push image
+    - name: Build and push UI image
       run: |
         set -euo pipefail
         IMAGE="${GITEA_REGISTRY}/${IMAGE_NAME}"
