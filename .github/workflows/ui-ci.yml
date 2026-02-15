@@ -5,12 +5,12 @@ on:
     branches: [ main, develop ]
     paths:
       - 'ui/**'
-      - '.github/workflows/frontend-tests.yml'
+      - '.github/workflows/ui-ci.yml'
   pull_request:
     branches: [ main ]
     paths:
       - 'ui/**'
-      - '.github/workflows/frontend-tests.yml'
+      - '.github/workflows/ui-ci.yml'
 
 jobs:
   ui-quality-checks:

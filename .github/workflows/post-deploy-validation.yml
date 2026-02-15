@@ -1,0 +1,89 @@
+name: Post-Deploy Validation
+
+on:
+  workflow_dispatch:
+    inputs:
+      deploy_url:
+        description: 'Deployed application URL'
+        required: true
+        default: 'http://localhost:4180'
+      run_uat:
+        description: 'Run full UAT suite (slower, more comprehensive)'
+        required: false
+        default: 'false'
+        type: boolean
+
+jobs:
+  smoke-tests:
+    name: Smoke Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: ui/package-lock.json
+
+      - name: Install dependencies
+        working-directory: ui
+        run: npm ci
+
+      - name: Install Playwright Chromium
+        working-directory: ui
+        run: npx playwright install chromium --with-deps
+
+      - name: Run smoke tests
+        working-directory: ui
+        env:
+          HOTM_DEPLOY_URL: ${{ inputs.deploy_url }}
+        run: npx playwright test --project=smoke
+
+      - name: Upload smoke test report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: smoke-test-report
+          path: ui/playwright-report/
+          retention-days: 14
+
+  uat-tests:
+    name: UAT Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    needs: smoke-tests
+    if: ${{ inputs.run_uat == 'true' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: ui/package-lock.json
+
+      - name: Install dependencies
+        working-directory: ui
+        run: npm ci
+
+      - name: Install Playwright Chromium
+        working-directory: ui
+        run: npx playwright install chromium --with-deps
+
+      - name: Run UAT tests
+        working-directory: ui
+        env:
+          HOTM_DEPLOY_URL: ${{ inputs.deploy_url }}
+        run: npx playwright test --project=uat
+
+      - name: Upload UAT test report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: uat-test-report
+          path: ui/playwright-report/
+          retention-days: 14
