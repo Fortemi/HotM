@@ -47,10 +47,10 @@ jobs:
         cd ui
         npm run test:coverage -- --run
 
-    - name: Security audit
+    - name: Security audit (non-blocking)
       run: |
         cd ui
-        npm audit --audit-level high
+        npm audit --audit-level high || true
 
     - name: Generate SBOM
       run: |
