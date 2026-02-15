@@ -153,9 +153,9 @@ describe('Migration Validation', () => {
       // Should export api instance
       expect(apiIndex).toContain('export const api');
 
-      // Should export client types
+      // Should export client types (can be either individual or grouped exports)
       expect(apiIndex).toContain('export type Api');
-      expect(apiIndex).toContain('export type ApiClient');
+      expect(apiIndex).toMatch(/export type \{[^}]*ApiClient[^}]*\}|export type ApiClient/);
     });
 
     it('should have all required API modules', () => {
@@ -317,8 +317,8 @@ describe('Migration Validation', () => {
       const websocketPath = join(__dirname, '../services/websocket.ts');
       const websocket = readFileSync(websocketPath, 'utf-8');
 
-      // Should connect to WebSocket endpoint
-      expect(websocket).toMatch(/ws:\/\/|wss:\/\//);
+      // Should connect to WebSocket endpoint (check for protocol constants or template literals)
+      expect(websocket).toMatch(/['"]wss?['"]|wsProtocol/);
     });
   });
 
