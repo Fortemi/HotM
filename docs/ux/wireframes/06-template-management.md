@@ -1071,7 +1071,7 @@ animation: preview-update 300ms ease;
 2. **Debounced Preview**: 500ms delay on input change
 3. **Markdown Parsing**: Cached, incremental parsing
 4. **Variable Detection**: Regex scan on content change, debounced 300ms
-5. **Search Filtering**: Client-side for <100 templates, server-side for more
+5. **Search Filtering**: Client-side for <100 templates, backend-side for more
 6. **Image Optimization**: Compress template icon images
 7. **Virtual Scrolling**: For >50 templates in list view
 

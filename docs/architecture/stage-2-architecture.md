@@ -23,7 +23,7 @@
 - Push: `POST /sync/push` with batch (idempotency key, causal cursor). Server validates, persists to Journal.
 - Pull: `GET /sync/pull?cursor=…&limit=…` returns ordered changes since cursor.
 - Causality: Monotonic journal cursor per account; client maintains last applied.
-- Idempotency: All writes include `x-idempotency-key`; server de-duplicates.
+- Idempotency: All writes include `x-idempotency-key`; backend de-duplicates.
 - Batching/Backoff: Exponential backoff; jitter; retry-safe on 5xx and network errors.
 
 ## Conflict Resolution
@@ -36,7 +36,7 @@
 - Transport: TLS everywhere; HSTS; token-based auth.
 - Tokens: short-lived access tokens + refresh flow; device-bound if possible.
 - Optional E2EE:
-  - KEK: per-account master key derived from user secret; stored server-side only in wrapped form.
+  - KEK: per-account master key derived from user secret; stored backend-side only in wrapped form.
   - DEK: per-collection/content keys; rotate on member changes.
   - Server sees envelopes and metadata needed for sync; content payloads encrypted (AEAD).
 - Key Rotation: `/keys/rotate` endpoint; device enrollment requires key handshake.
@@ -64,7 +64,7 @@
 ## Reliability & Ops
 - SLOs: sync p95 end-to-end < 800ms; availability ≥ 99.9%.
 - Storage: multi-AZ DB; journal partitioned by account; periodic compaction.
-- Observability: trace IDs across client/server; error budgets; dead-letter for invalid changes.
+- Observability: trace IDs across client/backend; error budgets; dead-letter for invalid changes.
 - Backfills/Migrations: journal replayer to rebuild state; idempotent and resumable.
 
 ## Milestones

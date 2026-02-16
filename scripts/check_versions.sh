@@ -28,14 +28,6 @@ else
     echo -e "Tauri config:          \033[31mNOT FOUND\033[0m"
 fi
 
-# Check Server Cargo.toml
-if [ -f "server/Cargo.toml" ]; then
-    SERVER_VERSION=$(grep '^version = ' "server/Cargo.toml" | head -1 | sed 's/version = "\(.*\)"/\1/')
-    echo -e "Server Cargo.toml:     \033[32m$SERVER_VERSION\033[0m"
-else
-    echo -e "Server Cargo.toml:     \033[31mNOT FOUND\033[0m"
-fi
-
 echo ""
 
 # Check for consistency
@@ -43,8 +35,6 @@ VERSIONS=()
 [ ! -z "$UI_VERSION" ] && VERSIONS+=("$UI_VERSION")
 [ ! -z "$TAURI_VERSION" ] && VERSIONS+=("$TAURI_VERSION")
 [ ! -z "$TAURI_CONFIG_VERSION" ] && VERSIONS+=("$TAURI_CONFIG_VERSION")
-[ ! -z "$SERVER_VERSION" ] && VERSIONS+=("$SERVER_VERSION")
-
 UNIQUE_VERSIONS=($(printf "%s\n" "${VERSIONS[@]}" | sort -u))
 
 if [ ${#UNIQUE_VERSIONS[@]} -eq 1 ]; then

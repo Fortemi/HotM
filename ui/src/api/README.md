@@ -310,8 +310,8 @@ Create `.env.local` in the `ui/` directory:
 # API Base URL (default: http://localhost:3000)
 VITE_API_BASE_URL=http://localhost:3000
 
-# For remote server:
-VITE_API_BASE_URL=http://titan:3000
+# For remote Fortemi environment:
+VITE_API_BASE_URL=https://memory.integrolabs.net
 
 # For production:
 VITE_API_BASE_URL=https://api.fortemi.example.com
@@ -323,7 +323,7 @@ VITE_API_BASE_URL=https://api.fortemi.example.com
 import { createApi } from '@/api';
 
 // Create client with custom base URL
-const customApi = createApi('http://custom-server:3000');
+const customApi = createApi('https://memory.integrolabs.net');
 
 // Use as normal
 const notes = await customApi.notes.list();

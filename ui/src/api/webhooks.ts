@@ -50,10 +50,10 @@ export function createWebhooksApi(client: ApiClient) {
      * List all registered webhooks
      */
     async list(): Promise<Webhook[]> {
-      const response = await client.get<{ webhooks: Webhook[] }>(
+      const response = await client.get<{ webhooks?: Webhook[] } | Webhook[]>(
         '/api/v1/webhooks'
       );
-      return response.webhooks;
+      return Array.isArray(response) ? response : (response.webhooks ?? []);
     },
 
     /**
@@ -79,7 +79,15 @@ export function createWebhooksApi(client: ApiClient) {
         throw new Error('At least one event type is required');
       }
 
-      return client.post<Webhook>('/api/v1/webhooks', request);
+      const created = await client.post<{ id?: string } | Webhook>('/api/v1/webhooks', request);
+      if (typeof (created as Webhook).id === 'string' && 'url' in (created as Webhook)) {
+        return created as Webhook;
+      }
+      const id = (created as { id?: string }).id;
+      if (!id) {
+        throw new Error('Webhook create response missing id');
+      }
+      return this.get(id);
     },
 
     /**
@@ -118,10 +126,10 @@ export function createWebhooksApi(client: ApiClient) {
         throw new Error('Webhook ID is required');
       }
 
-      const response = await client.get<{ deliveries: WebhookDelivery[] }>(
+      const response = await client.get<{ deliveries?: WebhookDelivery[] } | WebhookDelivery[]>(
         `/api/v1/webhooks/${webhookId}/deliveries`
       );
-      return response.deliveries;
+      return Array.isArray(response) ? response : (response.deliveries ?? []);
     },
 
     /**

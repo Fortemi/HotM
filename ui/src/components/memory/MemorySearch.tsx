@@ -27,6 +27,12 @@ import {
 import { api } from '@/api';
 import type { MemorySearchResult } from '@/api/types-extended';
 
+const apiBaseUrl = (import.meta.env.VITE_API_BASE_URL as string | undefined)?.replace(/\/$/, '') ?? '';
+
+function getAttachmentDownloadUrl(attachmentId: string): string {
+  return `${apiBaseUrl}/api/v1/attachments/${attachmentId}/download`;
+}
+
 interface MemorySearchProps {
   isOpen: boolean;
   onClose: () => void;
@@ -207,7 +213,7 @@ function MemoryResultCard({ result, onClick }: MemoryResultCardProps) {
         {result.attachment_id && (
           <div className="w-16 h-16 flex-shrink-0 bg-muted rounded overflow-hidden">
             <img
-              src={`/api/v1/notes/${result.note_id}/attachments/${result.attachment_id}/thumbnail`}
+              src={getAttachmentDownloadUrl(result.attachment_id)}
               alt=""
               className="w-full h-full object-cover"
               loading="lazy"

@@ -67,6 +67,9 @@ coverage/
 .pytest_cache/
 # Vitest coverage
 **/coverage/
+ui/playwright-report/
+ui/test-results/
+ui/blob-report/
 
 # PlantUML
 *.jar

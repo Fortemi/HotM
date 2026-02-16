@@ -165,10 +165,13 @@ export function createAuthApi(client: ApiClient) {
      * List all API keys for the authenticated user
      */
     async listApiKeys(): Promise<ApiKey[]> {
-      const response = await client.get<{ keys: ApiKey[] }>(
+      const response = await client.get<{ keys?: ApiKey[]; api_keys?: ApiKey[] } | ApiKey[]>(
         '/api/v1/api-keys'
       );
-      return response.keys;
+      if (Array.isArray(response)) {
+        return response;
+      }
+      return response.api_keys ?? response.keys ?? [];
     },
 
     /**
@@ -204,12 +207,19 @@ export function createAuthApi(client: ApiClient) {
       }
 
       try {
-        await client.get('/api/v1/health', undefined, {
+        await client.get('/health/live', undefined, {
           Authorization: `Bearer ${apiKey}`,
         });
         return { valid: true };
       } catch (error) {
-        return { valid: false };
+        try {
+          await client.get('/health', undefined, {
+            Authorization: `Bearer ${apiKey}`,
+          });
+          return { valid: true };
+        } catch {
+          return { valid: false };
+        }
       }
     },
 

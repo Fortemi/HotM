@@ -25,12 +25,12 @@ export function createCollectionsApi(client: ApiClient) {
         params.parent_id = parentId || '';
       }
 
-      const response = await client.get<{ collections: Collection[] }>(
+      const response = await client.get<Collection[] | { collections: Collection[] }>(
         '/api/v1/collections',
         params
       );
 
-      return response.collections;
+      return Array.isArray(response) ? response : (response?.collections ?? []);
     },
 
     /**
@@ -96,11 +96,11 @@ export function createCollectionsApi(client: ApiClient) {
         throw new Error('Collection ID is required');
       }
 
-      const response = await client.get<{ notes: NoteSummary[] }>(
+      const response = await client.get<NoteSummary[] | { notes: NoteSummary[] }>(
         `/api/v1/collections/${collectionId}/notes`
       );
 
-      return response.notes;
+      return Array.isArray(response) ? response : (response?.notes ?? []);
     },
 
     /**

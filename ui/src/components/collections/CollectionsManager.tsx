@@ -380,15 +380,16 @@ export function CollectionsManager({
     setError(null);
     try {
       const data = await api.collections.list();
-      setCollections(data);
+      const collections = Array.isArray(data) ? data : [];
+      setCollections(collections);
 
       // Load note counts for each collection
       const counts = new Map<string, number>();
       await Promise.all(
-        data.map(async (collection) => {
+        collections.map(async (collection) => {
           try {
             const notes = await api.collections.getNotes(collection.id);
-            counts.set(collection.id, notes.length);
+            counts.set(collection.id, (notes || []).length);
           } catch (err) {
             console.error(`Failed to load count for collection ${collection.id}:`, err);
           }

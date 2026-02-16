@@ -17,10 +17,10 @@ export function createTemplatesApi(client: ApiClient) {
      * List all templates
      */
     async list(): Promise<Template[]> {
-      const response = await client.get<{ templates: Template[] }>(
+      const response = await client.get<Template[] | { templates: Template[] }>(
         '/api/v1/templates'
       );
-      return response.templates;
+      return Array.isArray(response) ? response : (response?.templates ?? []);
     },
 
     /**

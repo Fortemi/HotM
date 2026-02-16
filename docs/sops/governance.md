@@ -7,10 +7,10 @@
 
 ## RACI Examples
 - RFC approval: Program Manager (A), Tech Lead (R), Compliance (C), EM (C).
-- Database change: Backend (R), DB Migration Specialist (R), Tech Lead (C), Compliance (C).
+- API contract adoption in UI: UI Engineer (R), Tech Lead (C), QA (C).
 
 ## Definition of Done
-- Tests added and passing (server + UI).
+- Tests added and passing (UI).
 - Security/privacy review complete when applicable.
 - Documentation updated (`docs/*`, `AGENTS.md`, changelog).
 - Release notes drafted for user-visible changes.
@@ -18,4 +18,3 @@
 ## Tooling
 - CODEOWNERS routes reviews to agent teams.
 - SDLC workflow checks PR template compliance and gates.
-

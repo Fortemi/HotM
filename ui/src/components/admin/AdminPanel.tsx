@@ -290,7 +290,7 @@ export function AdminPanel({ className }: AdminPanelProps) {
           <Card>
             <CardHeader>
               <CardTitle>About HotM</CardTitle>
-              <CardDescription>Hall of the Mind - Note-taking with AI enhancement</CardDescription>
+              <CardDescription>Hall of the Mind - Data curation with AI enhancement</CardDescription>
             </CardHeader>
             <CardContent className="flex flex-col gap-4">
               <div className="flex flex-col gap-3">
@@ -307,7 +307,7 @@ export function AdminPanel({ className }: AdminPanelProps) {
                 <div className="flex flex-col gap-2">
                   <span className="text-sm font-medium">Description</span>
                   <p className="text-sm text-muted-foreground">
-                    HotM is a React-based single-page application providing a rich web interface for note-taking
+                    HotM is a React-based single-page application providing a rich web interface for data curation
                     and analysis. The application consumes the Fortemi API for immutable note storage,
                     NLP-powered revisions, and hybrid search capabilities.
                   </p>

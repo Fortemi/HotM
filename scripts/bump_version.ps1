@@ -1,4 +1,4 @@
-# PowerShell script to bump version across all project files
+# PowerShell script to bump version across HotM client files
 param(
     [Parameter(Mandatory=$true)]
     [string]$NewVersion
@@ -59,28 +59,6 @@ if (Test-Path $tauriConfigPath) {
     Write-Host "  $oldVersion → $NewVersion" -ForegroundColor Green
 } else {
     Write-Host "Warning: Tauri config not found" -ForegroundColor Yellow
-}
-
-# Update Server Cargo.toml
-$serverCargoPath = "server/Cargo.toml"
-if (Test-Path $serverCargoPath) {
-    Write-Host "Updating Server Cargo.toml..." -ForegroundColor Yellow
-    $cargoContent = Get-Content $serverCargoPath
-    $oldVersion = ""
-    $updatedContent = $cargoContent | ForEach-Object {
-        if ($_ -match '^version = "(\d+\.\d+\.\d+)"') {
-            $oldVersion = $matches[1]
-            'version = "' + $NewVersion + '"'
-        } else {
-            $_
-        }
-    }
-    $updatedContent | Set-Content $serverCargoPath
-    if ($oldVersion) {
-        Write-Host "  $oldVersion → $NewVersion" -ForegroundColor Green
-    }
-} else {
-    Write-Host "Warning: Server Cargo.toml not found" -ForegroundColor Yellow
 }
 
 Write-Host ""

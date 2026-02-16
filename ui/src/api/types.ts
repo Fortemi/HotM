@@ -149,8 +149,10 @@ export interface TagListResponse {
 export interface TagStats {
   total_tags: number;
   total_tagged_notes: number;
-  avg_tags_per_note: number;
+  avg_tags_per_note: number | null;
   most_used: Tag[];
+  stats_available?: boolean;
+  unavailable_reason?: string;
 }
 
 /**

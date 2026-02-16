@@ -159,7 +159,7 @@ Features accessible from multiple locations:
 
 ### Design Decisions Pending
 1. SKOS tree virtualization threshold (500? 1000? 5000 concepts?)
-2. Attachment compression strategy (client-side or server-side?)
+2. Attachment compression strategy (client-side or backend-side?)
 3. Version history retention policy (max versions per note?)
 4. Memory search default radius (500m? 1km? 5km?)
 

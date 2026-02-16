@@ -861,7 +861,7 @@ transition: transform 250ms cubic-bezier(0.4, 0, 0.2, 1);
 2. **Allowed Types**: images/*, application/pdf, text/*, application/vnd.*
 3. **Thumbnail Size**: 256×256px (2x for retina)
 4. **Map Library**: Leaflet.js for location display
-5. **EXIF Parsing**: exif-js library (client-side) or server-side
+5. **EXIF Parsing**: exif-js library (client-side) or backend-side
 6. **Image Viewer**: react-image-lightbox or custom
 7. **Drag-and-Drop**: HTML5 File API with polyfill for older browsers
 

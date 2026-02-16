@@ -12,13 +12,13 @@ Adopt an append-only, account-scoped journal as the source of truth for synchron
 - Push/pull protocol using monotonic cursors per account and idempotency keys.
 - Last-Writer-Wins (LWW) pointer for the current revised content, while keeping full revision history.
 - Set-union for additive metadata (tags/links) with tombstones for deletes.
-- Optional end-to-end encryption of content payloads (server stores encrypted blobs; merges operate on metadata/pointers).
+- Optional end-to-end encryption of content payloads (backend stores encrypted blobs; merges operate on metadata/pointers).
 
 ## Rationale
 - Simplicity: replayable journal enables deterministic rebuilds and easy audit.
 - Robustness: idempotent writes and monotonic cursors handle retries and partial failures.
 - UX: LWW for the visible head plus preserved branches simplifies conflict UI.
-- Privacy: E2EE guards content; server only needs envelopes and minimal metadata.
+- Privacy: E2EE guards content; backend only needs envelopes and minimal metadata.
 
 ## Consequences
 - Requires background compaction/replay tooling.
@@ -33,4 +33,3 @@ Adopt an append-only, account-scoped journal as the source of truth for synchron
 - TLS for transport; short-lived tokens.
 - KEK/DEK model for optional E2EE; device enrollment includes key handshake.
 - Strict logging hygiene; journal entries omit secrets and avoid sensitive content when E2EE is enabled.
-

@@ -2211,10 +2211,10 @@ jobs:
       - name: Run Jest accessibility tests
         run: npm test -- --coverage
 
-      - name: Start preview server
+      - name: Start preview host
         run: npm run preview &
 
-      - name: Wait for server
+      - name: Wait for host
         run: npx wait-on http://localhost:4173
 
       - name: Run Pa11y tests

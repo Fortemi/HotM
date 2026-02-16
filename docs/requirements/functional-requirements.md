@@ -108,7 +108,7 @@ This document defines the functional requirements for HotM, a local-first notes 
 **So that** I can integrate with AI assistants  
 
 **Acceptance Criteria:**
-- Standard MCP server implementation
+- Standard MCP tool implementation
 - Deterministic tool operations
 - Full CRUD capabilities
 - Search and analytics tools

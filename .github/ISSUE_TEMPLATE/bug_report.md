@@ -19,5 +19,4 @@ labels: bug
 ## Logs/Screenshots
 
 ## Impacted Areas
-- server | ui | docs | infra
-
+- ui | docs | infra

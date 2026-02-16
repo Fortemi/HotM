@@ -1664,7 +1664,7 @@ Features accessible from multiple entry points:
 ### Design Decisions Pending
 1. **SKOS Tree**: Virtualized scrolling for 1000+ concepts?
 2. **Memory Search**: Map library choice (Leaflet vs Mapbox)?
-3. **Attachments**: Image compression on upload (client vs server)?
+3. **Attachments**: Image compression on upload (client vs backend)?
 4. **Version History**: Max versions to display (performance)?
 
 ### Technical Risks

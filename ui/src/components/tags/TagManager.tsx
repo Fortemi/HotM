@@ -213,8 +213,15 @@ export function TagManager({ className }: TagManagerProps) {
             <p className="text-xs text-muted-foreground">Tagged Notes</p>
           </div>
           <div className="text-center">
-            <p className="text-2xl font-bold">{stats.avg_tags_per_note.toFixed(1)}</p>
+            <p className="text-2xl font-bold">
+              {typeof stats.avg_tags_per_note === 'number'
+                ? stats.avg_tags_per_note.toFixed(1)
+                : 'N/A'}
+            </p>
             <p className="text-xs text-muted-foreground">Avg Tags/Note</p>
+            {stats.stats_available === false && (
+              <p className="text-xs text-muted-foreground">Unavailable</p>
+            )}
           </div>
           <div className="text-center">
             <p className="text-2xl font-bold">{stats.most_used?.[0]?.name || '-'}</p>

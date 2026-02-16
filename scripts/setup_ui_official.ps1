@@ -36,7 +36,7 @@ npm install
 try { npm i -D @vitejs/plugin-react | Out-Null } catch { }
 Pop-Location
 
-# 4) Optionally merge our server bootstrap/tray main.rs
+# 4) Optionally merge custom Tauri bootstrap main.rs
 if ($WithServerBootstrap -and (Test-Path 'ui/src-tauri/src/main.rs') -and (Test-Path 'ui_bak/src-tauri/src/main.rs')) {
   Copy-Item 'ui_bak/src-tauri/src/main.rs' 'ui/src-tauri/src/main.rs' -Force
 }

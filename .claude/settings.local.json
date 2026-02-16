@@ -46,7 +46,12 @@
       "Bash(git remote add:*)",
       "Bash(git push:*)",
       "Bash(bash <<'EOF'\nTOKEN=$\\(cat ~/.config/gitea/admin-token\\)\ncurl -s -H \"Authorization: token $TOKEN\" \\\\\n  \"https://git.integrolabs.net/api/v1/repos/Fortemi/HotM/collaborators\" | jq -r '.[] | \"\\\\\\(.login\\) - \\\\\\(.permissions\\)\"'\nEOF)",
-      "Bash(act -j:*)"
+      "Bash(act -j:*)",
+      "Bash(git stash:*)",
+      "Bash(npx tsc:*)",
+      "Bash(npx vitest:*)",
+      "Bash(docker compose:*)",
+      "Bash(docker ps:*)"
     ],
     "deny": [],
     "ask": []

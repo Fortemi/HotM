@@ -11,6 +11,10 @@ import type {
 } from './types-extended';
 
 export function createAttachmentsApi(client: ApiClient) {
+  const getBaseUrl = (): string => {
+    return client.baseUrl;
+  };
+
   return {
     /**
      * Upload a file attachment to a note
@@ -27,13 +31,12 @@ export function createAttachmentsApi(client: ApiClient) {
         throw new Error('File is required');
       }
 
-      // Create FormData for multipart upload
+      // Fortemi multipart upload endpoint
       const formData = new FormData();
       formData.append('file', file);
 
-      // Use fetch directly for multipart/form-data (don't set Content-Type header)
-      const baseUrl = (client as any).baseUrl || 'http://localhost:3000';
-      const url = `${baseUrl}/api/v1/notes/${noteId}/attachments`;
+      const baseUrl = getBaseUrl();
+      const url = `${baseUrl}/api/v1/notes/${noteId}/attachments/upload`;
 
       const response = await fetch(url, {
         method: 'POST',
@@ -57,11 +60,11 @@ export function createAttachmentsApi(client: ApiClient) {
         throw new Error('Note ID is required');
       }
 
-      const response = await client.get<AttachmentListResponse>(
+      const response = await client.get<AttachmentListResponse | Attachment[]>(
         `/api/v1/notes/${noteId}/attachments`
       );
 
-      return response.attachments;
+      return Array.isArray(response) ? response : response.attachments;
     },
 
     /**
@@ -74,8 +77,8 @@ export function createAttachmentsApi(client: ApiClient) {
       }
 
       // Use fetch directly to handle binary response
-      const baseUrl = (client as any).baseUrl || 'http://localhost:3000';
-      const url = `${baseUrl}/api/v1/attachments/${attachmentId}`;
+      const baseUrl = getBaseUrl();
+      const url = `${baseUrl}/api/v1/attachments/${attachmentId}/download`;
 
       const response = await fetch(url, {
         method: 'GET',
@@ -96,8 +99,8 @@ export function createAttachmentsApi(client: ApiClient) {
         throw new Error('Attachment ID is required');
       }
 
-      const baseUrl = (client as any).baseUrl || 'http://localhost:3000';
-      return `${baseUrl}/api/v1/attachments/${attachmentId}`;
+      const baseUrl = getBaseUrl();
+      return `${baseUrl}/api/v1/attachments/${attachmentId}/download`;
     },
 
     /**
@@ -109,9 +112,14 @@ export function createAttachmentsApi(client: ApiClient) {
         throw new Error('Attachment ID is required');
       }
 
-      return client.get<AttachmentMetadata>(
-        `/api/v1/attachments/${attachmentId}/metadata`
-      );
+      const attachment = await client.get<Attachment>(`/api/v1/attachments/${attachmentId}`);
+      return {
+        id: attachment.id,
+        filename: attachment.filename,
+        content_type: attachment.content_type,
+        size_bytes: attachment.size_bytes,
+        created_at: attachment.created_at,
+      };
     },
 
     /**

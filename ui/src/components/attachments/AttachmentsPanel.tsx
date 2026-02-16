@@ -38,6 +38,12 @@ import {
 import { api } from '@/api';
 import type { Attachment, AttachmentMetadata } from '@/api/types-extended';
 
+const apiBaseUrl = (import.meta.env.VITE_API_BASE_URL as string | undefined)?.replace(/\/$/, '') ?? '';
+
+function getAttachmentDownloadUrl(attachmentId: string): string {
+  return `${apiBaseUrl}/api/v1/attachments/${attachmentId}/download`;
+}
+
 interface AttachmentsPanelProps {
   noteId: string;
   className?: string;
@@ -83,7 +89,7 @@ function AttachmentCard({ attachment, viewMode, onView, onDownload, onDelete }: 
         <div className="aspect-square bg-muted flex items-center justify-center">
           {isImage ? (
             <img
-              src={`/api/v1/notes/${attachment.note_id}/attachments/${attachment.id}/thumbnail`}
+              src={getAttachmentDownloadUrl(attachment.id)}
               alt={attachment.filename}
               className="w-full h-full object-cover"
               loading="lazy"
@@ -154,7 +160,7 @@ function AttachmentCard({ attachment, viewMode, onView, onDownload, onDelete }: 
       <div className="flex-shrink-0">
         {isImage ? (
           <img
-            src={`/api/v1/notes/${attachment.note_id}/attachments/${attachment.id}/thumbnail`}
+            src={getAttachmentDownloadUrl(attachment.id)}
             alt={attachment.filename}
             className="w-12 h-12 object-cover rounded"
             loading="lazy"
@@ -442,7 +448,7 @@ export function AttachmentsPanel({ noteId, className }: AttachmentsPanelProps) {
               {/* Preview */}
               {previewAttachment.content_type.startsWith('image/') && (
                 <img
-                  src={`/api/v1/notes/${previewAttachment.note_id}/attachments/${previewAttachment.id}`}
+                  src={getAttachmentDownloadUrl(previewAttachment.id)}
                   alt={previewAttachment.filename}
                   className="max-h-[400px] mx-auto object-contain"
                 />

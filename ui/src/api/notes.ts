@@ -123,11 +123,11 @@ export function createNotesApi(client: ApiClient) {
         throw new Error('Note ID is required');
       }
 
-      const response = await client.get<{ tags: string[] }>(
+      const response = await client.get<{ tags?: string[] } | string[]>(
         `/api/v1/notes/${noteId}/tags`
       );
 
-      return response.tags;
+      return Array.isArray(response) ? response : (response?.tags ?? []);
     },
 
     /**
@@ -153,12 +153,35 @@ export function createNotesApi(client: ApiClient) {
         payload.remove = request.remove;
       }
 
-      const response = await client.patch<{ tags: string[] }>(
-        `/api/v1/notes/${noteId}/tags`,
-        payload
-      );
+      // Prefer legacy add/remove endpoint when available.
+      try {
+        const response = await client.patch<{ tags?: string[] } | string[]>(
+          `/api/v1/notes/${noteId}/tags`,
+          payload
+        );
+        return Array.isArray(response) ? response : (response?.tags ?? []);
+      } catch {
+        // Fallback for Fortemi API which expects full tag set via PUT.
+        const currentTags = await this.getTags(noteId);
+        const nextTags = new Set(currentTags);
+        for (const tag of request.add ?? []) {
+          nextTags.add(tag);
+        }
+        for (const tag of request.remove ?? []) {
+          nextTags.delete(tag);
+        }
 
-      return response.tags;
+        const updatedTags = Array.from(nextTags);
+        const response = await client.put<{ tags?: string[] } | string[] | null>(
+          `/api/v1/notes/${noteId}/tags`,
+          { tags: updatedTags }
+        );
+
+        if (!response) {
+          return updatedTags;
+        }
+        return Array.isArray(response) ? response : (response?.tags ?? updatedTags);
+      }
     },
   };
 }

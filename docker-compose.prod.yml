@@ -1,0 +1,41 @@
+# HotM Production Docker Compose
+# Deploys the React SPA configured for memory.integrolabs.net
+#
+# Usage:
+#   docker compose -f docker-compose.prod.yml up -d --build
+#   docker compose -f docker-compose.prod.yml logs -f hotm-ui
+#
+# Environment variables (optional):
+#   - FORTEMI_API_URL: Fortemi API endpoint (default: https://memory.integrolabs.net/api/v1)
+#   - APP_TITLE: Application title (default: HotM)
+#   - VERSION: Image version tag (default: latest)
+
+services:
+  hotm-ui:
+    build:
+      context: ./ui
+      dockerfile: Dockerfile
+      args:
+        VITE_API_BASE_URL: ${FORTEMI_API_URL:-https://memory.integrolabs.net}
+        VITE_APP_TITLE: ${APP_TITLE:-HotM}
+        VITE_DISABLE_WEBSOCKET: "true"
+    image: hotm-ui:${VERSION:-latest}
+    container_name: hotm-ui
+    restart: unless-stopped
+    ports:
+      - "4180:80"
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://127.0.0.1:80/health"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
+    networks:
+      - hotm-network
+    labels:
+      - "com.hotm.service=ui"
+      - "com.hotm.description=HotM React SPA"
+
+networks:
+  hotm-network:
+    driver: bridge

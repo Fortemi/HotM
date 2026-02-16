@@ -8,11 +8,18 @@ import type {
   LocationQuery,
   TimeRangeQuery,
   CombinedSearchQuery,
-  LocationSearchResponse,
-  TimeRangeSearchResponse,
-  CombinedSearchResponse,
   MemorySearchResult,
 } from './types-extended';
+
+function extractMemoryResults(payload: unknown): MemorySearchResult[] {
+  if (!payload) {
+    return [];
+  }
+  if (Array.isArray(payload)) {
+    return payload as MemorySearchResult[];
+  }
+  return ((payload as { results?: MemorySearchResult[] }).results ?? []);
+}
 
 export function createMemoryApi(client: ApiClient) {
   return {
@@ -32,19 +39,19 @@ export function createMemoryApi(client: ApiClient) {
       const params: Record<string, string> = {
         lat: String(query.lat),
         lon: String(query.lon),
-        radius_meters: String(query.radius_meters),
+        radius: String(query.radius_meters),
       };
 
       if (query.limit !== undefined) {
         params.limit = String(query.limit);
       }
 
-      const response = await client.get<LocationSearchResponse>(
-        '/api/v1/memories/search/location',
+      const response = await client.get<unknown>(
+        '/api/v1/memories/search',
         params
       );
 
-      return response.results;
+      return extractMemoryResults(response);
     },
 
     /**
@@ -69,12 +76,12 @@ export function createMemoryApi(client: ApiClient) {
         params.order = query.order;
       }
 
-      const response = await client.get<TimeRangeSearchResponse>(
-        '/api/v1/memories/search/timerange',
+      const response = await client.get<unknown>(
+        '/api/v1/memories/search',
         params
       );
 
-      return response.results;
+      return extractMemoryResults(response);
     },
 
     /**
@@ -97,7 +104,7 @@ export function createMemoryApi(client: ApiClient) {
       const params: Record<string, string> = {
         lat: String(query.lat),
         lon: String(query.lon),
-        radius_meters: String(query.radius_meters),
+        radius: String(query.radius_meters),
         start: query.start,
         end: query.end,
       };
@@ -110,12 +117,12 @@ export function createMemoryApi(client: ApiClient) {
         params.order = query.order;
       }
 
-      const response = await client.get<CombinedSearchResponse>(
-        '/api/v1/memories/search/combined',
+      const response = await client.get<unknown>(
+        '/api/v1/memories/search',
         params
       );
 
-      return response.results;
+      return extractMemoryResults(response);
     },
 
     /**
@@ -128,7 +135,7 @@ export function createMemoryApi(client: ApiClient) {
       }
 
       return client.get<Record<string, unknown>>(
-        `/api/v1/notes/${noteId}/memories/provenance`
+        `/api/v1/notes/${noteId}/memory-provenance`
       );
     },
   };

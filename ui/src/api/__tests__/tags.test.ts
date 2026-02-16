@@ -171,7 +171,37 @@ describe('Tags API', () => {
       const result = await tagsApi.getStats();
 
       expect(mockClient.get).toHaveBeenCalledWith('/api/v1/tags/stats');
-      expect(result).toEqual(mockResponse);
+      expect(result).toEqual({
+        ...mockResponse,
+        stats_available: true
+      });
+    });
+
+    it('marks average as unavailable when stats endpoint is missing', async () => {
+      vi.mocked(mockClient.get)
+        .mockRejectedValueOnce(new Error('Not found'))
+        .mockResolvedValueOnce({
+          tags: [
+            { name: 'work', count: 5 },
+            { name: 'personal', count: 3 }
+          ]
+        });
+
+      const result = await tagsApi.getStats();
+
+      expect(mockClient.get).toHaveBeenNthCalledWith(1, '/api/v1/tags/stats');
+      expect(mockClient.get).toHaveBeenNthCalledWith(2, '/api/v1/tags');
+      expect(result).toEqual({
+        total_tags: 2,
+        total_tagged_notes: 8,
+        avg_tags_per_note: null,
+        most_used: [
+          { name: 'work', count: 5 },
+          { name: 'personal', count: 3 }
+        ],
+        stats_available: false,
+        unavailable_reason: 'tags_stats_endpoint_unavailable'
+      });
     });
   });
 });

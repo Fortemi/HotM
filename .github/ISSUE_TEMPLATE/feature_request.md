@@ -13,7 +13,6 @@ labels: enhancement
 - [ ] Test plan outline
 
 ## Impacted Areas
-- server | ui | docs | infra
+- ui | docs | infra
 
 ## Notes
-

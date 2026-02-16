@@ -1,5 +1,5 @@
 #!/bin/bash
-# Bash script to bump version across all project files
+# Bash script to bump version across HotM client files
 
 set -e
 
@@ -53,19 +53,6 @@ if [ -f "$TAURI_CONFIG" ]; then
     echo -e "  \033[32m$OLD_VERSION → $NEW_VERSION\033[0m"
 else
     echo -e "\033[33mWarning: Tauri config not found\033[0m"
-fi
-
-# Update Server Cargo.toml
-SERVER_CARGO="server/Cargo.toml"
-if [ -f "$SERVER_CARGO" ]; then
-    echo -e "\033[33mUpdating Server Cargo.toml...\033[0m"
-    OLD_VERSION=$(grep '^version = ' "$SERVER_CARGO" | head -1 | sed 's/version = "\(.*\)"/\1/')
-    sed -i "0,/^version = /s/^version = .*/version = \"$NEW_VERSION\"/" "$SERVER_CARGO"
-    if [ ! -z "$OLD_VERSION" ]; then
-        echo -e "  \033[32m$OLD_VERSION → $NEW_VERSION\033[0m"
-    fi
-else
-    echo -e "\033[33mWarning: Server Cargo.toml not found\033[0m"
 fi
 
 echo ""
