@@ -78,6 +78,7 @@ export function GraphExplorer({ className, initialNoteId, onNoteSelect }: GraphE
 
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
+  const [rootNoteId, setRootNoteId] = React.useState<string | undefined>(initialNoteId);
 
   const [zoom, setZoom] = React.useState(1);
   const [panX, setPanX] = React.useState(0);
@@ -95,6 +96,10 @@ export function GraphExplorer({ className, initialNoteId, onNoteSelect }: GraphE
 
   const animationRef = React.useRef<number | undefined>(undefined);
 
+  React.useEffect(() => {
+    setRootNoteId(initialNoteId);
+  }, [initialNoteId]);
+
   // Load collections
   React.useEffect(() => {
     const loadCollections = async () => {
@@ -111,18 +116,64 @@ export function GraphExplorer({ className, initialNoteId, onNoteSelect }: GraphE
 
   // Load graph data
   React.useEffect(() => {
-    if (!initialNoteId) return;
+    if (!rootNoteId) return;
 
     const loadGraph = async () => {
       setLoading(true);
       setError(null);
 
       try {
-        const response = await api.links.exploreGraph(initialNoteId, {
-          depth,
-          max_nodes: maxNodes,
-          min_score: minScore,
-        });
+        const loadGraphForRoot = async (noteId: string) =>
+          api.links.exploreGraph(noteId, {
+            depth,
+            max_nodes: maxNodes,
+            min_score: minScore,
+          });
+
+        const findConnectedRoot = async (excludeNoteId: string): Promise<string | null> => {
+          try {
+            const candidates = await api.notes.list({
+              sortBy: 'updated_at',
+              sortOrder: 'desc',
+              limit: 40,
+              archived: false,
+            });
+
+            const checks = await Promise.all(
+              candidates
+                .filter((candidate) => candidate.id !== excludeNoteId)
+                .slice(0, 20)
+                .map(async (candidate) => {
+                  try {
+                    const links = await api.links.getLinks(candidate.id);
+                    const degree = (links.outgoing?.length ?? 0) + (links.incoming?.length ?? 0);
+                    return { noteId: candidate.id, degree };
+                  } catch {
+                    return { noteId: candidate.id, degree: 0 };
+                  }
+                })
+            );
+
+            const best = checks.sort((a, b) => b.degree - a.degree)[0];
+            return best && best.degree > 0 ? best.noteId : null;
+          } catch {
+            return null;
+          }
+        };
+
+        let response = await loadGraphForRoot(rootNoteId);
+        let effectiveRootId = rootNoteId;
+
+        // If selected root is isolated, auto-pivot to a connected note so graph view
+        // still provides useful topology by default.
+        if ((response.edges?.length ?? 0) === 0 && (response.nodes?.length ?? 0) <= 1) {
+          const connectedRoot = await findConnectedRoot(rootNoteId);
+          if (connectedRoot && connectedRoot !== rootNoteId) {
+            response = await loadGraphForRoot(connectedRoot);
+            effectiveRootId = connectedRoot;
+            setRootNoteId(connectedRoot);
+          }
+        }
 
         // Get note metadata for collections
         const noteIds = response.nodes.map((n) => n.id);
@@ -140,7 +191,7 @@ export function GraphExplorer({ className, initialNoteId, onNoteSelect }: GraphE
           y: height / 2 + (Math.random() - 0.5) * 200,
           vx: 0,
           vy: 0,
-          radius: node.depth === 0 ? 12 : 8,
+          radius: node.id === effectiveRootId || node.depth === 0 ? 12 : 8,
           collection_id: notesData[i]?.note.collection_id || undefined,
         }));
 
@@ -165,7 +216,7 @@ export function GraphExplorer({ className, initialNoteId, onNoteSelect }: GraphE
     };
 
     loadGraph();
-  }, [initialNoteId, depth, maxNodes, minScore]);
+  }, [rootNoteId, depth, maxNodes, minScore]);
 
   // Force-directed simulation
   React.useEffect(() => {

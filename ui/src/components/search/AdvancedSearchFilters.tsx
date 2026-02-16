@@ -50,6 +50,7 @@ export function AdvancedSearchFilters({ className, onSelectResult }: AdvancedSea
   const [selectedMemories, setSelectedMemories] = useState<string[]>([]);
   const [searchAllMemories, setSearchAllMemories] = useState(true);
   const [activeMemory, setActiveMemory] = useState<string | null>(getActiveMemory());
+  const [resultTitles, setResultTitles] = useState<Map<string, string>>(new Map());
 
   useEffect(() => {
     api.tags.list({ sortBy: 'count' }).then(setAvailableTags).catch(console.error);
@@ -97,12 +98,18 @@ export function AdvancedSearchFilters({ className, onSelectResult }: AdvancedSea
           scopedMemories,
           50
         );
-        setResults(
-          federatedResults.map((hit) => ({
-            note_id: hit.note_id,
-            score: hit.score,
-            snippet: `[${hit.memory}] ${hit.snippet ?? ''}`.trim(),
-          }))
+        const mappedResults = federatedResults.map((hit) => ({
+          note_id: hit.note_id,
+          score: hit.score,
+          snippet: `[${hit.memory}] ${hit.snippet ?? ''}`.trim(),
+        }));
+        setResults(mappedResults);
+        setResultTitles(
+          new Map(
+            federatedResults
+              .filter((hit) => typeof hit.title === 'string' && hit.title.trim().length > 0)
+              .map((hit) => [hit.note_id, hit.title!.trim()])
+          )
         );
       } else {
         const searchResults = await api.search.search(trimmed, {
@@ -113,14 +120,84 @@ export function AdvancedSearchFilters({ className, onSelectResult }: AdvancedSea
           limit: 50,
         });
         setResults(searchResults);
+        setResultTitles(new Map());
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Search failed');
       setResults([]);
+      setResultTitles(new Map());
     } finally {
       setIsSearching(false);
     }
   }, [query, mode, selectedTags, filterStarred, filterArchived, searchAllMemories, selectedMemories, activeMemory, defaultMemory]);
+
+  useEffect(() => {
+    let cancelled = false;
+    if (results.length === 0) {
+      return;
+    }
+
+    const loadTitles = async () => {
+      const next = new Map<string, string>(resultTitles);
+      await Promise.all(
+        results.slice(0, 20).map(async (result) => {
+          if (next.has(result.note_id)) {
+            return;
+          }
+          try {
+            const fullNote = await api.notes.get(result.note_id);
+            const contentTitle = fullNote.original?.content
+              ?.split('\n')[0]
+              ?.replace(/^#+\s*/, '')
+              ?.trim();
+            const bestTitle =
+              (typeof fullNote.note?.title === 'string' && fullNote.note.title.trim().length > 0
+                ? fullNote.note.title.trim()
+                : null) ??
+              (contentTitle && contentTitle.length > 0 ? contentTitle : null);
+
+            if (bestTitle) {
+              next.set(result.note_id, bestTitle);
+            }
+          } catch {
+            // Ignore individual title lookup failures; fallback title will be used.
+          }
+        })
+      );
+
+      if (!cancelled) {
+        setResultTitles(next);
+      }
+    };
+
+    void loadTitles();
+    return () => {
+      cancelled = true;
+    };
+  }, [results]);
+
+  const getResultTitle = (result: SearchResult): string => {
+    const mappedTitle = resultTitles.get(result.note_id);
+    if (mappedTitle) {
+      return mappedTitle;
+    }
+
+    const directTitle = (result as SearchResult & { title?: string }).title;
+    if (typeof directTitle === 'string' && directTitle.trim().length > 0) {
+      return directTitle.trim();
+    }
+
+    const snippetTitle = result.snippet
+      ?.replace(/^\[[^\]]+\]\s*/, '')
+      .split('\n')[0]
+      .replace(/^#+\s*/, '')
+      .trim();
+    if (snippetTitle) {
+      return snippetTitle;
+    }
+
+    return 'Untitled Note';
+  };
 
   const addTag = (name: string) => {
     setSelectedTags((prev) => [...prev, name]);
@@ -373,12 +450,13 @@ export function AdvancedSearchFilters({ className, onSelectResult }: AdvancedSea
                 key={result.note_id}
                 onClick={() => onSelectResult?.(result.note_id)}
                 className="w-full text-left px-6 py-3 hover:bg-muted/50 transition-colors"
+                title={`Note ID: ${result.note_id}`}
               >
                 <div className="flex items-start gap-3">
                   <FileText className="w-4 h-4 mt-0.5 text-muted-foreground flex-shrink-0" />
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
-                      <span className="text-sm font-medium truncate">{result.note_id.slice(0, 8)}...</span>
+                      <span className="text-sm font-medium truncate">{getResultTitle(result)}</span>
                       <Badge variant="outline" className="text-xs">
                         {(result.score * 100).toFixed(0)}%
                       </Badge>
