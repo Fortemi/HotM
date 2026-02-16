@@ -76,7 +76,21 @@ jobs:
       IMAGE_NAME: hotm/hotm-ui
       FORTEMI_API_URL: https://memory.integrolabs.net
     steps:
-    - uses: actions/checkout@v4
+    - name: Checkout source
+      env:
+        GITHUB_TOKEN: ${{ github.token }}
+      run: |
+        set -euo pipefail
+        REPO_URL="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}.git"
+        AUTH_REPO_URL="${REPO_URL/https:\/\//https:\/\/x-access-token:${GITHUB_TOKEN}@}"
+
+        if [ ! -d .git ]; then
+          git init .
+        fi
+        git remote remove origin >/dev/null 2>&1 || true
+        git remote add origin "${AUTH_REPO_URL}"
+        git fetch --depth=1 origin "${GITHUB_SHA}"
+        git checkout --force FETCH_HEAD
 
     - name: Log in to internal registry
       run: |
