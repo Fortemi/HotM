@@ -126,10 +126,12 @@ jobs:
           -t "${IMAGE}:sha-${SHORT_SHA}" \
           ui
 
-        if [ "${GITHUB_REF_NAME}" = "main" ]; then
-          docker tag "${IMAGE}:${BRANCH_TAG}" "${IMAGE}:latest"
-          push_with_retry "${IMAGE}:latest"
-        fi
-
         push_with_retry "${IMAGE}:${BRANCH_TAG}"
         push_with_retry "${IMAGE}:sha-${SHORT_SHA}"
+
+        if [ "${GITHUB_REF_NAME}" = "main" ]; then
+          docker tag "${IMAGE}:${BRANCH_TAG}" "${IMAGE}:latest"
+          if ! push_with_retry "${IMAGE}:latest"; then
+            echo "Warning: failed to push ${IMAGE}:latest; continuing because branch and sha tags are published."
+          fi
+        fi
