@@ -432,7 +432,7 @@ export function HallOfMind() {
                 if ('Notification' in window && Notification.permission === 'granted') {
                   new Notification('HotM - Processing Complete', {
                     body: `Note "${simpleNote.title}" has been processed with AI enhancements.`,
-                    icon: '/favicon.ico'
+                    icon: '/favicon.svg'
                   });
                 } else if ('Notification' in window && Notification.permission === 'default') {
                   // Request permission and try again
@@ -440,7 +440,7 @@ export function HallOfMind() {
                   if (permission === 'granted') {
                     new Notification('HotM - Processing Complete', {
                       body: `Note "${simpleNote.title}" has been processed with AI enhancements.`,
-                      icon: '/favicon.ico'
+                      icon: '/favicon.svg'
                     });
                   }
                 }
