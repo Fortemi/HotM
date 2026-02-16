@@ -1,5 +1,6 @@
 // Shared WebSocket service for job queue updates
 import { useEffect, useState } from 'react';
+import { createEventsClient, type ServerEvent } from '@/api/events';
 
 export interface WsActiveJob {
   job_id: string;
@@ -39,12 +40,16 @@ export interface QueueStatus {
 }
 
 type MessageHandler = (message: WsMessage) => void;
+type ConnectionHandler = (connected: boolean) => void;
 
 class WebSocketService {
   private ws: WebSocket | null = null;
+  private eventsClient: ReturnType<typeof createEventsClient> | null = null;
+  private unsubscribeEvents: (() => void) | null = null;
   private reconnectTimeout: NodeJS.Timeout | null = null;
   private isConnected = false;
   private handlers: Set<MessageHandler> = new Set();
+  private connectionHandlers: Set<ConnectionHandler> = new Set();
   private connectionPromise: Promise<void> | null = null;
   private isClosing = false;
   private isDisabled = false;
@@ -54,6 +59,129 @@ class WebSocketService {
     this.isDisabled = import.meta.env.VITE_DISABLE_WEBSOCKET === 'true';
     if (this.isDisabled) {
       console.log('WebSocket disabled via VITE_DISABLE_WEBSOCKET');
+    }
+  }
+
+  private notifyConnection(connected: boolean): void {
+    this.connectionHandlers.forEach((handler) => {
+      try {
+        handler(connected);
+      } catch (error) {
+        console.error('Connection handler error:', error);
+      }
+    });
+  }
+
+  private getApiBaseUrl(): string {
+    const fallbackBase =
+      typeof window !== 'undefined' && window.location?.origin
+        ? window.location.origin
+        : 'http://localhost:3000';
+    return (import.meta.env.VITE_API_BASE_URL as string | undefined)?.trim() || fallbackBase;
+  }
+
+  private buildWebSocketUrl(): string {
+    const fallbackBase =
+      typeof window !== 'undefined' && window.location?.origin
+        ? window.location.origin
+        : 'http://localhost:3000';
+    const apiBase = this.getApiBaseUrl();
+
+    const parsed = new URL(apiBase, fallbackBase);
+    const wsProtocol = parsed.protocol === 'https:' ? 'wss' : 'ws';
+
+    const normalizedPath = parsed.pathname.replace(/\/+$/, '');
+    const wsPath = normalizedPath.endsWith('/api/v1')
+      ? `${normalizedPath}/ws`
+      : '/api/v1/ws';
+
+    return `${wsProtocol}://${parsed.host}${wsPath}`;
+  }
+
+  private normalizeEventMessage(event: ServerEvent): WsMessage {
+    const type = typeof event.type === 'string' ? event.type : 'QueueStatus';
+    return {
+      type: type as WsMessage['type'],
+      job_id: typeof event.job_id === 'string' ? event.job_id : undefined,
+      note_id: typeof event.note_id === 'string' ? event.note_id : undefined,
+      job_type: typeof event.job_type === 'string' ? event.job_type : undefined,
+      status: typeof event.status === 'string' ? event.status : undefined,
+      progress_percent:
+        typeof event.progress_percent === 'number' ? event.progress_percent : undefined,
+      message: typeof event.message === 'string' ? event.message : undefined,
+      error: typeof event.error === 'string' ? event.error : undefined,
+      duration_ms: typeof event.duration_ms === 'number' ? event.duration_ms : undefined,
+      total_jobs:
+        typeof event.total_jobs === 'number' ? event.total_jobs : undefined,
+      running: typeof event.running === 'number' ? event.running : undefined,
+      pending: typeof event.pending === 'number' ? event.pending : undefined,
+      title: typeof event.title === 'string' ? event.title : undefined,
+      tags: Array.isArray(event.tags) ? (event.tags as string[]) : undefined,
+      has_ai_content:
+        typeof event.has_ai_content === 'boolean' ? event.has_ai_content : undefined,
+      has_links: typeof event.has_links === 'boolean' ? event.has_links : undefined,
+    };
+  }
+
+  private broadcastMessage(message: WsMessage): void {
+    this.handlers.forEach(handler => {
+      try {
+        handler(message);
+      } catch (error) {
+        console.error('Handler error:', error);
+      }
+    });
+
+    if (message.type === 'NoteUpdated') {
+      window.dispatchEvent(new CustomEvent('noteUpdated', {
+        detail: {
+          note_id: message.note_id,
+          title: message.title,
+          tags: message.tags,
+          has_ai_content: message.has_ai_content,
+          has_links: message.has_links,
+        }
+      }));
+    }
+  }
+
+  private startSseFallback(): void {
+    if (this.isClosing || this.handlers.size === 0) {
+      return;
+    }
+    if (this.unsubscribeEvents) {
+      return;
+    }
+
+    try {
+      this.eventsClient = createEventsClient(this.getApiBaseUrl());
+      this.unsubscribeEvents = this.eventsClient.subscribe((event) => {
+        if (!this.isConnected) {
+          this.isConnected = true;
+          this.notifyConnection(true);
+        }
+        this.broadcastMessage(this.normalizeEventMessage(event));
+      });
+
+      // Optimistically mark connected while SSE handshake completes.
+      this.isConnected = true;
+      this.notifyConnection(true);
+      console.log('Falling back to SSE real-time events');
+    } catch (error) {
+      console.error('Failed to initialize SSE fallback:', error);
+      this.isConnected = false;
+      this.notifyConnection(false);
+    }
+  }
+
+  private stopSseFallback(): void {
+    if (this.unsubscribeEvents) {
+      this.unsubscribeEvents();
+      this.unsubscribeEvents = null;
+    }
+    if (this.eventsClient) {
+      this.eventsClient.close();
+      this.eventsClient = null;
     }
   }
 
@@ -91,16 +219,19 @@ class WebSocketService {
           this.reconnectTimeout = null;
         }
 
-        // Build WebSocket URL from API base URL
-        const apiBase = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
-        const wsProtocol = apiBase.startsWith('https') ? 'wss' : 'ws';
-        const wsHost = apiBase.replace(/^https?:\/\//, '');
-        const wsUrl = `${wsProtocol}://${wsHost}/api/v1/ws`;
+        // Build WebSocket URL from API base URL.
+        // Supports base URLs like:
+        // - https://memory.integrolabs.net
+        // - https://memory.integrolabs.net/api/v1
+        // - relative/default origin fallbacks
+        const wsUrl = this.buildWebSocketUrl();
         this.ws = new WebSocket(wsUrl);
 
         this.ws.onopen = () => {
           console.log('Shared WebSocket connected');
+          this.stopSseFallback();
           this.isConnected = true;
+          this.notifyConnection(true);
           this.isClosing = false;
           this.connectionPromise = null;
           this.ws?.send('refresh');
@@ -110,28 +241,7 @@ class WebSocketService {
         this.ws.onmessage = (event) => {
           try {
             const message: WsMessage = JSON.parse(event.data);
-            
-            // Broadcast to all handlers
-            this.handlers.forEach(handler => {
-              try {
-                handler(message);
-              } catch (error) {
-                console.error('Handler error:', error);
-              }
-            });
-
-            // Handle NoteUpdated events globally
-            if (message.type === 'NoteUpdated') {
-              window.dispatchEvent(new CustomEvent('noteUpdated', {
-                detail: {
-                  note_id: message.note_id,
-                  title: message.title,
-                  tags: message.tags,
-                  has_ai_content: message.has_ai_content,
-                  has_links: message.has_links,
-                }
-              }));
-            }
+            this.broadcastMessage(message);
           } catch (error) {
             console.error('Failed to parse WebSocket message:', error);
           }
@@ -140,7 +250,9 @@ class WebSocketService {
         this.ws.onerror = (error) => {
           console.error('Shared WebSocket error:', error);
           this.isConnected = false;
+          this.notifyConnection(false);
           this.connectionPromise = null;
+          this.startSseFallback();
           
           // Don't reject immediately - let onclose handle it
           // This prevents double error handling
@@ -149,7 +261,9 @@ class WebSocketService {
         this.ws.onclose = (event) => {
           console.log('Shared WebSocket disconnected:', event.code, event.reason);
           this.isConnected = false;
+          this.notifyConnection(false);
           this.connectionPromise = null;
+          this.startSseFallback();
           
           // If we were in the process of closing, don't reconnect
           if (this.isClosing) {
@@ -172,6 +286,7 @@ class WebSocketService {
       } catch (error) {
         console.error('Failed to create WebSocket connection:', error);
         this.isConnected = false;
+        this.notifyConnection(false);
         this.connectionPromise = null;
         reject(error);
       }
@@ -222,13 +337,23 @@ class WebSocketService {
       this.ws.close(1000, 'Service closing');
       this.ws = null;
     }
+    this.stopSseFallback();
     
     this.isConnected = false;
+    this.notifyConnection(false);
     this.connectionPromise = null;
   }
 
   public getConnectionStatus(): boolean {
     return this.isConnected;
+  }
+
+  public subscribeConnection(handler: ConnectionHandler): () => void {
+    this.connectionHandlers.add(handler);
+    handler(this.isConnected);
+    return () => {
+      this.connectionHandlers.delete(handler);
+    };
   }
 
   // Reset the closing state - useful for development mode
@@ -260,12 +385,14 @@ export function useWebSocket() {
 
     let isSubscribed = true;
     
+    const unsubscribeConnection = webSocketService.subscribeConnection((status) => {
+      if (!isSubscribed) return;
+      setConnected(status);
+    });
+
     const unsubscribe = webSocketService.subscribe((message) => {
       if (!isSubscribed) return; // Prevent updates after unmount
-      
-      // Update connection status
-      setConnected(webSocketService.getConnectionStatus());
-      
+
       // Handle queue status messages
       switch (message.type) {
         case 'QueueStatus':
@@ -308,6 +435,7 @@ export function useWebSocket() {
 
     return () => {
       isSubscribed = false;
+      unsubscribeConnection();
       unsubscribe();
     };
   }, []);
