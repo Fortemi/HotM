@@ -19,6 +19,135 @@ import type {
   ConceptAutocompleteResponse,
 } from './types-extended';
 
+function normalizeConcept(raw: unknown): Concept | null {
+  if (!raw || typeof raw !== 'object') {
+    return null;
+  }
+
+  const data = raw as Record<string, unknown>;
+  const id = typeof data.id === 'string' ? data.id : '';
+  if (!id) {
+    return null;
+  }
+
+  const labels = Array.isArray(data.labels)
+    ? (data.labels as Array<Record<string, unknown>>)
+    : [];
+  const prefLabelFromLabels = labels.find((entry) => entry.label_type === 'pref_label');
+  const prefLabel =
+    (typeof data.pref_label === 'string' ? data.pref_label : null) ??
+    (typeof prefLabelFromLabels?.value === 'string'
+      ? prefLabelFromLabels.value
+      : null) ??
+    (typeof data.notation === 'string' ? data.notation : null) ??
+    'Untitled Concept';
+
+  const altLabelsFromLabels = labels
+    .filter((entry) => entry.label_type === 'alt_label')
+    .map((entry) => (typeof entry.value === 'string' ? entry.value : ''))
+    .filter(Boolean);
+  const altLabels = Array.isArray(data.alt_labels)
+    ? (data.alt_labels as string[])
+    : altLabelsFromLabels.length > 0
+      ? altLabelsFromLabels
+      : undefined;
+
+  const definitionFromField =
+    typeof data.definition === 'string' ? data.definition : undefined;
+  const notes = Array.isArray(data.notes) ? (data.notes as Array<Record<string, unknown>>) : [];
+  const definitionFromNotes = notes.find((entry) => entry.note_type === 'definition');
+  const definition =
+    definitionFromField ??
+    (typeof definitionFromNotes?.value === 'string'
+      ? definitionFromNotes.value
+      : undefined);
+
+  return {
+    id,
+    scheme_id:
+      (typeof data.scheme_id === 'string' ? data.scheme_id : null) ??
+      (typeof data.primary_scheme_id === 'string' ? data.primary_scheme_id : null) ??
+      '',
+    pref_label: prefLabel,
+    alt_labels: altLabels,
+    definition,
+    notation: typeof data.notation === 'string' ? data.notation : undefined,
+    created_at: typeof data.created_at === 'string' ? data.created_at : '',
+    updated_at: typeof data.updated_at === 'string' ? data.updated_at : '',
+  };
+}
+
+function normalizeConceptListResponse(payload: unknown): Concept[] {
+  const rawList = Array.isArray(payload)
+    ? payload
+    : ((payload as { concepts?: unknown[] } | null)?.concepts ?? []);
+
+  if (!Array.isArray(rawList)) {
+    return [];
+  }
+
+  return rawList
+    .map((item) => normalizeConcept(item))
+    .filter((item): item is Concept => item !== null);
+}
+
+function normalizeConceptScheme(raw: unknown): ConceptScheme | null {
+  if (!raw || typeof raw !== 'object') {
+    return null;
+  }
+
+  const data = raw as Record<string, unknown>;
+  const id = typeof data.id === 'string' ? data.id : '';
+  const title = typeof data.title === 'string' ? data.title : '';
+  if (!id || !title) {
+    return null;
+  }
+
+  return {
+    id,
+    title,
+    description: typeof data.description === 'string' ? data.description : undefined,
+    namespace: typeof data.namespace === 'string' ? data.namespace : undefined,
+    created_at: typeof data.created_at === 'string' ? data.created_at : '',
+    updated_at: typeof data.updated_at === 'string' ? data.updated_at : '',
+  };
+}
+
+function normalizeSchemeListResponse(payload: unknown): ConceptScheme[] {
+  const rawList = Array.isArray(payload)
+    ? payload
+    : ((payload as { schemes?: unknown[] } | null)?.schemes ?? []);
+
+  if (!Array.isArray(rawList)) {
+    return [];
+  }
+
+  return rawList
+    .map((item) => normalizeConceptScheme(item))
+    .filter((item): item is ConceptScheme => item !== null);
+}
+
+function normalizeConceptFull(raw: unknown): ConceptFull {
+  const concept = normalizeConcept(raw) ?? {
+    id: '',
+    scheme_id: '',
+    pref_label: 'Untitled Concept',
+    created_at: '',
+    updated_at: '',
+  };
+  const data = (raw ?? {}) as Record<string, unknown>;
+
+  return {
+    ...concept,
+    broader: normalizeConceptListResponse(data.broader),
+    narrower: normalizeConceptListResponse(data.narrower),
+    related: normalizeConceptListResponse(data.related),
+    usage_count:
+      (typeof data.usage_count === 'number' ? data.usage_count : null) ??
+      (typeof data.note_count === 'number' ? data.note_count : undefined),
+  };
+}
+
 export function createConceptsApi(client: ApiClient) {
   return {
     // ===========================
@@ -29,10 +158,10 @@ export function createConceptsApi(client: ApiClient) {
      * List all concept schemes
      */
     async listSchemes(): Promise<ConceptScheme[]> {
-      const response = await client.get<{ schemes: ConceptScheme[] }>(
+      const response = await client.get<{ schemes: ConceptScheme[] } | ConceptScheme[]>(
         '/api/v1/concepts/schemes'
       );
-      return response.schemes;
+      return normalizeSchemeListResponse(response);
     },
 
     /**
@@ -88,7 +217,7 @@ export function createConceptsApi(client: ApiClient) {
         `/api/v1/concepts/schemes/${schemeId}/top-concepts`
       );
 
-      return response.concepts;
+      return normalizeConceptListResponse(response);
     },
 
     // ===========================
@@ -122,7 +251,7 @@ export function createConceptsApi(client: ApiClient) {
         params
       );
 
-      return response.concepts;
+      return normalizeConceptListResponse(response);
     },
 
     /**
@@ -171,7 +300,12 @@ export function createConceptsApi(client: ApiClient) {
         throw new Error('Concept ID is required');
       }
 
-      return client.get<Concept>(`/api/v1/concepts/${conceptId}`);
+      const response = await client.get<Concept>(`/api/v1/concepts/${conceptId}`);
+      const normalized = normalizeConcept(response);
+      if (!normalized) {
+        throw new Error('Invalid concept payload');
+      }
+      return normalized;
     },
 
     /**
@@ -182,7 +316,8 @@ export function createConceptsApi(client: ApiClient) {
         throw new Error('Concept ID is required');
       }
 
-      return client.get<ConceptFull>(`/api/v1/concepts/${conceptId}/full`);
+      const response = await client.get<ConceptFull>(`/api/v1/concepts/${conceptId}/full`);
+      return normalizeConceptFull(response);
     },
 
     /**
@@ -227,7 +362,7 @@ export function createConceptsApi(client: ApiClient) {
         `/api/v1/concepts/${conceptId}/ancestors`
       );
 
-      return response.concepts;
+      return normalizeConceptListResponse(response);
     },
 
     /**
@@ -251,7 +386,7 @@ export function createConceptsApi(client: ApiClient) {
         params
       );
 
-      return response.concepts;
+      return normalizeConceptListResponse(response);
     },
 
     /**
@@ -266,7 +401,7 @@ export function createConceptsApi(client: ApiClient) {
         `/api/v1/concepts/${conceptId}/broader`
       );
 
-      return response.concepts;
+      return normalizeConceptListResponse(response);
     },
 
     /**
@@ -313,7 +448,7 @@ export function createConceptsApi(client: ApiClient) {
         `/api/v1/concepts/${conceptId}/narrower`
       );
 
-      return response.concepts;
+      return normalizeConceptListResponse(response);
     },
 
     /**
@@ -365,7 +500,7 @@ export function createConceptsApi(client: ApiClient) {
         `/api/v1/concepts/${conceptId}/related`
       );
 
-      return response.concepts;
+      return normalizeConceptListResponse(response);
     },
 
     /**
@@ -416,7 +551,7 @@ export function createConceptsApi(client: ApiClient) {
         `/api/v1/notes/${noteId}/concepts`
       );
 
-      return response.concepts;
+      return normalizeConceptListResponse(response);
     },
 
     /**
@@ -501,7 +636,9 @@ export function createConceptsApi(client: ApiClient) {
         params
       );
 
-      return response.collections;
+      return Array.isArray((response as { collections?: SkosCollection[] }).collections)
+        ? (response as { collections: SkosCollection[] }).collections
+        : (Array.isArray(response) ? (response as SkosCollection[]) : []);
     },
 
     /**

@@ -6,6 +6,32 @@
 import type { ApiClient } from './client';
 import type { Tag, TagListResponse, TagStats, TagListOptions } from './types';
 
+function normalizeTag(raw: unknown): Tag | null {
+  if (!raw || typeof raw !== 'object') {
+    return null;
+  }
+
+  const tag = raw as Record<string, unknown>;
+  const name = typeof tag.name === 'string' ? tag.name : '';
+  if (!name) {
+    return null;
+  }
+
+  const count =
+    (typeof tag.count === 'number' ? tag.count : null) ??
+    (typeof tag.note_count === 'number' ? tag.note_count : null) ??
+    0;
+
+  return { name, count };
+}
+
+function normalizeTagsResponse(response: Tag[] | TagListResponse): Tag[] {
+  const rawTags = Array.isArray(response) ? response : (response?.tags ?? []);
+  return rawTags
+    .map((tag) => normalizeTag(tag))
+    .filter((tag): tag is Tag => tag !== null);
+}
+
 export function createTagsApi(client: ApiClient) {
   async function listNotesByTag(tag: string): Promise<Array<{ id: string; tags?: string[] }>> {
     const response = await client.get<{
@@ -40,12 +66,7 @@ export function createTagsApi(client: ApiClient) {
         Object.keys(params).length > 0 ? params : undefined
       );
 
-      const tags = Array.isArray(response) ? response : (response?.tags ?? []);
-      // Normalize: Fortemi API may return note_count instead of count
-      return tags.map(t => ({
-        name: t.name,
-        count: t.count ?? (t as unknown as Record<string, number>)['note_count'] ?? 0,
-      }));
+      return normalizeTagsResponse(response);
     },
 
     /**
@@ -145,13 +166,13 @@ export function createTagsApi(client: ApiClient) {
         const response = await client.get<Tag[] | TagListResponse>(
           '/api/v1/tags'
         );
-        const tags = Array.isArray(response) ? response : (response?.tags ?? []);
-        const totalTaggedNotes = tags.reduce((sum, t) => sum + ((t.count ?? 0)), 0);
+        const tags = normalizeTagsResponse(response);
+        const totalTaggedNotes = tags.reduce((sum, t) => sum + t.count, 0);
         return {
           total_tags: tags.length,
           total_tagged_notes: totalTaggedNotes,
           avg_tags_per_note: null,
-          most_used: [...tags].sort((a, b) => ((b.count ?? 0) - (a.count ?? 0))).slice(0, 10),
+          most_used: [...tags].sort((a, b) => b.count - a.count).slice(0, 10),
           stats_available: false,
           unavailable_reason: 'tags_stats_endpoint_unavailable',
         };

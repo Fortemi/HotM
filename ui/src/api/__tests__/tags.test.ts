@@ -203,5 +203,20 @@ describe('Tags API', () => {
         unavailable_reason: 'tags_stats_endpoint_unavailable'
       });
     });
+
+    it('uses note_count when count is absent in fallback stats', async () => {
+      vi.mocked(mockClient.get)
+        .mockRejectedValueOnce(new Error('Not found'))
+        .mockResolvedValueOnce([
+          { name: 'fortemi/api-reference', note_count: 3 },
+          { name: 'fortemi/ui', note_count: 2 }
+        ]);
+
+      const result = await tagsApi.getStats();
+
+      expect(result.total_tags).toBe(2);
+      expect(result.total_tagged_notes).toBe(5);
+      expect(result.most_used[0]).toEqual({ name: 'fortemi/api-reference', count: 3 });
+    });
   });
 });
