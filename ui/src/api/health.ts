@@ -13,39 +13,65 @@ import type {
 import type { NoteSummary } from './types';
 
 export function createHealthApi(client: ApiClient) {
+  const asNumber = (value: unknown): number | undefined =>
+    typeof value === 'number' && Number.isFinite(value) ? value : undefined;
+
   return {
     /**
      * Get overall knowledge base health metrics
      */
     async getKnowledgeHealth(): Promise<KnowledgeHealth> {
       const response = await client.get<Record<string, unknown>>('/api/v1/health/knowledge');
+      const metrics =
+        response.metrics && typeof response.metrics === 'object'
+          ? (response.metrics as Record<string, unknown>)
+          : undefined;
+
+      const totalNotes =
+        asNumber(response.total_notes) ??
+        asNumber(response.note_count) ??
+        0;
+      const staleNotes = asNumber(response.stale_notes) ?? 0;
+      const unlinkedNotes = asNumber(response.unlinked_notes) ?? 0;
+      const orphanNotes =
+        asNumber(response.orphan_notes) ??
+        // Legacy fallback: previously mapped from orphan_tags.
+        asNumber(response.orphan_tags) ??
+        0;
+
+      const explicitAvgLinks =
+        asNumber(response.avg_links_per_note) ??
+        asNumber(response.link_density) ??
+        asNumber(metrics?.avg_links_per_note) ??
+        asNumber(metrics?.link_density) ??
+        asNumber(metrics?.link_coverage);
+      const derivedAvgLinks = (() => {
+        const totalLinks = asNumber(response.total_links);
+        if (totalLinks === undefined || totalNotes <= 0) {
+          return undefined;
+        }
+        return totalLinks / totalNotes;
+      })();
+
+      const tagCoverage =
+        asNumber(response.tag_coverage) ??
+        asNumber(metrics?.tag_coverage) ??
+        (() => {
+          const notesWithoutTags = asNumber(response.notes_without_tags);
+          if (notesWithoutTags === undefined || totalNotes <= 0) {
+            return undefined;
+          }
+          return 1 - notesWithoutTags / totalNotes;
+        })() ??
+        0;
+
       return {
-        total_notes:
-          typeof response.total_notes === 'number'
-            ? response.total_notes
-            : 0,
-        orphan_notes:
-          typeof response.orphan_notes === 'number'
-            ? response.orphan_notes
-            : typeof response.orphan_tags === 'number'
-              ? response.orphan_tags
-              : 0,
-        stale_notes:
-          typeof response.stale_notes === 'number'
-            ? response.stale_notes
-            : 0,
-        unlinked_notes:
-          typeof response.unlinked_notes === 'number'
-            ? response.unlinked_notes
-            : 0,
-        avg_links_per_note:
-          typeof response.avg_links_per_note === 'number'
-            ? response.avg_links_per_note
-            : 0,
-        tag_coverage:
-          typeof response.tag_coverage === 'number'
-            ? response.tag_coverage
-            : 0,
+        total_notes: totalNotes,
+        orphan_notes: orphanNotes,
+        stale_notes: staleNotes,
+        unlinked_notes: unlinkedNotes,
+        avg_links_per_note: explicitAvgLinks ?? derivedAvgLinks ?? 0,
+        tag_coverage: Math.max(0, Math.min(1, tagCoverage)),
         last_activity:
           typeof response.last_activity === 'string'
             ? response.last_activity

@@ -3,7 +3,7 @@
  * CRUD interface for note collections with drag-drop and filtering
  */
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import {
   Folder,
   FolderOpen,
@@ -39,6 +39,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { api } from '@/api';
+import { getActiveMemory, MEMORY_CHANGED_EVENT } from '@/api/memory-context';
 import type { Collection, CreateCollectionRequest } from '@/api/types-extended';
 import type { NoteSummary } from '@/api/types';
 
@@ -356,6 +357,7 @@ export function CollectionsManager({
   onNoteSelect,
 }: CollectionsManagerProps) {
   const [collections, setCollections] = useState<Collection[]>([]);
+  const [activeMemory, setActiveMemory] = useState<string | null>(getActiveMemory());
   const [selectedCollectionId, setSelectedCollectionId] = useState<string | null>(null);
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
   const [searchQuery, setSearchQuery] = useState('');
@@ -371,11 +373,7 @@ export function CollectionsManager({
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deletingCollection, setDeletingCollection] = useState<Collection | null>(null);
 
-  useEffect(() => {
-    loadCollections();
-  }, []);
-
-  const loadCollections = async () => {
+  const loadCollections = useCallback(async () => {
     setIsLoading(true);
     setError(null);
     try {
@@ -402,7 +400,25 @@ export function CollectionsManager({
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    void loadCollections();
+  }, [loadCollections]);
+
+  useEffect(() => {
+    const onMemoryChanged = () => {
+      setActiveMemory(getActiveMemory());
+      setSelectedCollectionId(null);
+      onSelectCollection?.(null);
+      void loadCollections();
+    };
+
+    window.addEventListener(MEMORY_CHANGED_EVENT, onMemoryChanged as EventListener);
+    return () => {
+      window.removeEventListener(MEMORY_CHANGED_EVENT, onMemoryChanged as EventListener);
+    };
+  }, [loadCollections, onSelectCollection]);
 
   const filteredCollections = useMemo(() => {
     if (!searchQuery.trim()) return collections;
@@ -498,6 +514,9 @@ export function CollectionsManager({
 
       {/* Search */}
       <div className="p-4 border-b">
+        <p className="text-xs text-muted-foreground mb-2">
+          Active memory: {activeMemory ?? 'default'}
+        </p>
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input

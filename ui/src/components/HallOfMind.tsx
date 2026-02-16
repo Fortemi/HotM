@@ -74,7 +74,16 @@ import {
   Database,
 } from "lucide-react";
 import { api, NoteFull, NoteSummary } from "@/services/api";
-import { MEMORY_CHANGED_EVENT } from "@/api/memory-context";
+import { api as coreApi } from "@/api";
+import { MEMORY_CHANGED_EVENT, getActiveMemory } from "@/api/memory-context";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import type { MemoryArchive } from "@/api";
 import { MarkdownPreview } from "./MarkdownPreview";
 import { MarkdownEditor } from "./MarkdownEditor";
 import { RelatedNotes } from "./RelatedNotes";
@@ -182,6 +191,9 @@ export function HallOfMind() {
   const [processingNotes, setProcessingNotes] = useState<Set<string>>(new Set());
   const [copiedState, setCopiedState] = useState<{ [key: string]: boolean }>({});
   const [currentView, setCurrentView] = useState<AppView>("notes");
+  const [availableMemories, setAvailableMemories] = useState<MemoryArchive[]>([]);
+  const [activeMemoryName, setActiveMemoryName] = useState<string | null>(getActiveMemory());
+  const [defaultMemoryName, setDefaultMemoryName] = useState<string | null>(null);
   
   // Refs for notification grouping and metadata caching
   const savedNotes = useRef<Map<string, NoteFull>>(new Map());
@@ -198,10 +210,13 @@ export function HallOfMind() {
     checkServerHealth();
     loadExistingNotes();
     loadAvailableTags();
+    void loadMemoryRoutingState();
   }, []);
 
   useEffect(() => {
     const handleMemoryChanged = () => {
+      setActiveMemoryName(getActiveMemory());
+      void loadMemoryRoutingState();
       setSelectedNote(null);
       setNoteContent("");
       setRevisedContent("");
@@ -571,6 +586,30 @@ export function HallOfMind() {
         message: "Cannot connect to HotM server" 
       });
     }
+  };
+
+  const loadMemoryRoutingState = async () => {
+    try {
+      const archivesRaw = await coreApi.archives.list();
+      const archives = Array.isArray(archivesRaw)
+        ? archivesRaw
+        : [];
+      setAvailableMemories(archives);
+      const defaultArchive = archives.find((archive) => archive.is_default);
+      setDefaultMemoryName(defaultArchive?.name ?? null);
+      setActiveMemoryName(getActiveMemory());
+    } catch (error) {
+      console.error("Failed to load memory routing state:", error);
+    }
+  };
+
+  const handleGlobalMemoryChange = (value: string) => {
+    if (value === "__default__") {
+      coreApi.archives.select(null);
+    } else {
+      coreApi.archives.select(value);
+    }
+    setActiveMemoryName(getActiveMemory());
   };
 
   const fetchNotesPage = useCallback(
@@ -1349,6 +1388,33 @@ export function HallOfMind() {
                   <RefreshCw className="h-3 w-3" />
                 )}
               </Button>
+            </div>
+            <div className="mt-2 space-y-1">
+              <div className="flex items-center justify-between text-[11px] text-muted-foreground">
+                <span>Archive Routing</span>
+                <span>
+                  default: {defaultMemoryName ?? "server default"}
+                </span>
+              </div>
+              <Select
+                value={activeMemoryName ?? "__default__"}
+                onValueChange={handleGlobalMemoryChange}
+              >
+                <SelectTrigger className="h-8">
+                  <SelectValue placeholder="Select archive routing" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__default__">
+                    Default ({defaultMemoryName ?? "server default"})
+                  </SelectItem>
+                  {Array.isArray(availableMemories) && availableMemories.map((archive) => (
+                    <SelectItem key={archive.id} value={archive.name}>
+                      {archive.name}
+                      {archive.is_default ? " (default)" : ""}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </SidebarHeader>
           

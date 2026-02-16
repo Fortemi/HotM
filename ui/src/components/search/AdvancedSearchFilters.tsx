@@ -21,6 +21,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { api } from '@/api';
+import { getActiveMemory, MEMORY_CHANGED_EVENT } from '@/api/memory-context';
 import type { MemoryArchive, SearchResult, SearchMode, Tag } from '@/api';
 
 interface AdvancedSearchFiltersProps {
@@ -48,11 +49,24 @@ export function AdvancedSearchFilters({ className, onSelectResult }: AdvancedSea
   const [availableMemories, setAvailableMemories] = useState<MemoryArchive[]>([]);
   const [selectedMemories, setSelectedMemories] = useState<string[]>([]);
   const [searchAllMemories, setSearchAllMemories] = useState(true);
+  const [activeMemory, setActiveMemory] = useState<string | null>(getActiveMemory());
 
   useEffect(() => {
     api.tags.list({ sortBy: 'count' }).then(setAvailableTags).catch(console.error);
     api.archives.list().then(setAvailableMemories).catch(console.error);
   }, []);
+
+  useEffect(() => {
+    const onMemoryChanged = () => {
+      setActiveMemory(getActiveMemory());
+    };
+    window.addEventListener(MEMORY_CHANGED_EVENT, onMemoryChanged as EventListener);
+    return () => {
+      window.removeEventListener(MEMORY_CHANGED_EVENT, onMemoryChanged as EventListener);
+    };
+  }, []);
+
+  const defaultMemory = availableMemories.find((m) => m.is_default)?.name ?? null;
 
   const filteredAvailableTags = availableTags.filter(
     (t) =>
@@ -69,9 +83,18 @@ export function AdvancedSearchFilters({ className, onSelectResult }: AdvancedSea
     setHasSearched(true);
     try {
       if (mode === 'federated') {
+        const scopedMemories = searchAllMemories
+          ? ['all']
+          : selectedMemories.length > 0
+            ? selectedMemories
+            : activeMemory
+              ? [activeMemory]
+              : defaultMemory
+                ? [defaultMemory]
+                : ['all'];
         const federatedResults = await api.search.federatedSearch(
           trimmed,
-          searchAllMemories ? ['all'] : selectedMemories,
+          scopedMemories,
           50
         );
         setResults(
@@ -97,7 +120,7 @@ export function AdvancedSearchFilters({ className, onSelectResult }: AdvancedSea
     } finally {
       setIsSearching(false);
     }
-  }, [query, mode, selectedTags, filterStarred, filterArchived, searchAllMemories, selectedMemories]);
+  }, [query, mode, selectedTags, filterStarred, filterArchived, searchAllMemories, selectedMemories, activeMemory, defaultMemory]);
 
   const addTag = (name: string) => {
     setSelectedTags((prev) => [...prev, name]);
@@ -174,6 +197,32 @@ export function AdvancedSearchFilters({ className, onSelectResult }: AdvancedSea
             )}
           </Button>
         </div>
+
+        {mode === 'federated' && (
+          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+            <span>Scope:</span>
+            <Button
+              size="sm"
+              variant={searchAllMemories ? 'secondary' : 'outline'}
+              onClick={() => setSearchAllMemories(true)}
+            >
+              All memories
+            </Button>
+            <Button
+              size="sm"
+              variant={!searchAllMemories ? 'secondary' : 'outline'}
+              onClick={() => {
+                setSearchAllMemories(false);
+                setSelectedMemories(activeMemory ? [activeMemory] : defaultMemory ? [defaultMemory] : []);
+              }}
+            >
+              Loaded memory
+            </Button>
+            <span>
+              loaded: {activeMemory ?? `default (${defaultMemory ?? 'server default'})`}
+            </span>
+          </div>
+        )}
       </div>
 
       {/* Filter Panel */}
