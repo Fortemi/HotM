@@ -2,7 +2,7 @@
 
 - Issue link(s): Closes #
 - Type: Feature | Fix | Docs | Chore | Refactor | Security
-- Scope: server | ui | docs | infra
+- Scope: ui | docs | infra
 
 ## Changes
 
@@ -11,13 +11,7 @@
 
 ## Checklists
 
-### Server (Rust)
-- [ ] `cargo fmt --all` and `cargo clippy --all -- -D warnings`
-- [ ] `cargo test` passes locally
-- [ ] Migrations added/updated in `server/migrations/` (if DB changes)
-- [ ] Backward compatibility considered (API/DB)
-
-### UI (Tauri/React)
+### UI (React SPA)
 - [ ] `npm run test` passes; coverage acceptable
 - [ ] `npm run typecheck` passes
 - [ ] `npm run build` succeeds
@@ -40,4 +34,3 @@
 ## Release Notes
 
 - One-line bullets for user-facing changes
-

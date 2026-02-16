@@ -23,11 +23,10 @@ jobs:
               '## Testing Notes',
             ];
             const missing = requiredSections.filter(s => !body.includes(s));
-            // Require at least one checked item in Server or UI checklist
-            const hasServerChecks = /### Server \(Rust\)[\s\S]*- \[x\]/i.test(body);
-            const hasUiChecks = /### UI \(Tauri\/React\)[\s\S]*- \[x\]/i.test(body);
-            if (missing.length || !(hasServerChecks || hasUiChecks)) {
-              core.setFailed(`PR template incomplete. Missing sections: ${missing.join(', ')}. Ensure at least one checklist is checked for Server or UI.`);
+            // Require at least one checked item in UI checklist
+            const hasUiChecks = /### UI \(React SPA\)[\s\S]*- \[x\]/i.test(body);
+            if (missing.length || !hasUiChecks) {
+              core.setFailed(`PR template incomplete. Missing sections: ${missing.join(', ')}. Ensure at least one checklist is checked for UI (React SPA).`);
             }
 
       - name: Ensure codeowners reviewers requested
@@ -40,4 +39,3 @@ jobs:
             if (reviewers.length === 0) {
               core.warning('No reviewers requested. Verify CODEOWNERS assignment.');
             }
-

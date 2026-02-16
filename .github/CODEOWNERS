@@ -5,16 +5,7 @@
 # Global fallback (create these teams to mirror agent profiles)
 * @s92501/agent-release-engineer @s92501/agent-security-privacy-reviewer
 
-# Backend (Rust API)
-/server/** @s92501/agent-backend-api-engineer @s92501/agent-security-privacy-reviewer
-
-# Database migrations (specific ownership)
-/server/migrations/** @s92501/agent-db-migration-specialist @s92501/agent-backend-api-engineer
-
-# Backend tests
-/server/tests/** @s92501/agent-qa-test-author @s92501/agent-backend-api-engineer
-
-# Frontend (Tauri/React)
+# Frontend (React SPA)
 /ui/** @s92501/agent-ui-engineer @s92501/agent-qa-test-author
 
 # Frontend tests (more specific)

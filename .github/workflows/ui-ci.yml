@@ -1,4 +1,4 @@
-name: UI CI
+name: React SPA CI
 
 on:
   push:
@@ -14,7 +14,7 @@ on:
 
 jobs:
   ui-quality-checks:
-    name: UI Quality Checks
+    name: React SPA Quality Checks
     runs-on: ubuntu-latest
     container:
       image: node:20-bookworm
@@ -62,7 +62,7 @@ jobs:
         retention-days: 90
 
   publish-ui-image-internal:
-    name: Publish UI Image (Internal Registry)
+    name: Publish React SPA Image (Internal Registry)
     runs-on: ubuntu-latest
     needs: ui-quality-checks
     if: github.event_name == 'push'

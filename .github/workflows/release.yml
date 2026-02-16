@@ -1,4 +1,4 @@
-name: UI Release
+name: React SPA Release
 
 on:
   push:
@@ -11,7 +11,7 @@ permissions:
 
 jobs:
   release-artifacts:
-    name: Release Artifacts and Public Image
+    name: Release React SPA Artifacts and Public Image
     runs-on: ubuntu-latest
 
     steps:
