@@ -18,6 +18,7 @@ import type {
   RelatedNotesResponse,
   UserMetadataLabel,
   NoteSummary,
+  ListNotesResponse,
 } from './extended';
 
 // Re-export types for backward compatibility
@@ -187,9 +188,19 @@ class CompatApiClient {
   async getNotes(
     sortBy: 'created_at' | 'updated_at' | 'accessed_at' = 'created_at',
     filter: 'all' | 'starred' | 'archived' | 'recent' = 'all',
-    limit: number = 50
+    limit: number = 50,
+    offset: number = 0
   ): Promise<NoteSummary[]> {
-    return this.extended.getNotes(sortBy, filter, limit);
+    return this.extended.getNotes(sortBy, filter, limit, offset);
+  }
+
+  async getNotesPage(
+    sortBy: 'created_at' | 'updated_at' | 'accessed_at' = 'created_at',
+    filter: 'all' | 'starred' | 'archived' | 'recent' = 'all',
+    limit: number = 50,
+    offset: number = 0
+  ): Promise<ListNotesResponse> {
+    return this.extended.getNotesPage(sortBy, filter, limit, offset);
   }
 
   async getRecentNotes(limit: number = 20): Promise<NoteFull[]> {

@@ -4,6 +4,7 @@
 
 const STORAGE_KEY = 'hotm_active_memory';
 const MEMORY_HEADER = 'X-Fortemi-Memory';
+export const MEMORY_CHANGED_EVENT = 'hotm-memory-changed';
 
 function isBrowser(): boolean {
   return typeof window !== 'undefined' && typeof window.localStorage !== 'undefined';
@@ -33,10 +34,12 @@ export function setActiveMemory(memoryName: string | null): void {
   const normalized = memoryName?.trim();
   if (!normalized || normalized === 'public') {
     window.localStorage.removeItem(STORAGE_KEY);
+    window.dispatchEvent(new CustomEvent(MEMORY_CHANGED_EVENT, { detail: { memory: null } }));
     return;
   }
 
   window.localStorage.setItem(STORAGE_KEY, normalized);
+  window.dispatchEvent(new CustomEvent(MEMORY_CHANGED_EVENT, { detail: { memory: normalized } }));
 }
 
 export function clearActiveMemory(): void {
@@ -44,5 +47,5 @@ export function clearActiveMemory(): void {
     return;
   }
   window.localStorage.removeItem(STORAGE_KEY);
+  window.dispatchEvent(new CustomEvent(MEMORY_CHANGED_EVENT, { detail: { memory: null } }));
 }
-

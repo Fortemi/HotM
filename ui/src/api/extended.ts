@@ -85,6 +85,99 @@ export interface ListNotesResponse {
   total: number;
 }
 
+function normalizeJobType(value?: string): JobType {
+  switch (value) {
+    case 'ai_revision':
+    case 'embedding':
+    case 'linking':
+    case 'context_update':
+    case 'title_generation':
+      return value;
+    default:
+      return 'context_update';
+  }
+}
+
+function normalizeJobStatus(value?: string): JobStatus {
+  switch (value) {
+    case 'pending':
+    case 'running':
+    case 'completed':
+    case 'failed':
+    case 'cancelled':
+      return value;
+    default:
+      return 'pending';
+  }
+}
+
+function normalizeJob(raw: Record<string, unknown>): Job {
+  return {
+    id: String(raw.id ?? raw.job_id ?? ''),
+    note_id: raw.note_id ? String(raw.note_id) : undefined,
+    job_type: normalizeJobType(raw.job_type as string | undefined),
+    status: normalizeJobStatus(raw.status as string | undefined),
+    progress_percent:
+      typeof raw.progress_percent === 'number'
+        ? raw.progress_percent
+        : typeof raw.progress === 'number'
+          ? raw.progress
+          : undefined,
+    error_message:
+      typeof raw.error_message === 'string'
+        ? raw.error_message
+        : typeof raw.error === 'string'
+          ? raw.error
+          : undefined,
+    estimated_duration_ms:
+      typeof raw.estimated_duration_ms === 'number'
+        ? raw.estimated_duration_ms
+        : undefined,
+    actual_duration_ms:
+      typeof raw.actual_duration_ms === 'number'
+        ? raw.actual_duration_ms
+        : undefined,
+    created_at:
+      (raw.created_at as string | undefined) ||
+      (raw.queued_at as string | undefined) ||
+      new Date(0).toISOString(),
+    started_at: raw.started_at as string | undefined,
+    completed_at: raw.completed_at as string | undefined,
+  };
+}
+
+function normalizeSearchResults(payload: unknown): SearchResult[] {
+  if (!payload) {
+    return [];
+  }
+
+  const resultsRaw = Array.isArray(payload)
+    ? payload
+    : ((payload as { results?: unknown[] }).results ?? []);
+
+  if (!Array.isArray(resultsRaw)) {
+    return [];
+  }
+
+  return resultsRaw
+    .map((item): SearchResult | null => {
+      if (!item || typeof item !== 'object') {
+        return null;
+      }
+      const raw = item as Record<string, unknown>;
+      const noteId = raw.note_id ?? raw.id;
+      if (!noteId) {
+        return null;
+      }
+      return {
+        note_id: String(noteId),
+        score: typeof raw.score === 'number' ? raw.score : 0.5,
+        snippet: typeof raw.snippet === 'string' ? raw.snippet : '',
+      };
+    })
+    .filter((v): v is SearchResult => v !== null);
+}
+
 /**
  * Create extended API client with additional backend methods
  */
@@ -102,9 +195,9 @@ export function createExtendedApi(client: ApiClient) {
       content: string,
       rationale?: string
     ): Promise<unknown> {
-      return client.put(`/api/v1/notes/${noteId}/revised`, {
+      return client.patch(`/api/v1/notes/${noteId}`, {
         content,
-        rationale,
+        ...(rationale ? { rationale } : {}),
       });
     },
 
@@ -112,7 +205,7 @@ export function createExtendedApi(client: ApiClient) {
      * Update original note content
      */
     async updateOriginalContent(noteId: string, content: string): Promise<unknown> {
-      return client.put(`/api/v1/notes/${noteId}/original`, {
+      return client.patch(`/api/v1/notes/${noteId}`, {
         content,
       });
     },
@@ -121,21 +214,20 @@ export function createExtendedApi(client: ApiClient) {
      * Trigger AI regeneration for a note
      */
     async regenerateAI(noteId: string): Promise<unknown> {
-      return client.post(`/api/v1/notes/${noteId}/regenerate-ai`);
+      return client.post(`/api/v1/notes/${noteId}/reprocess`);
     },
 
-    /**
-     * Get notes with sorting and filtering
-     */
-    async getNotes(
+    async getNotesPage(
       sortBy: 'created_at' | 'updated_at' | 'accessed_at' = 'created_at',
       filter: 'all' | 'starred' | 'archived' | 'recent' = 'all',
-      limit: number = 50
-    ): Promise<NoteSummary[]> {
+      limit: number = 50,
+      offset: number = 0
+    ): Promise<ListNotesResponse> {
       const params: Record<string, string> = {
         sort_by: sortBy,
         sort_order: 'desc',
         limit: limit.toString(),
+        offset: offset.toString(),
       };
 
       // Map filter to Fortemi API params (no 'filter' query param)
@@ -145,11 +237,19 @@ export function createExtendedApi(client: ApiClient) {
         params.archived = 'true';
       }
 
-      const response = await client.get<ListNotesResponse>(
-        '/api/v1/notes',
-        params
-      );
+      return client.get<ListNotesResponse>('/api/v1/notes', params);
+    },
 
+    /**
+     * Get notes with sorting and filtering
+     */
+    async getNotes(
+      sortBy: 'created_at' | 'updated_at' | 'accessed_at' = 'created_at',
+      filter: 'all' | 'starred' | 'archived' | 'recent' = 'all',
+      limit: number = 50,
+      offset: number = 0
+    ): Promise<NoteSummary[]> {
+      const response = await this.getNotesPage(sortBy, filter, limit, offset);
       return response.notes;
     },
 
@@ -181,7 +281,7 @@ export function createExtendedApi(client: ApiClient) {
       starred?: boolean,
       archived?: boolean
     ): Promise<unknown> {
-      return client.put(`/api/v1/notes/${noteId}/status`, {
+      return client.patch(`/api/v1/notes/${noteId}/status`, {
         starred,
         archived,
       });
@@ -202,7 +302,60 @@ export function createExtendedApi(client: ApiClient) {
      * Get related notes for a specific note
      */
     async getRelatedNotes(noteId: string): Promise<RelatedNotesResponse> {
-      return client.get<RelatedNotesResponse>(`/api/v1/notes/${noteId}/related`);
+      try {
+        const similar = await client.get<unknown>(`/api/v1/notes/${noteId}/similar`);
+        const related = normalizeSearchResults(similar);
+        return {
+          related,
+          context_summary: related.length
+            ? `Found ${related.length} similar notes.`
+            : 'No similar notes found.',
+        };
+      } catch {
+        const [linksRaw, backlinksRaw] = await Promise.all([
+          client.get<unknown>(`/api/v1/notes/${noteId}/links`),
+          client.get<unknown>(`/api/v1/notes/${noteId}/backlinks`),
+        ]);
+
+        const linksObj = (linksRaw ?? {}) as {
+          outgoing?: Array<{ to_note_id?: string; score?: number }>;
+        };
+        const backlinksObj = (backlinksRaw ?? {}) as {
+          backlinks?: Array<{ from_note_id?: string; score?: number }>;
+        };
+
+        const relatedMap = new Map<string, SearchResult>();
+        for (const edge of linksObj.outgoing ?? []) {
+          if (!edge.to_note_id) {
+            continue;
+          }
+          relatedMap.set(edge.to_note_id, {
+            note_id: edge.to_note_id,
+            score: edge.score ?? 0.5,
+            snippet: '',
+          });
+        }
+        for (const edge of backlinksObj.backlinks ?? []) {
+          if (!edge.from_note_id) {
+            continue;
+          }
+          if (!relatedMap.has(edge.from_note_id)) {
+            relatedMap.set(edge.from_note_id, {
+              note_id: edge.from_note_id,
+              score: edge.score ?? 0.5,
+              snippet: '',
+            });
+          }
+        }
+
+        const related = Array.from(relatedMap.values()).sort((a, b) => b.score - a.score);
+        return {
+          related,
+          context_summary: related.length
+            ? `Connected to ${related.length} notes by graph links.`
+            : 'No related notes found.',
+        };
+      }
     },
 
     /**
@@ -212,10 +365,22 @@ export function createExtendedApi(client: ApiClient) {
       query: string,
       hits: SearchResult[]
     ): Promise<{ context: string }> {
-      return client.post<{ context: string }>('/api/v1/search/context', {
-        query,
-        hits,
-      });
+      try {
+        return await client.post<{ context: string }>('/api/v1/search/context', {
+          query,
+          hits,
+        });
+      } catch {
+        const top = hits.slice(0, 3);
+        const snippets = top
+          .map((hit) => hit.snippet)
+          .filter(Boolean)
+          .slice(0, 2);
+        const context = snippets.length
+          ? `Found ${hits.length} results for "${query}". Top themes: ${snippets.join(' | ')}`
+          : `Found ${hits.length} results for "${query}".`;
+        return { context };
+      }
     },
 
     // ============================================================
@@ -226,14 +391,30 @@ export function createExtendedApi(client: ApiClient) {
      * Get all unique labels in the system
      */
     async getAllLabels(): Promise<string[]> {
-      return client.get<string[]>('/api/v1/labels');
+      const response = await client.get<unknown>('/api/v1/tags');
+      const tags = Array.isArray(response)
+        ? response
+        : ((response as { tags?: unknown[] })?.tags ?? []);
+      return tags
+        .map((t) => (t as { name?: string }).name)
+        .filter((name): name is string => Boolean(name));
     },
 
     /**
      * Get metadata labels for a note
      */
     async getMetadataLabels(noteId: string): Promise<UserMetadataLabel[]> {
-      return client.get<UserMetadataLabel[]>(`/api/v1/notes/${noteId}/labels`);
+      const response = await client.get<unknown>(`/api/v1/notes/${noteId}/tags`);
+      const tags = Array.isArray(response)
+        ? response
+        : ((response as { tags?: string[] })?.tags ?? []);
+
+      return tags.map((tag) => ({
+        id: tag,
+        note_id: noteId,
+        label: tag,
+        created_at: new Date().toISOString(),
+      }));
     },
 
     /**
@@ -244,17 +425,35 @@ export function createExtendedApi(client: ApiClient) {
       label: string,
       color?: string
     ): Promise<UserMetadataLabel> {
-      return client.post<UserMetadataLabel>(`/api/v1/notes/${noteId}/labels`, {
+      const existing = await this.getMetadataLabels(noteId);
+      const tags = new Set(existing.map((item) => item.label));
+      tags.add(label);
+
+      await client.put(`/api/v1/notes/${noteId}/tags`, {
+        tags: Array.from(tags),
+      });
+
+      return {
+        id: label,
+        note_id: noteId,
         label,
         color,
-      });
+        created_at: new Date().toISOString(),
+      };
     },
 
     /**
      * Remove metadata label from a note
      */
     async removeMetadataLabel(noteId: string, labelId: string): Promise<void> {
-      await client.delete(`/api/v1/notes/${noteId}/labels/${labelId}`);
+      const existing = await this.getMetadataLabels(noteId);
+      const tags = existing
+        .map((item) => item.label)
+        .filter((tag) => tag !== labelId);
+
+      await client.put(`/api/v1/notes/${noteId}/tags`, {
+        tags,
+      });
     },
 
     // ============================================================
@@ -269,39 +468,97 @@ export function createExtendedApi(client: ApiClient) {
       jobType: JobType,
       priority?: number
     ): Promise<QueueJobResponse> {
-      return client.post<QueueJobResponse>('/api/v1/jobs', {
+      const response = await client.post<Record<string, unknown>>('/api/v1/jobs', {
         note_id: noteId,
         job_type: jobType,
         priority: priority || 5,
       });
+
+      return {
+        job_id: String(response.job_id ?? response.id ?? ''),
+        estimated_duration_ms:
+          typeof response.estimated_duration_ms === 'number'
+            ? response.estimated_duration_ms
+            : 0,
+        queue_position:
+          typeof response.queue_position === 'number'
+            ? response.queue_position
+            : 0,
+      };
     },
 
     /**
      * Get job queue status
      */
     async getJobQueueStatus(): Promise<JobQueueStatus[]> {
-      return client.get<JobQueueStatus[]>('/api/v1/jobs/queue');
+      const response = await client.get<unknown>('/api/v1/jobs/pending');
+      if (response && typeof response === 'object' && !Array.isArray(response)) {
+        const pending = (response as { pending?: number }).pending;
+        if (typeof pending === 'number') {
+          return pending > 0
+            ? [{
+                id: 'pending-summary',
+                job_type: 'context_update',
+                status: 'pending',
+                progress_percent: 0,
+                queue_wait_ms: undefined,
+              }]
+            : [];
+        }
+      }
+      const jobs = Array.isArray(response)
+        ? response
+        : ((response as { jobs?: unknown[] })?.jobs ?? []);
+
+      return jobs
+        .filter((job): job is Record<string, unknown> => Boolean(job) && typeof job === 'object')
+        .map((job) => {
+          const normalized = normalizeJob(job);
+          return {
+            id: normalized.id,
+            note_id: normalized.note_id,
+            note_title: undefined,
+            job_type: normalized.job_type,
+            status: normalized.status,
+            progress_percent: normalized.progress_percent,
+            estimated_duration_ms: normalized.estimated_duration_ms,
+            remaining_ms: undefined,
+            queue_wait_ms: undefined,
+          };
+        });
     },
 
     /**
      * Get specific job status
      */
     async getJobStatus(jobId: string): Promise<Job> {
-      return client.get<Job>(`/api/v1/jobs/${jobId}`);
+      const response = await client.get<Record<string, unknown>>(`/api/v1/jobs/${jobId}`);
+      return normalizeJob(response);
     },
 
     /**
      * Cancel a job
      */
     async cancelJob(jobId: string): Promise<void> {
-      await client.post(`/api/v1/jobs/${jobId}/cancel`);
+      try {
+        await client.post(`/api/v1/jobs/${jobId}/cancel`);
+      } catch {
+        await client.delete(`/api/v1/jobs/${jobId}`);
+      }
     },
 
     /**
      * Get jobs for a specific note
      */
     async getNoteJobs(noteId: string): Promise<Job[]> {
-      return client.get<Job[]>(`/api/v1/notes/${noteId}/jobs`);
+      const response = await client.get<unknown>('/api/v1/jobs');
+      const jobs = Array.isArray(response)
+        ? response
+        : ((response as { jobs?: unknown[] })?.jobs ?? []);
+      return jobs
+        .filter((job): job is Record<string, unknown> => Boolean(job) && typeof job === 'object')
+        .map(normalizeJob)
+        .filter((job) => job.note_id === noteId);
     },
 
     /**

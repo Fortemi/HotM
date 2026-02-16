@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback, type UIEvent } from "react";
 import { 
   SidebarProvider, 
   Sidebar, 
@@ -73,7 +73,8 @@ import {
   SlidersHorizontal,
   Database,
 } from "lucide-react";
-import { api, NoteFull } from "@/services/api";
+import { api, NoteFull, NoteSummary } from "@/services/api";
+import { MEMORY_CHANGED_EVENT } from "@/api/memory-context";
 import { MarkdownPreview } from "./MarkdownPreview";
 import { MarkdownEditor } from "./MarkdownEditor";
 import { RelatedNotes } from "./RelatedNotes";
@@ -131,11 +132,20 @@ export interface Note {
   revised_model?: string | null;
 }
 
+interface NotesPageResponse {
+  notes: NoteSummary[];
+  total: number;
+}
+
 export function HallOfMind() {
   // Use the global context menu prevention hook
   useGlobalContextMenuPrevention();
   
   const [notes, setNotes] = useState<Note[]>([]);
+  const [notesTotalCount, setNotesTotalCount] = useState(0);
+  const [notesOffset, setNotesOffset] = useState(0);
+  const [hasMoreNotes, setHasMoreNotes] = useState(false);
+  const [isLoadingMoreNotes, setIsLoadingMoreNotes] = useState(false);
   const [selectedNote, setSelectedNote] = useState<Note | null>(null);
   const [noteContent, setNoteContent] = useState("");
   const [revisedContent, setRevisedContent] = useState("");
@@ -188,6 +198,21 @@ export function HallOfMind() {
     checkServerHealth();
     loadExistingNotes();
     loadAvailableTags();
+  }, []);
+
+  useEffect(() => {
+    const handleMemoryChanged = () => {
+      setSelectedNote(null);
+      setNoteContent("");
+      setRevisedContent("");
+      loadExistingNotes();
+      loadAvailableTags();
+    };
+
+    window.addEventListener(MEMORY_CHANGED_EVENT, handleMemoryChanged as EventListener);
+    return () => {
+      window.removeEventListener(MEMORY_CHANGED_EVENT, handleMemoryChanged as EventListener);
+    };
   }, []);
   
   // Browser history management with debouncing and navigation lock
@@ -548,69 +573,134 @@ export function HallOfMind() {
     }
   };
 
-  const loadExistingNotes = async () => {
+  const fetchNotesPage = useCallback(
+    async (limit: number, offset: number): Promise<NotesPageResponse> => {
+      const compatApi = api as unknown as {
+        getNotesPage?: (
+          sortBy?: 'created_at' | 'updated_at' | 'accessed_at',
+          filter?: 'all' | 'starred' | 'archived' | 'recent',
+          limit?: number,
+          offset?: number
+        ) => Promise<NotesPageResponse>;
+      };
+
+      if (typeof compatApi.getNotesPage === "function") {
+        const paged = await compatApi.getNotesPage("created_at", "all", limit, offset);
+        if (paged && Array.isArray(paged.notes) && typeof paged.total === "number") {
+          return paged;
+        }
+      }
+
+      const notes = await api.getNotes("created_at", "all", limit, offset);
+      return {
+        notes,
+        total: offset + notes.length + (notes.length === limit ? limit : 0),
+      };
+    },
+    []
+  );
+
+  const hydrateNotes = useCallback(async (summaries: NoteSummary[]): Promise<Note[]> => {
+    if (summaries.length === 0) {
+      return [];
+    }
+
+    const batchSize = 10;
+    const fullNotes: NoteFull[] = [];
+    for (let i = 0; i < summaries.length; i += batchSize) {
+      const batch = summaries.slice(i, i + batchSize);
+      const results = await Promise.allSettled(batch.map((s) => api.getNote(s.id)));
+      for (const result of results) {
+        if (result.status === "fulfilled") {
+          fullNotes.push(result.value);
+        }
+      }
+    }
+
+    return fullNotes.map((note) => {
+      savedNotes.current.set(note.note.id, note);
+      return {
+        id: note.note.id,
+        title: note.note.title || note.original.content.split('\n')[0].substring(0, 50) || "Untitled",
+        content: note.original.content,
+        revised_content: note.revised ? note.revised.content : null,
+        createdAt: note.note.created_at_utc,
+        updatedAt: note.note.updated_at_utc,
+        tags: note.tags,
+        starred: note.note.starred || false,
+        archived: note.note.archived || false,
+        ai_generated_title: note.note.title,
+        revised_model: note.revised ? note.revised.model : null,
+      };
+    });
+  }, []);
+
+  const loadExistingNotes = useCallback(async () => {
+    const pageSize = 100;
     try {
       setIsLoading(true);
+      setIsLoadingMoreNotes(false);
+      setNotesOffset(0);
+      setHasMoreNotes(false);
+      savedNotes.current.clear();
 
-      // Fetch note summaries first (fast, single request)
-      const summaries = await api.getNotes('created_at', 'all', 200);
+      const page = await fetchNotesPage(pageSize, 0);
+      setNotesTotalCount(page.total);
 
-      if (summaries.length > 0) {
-        // Fetch full notes in parallel batches of 10
-        const batchSize = 10;
-        const fullNotes: NoteFull[] = [];
-        for (let i = 0; i < summaries.length; i += batchSize) {
-          const batch = summaries.slice(i, i + batchSize);
-          const results = await Promise.allSettled(
-            batch.map(s => api.getNote(s.id))
-          );
-          for (const result of results) {
-            if (result.status === 'fulfilled') {
-              fullNotes.push(result.value);
-            }
-          }
+      const simpleNotes = await hydrateNotes(page.notes);
+      setNotes(simpleNotes);
+      setNotesOffset(simpleNotes.length);
+      setHasMoreNotes(simpleNotes.length < page.total);
+
+      if (selectedNote) {
+        const updatedSelected = simpleNotes.find((n) => n.id === selectedNote.id);
+        if (updatedSelected) {
+          setSelectedNote(updatedSelected);
+          setNoteContent(updatedSelected.content);
         }
+      }
 
-        const simpleNotes = fullNotes.map(note => {
-          // Store the full note data
-          savedNotes.current.set(note.note.id, note);
-
-          // Create simplified version for UI
-          return {
-            id: note.note.id,
-            title: note.note.title || note.original.content.split('\n')[0].substring(0, 50) || "Untitled",
-            content: note.original.content,
-            revised_content: note.revised ? note.revised.content : null,
-            createdAt: note.note.created_at_utc,
-            updatedAt: note.note.updated_at_utc,
-            tags: note.tags,
-            starred: note.note.starred || false,
-            archived: note.note.archived || false,
-            ai_generated_title: note.note.title,
-            revised_model: note.revised ? note.revised.model : null
-          };
-        });
-        setNotes(simpleNotes);
-
-        // If we have a selected note, update it with the fresh data
-        if (selectedNote) {
-          const updatedSelected = simpleNotes.find(n => n.id === selectedNote.id);
-          if (updatedSelected) {
-            setSelectedNote(updatedSelected);
-            setNoteContent(updatedSelected.content);
-          }
-        }
-
-        console.log(`Loaded ${simpleNotes.length} notes from server`);
-      } else {
+      if (simpleNotes.length === 0) {
         console.log("No existing notes found");
+      } else {
+        console.log(`Loaded ${simpleNotes.length}/${page.total} notes from server`);
       }
     } catch (error) {
       console.error("Failed to load notes:", error);
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [fetchNotesPage, hydrateNotes, selectedNote]);
+
+  const loadMoreNotes = useCallback(async () => {
+    if (isLoadingMoreNotes || isLoading || !hasMoreNotes) {
+      return;
+    }
+
+    const pageSize = 100;
+    try {
+      setIsLoadingMoreNotes(true);
+      const page = await fetchNotesPage(pageSize, notesOffset);
+      setNotesTotalCount(page.total);
+
+      const simpleNotes = await hydrateNotes(page.notes);
+      if (simpleNotes.length > 0) {
+        setNotes((prev) => {
+          const existingIds = new Set(prev.map((n) => n.id));
+          const unique = simpleNotes.filter((n) => !existingIds.has(n.id));
+          return [...prev, ...unique];
+        });
+      }
+
+      const nextOffset = notesOffset + simpleNotes.length;
+      setNotesOffset(nextOffset);
+      setHasMoreNotes(nextOffset < page.total);
+    } catch (error) {
+      console.error("Failed to load additional notes:", error);
+    } finally {
+      setIsLoadingMoreNotes(false);
+    }
+  }, [fetchNotesPage, hasMoreNotes, hydrateNotes, isLoading, isLoadingMoreNotes, notesOffset]);
 
   const toggleTheme = () => {
     setIsDarkMode(!isDarkMode);
@@ -660,7 +750,9 @@ export function HallOfMind() {
       console.log("Note created and marked for AI processing:", response.note_id);
       // The WebSocket noteUpdated event will handle updating the UI when jobs complete
       
-      setNotes([simpleNote, ...notes]);
+      setNotes((prev) => [simpleNote, ...prev]);
+      setNotesTotalCount((prev) => prev + 1);
+      setNotesOffset((prev) => prev + 1);
       setSelectedNote(simpleNote);
       setNoteContent(simpleNote.content);
       setNewNoteContent("");
@@ -1195,6 +1287,18 @@ export function HallOfMind() {
     setExpandedGroups(newExpanded);
   };
 
+  const handleNotesListScroll = (event: UIEvent<HTMLDivElement>) => {
+    if (isLoading || isLoadingMoreNotes || !hasMoreNotes) {
+      return;
+    }
+
+    const target = event.currentTarget;
+    const nearBottom = target.scrollTop + target.clientHeight >= target.scrollHeight - 120;
+    if (nearBottom) {
+      void loadMoreNotes();
+    }
+  };
+
   return (
     <SidebarProvider defaultOpen={true}>
       <div className="flex h-screen w-full bg-background">
@@ -1402,6 +1506,9 @@ export function HallOfMind() {
                 <div className="flex items-center justify-between">
                   <SidebarGroupLabel className="p-0">
                     Notes ({filteredNotes.length})
+                    <Badge variant="outline" className="ml-2 text-xs">
+                      loaded {notes.length}/{notesTotalCount}
+                    </Badge>
                     {quickAccessFilter !== "all" && (
                       <Badge variant="outline" className="ml-2 text-xs">
                         {quickAccessFilter}
@@ -1511,7 +1618,7 @@ export function HallOfMind() {
                   </div>
                 </div>
               </div>
-              <ScrollArea className="flex-1 overflow-y-auto">
+              <ScrollArea className="flex-1 overflow-y-auto" onScrollCapture={handleNotesListScroll}>
                 <SidebarMenu>
                   {filteredNotes.length === 0 ? (
                     <div className="p-4 text-center text-sm text-muted-foreground">
@@ -1635,6 +1742,12 @@ export function HallOfMind() {
                     ))
                   )}
                 </SidebarMenu>
+                {isLoadingMoreNotes && (
+                  <div className="px-4 py-2 text-xs text-muted-foreground flex items-center gap-2">
+                    <Loader2 className="h-3 w-3 animate-spin" />
+                    Loading more notes...
+                  </div>
+                )}
               </ScrollArea>
             </SidebarGroup>
 

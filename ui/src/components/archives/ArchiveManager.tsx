@@ -59,6 +59,25 @@ export function ArchiveManager() {
       const data = await api.archives.list();
       setArchives(data);
       setActiveMemoryState(getActiveMemory());
+      const statsEntries = await Promise.all(
+        data.map(async (archive) => {
+          try {
+            const stats = await api.archives.stats(archive.name);
+            return [archive.name, stats] as const;
+          } catch {
+            return [archive.name, null] as const;
+          }
+        })
+      );
+      setStatsByArchive((prev) => {
+        const next = { ...prev };
+        for (const [name, stats] of statsEntries) {
+          if (stats) {
+            next[name] = stats;
+          }
+        }
+        return next;
+      });
     } catch (error) {
       setStatus({ type: 'error', message: 'Failed to load archives' });
       console.error(error);
