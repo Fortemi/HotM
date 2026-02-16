@@ -175,6 +175,49 @@ export function GraphExplorer({ className, initialNoteId, onNoteSelect }: GraphE
           }
         }
 
+        // Final fallback: if the archive has no link topology yet, show an isolated
+        // note map so graph view still presents the broader note corpus.
+        if ((response.edges?.length ?? 0) === 0 && (response.nodes?.length ?? 0) <= 1) {
+          try {
+            const fallbackSummaries = await api.notes.list({
+              sortBy: 'updated_at',
+              sortOrder: 'desc',
+              limit: Math.min(maxNodes, 150),
+              archived: false,
+            });
+
+            if (fallbackSummaries.length > 1) {
+              const deduped = new Map<string, { id: string; title: string; depth: number }>();
+              // Keep the selected root visible and prominent.
+              deduped.set(effectiveRootId, {
+                id: effectiveRootId,
+                title: response.nodes[0]?.title || 'Selected Note',
+                depth: 0,
+              });
+
+              for (const note of fallbackSummaries) {
+                if (deduped.size >= Math.min(maxNodes, 150)) {
+                  break;
+                }
+                if (!deduped.has(note.id)) {
+                  deduped.set(note.id, {
+                    id: note.id,
+                    title: note.title || 'Untitled Note',
+                    depth: note.id === effectiveRootId ? 0 : 1,
+                  });
+                }
+              }
+
+              response = {
+                nodes: Array.from(deduped.values()),
+                edges: [],
+              };
+            }
+          } catch {
+            // Keep original one-node response if fallback note map loading fails.
+          }
+        }
+
         // Get note metadata for collections
         const noteIds = response.nodes.map((n) => n.id);
         const notesData = await Promise.all(
