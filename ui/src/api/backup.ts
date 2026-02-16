@@ -13,8 +13,30 @@ import type {
   RestoreDatabaseRequest,
   SwapBackupRequest,
 } from './types-extended';
+import { getActiveMemory, getMemoryRoutingHeaderName } from './memory-context';
 
 export function createBackupApi(client: ApiClient) {
+  const getBaseUrl = (): string => client.baseUrl;
+  const getMemoryHeaders = (): Record<string, string> => {
+    const activeMemory = getActiveMemory();
+    if (!activeMemory) {
+      return {};
+    }
+    return { [getMemoryRoutingHeaderName()]: activeMemory };
+  };
+
+  const fileToBase64 = async (file: File): Promise<string> => {
+    const arrayBuffer = await file.arrayBuffer();
+    let binary = '';
+    const bytes = new Uint8Array(arrayBuffer);
+    const chunkSize = 0x8000;
+    for (let i = 0; i < bytes.length; i += chunkSize) {
+      const chunk = bytes.subarray(i, i + chunkSize);
+      binary += String.fromCharCode(...chunk);
+    }
+    return btoa(binary);
+  };
+
   return {
     // ===========================
     // JSON Export/Import (Legacy)
@@ -32,10 +54,12 @@ export function createBackupApi(client: ApiClient) {
      * Returns blob URL for download
      */
     async downloadBackup(): Promise<Blob> {
-      const baseUrl = (client as any).baseUrl || 'http://localhost:3000';
+      const baseUrl = getBaseUrl();
       const url = `${baseUrl}/api/v1/backup/download`;
 
-      const response = await fetch(url);
+      const response = await fetch(url, {
+        headers: getMemoryHeaders(),
+      });
 
       if (!response.ok) {
         throw new Error(`Download failed: ${response.statusText}`);
@@ -52,21 +76,10 @@ export function createBackupApi(client: ApiClient) {
         throw new Error('Backup file is required');
       }
 
-      const formData = new FormData();
-      formData.append('file', file);
-
-      const baseUrl = (client as any).baseUrl || 'http://localhost:3000';
-      const url = `${baseUrl}/api/v1/backup/import`;
-
-      const response = await fetch(url, {
-        method: 'POST',
-        body: formData,
-      });
-
-      if (!response.ok) {
-        const error = await response.json().catch(() => ({}));
-        throw new Error(error.message || `Import failed: ${response.statusText}`);
-      }
+      const text = await file.text();
+      const parsed = JSON.parse(text);
+      const backupPayload = parsed.backup ? parsed : { backup: parsed };
+      await client.post('/api/v1/backup/import', backupPayload);
     },
 
     /**
@@ -104,11 +117,13 @@ export function createBackupApi(client: ApiClient) {
         params.include_deleted = String(options.include_deleted);
       }
 
-      const baseUrl = (client as any).baseUrl || 'http://localhost:3000';
+      const baseUrl = getBaseUrl();
       const queryString = new URLSearchParams(params).toString();
       const url = `${baseUrl}/api/v1/backup/knowledge-shard${queryString ? `?${queryString}` : ''}`;
 
-      const response = await fetch(url);
+      const response = await fetch(url, {
+        headers: getMemoryHeaders(),
+      });
 
       if (!response.ok) {
         throw new Error(`Export failed: ${response.statusText}`);
@@ -125,21 +140,10 @@ export function createBackupApi(client: ApiClient) {
         throw new Error('Knowledge shard file is required');
       }
 
-      const formData = new FormData();
-      formData.append('file', file);
-
-      const baseUrl = (client as any).baseUrl || 'http://localhost:3000';
-      const url = `${baseUrl}/api/v1/backup/knowledge-shard/import`;
-
-      const response = await fetch(url, {
-        method: 'POST',
-        body: formData,
+      const shardBase64 = await fileToBase64(file);
+      await client.post('/api/v1/backup/knowledge-shard/import', {
+        shard_base64: shardBase64,
       });
-
-      if (!response.ok) {
-        const error = await response.json().catch(() => ({}));
-        throw new Error(error.message || `Import failed: ${response.statusText}`);
-      }
     },
 
     // ===========================
@@ -150,10 +154,12 @@ export function createBackupApi(client: ApiClient) {
      * Download full database backup (pg_dump)
      */
     async downloadDatabaseBackup(): Promise<Blob> {
-      const baseUrl = (client as any).baseUrl || 'http://localhost:3000';
+      const baseUrl = getBaseUrl();
       const url = `${baseUrl}/api/v1/backup/database`;
 
-      const response = await fetch(url);
+      const response = await fetch(url, {
+        headers: getMemoryHeaders(),
+      });
 
       if (!response.ok) {
         throw new Error(`Download failed: ${response.statusText}`);
@@ -181,21 +187,11 @@ export function createBackupApi(client: ApiClient) {
         throw new Error('Database backup file is required');
       }
 
-      const formData = new FormData();
-      formData.append('file', file);
-
-      const baseUrl = (client as any).baseUrl || 'http://localhost:3000';
-      const url = `${baseUrl}/api/v1/backup/database/upload`;
-
-      const response = await fetch(url, {
-        method: 'POST',
-        body: formData,
+      const dataBase64 = await fileToBase64(file);
+      await client.post('/api/v1/backup/database/upload', {
+        data_base64: dataBase64,
+        original_filename: file.name,
       });
-
-      if (!response.ok) {
-        const error = await response.json().catch(() => ({}));
-        throw new Error(error.message || `Upload failed: ${response.statusText}`);
-      }
     },
 
     /**
@@ -210,6 +206,28 @@ export function createBackupApi(client: ApiClient) {
       await client.post('/api/v1/backup/database/restore', request);
     },
 
+    /**
+     * Download backup for a specific memory archive.
+     */
+    async downloadMemoryBackup(name: string): Promise<Blob> {
+      if (!name || name.trim() === '') {
+        throw new Error('Memory name is required');
+      }
+
+      const baseUrl = getBaseUrl();
+      const url = `${baseUrl}/api/v1/backup/memory/${encodeURIComponent(name)}`;
+
+      const response = await fetch(url, {
+        headers: getMemoryHeaders(),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Download failed: ${response.statusText}`);
+      }
+
+      return response.blob();
+    },
+
     // ===========================
     // Knowledge Archives
     // ===========================
@@ -222,7 +240,7 @@ export function createBackupApi(client: ApiClient) {
         throw new Error('Archive filename is required');
       }
 
-      const baseUrl = (client as any).baseUrl || 'http://localhost:3000';
+      const baseUrl = getBaseUrl();
       const url = `${baseUrl}/api/v1/backup/knowledge-archive/${filename}`;
 
       const response = await fetch(url);
@@ -245,11 +263,12 @@ export function createBackupApi(client: ApiClient) {
       const formData = new FormData();
       formData.append('file', file);
 
-      const baseUrl = (client as any).baseUrl || 'http://localhost:3000';
+      const baseUrl = getBaseUrl();
       const url = `${baseUrl}/api/v1/backup/knowledge-archive`;
 
       const response = await fetch(url, {
         method: 'POST',
+        headers: getMemoryHeaders(),
         body: formData,
       });
 
@@ -267,11 +286,14 @@ export function createBackupApi(client: ApiClient) {
      * List all available backup files
      */
     async listBackups(): Promise<BackupInfo[]> {
-      const response = await client.get<BackupListResponse>(
+      const response = await client.get<BackupListResponse | { shards?: BackupInfo[] }>(
         '/api/v1/backup/list'
       );
 
-      return response.backups;
+      if ('backups' in response && Array.isArray(response.backups)) {
+        return response.backups;
+      }
+      return (response as { shards?: BackupInfo[] }).shards ?? [];
     },
 
     /**

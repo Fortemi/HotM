@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { createApiClient } from '../client';
 import { ApiError, NetworkError } from '../errors';
+import { clearActiveMemory, setActiveMemory } from '../memory-context';
 
 // Mock fetch globally
 const mockFetch = vi.fn();
@@ -12,6 +13,7 @@ describe('API Client', () => {
 
   beforeEach(() => {
     mockFetch.mockClear();
+    clearActiveMemory();
     client = createApiClient(baseUrl);
   });
 
@@ -63,6 +65,46 @@ describe('API Client', () => {
       expect(mockFetch).toHaveBeenCalledWith(
         'http://localhost:3000/notes',
         expect.any(Object)
+      );
+    });
+
+    it('adds memory routing header for API v1 paths when memory is selected', async () => {
+      setActiveMemory('projecte');
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: () => Promise.resolve({})
+      });
+
+      await client.get('/api/v1/notes');
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        'http://localhost:3000/api/v1/notes',
+        expect.objectContaining({
+          headers: expect.objectContaining({
+            'X-Fortemi-Memory': 'projecte'
+          })
+        })
+      );
+    });
+
+    it('does not add memory routing header for non-API v1 paths', async () => {
+      setActiveMemory('projecte');
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: () => Promise.resolve({})
+      });
+
+      await client.get('/health');
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        'http://localhost:3000/health',
+        expect.objectContaining({
+          headers: expect.not.objectContaining({
+            'X-Fortemi-Memory': expect.any(String)
+          })
+        })
       );
     });
   });

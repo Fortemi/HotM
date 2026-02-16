@@ -14,13 +14,14 @@ import {
   X,
   FileText,
   AlertCircle,
+  Database,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { api } from '@/api';
-import type { SearchResult, SearchMode, Tag } from '@/api';
+import type { MemoryArchive, SearchResult, SearchMode, Tag } from '@/api';
 
 interface AdvancedSearchFiltersProps {
   className?: string;
@@ -29,7 +30,7 @@ interface AdvancedSearchFiltersProps {
 
 export function AdvancedSearchFilters({ className, onSelectResult }: AdvancedSearchFiltersProps) {
   const [query, setQuery] = useState('');
-  const [mode, setMode] = useState<SearchMode>('hybrid');
+  const [mode, setMode] = useState<SearchMode | 'federated'>('hybrid');
   const [results, setResults] = useState<SearchResult[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -44,9 +45,13 @@ export function AdvancedSearchFilters({ className, onSelectResult }: AdvancedSea
   // Available tags for filter
   const [availableTags, setAvailableTags] = useState<Tag[]>([]);
   const [tagSearch, setTagSearch] = useState('');
+  const [availableMemories, setAvailableMemories] = useState<MemoryArchive[]>([]);
+  const [selectedMemories, setSelectedMemories] = useState<string[]>([]);
+  const [searchAllMemories, setSearchAllMemories] = useState(true);
 
   useEffect(() => {
     api.tags.list({ sortBy: 'count' }).then(setAvailableTags).catch(console.error);
+    api.archives.list().then(setAvailableMemories).catch(console.error);
   }, []);
 
   const filteredAvailableTags = availableTags.filter(
@@ -63,21 +68,36 @@ export function AdvancedSearchFilters({ className, onSelectResult }: AdvancedSea
     setError(null);
     setHasSearched(true);
     try {
-      const searchResults = await api.search.search(trimmed, {
-        mode,
-        tags: selectedTags.length > 0 ? selectedTags : undefined,
-        starred: filterStarred,
-        archived: filterArchived,
-        limit: 50,
-      });
-      setResults(searchResults);
+      if (mode === 'federated') {
+        const federatedResults = await api.search.federatedSearch(
+          trimmed,
+          searchAllMemories ? ['all'] : selectedMemories,
+          50
+        );
+        setResults(
+          federatedResults.map((hit) => ({
+            note_id: hit.note_id,
+            score: hit.score,
+            snippet: `[${hit.memory}] ${hit.snippet ?? ''}`.trim(),
+          }))
+        );
+      } else {
+        const searchResults = await api.search.search(trimmed, {
+          mode,
+          tags: selectedTags.length > 0 ? selectedTags : undefined,
+          starred: filterStarred,
+          archived: filterArchived,
+          limit: 50,
+        });
+        setResults(searchResults);
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Search failed');
       setResults([]);
     } finally {
       setIsSearching(false);
     }
-  }, [query, mode, selectedTags, filterStarred, filterArchived]);
+  }, [query, mode, selectedTags, filterStarred, filterArchived, searchAllMemories, selectedMemories]);
 
   const addTag = (name: string) => {
     setSelectedTags((prev) => [...prev, name]);
@@ -128,7 +148,7 @@ export function AdvancedSearchFilters({ className, onSelectResult }: AdvancedSea
         {/* Mode Selector */}
         <div className="flex items-center gap-2">
           <span className="text-sm text-muted-foreground">Mode:</span>
-          {(['hybrid', 'fts', 'semantic'] as SearchMode[]).map((m) => (
+          {(['hybrid', 'fts', 'semantic', 'federated'] as Array<SearchMode | 'federated'>).map((m) => (
             <Button
               key={m}
               variant={mode === m ? 'secondary' : 'ghost'}
@@ -228,6 +248,44 @@ export function AdvancedSearchFilters({ className, onSelectResult }: AdvancedSea
               </Button>
             )}
           </div>
+
+          {mode === 'federated' && (
+            <div className="space-y-2">
+              <label className="text-sm font-medium flex items-center gap-1">
+                <Database className="w-3.5 h-3.5" /> Memories
+              </label>
+              <label className="flex items-center gap-2 text-sm cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={searchAllMemories}
+                  onChange={() => setSearchAllMemories((v) => !v)}
+                  className="rounded"
+                />
+                Search all memories
+              </label>
+              {!searchAllMemories && (
+                <div className="flex flex-wrap gap-2">
+                  {availableMemories.map((memory) => {
+                    const selected = selectedMemories.includes(memory.name);
+                    return (
+                      <Button
+                        key={memory.id}
+                        size="sm"
+                        variant={selected ? 'secondary' : 'outline'}
+                        onClick={() =>
+                          setSelectedMemories((prev) =>
+                            selected ? prev.filter((m) => m !== memory.name) : [...prev, memory.name]
+                          )
+                        }
+                      >
+                        {memory.name}
+                      </Button>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          )}
         </div>
       )}
 

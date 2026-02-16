@@ -23,6 +23,7 @@ import { createLinksApi } from './links';
 import { createProvenanceApi } from './provenance';
 import { createEventsClient } from './events';
 import { createWebhooksApi } from './webhooks';
+import { createArchivesApi } from './archives';
 
 // Export core types
 export type {
@@ -142,6 +143,14 @@ export type {
   ProvenanceResponse,
   MemoryInfo,
   RateLimitStatus,
+  MemoryArchive,
+  CreateArchiveRequest,
+  UpdateArchiveRequest,
+  CloneArchiveRequest,
+  ArchiveStatsResponse,
+  FederatedSearchRequest,
+  FederatedSearchHit,
+  FederatedSearchResponse,
 } from './types-extended';
 
 // Export error classes
@@ -176,6 +185,7 @@ export { createProvenanceApi } from './provenance';
 export { createEventsClient } from './events';
 export type { ServerEvent, EventsClient } from './events';
 export { createWebhooksApi } from './webhooks';
+export { createArchivesApi } from './archives';
 export type {
   Webhook,
   CreateWebhookRequest,
@@ -183,6 +193,7 @@ export type {
   WebhookDelivery,
   WebhooksApi,
 } from './webhooks';
+export { getActiveMemory, setActiveMemory, clearActiveMemory } from './memory-context';
 
 // Export types for the API modules
 export type { ApiClient } from './client';
@@ -203,6 +214,7 @@ export type { BackupApi } from './backup';
 export type { EmbeddingsApi } from './embeddings';
 export type { LinksApi } from './links';
 export type { ProvenanceApi } from './provenance';
+export type { ArchivesApi } from './archives';
 
 // Export compatibility layer
 export { api as compatApi } from './compat';
@@ -248,6 +260,7 @@ export function createApi(baseUrl?: string) {
     provenance: createProvenanceApi(client),
     events: createEventsClient(url),
     webhooks: createWebhooksApi(client),
+    archives: createArchivesApi(client),
 
     /**
      * Quick health check endpoint (legacy)

@@ -4,6 +4,7 @@
  */
 
 import { ApiError, NetworkError } from './errors';
+import { getActiveMemory, getMemoryRoutingHeaderName } from './memory-context';
 
 interface RequestOptions {
   method?: 'GET' | 'POST' | 'PATCH' | 'PUT' | 'DELETE';
@@ -49,6 +50,10 @@ function buildUrl(baseUrl: string, path: string, params?: Record<string, string>
  * Create API client instance
  */
 export function createApiClient(baseUrl: string) {
+  const normalizedBaseUrl = baseUrl.endsWith('/')
+    ? baseUrl.slice(0, -1)
+    : baseUrl;
+
   const defaultHeaders: Record<string, string> = {
     'Content-Type': 'application/json',
   };
@@ -66,8 +71,16 @@ export function createApiClient(baseUrl: string) {
       retryDelay = 1000,
     } = options;
 
-    const url = buildUrl(baseUrl, path, params);
+    const url = buildUrl(normalizedBaseUrl, path, params);
     const requestHeaders = { ...defaultHeaders, ...headers };
+    const selectedMemory = getActiveMemory();
+    if (
+      selectedMemory &&
+      path.startsWith('/api/v1/') &&
+      !requestHeaders[getMemoryRoutingHeaderName()]
+    ) {
+      requestHeaders[getMemoryRoutingHeaderName()] = selectedMemory;
+    }
 
     let lastError: Error | null = null;
 
@@ -144,6 +157,8 @@ export function createApiClient(baseUrl: string) {
   }
 
   return {
+    baseUrl: normalizedBaseUrl,
+
     async get<T>(
       path: string,
       params?: Record<string, string>,

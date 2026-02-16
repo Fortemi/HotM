@@ -10,6 +10,7 @@ import type {
   SearchOptions,
   SimilarNotesOptions,
 } from './types';
+import type { FederatedSearchHit, FederatedSearchResponse } from './types-extended';
 
 export function createSearchApi(client: ApiClient) {
   return {
@@ -107,12 +108,41 @@ export function createSearchApi(client: ApiClient) {
         params.threshold = String(threshold);
       }
 
-      const response = await client.get<SearchResponse>(
-        `/api/v1/notes/${noteId}/similar`,
-        params
-      );
+      try {
+        const response = await client.get<SearchResponse>(
+          `/api/v1/notes/${noteId}/similar`,
+          params
+        );
+        return response.results;
+      } catch {
+        const [linksResp, backlinksResp] = await Promise.all([
+          client.get<{ outgoing?: Array<{ to_note_id: string; score?: number }> }>(
+            `/api/v1/notes/${noteId}/links`
+          ),
+          client.get<{ backlinks?: Array<{ from_note_id: string; score?: number }> }>(
+            `/api/v1/notes/${noteId}/backlinks`
+          ),
+        ]);
 
-      return response.results;
+        const results: SearchResult[] = [];
+        for (const edge of linksResp.outgoing ?? []) {
+          results.push({
+            note_id: edge.to_note_id,
+            score: edge.score ?? 0.5,
+            snippet: '',
+          });
+        }
+        for (const edge of backlinksResp.backlinks ?? []) {
+          if (!results.some((item) => item.note_id === edge.from_note_id)) {
+            results.push({
+              note_id: edge.from_note_id,
+              score: edge.score ?? 0.5,
+              snippet: '',
+            });
+          }
+        }
+        return results.slice(0, limit);
+      }
     },
 
     /**
@@ -138,12 +168,21 @@ export function createSearchApi(client: ApiClient) {
         body.threshold = threshold;
       }
 
-      const response = await client.post<{ similar: SearchResult[] }>(
-        '/api/v1/semantic',
-        body
-      );
-
-      return response.similar;
+      try {
+        const response = await client.post<{ similar: SearchResult[] }>(
+          '/api/v1/semantic',
+          body
+        );
+        return response.similar;
+      } catch {
+        const response = await client.get<SearchResponse>('/api/v1/search', {
+          q: text,
+          mode: 'semantic',
+          limit: String(limit),
+          ...(threshold !== undefined ? { threshold: String(threshold) } : {}),
+        });
+        return response.results;
+      }
     },
 
     /**
@@ -165,6 +204,33 @@ export function createSearchApi(client: ApiClient) {
         params
       );
 
+      return response.results;
+    },
+
+    /**
+     * Federated full-text search across multiple memories/archives.
+     * Pass ["all"] to search every memory.
+     */
+    async federatedSearch(
+      query: string,
+      memories: string[],
+      limit: number = 10
+    ): Promise<FederatedSearchHit[]> {
+      if (!query || query.trim() === '') {
+        throw new Error('Search query is required');
+      }
+      if (!memories || memories.length === 0) {
+        throw new Error('At least one memory is required');
+      }
+
+      const response = await client.post<FederatedSearchResponse>(
+        '/api/v1/search/federated',
+        {
+          q: query,
+          memories,
+          limit,
+        }
+      );
       return response.results;
     },
   };

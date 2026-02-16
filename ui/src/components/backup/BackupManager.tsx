@@ -413,7 +413,7 @@ export function BackupManager({ className }: BackupManagerProps) {
   const handleDownload = async (backup: BackupInfo) => {
     try {
       let blob: Blob;
-      if (backup.type === 'knowledge-shard') {
+      if (backup.type === 'knowledge-shard' || backup.type === 'archive') {
         blob = await api.backup.downloadKnowledgeArchive(backup.filename);
       } else {
         blob = await api.backup.downloadDatabaseBackup();

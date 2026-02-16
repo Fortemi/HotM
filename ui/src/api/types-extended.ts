@@ -553,6 +553,7 @@ export interface TagCooccurrence {
  */
 export interface TagCooccurrenceResponse {
   pairs: TagCooccurrence[];
+  cooccurrence_pairs?: TagCooccurrence[];
 }
 
 // ===========================
@@ -588,6 +589,7 @@ export interface LocationQuery {
   lat: number;
   lon: number;
   radius_meters: number;
+  radius?: number;
   limit?: number;
 }
 
@@ -720,6 +722,66 @@ export interface RestoreDatabaseRequest {
  */
 export interface SwapBackupRequest {
   backup_filename: string;
+}
+
+// ===========================
+// Archives / Multi-Memory
+// ===========================
+
+export interface MemoryArchive {
+  id: string;
+  name: string;
+  schema_name: string;
+  description?: string;
+  created_at: string;
+  last_accessed?: string;
+  note_count?: number;
+  size_bytes?: number;
+  is_default: boolean;
+  schema_version: number;
+}
+
+export interface CreateArchiveRequest {
+  name: string;
+  description?: string;
+}
+
+export interface UpdateArchiveRequest {
+  description?: string;
+}
+
+export interface CloneArchiveRequest {
+  new_name: string;
+  description?: string;
+}
+
+export interface ArchiveStatsResponse {
+  name: string;
+  note_count: number;
+  size_bytes: number;
+  schema_name: string;
+}
+
+export interface FederatedSearchRequest {
+  q: string;
+  memories: string[];
+  limit?: number;
+}
+
+export interface FederatedSearchHit {
+  note_id: string;
+  score: number;
+  snippet?: string;
+  title?: string;
+  tags: string[];
+  memory: string;
+}
+
+export interface FederatedSearchResponse {
+  results: FederatedSearchHit[];
+  query: string;
+  total: number;
+  memories_searched: string[];
 }
 
 // ===========================

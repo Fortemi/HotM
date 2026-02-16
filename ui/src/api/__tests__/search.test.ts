@@ -249,4 +249,62 @@ describe('Search API', () => {
       );
     });
   });
+
+  describe('federatedSearch', () => {
+    it('posts federated search request with selected memories', async () => {
+      const mockResponse = {
+        results: [
+          {
+            note_id: '123',
+            score: 0.91,
+            snippet: 'test',
+            tags: ['work'],
+            memory: 'projecte'
+          }
+        ],
+        query: 'test',
+        total: 1,
+        memories_searched: ['projecte']
+      };
+      vi.mocked(mockClient.post).mockResolvedValueOnce(mockResponse);
+
+      const result = await searchApi.federatedSearch('test', ['projecte'], 25);
+
+      expect(mockClient.post).toHaveBeenCalledWith('/api/v1/search/federated', {
+        q: 'test',
+        memories: ['projecte'],
+        limit: 25
+      });
+      expect(result).toEqual(mockResponse.results);
+    });
+
+    it('supports all-memories federated search', async () => {
+      vi.mocked(mockClient.post).mockResolvedValueOnce({
+        results: [],
+        query: 'test',
+        total: 0,
+        memories_searched: ['public']
+      });
+
+      await searchApi.federatedSearch('test', ['all']);
+
+      expect(mockClient.post).toHaveBeenCalledWith('/api/v1/search/federated', {
+        q: 'test',
+        memories: ['all'],
+        limit: 10
+      });
+    });
+
+    it('throws for empty federated query', async () => {
+      await expect(searchApi.federatedSearch('', ['all'])).rejects.toThrow(
+        'Search query is required'
+      );
+    });
+
+    it('throws when no memories are provided', async () => {
+      await expect(searchApi.federatedSearch('test', [])).rejects.toThrow(
+        'At least one memory is required'
+      );
+    });
+  });
 });

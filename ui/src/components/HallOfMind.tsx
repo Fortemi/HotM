@@ -71,6 +71,7 @@ import {
   HardDrive,
   BookMarked,
   SlidersHorizontal,
+  Database,
 } from "lucide-react";
 import { api, NoteFull } from "@/services/api";
 import { MarkdownPreview } from "./MarkdownPreview";
@@ -95,6 +96,7 @@ import { AttachmentsPanel } from "./attachments/AttachmentsPanel";
 import { ConceptBrowser } from "./concepts/ConceptBrowser";
 import { VersionHistory } from "./versions/VersionHistory";
 import { BackupManager } from "./backup/BackupManager";
+import { ArchiveManager } from "./archives/ArchiveManager";
 import { TagManager } from "./tags";
 import { AdvancedSearchFilters } from "./search";
 
@@ -111,6 +113,7 @@ type AppView =
   | "concepts"
   | "versions"
   | "backup"
+  | "archives"
   | "tags"
   | "advanced-search";
 
@@ -153,10 +156,10 @@ export function HallOfMind() {
   const [isDarkMode, setIsDarkMode] = useState(true);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [noteToDelete, setNoteToDelete] = useState<{ id: string; title: string } | null>(null);
-  const [quickNoteCollapsed, setQuickNoteCollapsed] = useState(false);
-  const [quickAccessCollapsed, setQuickAccessCollapsed] = useState(false);
-  const [tagsCollapsed, setTagsCollapsed] = useState(false);
-  const [featuresCollapsed, setFeaturesCollapsed] = useState(false);
+  const [quickNoteCollapsed, setQuickNoteCollapsed] = useState(true);
+  const [quickAccessCollapsed, setQuickAccessCollapsed] = useState(true);
+  const [tagsCollapsed, setTagsCollapsed] = useState(true);
+  const [featuresCollapsed, setFeaturesCollapsed] = useState(true);
   const [selectedTags, setSelectedTags] = useState<Set<string>>(new Set());
   const [tagSearchQuery, setTagSearchQuery] = useState("");
   const [availableTags, setAvailableTags] = useState<string[]>([]);
@@ -1203,7 +1206,7 @@ export function HallOfMind() {
               </div>
               <div>
                 <h2 className="text-lg font-semibold">Hall of the Mind</h2>
-                <p className="text-xs text-muted-foreground">Your personal sanctuary</p>
+                <p className="text-xs text-muted-foreground">Intelligent data curation</p>
               </div>
             </div>
             {/* Server Status */}
@@ -1373,6 +1376,15 @@ export function HallOfMind() {
                   </SidebarMenuItem>
                   <SidebarMenuItem>
                     <SidebarMenuButton
+                      onClick={() => setCurrentView("archives")}
+                      className={currentView === "archives" ? "bg-primary/10" : ""}
+                    >
+                      <Database className="h-4 w-4" />
+                      <span>Archives</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton
                       onClick={() => setCurrentView("admin")}
                       className={currentView === "admin" ? "bg-primary/10" : ""}
                     >
@@ -1384,253 +1396,7 @@ export function HallOfMind() {
               )}
             </SidebarGroup>
 
-            <SidebarGroup>
-              <SidebarGroupLabel>
-                <button
-                  onClick={() => setQuickNoteCollapsed(!quickNoteCollapsed)}
-                  className="flex items-center justify-between w-full hover:bg-accent/50 rounded px-1 py-0.5 transition-colors"
-                >
-                  <span>Quick Note</span>
-                  {quickNoteCollapsed ? (
-                    <ChevronRight className="h-3 w-3" />
-                  ) : (
-                    <ChevronDown className="h-3 w-3" />
-                  )}
-                </button>
-              </SidebarGroupLabel>
-              {!quickNoteCollapsed && (
-                <SidebarGroupContent>
-                  <div className="px-3 py-2 space-y-2">
-                    <Textarea
-                      placeholder="Quick note... (Ctrl+Enter to save)"
-                      value={newNoteContent}
-                      onChange={(e) => setNewNoteContent(e.target.value)}
-                      className="min-h-[100px] resize-none text-sm font-mono"
-                      onKeyDown={(e) => {
-                        if (e.ctrlKey && e.key === 'Enter') {
-                          e.preventDefault();
-                          createNewNote();
-                        }
-                      }}
-                    />
-                    <Button 
-                      onClick={createNewNote}
-                      className="w-full justify-start gap-2"
-                      variant="default"
-                      disabled={isLoading || !serverStatus?.ok || !newNoteContent.trim()}
-                    >
-                      <Plus className="h-4 w-4" />
-                      {isLoading ? 'Creating...' : 'Create Note'}
-                    </Button>
-                  </div>
-                </SidebarGroupContent>
-              )}
-            </SidebarGroup>
-
-            <SidebarGroup>
-              <SidebarGroupLabel>
-                <button
-                  onClick={() => setQuickAccessCollapsed(!quickAccessCollapsed)}
-                  className="flex items-center justify-between w-full hover:bg-accent/50 rounded px-1 py-0.5 transition-colors"
-                >
-                  <span>Quick Access</span>
-                  {quickAccessCollapsed ? (
-                    <ChevronRight className="h-3 w-3" />
-                  ) : (
-                    <ChevronDown className="h-3 w-3" />
-                  )}
-                </button>
-              </SidebarGroupLabel>
-              {!quickAccessCollapsed && (
-                <SidebarMenu>
-                  <SidebarMenuItem>
-                    <SidebarMenuButton
-                      onClick={() => setQuickAccessFilter(quickAccessFilter === "starred" ? "all" : "starred")}
-                      className={quickAccessFilter === "starred" ? "bg-primary/10" : ""}
-                    >
-                      <Star className="h-4 w-4" />
-                      <span>Starred</span>
-                      <Badge variant="secondary" className="ml-auto">
-                        {notes.filter(n => n.starred).length}
-                      </Badge>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                  <SidebarMenuItem>
-                    <SidebarMenuButton
-                      onClick={() => setQuickAccessFilter(quickAccessFilter === "archived" ? "all" : "archived")}
-                      className={quickAccessFilter === "archived" ? "bg-primary/10" : ""}
-                    >
-                      <Archive className="h-4 w-4" />
-                      <span>Archived</span>
-                      <Badge variant="secondary" className="ml-auto">
-                        {notes.filter(n => n.archived).length}
-                      </Badge>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                </SidebarMenu>
-              )}
-            </SidebarGroup>
-            
-            {/* Tag Filter Section */}
-            <SidebarGroup>
-              <SidebarGroupLabel>
-                <button
-                  onClick={() => setTagsCollapsed(!tagsCollapsed)}
-                  className="flex items-center gap-1 w-full hover:bg-accent/50 rounded px-1 py-0.5 transition-colors"
-                >
-                  <span>Tag Filter</span>
-                  {selectedTags.size > 0 && (
-                    <Badge variant="secondary" className="ml-2 text-xs">
-                      {selectedTags.size}
-                    </Badge>
-                  )}
-                  {tagsCollapsed ? (
-                    <ChevronRight className="h-3 w-3 ml-auto" />
-                  ) : (
-                    <ChevronDown className="h-3 w-3 ml-auto" />
-                  )}
-                </button>
-              </SidebarGroupLabel>
-              {!tagsCollapsed && (
-                <SidebarGroupContent>
-                  <div className="px-3 py-2 space-y-2">
-                    {/* Tag search input */}
-                    <div className="relative">
-                      <Search className="absolute left-2 top-2.5 h-3 w-3 text-muted-foreground" />
-                      <input
-                        type="text"
-                        placeholder="Search tags..."
-                        value={tagSearchQuery}
-                        onChange={(e) => setTagSearchQuery(e.target.value)}
-                        className="w-full pl-7 pr-2 py-1.5 text-xs bg-background border rounded focus:outline-none focus:ring-1 focus:ring-primary"
-                      />
-                    </div>
-                    
-                    {/* Selected tags */}
-                    {selectedTags.size > 0 && (
-                      <div>
-                        <div className="flex items-center justify-between mb-1">
-                          <span className="text-xs text-muted-foreground">Active filters:</span>
-                          <button
-                            onClick={() => setSelectedTags(new Set())}
-                            className="text-xs text-muted-foreground hover:text-primary"
-                          >
-                            Clear all
-                          </button>
-                        </div>
-                        <div className="flex flex-wrap gap-1">
-                          {Array.from(selectedTags).map((tag) => (
-                            <Badge
-                              key={`selected-${tag}`}
-                              variant="secondary"
-                              className="text-xs"
-                            >
-                              {tag}
-                              <button
-                                onClick={() => {
-                                  const newSelected = new Set(selectedTags);
-                                  newSelected.delete(tag);
-                                  setSelectedTags(newSelected);
-                                }}
-                                className="ml-1 hover:text-destructive"
-                              >
-                                <X className="h-2 w-2" />
-                              </button>
-                            </Badge>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                    
-                    {/* Available tags - only show when searching */}
-                    {tagSearchQuery && (
-                      <div>
-                        <div className="text-xs text-muted-foreground mb-1">
-                          Available tags:
-                        </div>
-                        <div className="space-y-1 max-h-[200px] overflow-y-auto">
-                          {(() => {
-                            const filtered = availableTags
-                              .filter(tag => 
-                                tag.toLowerCase().includes(tagSearchQuery.toLowerCase()) &&
-                                !selectedTags.has(tag)
-                              )
-                              .slice(0, 10); // Limit to 10 tags
-                            
-                            if (filtered.length === 0) {
-                              return (
-                                <div className="text-xs text-muted-foreground py-2">
-                                  No matching tags found
-                                </div>
-                              );
-                            }
-                            
-                            // Group tags into rows of 2-3 for dynamic layout
-                            const rows: string[][] = [];
-                            let currentRow: string[] = [];
-                            let currentRowLength = 0;
-                            
-                            filtered.forEach(tag => {
-                              const tagLength = tag.length;
-                              // Start new row if current is getting too long
-                              if (currentRowLength + tagLength > 20 && currentRow.length > 0) {
-                                rows.push(currentRow);
-                                currentRow = [tag];
-                                currentRowLength = tagLength;
-                              } else {
-                                currentRow.push(tag);
-                                currentRowLength += tagLength + 1;
-                                // Max 3 per row
-                                if (currentRow.length >= 3) {
-                                  rows.push(currentRow);
-                                  currentRow = [];
-                                  currentRowLength = 0;
-                                }
-                              }
-                            });
-                            
-                            if (currentRow.length > 0) {
-                              rows.push(currentRow);
-                            }
-                            
-                            return rows.map((row, rowIndex) => (
-                              <div key={`row-${rowIndex}`} className="flex flex-wrap gap-1">
-                                {row.map(tag => (
-                                  <Badge
-                                    key={tag}
-                                    variant="outline"
-                                    className="text-xs cursor-pointer hover:bg-accent transition-colors"
-                                    onClick={() => {
-                                      const newSelected = new Set(selectedTags);
-                                      newSelected.add(tag);
-                                      setSelectedTags(newSelected);
-                                      setTagSearchQuery(""); // Clear search after selection
-                                    }}
-                                  >
-                                    <Plus className="h-2 w-2 mr-1" />
-                                    {tag}
-                                  </Badge>
-                                ))}
-                              </div>
-                            ));
-                          })()}
-                        </div>
-                      </div>
-                    )}
-                    
-                    {/* Help text when no search */}
-                    {!tagSearchQuery && selectedTags.size === 0 && (
-                      <div className="text-xs text-muted-foreground">
-                        Type to search and filter by tags
-                      </div>
-                    )}
-                  </div>
-                </SidebarGroupContent>
-              )}
-            </SidebarGroup>
-
-            <Separator className="my-2 flex-shrink-0" />
-
+            {/* Notes List - Primary sidebar content */}
             <SidebarGroup className="flex-1 flex flex-col min-h-0">
               <div className="px-3 py-2 flex-shrink-0">
                 <div className="flex items-center justify-between">
@@ -1871,6 +1637,245 @@ export function HallOfMind() {
                 </SidebarMenu>
               </ScrollArea>
             </SidebarGroup>
+
+            <Separator className="my-1 flex-shrink-0" />
+
+            {/* Quick Note */}
+            <SidebarGroup className="flex-shrink-0">
+              <SidebarGroupLabel>
+                <button
+                  onClick={() => setQuickNoteCollapsed(!quickNoteCollapsed)}
+                  className="flex items-center justify-between w-full hover:bg-accent/50 rounded px-1 py-0.5 transition-colors"
+                >
+                  <span>Quick Note</span>
+                  {quickNoteCollapsed ? (
+                    <ChevronRight className="h-3 w-3" />
+                  ) : (
+                    <ChevronDown className="h-3 w-3" />
+                  )}
+                </button>
+              </SidebarGroupLabel>
+              {!quickNoteCollapsed && (
+                <SidebarGroupContent>
+                  <div className="px-3 py-2 space-y-2">
+                    <Textarea
+                      placeholder="Quick note... (Ctrl+Enter to save)"
+                      value={newNoteContent}
+                      onChange={(e) => setNewNoteContent(e.target.value)}
+                      className="min-h-[100px] resize-none text-sm font-mono"
+                      onKeyDown={(e) => {
+                        if (e.ctrlKey && e.key === 'Enter') {
+                          e.preventDefault();
+                          createNewNote();
+                        }
+                      }}
+                    />
+                    <Button
+                      onClick={createNewNote}
+                      className="w-full justify-start gap-2"
+                      variant="default"
+                      disabled={isLoading || !serverStatus?.ok || !newNoteContent.trim()}
+                    >
+                      <Plus className="h-4 w-4" />
+                      {isLoading ? 'Creating...' : 'Create Note'}
+                    </Button>
+                  </div>
+                </SidebarGroupContent>
+              )}
+            </SidebarGroup>
+
+            {/* Quick Access */}
+            <SidebarGroup className="flex-shrink-0">
+              <SidebarGroupLabel>
+                <button
+                  onClick={() => setQuickAccessCollapsed(!quickAccessCollapsed)}
+                  className="flex items-center justify-between w-full hover:bg-accent/50 rounded px-1 py-0.5 transition-colors"
+                >
+                  <span>Quick Access</span>
+                  {quickAccessCollapsed ? (
+                    <ChevronRight className="h-3 w-3" />
+                  ) : (
+                    <ChevronDown className="h-3 w-3" />
+                  )}
+                </button>
+              </SidebarGroupLabel>
+              {!quickAccessCollapsed && (
+                <SidebarMenu>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton
+                      onClick={() => setQuickAccessFilter(quickAccessFilter === "starred" ? "all" : "starred")}
+                      className={quickAccessFilter === "starred" ? "bg-primary/10" : ""}
+                    >
+                      <Star className="h-4 w-4" />
+                      <span>Starred</span>
+                      <Badge variant="secondary" className="ml-auto">
+                        {notes.filter(n => n.starred).length}
+                      </Badge>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton
+                      onClick={() => setQuickAccessFilter(quickAccessFilter === "archived" ? "all" : "archived")}
+                      className={quickAccessFilter === "archived" ? "bg-primary/10" : ""}
+                    >
+                      <Archive className="h-4 w-4" />
+                      <span>Archived</span>
+                      <Badge variant="secondary" className="ml-auto">
+                        {notes.filter(n => n.archived).length}
+                      </Badge>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                </SidebarMenu>
+              )}
+            </SidebarGroup>
+
+            {/* Tag Filter */}
+            <SidebarGroup className="flex-shrink-0">
+              <SidebarGroupLabel>
+                <button
+                  onClick={() => setTagsCollapsed(!tagsCollapsed)}
+                  className="flex items-center gap-1 w-full hover:bg-accent/50 rounded px-1 py-0.5 transition-colors"
+                >
+                  <span>Tag Filter</span>
+                  {selectedTags.size > 0 && (
+                    <Badge variant="secondary" className="ml-2 text-xs">
+                      {selectedTags.size}
+                    </Badge>
+                  )}
+                  {tagsCollapsed ? (
+                    <ChevronRight className="h-3 w-3 ml-auto" />
+                  ) : (
+                    <ChevronDown className="h-3 w-3 ml-auto" />
+                  )}
+                </button>
+              </SidebarGroupLabel>
+              {!tagsCollapsed && (
+                <SidebarGroupContent>
+                  <div className="px-3 py-2 space-y-2">
+                    <div className="relative">
+                      <Search className="absolute left-2 top-2.5 h-3 w-3 text-muted-foreground" />
+                      <input
+                        type="text"
+                        placeholder="Search tags..."
+                        value={tagSearchQuery}
+                        onChange={(e) => setTagSearchQuery(e.target.value)}
+                        className="w-full pl-7 pr-2 py-1.5 text-xs bg-background border rounded focus:outline-none focus:ring-1 focus:ring-primary"
+                      />
+                    </div>
+                    {selectedTags.size > 0 && (
+                      <div>
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="text-xs text-muted-foreground">Active filters:</span>
+                          <button
+                            onClick={() => setSelectedTags(new Set())}
+                            className="text-xs text-muted-foreground hover:text-primary"
+                          >
+                            Clear all
+                          </button>
+                        </div>
+                        <div className="flex flex-wrap gap-1">
+                          {Array.from(selectedTags).map((tag) => (
+                            <Badge
+                              key={`selected-${tag}`}
+                              variant="secondary"
+                              className="text-xs"
+                            >
+                              {tag}
+                              <button
+                                onClick={() => {
+                                  const newSelected = new Set(selectedTags);
+                                  newSelected.delete(tag);
+                                  setSelectedTags(newSelected);
+                                }}
+                                className="ml-1 hover:text-destructive"
+                              >
+                                <X className="h-2 w-2" />
+                              </button>
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    {tagSearchQuery && (
+                      <div>
+                        <div className="text-xs text-muted-foreground mb-1">
+                          Available tags:
+                        </div>
+                        <div className="space-y-1 max-h-[200px] overflow-y-auto">
+                          {(() => {
+                            const filtered = availableTags
+                              .filter(tag =>
+                                tag.toLowerCase().includes(tagSearchQuery.toLowerCase()) &&
+                                !selectedTags.has(tag)
+                              )
+                              .slice(0, 10);
+
+                            if (filtered.length === 0) {
+                              return (
+                                <div className="text-xs text-muted-foreground py-2">
+                                  No matching tags found
+                                </div>
+                              );
+                            }
+
+                            const rows: string[][] = [];
+                            let currentRow: string[] = [];
+                            let currentRowLength = 0;
+
+                            filtered.forEach(tag => {
+                              const tagLength = tag.length;
+                              if (currentRowLength + tagLength > 20 && currentRow.length > 0) {
+                                rows.push(currentRow);
+                                currentRow = [tag];
+                                currentRowLength = tagLength;
+                              } else {
+                                currentRow.push(tag);
+                                currentRowLength += tagLength + 1;
+                                if (currentRow.length >= 3) {
+                                  rows.push(currentRow);
+                                  currentRow = [];
+                                  currentRowLength = 0;
+                                }
+                              }
+                            });
+
+                            if (currentRow.length > 0) {
+                              rows.push(currentRow);
+                            }
+
+                            return rows.map((row, rowIndex) => (
+                              <div key={`row-${rowIndex}`} className="flex flex-wrap gap-1">
+                                {row.map(tag => (
+                                  <Badge
+                                    key={tag}
+                                    variant="outline"
+                                    className="text-xs cursor-pointer hover:bg-accent transition-colors"
+                                    onClick={() => {
+                                      const newSelected = new Set(selectedTags);
+                                      newSelected.add(tag);
+                                      setSelectedTags(newSelected);
+                                      setTagSearchQuery("");
+                                    }}
+                                  >
+                                    <Plus className="h-2 w-2 mr-1" />
+                                    {tag}
+                                  </Badge>
+                                ))}
+                              </div>
+                            ));
+                          })()}
+                        </div>
+                      </div>
+                    )}
+                    {!tagSearchQuery && selectedTags.size === 0 && (
+                      <div className="text-xs text-muted-foreground">
+                        Type to search and filter by tags
+                      </div>
+                    )}
+                  </div>
+                </SidebarGroupContent>
+              )}
+            </SidebarGroup>
           </SidebarContent>
 
           <SidebarFooter className="p-4">
@@ -2027,6 +2032,7 @@ export function HallOfMind() {
               />
             ) : currentView === "graph" ? (
               <GraphExplorer
+                initialNoteId={selectedNote?.id || notes[0]?.id}
                 onNoteSelect={(noteId) => {
                   const note = notes.find(n => n.id === noteId);
                   if (note) {
@@ -2068,6 +2074,8 @@ export function HallOfMind() {
               />
             ) : currentView === "backup" ? (
               <BackupManager />
+            ) : currentView === "archives" ? (
+              <ArchiveManager />
             ) : currentView === "tags" ? (
               <TagManager />
             ) : currentView === "advanced-search" ? (
