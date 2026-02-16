@@ -37,14 +37,9 @@ jobs:
     - name: Type check
       run: |
         cd ui
-        npm run build
+        npm run typecheck
 
-    - name: Run tests
-      run: |
-        cd ui
-        npm test -- --run
-
-    - name: Generate coverage
+    - name: Run tests with coverage
       run: |
         cd ui
         npm run test:coverage -- --run
