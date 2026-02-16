@@ -57,8 +57,8 @@ function getApiBaseUrl(): string {
   if (import.meta.env.VITE_API_BASE_URL) {
     return import.meta.env.VITE_API_BASE_URL as string;
   }
-  // HotM server runs on port 53211
-  return 'http://localhost:53211';
+  // Fortemi API default
+  return 'http://localhost:3000';
 }
 
 /**
@@ -66,6 +66,7 @@ function getApiBaseUrl(): string {
  * Wraps new API client with old interface for gradual migration
  */
 class CompatApiClient {
+  private baseUrl: string;
   private client: ReturnType<typeof createApiClient>;
   private notes: ReturnType<typeof createNotesApi>;
   private search: ReturnType<typeof createSearchApi>;
@@ -74,6 +75,7 @@ class CompatApiClient {
 
   constructor() {
     const baseUrl = getApiBaseUrl();
+    this.baseUrl = baseUrl;
     this.client = createApiClient(baseUrl);
     this.notes = createNotesApi(this.client);
     this.search = createSearchApi(this.client);
@@ -85,23 +87,50 @@ class CompatApiClient {
   // Health Check
   // ============================================================
 
-  async checkHealth(): Promise<HealthResponse> {
-    try {
-      const response = await this.client.get<{
-        ok: boolean;
-        database: boolean;
-        ollama?: boolean;
-        vector?: boolean;
-      }>('/api/v1/health');
+  private normalizeHealthResponse(raw: Record<string, unknown>): HealthResponse {
+    const ok =
+      Boolean(raw.ok) ||
+      raw.status === 'ok' ||
+      raw.status === 'healthy';
 
-      return {
-        ok: response.ok,
-        ollama: response.ollama || false,
-        db: response.database,
-        vector: response.vector || false,
-      };
+    const db = Boolean(raw.db ?? raw.database ?? raw.postgres);
+    const ollama = Boolean(raw.ollama);
+    const vector = Boolean(raw.vector ?? raw.pgvector);
+
+    return { ok, db, ollama, vector };
+  }
+
+  private async fetchHealth(endpoint: string): Promise<Record<string, unknown>> {
+    const normalizedBase = this.baseUrl.endsWith('/')
+      ? this.baseUrl.slice(0, -1)
+      : this.baseUrl;
+    const normalizedPath = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+    const response = await fetch(`${normalizedBase}${normalizedPath}`);
+    if (!response.ok) {
+      throw new Error(`Health endpoint ${endpoint} returned ${response.status}`);
+    }
+    return response.json() as Promise<Record<string, unknown>>;
+  }
+
+  async checkHealth(): Promise<HealthResponse> {
+    let lastError: unknown;
+    const endpoints = ['/health/live', '/health', '/api/v1/health'];
+
+    for (const endpoint of endpoints) {
+      try {
+        const response = await this.fetchHealth(endpoint);
+        return this.normalizeHealthResponse(response);
+      } catch (error) {
+        lastError = error;
+      }
+    }
+
+    try {
+      // Legacy final fallback
+      const response = await this.fetchHealth('/healthz');
+      return this.normalizeHealthResponse(response);
     } catch (error) {
-      console.error('Health check failed:', error);
+      console.error('Health check failed:', lastError || error);
       return {
         ok: false,
         ollama: false,
