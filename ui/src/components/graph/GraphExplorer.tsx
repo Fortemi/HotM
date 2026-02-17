@@ -27,6 +27,8 @@ import {
   Play,
   Pause,
   Loader2,
+  X,
+  ExternalLink,
 } from 'lucide-react';
 
 interface GraphExplorerProps {
@@ -72,6 +74,12 @@ function getCollectionColor(collectionId: string | undefined, collections: Colle
   return index >= 0 ? COLORS[index % COLORS.length] : '#6b7280';
 }
 
+function truncateTitle(title: string, maxLength: number): string {
+  if (!title) return 'Untitled Note';
+  if (title.length <= maxLength) return title;
+  return `${title.slice(0, maxLength)}...`;
+}
+
 export function GraphExplorer({ className, initialNoteId, onNoteSelect }: GraphExplorerProps) {
   const svgRef = React.useRef<SVGSVGElement>(null);
   const containerRef = React.useRef<HTMLDivElement>(null);
@@ -97,6 +105,10 @@ export function GraphExplorer({ className, initialNoteId, onNoteSelect }: GraphE
   const [hoveredNode, setHoveredNode] = React.useState<string | null>(null);
   const [selectedNode, setSelectedNode] = React.useState<string | null>(null);
   const [draggedNode, setDraggedNode] = React.useState<SimulationNode | null>(null);
+  const [previewNote, setPreviewNote] = React.useState<any | null>(null);
+  const [previewLoading, setPreviewLoading] = React.useState(false);
+  const [previewError, setPreviewError] = React.useState<string | null>(null);
+  const [previewNodeId, setPreviewNodeId] = React.useState<string | null>(null);
 
   const animationRef = React.useRef<number | undefined>(undefined);
   const nodesRef = React.useRef<SimulationNode[]>([]);
@@ -105,6 +117,7 @@ export function GraphExplorer({ className, initialNoteId, onNoteSelect }: GraphE
   const draggedNodeRef = React.useRef<SimulationNode | null>(null);
   const didDragRef = React.useRef(false);
   const dragStartRef = React.useRef<{ x: number; y: number } | null>(null);
+  const previewRequestRef = React.useRef(0);
 
   React.useEffect(() => {
     nodesRef.current = nodes;
@@ -560,13 +573,32 @@ export function GraphExplorer({ className, initialNoteId, onNoteSelect }: GraphE
     if (didDragRef.current) return;
     setSelectedNode(node.id);
     setIsSimulating(false);
-    onNoteSelect?.(node.id);
+    setPreviewNodeId(node.id);
+    setPreviewLoading(true);
+    setPreviewError(null);
+    setPreviewNote(null);
+
+    const requestId = previewRequestRef.current + 1;
+    previewRequestRef.current = requestId;
+
+    api.notes.get(node.id)
+      .then((note) => {
+        if (previewRequestRef.current !== requestId) return;
+        setPreviewNote(note);
+      })
+      .catch((error) => {
+        if (previewRequestRef.current !== requestId) return;
+        setPreviewError(error instanceof Error ? error.message : 'Failed to load note preview');
+      })
+      .finally(() => {
+        if (previewRequestRef.current !== requestId) return;
+        setPreviewLoading(false);
+      });
   };
 
   const handleNodeDoubleClick = (node: SimulationNode) => {
     if (didDragRef.current) return;
-    // Could open note in new tab or navigate
-    window.open(`/notes/${node.id}`, '_blank');
+    onNoteSelect?.(node.id);
   };
 
   // Export as PNG
@@ -848,24 +880,95 @@ export function GraphExplorer({ className, initialNoteId, onNoteSelect }: GraphE
                     onMouseDown={(e) => handleNodeMouseDown(e, node)}
                     onClick={() => handleNodeClick(node)}
                     onDoubleClick={() => handleNodeDoubleClick(node)}
-                  />
-                  {(isHovered || isSelected) && (
-                    <text
-                      x={node.x}
-                      y={node.y - node.radius - 8}
-                      textAnchor="middle"
-                      fontSize="12"
-                      fill="hsl(var(--foreground))"
-                      className="pointer-events-none"
-                    >
-                      {node.title}
-                    </text>
-                  )}
+                  >
+                    <title>{truncateTitle(node.title || 'Untitled Note', 35)}</title>
+                  </circle>
                 </g>
               );
             })}
           </g>
         </svg>
+
+        {(previewNodeId || previewLoading || previewError || previewNote) && (
+          <div className="absolute top-4 right-4 bottom-4 w-[360px] bg-background/95 backdrop-blur border rounded-lg shadow-lg z-20 flex flex-col">
+            <div className="flex items-center justify-between p-3 border-b">
+              <div className="text-sm font-semibold">Node Preview</div>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => {
+                  setPreviewNodeId(null);
+                  setPreviewNote(null);
+                  setPreviewError(null);
+                  setPreviewLoading(false);
+                }}
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+
+            <div className="flex-1 overflow-auto p-3 space-y-3">
+              {previewLoading && (
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Loading note...
+                </div>
+              )}
+
+              {previewError && (
+                <div className="text-sm text-destructive">{previewError}</div>
+              )}
+
+              {!previewLoading && !previewError && previewNote && (
+                <>
+                  <div>
+                    <h3 className="text-sm font-semibold">
+                      {previewNote.note?.title || truncateTitle(previewNote.original?.content?.split('\n')[0] || 'Untitled Note', 80)}
+                    </h3>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {previewNote.note?.updated_at_utc ? `Updated ${new Date(previewNote.note.updated_at_utc).toLocaleString()}` : ''}
+                    </p>
+                  </div>
+
+                  {Array.isArray(previewNote.tags) && previewNote.tags.length > 0 && (
+                    <div className="flex flex-wrap gap-1">
+                      {previewNote.tags.slice(0, 8).map((tag: string) => (
+                        <span key={tag} className="text-xs px-2 py-0.5 rounded border bg-muted/40">
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+
+                  <div className="text-xs text-muted-foreground whitespace-pre-wrap break-words">
+                    {truncateTitle(previewNote.revised?.content || previewNote.original?.content || '', 600)}
+                  </div>
+
+                  <div className="grid grid-cols-1 gap-2">
+                    <Button
+                      variant="outline"
+                      className="w-full"
+                      onClick={() => previewNodeId && onNoteSelect?.(previewNodeId)}
+                    >
+                      Open In Notes View
+                    </Button>
+                    <Button
+                      variant="default"
+                      className="w-full"
+                      onClick={() => {
+                        if (!previewNodeId) return;
+                        window.open(`/notes/${previewNodeId}`, '_blank', 'noopener,noreferrer');
+                      }}
+                    >
+                      <ExternalLink className="mr-2 h-4 w-4" />
+                      Open Full Note Page
+                    </Button>
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Legend */}

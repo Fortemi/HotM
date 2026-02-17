@@ -2359,6 +2359,10 @@ export function HallOfMind() {
                           <Hash className="h-4 w-4" />
                           Metadata
                         </TabsTrigger>
+                        <TabsTrigger value="attachments" className="gap-2">
+                          <Paperclip className="h-4 w-4" />
+                          Attachments
+                        </TabsTrigger>
                       </>
                     )}
                     {activeTab === 'search' && (
@@ -2685,6 +2689,26 @@ export function HallOfMind() {
                         />
                       </div>
                     </div>
+                  </TabsContent>
+
+                  <TabsContent value="attachments">
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                          <Paperclip className="h-5 w-5" />
+                          Note Attachments
+                        </CardTitle>
+                        <CardDescription>
+                          Review, upload, download, and manage files attached to this note
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent className="p-0">
+                        <AttachmentsPanel
+                          noteId={selectedNote.id}
+                          className="h-[620px]"
+                        />
+                      </CardContent>
+                    </Card>
                   </TabsContent>
                 </Tabs>
                 );
