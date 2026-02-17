@@ -44,6 +44,11 @@ function getAttachmentDownloadUrl(attachmentId: string): string {
   return `${apiBaseUrl}/api/v1/attachments/${attachmentId}/download`;
 }
 
+function getAttachmentPreviewUrl(attachmentId: string): string {
+  // Use browser-native PDF viewer controls for inline review.
+  return `${getAttachmentDownloadUrl(attachmentId)}#toolbar=1&navpanes=0&view=FitH`;
+}
+
 interface AttachmentsPanelProps {
   noteId: string;
   className?: string;
@@ -466,6 +471,14 @@ export function AttachmentsPanel({ noteId, className }: AttachmentsPanelProps) {
                   src={getAttachmentDownloadUrl(previewAttachment.id)}
                   alt={previewAttachment.filename}
                   className="max-h-[400px] mx-auto object-contain"
+                />
+              )}
+              {previewAttachment.content_type === 'application/pdf' && (
+                <iframe
+                  src={getAttachmentPreviewUrl(previewAttachment.id)}
+                  title={`PDF preview: ${previewAttachment.filename}`}
+                  className="w-full h-[70vh] border rounded"
+                  data-testid="attachment-pdf-preview"
                 />
               )}
 

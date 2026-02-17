@@ -241,6 +241,20 @@ describe('AttachmentsPanel', () => {
         expect(screen.getByText('image/jpeg')).toBeInTheDocument();
       });
     });
+
+    it('should render PDF preview for pdf attachments', async () => {
+      render(<AttachmentsPanel noteId="note-123" />);
+
+      await waitFor(() => {
+        expect(screen.getByText('document.pdf')).toBeInTheDocument();
+      });
+
+      fireEvent.click(screen.getByTestId('attachment-card-att-2'));
+
+      await waitFor(() => {
+        expect(screen.getByTestId('attachment-pdf-preview')).toBeInTheDocument();
+      });
+    });
   });
 
   describe('Delete', () => {
