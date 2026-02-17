@@ -76,6 +76,7 @@ import {
 import { api, NoteFull, NoteSummary } from "@/services/api";
 import { api as coreApi } from "@/api";
 import { MEMORY_CHANGED_EVENT, getActiveMemory } from "@/api/memory-context";
+import type { NoteConceptSummary } from "@/api/types";
 import {
   Select,
   SelectContent,
@@ -172,7 +173,7 @@ export function HallOfMind() {
   const [activeTab, setActiveTab] = useState<string>("preview");
   const [quickAccessFilter, setQuickAccessFilter] = useState<"all" | "starred" | "recent" | "archived">("all");
   const [noteLabels, setNoteLabels] = useState<Map<string, any[]>>(new Map());
-  const [selectedNoteConceptTags, setSelectedNoteConceptTags] = useState<string[]>([]);
+  const [selectedNoteConceptTags, setSelectedNoteConceptTags] = useState<NoteConceptSummary[]>([]);
   const [selectedNoteProvenance, setSelectedNoteProvenance] = useState<any | null>(null);
   const [isDarkMode, setIsDarkMode] = useState(true);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -246,15 +247,50 @@ export function HallOfMind() {
         const concepts = await coreApi.concepts.getNoteConcepts(noteId);
         if (isCancelled) return;
 
-        const conceptLabels = Array.from(
-          new Set(
-            concepts
-              .map((concept) => concept.pref_label?.trim())
-              .filter((label): label is string => Boolean(label))
-          )
-        );
+        const normalized: NoteConceptSummary[] = [];
+        for (const concept of concepts) {
+          const prefLabel = concept.pref_label?.trim();
+          if (!prefLabel) {
+            continue;
+          }
 
-        setSelectedNoteConceptTags(conceptLabels);
+          normalized.push({
+            concept_id: concept.concept_id ?? concept.id,
+            pref_label: prefLabel,
+            notation: concept.notation,
+            confidence: concept.confidence,
+            relevance_score: concept.relevance_score,
+            is_primary: concept.is_primary,
+            source: concept.source,
+          });
+        }
+
+        const deduped = Array.from(
+          normalized.reduce((acc, concept) => {
+            const key = concept.concept_id || concept.pref_label.toLowerCase();
+            if (!acc.has(key)) {
+              acc.set(key, concept);
+            }
+            return acc;
+          }, new Map<string, NoteConceptSummary>()).values()
+        ).sort((a, b) => {
+          if ((a.is_primary ?? false) !== (b.is_primary ?? false)) {
+            return (b.is_primary ? 1 : 0) - (a.is_primary ? 1 : 0);
+          }
+          const relevanceA = a.relevance_score ?? -1;
+          const relevanceB = b.relevance_score ?? -1;
+          if (relevanceA !== relevanceB) {
+            return relevanceB - relevanceA;
+          }
+          const confidenceA = a.confidence ?? -1;
+          const confidenceB = b.confidence ?? -1;
+          if (confidenceA !== confidenceB) {
+            return confidenceB - confidenceA;
+          }
+          return a.pref_label.localeCompare(b.pref_label);
+        });
+
+        setSelectedNoteConceptTags(deduped);
       } catch (error) {
         if (isCancelled) return;
         console.error("Failed to load SKOS concept tags:", error);

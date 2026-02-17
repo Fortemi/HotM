@@ -2,6 +2,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
+import type { NoteConceptSummary } from "@/api/types";
 import { 
   Tag, 
   Hash, 
@@ -19,7 +20,7 @@ interface NoteMetadataProps {
   provenance?: any;
   aiMetadata?: any;
   tags?: string[];
-  conceptTags?: string[];
+  conceptTags?: NoteConceptSummary[];
   links?: any[];
   starred?: boolean;
   archived?: boolean;
@@ -102,16 +103,37 @@ export function NoteMetadata({
                 <Hash className="h-4 w-4 text-muted-foreground" />
                 <span className="text-sm font-semibold">SKOS Concepts</span>
               </div>
-              <div className="flex flex-wrap gap-1 mb-4">
+              <div className="space-y-2 mb-4">
                 {conceptTags.map((conceptTag, idx) => (
-                  <Badge
-                    key={idx}
-                    variant="secondary"
-                    className={onTagClick ? "cursor-pointer hover:bg-accent" : ""}
-                    onClick={() => onTagClick && onTagClick(conceptTag)}
-                  >
-                    {conceptTag}
-                  </Badge>
+                  <div key={`${conceptTag.concept_id}-${idx}`} className="rounded-md border p-2">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <Badge
+                        variant={conceptTag.is_primary ? "default" : "secondary"}
+                        className={onTagClick ? "cursor-pointer hover:bg-accent" : ""}
+                        onClick={() => onTagClick && onTagClick(conceptTag.pref_label)}
+                      >
+                        {conceptTag.pref_label}
+                      </Badge>
+                      {conceptTag.notation && (
+                        <span className="text-xs text-muted-foreground">
+                          {conceptTag.notation}
+                        </span>
+                      )}
+                    </div>
+                    {(typeof conceptTag.confidence === "number" ||
+                      typeof conceptTag.relevance_score === "number") && (
+                      <div className="mt-1 text-xs text-muted-foreground">
+                        {typeof conceptTag.confidence === "number" && (
+                          <span>confidence {(conceptTag.confidence * 100).toFixed(0)}%</span>
+                        )}
+                        {typeof conceptTag.confidence === "number" &&
+                          typeof conceptTag.relevance_score === "number" && <span> · </span>}
+                        {typeof conceptTag.relevance_score === "number" && (
+                          <span>relevance {(conceptTag.relevance_score * 100).toFixed(0)}%</span>
+                        )}
+                      </div>
+                    )}
+                  </div>
                 ))}
               </div>
               <Separator className="my-4" />

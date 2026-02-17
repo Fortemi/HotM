@@ -240,11 +240,16 @@ export interface CreateConceptSchemeRequest {
  */
 export interface Concept {
   id: string;
+  concept_id?: string;
   scheme_id: string;
   pref_label: string;
   alt_labels?: string[];
   definition?: string;
   notation?: string;
+  confidence?: number;
+  relevance_score?: number;
+  is_primary?: boolean;
+  source?: string;
   created_at: string;
   updated_at: string;
 }

@@ -25,7 +25,10 @@ function normalizeConcept(raw: unknown): Concept | null {
   }
 
   const data = raw as Record<string, unknown>;
-  const id = typeof data.id === 'string' ? data.id : '';
+  const id =
+    (typeof data.id === 'string' ? data.id : null) ??
+    (typeof data.concept_id === 'string' ? data.concept_id : null) ??
+    '';
   if (!id) {
     return null;
   }
@@ -64,6 +67,9 @@ function normalizeConcept(raw: unknown): Concept | null {
 
   return {
     id,
+    concept_id:
+      (typeof data.concept_id === 'string' ? data.concept_id : null) ??
+      id,
     scheme_id:
       (typeof data.scheme_id === 'string' ? data.scheme_id : null) ??
       (typeof data.primary_scheme_id === 'string' ? data.primary_scheme_id : null) ??
@@ -72,6 +78,11 @@ function normalizeConcept(raw: unknown): Concept | null {
     alt_labels: altLabels,
     definition,
     notation: typeof data.notation === 'string' ? data.notation : undefined,
+    confidence: typeof data.confidence === 'number' ? data.confidence : undefined,
+    relevance_score:
+      typeof data.relevance_score === 'number' ? data.relevance_score : undefined,
+    is_primary: typeof data.is_primary === 'boolean' ? data.is_primary : undefined,
+    source: typeof data.source === 'string' ? data.source : undefined,
     created_at: typeof data.created_at === 'string' ? data.created_at : '',
     updated_at: typeof data.updated_at === 'string' ? data.updated_at : '',
   };

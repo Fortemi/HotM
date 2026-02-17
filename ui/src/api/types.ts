@@ -59,6 +59,20 @@ export interface Link {
 }
 
 /**
+ * SKOS concept summary attached to a note.
+ * This is distinct from flat tags and may include scoring metadata.
+ */
+export interface NoteConceptSummary {
+  concept_id: string;
+  pref_label: string;
+  notation?: string;
+  confidence?: number;
+  relevance_score?: number;
+  is_primary?: boolean;
+  source?: string;
+}
+
+/**
  * Complete note with all related data
  */
 export interface NoteFull {
@@ -66,6 +80,7 @@ export interface NoteFull {
   original: NoteOriginal;
   revised: NoteRevised;
   tags: string[];
+  concepts?: NoteConceptSummary[];
   links: Link[];
 }
 
