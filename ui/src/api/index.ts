@@ -238,6 +238,31 @@ function getApiBaseUrl(): string {
 export function createApi(baseUrl?: string) {
   const url = baseUrl || getApiBaseUrl();
   const client = createApiClient(url);
+  const normalizedBase = url.endsWith('/') ? url.slice(0, -1) : url;
+
+  const normalizeHealthPayload = (raw: Record<string, unknown>) => {
+    const statusValue = typeof raw.status === 'string'
+      ? raw.status
+      : (raw.ok ? 'healthy' : 'unhealthy');
+    const versionValue = typeof raw.version === 'string'
+      ? raw.version
+      : 'unknown';
+    const databaseRaw = raw.database ?? raw.db ?? raw.postgres;
+    const databaseValue = typeof databaseRaw === 'string'
+      ? databaseRaw
+      : (databaseRaw ? 'connected' : 'disconnected');
+    const ollamaRaw = raw.ollama;
+    const ollamaValue = typeof ollamaRaw === 'string'
+      ? ollamaRaw
+      : (ollamaRaw === undefined ? undefined : (ollamaRaw ? 'available' : 'unavailable'));
+
+    return {
+      status: statusValue,
+      version: versionValue,
+      database: databaseValue,
+      ollama: ollamaValue,
+    };
+  };
 
   return {
     client,
@@ -266,12 +291,40 @@ export function createApi(baseUrl?: string) {
      * Quick health check endpoint (legacy)
      */
     async healthCheck() {
-      return client.get<{
-        status: string;
-        version: string;
-        database: string;
-        ollama?: string;
-      }>('/health');
+      const endpoints = ['/health', '/health/live', '/api/v1/health', '/healthz'];
+      let lastError: unknown;
+
+      for (const endpoint of endpoints) {
+        try {
+          const response = await fetch(`${normalizedBase}${endpoint}`);
+          if (!response.ok) {
+            throw new Error(`${endpoint} returned ${response.status}`);
+          }
+
+          const rawBody = (await response.text()).trim();
+          if (!rawBody) {
+            return normalizeHealthPayload({ status: 'healthy', database: 'unknown' });
+          }
+
+          try {
+            const parsed = JSON.parse(rawBody) as Record<string, unknown>;
+            return normalizeHealthPayload(parsed);
+          } catch {
+            const body = rawBody.toLowerCase();
+            const healthy = body.includes('healthy') || body === 'ok';
+            return normalizeHealthPayload({
+              status: healthy ? 'healthy' : 'unhealthy',
+              database: 'unknown',
+            });
+          }
+        } catch (error) {
+          lastError = error;
+        }
+      }
+
+      throw lastError instanceof Error
+        ? lastError
+        : new Error('Health check failed');
     },
   };
 }

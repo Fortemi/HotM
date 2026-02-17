@@ -66,7 +66,21 @@ export function createTagsApi(client: ApiClient) {
         Object.keys(params).length > 0 ? params : undefined
       );
 
-      return normalizeTagsResponse(response);
+      const normalized = normalizeTagsResponse(response);
+
+      const filtered =
+        minCount !== undefined
+          ? normalized.filter((tag) => tag.count >= minCount)
+          : normalized;
+
+      if (sortBy === 'count') {
+        return [...filtered].sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
+      }
+      if (sortBy === 'name') {
+        return [...filtered].sort((a, b) => a.name.localeCompare(b.name));
+      }
+
+      return filtered;
     },
 
     /**

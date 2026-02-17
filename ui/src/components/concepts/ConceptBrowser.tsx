@@ -57,6 +57,10 @@ export function ConceptBrowser({
   useEffect(() => {
     if (selectedSchemeId) {
       loadTopConcepts(selectedSchemeId);
+    } else {
+      setTopConcepts([]);
+      setChildrenMap(new Map());
+      setExpandedIds(new Set());
     }
   }, [selectedSchemeId]);
 
@@ -87,10 +91,20 @@ export function ConceptBrowser({
   }, [searchQuery, selectedSchemeId]);
 
   const loadSchemes = async () => {
+    setError(null);
     try {
       const data = await api.concepts.listSchemes();
       setSchemes(data);
-      if (data.length > 0 && !selectedSchemeId) {
+      if (data.length === 0) {
+        setSelectedSchemeId('');
+        setTopConcepts([]);
+        setChildrenMap(new Map());
+        setExpandedIds(new Set());
+        setSelectedConcept(null);
+        return;
+      }
+
+      if (!selectedSchemeId || !data.some((scheme) => scheme.id === selectedSchemeId)) {
         setSelectedSchemeId(data[0].id);
       }
     } catch (err) {
@@ -100,21 +114,20 @@ export function ConceptBrowser({
   };
 
   const loadTopConcepts = async (schemeId: string) => {
+    if (!schemeId) {
+      setTopConcepts([]);
+      setChildrenMap(new Map());
+      setExpandedIds(new Set());
+      return;
+    }
+
     setIsLoading(true);
     setError(null);
     try {
       const concepts = await api.concepts.getTopConcepts(schemeId);
       setTopConcepts(concepts);
-      // Mark concepts that have children
-      const newChildrenMap = new Map<string, Concept[]>();
-      for (const concept of concepts) {
-        // Fetch narrower to check if it has children
-        const narrower = await api.concepts.getNarrower(concept.id);
-        if (narrower.length > 0) {
-          newChildrenMap.set(concept.id, narrower);
-        }
-      }
-      setChildrenMap(newChildrenMap);
+      setChildrenMap(new Map());
+      setExpandedIds(new Set());
     } catch (err) {
       setError('Failed to load concepts');
       console.error(err);
@@ -237,11 +250,20 @@ export function ConceptBrowser({
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => loadTopConcepts(selectedSchemeId)}
+                onClick={() => selectedSchemeId && loadTopConcepts(selectedSchemeId)}
                 className="mt-2"
+                disabled={!selectedSchemeId}
               >
                 Retry
               </Button>
+            </div>
+          ) : !selectedSchemeId ? (
+            <div className="text-center py-8 px-4 text-muted-foreground">
+              <p className="text-sm">
+                {schemes.length === 0
+                  ? 'No concept schemes available'
+                  : 'Select a concept scheme'}
+              </p>
             </div>
           ) : (
             <ConceptTree

@@ -112,6 +112,8 @@ describe('ConceptBrowser', () => {
       await waitFor(() => {
         expect(api.concepts.getTopConcepts).toHaveBeenCalledWith('scheme-1');
       });
+
+      expect(api.concepts.getNarrower).not.toHaveBeenCalled();
     });
 
     it('should use initial scheme if provided', async () => {
@@ -232,6 +234,16 @@ describe('ConceptBrowser', () => {
   });
 
   describe('Empty State', () => {
+    it('should show no-scheme empty state when no schemes exist', async () => {
+      vi.mocked(api.concepts.listSchemes).mockResolvedValueOnce([]);
+      const onClose = vi.fn();
+      render(<ConceptBrowser isOpen={true} onClose={onClose} />);
+
+      await waitFor(() => {
+        expect(screen.getByText('No concept schemes available')).toBeInTheDocument();
+      });
+    });
+
     it('should show placeholder when no concept selected', async () => {
       const onClose = vi.fn();
       render(<ConceptBrowser isOpen={true} onClose={onClose} />);

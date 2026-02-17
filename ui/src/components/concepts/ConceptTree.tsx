@@ -33,6 +33,25 @@ interface TreeNodeProps {
   selectedId?: string;
 }
 
+function conceptHasChildren(concept: Concept, childrenMap?: Map<string, Concept[]>): boolean {
+  const conceptAny = concept as unknown as Record<string, unknown>;
+  const cachedChildren = childrenMap?.get(concept.id);
+
+  if (cachedChildren !== undefined) {
+    return cachedChildren.length > 0;
+  }
+
+  if (typeof conceptAny.narrower_count === 'number') {
+    return conceptAny.narrower_count > 0;
+  }
+
+  if (typeof conceptAny.has_narrower === 'boolean') {
+    return conceptAny.has_narrower;
+  }
+
+  return false;
+}
+
 function TreeNode({
   concept,
   level,
@@ -150,7 +169,7 @@ function TreeNode({
       {isExpanded && children && children.length > 0 && (
         <div role="group">
           {children.map((child) => {
-            const childHasChildren = childrenMap?.has(child.id) || false;
+            const childHasChildren = conceptHasChildren(child, childrenMap);
             const childIsExpanded = expandedIds.has(child.id);
             const childChildren = childrenMap?.get(child.id);
 
@@ -200,7 +219,7 @@ export function ConceptTree({
         </div>
       ) : (
         concepts.map((concept) => {
-          const hasChildren = childrenMap.has(concept.id);
+          const hasChildren = conceptHasChildren(concept, childrenMap);
           const isExpanded = expandedIds.has(concept.id);
           const children = childrenMap.get(concept.id);
 

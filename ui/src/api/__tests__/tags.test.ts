@@ -77,6 +77,53 @@ describe('Tags API', () => {
         })
       );
     });
+
+    it('sorts by count client-side when requested', async () => {
+      vi.mocked(mockClient.get).mockResolvedValueOnce([
+        { name: 'beta', note_count: 1 },
+        { name: 'alpha', note_count: 3 },
+        { name: 'gamma', note_count: 3 }
+      ]);
+
+      const result = await tagsApi.list({ sortBy: 'count' });
+
+      expect(result).toEqual([
+        { name: 'alpha', count: 3 },
+        { name: 'gamma', count: 3 },
+        { name: 'beta', count: 1 }
+      ]);
+    });
+
+    it('sorts by name client-side when requested', async () => {
+      vi.mocked(mockClient.get).mockResolvedValueOnce([
+        { name: 'gamma', note_count: 3 },
+        { name: 'beta', note_count: 1 },
+        { name: 'alpha', note_count: 2 }
+      ]);
+
+      const result = await tagsApi.list({ sortBy: 'name' });
+
+      expect(result).toEqual([
+        { name: 'alpha', count: 2 },
+        { name: 'beta', count: 1 },
+        { name: 'gamma', count: 3 }
+      ]);
+    });
+
+    it('applies minCount filter client-side', async () => {
+      vi.mocked(mockClient.get).mockResolvedValueOnce([
+        { name: 'one', note_count: 1 },
+        { name: 'two', note_count: 2 },
+        { name: 'three', note_count: 3 }
+      ]);
+
+      const result = await tagsApi.list({ minCount: 2 });
+
+      expect(result).toEqual([
+        { name: 'two', count: 2 },
+        { name: 'three', count: 3 }
+      ]);
+    });
   });
 
   describe('create', () => {

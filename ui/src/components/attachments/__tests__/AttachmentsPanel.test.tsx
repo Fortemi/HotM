@@ -304,6 +304,16 @@ describe('AttachmentsPanel', () => {
   });
 
   describe('Empty State', () => {
+    it('should prompt to select a note when note id is missing', async () => {
+      render(<AttachmentsPanel noteId="" />);
+
+      await waitFor(() => {
+        expect(screen.getByText('Select a note to view attachments')).toBeInTheDocument();
+      });
+
+      expect(api.attachments.listAttachments).not.toHaveBeenCalled();
+    });
+
     it('should display empty state when no attachments', async () => {
       vi.mocked(api.attachments.listAttachments).mockResolvedValue([]);
 

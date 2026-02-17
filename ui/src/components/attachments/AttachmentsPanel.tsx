@@ -221,6 +221,13 @@ export function AttachmentsPanel({ noteId, className }: AttachmentsPanelProps) {
   }, [noteId]);
 
   const loadAttachments = async () => {
+    if (!noteId || noteId.trim() === '') {
+      setAttachments([]);
+      setError(null);
+      setIsLoading(false);
+      return;
+    }
+
     setIsLoading(true);
     setError(null);
     try {
@@ -236,6 +243,10 @@ export function AttachmentsPanel({ noteId, className }: AttachmentsPanelProps) {
 
   const handleUpload = async (files: FileList | null) => {
     if (!files || files.length === 0) return;
+    if (!noteId || noteId.trim() === '') {
+      setError('Select a note before uploading attachments');
+      return;
+    }
 
     setIsUploading(true);
     setUploadProgress(0);
@@ -396,6 +407,10 @@ export function AttachmentsPanel({ noteId, className }: AttachmentsPanelProps) {
           <div className="flex items-center justify-center py-8">
             <Loader2 className="w-6 h-6 animate-spin text-primary" />
             <span className="ml-2 text-sm text-muted-foreground">Loading...</span>
+          </div>
+        ) : !noteId || noteId.trim() === '' ? (
+          <div className="text-center py-8 text-muted-foreground">
+            <p className="text-sm">Select a note to view attachments</p>
           </div>
         ) : error ? (
           <div className="text-center py-8">
