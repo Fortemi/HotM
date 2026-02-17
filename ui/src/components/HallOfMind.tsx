@@ -173,6 +173,7 @@ export function HallOfMind() {
   const [quickAccessFilter, setQuickAccessFilter] = useState<"all" | "starred" | "recent" | "archived">("all");
   const [noteLabels, setNoteLabels] = useState<Map<string, any[]>>(new Map());
   const [selectedNoteConceptTags, setSelectedNoteConceptTags] = useState<string[]>([]);
+  const [selectedNoteProvenance, setSelectedNoteProvenance] = useState<any | null>(null);
   const [isDarkMode, setIsDarkMode] = useState(true);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [noteToDelete, setNoteToDelete] = useState<{ id: string; title: string } | null>(null);
@@ -262,6 +263,34 @@ export function HallOfMind() {
     };
 
     loadSelectedNoteConceptTags();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [selectedNote?.id]);
+
+  useEffect(() => {
+    if (!selectedNote?.id) {
+      setSelectedNoteProvenance(null);
+      return;
+    }
+
+    let isCancelled = false;
+    const noteId = selectedNote.id;
+
+    const loadSelectedNoteProvenance = async () => {
+      try {
+        const provenance = await coreApi.provenance.getProvenance(noteId);
+        if (isCancelled) return;
+        setSelectedNoteProvenance(provenance);
+      } catch (error) {
+        if (isCancelled) return;
+        console.error("Failed to load note provenance:", error);
+        setSelectedNoteProvenance(null);
+      }
+    };
+
+    loadSelectedNoteProvenance();
 
     return () => {
       isCancelled = true;
@@ -2559,6 +2588,8 @@ export function HallOfMind() {
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
                       <div className="lg:col-span-2">
                         <NoteMetadata
+                          metadata={fullNote?.note?.metadata}
+                          provenance={selectedNoteProvenance}
                           tags={fullNote?.tags || []}
                           conceptTags={selectedNoteConceptTags}
                           links={fullNote?.links || []}

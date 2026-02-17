@@ -16,6 +16,7 @@ import {
 
 interface NoteMetadataProps {
   metadata?: any;
+  provenance?: any;
   aiMetadata?: any;
   tags?: string[];
   conceptTags?: string[];
@@ -27,6 +28,8 @@ interface NoteMetadataProps {
 }
 
 export function NoteMetadata({ 
+  metadata,
+  provenance,
   aiMetadata, 
   tags = [], 
   conceptTags = [],
@@ -38,6 +41,23 @@ export function NoteMetadata({
 }: NoteMetadataProps) {
   // Parse AI metadata if it exists
   const parsedAiMetadata = aiMetadata || {};
+  const parsedMetadata = metadata || {};
+  const provenanceData =
+    provenance ||
+    parsedMetadata.provenance ||
+    parsedMetadata.memory_provenance ||
+    null;
+
+  const formatProvenanceValue = (value: unknown): string => {
+    if (value === null || value === undefined) return '—';
+    if (typeof value === 'string') return value;
+    if (typeof value === 'number' || typeof value === 'boolean') return String(value);
+    try {
+      return JSON.stringify(value);
+    } catch {
+      return String(value);
+    }
+  };
   
   return (
     <Card className="h-full">
@@ -256,6 +276,68 @@ export function NoteMetadata({
                       {keyword}
                     </Badge>
                   ))}
+                </div>
+              </div>
+            </>
+          )}
+
+          {/* Provenance */}
+          {provenanceData && (
+            <>
+              <Separator className="my-4" />
+              <div>
+                <div className="flex items-center gap-2 mb-3">
+                  <MapPin className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-sm font-semibold">Provenance</span>
+                </div>
+
+                {Array.isArray(provenanceData.provenance) && provenanceData.provenance.length > 0 && (
+                  <div className="space-y-2 mb-3">
+                    {provenanceData.provenance.map((activity: any, idx: number) => (
+                      <div key={idx} className="rounded border p-2 text-xs space-y-1">
+                        <div><span className="font-medium">Activity:</span> {formatProvenanceValue(activity.activity)}</div>
+                        <div><span className="font-medium">Agent:</span> {formatProvenanceValue(activity.agent)}</div>
+                        <div><span className="font-medium">Timestamp:</span> {formatProvenanceValue(activity.timestamp)}</div>
+                        {activity.location && (
+                          <div><span className="font-medium">Location:</span> {formatProvenanceValue(activity.location)}</div>
+                        )}
+                        {activity.device && (
+                          <div><span className="font-medium">Device:</span> {formatProvenanceValue(activity.device)}</div>
+                        )}
+                        {activity.temporal_context && (
+                          <div><span className="font-medium">Temporal:</span> {formatProvenanceValue(activity.temporal_context)}</div>
+                        )}
+                        {activity.parameters && (
+                          <div><span className="font-medium">Parameters:</span> {formatProvenanceValue(activity.parameters)}</div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {Array.isArray(provenanceData.attachments) && provenanceData.attachments.length > 0 && (
+                  <div className="space-y-2 mb-3">
+                    <span className="text-xs font-medium">Attachment Provenance</span>
+                    {provenanceData.attachments.map((attachment: any, idx: number) => (
+                      <div key={idx} className="rounded border p-2 text-xs space-y-1">
+                        <div><span className="font-medium">File:</span> {formatProvenanceValue(attachment.filename)}</div>
+                        <div><span className="font-medium">Attachment ID:</span> {formatProvenanceValue(attachment.attachment_id)}</div>
+                        {attachment.capture_time && (
+                          <div><span className="font-medium">Capture Time:</span> {formatProvenanceValue(attachment.capture_time)}</div>
+                        )}
+                        {attachment.location && (
+                          <div><span className="font-medium">Location:</span> {formatProvenanceValue(attachment.location)}</div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                <div>
+                  <span className="text-xs font-medium block mb-1">Raw Provenance JSON</span>
+                  <pre className="rounded border bg-muted/30 p-2 text-xs overflow-x-auto whitespace-pre-wrap break-all">
+                    {JSON.stringify(provenanceData, null, 2)}
+                  </pre>
                 </div>
               </div>
             </>
