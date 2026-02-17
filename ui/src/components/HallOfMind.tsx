@@ -2374,6 +2374,33 @@ export function HallOfMind() {
               <div className="mx-auto max-w-4xl">
                 {(() => {
                   const fullNote = savedNotes.current.get(selectedNote.id);
+                  const metadataConceptTags =
+                    selectedNoteConceptTags.length > 0
+                      ? selectedNoteConceptTags
+                      : (fullNote?.concepts ?? [])
+                          .filter(
+                            (concept): concept is NoteConceptSummary =>
+                              typeof concept?.concept_id === "string" &&
+                              concept.concept_id.length > 0 &&
+                              typeof concept?.pref_label === "string" &&
+                              concept.pref_label.trim().length > 0
+                          )
+                          .sort((a, b) => {
+                            if ((a.is_primary ?? false) !== (b.is_primary ?? false)) {
+                              return (b.is_primary ? 1 : 0) - (a.is_primary ? 1 : 0);
+                            }
+                            const relevanceA = a.relevance_score ?? -1;
+                            const relevanceB = b.relevance_score ?? -1;
+                            if (relevanceA !== relevanceB) {
+                              return relevanceB - relevanceA;
+                            }
+                            const confidenceA = a.confidence ?? -1;
+                            const confidenceB = b.confidence ?? -1;
+                            if (confidenceA !== confidenceB) {
+                              return confidenceB - confidenceA;
+                            }
+                            return a.pref_label.localeCompare(b.pref_label);
+                          });
                   return (
                 <Tabs value={activeTab} onValueChange={setActiveTab} className="h-full">
                   <TabsList className="mb-4">
@@ -2631,7 +2658,7 @@ export function HallOfMind() {
                           metadata={fullNote?.note?.metadata}
                           provenance={selectedNoteProvenance}
                           tags={fullNote?.tags || []}
-                          conceptTags={selectedNoteConceptTags}
+                          conceptTags={metadataConceptTags}
                           links={fullNote?.links || []}
                           starred={fullNote?.note?.starred}
                           archived={fullNote?.note?.archived}

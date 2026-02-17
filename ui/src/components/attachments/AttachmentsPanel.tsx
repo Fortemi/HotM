@@ -38,17 +38,6 @@ import {
 import { api } from '@/api';
 import type { Attachment, AttachmentMetadata } from '@/api/types-extended';
 
-const apiBaseUrl = (import.meta.env.VITE_API_BASE_URL as string | undefined)?.replace(/\/$/, '') ?? '';
-
-function getAttachmentDownloadUrl(attachmentId: string): string {
-  return `${apiBaseUrl}/api/v1/attachments/${attachmentId}/download`;
-}
-
-function getAttachmentPreviewUrl(attachmentId: string): string {
-  // Use browser-native PDF viewer controls for inline review.
-  return `${getAttachmentDownloadUrl(attachmentId)}#toolbar=1&navpanes=0&view=FitH`;
-}
-
 interface AttachmentsPanelProps {
   noteId: string;
   className?: string;
@@ -94,7 +83,7 @@ function AttachmentCard({ attachment, viewMode, onView, onDownload, onDelete }: 
         <div className="aspect-square bg-muted flex items-center justify-center">
           {isImage ? (
             <img
-              src={getAttachmentDownloadUrl(attachment.id)}
+              src={api.attachments.getDownloadUrl(attachment.id)}
               alt={attachment.filename}
               className="w-full h-full object-cover"
               loading="lazy"
@@ -165,7 +154,7 @@ function AttachmentCard({ attachment, viewMode, onView, onDownload, onDelete }: 
       <div className="flex-shrink-0">
         {isImage ? (
           <img
-            src={getAttachmentDownloadUrl(attachment.id)}
+            src={api.attachments.getDownloadUrl(attachment.id)}
             alt={attachment.filename}
             className="w-12 h-12 object-cover rounded"
             loading="lazy"
@@ -218,8 +207,24 @@ export function AttachmentsPanel({ noteId, className }: AttachmentsPanelProps) {
   const [error, setError] = useState<string | null>(null);
   const [previewAttachment, setPreviewAttachment] = useState<Attachment | null>(null);
   const [previewMetadata, setPreviewMetadata] = useState<AttachmentMetadata | null>(null);
+  const [previewObjectUrl, setPreviewObjectUrl] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const revokePreviewObjectUrl = useCallback(() => {
+    setPreviewObjectUrl((current) => {
+      if (current) {
+        URL.revokeObjectURL(current);
+      }
+      return null;
+    });
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      revokePreviewObjectUrl();
+    };
+  }, [revokePreviewObjectUrl]);
 
   useEffect(() => {
     loadAttachments();
@@ -273,10 +278,20 @@ export function AttachmentsPanel({ noteId, className }: AttachmentsPanelProps) {
   };
 
   const handleView = async (attachment: Attachment) => {
+    revokePreviewObjectUrl();
     setPreviewAttachment(attachment);
+    setPreviewMetadata(null);
     try {
-      const metadata = await api.attachments.getMetadata(attachment.id);
+      const [metadata, blob] = await Promise.all([
+        api.attachments.getMetadata(attachment.id),
+        (attachment.content_type.startsWith('image/') || attachment.content_type === 'application/pdf')
+          ? api.attachments.downloadAttachment(attachment.id)
+          : Promise.resolve<Blob | null>(null),
+      ]);
       setPreviewMetadata(metadata);
+      if (blob) {
+        setPreviewObjectUrl(URL.createObjectURL(blob));
+      }
     } catch (err) {
       console.error('Failed to load metadata:', err);
     }
@@ -284,11 +299,13 @@ export function AttachmentsPanel({ noteId, className }: AttachmentsPanelProps) {
 
   const handleDownload = useCallback(async (attachment: Attachment) => {
     try {
-      const url = await api.attachments.getDownloadUrl(attachment.id);
+      const blob = await api.attachments.downloadAttachment(attachment.id);
+      const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
       a.download = attachment.filename;
       a.click();
+      URL.revokeObjectURL(url);
     } catch (err) {
       console.error('Download failed:', err);
     }
@@ -458,7 +475,16 @@ export function AttachmentsPanel({ noteId, className }: AttachmentsPanelProps) {
       </div>
 
       {/* Preview Dialog */}
-      <Dialog open={!!previewAttachment} onOpenChange={() => setPreviewAttachment(null)}>
+      <Dialog
+        open={!!previewAttachment}
+        onOpenChange={(open) => {
+          if (!open) {
+            setPreviewAttachment(null);
+            setPreviewMetadata(null);
+            revokePreviewObjectUrl();
+          }
+        }}
+      >
         <DialogContent className="max-w-3xl">
           <DialogHeader>
             <DialogTitle>{previewAttachment?.filename}</DialogTitle>
@@ -468,18 +494,24 @@ export function AttachmentsPanel({ noteId, className }: AttachmentsPanelProps) {
               {/* Preview */}
               {previewAttachment.content_type.startsWith('image/') && (
                 <img
-                  src={getAttachmentDownloadUrl(previewAttachment.id)}
+                  src={previewObjectUrl ?? undefined}
                   alt={previewAttachment.filename}
                   className="max-h-[400px] mx-auto object-contain"
                 />
               )}
               {previewAttachment.content_type === 'application/pdf' && (
-                <iframe
-                  src={getAttachmentPreviewUrl(previewAttachment.id)}
-                  title={`PDF preview: ${previewAttachment.filename}`}
-                  className="w-full h-[70vh] border rounded"
-                  data-testid="attachment-pdf-preview"
-                />
+                previewObjectUrl ? (
+                  <iframe
+                    src={`${previewObjectUrl}#toolbar=1&navpanes=0&view=FitH`}
+                    title={`PDF preview: ${previewAttachment.filename}`}
+                    className="w-full h-[70vh] border rounded"
+                    data-testid="attachment-pdf-preview"
+                  />
+                ) : (
+                  <div className="flex h-[70vh] items-center justify-center rounded border">
+                    <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                  </div>
+                )
               )}
 
               {/* Metadata */}

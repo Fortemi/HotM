@@ -4,6 +4,7 @@
  */
 
 import type { ApiClient } from './client';
+import { getActiveMemory, getMemoryRoutingHeaderName } from './memory-context';
 import type {
   Attachment,
   AttachmentListResponse,
@@ -13,6 +14,15 @@ import type {
 export function createAttachmentsApi(client: ApiClient) {
   const getBaseUrl = (): string => {
     return client.baseUrl;
+  };
+
+  const buildRoutingHeaders = (): Headers => {
+    const headers = new Headers();
+    const selectedMemory = getActiveMemory();
+    if (selectedMemory) {
+      headers.set(getMemoryRoutingHeaderName(), selectedMemory);
+    }
+    return headers;
   };
 
   return {
@@ -41,6 +51,7 @@ export function createAttachmentsApi(client: ApiClient) {
       const response = await fetch(url, {
         method: 'POST',
         body: formData,
+        headers: buildRoutingHeaders(),
         // Let browser set Content-Type with boundary
       });
 
@@ -82,6 +93,7 @@ export function createAttachmentsApi(client: ApiClient) {
 
       const response = await fetch(url, {
         method: 'GET',
+        headers: buildRoutingHeaders(),
       });
 
       if (!response.ok) {

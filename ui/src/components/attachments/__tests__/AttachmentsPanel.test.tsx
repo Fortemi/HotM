@@ -16,6 +16,7 @@ vi.mock('@/api', () => ({
       listAttachments: vi.fn(),
       uploadAttachment: vi.fn(),
       getMetadata: vi.fn(),
+      downloadAttachment: vi.fn(),
       getDownloadUrl: vi.fn(),
       deleteAttachment: vi.fn(),
     },
@@ -25,6 +26,14 @@ vi.mock('@/api', () => ({
 // Mock confirm
 const mockConfirm = vi.fn(() => true);
 global.confirm = mockConfirm;
+(global.URL as typeof URL & {
+  createObjectURL?: (obj: Blob | MediaSource) => string;
+  revokeObjectURL?: (url: string) => void;
+}).createObjectURL = vi.fn(() => 'blob:mock-attachment');
+(global.URL as typeof URL & {
+  createObjectURL?: (obj: Blob | MediaSource) => string;
+  revokeObjectURL?: (url: string) => void;
+}).revokeObjectURL = vi.fn();
 
 // Mock data
 const mockAttachments: Attachment[] = [
@@ -72,7 +81,10 @@ describe('AttachmentsPanel', () => {
   beforeEach(() => {
     vi.mocked(api.attachments.listAttachments).mockResolvedValue(mockAttachments);
     vi.mocked(api.attachments.getMetadata).mockResolvedValue(mockMetadata);
-    vi.mocked(api.attachments.getDownloadUrl).mockResolvedValue('https://example.com/download');
+    vi.mocked(api.attachments.downloadAttachment).mockResolvedValue(
+      new Blob(['test'], { type: 'application/octet-stream' })
+    );
+    vi.mocked(api.attachments.getDownloadUrl).mockReturnValue('https://example.com/download');
     vi.mocked(api.attachments.deleteAttachment).mockResolvedValue(undefined);
     vi.mocked(api.attachments.uploadAttachment).mockResolvedValue({
       id: 'new-att',
