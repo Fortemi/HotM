@@ -95,7 +95,14 @@ jobs:
 
         if command -v apt-get >/dev/null 2>&1; then
           apt-get update
-          apt-get install -y --no-install-recommends docker.io
+          if ! apt-get install -y --no-install-recommends docker-cli; then
+            apt-get install -y --no-install-recommends docker.io
+          fi
+          hash -r
+          if ! command -v docker >/dev/null 2>&1; then
+            echo "Docker CLI package installed but docker binary still missing."
+            exit 1
+          fi
           docker version
           exit 0
         fi
