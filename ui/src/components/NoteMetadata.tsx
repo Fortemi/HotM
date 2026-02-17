@@ -18,6 +18,7 @@ interface NoteMetadataProps {
   metadata?: any;
   aiMetadata?: any;
   tags?: string[];
+  conceptTags?: string[];
   links?: any[];
   starred?: boolean;
   archived?: boolean;
@@ -28,6 +29,7 @@ interface NoteMetadataProps {
 export function NoteMetadata({ 
   aiMetadata, 
   tags = [], 
+  conceptTags = [],
   links = [],
   starred = false,
   archived = false,
@@ -66,6 +68,29 @@ export function NoteMetadata({
                     onClick={() => onTagClick && onTagClick(tag)}
                   >
                     {tag}
+                  </Badge>
+                ))}
+              </div>
+              <Separator className="my-4" />
+            </>
+          )}
+
+          {/* SKOS Concept Tags */}
+          {conceptTags.length > 0 && (
+            <>
+              <div className="flex items-center gap-2 mb-2">
+                <Hash className="h-4 w-4 text-muted-foreground" />
+                <span className="text-sm font-semibold">SKOS Concepts</span>
+              </div>
+              <div className="flex flex-wrap gap-1 mb-4">
+                {conceptTags.map((conceptTag, idx) => (
+                  <Badge
+                    key={idx}
+                    variant="secondary"
+                    className={onTagClick ? "cursor-pointer hover:bg-accent" : ""}
+                    onClick={() => onTagClick && onTagClick(conceptTag)}
+                  >
+                    {conceptTag}
                   </Badge>
                 ))}
               </div>

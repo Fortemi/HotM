@@ -172,6 +172,7 @@ export function HallOfMind() {
   const [activeTab, setActiveTab] = useState<string>("preview");
   const [quickAccessFilter, setQuickAccessFilter] = useState<"all" | "starred" | "recent" | "archived">("all");
   const [noteLabels, setNoteLabels] = useState<Map<string, any[]>>(new Map());
+  const [selectedNoteConceptTags, setSelectedNoteConceptTags] = useState<string[]>([]);
   const [isDarkMode, setIsDarkMode] = useState(true);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [noteToDelete, setNoteToDelete] = useState<{ id: string; title: string } | null>(null);
@@ -229,6 +230,43 @@ export function HallOfMind() {
       window.removeEventListener(MEMORY_CHANGED_EVENT, handleMemoryChanged as EventListener);
     };
   }, []);
+
+  useEffect(() => {
+    if (!selectedNote?.id) {
+      setSelectedNoteConceptTags([]);
+      return;
+    }
+
+    let isCancelled = false;
+    const noteId = selectedNote.id;
+
+    const loadSelectedNoteConceptTags = async () => {
+      try {
+        const concepts = await coreApi.concepts.getNoteConcepts(noteId);
+        if (isCancelled) return;
+
+        const conceptLabels = Array.from(
+          new Set(
+            concepts
+              .map((concept) => concept.pref_label?.trim())
+              .filter((label): label is string => Boolean(label))
+          )
+        );
+
+        setSelectedNoteConceptTags(conceptLabels);
+      } catch (error) {
+        if (isCancelled) return;
+        console.error("Failed to load SKOS concept tags:", error);
+        setSelectedNoteConceptTags([]);
+      }
+    };
+
+    loadSelectedNoteConceptTags();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [selectedNote?.id]);
   
   // Browser history management with debouncing and navigation lock
   const navigationLock = useRef(false);
@@ -2522,6 +2560,7 @@ export function HallOfMind() {
                       <div className="lg:col-span-2">
                         <NoteMetadata
                           tags={fullNote?.tags || []}
+                          conceptTags={selectedNoteConceptTags}
                           links={fullNote?.links || []}
                           starred={fullNote?.note?.starred}
                           archived={fullNote?.note?.archived}

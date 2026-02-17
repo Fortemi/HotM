@@ -62,6 +62,10 @@ const COLORS = [
   '#f97316', // orange
 ];
 
+const SIMULATION_DEFAULT_ALPHA = 0.18;
+const SIMULATION_MIN_ALPHA = 0.01;
+const MAX_VELOCITY = 6;
+
 function getCollectionColor(collectionId: string | undefined, collections: Collection[]): string {
   if (!collectionId) return '#6b7280'; // gray for no collection
   const index = collections.findIndex((c) => c.id === collectionId);
@@ -86,7 +90,7 @@ export function GraphExplorer({ className, initialNoteId, onNoteSelect }: GraphE
 
   const [depth, setDepth] = React.useState(2);
   const [maxNodes, setMaxNodes] = React.useState(100);
-  const [minScore, setMinScore] = React.useState(0.5);
+  const [minScore, setMinScore] = React.useState(0.2);
   const [selectedCollection, setSelectedCollection] = React.useState<string>('all');
 
   const [isSimulating, setIsSimulating] = React.useState(true);
@@ -95,6 +99,24 @@ export function GraphExplorer({ className, initialNoteId, onNoteSelect }: GraphE
   const [draggedNode, setDraggedNode] = React.useState<SimulationNode | null>(null);
 
   const animationRef = React.useRef<number | undefined>(undefined);
+  const nodesRef = React.useRef<SimulationNode[]>([]);
+  const edgesRef = React.useRef<SimulationEdge[]>([]);
+  const alphaRef = React.useRef(SIMULATION_DEFAULT_ALPHA);
+  const draggedNodeRef = React.useRef<SimulationNode | null>(null);
+  const didDragRef = React.useRef(false);
+  const dragStartRef = React.useRef<{ x: number; y: number } | null>(null);
+
+  React.useEffect(() => {
+    nodesRef.current = nodes;
+  }, [nodes]);
+
+  React.useEffect(() => {
+    edgesRef.current = edges;
+  }, [edges]);
+
+  React.useEffect(() => {
+    draggedNodeRef.current = draggedNode;
+  }, [draggedNode]);
 
   React.useEffect(() => {
     setRootNoteId(initialNoteId);
@@ -230,10 +252,10 @@ export function GraphExplorer({ className, initialNoteId, onNoteSelect }: GraphE
 
         const simNodes: SimulationNode[] = response.nodes.map((node, i) => ({
           ...node,
-          x: width / 2 + (Math.random() - 0.5) * 200,
-          y: height / 2 + (Math.random() - 0.5) * 200,
-          vx: 0,
-          vy: 0,
+          x: width / 2 + (Math.random() - 0.5) * 180,
+          y: height / 2 + (Math.random() - 0.5) * 180,
+          vx: (Math.random() - 0.5) * 0.4,
+          vy: (Math.random() - 0.5) * 0.4,
           radius: node.id === effectiveRootId || node.depth === 0 ? 12 : 8,
           collection_id: notesData[i]?.note.collection_id || undefined,
         }));
@@ -248,6 +270,9 @@ export function GraphExplorer({ className, initialNoteId, onNoteSelect }: GraphE
           }))
           .filter((e) => e.source && e.target);
 
+        alphaRef.current = SIMULATION_DEFAULT_ALPHA;
+        nodesRef.current = simNodes;
+        edgesRef.current = simEdges;
         setNodes(simNodes);
         setEdges(simEdges);
         setIsSimulating(true);
@@ -263,60 +288,75 @@ export function GraphExplorer({ className, initialNoteId, onNoteSelect }: GraphE
 
   // Force-directed simulation
   React.useEffect(() => {
-    if (!isSimulating || nodes.length === 0) return;
+    if (!isSimulating || nodesRef.current.length === 0) return;
 
-    const simulate = () => {
-      const alpha = 0.02;
-      const linkDistance = 100;
-      const linkStrength = 0.1;
-      const chargeStrength = -200;
-      const centerStrength = 0.01;
+    const tick = () => {
+      const currentNodes = nodesRef.current;
+      const currentEdges = edgesRef.current;
+      if (currentNodes.length === 0) return;
 
       const width = containerRef.current?.clientWidth || 800;
       const height = containerRef.current?.clientHeight || 600;
       const centerX = width / 2;
       const centerY = height / 2;
 
-      // Apply forces
-      nodes.forEach((node) => {
-        if (node.fx !== undefined && node.fy !== undefined) {
-          node.x = node.fx;
-          node.y = node.fy;
-          return;
-        }
+      const linkDistance = 120;
+      const linkStrength = 0.055;
+      const chargeStrength = -320;
+      const centerStrength = 0.03;
+      const collisionPadding = 3;
+      const alpha = alphaRef.current;
 
-        // Charge force (repulsion)
-        nodes.forEach((other) => {
-          if (node === other) return;
-          const dx = node.x - other.x;
-          const dy = node.y - other.y;
+      for (let i = 0; i < currentNodes.length; i += 1) {
+        const a = currentNodes[i];
+        for (let j = i + 1; j < currentNodes.length; j += 1) {
+          const b = currentNodes[j];
+          const dx = a.x - b.x;
+          const dy = a.y - b.y;
           const distSq = dx * dx + dy * dy;
-          if (distSq < 1) return;
-          const force = (chargeStrength * alpha) / distSq;
-          node.vx += dx * force;
-          node.vy += dy * force;
-        });
+          if (distSq < 0.0001) continue;
 
-        // Center force
-        node.vx += (centerX - node.x) * centerStrength * alpha;
-        node.vy += (centerY - node.y) * centerStrength * alpha;
+          const dist = Math.sqrt(distSq);
+          const invDist = 1 / dist;
 
-        // Velocity damping
-        node.vx *= 0.9;
-        node.vy *= 0.9;
+          const chargeForce = (chargeStrength * alpha) / distSq;
+          const fx = dx * chargeForce;
+          const fy = dy * chargeForce;
 
-        // Update position
-        node.x += node.vx;
-        node.y += node.vy;
-      });
+          if (a.fx === undefined) {
+            a.vx += fx;
+            a.vy += fy;
+          }
+          if (b.fx === undefined) {
+            b.vx -= fx;
+            b.vy -= fy;
+          }
 
-      // Link force
-      edges.forEach((edge) => {
+          const minDist = a.radius + b.radius + collisionPadding;
+          if (dist < minDist) {
+            const overlap = (minDist - dist) * 0.18;
+            const cfx = dx * invDist * overlap;
+            const cfy = dy * invDist * overlap;
+            if (a.fx === undefined) {
+              a.vx += cfx;
+              a.vy += cfy;
+            }
+            if (b.fx === undefined) {
+              b.vx -= cfx;
+              b.vy -= cfy;
+            }
+          }
+        }
+      }
+
+      for (let i = 0; i < currentEdges.length; i += 1) {
+        const edge = currentEdges[i];
         const dx = edge.target.x - edge.source.x;
         const dy = edge.target.y - edge.source.y;
-        const dist = Math.sqrt(dx * dx + dy * dy);
-        if (dist < 1) return;
+        const distSq = dx * dx + dy * dy;
+        if (distSq < 0.0001) continue;
 
+        const dist = Math.sqrt(distSq);
         const force = ((dist - linkDistance) * linkStrength * alpha) / dist;
         const fx = dx * force;
         const fy = dy * force;
@@ -329,20 +369,75 @@ export function GraphExplorer({ className, initialNoteId, onNoteSelect }: GraphE
           edge.target.vx -= fx;
           edge.target.vy -= fy;
         }
-      });
+      }
 
-      setNodes([...nodes]);
-      animationRef.current = requestAnimationFrame(simulate);
+      for (let i = 0; i < currentNodes.length; i += 1) {
+        const node = currentNodes[i];
+
+        if (node.fx !== undefined && node.fy !== undefined) {
+          node.x = node.fx;
+          node.y = node.fy;
+          node.vx = 0;
+          node.vy = 0;
+          continue;
+        }
+
+        node.vx += (centerX - node.x) * centerStrength * alpha;
+        node.vy += (centerY - node.y) * centerStrength * alpha;
+
+        node.vx *= 0.88;
+        node.vy *= 0.88;
+
+        node.vx = Math.max(-MAX_VELOCITY, Math.min(MAX_VELOCITY, node.vx));
+        node.vy = Math.max(-MAX_VELOCITY, Math.min(MAX_VELOCITY, node.vy));
+
+        node.x += node.vx;
+        node.y += node.vy;
+
+        const minX = node.radius;
+        const maxX = width - node.radius;
+        const minY = node.radius;
+        const maxY = height - node.radius;
+
+        if (node.x < minX) {
+          node.x = minX;
+          node.vx *= -0.5;
+        } else if (node.x > maxX) {
+          node.x = maxX;
+          node.vx *= -0.5;
+        }
+
+        if (node.y < minY) {
+          node.y = minY;
+          node.vy *= -0.5;
+        } else if (node.y > maxY) {
+          node.y = maxY;
+          node.vy *= -0.5;
+        }
+      }
+
+      setNodes([...currentNodes]);
+
+      if (!draggedNodeRef.current) {
+        alphaRef.current = Math.max(SIMULATION_MIN_ALPHA, alphaRef.current * 0.985);
+      }
+
+      if (alphaRef.current <= SIMULATION_MIN_ALPHA && !draggedNodeRef.current) {
+        setIsSimulating(false);
+        return;
+      }
+
+      animationRef.current = requestAnimationFrame(tick);
     };
 
-    animationRef.current = requestAnimationFrame(simulate);
+    animationRef.current = requestAnimationFrame(tick);
 
     return () => {
       if (animationRef.current) {
         cancelAnimationFrame(animationRef.current);
       }
     };
-  }, [isSimulating, nodes, edges]);
+  }, [isSimulating]);
 
   // Filter nodes by collection
   const filteredNodes = React.useMemo(() => {
@@ -365,6 +460,26 @@ export function GraphExplorer({ className, initialNoteId, onNoteSelect }: GraphE
     setZoom(1);
     setPanX(0);
     setPanY(0);
+  };
+
+  const handleWheel = (e: React.WheelEvent<SVGSVGElement>) => {
+    e.preventDefault();
+
+    const rect = containerRef.current?.getBoundingClientRect();
+    if (!rect) return;
+
+    const cursorX = e.clientX - rect.left;
+    const cursorY = e.clientY - rect.top;
+
+    const worldX = cursorX / zoom - panX;
+    const worldY = cursorY / zoom - panY;
+
+    const zoomFactor = e.deltaY > 0 ? 1 / 1.08 : 1.08;
+    const nextZoom = Math.max(0.2, Math.min(5, zoom * zoomFactor));
+
+    setZoom(nextZoom);
+    setPanX(cursorX / nextZoom - worldX);
+    setPanY(cursorY / nextZoom - worldY);
   };
 
   // Pan controls
@@ -395,6 +510,11 @@ export function GraphExplorer({ className, initialNoteId, onNoteSelect }: GraphE
   // Node drag
   const handleNodeMouseDown = (e: React.MouseEvent, node: SimulationNode) => {
     e.stopPropagation();
+    setIsSimulating(true);
+    alphaRef.current = Math.max(alphaRef.current, 0.12);
+    didDragRef.current = false;
+    dragStartRef.current = { x: e.clientX, y: e.clientY };
+
     setDraggedNode(node);
     node.fx = node.x;
     node.fy = node.y;
@@ -402,17 +522,31 @@ export function GraphExplorer({ className, initialNoteId, onNoteSelect }: GraphE
     const handleMouseMove = (moveEvent: MouseEvent) => {
       if (!containerRef.current) return;
       const rect = containerRef.current.getBoundingClientRect();
-      const x = (moveEvent.clientX - rect.left - panX) / zoom;
-      const y = (moveEvent.clientY - rect.top - panY) / zoom;
+      const x = (moveEvent.clientX - rect.left) / zoom - panX;
+      const y = (moveEvent.clientY - rect.top) / zoom - panY;
       node.fx = x;
       node.fy = y;
-      setNodes([...nodes]);
+      node.x = x;
+      node.y = y;
+
+      if (dragStartRef.current) {
+        const distance = Math.hypot(
+          moveEvent.clientX - dragStartRef.current.x,
+          moveEvent.clientY - dragStartRef.current.y
+        );
+        if (distance > 4) {
+          didDragRef.current = true;
+        }
+      }
+
+      setNodes([...nodesRef.current]);
     };
 
     const handleMouseUp = () => {
       node.fx = undefined;
       node.fy = undefined;
       setDraggedNode(null);
+      dragStartRef.current = null;
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseup', handleMouseUp);
     };
@@ -423,11 +557,14 @@ export function GraphExplorer({ className, initialNoteId, onNoteSelect }: GraphE
 
   // Node click
   const handleNodeClick = (node: SimulationNode) => {
+    if (didDragRef.current) return;
     setSelectedNode(node.id);
+    setIsSimulating(false);
     onNoteSelect?.(node.id);
   };
 
   const handleNodeDoubleClick = (node: SimulationNode) => {
+    if (didDragRef.current) return;
     // Could open note in new tab or navigate
     window.open(`/notes/${node.id}`, '_blank');
   };
@@ -560,7 +697,15 @@ export function GraphExplorer({ className, initialNoteId, onNoteSelect }: GraphE
             <Button
               variant="outline"
               size="icon"
-              onClick={() => setIsSimulating(!isSimulating)}
+              onClick={() => {
+                setIsSimulating((prev) => {
+                  const next = !prev;
+                  if (next) {
+                    alphaRef.current = Math.max(alphaRef.current, 0.12);
+                  }
+                  return next;
+                });
+              }}
             >
               {isSimulating ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
             </Button>
@@ -645,6 +790,7 @@ export function GraphExplorer({ className, initialNoteId, onNoteSelect }: GraphE
           ref={svgRef}
           className="w-full h-full cursor-move"
           onMouseDown={handleMouseDown}
+          onWheel={handleWheel}
         >
           <defs>
             <marker
@@ -657,8 +803,7 @@ export function GraphExplorer({ className, initialNoteId, onNoteSelect }: GraphE
             >
               <polygon
                 points="0 0, 10 3.5, 0 7"
-                fill="currentColor"
-                className="text-muted-foreground"
+                fill="hsl(var(--muted-foreground))"
               />
             </marker>
           </defs>
@@ -672,10 +817,10 @@ export function GraphExplorer({ className, initialNoteId, onNoteSelect }: GraphE
                 y1={edge.source.y}
                 x2={edge.target.x}
                 y2={edge.target.y}
-                stroke="currentColor"
-                strokeWidth={Math.max(1, edge.score * 3)}
-                strokeOpacity={0.3}
-                className="text-muted-foreground"
+                stroke="hsl(var(--muted-foreground))"
+                strokeWidth={Math.max(1.5, edge.score * 3.5)}
+                strokeOpacity={0.65}
+                vectorEffect="non-scaling-stroke"
                 markerEnd="url(#arrowhead)"
               />
             ))}
@@ -696,7 +841,7 @@ export function GraphExplorer({ className, initialNoteId, onNoteSelect }: GraphE
                     fill={color}
                     stroke={isSelected ? '#ffffff' : color}
                     strokeWidth={isSelected ? 3 : 1}
-                    opacity={isHovered || isDragged ? 1 : 0.8}
+                    opacity={isHovered || isDragged ? 1 : 0.9}
                     className="cursor-pointer transition-all"
                     onMouseEnter={() => setHoveredNode(node.id)}
                     onMouseLeave={() => setHoveredNode(null)}
@@ -707,11 +852,11 @@ export function GraphExplorer({ className, initialNoteId, onNoteSelect }: GraphE
                   {(isHovered || isSelected) && (
                     <text
                       x={node.x}
-                      y={node.y - node.radius - 5}
+                      y={node.y - node.radius - 8}
                       textAnchor="middle"
                       fontSize="12"
-                      fill="currentColor"
-                      className="text-foreground pointer-events-none"
+                      fill="hsl(var(--foreground))"
+                      className="pointer-events-none"
                     >
                       {node.title}
                     </text>
