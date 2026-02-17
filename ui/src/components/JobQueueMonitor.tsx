@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
-import { Progress } from './ui/progress';
 import { Badge } from './ui/badge';
 import { ScrollArea } from './ui/scroll-area';
 import { Clock, CheckCircle2, XCircle, AlertCircle, Loader2 } from 'lucide-react';
@@ -147,11 +146,8 @@ const JobQueueMonitor: React.FC = () => {
                 <div className={`w-2 h-2 rounded-full ${getJobTypeColor(activeJob.job_type)}`} />
                 <span className="font-medium">{formatJobType(activeJob.job_type)}</span>
               </div>
-              <span className="text-sm text-muted-foreground">
-                {activeJob.progress_percent}%
-              </span>
+              <span className="text-sm text-muted-foreground animate-pulse">Processing...</span>
             </div>
-            <Progress value={activeJob.progress_percent} className="w-full" />
             {activeJob.message && (
               <p className="text-sm text-muted-foreground">{activeJob.message}</p>
             )}
