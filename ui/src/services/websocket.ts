@@ -39,6 +39,8 @@ export interface QueueStatus {
   pending: number;
 }
 
+const QUEUE_STALE_THRESHOLD_MS = 5 * 60 * 1000;
+
 type MessageHandler = (message: WsMessage) => void;
 type ConnectionHandler = (connected: boolean) => void;
 
@@ -378,6 +380,12 @@ export function useWebSocket() {
     running: 0,
     pending: 0,
   });
+  const [lastQueueUpdateAt, setLastQueueUpdateAt] = useState<number>(Date.now());
+  const [now, setNow] = useState<number>(Date.now());
+
+  const markQueueUpdated = () => {
+    setLastQueueUpdateAt(Date.now());
+  };
 
   useEffect(() => {
     // Reset the service state in case we're in development mode
@@ -396,6 +404,7 @@ export function useWebSocket() {
       // Handle queue status messages
       switch (message.type) {
         case 'QueueStatus':
+          markQueueUpdated();
           setQueueStatus({
             total_jobs: message.total_jobs || 0,
             running: message.running || 0,
@@ -404,6 +413,7 @@ export function useWebSocket() {
           break;
           
         case 'JobQueued':
+          markQueueUpdated();
           setQueueStatus(prev => ({
             ...prev,
             pending: prev.pending + 1,
@@ -412,6 +422,7 @@ export function useWebSocket() {
           break;
           
         case 'JobStarted':
+          markQueueUpdated();
           setQueueStatus(prev => ({
             ...prev,
             pending: Math.max(0, prev.pending - 1),
@@ -421,6 +432,7 @@ export function useWebSocket() {
           
         case 'JobCompleted':
         case 'JobFailed':
+          markQueueUpdated();
           setQueueStatus(prev => ({
             ...prev,
             running: Math.max(0, prev.running - 1),
@@ -440,13 +452,29 @@ export function useWebSocket() {
     };
   }, []);
 
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setNow(Date.now());
+    }, 15000);
+
+    return () => clearInterval(timer);
+  }, []);
+
   const sendMessage = (message: string) => {
     webSocketService.send(message);
   };
 
+  const queueStatusAgeMs = now - lastQueueUpdateAt;
+  const isQueueStalled =
+    connected &&
+    queueStatus.running > 0 &&
+    queueStatusAgeMs >= QUEUE_STALE_THRESHOLD_MS;
+
   return {
     connected,
     queueStatus,
+    queueStatusAgeMs,
+    isQueueStalled,
     sendMessage,
   };
 }

@@ -28,7 +28,7 @@ interface CompletedJob {
 }
 
 const JobQueueMonitor: React.FC = () => {
-  const { connected, queueStatus } = useWebSocket();
+  const { connected, queueStatus, isQueueStalled, queueStatusAgeMs } = useWebSocket();
   const [activeJob, setActiveJob] = useState<Job | null>(null);
   const [completedJobs, setCompletedJobs] = useState<CompletedJob[]>([]);
 
@@ -118,6 +118,14 @@ const JobQueueMonitor: React.FC = () => {
         <div className="flex items-center gap-2 text-sm text-muted-foreground mb-4">
           <AlertCircle className="h-4 w-4 text-red-500" />
           <span>WebSocket disconnected - queue status may be outdated</span>
+        </div>
+      )}
+      {connected && isQueueStalled && (
+        <div className="flex items-center gap-2 text-sm text-amber-600 mb-4">
+          <AlertCircle className="h-4 w-4" />
+          <span>
+            Queue appears stalled ({Math.floor(queueStatusAgeMs / 60000)}m with no updates).
+          </span>
         </div>
       )}
 

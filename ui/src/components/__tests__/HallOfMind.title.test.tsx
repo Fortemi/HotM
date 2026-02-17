@@ -117,6 +117,8 @@ describe('HallOfMind Title Handling', () => {
         running: 0,
         pending: 0,
       },
+      queueStatusAgeMs: 0,
+      isQueueStalled: false,
       sendMessage: vi.fn(),
     });
   });

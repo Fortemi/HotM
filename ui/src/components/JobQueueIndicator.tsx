@@ -2,17 +2,18 @@ import React, { useState } from 'react';
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
-import { Activity, Loader2, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Activity, Loader2, CheckCircle2, AlertCircle, AlertTriangle } from 'lucide-react';
 import JobQueueMonitor from './JobQueueMonitor';
 import { useWebSocket } from '@/services/websocket';
 
 export const JobQueueIndicator: React.FC = () => {
-  const { connected, queueStatus } = useWebSocket();
+  const { connected, queueStatus, isQueueStalled, queueStatusAgeMs } = useWebSocket();
   const [isOpen, setIsOpen] = useState(false);
 
   // Determine status icon
   const getStatusIcon = () => {
     if (!connected) return <AlertCircle className="h-4 w-4" />;
+    if (isQueueStalled) return <AlertTriangle className="h-4 w-4" />;
     if (queueStatus.running > 0) return <Loader2 className="h-4 w-4 animate-spin" />;
     if (queueStatus.pending > 0) return <Activity className="h-4 w-4" />;
     return <CheckCircle2 className="h-4 w-4" />;
@@ -21,6 +22,7 @@ export const JobQueueIndicator: React.FC = () => {
   // Determine status color
   const getStatusColor = () => {
     if (!connected) return 'text-red-500';
+    if (isQueueStalled) return 'text-amber-500';
     if (queueStatus.running > 0) return 'text-blue-500';
     if (queueStatus.pending > 0) return 'text-yellow-500';
     return 'text-green-500';
@@ -65,6 +67,11 @@ export const JobQueueIndicator: React.FC = () => {
               </span>
             </div>
           </div>
+          {isQueueStalled && (
+            <div className="mt-2 text-xs text-amber-600">
+              Queue appears stalled ({Math.floor(queueStatusAgeMs / 60000)}m since last update).
+            </div>
+          )}
           
           <div className="grid grid-cols-3 gap-2 mt-3 text-xs">
             <div className="text-center">

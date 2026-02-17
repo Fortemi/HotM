@@ -116,6 +116,8 @@ describe('HallOfMind WebSocket Integration', () => {
         running: 0,
         pending: 0,
       },
+      queueStatusAgeMs: 0,
+      isQueueStalled: false,
       sendMessage: vi.fn(),
     });
   });
@@ -134,6 +136,8 @@ describe('HallOfMind WebSocket Integration', () => {
           running: 0,
           pending: 0,
         },
+        queueStatusAgeMs: 0,
+        isQueueStalled: false,
         sendMessage: vi.fn(),
       });
 
@@ -159,6 +163,8 @@ describe('HallOfMind WebSocket Integration', () => {
           running: 0,
           pending: 0,
         },
+        queueStatusAgeMs: 0,
+        isQueueStalled: false,
         sendMessage: vi.fn(),
       });
 
@@ -183,6 +189,8 @@ describe('HallOfMind WebSocket Integration', () => {
           running: 2,
           pending: 3,
         },
+        queueStatusAgeMs: 0,
+        isQueueStalled: false,
         sendMessage: vi.fn(),
       });
 
@@ -252,6 +260,8 @@ describe('HallOfMind WebSocket Integration', () => {
           running: 0,
           pending: 0,
         },
+        queueStatusAgeMs: 0,
+        isQueueStalled: false,
         sendMessage: vi.fn(),
       });
 

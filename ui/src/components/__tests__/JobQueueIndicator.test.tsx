@@ -20,6 +20,8 @@ describe('JobQueueIndicator', () => {
         running: 0,
         pending: 0,
       },
+      queueStatusAgeMs: 0,
+      isQueueStalled: false,
       sendMessage: vi.fn(),
     });
   });
@@ -49,6 +51,8 @@ describe('JobQueueIndicator', () => {
         running: 2,
         pending: 3,
       },
+      queueStatusAgeMs: 0,
+      isQueueStalled: false,
       sendMessage: vi.fn(),
     });
     
@@ -71,6 +75,8 @@ describe('JobQueueIndicator', () => {
         running: 0,
         pending: 0,
       },
+      queueStatusAgeMs: 0,
+      isQueueStalled: false,
       sendMessage: vi.fn(),
     });
     
@@ -95,6 +101,8 @@ describe('JobQueueIndicator', () => {
         running: 0,
         pending: 3,
       },
+      queueStatusAgeMs: 0,
+      isQueueStalled: false,
       sendMessage: vi.fn(),
     });
     
@@ -117,6 +125,8 @@ describe('JobQueueIndicator', () => {
         running: 1,
         pending: 0,
       },
+      queueStatusAgeMs: 0,
+      isQueueStalled: false,
       sendMessage: vi.fn(),
     });
     
