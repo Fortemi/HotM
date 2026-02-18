@@ -2551,7 +2551,6 @@ export function HallOfMind() {
                                     title={selectedNote.starred ? "Unstar note" : "Star note"}
                                   >
                                     <Star className={`h-4 w-4 ${selectedNote.starred ? 'fill-yellow-500 text-yellow-500' : ''}`} />
-                                    <span className="ml-2">{selectedNote.starred ? "Starred" : "Star"}</span>
                                   </Button>
                                   <Button
                                     onClick={() => copyToClipboard(selectedNote.revised_content || selectedNote.content, 'preview-markdown')}
@@ -2686,7 +2685,6 @@ export function HallOfMind() {
                               title={selectedNote.starred ? "Unstar note" : "Star note"}
                             >
                               <Star className={`h-4 w-4 ${selectedNote.starred ? 'fill-yellow-500 text-yellow-500' : ''}`} />
-                              <span className="ml-2">{selectedNote.starred ? "Starred" : "Star"}</span>
                             </Button>
                           </div>
                           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
