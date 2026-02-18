@@ -650,7 +650,7 @@ export function HallOfMind() {
 
     const handleNoteUpdated = async (event: RealtimeEvent) => {
       const noteId = event.note_id;
-      if (!noteId || isDuplicateEvent('NoteUpdated', noteId)) {
+      if (!noteId || isDuplicateEvent('NoteRefresh', noteId)) {
         return;
       }
       await upsertNoteFromServer(noteId, { addIfMissing: false, emitCompletion: true });
@@ -695,6 +695,26 @@ export function HallOfMind() {
       }
     };
 
+    const handleJobCompleted = async (event: RealtimeEvent) => {
+      const noteId = event.note_id;
+      if (!noteId || isDuplicateEvent('NoteRefresh', noteId)) {
+        return;
+      }
+      await upsertNoteFromServer(noteId, { addIfMissing: false, emitCompletion: true });
+    };
+
+    const handleJobFailed = (event: RealtimeEvent) => {
+      const noteId = event.note_id;
+      if (!noteId || isDuplicateEvent('JobFailed', noteId)) {
+        return;
+      }
+      setProcessingNotes((prev) => {
+        const next = new Set(prev);
+        next.delete(noteId);
+        return next;
+      });
+    };
+
     const unsubscribe = realtimeEventBus.subscribe((event) => {
       if (event.type === 'NoteUpdated') {
         void handleNoteUpdated(event);
@@ -706,6 +726,14 @@ export function HallOfMind() {
       }
       if (event.type === 'NoteDeleted') {
         handleNoteDeleted(event);
+        return;
+      }
+      if (event.type === 'JobCompleted') {
+        void handleJobCompleted(event);
+        return;
+      }
+      if (event.type === 'JobFailed') {
+        handleJobFailed(event);
       }
     });
 
