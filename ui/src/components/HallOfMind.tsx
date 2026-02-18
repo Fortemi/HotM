@@ -2124,16 +2124,6 @@ export function HallOfMind() {
                 />
               </div>
               <div className="ml-auto flex items-center gap-2">
-                {selectedNote && (
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => toggleStar(selectedNote.id)}
-                    title={selectedNote.starred ? "Unstar note" : "Star note"}
-                  >
-                    <Star className={`h-4 w-4 ${selectedNote.starred ? 'fill-yellow-500 text-yellow-500' : ''}`} />
-                  </Button>
-                )}
                 {selectedNote && hasUnsavedChanges && (
                   <Button
                     variant="default"
@@ -2555,6 +2545,15 @@ export function HallOfMind() {
                                 </div>
                                 <div className="flex gap-2">
                                   <Button
+                                    onClick={() => toggleStar(selectedNote.id)}
+                                    size="sm"
+                                    variant={selectedNote.starred ? "default" : "outline"}
+                                    title={selectedNote.starred ? "Unstar note" : "Star note"}
+                                  >
+                                    <Star className={`h-4 w-4 ${selectedNote.starred ? 'fill-yellow-500 text-yellow-500' : ''}`} />
+                                    <span className="ml-2">{selectedNote.starred ? "Starred" : "Star"}</span>
+                                  </Button>
+                                  <Button
                                     onClick={() => copyToClipboard(selectedNote.revised_content || selectedNote.content, 'preview-markdown')}
                                     size="sm"
                                     variant="outline"
@@ -2679,6 +2678,17 @@ export function HallOfMind() {
                           />
                         </TabsContent>
                         <TabsContent value="metadata">
+                          <div className="mb-3 flex justify-end">
+                            <Button
+                              onClick={() => toggleStar(selectedNote.id)}
+                              size="sm"
+                              variant={selectedNote.starred ? "default" : "outline"}
+                              title={selectedNote.starred ? "Unstar note" : "Star note"}
+                            >
+                              <Star className={`h-4 w-4 ${selectedNote.starred ? 'fill-yellow-500 text-yellow-500' : ''}`} />
+                              <span className="ml-2">{selectedNote.starred ? "Starred" : "Star"}</span>
+                            </Button>
+                          </div>
                           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
                             <div className="lg:col-span-2">
                               <NoteMetadata
