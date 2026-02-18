@@ -12,6 +12,75 @@ import type {
 } from './types-extended';
 import type { NoteSummary } from './types';
 
+function toEmbeddingConfig(input: unknown): EmbeddingConfig | null {
+  if (!input || typeof input !== 'object') return null;
+  const item = input as Record<string, unknown>;
+
+  const id = typeof item.id === 'string' ? item.id : null;
+  const name = typeof item.name === 'string' ? item.name : null;
+  const model = typeof item.model === 'string' ? item.model : null;
+  const createdAt = typeof item.created_at === 'string' ? item.created_at : null;
+  const dimensionsRaw = item.dimensions;
+  const dimensions =
+    typeof dimensionsRaw === 'number'
+      ? dimensionsRaw
+      : typeof dimensionsRaw === 'string'
+        ? Number(dimensionsRaw)
+        : NaN;
+  const isDefault = item.is_default === true;
+
+  if (!id || !name || !model || !createdAt || !Number.isFinite(dimensions)) {
+    return null;
+  }
+
+  return {
+    id,
+    name,
+    model,
+    dimensions,
+    is_default: isDefault,
+    created_at: createdAt,
+  };
+}
+
+function parseEmbeddingConfigList(input: unknown): EmbeddingConfig[] {
+  if (Array.isArray(input)) {
+    return input.map(toEmbeddingConfig).filter((cfg): cfg is EmbeddingConfig => cfg !== null);
+  }
+  if (!input || typeof input !== 'object') return [];
+
+  const payload = input as Record<string, unknown>;
+  const candidates = [
+    payload.configs,
+    payload.embedding_configs,
+    payload.items,
+    payload.data,
+  ];
+
+  for (const candidate of candidates) {
+    if (Array.isArray(candidate)) {
+      return candidate
+        .map(toEmbeddingConfig)
+        .filter((cfg): cfg is EmbeddingConfig => cfg !== null);
+    }
+  }
+
+  return [];
+}
+
+function parseDefaultEmbeddingConfig(input: unknown): EmbeddingConfig | null {
+  const direct = toEmbeddingConfig(input);
+  if (direct) return direct;
+  if (!input || typeof input !== 'object') return null;
+
+  const payload = input as Record<string, unknown>;
+  return (
+    toEmbeddingConfig(payload.config) ||
+    toEmbeddingConfig(payload.default_config) ||
+    toEmbeddingConfig(payload.embedding_config)
+  );
+}
+
 export function createEmbeddingsApi(client: ApiClient) {
   return {
     // ===========================
@@ -156,17 +225,20 @@ export function createEmbeddingsApi(client: ApiClient) {
      * List available embedding model configurations
      */
     async listConfigs(): Promise<EmbeddingConfig[]> {
-      const response = await client.get<{ configs: EmbeddingConfig[] }>(
-        '/api/v1/embedding-configs'
-      );
-      return response.configs;
+      const response = await client.get<unknown>('/api/v1/embedding-configs');
+      return parseEmbeddingConfigList(response);
     },
 
     /**
      * Get the default embedding configuration
      */
     async getDefaultConfig(): Promise<EmbeddingConfig> {
-      return client.get<EmbeddingConfig>('/api/v1/embedding-configs/default');
+      const response = await client.get<unknown>('/api/v1/embedding-configs/default');
+      const parsed = parseDefaultEmbeddingConfig(response);
+      if (!parsed) {
+        throw new Error('Invalid default embedding config response');
+      }
+      return parsed;
     },
   };
 }
