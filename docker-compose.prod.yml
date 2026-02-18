@@ -18,7 +18,7 @@ services:
       args:
         VITE_API_BASE_URL: ${FORTEMI_API_URL:-https://memory.integrolabs.net}
         VITE_APP_TITLE: ${APP_TITLE:-HotM}
-        VITE_DISABLE_WEBSOCKET: "true"
+        VITE_DISABLE_WEBSOCKET: ${VITE_DISABLE_WEBSOCKET:-false}
     image: hotm-ui:${VERSION:-latest}
     container_name: hotm-ui
     restart: unless-stopped
