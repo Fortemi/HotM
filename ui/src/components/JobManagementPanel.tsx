@@ -51,7 +51,7 @@ export function JobManagementPanel({ archives }: JobManagementPanelProps) {
 
       const countsByArchive = await Promise.all(
         archiveNames.map(async (archiveName) => {
-          const stats = await api.jobs.getQueueStatsForArchive(archiveName);
+          const stats = await api.jobs.getArchiveJobCounts(archiveName);
           return [
             archiveName,
             {
