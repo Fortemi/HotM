@@ -61,9 +61,9 @@ export function TypingAnimation({
   
   // Speed configurations (milliseconds)
   const speedConfig = {
-    slow: { type: 120, delete: 80, pause: 300, mistake: 200 },
-    normal: { type: 80, delete: 50, pause: 200, mistake: 150 },
-    fast: { type: 40, delete: 30, pause: 100, mistake: 100 }
+    slow: { type: 145, delete: 92, pause: 330, mistake: 240 },
+    normal: { type: 95, delete: 58, pause: 230, mistake: 185 },
+    fast: { type: 58, delete: 38, pause: 130, mistake: 120 }
   };
   
   const config = speedConfig[speed];
@@ -78,13 +78,13 @@ export function TypingAnimation({
     const seed = seededHash(`${from}=>${to}`);
     let eventCursor = 0;
     const noiseAt = (step: number, freq = 0.55) => perlinLike1d(step * freq, seed);
-    const jitter = (base: number, step: number, spread = 0.45) =>
+    const jitter = (base: number, step: number, spread = 0.75) =>
       Math.round(base * (1 + (noiseAt(step) * 2 - 1) * spread));
 
     // Start with a short "thinking" pause.
     events.push({
       type: 'pause',
-      duration: clamp(jitter(config.pause, eventCursor++, 0.55), 40, config.pause * 2),
+      duration: clamp(jitter(config.pause, eventCursor++, 0.7), 55, config.pause * 2.4),
     });
 
     // User-like full backspace of existing title.
@@ -93,71 +93,86 @@ export function TypingAnimation({
       if (pauseChance > 0.9) {
         events.push({
           type: 'pause',
-          duration: clamp(jitter(config.pause * 0.75, eventCursor++, 0.5), 35, config.pause * 1.8),
+          duration: clamp(jitter(config.pause * 0.75, eventCursor++, 0.8), 40, config.pause * 2.1),
         });
       }
       events.push({
         type: 'delete',
-        duration: clamp(jitter(config.delete, eventCursor++, 0.55), 14, config.delete * 2),
+        duration: clamp(jitter(config.delete, eventCursor++, 0.9), 18, config.delete * 2.4),
       });
     }
 
     events.push({
       type: 'pause',
-      duration: clamp(jitter(config.pause, eventCursor++, 0.5), 50, config.pause * 2),
+      duration: clamp(jitter(config.pause, eventCursor++, 0.75), 65, config.pause * 2.5),
     });
 
     // Type new title with variable cadence and occasional typo + correction.
     const newChars = to;
     const typoAlphabet = 'abcdefghijklmnopqrstuvwxyz';
+    let typoInjected = false;
     for (let i = 0; i < newChars.length; i += 1) {
       const char = newChars[i];
       const typoSignal = noiseAt(eventCursor + i * 0.9, 0.42);
+      const typoChance = 0.007; // <1% per position, and we cap to one mistake per title
       const shouldTypo =
+        !typoInjected &&
         char.trim().length > 0 &&
         i < newChars.length - 1 &&
-        typoSignal > 0.92;
+        typoSignal > 1 - typoChance;
 
       if (shouldTypo) {
-        const typoLength = typoSignal > 0.975 ? 2 : 1;
+        typoInjected = true;
+        const wordStart = (() => {
+          for (let j = i - 1; j >= 0; j -= 1) {
+            if (newChars[j] === ' ') return j + 1;
+          }
+          return 0;
+        })();
+        const charsInCurrentWord = i - wordStart;
+        const wholeWordCorrection = charsInCurrentWord > 2 && noiseAt(eventCursor + i * 1.7, 0.21) > 0.985;
+        const typoLength = wholeWordCorrection
+          ? clamp(charsInCurrentWord, 3, 10)
+          : clamp(2 + Math.floor(noiseAt(eventCursor + i * 1.3, 0.31) * 4), 2, 6);
+
         for (let t = 0; t < typoLength; t += 1) {
           const idx = Math.floor(noiseAt(eventCursor + t + i * 1.3, 0.73) * typoAlphabet.length);
           const wrongChar = typoAlphabet[idx] || 'x';
           events.push({
             type: 'type',
             char: wrongChar,
-            duration: clamp(jitter(config.type, eventCursor++, 0.55), 16, config.type * 2),
+            duration: clamp(jitter(config.type, eventCursor++, 0.95), 20, config.type * 2.6),
           });
         }
 
         events.push({
           type: 'pause',
-          duration: clamp(jitter(config.mistake, eventCursor++, 0.5), 40, config.mistake * 2),
+          duration: clamp(jitter(config.mistake, eventCursor++, 0.9), 55, config.mistake * 2.4),
         });
 
         for (let t = 0; t < typoLength; t += 1) {
           events.push({
             type: 'delete',
-            duration: clamp(jitter(config.delete, eventCursor++, 0.5), 14, config.delete * 2),
+            duration: clamp(jitter(config.delete, eventCursor++, 0.95), 18, config.delete * 2.6),
           });
         }
 
         events.push({
           type: 'pause',
-          duration: clamp(jitter(config.mistake * 0.5, eventCursor++, 0.4), 25, config.mistake * 1.5),
+          duration: clamp(jitter(config.mistake * 0.55, eventCursor++, 0.8), 35, config.mistake * 1.8),
         });
       }
 
       events.push({
         type: 'type',
         char,
-        duration: clamp(jitter(config.type, eventCursor++, 0.6), 16, config.type * 2.2),
+        duration: clamp(jitter(config.type, eventCursor++, 0.95), 20, config.type * 2.7),
       });
 
       if (['.', '!', '?', ',', ';', ':'].includes(char)) {
         events.push({
           type: 'pause',
-          duration: clamp(jitter(config.pause * 0.6, eventCursor++, 0.45), 30, config.pause * 1.5),
+          duration: clamp(jitter(config.pause * 0.65, eventCursor++, 0.8), 40, config.pause * 1.9),
         });
       }
     }
