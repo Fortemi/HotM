@@ -124,6 +124,7 @@ export interface UpdateNoteRequest {
   content?: string;
   starred?: boolean;
   archived?: boolean;
+  metadata?: Record<string, unknown>;
 }
 
 /**

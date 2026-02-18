@@ -1,19 +1,40 @@
+import { useEffect, useMemo, useState } from "react";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
+import { Textarea } from "@/components/ui/textarea";
 import type { NoteConceptSummary } from "@/api/types";
-import { 
-  Tag, 
-  Hash, 
-  FileText, 
-  Users, 
-  Building2, 
-  Cpu, 
+import {
+  Tag,
+  Hash,
+  FileText,
+  Users,
+  Building2,
+  Cpu,
   MapPin,
   Link,
-  Star
+  Star,
+  Lock,
+  Unlock,
+  Save,
+  X,
+  Plus,
 } from "lucide-react";
+
+interface ConceptOption {
+  concept_id: string;
+  pref_label: string;
+  notation?: string;
+}
+
+interface NoteMetadataSavePayload {
+  tags: string[];
+  conceptIds: string[];
+  metadata: Record<string, unknown>;
+}
 
 interface NoteMetadataProps {
   metadata?: any;
@@ -26,122 +47,343 @@ interface NoteMetadataProps {
   archived?: boolean;
   onTagClick?: (tag: string) => void;
   onLinkClick?: (noteId: string) => void;
+  onSaveEdits?: (payload: NoteMetadataSavePayload) => Promise<void>;
+  availableConcepts?: ConceptOption[];
 }
 
-export function NoteMetadata({ 
+export function NoteMetadata({
   metadata,
   provenance,
-  aiMetadata, 
-  tags = [], 
-  conceptTags = [],
-  links = [],
+  aiMetadata,
+  tags,
+  conceptTags,
+  links,
   starred = false,
   archived = false,
   onTagClick,
-  onLinkClick
+  onLinkClick,
+  onSaveEdits,
+  availableConcepts = [],
 }: NoteMetadataProps) {
-  // Parse AI metadata if it exists
-  const parsedAiMetadata = aiMetadata || {};
-  const parsedMetadata = metadata || {};
+  const [isEditUnlocked, setIsEditUnlocked] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const [draftTags, setDraftTags] = useState<string[]>([]);
+  const [draftConceptIds, setDraftConceptIds] = useState<string[]>([]);
+  const [draftMetadataJson, setDraftMetadataJson] = useState("{}");
+  const [tagInput, setTagInput] = useState("");
+  const [conceptToAdd, setConceptToAdd] = useState("");
+
+  const parsedAiMetadata = useMemo(() => aiMetadata || {}, [aiMetadata]);
+  const parsedMetadata = useMemo(() => metadata || {}, [metadata]);
+  const tagsValue = useMemo(() => tags || [], [tags]);
+  const conceptTagsValue = useMemo(() => conceptTags || [], [conceptTags]);
+  const linksValue = useMemo(() => links || [], [links]);
   const metadataEntries = Object.entries(parsedMetadata as Record<string, unknown>);
   const provenanceData =
-    provenance ||
-    parsedMetadata.provenance ||
-    parsedMetadata.memory_provenance ||
-    null;
+    provenance || parsedMetadata.provenance || parsedMetadata.memory_provenance || null;
 
-  const formatProvenanceValue = (value: unknown): string => {
-    if (value === null || value === undefined) return '—';
-    if (typeof value === 'string') return value;
-    if (typeof value === 'number' || typeof value === 'boolean') return String(value);
+  const conceptOptions = useMemo(() => {
+    const merged = new Map<string, ConceptOption>();
+    for (const concept of availableConcepts) {
+      if (concept?.concept_id) {
+        merged.set(concept.concept_id, concept);
+      }
+    }
+    for (const concept of conceptTagsValue) {
+      if (concept?.concept_id) {
+        merged.set(concept.concept_id, {
+          concept_id: concept.concept_id,
+          pref_label: concept.pref_label,
+          notation: concept.notation,
+        });
+      }
+    }
+    return Array.from(merged.values()).sort((a, b) => a.pref_label.localeCompare(b.pref_label));
+  }, [availableConcepts, conceptTagsValue]);
+
+  useEffect(() => {
+    if (isEditUnlocked) return;
+    setDraftTags(Array.from(new Set(tagsValue.map((tag) => tag.trim()).filter(Boolean))).sort((a, b) => a.localeCompare(b)));
+    setDraftConceptIds(
+      Array.from(
+        new Set(
+          conceptTagsValue
+            .map((concept) => concept.concept_id?.trim())
+            .filter((conceptId): conceptId is string => Boolean(conceptId))
+        )
+      )
+    );
+    setDraftMetadataJson(JSON.stringify(parsedMetadata, null, 2));
+    setTagInput("");
+    setConceptToAdd("");
+    setSaveError(null);
+  }, [conceptTagsValue, isEditUnlocked, parsedMetadata, tagsValue]);
+
+  const formatValue = (value: unknown): string => {
+    if (value === null || value === undefined) return "—";
+    if (typeof value === "string") return value;
+    if (typeof value === "number" || typeof value === "boolean") return String(value);
     try {
       return JSON.stringify(value);
     } catch {
       return String(value);
     }
   };
-  
+
+  const addTag = () => {
+    const next = tagInput.trim();
+    if (!next) return;
+    if (draftTags.includes(next)) {
+      setTagInput("");
+      return;
+    }
+    setDraftTags((prev) => [...prev, next].sort((a, b) => a.localeCompare(b)));
+    setTagInput("");
+  };
+
+  const addConcept = () => {
+    const conceptId = conceptToAdd.trim();
+    if (!conceptId) return;
+    if (draftConceptIds.includes(conceptId)) {
+      setConceptToAdd("");
+      return;
+    }
+    setDraftConceptIds((prev) => [...prev, conceptId]);
+    setConceptToAdd("");
+  };
+
+  const resetDrafts = () => {
+    setDraftTags(Array.from(new Set(tagsValue.map((tag) => tag.trim()).filter(Boolean))).sort((a, b) => a.localeCompare(b)));
+    setDraftConceptIds(
+      Array.from(
+        new Set(
+          conceptTagsValue
+            .map((concept) => concept.concept_id?.trim())
+            .filter((conceptId): conceptId is string => Boolean(conceptId))
+        )
+      )
+    );
+    setDraftMetadataJson(JSON.stringify(parsedMetadata, null, 2));
+    setTagInput("");
+    setConceptToAdd("");
+    setSaveError(null);
+  };
+
+  const handleSave = async () => {
+    if (!onSaveEdits) {
+      setIsEditUnlocked(false);
+      return;
+    }
+
+    setSaveError(null);
+    setIsSaving(true);
+    try {
+      const parsed = JSON.parse(draftMetadataJson) as unknown;
+      if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+        throw new Error("Metadata JSON must be an object.");
+      }
+      await onSaveEdits({
+        tags: draftTags,
+        conceptIds: draftConceptIds,
+        metadata: parsed as Record<string, unknown>,
+      });
+      setIsEditUnlocked(false);
+    } catch (error) {
+      setSaveError(error instanceof Error ? error.message : "Failed to save metadata edits.");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const editableConceptOptions = conceptOptions.filter(
+    (option) => !draftConceptIds.includes(option.concept_id)
+  );
+
   return (
     <Card className="h-full">
       <CardHeader>
         <CardTitle className="text-lg flex items-center justify-between">
           <span>Note Metadata</span>
-          <div className="flex gap-2">
+          <div className="flex gap-2 items-center">
+            {isEditUnlocked ? (
+              <>
+                <Button
+                  size="sm"
+                  variant="default"
+                  onClick={() => void handleSave()}
+                  disabled={isSaving}
+                >
+                  <Save className="h-4 w-4 mr-1" />
+                  Save
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  disabled={isSaving}
+                  onClick={() => {
+                    resetDrafts();
+                    setIsEditUnlocked(false);
+                  }}
+                >
+                  <X className="h-4 w-4 mr-1" />
+                  Cancel
+                </Button>
+              </>
+            ) : (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => setIsEditUnlocked(true)}
+              >
+                <Unlock className="h-4 w-4 mr-1" />
+                Unlock Editing
+              </Button>
+            )}
+            {!isEditUnlocked && <Lock className="h-4 w-4 text-muted-foreground" />}
             {starred && <Star className="h-4 w-4 fill-current text-yellow-500" />}
             {archived && <Badge variant="secondary">Archived</Badge>}
           </div>
         </CardTitle>
+        {saveError && <div className="text-sm text-destructive">{saveError}</div>}
       </CardHeader>
       <CardContent>
         <ScrollArea className="h-[600px] pr-4">
-          {/* Tags */}
-          {tags.length > 0 && (
-            <>
-              <div className="flex items-center gap-2 mb-2">
-                <Tag className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm font-semibold">Tags</span>
-              </div>
-              <div className="flex flex-wrap gap-1 mb-4">
-                {tags.map((tag, idx) => (
-                  <Badge 
-                    key={idx} 
-                    variant="outline"
-                    className={onTagClick ? "cursor-pointer hover:bg-accent" : ""}
-                    onClick={() => onTagClick && onTagClick(tag)}
-                  >
-                    {tag}
-                  </Badge>
-                ))}
-              </div>
-              <Separator className="my-4" />
-            </>
-          )}
+          <div className="mb-2 text-xs text-muted-foreground">
+            {isEditUnlocked
+              ? "Edit mode is unlocked. Save to apply changes."
+              : "Read-only mode. Unlock editing to modify tags, SKOS concepts, and JSON metadata."}
+          </div>
 
-          {/* SKOS Concept Tags */}
-          {conceptTags.length > 0 && (
-            <>
-              <div className="flex items-center gap-2 mb-2">
-                <Hash className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm font-semibold">SKOS Concepts</span>
-              </div>
-              <div className="space-y-2 mb-4">
-                {conceptTags.map((conceptTag, idx) => (
-                  <div key={`${conceptTag.concept_id}-${idx}`} className="rounded-md border p-2">
+          <div className="flex items-center gap-2 mb-2">
+            <Tag className="h-4 w-4 text-muted-foreground" />
+            <span className="text-sm font-semibold">Tags</span>
+          </div>
+          <div className="flex flex-wrap gap-1 mb-2">
+            {(isEditUnlocked ? draftTags : tagsValue).map((tag) => (
+              <Badge
+                key={tag}
+                variant="outline"
+                className={!isEditUnlocked && onTagClick ? "cursor-pointer hover:bg-accent" : ""}
+                onClick={() => !isEditUnlocked && onTagClick?.(tag)}
+              >
+                {tag}
+                {isEditUnlocked && (
+                  <button
+                    className="ml-1"
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      setDraftTags((prev) => prev.filter((item) => item !== tag));
+                    }}
+                    aria-label={`Remove tag ${tag}`}
+                    type="button"
+                  >
+                    ×
+                  </button>
+                )}
+              </Badge>
+            ))}
+          </div>
+          {isEditUnlocked && (
+            <div className="flex items-center gap-2 mb-4">
+              <Input
+                value={tagInput}
+                onChange={(event) => setTagInput(event.target.value)}
+                placeholder="Add tag"
+                className="h-8"
+                onKeyDown={(event) => {
+                  if (event.key === "Enter") {
+                    event.preventDefault();
+                    addTag();
+                  }
+                }}
+              />
+              <Button size="sm" variant="outline" onClick={addTag} type="button">
+                <Plus className="h-3 w-3 mr-1" />
+                Add
+              </Button>
+            </div>
+          )}
+          <Separator className="my-4" />
+
+          <div className="flex items-center gap-2 mb-2">
+            <Hash className="h-4 w-4 text-muted-foreground" />
+            <span className="text-sm font-semibold">SKOS Concepts</span>
+          </div>
+          <div className="space-y-2 mb-2">
+            {(isEditUnlocked ? draftConceptIds : conceptTagsValue.map((item) => item.concept_id))
+              .map((conceptId) => {
+                const concept =
+                  conceptOptions.find((item) => item.concept_id === conceptId) ||
+                  conceptTagsValue.find((item) => item.concept_id === conceptId);
+                if (!concept) return null;
+                const prefLabel = concept.pref_label;
+                const notation = concept.notation;
+                const scored =
+                  conceptTagsValue.find((item) => item.concept_id === conceptId) ?? null;
+
+                return (
+                  <div key={conceptId} className="rounded-md border p-2">
                     <div className="flex flex-wrap items-center gap-2">
                       <Badge
-                        variant={conceptTag.is_primary ? "default" : "secondary"}
-                        className={onTagClick ? "cursor-pointer hover:bg-accent" : ""}
-                        onClick={() => onTagClick && onTagClick(conceptTag.pref_label)}
+                        variant="secondary"
+                        className={!isEditUnlocked && onTagClick ? "cursor-pointer hover:bg-accent" : ""}
+                        onClick={() => !isEditUnlocked && onTagClick?.(prefLabel)}
                       >
-                        {conceptTag.pref_label}
+                        {prefLabel}
                       </Badge>
-                      {conceptTag.notation && (
-                        <span className="text-xs text-muted-foreground">
-                          {conceptTag.notation}
-                        </span>
+                      {notation && <span className="text-xs text-muted-foreground">{notation}</span>}
+                      {isEditUnlocked && (
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="h-6 px-2"
+                          onClick={() => setDraftConceptIds((prev) => prev.filter((id) => id !== conceptId))}
+                        >
+                          Remove
+                        </Button>
                       )}
                     </div>
-                    {(typeof conceptTag.confidence === "number" ||
-                      typeof conceptTag.relevance_score === "number") && (
+                    {(typeof scored?.confidence === "number" ||
+                      typeof scored?.relevance_score === "number") && (
                       <div className="mt-1 text-xs text-muted-foreground">
-                        {typeof conceptTag.confidence === "number" && (
-                          <span>confidence {(conceptTag.confidence * 100).toFixed(0)}%</span>
+                        {typeof scored?.confidence === "number" && (
+                          <span>confidence {(scored.confidence * 100).toFixed(0)}%</span>
                         )}
-                        {typeof conceptTag.confidence === "number" &&
-                          typeof conceptTag.relevance_score === "number" && <span> · </span>}
-                        {typeof conceptTag.relevance_score === "number" && (
-                          <span>relevance {(conceptTag.relevance_score * 100).toFixed(0)}%</span>
+                        {typeof scored?.confidence === "number" &&
+                          typeof scored?.relevance_score === "number" && <span> · </span>}
+                        {typeof scored?.relevance_score === "number" && (
+                          <span>relevance {(scored.relevance_score * 100).toFixed(0)}%</span>
                         )}
                       </div>
                     )}
                   </div>
+                );
+              })}
+          </div>
+          {isEditUnlocked && (
+            <div className="flex items-center gap-2 mb-4">
+              <select
+                className="h-8 w-full rounded-md border border-input bg-background px-2 text-sm"
+                value={conceptToAdd}
+                onChange={(event) => setConceptToAdd(event.target.value)}
+              >
+                <option value="">Select concept to add</option>
+                {editableConceptOptions.map((option) => (
+                  <option key={option.concept_id} value={option.concept_id}>
+                    {option.pref_label}
+                    {option.notation ? ` (${option.notation})` : ""}
+                  </option>
                 ))}
-              </div>
-              <Separator className="my-4" />
-            </>
+              </select>
+              <Button size="sm" variant="outline" onClick={addConcept} type="button" disabled={!conceptToAdd}>
+                <Plus className="h-3 w-3 mr-1" />
+                Add
+              </Button>
+            </div>
           )}
+          <Separator className="my-4" />
 
-          {/* AI-Generated Categories */}
           {parsedAiMetadata.categories && (
             <>
               <div className="flex items-center gap-2 mb-2">
@@ -150,11 +392,11 @@ export function NoteMetadata({
               </div>
               <div className="flex flex-wrap gap-1 mb-4">
                 {parsedAiMetadata.categories.map((cat: string, idx: number) => (
-                  <Badge 
-                    key={idx} 
+                  <Badge
+                    key={idx}
                     variant="secondary"
-                    className={onTagClick ? "cursor-pointer hover:bg-accent" : ""}
-                    onClick={() => onTagClick && onTagClick(cat)}
+                    className={!isEditUnlocked && onTagClick ? "cursor-pointer hover:bg-accent" : ""}
+                    onClick={() => !isEditUnlocked && onTagClick?.(cat)}
                   >
                     {cat}
                   </Badge>
@@ -163,7 +405,6 @@ export function NoteMetadata({
             </>
           )}
 
-          {/* Topics */}
           {parsedAiMetadata.topics && (
             <>
               <div className="flex items-center gap-2 mb-2">
@@ -172,10 +413,10 @@ export function NoteMetadata({
               </div>
               <div className="flex flex-wrap gap-1 mb-4">
                 {parsedAiMetadata.topics.map((topic: string, idx: number) => (
-                  <Badge 
+                  <Badge
                     key={idx}
-                    className={onTagClick ? "cursor-pointer hover:bg-accent" : ""}
-                    onClick={() => onTagClick && onTagClick(topic)}
+                    className={!isEditUnlocked && onTagClick ? "cursor-pointer hover:bg-accent" : ""}
+                    onClick={() => !isEditUnlocked && onTagClick?.(topic)}
                   >
                     {topic}
                   </Badge>
@@ -184,7 +425,6 @@ export function NoteMetadata({
             </>
           )}
 
-          {/* Entities */}
           {parsedAiMetadata.entities && (
             <>
               <Separator className="my-4" />
@@ -256,33 +496,26 @@ export function NoteMetadata({
             </>
           )}
 
-          {/* Summary */}
           {parsedAiMetadata.summary && (
             <>
               <Separator className="my-4" />
               <div>
                 <span className="text-sm font-semibold">Summary</span>
-                <p className="text-sm text-muted-foreground mt-1">
-                  {parsedAiMetadata.summary}
-                </p>
+                <p className="text-sm text-muted-foreground mt-1">{parsedAiMetadata.summary}</p>
               </div>
             </>
           )}
 
-          {/* Context */}
           {parsedAiMetadata.context && (
             <>
               <Separator className="my-4" />
               <div>
                 <span className="text-sm font-semibold">Context</span>
-                <p className="text-sm text-muted-foreground mt-1">
-                  {parsedAiMetadata.context}
-                </p>
+                <p className="text-sm text-muted-foreground mt-1">{parsedAiMetadata.context}</p>
               </div>
             </>
           )}
 
-          {/* Keywords */}
           {parsedAiMetadata.keywords && (
             <>
               <Separator className="my-4" />
@@ -290,11 +523,11 @@ export function NoteMetadata({
                 <span className="text-sm font-semibold mb-2 block">Keywords</span>
                 <div className="flex flex-wrap gap-1">
                   {parsedAiMetadata.keywords.map((keyword: string, idx: number) => (
-                    <Badge 
-                      key={idx} 
-                      variant="secondary" 
-                      className={`text-xs ${onTagClick ? "cursor-pointer hover:bg-accent" : ""}`}
-                      onClick={() => onTagClick && onTagClick(keyword)}
+                    <Badge
+                      key={idx}
+                      variant="secondary"
+                      className={`text-xs ${!isEditUnlocked && onTagClick ? "cursor-pointer hover:bg-accent" : ""}`}
+                      onClick={() => !isEditUnlocked && onTagClick?.(keyword)}
                     >
                       {keyword}
                     </Badge>
@@ -304,7 +537,6 @@ export function NoteMetadata({
             </>
           )}
 
-          {/* Provenance */}
           {provenanceData && (
             <>
               <Separator className="my-4" />
@@ -318,20 +550,20 @@ export function NoteMetadata({
                   <div className="space-y-2 mb-3">
                     {provenanceData.provenance.map((activity: any, idx: number) => (
                       <div key={idx} className="rounded border p-2 text-xs space-y-1">
-                        <div><span className="font-medium">Activity:</span> {formatProvenanceValue(activity.activity)}</div>
-                        <div><span className="font-medium">Agent:</span> {formatProvenanceValue(activity.agent)}</div>
-                        <div><span className="font-medium">Timestamp:</span> {formatProvenanceValue(activity.timestamp)}</div>
+                        <div><span className="font-medium">Activity:</span> {formatValue(activity.activity)}</div>
+                        <div><span className="font-medium">Agent:</span> {formatValue(activity.agent)}</div>
+                        <div><span className="font-medium">Timestamp:</span> {formatValue(activity.timestamp)}</div>
                         {activity.location && (
-                          <div><span className="font-medium">Location:</span> {formatProvenanceValue(activity.location)}</div>
+                          <div><span className="font-medium">Location:</span> {formatValue(activity.location)}</div>
                         )}
                         {activity.device && (
-                          <div><span className="font-medium">Device:</span> {formatProvenanceValue(activity.device)}</div>
+                          <div><span className="font-medium">Device:</span> {formatValue(activity.device)}</div>
                         )}
                         {activity.temporal_context && (
-                          <div><span className="font-medium">Temporal:</span> {formatProvenanceValue(activity.temporal_context)}</div>
+                          <div><span className="font-medium">Temporal:</span> {formatValue(activity.temporal_context)}</div>
                         )}
                         {activity.parameters && (
-                          <div><span className="font-medium">Parameters:</span> {formatProvenanceValue(activity.parameters)}</div>
+                          <div><span className="font-medium">Parameters:</span> {formatValue(activity.parameters)}</div>
                         )}
                       </div>
                     ))}
@@ -343,13 +575,13 @@ export function NoteMetadata({
                     <span className="text-xs font-medium">Attachment Provenance</span>
                     {provenanceData.attachments.map((attachment: any, idx: number) => (
                       <div key={idx} className="rounded border p-2 text-xs space-y-1">
-                        <div><span className="font-medium">File:</span> {formatProvenanceValue(attachment.filename)}</div>
-                        <div><span className="font-medium">Attachment ID:</span> {formatProvenanceValue(attachment.attachment_id)}</div>
+                        <div><span className="font-medium">File:</span> {formatValue(attachment.filename)}</div>
+                        <div><span className="font-medium">Attachment ID:</span> {formatValue(attachment.attachment_id)}</div>
                         {attachment.capture_time && (
-                          <div><span className="font-medium">Capture Time:</span> {formatProvenanceValue(attachment.capture_time)}</div>
+                          <div><span className="font-medium">Capture Time:</span> {formatValue(attachment.capture_time)}</div>
                         )}
                         {attachment.location && (
-                          <div><span className="font-medium">Location:</span> {formatProvenanceValue(attachment.location)}</div>
+                          <div><span className="font-medium">Location:</span> {formatValue(attachment.location)}</div>
                         )}
                       </div>
                     ))}
@@ -366,22 +598,28 @@ export function NoteMetadata({
             </>
           )}
 
-          {/* Raw JSONB Metadata */}
-          {metadataEntries.length > 0 && (
-            <>
-              <Separator className="my-4" />
-              <div>
-                <div className="flex items-center gap-2 mb-3">
-                  <FileText className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-sm font-semibold">JSON Metadata</span>
-                </div>
+          <Separator className="my-4" />
+          <div>
+            <div className="flex items-center gap-2 mb-3">
+              <FileText className="h-4 w-4 text-muted-foreground" />
+              <span className="text-sm font-semibold">JSON Metadata</span>
+            </div>
+            {isEditUnlocked ? (
+              <Textarea
+                className="min-h-[220px] font-mono text-xs"
+                value={draftMetadataJson}
+                onChange={(event) => setDraftMetadataJson(event.target.value)}
+              />
+            ) : (
+              <>
                 <div className="space-y-2 mb-3">
+                  {metadataEntries.length === 0 && (
+                    <div className="rounded border p-2 text-xs text-muted-foreground">No JSON metadata</div>
+                  )}
                   {metadataEntries.map(([key, value]) => (
                     <div key={key} className="rounded border p-2 text-xs">
-                      <span className="font-medium">{key}:</span>{' '}
-                      <span className="text-muted-foreground">
-                        {formatProvenanceValue(value)}
-                      </span>
+                      <span className="font-medium">{key}:</span>{" "}
+                      <span className="text-muted-foreground">{formatValue(value)}</span>
                     </div>
                   ))}
                 </div>
@@ -391,47 +629,44 @@ export function NoteMetadata({
                     {JSON.stringify(parsedMetadata, null, 2)}
                   </pre>
                 </div>
-              </div>
-            </>
-          )}
+              </>
+            )}
+          </div>
 
-          {/* Linked Notes */}
-          {links.length > 0 && (
+          {linksValue.length > 0 && (
             <>
               <Separator className="my-4" />
               <div>
                 <div className="flex items-center gap-2 mb-3">
                   <Link className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-sm font-semibold">Linked Notes ({links.length})</span>
+                  <span className="text-sm font-semibold">Linked Notes ({linksValue.length})</span>
                 </div>
                 <div className="space-y-2">
-                  {links.map((link: any, idx: number) => (
-                    <div 
-                      key={idx} 
-                      className={`p-2 rounded border ${onLinkClick ? 'cursor-pointer hover:bg-accent' : ''}`}
-                      onClick={() => onLinkClick && onLinkClick(link.to_note_id)}
+                  {linksValue.map((linked: any, idx: number) => (
+                    <div
+                      key={idx}
+                      className={`p-2 rounded border ${!isEditUnlocked && onLinkClick ? "cursor-pointer hover:bg-accent" : ""}`}
+                      onClick={() => !isEditUnlocked && onLinkClick?.(linked.to_note_id)}
                     >
                       <div className="flex items-center justify-between mb-1">
                         <span className="text-xs font-medium capitalize">
-                          {link.kind === 'semantic' ? '🧠 Semantic' : '🔑 Keyword'} Link
-                          {link.kind === 'keyword' && link.metadata?.keywords && (
+                          {linked.kind === "semantic" ? "🧠 Semantic" : "🔑 Keyword"} Link
+                          {linked.kind === "keyword" && linked.metadata?.keywords && (
                             <span className="ml-1 text-muted-foreground">
-                              ({link.metadata.keywords.join(', ')})
+                              ({linked.metadata.keywords.join(", ")})
                             </span>
                           )}
                         </span>
-                        <Badge variant={link.score > 0.8 ? "default" : "outline"} className="text-xs">
-                          {(link.score * 100).toFixed(0)}% match
+                        <Badge variant={linked.score > 0.8 ? "default" : "outline"} className="text-xs">
+                          {(linked.score * 100).toFixed(0)}% match
                         </Badge>
                       </div>
-                      {link.snippet && (
-                        <p className="text-xs text-muted-foreground line-clamp-2">
-                          {link.snippet}
-                        </p>
+                      {linked.snippet && (
+                        <p className="text-xs text-muted-foreground line-clamp-2">{linked.snippet}</p>
                       )}
-                      <div className="text-xs text-blue-600 hover:underline mt-1">
-                        Click to open linked note →
-                      </div>
+                      {!isEditUnlocked && (
+                        <div className="text-xs text-blue-600 hover:underline mt-1">Click to open linked note →</div>
+                      )}
                     </div>
                   ))}
                 </div>

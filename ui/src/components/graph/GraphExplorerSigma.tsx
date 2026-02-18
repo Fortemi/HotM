@@ -145,6 +145,7 @@ export function GraphExplorer({ className, initialNoteId, onNoteSelect }: GraphE
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
   const [selectedGraphNodeId, setSelectedGraphNodeId] = React.useState<string | null>(null);
+  const [hoveredGraphNodeId, setHoveredGraphNodeId] = React.useState<string | null>(null);
   const [lastRenderMs, setLastRenderMs] = React.useState<number | null>(null);
   const [operationTimings, setOperationTimings] = React.useState<
     Partial<Record<TimingOperation, number>>
@@ -522,6 +523,10 @@ export function GraphExplorer({ className, initialNoteId, onNoteSelect }: GraphE
     () => graphData.nodes.find((node) => node.id === selectedGraphNodeId) || null,
     [graphData.nodes, selectedGraphNodeId]
   );
+  const hoveredNode = React.useMemo(
+    () => graphData.nodes.find((node) => node.id === hoveredGraphNodeId) || null,
+    [graphData.nodes, hoveredGraphNodeId]
+  );
 
   const selectedNodeEdges = React.useMemo(
     () =>
@@ -622,7 +627,7 @@ export function GraphExplorer({ className, initialNoteId, onNoteSelect }: GraphE
     if (!rendererRef.current) {
       try {
         const renderer = new Sigma(graph, containerRef.current, {
-          renderLabels: true,
+          renderLabels: false,
           labelDensity: 0.08,
           labelGridCellSize: 80,
           minCameraRatio: 0.05,
@@ -633,6 +638,12 @@ export function GraphExplorer({ className, initialNoteId, onNoteSelect }: GraphE
           markOperation('nodeSelect');
           onNoteSelect?.(node);
           setSelectedGraphNodeId(node);
+        });
+        renderer.on('enterNode', ({ node }) => {
+          setHoveredGraphNodeId(node);
+        });
+        renderer.on('leaveNode', () => {
+          setHoveredGraphNodeId(null);
         });
 
         rendererRef.current = renderer;
@@ -764,7 +775,7 @@ export function GraphExplorer({ className, initialNoteId, onNoteSelect }: GraphE
   }
 
   return (
-    <div className={cn('h-full flex flex-col gap-4', className)}>
+    <div className={cn('h-full flex flex-col gap-4 dark:[&_.text-muted-foreground]:text-slate-300', className)}>
       <div className="flex flex-wrap items-center gap-3">
         <Select
           value={selectedCollection}
@@ -995,7 +1006,7 @@ export function GraphExplorer({ className, initialNoteId, onNoteSelect }: GraphE
         <span>root note: {rootNoteId || 'none'}</span>
       </div>
       {graphData.truncated && (
-        <div className="text-xs text-amber-600">
+        <div className="text-xs text-amber-600 dark:text-amber-300">
           Dense graph detected: rendering capped to top-scored 2000 edges.
         </div>
       )}
@@ -1038,6 +1049,11 @@ export function GraphExplorer({ className, initialNoteId, onNoteSelect }: GraphE
             {error && (
               <div className="absolute left-3 top-3 z-10 rounded bg-destructive/10 px-3 py-2 text-sm text-destructive">
                 {error}
+              </div>
+            )}
+            {hoveredNode && !loading && !error && (
+              <div className="pointer-events-none absolute left-3 top-3 z-10 max-w-[70%] rounded border border-border bg-background/90 px-2 py-1 text-xs font-medium text-foreground shadow-sm dark:bg-slate-900/90 dark:text-slate-100">
+                {hoveredNode.title}
               </div>
             )}
             {!loading && graphData.nodes.length === 0 && (

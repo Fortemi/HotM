@@ -219,6 +219,9 @@ export function HallOfMind() {
   const [quickAccessFilter, setQuickAccessFilter] = useState<"all" | "starred" | "recent" | "archived">("all");
   const [selectedNoteConceptTags, setSelectedNoteConceptTags] = useState<NoteConceptSummary[]>([]);
   const [selectedNoteProvenance, setSelectedNoteProvenance] = useState<any | null>(null);
+  const [metadataConceptOptions, setMetadataConceptOptions] = useState<
+    Array<{ concept_id: string; pref_label: string; notation?: string }>
+  >([]);
   const [isDarkMode, setIsDarkMode] = useState(true);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [noteToDelete, setNoteToDelete] = useState<{ id: string; title: string } | null>(null);
@@ -264,6 +267,7 @@ export function HallOfMind() {
   const savedNotes = useRef<Map<string, NoteFull>>(new Map());
   const notificationTimeouts = useRef<Map<string, NodeJS.Timeout>>(new Map());
   const metadataCache = useRef<Map<string, { data: any; timestamp: number; relatedNotes?: any }>>(new Map());
+  const notesRef = useRef<Note[]>([]);
   
   // State for title animations
   const [titleAnimations, setTitleAnimations] = useState<Map<string, { oldTitle: string; newTitle: string; isAnimating: boolean }>>(new Map());
@@ -271,6 +275,10 @@ export function HallOfMind() {
   const searchCache = useRef<Map<string, { results: Note[], timestamp: number }>>(new Map());
 
   // Check server health and load initial notes
+  useEffect(() => {
+    notesRef.current = notes;
+  }, [notes]);
+
   useEffect(() => {
     checkServerHealth();
     loadExistingNotes();
@@ -425,6 +433,45 @@ export function HallOfMind() {
       isCancelled = true;
     };
   }, [selectedNote?.id]);
+
+  useEffect(() => {
+    if (activeTab !== "metadata") return;
+
+    let cancelled = false;
+    const loadConceptOptions = async () => {
+      try {
+        const concepts = await coreApi.concepts.listConcepts({ limit: 500 });
+        if (cancelled) return;
+
+        const deduped = Array.from(
+          concepts.reduce((acc, concept) => {
+            const conceptId = concept.concept_id ?? concept.id;
+            if (!conceptId) return acc;
+            if (!acc.has(conceptId)) {
+              acc.set(conceptId, {
+                concept_id: conceptId,
+                pref_label: concept.pref_label || conceptId,
+                notation: concept.notation,
+              });
+            }
+            return acc;
+          }, new Map<string, { concept_id: string; pref_label: string; notation?: string }>())
+          .values()
+        ).sort((a, b) => a.pref_label.localeCompare(b.pref_label));
+
+        setMetadataConceptOptions(deduped);
+      } catch (error) {
+        if (cancelled) return;
+        console.error("Failed to load concept options for metadata editing:", error);
+        setMetadataConceptOptions([]);
+      }
+    };
+
+    void loadConceptOptions();
+    return () => {
+      cancelled = true;
+    };
+  }, [activeTab]);
   
   // Browser history management with debouncing and navigation lock
   const navigationLock = useRef(false);
@@ -589,7 +636,20 @@ export function HallOfMind() {
       try {
         const updatedNote = await api.getNote(noteId);
         const simpleNote = mapFullNoteToSimple(updatedNote);
+        const existingNote = notesRef.current.find((n) => n.id === noteId) || null;
         savedNotes.current.set(noteId, updatedNote);
+
+        if (existingNote && existingNote.title !== simpleNote.title) {
+          setTitleAnimations((current) => {
+            const next = new Map(current);
+            next.set(noteId, {
+              oldTitle: existingNote.title || "Untitled",
+              newTitle: simpleNote.title || "Untitled",
+              isAnimating: true,
+            });
+            return next;
+          });
+        }
 
         setNotes((prev) => {
           const existingIdx = prev.findIndex((n) => n.id === noteId);
@@ -605,6 +665,17 @@ export function HallOfMind() {
         });
 
         if (selectedNote?.id === noteId) {
+          if (selectedNote.title !== simpleNote.title) {
+            setTitleAnimations((current) => {
+              const next = new Map(current);
+              next.set(noteId, {
+                oldTitle: selectedNote.title || "Untitled",
+                newTitle: simpleNote.title || "Untitled",
+                isAnimating: true,
+              });
+              return next;
+            });
+          }
           setSelectedNote(simpleNote);
           setRevisedContent(simpleNote.revised_content || simpleNote.content);
           await refreshSelectedNoteMetadata(noteId);
@@ -1346,6 +1417,109 @@ export function HallOfMind() {
     setSearchQuery(`#${trimmedTag}`);
     setShowSearchResults(true);
     setActiveTab("search");
+  };
+
+  const handleSaveMetadataEdits = async (payload: {
+    tags: string[];
+    conceptIds: string[];
+    metadata: Record<string, unknown>;
+  }) => {
+    if (!selectedNote) {
+      throw new Error("No note selected");
+    }
+
+    const noteId = selectedNote.id;
+    try {
+      const currentFullNote = savedNotes.current.get(noteId);
+      const currentTags = currentFullNote?.tags ?? [];
+      const nextTags = Array.from(new Set(payload.tags.map((tag) => tag.trim()).filter(Boolean)));
+
+      const addTags = nextTags.filter((tag) => !currentTags.includes(tag));
+      const removeTags = currentTags.filter((tag) => !nextTags.includes(tag));
+      if (addTags.length > 0 || removeTags.length > 0) {
+        await api.updateNoteTags(noteId, addTags, removeTags);
+      }
+
+      const currentConceptIds = Array.from(
+        new Set(
+          selectedNoteConceptTags
+            .map((concept) => concept.concept_id?.trim())
+            .filter((conceptId): conceptId is string => Boolean(conceptId))
+        )
+      );
+      const nextConceptIds = Array.from(
+        new Set(payload.conceptIds.map((conceptId) => conceptId.trim()).filter(Boolean))
+      );
+
+      const addConceptIds = nextConceptIds.filter((conceptId) => !currentConceptIds.includes(conceptId));
+      const removeConceptIds = currentConceptIds.filter((conceptId) => !nextConceptIds.includes(conceptId));
+
+      if (removeConceptIds.length > 0) {
+        await Promise.all(removeConceptIds.map((conceptId) => coreApi.concepts.untagNote(noteId, conceptId)));
+      }
+      if (addConceptIds.length > 0) {
+        await Promise.all(addConceptIds.map((conceptId) => coreApi.concepts.tagNote(noteId, conceptId)));
+      }
+
+      await coreApi.notes.update(noteId, { metadata: payload.metadata });
+
+      const refreshedNote = await api.getNote(noteId);
+      savedNotes.current.set(noteId, refreshedNote);
+
+      const refreshedSimpleNote: Note = {
+        id: refreshedNote.note.id,
+        title:
+          refreshedNote.note.title ||
+          refreshedNote.original.content.split("\n")[0].substring(0, 50) ||
+          "Untitled",
+        content: refreshedNote.original.content,
+        revised_content: refreshedNote.revised ? refreshedNote.revised.content : null,
+        createdAt: refreshedNote.note.created_at_utc,
+        updatedAt: refreshedNote.note.updated_at_utc,
+        tags: refreshedNote.tags,
+        starred: refreshedNote.note.starred || false,
+        archived: refreshedNote.note.archived || false,
+        ai_generated_title: refreshedNote.note.title,
+        revised_model: refreshedNote.revised ? refreshedNote.revised.model : null,
+      };
+
+      setNotes((prev) => prev.map((note) => (note.id === noteId ? refreshedSimpleNote : note)));
+      setSelectedNote(refreshedSimpleNote);
+      setNoteContent(refreshedSimpleNote.content);
+      setRevisedContent(refreshedSimpleNote.revised_content || refreshedSimpleNote.content);
+
+      try {
+        const concepts = await coreApi.concepts.getNoteConcepts(noteId);
+        const normalized: NoteConceptSummary[] = [];
+        for (const concept of concepts) {
+          const prefLabel = concept.pref_label?.trim();
+          const conceptId = concept.concept_id ?? concept.id;
+          if (!prefLabel || !conceptId) continue;
+          normalized.push({
+            concept_id: conceptId,
+            pref_label: prefLabel,
+            notation: concept.notation,
+            confidence: concept.confidence,
+            relevance_score: concept.relevance_score,
+            is_primary: concept.is_primary,
+            source: concept.source,
+          });
+        }
+        setSelectedNoteConceptTags(normalized);
+      } catch (error) {
+        console.error("Failed to refresh concept tags after metadata edit:", error);
+      }
+
+      try {
+        const provenance = await coreApi.provenance.getProvenance(noteId);
+        setSelectedNoteProvenance(provenance);
+      } catch (error) {
+        console.error("Failed to refresh provenance after metadata edit:", error);
+      }
+    } catch (error) {
+      console.error("Failed to save metadata edits:", error);
+      throw error;
+    }
   };
 
   // Perform server search when query changes
@@ -2827,11 +3001,13 @@ export function HallOfMind() {
                                 provenance={selectedNoteProvenance}
                                 tags={fullNote?.tags || []}
                                 conceptTags={metadataConceptTags}
+                                availableConcepts={metadataConceptOptions}
                                 links={fullNote?.links || []}
                                 starred={fullNote?.note?.starred}
                                 archived={fullNote?.note?.archived}
                                 aiMetadata={fullNote?.revised?.ai_metadata}
                                 onTagClick={handleMetadataTagClick}
+                                onSaveEdits={handleSaveMetadataEdits}
                                 onLinkClick={async (noteId) => {
                                   try {
                                     const linkedNote = await api.getNote(noteId);

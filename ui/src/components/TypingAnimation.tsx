@@ -14,6 +14,38 @@ interface TypingEvent {
   duration: number;
 }
 
+function clamp(value: number, min: number, max: number): number {
+  return Math.min(max, Math.max(min, value));
+}
+
+function smoothstep(t: number): number {
+  return t * t * (3 - 2 * t);
+}
+
+function seededHash(seed: string): number {
+  let hash = 2166136261;
+  for (let i = 0; i < seed.length; i += 1) {
+    hash ^= seed.charCodeAt(i);
+    hash = Math.imul(hash, 16777619);
+  }
+  return hash >>> 0;
+}
+
+function baseNoise(x: number, seed: number): number {
+  const n = Math.sin(x * 12.9898 + seed * 0.0001) * 43758.5453;
+  return n - Math.floor(n);
+}
+
+// Perlin-like 1D value noise in [0, 1]
+function perlinLike1d(x: number, seed: number): number {
+  const x0 = Math.floor(x);
+  const x1 = x0 + 1;
+  const t = x - x0;
+  const n0 = baseNoise(x0, seed);
+  const n1 = baseNoise(x1, seed);
+  return n0 + (n1 - n0) * smoothstep(t);
+}
+
 export function TypingAnimation({ 
   oldText, 
   newText, 
@@ -42,69 +74,91 @@ export function TypingAnimation({
     
     // If texts are the same, no animation needed
     if (from === to) return events;
-    
-    // Find common prefix to avoid unnecessary deletion/retyping
-    let commonPrefixLength = 0;
-    const minLength = Math.min(from.length, to.length);
-    for (let i = 0; i < minLength; i++) {
-      if (from[i] === to[i]) {
-        commonPrefixLength = i + 1;
-      } else {
-        break;
+
+    const seed = seededHash(`${from}=>${to}`);
+    let eventCursor = 0;
+    const noiseAt = (step: number, freq = 0.55) => perlinLike1d(step * freq, seed);
+    const jitter = (base: number, step: number, spread = 0.45) =>
+      Math.round(base * (1 + (noiseAt(step) * 2 - 1) * spread));
+
+    // Start with a short "thinking" pause.
+    events.push({
+      type: 'pause',
+      duration: clamp(jitter(config.pause, eventCursor++, 0.55), 40, config.pause * 2),
+    });
+
+    // User-like full backspace of existing title.
+    for (let i = from.length; i > 0; i -= 1) {
+      const pauseChance = noiseAt(eventCursor, 0.35);
+      if (pauseChance > 0.9) {
+        events.push({
+          type: 'pause',
+          duration: clamp(jitter(config.pause * 0.75, eventCursor++, 0.5), 35, config.pause * 1.8),
+        });
       }
-    }
-    
-    // Delete characters that need to be removed (from the end of common prefix)
-    for (let i = from.length; i > commonPrefixLength; i--) {
       events.push({
         type: 'delete',
-        duration: config.delete + Math.random() * 20 - 10 // Add slight randomness
+        duration: clamp(jitter(config.delete, eventCursor++, 0.55), 14, config.delete * 2),
       });
     }
-    
-    // Small pause before typing new content
-    if (events.length > 0) {
-      events.push({ type: 'pause', duration: config.pause });
-    }
-    
-    // Type new characters
-    const newChars = to.slice(commonPrefixLength);
-    for (let i = 0; i < newChars.length; i++) {
+
+    events.push({
+      type: 'pause',
+      duration: clamp(jitter(config.pause, eventCursor++, 0.5), 50, config.pause * 2),
+    });
+
+    // Type new title with variable cadence and occasional typo + correction.
+    const newChars = to;
+    const typoAlphabet = 'abcdefghijklmnopqrstuvwxyz';
+    for (let i = 0; i < newChars.length; i += 1) {
       const char = newChars[i];
-      
-      // Occasionally make a "mistake" for realism (5% chance)
-      if (Math.random() < 0.05 && i < newChars.length - 1) {
-        // Type a wrong character
-        const wrongChar = String.fromCharCode(char.charCodeAt(0) + (Math.random() > 0.5 ? 1 : -1));
+      const typoSignal = noiseAt(eventCursor + i * 0.9, 0.42);
+      const shouldTypo =
+        char.trim().length > 0 &&
+        i < newChars.length - 1 &&
+        typoSignal > 0.92;
+
+      if (shouldTypo) {
+        const typoLength = typoSignal > 0.975 ? 2 : 1;
+        for (let t = 0; t < typoLength; t += 1) {
+          const idx = Math.floor(noiseAt(eventCursor + t + i * 1.3, 0.73) * typoAlphabet.length);
+          const wrongChar = typoAlphabet[idx] || 'x';
+          events.push({
+            type: 'type',
+            char: wrongChar,
+            duration: clamp(jitter(config.type, eventCursor++, 0.55), 16, config.type * 2),
+          });
+        }
+
         events.push({
-          type: 'type',
-          char: wrongChar,
-          duration: config.type + Math.random() * 30 - 15
+          type: 'pause',
+          duration: clamp(jitter(config.mistake, eventCursor++, 0.5), 40, config.mistake * 2),
         });
-        
-        // Brief pause (noticing the mistake)
-        events.push({ type: 'pause', duration: config.mistake });
-        
-        // Delete the wrong character
+
+        for (let t = 0; t < typoLength; t += 1) {
+          events.push({
+            type: 'delete',
+            duration: clamp(jitter(config.delete, eventCursor++, 0.5), 14, config.delete * 2),
+          });
+        }
+
         events.push({
-          type: 'delete',
-          duration: config.delete
+          type: 'pause',
+          duration: clamp(jitter(config.mistake * 0.5, eventCursor++, 0.4), 25, config.mistake * 1.5),
         });
-        
-        // Brief pause before correcting
-        events.push({ type: 'pause', duration: config.mistake / 2 });
       }
-      
-      // Type the correct character
+
       events.push({
         type: 'type',
-        char: char,
-        duration: config.type + Math.random() * 40 - 20 // Natural variation
+        char,
+        duration: clamp(jitter(config.type, eventCursor++, 0.6), 16, config.type * 2.2),
       });
-      
-      // Slight pause after punctuation for realism
+
       if (['.', '!', '?', ',', ';', ':'].includes(char)) {
-        events.push({ type: 'pause', duration: config.pause / 2 });
+        events.push({
+          type: 'pause',
+          duration: clamp(jitter(config.pause * 0.6, eventCursor++, 0.45), 30, config.pause * 1.5),
+        });
       }
     }
     
