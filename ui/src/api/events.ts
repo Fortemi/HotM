@@ -6,6 +6,7 @@
 
 export interface ServerEvent {
   type: string;
+  event_id?: string;
   job_id?: string;
   note_id?: string;
   job_type?: string;
@@ -19,31 +20,62 @@ export interface ServerEvent {
 }
 
 type EventHandler = (event: ServerEvent) => void;
+type EventsClientStatus = 'connecting' | 'connected' | 'reconnecting' | 'closed';
 
-export function createEventsClient(baseUrl: string) {
+interface EventsClientOptions {
+  onStatusChange?: (status: EventsClientStatus) => void;
+}
+
+export const DEFAULT_SSE_EVENT_TYPES = [
+  'JobStarted', 'JobProgress', 'JobCompleted', 'JobFailed',
+  'JobQueued', 'NoteUpdated', 'NoteCreated', 'NoteDeleted',
+  'QueueStatus',
+] as const;
+
+export function createEventsClient(baseUrl: string, options: EventsClientOptions = {}) {
   let eventSource: EventSource | null = null;
   let reconnectTimeout: ReturnType<typeof setTimeout> | null = null;
   const handlers = new Set<EventHandler>();
   let isClosing = false;
+  let lastEventId: string | null = null;
+
+  const notifyStatus = (status: EventsClientStatus) => {
+    try {
+      options.onStatusChange?.(status);
+    } catch (error) {
+      console.error('SSE status handler error:', error);
+    }
+  };
 
   function getEventsUrl(): string {
     const normalized = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl;
-    return `${normalized}/api/v1/events`;
+    const url = new URL(`${normalized}/api/v1/events`, typeof window !== 'undefined' ? window.location.origin : 'http://localhost');
+    if (lastEventId) {
+      url.searchParams.set('last_event_id', lastEventId);
+    }
+    return url.toString();
   }
 
   function connect(): void {
     if (isClosing || eventSource) return;
 
     try {
+      notifyStatus('connecting');
       eventSource = new EventSource(getEventsUrl());
 
       eventSource.onopen = () => {
         isClosing = false;
+        notifyStatus('connected');
       };
 
       eventSource.onmessage = (event) => {
         try {
           const data: ServerEvent = JSON.parse(event.data);
+          const replayCursor = typeof data.event_id === 'string' ? data.event_id : event.lastEventId;
+          if (replayCursor) {
+            lastEventId = replayCursor;
+            data.event_id = replayCursor;
+          }
           handlers.forEach(handler => {
             try {
               handler(data);
@@ -57,17 +89,18 @@ export function createEventsClient(baseUrl: string) {
       };
 
       // Listen for typed events from Fortemi
-      const eventTypes = [
-        'JobStarted', 'JobProgress', 'JobCompleted', 'JobFailed',
-        'JobQueued', 'NoteUpdated', 'NoteCreated', 'NoteDeleted',
-        'QueueStatus',
-      ];
+      const eventTypes = DEFAULT_SSE_EVENT_TYPES;
 
       for (const eventType of eventTypes) {
         eventSource.addEventListener(eventType, (event: MessageEvent) => {
           try {
             const data: ServerEvent = JSON.parse(event.data);
             data.type = eventType;
+            const replayCursor = typeof data.event_id === 'string' ? data.event_id : event.lastEventId;
+            if (replayCursor) {
+              lastEventId = replayCursor;
+              data.event_id = replayCursor;
+            }
             handlers.forEach(handler => {
               try {
                 handler(data);
@@ -86,13 +119,17 @@ export function createEventsClient(baseUrl: string) {
         eventSource = null;
 
         if (!isClosing && handlers.size > 0) {
+          notifyStatus('reconnecting');
           reconnectTimeout = setTimeout(() => {
             connect();
           }, 5000);
+        } else {
+          notifyStatus('closed');
         }
       };
     } catch (err) {
       console.error('Failed to create EventSource:', err);
+      notifyStatus('closed');
     }
   }
 
@@ -117,6 +154,7 @@ export function createEventsClient(baseUrl: string) {
                 reconnectTimeout = null;
               }
               isClosing = false;
+              notifyStatus('closed');
             }
           }, 100);
         }
@@ -131,10 +169,14 @@ export function createEventsClient(baseUrl: string) {
       }
       eventSource?.close();
       eventSource = null;
+      notifyStatus('closed');
     },
 
     get connected(): boolean {
       return eventSource?.readyState === EventSource.OPEN;
+    },
+    get replayCursor(): string | null {
+      return lastEventId;
     },
   };
 }

@@ -10,6 +10,7 @@ import {
   Trash2,
 } from 'lucide-react';
 import { api, getActiveMemory } from '@/api';
+import { realtimeEventBus } from '@/services/realtimeEventBus';
 import type { ArchiveStatsResponse, MemoryArchive } from '@/api';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -88,6 +89,15 @@ export function ArchiveManager() {
 
   useEffect(() => {
     loadArchives();
+  }, [loadArchives]);
+
+  useEffect(() => {
+    const unsubscribe = realtimeEventBus.subscribe((event) => {
+      if (event.type === 'ArchiveUpdated') {
+        void loadArchives();
+      }
+    });
+    return () => unsubscribe();
   }, [loadArchives]);
 
   const withAction = async (archiveName: string, actionLabel: string, fn: () => Promise<void>) => {

@@ -29,6 +29,7 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog';
 import { api } from '@/api';
+import { realtimeEventBus } from '@/services/realtimeEventBus';
 import type { Tag, TagStats } from '@/api';
 
 interface TagManagerProps {
@@ -83,6 +84,15 @@ export function TagManager({ className }: TagManagerProps) {
 
   useEffect(() => {
     loadTags();
+  }, [loadTags]);
+
+  useEffect(() => {
+    const unsubscribe = realtimeEventBus.subscribe((event) => {
+      if (event.type === 'TagUpdated' || event.type === 'NoteUpdated') {
+        void loadTags();
+      }
+    });
+    return () => unsubscribe();
   }, [loadTags]);
 
   const filteredTags = tags.filter((tag) =>

@@ -1,6 +1,7 @@
 // Shared WebSocket service for job queue updates
 import { useEffect, useState } from 'react';
-import { createEventsClient, type ServerEvent } from '@/api/events';
+import { createEventsClient, type ServerEvent, DEFAULT_SSE_EVENT_TYPES } from '@/api/events';
+import { realtimeEventBus, type RealtimeEvent } from '@/services/realtimeEventBus';
 
 export interface WsActiveJob {
   job_id: string;
@@ -10,27 +11,8 @@ export interface WsActiveJob {
   started_at?: string;
 }
 
-export interface WsMessage {
-  type: 'QueueStatus' | 'JobQueued' | 'JobStarted' | 'JobProgress' | 'JobCompleted' | 'JobFailed' | 'NoteUpdated';
-  job_id?: string;
-  note_id?: string;
-  job_type?: string;
-  status?: string;
-  progress_percent?: number;
-  message?: string;
-  error?: string;
-  retry_count?: number;
-  duration_ms?: number;
-  estimated_duration_ms?: number;
-  priority?: number;
-  total_jobs?: number;
-  running?: number;
-  pending?: number;
+export interface WsMessage extends RealtimeEvent {
   active_job?: WsActiveJob;
-  title?: string;
-  tags?: string[];
-  has_ai_content?: boolean;
-  has_links?: boolean;
 }
 
 export interface QueueStatus {
@@ -39,10 +21,25 @@ export interface QueueStatus {
   pending: number;
 }
 
+export type RealtimeTransportMode = 'none' | 'ws' | 'sse';
+export type RealtimeConnectionState = 'disconnected' | 'connecting' | 'connected' | 'degraded' | 'reconnecting' | 'stale';
+export interface UseWebSocketState {
+  connected: boolean;
+  connectionState?: RealtimeConnectionState;
+  transportMode?: RealtimeTransportMode;
+  replayCursor?: string | null;
+  subscribedEventTypes?: string[];
+  queueStatus: QueueStatus;
+  queueStatusAgeMs: number;
+  isQueueStalled: boolean;
+  sendMessage: (message: string) => void;
+}
+
 const QUEUE_STALE_THRESHOLD_MS = 5 * 60 * 1000;
 
 type MessageHandler = (message: WsMessage) => void;
 type ConnectionHandler = (connected: boolean) => void;
+type ConnectionStateHandler = (state: RealtimeConnectionState) => void;
 
 class WebSocketService {
   private ws: WebSocket | null = null;
@@ -52,9 +49,12 @@ class WebSocketService {
   private isConnected = false;
   private handlers: Set<MessageHandler> = new Set();
   private connectionHandlers: Set<ConnectionHandler> = new Set();
+  private connectionStateHandlers: Set<ConnectionStateHandler> = new Set();
   private connectionPromise: Promise<void> | null = null;
   private isClosing = false;
   private isDisabled = false;
+  private transportMode: RealtimeTransportMode = 'none';
+  private connectionState: RealtimeConnectionState = 'disconnected';
 
   constructor() {
     // Check if WebSocket is disabled via environment variable
@@ -62,6 +62,10 @@ class WebSocketService {
     if (this.isDisabled) {
       console.log('WebSocket disabled via VITE_DISABLE_WEBSOCKET');
     }
+
+    realtimeEventBus.subscribe((event) => {
+      this.broadcastMessage(event);
+    });
   }
 
   private notifyConnection(connected: boolean): void {
@@ -70,6 +74,17 @@ class WebSocketService {
         handler(connected);
       } catch (error) {
         console.error('Connection handler error:', error);
+      }
+    });
+  }
+
+  private notifyConnectionState(state: RealtimeConnectionState): void {
+    this.connectionState = state;
+    this.connectionStateHandlers.forEach((handler) => {
+      try {
+        handler(state);
+      } catch (error) {
+        console.error('Connection state handler error:', error);
       }
     });
   }
@@ -100,31 +115,6 @@ class WebSocketService {
     return `${wsProtocol}://${parsed.host}${wsPath}`;
   }
 
-  private normalizeEventMessage(event: ServerEvent): WsMessage {
-    const type = typeof event.type === 'string' ? event.type : 'QueueStatus';
-    return {
-      type: type as WsMessage['type'],
-      job_id: typeof event.job_id === 'string' ? event.job_id : undefined,
-      note_id: typeof event.note_id === 'string' ? event.note_id : undefined,
-      job_type: typeof event.job_type === 'string' ? event.job_type : undefined,
-      status: typeof event.status === 'string' ? event.status : undefined,
-      progress_percent:
-        typeof event.progress_percent === 'number' ? event.progress_percent : undefined,
-      message: typeof event.message === 'string' ? event.message : undefined,
-      error: typeof event.error === 'string' ? event.error : undefined,
-      duration_ms: typeof event.duration_ms === 'number' ? event.duration_ms : undefined,
-      total_jobs:
-        typeof event.total_jobs === 'number' ? event.total_jobs : undefined,
-      running: typeof event.running === 'number' ? event.running : undefined,
-      pending: typeof event.pending === 'number' ? event.pending : undefined,
-      title: typeof event.title === 'string' ? event.title : undefined,
-      tags: Array.isArray(event.tags) ? (event.tags as string[]) : undefined,
-      has_ai_content:
-        typeof event.has_ai_content === 'boolean' ? event.has_ai_content : undefined,
-      has_links: typeof event.has_links === 'boolean' ? event.has_links : undefined,
-    };
-  }
-
   private broadcastMessage(message: WsMessage): void {
     this.handlers.forEach(handler => {
       try {
@@ -133,18 +123,6 @@ class WebSocketService {
         console.error('Handler error:', error);
       }
     });
-
-    if (message.type === 'NoteUpdated') {
-      window.dispatchEvent(new CustomEvent('noteUpdated', {
-        detail: {
-          note_id: message.note_id,
-          title: message.title,
-          tags: message.tags,
-          has_ai_content: message.has_ai_content,
-          has_links: message.has_links,
-        }
-      }));
-    }
   }
 
   private startSseFallback(): void {
@@ -156,23 +134,39 @@ class WebSocketService {
     }
 
     try {
-      this.eventsClient = createEventsClient(this.getApiBaseUrl());
+      this.eventsClient = createEventsClient(this.getApiBaseUrl(), {
+        onStatusChange: (status) => {
+          if (status === 'reconnecting') {
+            this.notifyConnectionState('reconnecting');
+          } else if (status === 'connected') {
+            this.notifyConnectionState('degraded');
+          } else if (status === 'closed' && !this.isClosing && this.handlers.size > 0) {
+            this.notifyConnectionState('reconnecting');
+          }
+        },
+      });
       this.unsubscribeEvents = this.eventsClient.subscribe((event) => {
         if (!this.isConnected) {
           this.isConnected = true;
           this.notifyConnection(true);
         }
-        this.broadcastMessage(this.normalizeEventMessage(event));
+        this.transportMode = 'sse';
+        this.notifyConnectionState('degraded');
+        realtimeEventBus.publishFromTransport(event);
       });
 
       // Optimistically mark connected while SSE handshake completes.
       this.isConnected = true;
+      this.transportMode = 'sse';
       this.notifyConnection(true);
+      this.notifyConnectionState('degraded');
       console.log('Falling back to SSE real-time events');
     } catch (error) {
       console.error('Failed to initialize SSE fallback:', error);
       this.isConnected = false;
+      this.transportMode = 'none';
       this.notifyConnection(false);
+      this.notifyConnectionState('disconnected');
     }
   }
 
@@ -190,6 +184,7 @@ class WebSocketService {
   private connect(): Promise<void> {
     // If WebSocket is disabled, don't attempt connection
     if (this.isDisabled) {
+      this.notifyConnectionState('disconnected');
       return Promise.resolve();
     }
 
@@ -209,6 +204,7 @@ class WebSocketService {
 
     this.connectionPromise = new Promise((resolve, reject) => {
       try {
+        this.notifyConnectionState('connecting');
         // Clear any existing connection
         if (this.ws) {
           this.ws.close();
@@ -233,7 +229,9 @@ class WebSocketService {
           console.log('Shared WebSocket connected');
           this.stopSseFallback();
           this.isConnected = true;
+          this.transportMode = 'ws';
           this.notifyConnection(true);
+          this.notifyConnectionState('connected');
           this.isClosing = false;
           this.connectionPromise = null;
           this.ws?.send('refresh');
@@ -242,8 +240,8 @@ class WebSocketService {
 
         this.ws.onmessage = (event) => {
           try {
-            const message: WsMessage = JSON.parse(event.data);
-            this.broadcastMessage(message);
+            const message: ServerEvent = JSON.parse(event.data);
+            realtimeEventBus.publishFromTransport(message);
           } catch (error) {
             console.error('Failed to parse WebSocket message:', error);
           }
@@ -252,6 +250,7 @@ class WebSocketService {
         this.ws.onerror = (error) => {
           console.error('Shared WebSocket error:', error);
           this.isConnected = false;
+          this.transportMode = 'none';
           this.notifyConnection(false);
           this.connectionPromise = null;
           this.startSseFallback();
@@ -263,6 +262,7 @@ class WebSocketService {
         this.ws.onclose = (event) => {
           console.log('Shared WebSocket disconnected:', event.code, event.reason);
           this.isConnected = false;
+          this.transportMode = 'none';
           this.notifyConnection(false);
           this.connectionPromise = null;
           this.startSseFallback();
@@ -274,10 +274,13 @@ class WebSocketService {
           
           // Only reconnect if it wasn't a manual close (code 1000) and we have active handlers
           if (event.code !== 1000 && this.handlers.size > 0) {
+            this.notifyConnectionState('reconnecting');
             this.reconnectTimeout = setTimeout(() => {
               console.log('Shared WebSocket attempting to reconnect...');
               this.connect().catch(console.error);
             }, 3000);
+          } else if (event.code === 1000) {
+            this.notifyConnectionState('disconnected');
           }
           
           // If this was an error during connection, reject the promise
@@ -288,8 +291,10 @@ class WebSocketService {
       } catch (error) {
         console.error('Failed to create WebSocket connection:', error);
         this.isConnected = false;
+        this.transportMode = 'none';
         this.notifyConnection(false);
         this.connectionPromise = null;
+        this.notifyConnectionState('disconnected');
         reject(error);
       }
     });
@@ -342,7 +347,9 @@ class WebSocketService {
     this.stopSseFallback();
     
     this.isConnected = false;
+    this.transportMode = 'none';
     this.notifyConnection(false);
+    this.notifyConnectionState('disconnected');
     this.connectionPromise = null;
   }
 
@@ -356,6 +363,30 @@ class WebSocketService {
     return () => {
       this.connectionHandlers.delete(handler);
     };
+  }
+
+  public subscribeConnectionState(handler: ConnectionStateHandler): () => void {
+    this.connectionStateHandlers.add(handler);
+    handler(this.connectionState);
+    return () => {
+      this.connectionStateHandlers.delete(handler);
+    };
+  }
+
+  public getTransportMode(): RealtimeTransportMode {
+    return this.transportMode;
+  }
+
+  public getConnectionState(): RealtimeConnectionState {
+    return this.connectionState;
+  }
+
+  public getReplayCursor(): string | null {
+    return this.eventsClient?.replayCursor ?? null;
+  }
+
+  public getSubscribedEventTypes(): string[] {
+    return [...DEFAULT_SSE_EVENT_TYPES];
   }
 
   // Reset the closing state - useful for development mode
@@ -373,8 +404,9 @@ if (import.meta.env.DEV) {
 }
 
 // Hook for React components
-export function useWebSocket() {
+export function useWebSocket(): UseWebSocketState {
   const [connected, setConnected] = useState(false);
+  const [connectionState, setConnectionState] = useState<RealtimeConnectionState>('disconnected');
   const [queueStatus, setQueueStatus] = useState<QueueStatus>({
     total_jobs: 0,
     running: 0,
@@ -396,6 +428,10 @@ export function useWebSocket() {
     const unsubscribeConnection = webSocketService.subscribeConnection((status) => {
       if (!isSubscribed) return;
       setConnected(status);
+    });
+    const unsubscribeConnectionState = webSocketService.subscribeConnectionState((status) => {
+      if (!isSubscribed) return;
+      setConnectionState(status);
     });
 
     const unsubscribe = webSocketService.subscribe((message) => {
@@ -448,6 +484,7 @@ export function useWebSocket() {
     return () => {
       isSubscribed = false;
       unsubscribeConnection();
+      unsubscribeConnectionState();
       unsubscribe();
     };
   }, []);
@@ -470,8 +507,15 @@ export function useWebSocket() {
     queueStatus.running > 0 &&
     queueStatusAgeMs >= QUEUE_STALE_THRESHOLD_MS;
 
+  const effectiveConnectionState: RealtimeConnectionState =
+    isQueueStalled && connected ? 'stale' : connectionState;
+
   return {
     connected,
+    connectionState: effectiveConnectionState,
+    transportMode: webSocketService.getTransportMode(),
+    replayCursor: webSocketService.getReplayCursor(),
+    subscribedEventTypes: webSocketService.getSubscribedEventTypes(),
     queueStatus,
     queueStatusAgeMs,
     isQueueStalled,

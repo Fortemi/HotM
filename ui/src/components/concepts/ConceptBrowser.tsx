@@ -18,6 +18,7 @@ import {
 import { ConceptTree } from './ConceptTree';
 import { ConceptCard } from './ConceptCard';
 import { api } from '@/api';
+import { realtimeEventBus } from '@/services/realtimeEventBus';
 import type { Concept, ConceptFull, ConceptScheme } from '@/api/types-extended';
 
 interface ConceptBrowserProps {
@@ -89,6 +90,21 @@ export function ConceptBrowser({
 
     return () => clearTimeout(timeoutId);
   }, [searchQuery, selectedSchemeId]);
+
+  useEffect(() => {
+    if (!isOpen) {
+      return;
+    }
+    const unsubscribe = realtimeEventBus.subscribe((event) => {
+      if (event.type === 'ConceptUpdated') {
+        void loadSchemes();
+        if (selectedSchemeId) {
+          void loadTopConcepts(selectedSchemeId);
+        }
+      }
+    });
+    return () => unsubscribe();
+  }, [isOpen, selectedSchemeId]);
 
   const loadSchemes = async () => {
     setError(null);

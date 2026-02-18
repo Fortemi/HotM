@@ -42,6 +42,11 @@ jobs:
         cd ui
         npm run test:coverage -- --run
 
+    - name: Run realtime convergence suite
+      run: |
+        cd ui
+        npm run test:realtime
+
     - name: Security audit (non-blocking)
       run: |
         cd ui

@@ -36,6 +36,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { api } from '@/api';
+import { realtimeEventBus } from '@/services/realtimeEventBus';
 import type { Attachment, AttachmentMetadata } from '@/api/types-extended';
 
 interface AttachmentsPanelProps {
@@ -226,11 +227,7 @@ export function AttachmentsPanel({ noteId, className }: AttachmentsPanelProps) {
     };
   }, [revokePreviewObjectUrl]);
 
-  useEffect(() => {
-    loadAttachments();
-  }, [noteId]);
-
-  const loadAttachments = async () => {
+  const loadAttachments = useCallback(async () => {
     if (!noteId || noteId.trim() === '') {
       setAttachments([]);
       setError(null);
@@ -249,7 +246,30 @@ export function AttachmentsPanel({ noteId, className }: AttachmentsPanelProps) {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [noteId]);
+
+  useEffect(() => {
+    void loadAttachments();
+  }, [loadAttachments]);
+
+  useEffect(() => {
+    const unsubscribe = realtimeEventBus.subscribe((event) => {
+      if (!noteId) {
+        return;
+      }
+      const isSameNote = !event.note_id || event.note_id === noteId;
+      if (!isSameNote) {
+        return;
+      }
+      if (event.type === 'AttachmentUpdated' || event.type === 'NoteUpdated') {
+        void loadAttachments();
+      }
+      if (event.type === 'NoteDeleted' && event.note_id === noteId) {
+        setAttachments([]);
+      }
+    });
+    return () => unsubscribe();
+  }, [loadAttachments, noteId]);
 
   const handleUpload = async (files: FileList | null) => {
     if (!files || files.length === 0) return;

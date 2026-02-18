@@ -7,7 +7,7 @@ import JobQueueMonitor from './JobQueueMonitor';
 import { useWebSocket } from '@/services/websocket';
 
 export const JobQueueIndicator: React.FC = () => {
-  const { connected, queueStatus, isQueueStalled, queueStatusAgeMs } = useWebSocket();
+  const { connected, connectionState, transportMode, queueStatus, isQueueStalled, queueStatusAgeMs } = useWebSocket();
   const [isOpen, setIsOpen] = useState(false);
 
   // Determine status icon
@@ -36,6 +36,16 @@ export const JobQueueIndicator: React.FC = () => {
   };
 
   const totalJobs = queueStatus.running + queueStatus.pending;
+  const connectionLabel =
+    connectionState === 'stale'
+      ? 'Stale'
+      : connectionState === 'degraded'
+        ? 'Degraded (SSE)'
+        : connectionState === 'reconnecting'
+          ? 'Reconnecting'
+          : connected
+            ? 'Connected'
+            : 'Disconnected';
 
   return (
     <Popover open={isOpen} onOpenChange={setIsOpen}>
@@ -63,9 +73,12 @@ export const JobQueueIndicator: React.FC = () => {
             <div className={`flex items-center gap-1 text-sm ${getStatusColor()}`}>
               {getStatusIcon()}
               <span className="text-xs text-muted-foreground ml-1">
-                {connected ? 'Connected' : 'Disconnected'}
+                {connectionLabel}
               </span>
             </div>
+          </div>
+          <div className="mt-1 text-[11px] text-muted-foreground">
+            transport: {transportMode ?? 'none'}
           </div>
           {isQueueStalled && (
             <div className="mt-2 text-xs text-amber-600">

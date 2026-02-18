@@ -5,9 +5,10 @@
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { act, render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { AttachmentsPanel } from '../AttachmentsPanel';
 import { api, Attachment, AttachmentMetadata } from '@/api';
+import { realtimeEventBus } from '@/services/realtimeEventBus';
 
 // Mock the API
 vi.mock('@/api', () => ({
@@ -125,6 +126,45 @@ describe('AttachmentsPanel', () => {
 
       await waitFor(() => {
         expect(api.attachments.listAttachments).toHaveBeenCalledWith('note-123');
+      });
+    });
+
+    it('should refresh attachments on realtime attachment events', async () => {
+      const secondPayload: Attachment[] = [
+        ...mockAttachments,
+        {
+          id: 'att-3',
+          note_id: 'note-123',
+          filename: 'new.png',
+          content_type: 'image/png',
+          size_bytes: 1024,
+          storage_path: '/attachments/att-3/new.png',
+          has_exif: false,
+          has_location: false,
+          created_at: '2024-01-16T10:00:00Z',
+        },
+      ];
+
+      vi.mocked(api.attachments.listAttachments)
+        .mockResolvedValueOnce(mockAttachments)
+        .mockResolvedValueOnce(secondPayload);
+
+      render(<AttachmentsPanel noteId="note-123" />);
+
+      await waitFor(() => {
+        expect(screen.getByText('image.jpg')).toBeInTheDocument();
+      });
+
+      act(() => {
+        realtimeEventBus.publishFromTransport({
+          event_type: 'AttachmentUploaded',
+          note_id: 'note-123',
+          event_id: 'evt-attach-1',
+        });
+      });
+
+      await waitFor(() => {
+        expect(screen.getByText('new.png')).toBeInTheDocument();
       });
     });
 

@@ -1,9 +1,10 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { act, render, screen, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { HallOfMind } from '../HallOfMind';
 import * as apiModule from '@/services/api';
 import * as websocketModule from '@/services/websocket';
 import { NoteFull, NoteSummary } from '@/services/api';
+import { realtimeEventBus } from '@/services/realtimeEventBus';
 
 // Mock all external dependencies
 vi.mock('@/services/api');
@@ -247,6 +248,65 @@ describe('HallOfMind WebSocket Integration', () => {
 
       // WebSocket should still be initialized
       expect(mockUseWebSocket).toHaveBeenCalled();
+    });
+
+    it('applies non-initiator NoteCreated events to the list', async () => {
+      const existingNote = createMockNoteFull({
+        note: { id: 'existing-note', title: 'Existing Note' },
+      });
+      const createdNote = createMockNoteFull({
+        note: { id: 'remote-created-note', title: 'Remote Created Note' },
+      });
+
+      mockApi.getNotes.mockResolvedValue([createNoteSummary(existingNote)]);
+      mockApi.getNote
+        .mockResolvedValueOnce(existingNote)
+        .mockResolvedValueOnce(createdNote);
+
+      render(<HallOfMind />);
+
+      await waitFor(() => {
+        expect(screen.getByText('Existing Note')).toBeInTheDocument();
+      });
+
+      act(() => {
+        realtimeEventBus.publishFromTransport({
+          type: 'NoteCreated',
+          note_id: 'remote-created-note',
+          event_id: 'evt-created-1',
+        });
+      });
+
+      await waitFor(() => {
+        expect(screen.getByText('Remote Created Note')).toBeInTheDocument();
+      });
+    });
+
+    it('applies non-initiator NoteDeleted events to the list', async () => {
+      const existingNote = createMockNoteFull({
+        note: { id: 'remote-deleted-note', title: 'Remote Deleted Note' },
+      });
+
+      mockApi.getNotes.mockResolvedValue([createNoteSummary(existingNote)]);
+      mockApi.getNote.mockResolvedValue(existingNote);
+
+      render(<HallOfMind />);
+
+      await waitFor(() => {
+        expect(screen.getByText('Remote Deleted Note')).toBeInTheDocument();
+      });
+
+      act(() => {
+        realtimeEventBus.publishFromTransport({
+          type: 'NoteDeleted',
+          note_id: 'remote-deleted-note',
+          event_id: 'evt-deleted-1',
+        });
+      });
+
+      await waitFor(() => {
+        expect(screen.queryByText('Remote Deleted Note')).not.toBeInTheDocument();
+      });
     });
   });
 

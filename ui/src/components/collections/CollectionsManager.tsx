@@ -40,6 +40,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { api } from '@/api';
 import { getActiveMemory, MEMORY_CHANGED_EVENT } from '@/api/memory-context';
+import { realtimeEventBus } from '@/services/realtimeEventBus';
 import type { Collection, CreateCollectionRequest } from '@/api/types-extended';
 import type { NoteSummary } from '@/api/types';
 
@@ -246,28 +247,37 @@ function NoteList({ collectionId, selectedNoteId, onNoteSelect, onRemoveNote }: 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
+  const loadNotes = useCallback(async () => {
     if (!collectionId) {
       setNotes([]);
       return;
     }
 
-    const loadNotes = async () => {
-      setIsLoading(true);
-      setError(null);
-      try {
-        const data = await api.collections.getNotes(collectionId);
-        setNotes(data);
-      } catch (err) {
-        setError('Failed to load notes');
-        console.error(err);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    loadNotes();
+    setIsLoading(true);
+    setError(null);
+    try {
+      const data = await api.collections.getNotes(collectionId);
+      setNotes(data);
+    } catch (err) {
+      setError('Failed to load notes');
+      console.error(err);
+    } finally {
+      setIsLoading(false);
+    }
   }, [collectionId]);
+
+  useEffect(() => {
+    void loadNotes();
+  }, [loadNotes]);
+
+  useEffect(() => {
+    const unsubscribe = realtimeEventBus.subscribe((event) => {
+      if (event.type === 'CollectionUpdated' || event.type === 'NoteUpdated' || event.type === 'NoteCreated' || event.type === 'NoteDeleted') {
+        void loadNotes();
+      }
+    });
+    return () => unsubscribe();
+  }, [loadNotes]);
 
   if (!collectionId) {
     return (
@@ -419,6 +429,15 @@ export function CollectionsManager({
       window.removeEventListener(MEMORY_CHANGED_EVENT, onMemoryChanged as EventListener);
     };
   }, [loadCollections, onSelectCollection]);
+
+  useEffect(() => {
+    const unsubscribe = realtimeEventBus.subscribe((event) => {
+      if (event.type === 'CollectionUpdated' || event.type === 'NoteUpdated' || event.type === 'NoteCreated' || event.type === 'NoteDeleted') {
+        void loadCollections();
+      }
+    });
+    return () => unsubscribe();
+  }, [loadCollections]);
 
   const filteredCollections = useMemo(() => {
     if (!searchQuery.trim()) return collections;

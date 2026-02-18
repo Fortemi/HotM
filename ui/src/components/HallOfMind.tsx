@@ -72,8 +72,10 @@ import {
   BookMarked,
   SlidersHorizontal,
   Database,
+  Bug,
 } from "lucide-react";
 import { api, NoteFull, NoteSummary } from "@/services/api";
+import { realtimeEventBus, type RealtimeEvent } from "@/services/realtimeEventBus";
 import { api as coreApi } from "@/api";
 import { MEMORY_CHANGED_EVENT, getActiveMemory } from "@/api/memory-context";
 import type { NoteConceptSummary } from "@/api/types";
@@ -102,6 +104,7 @@ import { MemorySearch } from "./memory/MemorySearch";
 import { GraphExplorer } from "./graph";
 import { TemplateManager } from "./templates/TemplateManager";
 import { AdminPanel } from "./admin";
+import { RealtimeEventInspector } from "./debug/RealtimeEventInspector";
 import { TimelineView } from "./timeline";
 import { AttachmentsPanel } from "./attachments/AttachmentsPanel";
 import { ConceptBrowser } from "./concepts/ConceptBrowser";
@@ -126,7 +129,8 @@ type AppView =
   | "backup"
   | "archives"
   | "tags"
-  | "advanced-search";
+  | "advanced-search"
+  | "realtime-debug";
 
 export interface Note {
   id: string;
@@ -197,6 +201,8 @@ export function HallOfMind() {
   const [availableMemories, setAvailableMemories] = useState<MemoryArchive[]>([]);
   const [activeMemoryName, setActiveMemoryName] = useState<string | null>(getActiveMemory());
   const [defaultMemoryName, setDefaultMemoryName] = useState<string | null>(null);
+  const showRealtimeDebug =
+    import.meta.env.DEV || import.meta.env.VITE_ENABLE_REALTIME_INSPECTOR === "true";
   
   // Refs for notification grouping and metadata caching
   const savedNotes = useRef<Map<string, NoteFull>>(new Map());
@@ -416,258 +422,215 @@ export function HallOfMind() {
     }
   };
 
-  // Listen for WebSocket note updates
+  // Listen for typed realtime note events and converge local state.
   useEffect(() => {
-    // Track recent updates to prevent duplicate processing
     const recentUpdates = new Map<string, number>();
-    const DUPLICATE_THRESHOLD = 1000; // 1 second
-    
-    const handleNoteUpdate = async (event: CustomEvent) => {
-      const { note_id, title, tags, has_ai_content, has_links } = event.detail;
-      
-      // Check if we recently processed an update for this note
-      const now = Date.now();
-      const lastUpdate = recentUpdates.get(note_id);
-      if (lastUpdate && (now - lastUpdate) < DUPLICATE_THRESHOLD) {
-        console.log(`Ignoring duplicate update for note ${note_id}`);
-        return;
-      }
-      
-      // Record this update
-      recentUpdates.set(note_id, now);
-      
-      console.log("Received note update:", { note_id, title, tags, has_ai_content, has_links });
-      
-      // Update any note that sends a NoteUpdated event
-      const existingNote = notes.find(n => n.id === note_id);
-      if (existingNote) {
-        try {
-          const updatedNote = await api.getNote(note_id);
-          if (updatedNote.revised) {
-            // Simple animation logic: show animation when AI generates a title for the first time
-            const currentNote = notes.find(n => n.id === updatedNote.note.id);
-            const hadAiTitle = currentNote?.ai_generated_title;
-            const hasNewAiTitle = updatedNote.note.title;
-            
-            // Trigger animation when AI title is generated for the first time
-            if (!hadAiTitle && hasNewAiTitle) {
-              const originalTitle = updatedNote.original.content.split('\n')[0].substring(0, 50) || "Untitled";
-              setTitleAnimations(prev => new Map(prev.set(updatedNote.note.id, {
-                oldTitle: originalTitle,
-                newTitle: hasNewAiTitle,
-                isAnimating: true
-              })));
-            }
+    const DUPLICATE_THRESHOLD = 1000;
 
-            const simpleNote = {
-              id: updatedNote.note.id,
-              title: updatedNote.note.title || updatedNote.original.content.split('\n')[0].substring(0, 50) || "Untitled",
-              content: updatedNote.original.content,
-              revised_content: updatedNote.revised.content,
-              createdAt: updatedNote.note.created_at_utc,
-              updatedAt: updatedNote.note.updated_at_utc,
-              tags: updatedNote.tags,
-              starred: updatedNote.note.starred || false,
-              archived: updatedNote.note.archived || false,
-              ai_generated_title: updatedNote.note.title,
-              revised_model: updatedNote.revised ? updatedNote.revised.model : null
-            };
-            
-            setNotes(prev => prev.map(n => n.id === simpleNote.id ? simpleNote : n));
-            
-            // Update selected note if it's the one being processed
-            if (selectedNote?.id === simpleNote.id) {
-              setSelectedNote(simpleNote);
-              setRevisedContent(simpleNote.revised_content || simpleNote.content);
-              
-              // Update full note cache for metadata display
-              savedNotes.current.set(simpleNote.id, updatedNote);
-              
-              // Cache metadata with timestamp to avoid excessive API calls
-              const now = Date.now();
-              const cacheKey = simpleNote.id;
-              const cachedData = metadataCache.current.get(cacheKey);
-              const CACHE_DURATION = 30000; // 30 seconds cache
-              
-              if (!cachedData || (now - cachedData.timestamp) > CACHE_DURATION) {
-                try {
-                  const labels = await api.getMetadataLabels(simpleNote.id);
-                  setNoteLabels(new Map(noteLabels.set(simpleNote.id, labels)));
-                  
-                  // Cache the metadata
-                  metadataCache.current.set(cacheKey, {
-                    data: labels,
-                    timestamp: now
-                  });
-                } catch (error) {
-                  // Labels endpoint not available in Fortemi API
-                }
-              } else {
-                // Use cached data
-                setNoteLabels(new Map(noteLabels.set(simpleNote.id, cachedData.data)));
-                console.log("Using cached metadata for note:", simpleNote.id);
-              }
+    const isDuplicateEvent = (eventType: string, noteId: string): boolean => {
+      const key = `${eventType}:${noteId}`;
+      const now = Date.now();
+      const lastUpdate = recentUpdates.get(key);
+      if (lastUpdate && now - lastUpdate < DUPLICATE_THRESHOLD) {
+        return true;
+      }
+      recentUpdates.set(key, now);
+      return false;
+    };
+
+    const mapFullNoteToSimple = (fullNote: NoteFull): Note => ({
+      id: fullNote.note.id,
+      title: fullNote.note.title || fullNote.original.content.split('\n')[0].substring(0, 50) || "Untitled",
+      content: fullNote.original.content,
+      revised_content: fullNote.revised ? fullNote.revised.content : null,
+      createdAt: fullNote.note.created_at_utc,
+      updatedAt: fullNote.note.updated_at_utc,
+      tags: fullNote.tags,
+      starred: fullNote.note.starred || false,
+      archived: fullNote.note.archived || false,
+      ai_generated_title: fullNote.note.title,
+      revised_model: fullNote.revised ? fullNote.revised.model : null,
+    });
+
+    const refreshSelectedNoteMetadata = async (noteId: string) => {
+      try {
+        const labels = await api.getMetadataLabels(noteId);
+        setNoteLabels((prev) => {
+          const next = new Map(prev);
+          next.set(noteId, labels);
+          return next;
+        });
+        metadataCache.current.set(noteId, { data: labels, timestamp: Date.now() });
+      } catch (error) {
+        console.error("Failed to refresh metadata labels for selected note:", error);
+      }
+
+      try {
+        const concepts = await coreApi.concepts.getNoteConcepts(noteId);
+        const normalized: NoteConceptSummary[] = [];
+        for (const concept of concepts) {
+          const prefLabel = concept.pref_label?.trim();
+          if (!prefLabel) continue;
+          normalized.push({
+            concept_id: concept.concept_id ?? concept.id,
+            pref_label: prefLabel,
+            notation: concept.notation,
+            confidence: concept.confidence,
+            relevance_score: concept.relevance_score,
+            is_primary: concept.is_primary,
+            source: concept.source,
+          });
+        }
+        const deduped = Array.from(
+          normalized.reduce((acc, concept) => {
+            const key = concept.concept_id || concept.pref_label.toLowerCase();
+            if (!acc.has(key)) {
+              acc.set(key, concept);
             }
-            
-            // Only show notifications for notes that were being processed
-            if (processingNotes.has(note_id)) {
-              // Group notifications to prevent duplicates for multi-job pipelines
-              // Clear any existing timeout for this note
-              const existingTimeout = notificationTimeouts.current.get(note_id);
-              if (existingTimeout) {
-                clearTimeout(existingTimeout);
-              }
-              
-              // Set a new timeout to send notification after 2 seconds of no more updates
-              const notificationTimeout = setTimeout(async () => {
-                // Remove from processing set
-                setProcessingNotes(prev => {
-                  const newSet = new Set(prev);
-                  newSet.delete(note_id);
-                  return newSet;
+            return acc;
+          }, new Map<string, NoteConceptSummary>()).values()
+        );
+        setSelectedNoteConceptTags(deduped);
+      } catch (error) {
+        console.error("Failed to refresh concept tags for selected note:", error);
+      }
+
+      try {
+        const provenance = await coreApi.provenance.getProvenance(noteId);
+        setSelectedNoteProvenance(provenance);
+      } catch (error) {
+        console.error("Failed to refresh provenance for selected note:", error);
+      }
+    };
+
+    const upsertNoteFromServer = async (noteId: string, options?: { addIfMissing?: boolean; emitCompletion?: boolean }) => {
+      try {
+        const updatedNote = await api.getNote(noteId);
+        const simpleNote = mapFullNoteToSimple(updatedNote);
+        savedNotes.current.set(noteId, updatedNote);
+
+        setNotes((prev) => {
+          const existingIdx = prev.findIndex((n) => n.id === noteId);
+          if (existingIdx >= 0) {
+            const next = [...prev];
+            next[existingIdx] = simpleNote;
+            return next;
+          }
+          if (options?.addIfMissing) {
+            return [simpleNote, ...prev];
+          }
+          return prev;
+        });
+
+        if (selectedNote?.id === noteId) {
+          setSelectedNote(simpleNote);
+          setRevisedContent(simpleNote.revised_content || simpleNote.content);
+          await refreshSelectedNoteMetadata(noteId);
+        }
+
+        if (options?.emitCompletion && processingNotes.has(noteId)) {
+          const existingTimeout = notificationTimeouts.current.get(noteId);
+          if (existingTimeout) {
+            clearTimeout(existingTimeout);
+          }
+          const notificationTimeout = setTimeout(async () => {
+            setProcessingNotes(prev => {
+              const next = new Set(prev);
+              next.delete(noteId);
+              return next;
+            });
+            try {
+              if ('Notification' in window && Notification.permission === 'granted') {
+                new Notification('HotM - Processing Complete', {
+                  body: `Note "${simpleNote.title}" has been processed with AI enhancements.`,
+                  icon: '/favicon.svg'
                 });
-              
-              // Send notification once all jobs for this note are complete
-              try {
-                console.log(`Note processing complete: ${simpleNote.title}`);
-                
-                // Use browser notifications
-                if ('Notification' in window && Notification.permission === 'granted') {
+              } else if ('Notification' in window && Notification.permission === 'default') {
+                const permission = await Notification.requestPermission();
+                if (permission === 'granted') {
                   new Notification('HotM - Processing Complete', {
                     body: `Note "${simpleNote.title}" has been processed with AI enhancements.`,
                     icon: '/favicon.svg'
                   });
-                } else if ('Notification' in window && Notification.permission === 'default') {
-                  // Request permission and try again
-                  const permission = await Notification.requestPermission();
-                  if (permission === 'granted') {
-                    new Notification('HotM - Processing Complete', {
-                      body: `Note "${simpleNote.title}" has been processed with AI enhancements.`,
-                      icon: '/favicon.svg'
-                    });
-                  }
                 }
-              } catch (error) {
-                console.error("Failed to send notification:", error);
               }
-              
-              // Clean up the timeout reference
-              notificationTimeouts.current.delete(note_id);
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-            }, 2000); // Wait 2 seconds for additional updates
-            
-            notificationTimeouts.current.set(note_id, notificationTimeout);
-            
-            }
-            
-            console.log("Note updated via WebSocket:", note_id);
-          }
-        } catch (error) {
-          console.error("Failed to fetch updated note:", error);
-        }
-      } else {
-        // Just update the note metadata (tags, etc.) without full fetch
-        setNotes(prev => prev.map(note => 
-          note.id === note_id
-            ? { ...note, tags: tags || note.tags }
-            : note
-        ));
-        
-        // If this note is currently selected, refresh its metadata with caching
-        if (selectedNote?.id === note_id) {
-          const now = Date.now();
-          const cacheKey = note_id;
-          const cachedData = metadataCache.current.get(cacheKey);
-          const CACHE_DURATION = 30000; // 30 seconds cache
-          
-          if (!cachedData || (now - cachedData.timestamp) > CACHE_DURATION) {
-            try {
-              // Refresh the full note data
-              const updatedNote = await api.getNote(note_id);
-              savedNotes.current.set(note_id, updatedNote);
-              
-              // Refresh metadata labels
-              const labels = await api.getMetadataLabels(note_id);
-              setNoteLabels(new Map(noteLabels.set(note_id, labels)));
-              
-              // Cache the metadata
-              metadataCache.current.set(cacheKey, {
-                data: labels,
-                timestamp: now
-              });
-              
-              console.log("Metadata refreshed for currently selected note:", note_id);
             } catch (error) {
-              console.error("Failed to refresh metadata for selected note:", error);
+              console.error("Failed to send notification:", error);
             }
-          } else {
-            // Use cached data
-            setNoteLabels(new Map(noteLabels.set(note_id, cachedData.data)));
-            console.log("Using cached metadata for selected note:", note_id);
-          }
+            notificationTimeouts.current.delete(noteId);
+          }, 2000);
+          notificationTimeouts.current.set(noteId, notificationTimeout);
         }
+      } catch (error) {
+        console.error("Failed to refresh note from realtime event:", error);
       }
     };
-    
-    window.addEventListener('noteUpdated', handleNoteUpdate as unknown as EventListener);
-    
-    return () => {
-      window.removeEventListener('noteUpdated', handleNoteUpdate as unknown as EventListener);
+
+    const handleNoteUpdated = async (event: RealtimeEvent) => {
+      const noteId = event.note_id;
+      if (!noteId || isDuplicateEvent('NoteUpdated', noteId)) {
+        return;
+      }
+      await upsertNoteFromServer(noteId, { addIfMissing: false, emitCompletion: true });
     };
-  }, [processingNotes, selectedNote, api]);
+
+    const handleNoteCreated = async (event: RealtimeEvent) => {
+      const noteId = event.note_id;
+      if (!noteId || isDuplicateEvent('NoteCreated', noteId)) {
+        return;
+      }
+      await upsertNoteFromServer(noteId, { addIfMissing: true, emitCompletion: false });
+      setNotesTotalCount((prev) => prev + 1);
+      setNotesOffset((prev) => prev + 1);
+    };
+
+    const handleNoteDeleted = (event: RealtimeEvent) => {
+      const noteId = event.note_id;
+      if (!noteId || isDuplicateEvent('NoteDeleted', noteId)) {
+        return;
+      }
+      setNotes((prev) => prev.filter((n) => n.id !== noteId));
+      savedNotes.current.delete(noteId);
+      metadataCache.current.delete(noteId);
+      const existingTimeout = notificationTimeouts.current.get(noteId);
+      if (existingTimeout) {
+        clearTimeout(existingTimeout);
+        notificationTimeouts.current.delete(noteId);
+      }
+      setProcessingNotes((prev) => {
+        const next = new Set(prev);
+        next.delete(noteId);
+        return next;
+      });
+      setNotesTotalCount((prev) => Math.max(0, prev - 1));
+      setNotesOffset((prev) => Math.max(0, prev - 1));
+      if (selectedNote?.id === noteId) {
+        setSelectedNote(null);
+        setNoteContent("");
+        setRevisedContent("");
+        setSelectedNoteConceptTags([]);
+        setSelectedNoteProvenance(null);
+      }
+    };
+
+    const unsubscribe = realtimeEventBus.subscribe((event) => {
+      if (event.type === 'NoteUpdated') {
+        void handleNoteUpdated(event);
+        return;
+      }
+      if (event.type === 'NoteCreated') {
+        void handleNoteCreated(event);
+        return;
+      }
+      if (event.type === 'NoteDeleted') {
+        handleNoteDeleted(event);
+      }
+    });
+
+    return () => {
+      unsubscribe();
+    };
+  }, [processingNotes, selectedNote]);
 
   // Handle bringing app to foreground when notification is clicked
   // This is handled by the notification system automatically in most cases
@@ -890,7 +853,7 @@ export function HallOfMind() {
       setProcessingNotes(prev => new Set(prev).add(response.note_id));
       
       console.log("Note created and marked for AI processing:", response.note_id);
-      // The WebSocket noteUpdated event will handle updating the UI when jobs complete
+      // The realtime NoteUpdated event will handle updating the UI when jobs complete
       
       setNotes((prev) => [simpleNote, ...prev]);
       setNotesTotalCount((prev) => prev + 1);
@@ -927,7 +890,7 @@ export function HallOfMind() {
       await api.regenerateAI(selectedNote.id);
       
       console.log("AI regeneration triggered for note:", selectedNote.id);
-      // The WebSocket noteUpdated event will handle updating the UI when jobs complete
+      // The realtime NoteUpdated event will handle updating the UI when jobs complete
     } catch (error) {
       console.error("Failed to regenerate AI enhancement:", error);
       alert("Failed to regenerate AI enhancement");
@@ -1665,6 +1628,17 @@ export function HallOfMind() {
                       <span>Admin</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
+                  {showRealtimeDebug && (
+                    <SidebarMenuItem>
+                      <SidebarMenuButton
+                        onClick={() => setCurrentView("realtime-debug")}
+                        className={currentView === "realtime-debug" ? "bg-primary/10" : ""}
+                      >
+                        <Bug className="h-4 w-4" />
+                        <span>Realtime Debug</span>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  )}
                 </SidebarMenu>
               )}
             </SidebarGroup>
@@ -2370,6 +2344,8 @@ export function HallOfMind() {
                   }
                 }}
               />
+            ) : currentView === "realtime-debug" ? (
+              <RealtimeEventInspector />
             ) : selectedNote ? (
               <div className="mx-auto max-w-4xl">
                 {(() => {
