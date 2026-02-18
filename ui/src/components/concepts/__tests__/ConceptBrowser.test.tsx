@@ -14,7 +14,6 @@ vi.mock('@/api', () => ({
   api: {
     concepts: {
       listSchemes: vi.fn(),
-      getTopConcepts: vi.fn(),
       getNarrower: vi.fn(),
       getConceptFull: vi.fn(),
       listConcepts: vi.fn(),
@@ -49,7 +48,6 @@ const mockConceptFull = {
 describe('ConceptBrowser', () => {
   beforeEach(() => {
     vi.mocked(api.concepts.listSchemes).mockResolvedValue(mockSchemes);
-    vi.mocked(api.concepts.getTopConcepts).mockResolvedValue(mockConcepts);
     vi.mocked(api.concepts.getNarrower).mockResolvedValue([]);
     vi.mocked(api.concepts.getConceptFull).mockResolvedValue(mockConceptFull);
     vi.mocked(api.concepts.listConcepts).mockResolvedValue(mockConcepts);
@@ -110,7 +108,10 @@ describe('ConceptBrowser', () => {
       render(<ConceptBrowser isOpen={true} onClose={onClose} />);
 
       await waitFor(() => {
-        expect(api.concepts.getTopConcepts).toHaveBeenCalledWith('scheme-1');
+        expect(api.concepts.listConcepts).toHaveBeenCalledWith({
+          schemeId: 'scheme-1',
+          limit: 1000,
+        });
       });
 
       expect(api.concepts.getNarrower).not.toHaveBeenCalled();
@@ -123,7 +124,10 @@ describe('ConceptBrowser', () => {
       );
 
       await waitFor(() => {
-        expect(api.concepts.getTopConcepts).toHaveBeenCalledWith('scheme-2');
+        expect(api.concepts.listConcepts).toHaveBeenCalledWith({
+          schemeId: 'scheme-2',
+          limit: 1000,
+        });
       });
     });
   });
@@ -214,8 +218,8 @@ describe('ConceptBrowser', () => {
     });
 
     it('should allow retry after error', async () => {
-      vi.mocked(api.concepts.getTopConcepts).mockRejectedValueOnce(new Error('Error'));
-      vi.mocked(api.concepts.getTopConcepts).mockResolvedValueOnce(mockConcepts);
+      vi.mocked(api.concepts.listConcepts).mockRejectedValueOnce(new Error('Error'));
+      vi.mocked(api.concepts.listConcepts).mockResolvedValueOnce(mockConcepts);
 
       const onClose = vi.fn();
       render(<ConceptBrowser isOpen={true} onClose={onClose} />);
@@ -228,7 +232,7 @@ describe('ConceptBrowser', () => {
       fireEvent.click(retryButton);
 
       await waitFor(() => {
-        expect(api.concepts.getTopConcepts).toHaveBeenCalledTimes(2);
+        expect(api.concepts.listConcepts).toHaveBeenCalledTimes(2);
       });
     });
   });

@@ -258,9 +258,6 @@ export function HallOfMind() {
     connectionState: realtimeConnectionState,
     transportMode: realtimeTransportMode,
     replayCursor,
-    queueStatus,
-    queueStatusAgeMs,
-    isQueueStalled,
   } = useWebSocket();
   
   // Refs for notification grouping and metadata caching
@@ -1312,6 +1309,15 @@ export function HallOfMind() {
     } catch (error) {
       console.error("Failed to copy:", error);
     }
+  };
+
+  const handleMetadataTagClick = (tag: string) => {
+    const trimmedTag = tag.trim();
+    if (!trimmedTag) return;
+
+    setSearchQuery(`#${trimmedTag}`);
+    setShowSearchResults(true);
+    setActiveTab("search");
   };
 
   // Perform server search when query changes
@@ -2399,20 +2405,7 @@ export function HallOfMind() {
                     </Card>
                   </div>
 
-                  <div className="grid gap-6 xl:grid-cols-2">
-                    <Card>
-                      <CardHeader>
-                        <CardTitle className="text-base">Queue State</CardTitle>
-                        <CardDescription>
-                          running: {queueStatus.running} | pending: {queueStatus.pending} | total: {queueStatus.total_jobs}
-                        </CardDescription>
-                      </CardHeader>
-                      <CardContent className="text-sm text-muted-foreground">
-                        last queue update: {Math.floor(queueStatusAgeMs / 1000)}s ago
-                        {isQueueStalled ? " (stalled)" : ""}
-                      </CardContent>
-                    </Card>
-
+                  <div className="grid gap-6">
                     <Card>
                       <CardHeader>
                         <CardTitle className="text-base">Version + Routing</CardTitle>
@@ -2810,9 +2803,7 @@ export function HallOfMind() {
                                 starred={fullNote?.note?.starred}
                                 archived={fullNote?.note?.archived}
                                 aiMetadata={fullNote?.revised?.ai_metadata}
-                                onTagClick={(tag) => {
-                                  setSearchQuery(`#${tag}`);
-                                }}
+                                onTagClick={handleMetadataTagClick}
                                 onLinkClick={async (noteId) => {
                                   try {
                                     const linkedNote = await api.getNote(noteId);

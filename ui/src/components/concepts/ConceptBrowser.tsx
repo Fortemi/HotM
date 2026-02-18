@@ -37,7 +37,7 @@ export function ConceptBrowser({
   // State
   const [schemes, setSchemes] = useState<ConceptScheme[]>([]);
   const [selectedSchemeId, setSelectedSchemeId] = useState<string>(initialSchemeId || '');
-  const [topConcepts, setTopConcepts] = useState<Concept[]>([]);
+  const [schemeConcepts, setSchemeConcepts] = useState<Concept[]>([]);
   const [childrenMap, setChildrenMap] = useState<Map<string, Concept[]>>(new Map());
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
   const [selectedConcept, setSelectedConcept] = useState<ConceptFull | null>(null);
@@ -54,12 +54,12 @@ export function ConceptBrowser({
     }
   }, [isOpen]);
 
-  // Load top concepts when scheme changes
+  // Load scheme concepts when scheme changes
   useEffect(() => {
     if (selectedSchemeId) {
-      loadTopConcepts(selectedSchemeId);
+      loadSchemeConcepts(selectedSchemeId);
     } else {
-      setTopConcepts([]);
+      setSchemeConcepts([]);
       setChildrenMap(new Map());
       setExpandedIds(new Set());
     }
@@ -99,7 +99,7 @@ export function ConceptBrowser({
       if (event.type === 'ConceptUpdated') {
         void loadSchemes();
         if (selectedSchemeId) {
-          void loadTopConcepts(selectedSchemeId);
+          void loadSchemeConcepts(selectedSchemeId);
         }
       }
     });
@@ -113,7 +113,7 @@ export function ConceptBrowser({
       setSchemes(data);
       if (data.length === 0) {
         setSelectedSchemeId('');
-        setTopConcepts([]);
+        setSchemeConcepts([]);
         setChildrenMap(new Map());
         setExpandedIds(new Set());
         setSelectedConcept(null);
@@ -129,9 +129,9 @@ export function ConceptBrowser({
     }
   };
 
-  const loadTopConcepts = async (schemeId: string) => {
+  const loadSchemeConcepts = async (schemeId: string) => {
     if (!schemeId) {
-      setTopConcepts([]);
+      setSchemeConcepts([]);
       setChildrenMap(new Map());
       setExpandedIds(new Set());
       return;
@@ -140,8 +140,11 @@ export function ConceptBrowser({
     setIsLoading(true);
     setError(null);
     try {
-      const concepts = await api.concepts.getTopConcepts(schemeId);
-      setTopConcepts(concepts);
+      const concepts = await api.concepts.listConcepts({
+        schemeId,
+        limit: 1000,
+      });
+      setSchemeConcepts(concepts);
       setChildrenMap(new Map());
       setExpandedIds(new Set());
     } catch (err) {
@@ -195,7 +198,7 @@ export function ConceptBrowser({
 
   if (!isOpen) return null;
 
-  const displayConcepts = searchQuery.trim() ? searchResults : topConcepts;
+  const displayConcepts = searchQuery.trim() ? searchResults : schemeConcepts;
 
   return (
     <div
@@ -266,7 +269,7 @@ export function ConceptBrowser({
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => selectedSchemeId && loadTopConcepts(selectedSchemeId)}
+                onClick={() => selectedSchemeId && loadSchemeConcepts(selectedSchemeId)}
                 className="mt-2"
                 disabled={!selectedSchemeId}
               >
