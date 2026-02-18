@@ -232,7 +232,7 @@ export function HallOfMind() {
   const [newNoteContent, setNewNoteContent] = useState("");
   const [processingNotes, setProcessingNotes] = useState<Set<string>>(new Set());
   const [copiedState, setCopiedState] = useState<{ [key: string]: boolean }>({});
-  const [currentView, setCurrentView] = useState<AppView>("dashboard");
+  const [currentView, setCurrentView] = useState<AppView>("notes");
   const [notesNavigatorExpanded, setNotesNavigatorExpanded] = useState(() => {
     const isDesktop =
       typeof window !== "undefined" && window.matchMedia(DESKTOP_MEDIA_QUERY).matches;
