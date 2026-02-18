@@ -113,6 +113,7 @@ import { BackupManager } from "./backup/BackupManager";
 import { ArchiveManager } from "./archives/ArchiveManager";
 import { TagManager } from "./tags";
 import { AdvancedSearchFilters } from "./search";
+import { useWebSocket } from "@/services/websocket";
 
 type AppView =
   | "notes"
@@ -144,6 +145,13 @@ export interface Note {
   revised_content?: string | null;
   ai_generated_title?: string | null;
   revised_model?: string | null;
+}
+
+interface SystemSnapshot {
+  status: string;
+  version: string;
+  database: string;
+  ollama?: string;
 }
 
 interface NotesPageResponse {
@@ -201,8 +209,20 @@ export function HallOfMind() {
   const [availableMemories, setAvailableMemories] = useState<MemoryArchive[]>([]);
   const [activeMemoryName, setActiveMemoryName] = useState<string | null>(getActiveMemory());
   const [defaultMemoryName, setDefaultMemoryName] = useState<string | null>(null);
+  const [systemSnapshot, setSystemSnapshot] = useState<SystemSnapshot | null>(null);
+  const [systemSnapshotError, setSystemSnapshotError] = useState<string | null>(null);
+  const [isRefreshingSystemSnapshot, setIsRefreshingSystemSnapshot] = useState(false);
   const showRealtimeDebug =
     import.meta.env.DEV || import.meta.env.VITE_ENABLE_REALTIME_INSPECTOR === "true";
+  const {
+    connected: realtimeConnected,
+    connectionState: realtimeConnectionState,
+    transportMode: realtimeTransportMode,
+    replayCursor,
+    queueStatus,
+    queueStatusAgeMs,
+    isQueueStalled,
+  } = useWebSocket();
   
   // Refs for notification grouping and metadata caching
   const savedNotes = useRef<Map<string, NoteFull>>(new Map());
@@ -220,6 +240,7 @@ export function HallOfMind() {
     loadExistingNotes();
     loadAvailableTags();
     void loadMemoryRoutingState();
+    void refreshSystemSnapshot();
   }, []);
 
   useEffect(() => {
@@ -654,6 +675,21 @@ export function HallOfMind() {
     }
   };
 
+  const refreshSystemSnapshot = useCallback(async () => {
+    try {
+      setIsRefreshingSystemSnapshot(true);
+      setSystemSnapshotError(null);
+      const snapshot = await coreApi.healthCheck();
+      setSystemSnapshot(snapshot);
+    } catch (error) {
+      console.error("Failed to load system snapshot:", error);
+      setSystemSnapshot(null);
+      setSystemSnapshotError("Unable to load system snapshot");
+    } finally {
+      setIsRefreshingSystemSnapshot(false);
+    }
+  }, []);
+
   const loadMemoryRoutingState = async () => {
     try {
       const archivesRaw = await coreApi.archives.list();
@@ -677,6 +713,14 @@ export function HallOfMind() {
     }
     setActiveMemoryName(getActiveMemory());
   };
+
+  const refreshDashboardData = useCallback(async () => {
+    await Promise.all([
+      checkServerHealth(),
+      loadMemoryRoutingState(),
+      refreshSystemSnapshot(),
+    ]);
+  }, [loadMemoryRoutingState, refreshSystemSnapshot]);
 
   const fetchNotesPage = useCallback(
     async (limit: number, offset: number): Promise<NotesPageResponse> => {
@@ -1443,12 +1487,12 @@ export function HallOfMind() {
                 size="icon"
                 className="h-6 w-6"
                 onClick={() => {
-                  checkServerHealth();
+                  void refreshDashboardData();
                   loadExistingNotes();
                 }}
-                disabled={isLoading}
+                disabled={isLoading || isRefreshingSystemSnapshot}
               >
-                {isLoading ? (
+                {isLoading || isRefreshingSystemSnapshot ? (
                   <Loader2 className="h-3 w-3 animate-spin" />
                 ) : (
                   <RefreshCw className="h-3 w-3" />
@@ -2755,21 +2799,142 @@ export function HallOfMind() {
               </div>
             ) : (
               <div className="flex flex-col h-full gap-6">
-                <div className="flex-1 flex items-center justify-center">
-                  <div className="text-center">
-                    <Brain className="mx-auto h-12 w-12 text-muted-foreground" />
-                    <h3 className="mt-4 text-lg font-medium">No note selected</h3>
-                    <p className="mt-2 text-sm text-muted-foreground">
-                      Create a new note or select an existing one to get started
-                    </p>
-                    <Button onClick={createNewNote} className="mt-4">
-                      <Plus className="mr-2 h-4 w-4" />
-                      Create New Note
+                <div className="space-y-6">
+                  <div className="flex flex-wrap items-start justify-between gap-3">
+                    <div>
+                      <h2 className="text-2xl font-semibold tracking-tight">System Dashboard</h2>
+                      <p className="text-sm text-muted-foreground">
+                        Unified operational view of server state, realtime transport, and job activity.
+                      </p>
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => void refreshDashboardData()}
+                      disabled={isRefreshingSystemSnapshot}
+                    >
+                      {isRefreshingSystemSnapshot ? (
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      ) : (
+                        <RefreshCw className="mr-2 h-4 w-4" />
+                      )}
+                      Refresh States
                     </Button>
                   </div>
-                </div>
-                <div className="max-w-2xl mx-auto w-full">
-                  <JobQueueMonitor />
+
+                  <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+                    <Card>
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-sm flex items-center gap-2">
+                          <Activity className="h-4 w-4" />
+                          API
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-1 text-sm">
+                        <Badge variant={serverStatus?.ok ? "secondary" : "destructive"}>
+                          {serverStatus?.ok ? "online" : "offline"}
+                        </Badge>
+                        {serverStatus?.message && (
+                          <p className="text-xs text-muted-foreground">{serverStatus.message}</p>
+                        )}
+                      </CardContent>
+                    </Card>
+
+                    <Card>
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-sm flex items-center gap-2">
+                          <Database className="h-4 w-4" />
+                          Services
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-1 text-sm">
+                        <div className="font-medium">status: {systemSnapshot?.status ?? "unknown"}</div>
+                        <div className="text-muted-foreground">db: {systemSnapshot?.database ?? "unknown"}</div>
+                        <div className="text-muted-foreground">llm: {systemSnapshot?.ollama ?? "unknown"}</div>
+                        {systemSnapshotError && (
+                          <div className="text-xs text-red-500">{systemSnapshotError}</div>
+                        )}
+                      </CardContent>
+                    </Card>
+
+                    <Card>
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-sm flex items-center gap-2">
+                          <Clock3 className="h-4 w-4" />
+                          Realtime
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-1 text-sm">
+                        <Badge variant={realtimeConnected ? "secondary" : "destructive"}>
+                          {realtimeConnectionState ?? (realtimeConnected ? "connected" : "disconnected")}
+                        </Badge>
+                        <div className="text-muted-foreground">
+                          transport: {realtimeTransportMode ?? "none"}
+                        </div>
+                        <div className="text-muted-foreground">
+                          replay: {replayCursor ?? "n/a"}
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    <Card>
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-sm flex items-center gap-2">
+                          <BookMarked className="h-4 w-4" />
+                          Runtime
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-1 text-sm">
+                        <div>version: {systemSnapshot?.version ?? "unknown"}</div>
+                        <div className="text-muted-foreground">notes loaded: {notes.length}</div>
+                        <div className="text-muted-foreground">processing: {processingNotes.size}</div>
+                        <div className="text-muted-foreground">
+                          archive: {activeMemoryName ?? "__default__"}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
+
+                  <div className="grid gap-6 xl:grid-cols-2">
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="text-base">Queue State</CardTitle>
+                        <CardDescription>
+                          running: {queueStatus.running} | pending: {queueStatus.pending} | total: {queueStatus.total_jobs}
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent className="text-sm text-muted-foreground">
+                        last queue update: {Math.floor(queueStatusAgeMs / 1000)}s ago
+                        {isQueueStalled ? " (stalled)" : ""}
+                      </CardContent>
+                    </Card>
+
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="text-base">Version + Routing</CardTitle>
+                        <CardDescription>Current API and archive targeting state</CardDescription>
+                      </CardHeader>
+                      <CardContent className="space-y-2 text-sm">
+                        <div>API version: {systemSnapshot?.version ?? "unknown"}</div>
+                        <div>Default archive: {defaultMemoryName ?? "server default"}</div>
+                        <div>Selected archive: {activeMemoryName ?? "__default__"}</div>
+                      </CardContent>
+                    </Card>
+                  </div>
+
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-base">Job Activity</CardTitle>
+                      <CardDescription>Queue progress and recent completed work</CardDescription>
+                    </CardHeader>
+                    <CardContent className="p-0">
+                      <JobQueueMonitor />
+                    </CardContent>
+                  </Card>
+
+                  <KnowledgeHealthDashboard />
+
+                  <RealtimeEventInspector />
                 </div>
               </div>
             )}

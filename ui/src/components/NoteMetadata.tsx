@@ -43,6 +43,7 @@ export function NoteMetadata({
   // Parse AI metadata if it exists
   const parsedAiMetadata = aiMetadata || {};
   const parsedMetadata = metadata || {};
+  const metadataEntries = Object.entries(parsedMetadata as Record<string, unknown>);
   const provenanceData =
     provenance ||
     parsedMetadata.provenance ||
@@ -359,6 +360,35 @@ export function NoteMetadata({
                   <span className="text-xs font-medium block mb-1">Raw Provenance JSON</span>
                   <pre className="rounded border bg-muted/30 p-2 text-xs overflow-x-auto whitespace-pre-wrap break-all">
                     {JSON.stringify(provenanceData, null, 2)}
+                  </pre>
+                </div>
+              </div>
+            </>
+          )}
+
+          {/* Raw JSONB Metadata */}
+          {metadataEntries.length > 0 && (
+            <>
+              <Separator className="my-4" />
+              <div>
+                <div className="flex items-center gap-2 mb-3">
+                  <FileText className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-sm font-semibold">JSON Metadata</span>
+                </div>
+                <div className="space-y-2 mb-3">
+                  {metadataEntries.map(([key, value]) => (
+                    <div key={key} className="rounded border p-2 text-xs">
+                      <span className="font-medium">{key}:</span>{' '}
+                      <span className="text-muted-foreground">
+                        {formatProvenanceValue(value)}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+                <div>
+                  <span className="text-xs font-medium block mb-1">Raw Metadata JSON</span>
+                  <pre className="rounded border bg-muted/30 p-2 text-xs overflow-x-auto whitespace-pre-wrap break-all">
+                    {JSON.stringify(parsedMetadata, null, 2)}
                   </pre>
                 </div>
               </div>
