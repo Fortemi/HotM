@@ -48,9 +48,15 @@ export function createEventsClient(baseUrl: string, options: EventsClientOptions
     }
   };
 
-  function getEventsUrl(): string {
-    const normalized = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl;
-    const url = new URL(`${normalized}/api/v1/events`, typeof window !== 'undefined' ? window.location.origin : 'http://localhost');
+function getEventsUrl(): string {
+    const fallbackOrigin =
+      typeof window !== 'undefined' ? window.location.origin : 'http://localhost';
+    const parsedBase = new URL(baseUrl, fallbackOrigin);
+    const normalizedPath = parsedBase.pathname.replace(/\/+$/, '');
+    const eventsPath = normalizedPath.endsWith('/api/v1')
+      ? `${normalizedPath}/events`
+      : '/api/v1/events';
+    const url = new URL(`${parsedBase.origin}${eventsPath}`);
     if (lastEventId) {
       url.searchParams.set('last_event_id', lastEventId);
     }

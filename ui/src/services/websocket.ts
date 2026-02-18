@@ -137,10 +137,16 @@ class WebSocketService {
       this.eventsClient = createEventsClient(this.getApiBaseUrl(), {
         onStatusChange: (status) => {
           if (status === 'reconnecting') {
+            this.isConnected = false;
+            this.notifyConnection(false);
             this.notifyConnectionState('reconnecting');
           } else if (status === 'connected') {
+            this.isConnected = true;
+            this.notifyConnection(true);
             this.notifyConnectionState('degraded');
           } else if (status === 'closed' && !this.isClosing && this.handlers.size > 0) {
+            this.isConnected = false;
+            this.notifyConnection(false);
             this.notifyConnectionState('reconnecting');
           }
         },
@@ -155,11 +161,6 @@ class WebSocketService {
         realtimeEventBus.publishFromTransport(event);
       });
 
-      // Optimistically mark connected while SSE handshake completes.
-      this.isConnected = true;
-      this.transportMode = 'sse';
-      this.notifyConnection(true);
-      this.notifyConnectionState('degraded');
       console.log('Falling back to SSE real-time events');
     } catch (error) {
       console.error('Failed to initialize SSE fallback:', error);
