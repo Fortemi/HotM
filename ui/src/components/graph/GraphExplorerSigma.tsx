@@ -945,7 +945,7 @@ export function GraphExplorer({ className, initialNoteId, onNoteSelect }: GraphE
 
       <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_320px]">
         <div className="space-y-4">
-          <div className="relative min-h-[540px] rounded-md border bg-card">
+          <div className="relative h-[540px] min-h-[540px] rounded-md border bg-card">
             {loading && (
               <div className="absolute inset-0 z-10 bg-background/70 flex items-center justify-center">
                 <Loader2 className="h-5 w-5 animate-spin" />
@@ -961,7 +961,7 @@ export function GraphExplorer({ className, initialNoteId, onNoteSelect }: GraphE
                 No graph data available
               </div>
             )}
-            <div ref={containerRef} className="h-full w-full" />
+            <div ref={containerRef} className="absolute inset-0" />
           </div>
 
           <div className="rounded-md border p-3 space-y-2">
