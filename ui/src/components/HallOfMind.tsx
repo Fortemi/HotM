@@ -152,6 +152,11 @@ interface NotesPageResponse {
   total: number;
 }
 
+interface ArchiveHealthSnapshot {
+  score: number;
+  totalNotes: number;
+}
+
 const NOTES_NAV_EXPANDED_DESKTOP_KEY = "hotm.notesNavigatorExpanded.desktop";
 const NOTES_NAV_EXPANDED_MOBILE_KEY = "hotm.notesNavigatorExpanded.mobile";
 const DESKTOP_MEDIA_QUERY = "(min-width: 1024px)";
@@ -241,6 +246,8 @@ export function HallOfMind() {
   const [availableMemories, setAvailableMemories] = useState<MemoryArchive[]>([]);
   const [activeMemoryName, setActiveMemoryName] = useState<string | null>(getActiveMemory());
   const [defaultMemoryName, setDefaultMemoryName] = useState<string | null>(null);
+  const [archiveHealthByName, setArchiveHealthByName] = useState<Record<string, ArchiveHealthSnapshot>>({});
+  const [isLoadingArchiveHealth, setIsLoadingArchiveHealth] = useState(false);
   const [systemSnapshot, setSystemSnapshot] = useState<SystemSnapshot | null>(null);
   const [systemSnapshotError, setSystemSnapshotError] = useState<string | null>(null);
   const [isRefreshingSystemSnapshot, setIsRefreshingSystemSnapshot] = useState(false);
@@ -778,6 +785,57 @@ export function HallOfMind() {
       refreshSystemSnapshot(),
     ]);
   }, [loadMemoryRoutingState, refreshSystemSnapshot]);
+
+  const calculateHealthScore = useCallback((metrics: {
+    total_notes: number;
+    orphan_notes: number;
+    stale_notes: number;
+    unlinked_notes: number;
+    avg_links_per_note: number;
+    tag_coverage: number;
+  }): number => {
+    let score = 100;
+    const totalNotes = Math.max(metrics.total_notes, 1);
+    score -= Math.min((metrics.orphan_notes / totalNotes) * 100, 20);
+    score -= Math.min((metrics.stale_notes / totalNotes) * 75, 15);
+    score -= Math.min((metrics.unlinked_notes / totalNotes) * 50, 15);
+    score += Math.min(metrics.avg_links_per_note * 2, 10);
+    score += metrics.tag_coverage * 10;
+    return Math.max(0, Math.min(100, Math.round(score)));
+  }, []);
+
+  const loadArchiveHealthSummary = useCallback(async () => {
+    const archiveNames = availableMemories.map((archive) => archive.name);
+    if (archiveNames.length === 0) {
+      setArchiveHealthByName({});
+      return;
+    }
+
+    try {
+      setIsLoadingArchiveHealth(true);
+      const rows = await Promise.all(
+        archiveNames.map(async (archiveName) => {
+          const health = await coreApi.health.getKnowledgeHealth(archiveName);
+          return [
+            archiveName,
+            {
+              score: calculateHealthScore(health),
+              totalNotes: health.total_notes,
+            },
+          ] as const;
+        })
+      );
+      setArchiveHealthByName(Object.fromEntries(rows));
+    } catch (error) {
+      console.error("Failed to load archive health summary:", error);
+    } finally {
+      setIsLoadingArchiveHealth(false);
+    }
+  }, [availableMemories, calculateHealthScore]);
+
+  useEffect(() => {
+    void loadArchiveHealthSummary();
+  }, [loadArchiveHealthSummary]);
 
   const fetchNotesPage = useCallback(
     async (limit: number, offset: number): Promise<NotesPageResponse> => {
@@ -2155,7 +2213,20 @@ export function HallOfMind() {
                 }}
               />
             ) : currentView === "health" ? (
-              <KnowledgeHealthDashboard />
+              <div className="space-y-4">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-base">Health Scope</CardTitle>
+                    <CardDescription>
+                      Showing health metrics for archive:{" "}
+                      <span className="font-medium">
+                        {activeMemoryName ?? defaultMemoryName ?? "server default"}
+                      </span>
+                    </CardDescription>
+                  </CardHeader>
+                </Card>
+                <KnowledgeHealthDashboard />
+              </div>
             ) : currentView === "memory-search" ? (
               <MemorySearch
                 isOpen={true}
@@ -2354,6 +2425,47 @@ export function HallOfMind() {
                       </CardContent>
                     </Card>
                   </div>
+
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-base">Archive Health Summary</CardTitle>
+                      <CardDescription>
+                        Snapshot health score (%) for each archive
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-2">
+                      {isLoadingArchiveHealth ? (
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          Loading archive health...
+                        </div>
+                      ) : availableMemories.length === 0 ? (
+                        <div className="text-sm text-muted-foreground">
+                          No archives available.
+                        </div>
+                      ) : (
+                        <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
+                          {availableMemories.map((archive) => {
+                            const snapshot = archiveHealthByName[archive.name];
+                            return (
+                              <div
+                                key={archive.id}
+                                className="rounded border p-3 text-sm"
+                              >
+                                <div className="font-medium">{archive.name}</div>
+                                <div className="text-muted-foreground">
+                                  health: {snapshot?.score ?? "--"}%
+                                </div>
+                                <div className="text-xs text-muted-foreground">
+                                  notes: {snapshot?.totalNotes ?? "--"}
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
 
                   <JobManagementPanel archives={availableMemories} />
 

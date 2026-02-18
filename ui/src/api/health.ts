@@ -4,6 +4,7 @@
  */
 
 import type { ApiClient } from './client';
+import { getMemoryRoutingHeaderName } from './memory-context';
 import type {
   KnowledgeHealth,
   OrphanTag,
@@ -20,8 +21,12 @@ export function createHealthApi(client: ApiClient) {
     /**
      * Get overall knowledge base health metrics
      */
-    async getKnowledgeHealth(): Promise<KnowledgeHealth> {
-      const response = await client.get<Record<string, unknown>>('/api/v1/health/knowledge');
+    async getKnowledgeHealth(archive?: string): Promise<KnowledgeHealth> {
+      const headers =
+        archive && archive.trim().length > 0
+          ? { [getMemoryRoutingHeaderName()]: archive, 'Cache-Control': 'no-cache' }
+          : undefined;
+      const response = await client.get<Record<string, unknown>>('/api/v1/health/knowledge', undefined, headers);
       const metrics =
         response.metrics && typeof response.metrics === 'object'
           ? (response.metrics as Record<string, unknown>)
