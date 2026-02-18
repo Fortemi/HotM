@@ -308,11 +308,95 @@ export function GraphExplorer({ className, initialNoteId, onNoteSelect }: GraphE
     setLoading(true);
     setError(null);
     try {
-      const response = await api.links.exploreGraph(rootNoteId, {
-        depth,
-        max_nodes: maxNodes,
-        min_score: minScore,
-      });
+      const loadGraphForRoot = async (noteId: string) =>
+        api.links.exploreGraph(noteId, {
+          depth,
+          max_nodes: maxNodes,
+          min_score: minScore,
+        });
+
+      const findConnectedRoot = async (excludeNoteId: string): Promise<string | null> => {
+        try {
+          const candidates = await api.notes.list({
+            sortBy: 'updated_at',
+            sortOrder: 'desc',
+            limit: 40,
+            archived: false,
+          });
+
+          const checks = await Promise.all(
+            candidates
+              .filter((candidate) => candidate.id !== excludeNoteId)
+              .slice(0, 20)
+              .map(async (candidate) => {
+                try {
+                  const links = await api.links.getLinks(candidate.id);
+                  const degree = (links.outgoing?.length ?? 0) + (links.incoming?.length ?? 0);
+                  return { noteId: candidate.id, degree };
+                } catch {
+                  return { noteId: candidate.id, degree: 0 };
+                }
+              })
+          );
+
+          const best = checks.sort((a, b) => b.degree - a.degree)[0];
+          return best && best.degree > 0 ? best.noteId : null;
+        } catch {
+          return null;
+        }
+      };
+
+      let response = await loadGraphForRoot(rootNoteId);
+      let effectiveRootId = rootNoteId;
+
+      if ((response.edges?.length ?? 0) === 0 && (response.nodes?.length ?? 0) <= 1) {
+        const connectedRoot = await findConnectedRoot(rootNoteId);
+        if (connectedRoot && connectedRoot !== rootNoteId) {
+          response = await loadGraphForRoot(connectedRoot);
+          effectiveRootId = connectedRoot;
+          setRootNoteId(connectedRoot);
+        }
+      }
+
+      if ((response.edges?.length ?? 0) === 0 && (response.nodes?.length ?? 0) <= 1) {
+        try {
+          const fallbackSummaries = await api.notes.list({
+            sortBy: 'updated_at',
+            sortOrder: 'desc',
+            limit: Math.min(maxNodes, 150),
+            archived: false,
+          });
+
+          if (fallbackSummaries.length > 1) {
+            const deduped = new Map<string, { id: string; title: string; depth: number }>();
+            deduped.set(effectiveRootId, {
+              id: effectiveRootId,
+              title: response.nodes[0]?.title || 'Selected Note',
+              depth: 0,
+            });
+
+            for (const note of fallbackSummaries) {
+              if (deduped.size >= Math.min(maxNodes, 150)) {
+                break;
+              }
+              if (!deduped.has(note.id)) {
+                deduped.set(note.id, {
+                  id: note.id,
+                  title: note.title || 'Untitled Note',
+                  depth: note.id === effectiveRootId ? 0 : 1,
+                });
+              }
+            }
+
+            response = {
+              nodes: Array.from(deduped.values()),
+              edges: [],
+            };
+          }
+        } catch {
+          // Keep original sparse response if fallback note map loading fails.
+        }
+      }
 
       const nodes = response.nodes || [];
       const noteDetails = await Promise.all(
