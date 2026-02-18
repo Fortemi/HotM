@@ -23,6 +23,7 @@ import {
   type GraphEdgeRecord,
   type GraphNodeRecord,
 } from './graphTransforms';
+import { GraphExplorer as LegacyGraphExplorer } from './GraphExplorer';
 
 interface GraphExplorerProps {
   className?: string;
@@ -154,6 +155,8 @@ export function GraphExplorer({ className, initialNoteId, onNoteSelect }: GraphE
   const [conceptFacetOpen, setConceptFacetOpen] = React.useState(true);
   const [tagSearch, setTagSearch] = React.useState('');
   const [conceptSearch, setConceptSearch] = React.useState('');
+  const [rendererMode, setRendererMode] = React.useState<'sigma' | 'legacy'>('sigma');
+  const [rendererInitError, setRendererInitError] = React.useState<string | null>(null);
 
   React.useEffect(() => {
     try {
@@ -524,6 +527,7 @@ export function GraphExplorer({ className, initialNoteId, onNoteSelect }: GraphE
   }, []);
 
   React.useEffect(() => {
+    if (rendererMode !== 'sigma') return;
     if (!containerRef.current) return;
     const renderStart = typeof performance !== 'undefined' ? performance.now() : 0;
     if (!graphRef.current) {
@@ -532,21 +536,29 @@ export function GraphExplorer({ className, initialNoteId, onNoteSelect }: GraphE
     const graph = graphRef.current;
 
     if (!rendererRef.current) {
-      const renderer = new Sigma(graph, containerRef.current, {
-        renderLabels: true,
-        labelDensity: 0.08,
-        labelGridCellSize: 80,
-        minCameraRatio: 0.05,
-        maxCameraRatio: 8,
-      });
+      try {
+        const renderer = new Sigma(graph, containerRef.current, {
+          renderLabels: true,
+          labelDensity: 0.08,
+          labelGridCellSize: 80,
+          minCameraRatio: 0.05,
+          maxCameraRatio: 8,
+        });
 
-      renderer.on('clickNode', ({ node }) => {
-        markOperation('nodeSelect');
-        onNoteSelect?.(node);
-        setSelectedGraphNodeId(node);
-      });
+        renderer.on('clickNode', ({ node }) => {
+          markOperation('nodeSelect');
+          onNoteSelect?.(node);
+          setSelectedGraphNodeId(node);
+        });
 
-      rendererRef.current = renderer;
+        rendererRef.current = renderer;
+      } catch (err) {
+        const message = err instanceof Error ? err.message : 'Unknown renderer error';
+        console.error('Sigma renderer initialization failed, falling back to legacy graph:', err);
+        setRendererInitError(message);
+        setRendererMode('legacy');
+        return;
+      }
     }
 
     if (rendererRef.current) {
@@ -560,64 +572,72 @@ export function GraphExplorer({ className, initialNoteId, onNoteSelect }: GraphE
     const nextNodeIds = new Set(graphData.nodes.map((node) => node.id));
     const nextEdgeKeys = new Set(graphData.edges.map((edge) => getEdgeKey(edge)));
 
-    // Drop stale edges first, then stale nodes.
-    graph.forEachEdge((edgeKey) => {
-      if (!nextEdgeKeys.has(edgeKey)) {
-        graph.dropEdge(edgeKey);
-      }
-    });
-    graph.forEachNode((nodeId) => {
-      if (!nextNodeIds.has(nodeId)) {
-        graph.dropNode(nodeId);
-      }
-    });
+    try {
+      // Drop stale edges first, then stale nodes.
+      graph.forEachEdge((edgeKey) => {
+        if (!nextEdgeKeys.has(edgeKey)) {
+          graph.dropEdge(edgeKey);
+        }
+      });
+      graph.forEachNode((nodeId) => {
+        if (!nextNodeIds.has(nodeId)) {
+          graph.dropNode(nodeId);
+        }
+      });
 
-    graphData.nodes.forEach((node) => {
-      const existing =
-        positionsRef.current.get(node.id) ||
-        (graph.hasNode(node.id)
-          ? {
-              x: graph.getNodeAttribute(node.id, 'x') as number,
-              y: graph.getNodeAttribute(node.id, 'y') as number,
-            }
-          : deterministicPosition(node.id));
-      positionsRef.current.set(node.id, existing);
+      graphData.nodes.forEach((node) => {
+        const existing =
+          positionsRef.current.get(node.id) ||
+          (graph.hasNode(node.id)
+            ? {
+                x: graph.getNodeAttribute(node.id, 'x') as number,
+                y: graph.getNodeAttribute(node.id, 'y') as number,
+              }
+            : deterministicPosition(node.id));
+        positionsRef.current.set(node.id, existing);
 
-      const communityColor =
-        communityOverlay && communityMap.has(node.id)
-          ? COLORS[(communityMap.get(node.id) || 0) % COLORS.length]
-          : null;
+        const communityColor =
+          communityOverlay && communityMap.has(node.id)
+            ? COLORS[(communityMap.get(node.id) || 0) % COLORS.length]
+            : null;
 
-      const attrs = {
-        label: node.title,
-        x: existing.x,
-        y: existing.y,
-        size: node.depth === 0 ? 14 : 9,
-        color: communityColor || getCollectionColor(node.collection_id, collections),
-      };
+        const attrs = {
+          label: node.title,
+          x: existing.x,
+          y: existing.y,
+          size: node.depth === 0 ? 14 : 9,
+          color: communityColor || getCollectionColor(node.collection_id, collections),
+        };
 
-      if (graph.hasNode(node.id)) {
-        graph.updateNodeAttributes(node.id, () => attrs);
-      } else {
-        graph.addNode(node.id, attrs);
-      }
-    });
+        if (graph.hasNode(node.id)) {
+          graph.updateNodeAttributes(node.id, () => attrs);
+        } else {
+          graph.addNode(node.id, attrs);
+        }
+      });
 
-    graphData.edges.forEach((edge) => {
-      if (!graph.hasNode(edge.source) || !graph.hasNode(edge.target)) {
-        return;
-      }
-      const edgeKey = getEdgeKey(edge);
-      const attrs = {
-        size: edge.edgeType === 'semantic' ? 0.8 : 1.2,
-        color: edge.edgeType === 'semantic' ? '#22c55e' : '#94a3b8',
-      };
-      if (graph.hasEdge(edgeKey)) {
-        graph.updateEdgeAttributes(edgeKey, () => attrs);
-      } else {
-        graph.addEdgeWithKey(edgeKey, edge.source, edge.target, attrs);
-      }
-    });
+      graphData.edges.forEach((edge) => {
+        if (!graph.hasNode(edge.source) || !graph.hasNode(edge.target)) {
+          return;
+        }
+        const edgeKey = getEdgeKey(edge);
+        const attrs = {
+          size: edge.edgeType === 'semantic' ? 0.8 : 1.2,
+          color: edge.edgeType === 'semantic' ? '#22c55e' : '#94a3b8',
+        };
+        if (graph.hasEdge(edgeKey)) {
+          graph.updateEdgeAttributes(edgeKey, () => attrs);
+        } else {
+          graph.addEdgeWithKey(edgeKey, edge.source, edge.target, attrs);
+        }
+      });
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Unknown graph update error';
+      console.error('Sigma graph update failed, falling back to legacy graph:', err);
+      setRendererInitError(message);
+      setRendererMode('legacy');
+      return;
+    }
 
     if (rendererRef.current && cameraStateRef.current) {
       rendererRef.current.getCamera().setState(cameraStateRef.current);
@@ -633,7 +653,7 @@ export function GraphExplorer({ className, initialNoteId, onNoteSelect }: GraphE
         pendingOperationRef.current = null;
       }
     }
-  }, [collections, communityOverlay, getEdgeKey, graphData, markOperation, onNoteSelect]);
+  }, [collections, communityOverlay, getEdgeKey, graphData, markOperation, onNoteSelect, rendererMode]);
 
   React.useEffect(() => {
     return () => {
@@ -642,6 +662,22 @@ export function GraphExplorer({ className, initialNoteId, onNoteSelect }: GraphE
       graphRef.current = null;
     };
   }, []);
+
+  if (rendererMode === 'legacy') {
+    return (
+      <div className={cn('h-full flex flex-col gap-3', className)}>
+        <div className="rounded-md border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-xs text-amber-200">
+          Sigma renderer is unavailable in this environment. Showing compatibility graph view instead.
+          {rendererInitError ? ` (${rendererInitError})` : ''}
+        </div>
+        <LegacyGraphExplorer
+          className="h-full"
+          initialNoteId={initialNoteId}
+          onNoteSelect={onNoteSelect}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className={cn('h-full flex flex-col gap-4', className)}>
