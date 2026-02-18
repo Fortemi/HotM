@@ -1,6 +1,6 @@
 /**
  * Graph components
- * Export graph visualization components
+ * Sigma + Graphology-backed explorer export
  */
 
-export { GraphExplorer } from './GraphExplorer';
+export { GraphExplorer } from './GraphExplorerSigma';
