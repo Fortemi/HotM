@@ -97,9 +97,22 @@ function normalizeConceptListResponse(payload: unknown): Concept[] {
     return [];
   }
 
-  return rawList
-    .map((item) => normalizeConcept(item))
-    .filter((item): item is Concept => item !== null);
+  const seen = new Set<string>();
+  const normalized: Concept[] = [];
+
+  for (const item of rawList) {
+    const concept = normalizeConcept(item);
+    if (!concept) {
+      continue;
+    }
+    if (seen.has(concept.id)) {
+      continue;
+    }
+    seen.add(concept.id);
+    normalized.push(concept);
+  }
+
+  return normalized;
 }
 
 function normalizeConceptScheme(raw: unknown): ConceptScheme | null {
