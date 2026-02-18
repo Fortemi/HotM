@@ -2,6 +2,15 @@ import '@testing-library/jest-dom';
 import { afterEach } from 'vitest';
 import { cleanup } from '@testing-library/react';
 
+// Sigma inspects WebGL globals at module load time.
+// JSDOM doesn't provide these, so define minimal stubs for tests.
+if (typeof globalThis.WebGLRenderingContext === 'undefined') {
+  (globalThis as any).WebGLRenderingContext = class WebGLRenderingContext {};
+}
+if (typeof globalThis.WebGL2RenderingContext === 'undefined') {
+  (globalThis as any).WebGL2RenderingContext = class WebGL2RenderingContext {};
+}
+
 // Cleanup after each test
 afterEach(() => {
   cleanup();
