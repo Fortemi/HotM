@@ -21,12 +21,6 @@ import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -40,7 +34,6 @@ import {
   Archive,
   Star,
   Hash,
-  Clock,
   Edit3,
   Save,
   Moon,
@@ -55,8 +48,6 @@ import {
   Copy,
   Check,
   X,
-  Calendar,
-  Type,
   ChevronRight,
   ChevronDown,
   Folder,
@@ -117,6 +108,7 @@ import { useWebSocket } from "@/services/websocket";
 import { JobManagementPanel } from "./JobManagementPanel";
 
 type AppView =
+  | "dashboard"
   | "notes"
   | "collections"
   | "health"
@@ -160,6 +152,41 @@ interface NotesPageResponse {
   total: number;
 }
 
+const NOTES_NAV_EXPANDED_DESKTOP_KEY = "hotm.notesNavigatorExpanded.desktop";
+const NOTES_NAV_EXPANDED_MOBILE_KEY = "hotm.notesNavigatorExpanded.mobile";
+const DESKTOP_MEDIA_QUERY = "(min-width: 1024px)";
+
+const getNotesNavigatorStorageKey = (isDesktop: boolean): string =>
+  isDesktop ? NOTES_NAV_EXPANDED_DESKTOP_KEY : NOTES_NAV_EXPANDED_MOBILE_KEY;
+
+const readNotesNavigatorExpanded = (isDesktop: boolean): boolean => {
+  if (typeof window === "undefined") {
+    return true;
+  }
+
+  try {
+    const raw = window.localStorage.getItem(getNotesNavigatorStorageKey(isDesktop));
+    if (raw === null) {
+      return true;
+    }
+    return raw === "true";
+  } catch {
+    return true;
+  }
+};
+
+const writeNotesNavigatorExpanded = (isDesktop: boolean, value: boolean): void => {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  try {
+    window.localStorage.setItem(getNotesNavigatorStorageKey(isDesktop), String(value));
+  } catch {
+    // Ignore localStorage failures (private mode, restricted contexts).
+  }
+};
+
 export function HallOfMind() {
   // Use the global context menu prevention hook
   useGlobalContextMenuPrevention();
@@ -185,7 +212,6 @@ export function HallOfMind() {
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set(["Uncategorized"]));
   const [activeTab, setActiveTab] = useState<string>("preview");
   const [quickAccessFilter, setQuickAccessFilter] = useState<"all" | "starred" | "recent" | "archived">("all");
-  const [noteLabels, setNoteLabels] = useState<Map<string, any[]>>(new Map());
   const [selectedNoteConceptTags, setSelectedNoteConceptTags] = useState<NoteConceptSummary[]>([]);
   const [selectedNoteProvenance, setSelectedNoteProvenance] = useState<any | null>(null);
   const [isDarkMode, setIsDarkMode] = useState(true);
@@ -206,7 +232,12 @@ export function HallOfMind() {
   const [newNoteContent, setNewNoteContent] = useState("");
   const [processingNotes, setProcessingNotes] = useState<Set<string>>(new Set());
   const [copiedState, setCopiedState] = useState<{ [key: string]: boolean }>({});
-  const [currentView, setCurrentView] = useState<AppView>("notes");
+  const [currentView, setCurrentView] = useState<AppView>("dashboard");
+  const [notesNavigatorExpanded, setNotesNavigatorExpanded] = useState(() => {
+    const isDesktop =
+      typeof window !== "undefined" && window.matchMedia(DESKTOP_MEDIA_QUERY).matches;
+    return readNotesNavigatorExpanded(isDesktop);
+  });
   const [availableMemories, setAvailableMemories] = useState<MemoryArchive[]>([]);
   const [activeMemoryName, setActiveMemoryName] = useState<string | null>(getActiveMemory());
   const [defaultMemoryName, setDefaultMemoryName] = useState<string | null>(null);
@@ -243,6 +274,36 @@ export function HallOfMind() {
     void loadMemoryRoutingState();
     void refreshSystemSnapshot();
   }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    const mediaQuery = window.matchMedia(DESKTOP_MEDIA_QUERY);
+    const syncFromViewport = (matches: boolean) => {
+      setNotesNavigatorExpanded(readNotesNavigatorExpanded(matches));
+    };
+
+    syncFromViewport(mediaQuery.matches);
+
+    const handleViewportChange = (event: MediaQueryListEvent) => {
+      syncFromViewport(event.matches);
+    };
+
+    mediaQuery.addEventListener("change", handleViewportChange);
+    return () => {
+      mediaQuery.removeEventListener("change", handleViewportChange);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+    const isDesktop = window.matchMedia(DESKTOP_MEDIA_QUERY).matches;
+    writeNotesNavigatorExpanded(isDesktop, notesNavigatorExpanded);
+  }, [notesNavigatorExpanded]);
 
   useEffect(() => {
     const handleMemoryChanged = () => {
@@ -477,11 +538,6 @@ export function HallOfMind() {
     const refreshSelectedNoteMetadata = async (noteId: string) => {
       try {
         const labels = await api.getMetadataLabels(noteId);
-        setNoteLabels((prev) => {
-          const next = new Map(prev);
-          next.set(noteId, labels);
-          return next;
-        });
         metadataCache.current.set(noteId, { data: labels, timestamp: Date.now() });
       } catch (error) {
         console.error("Failed to refresh metadata labels for selected note:", error);
@@ -948,6 +1004,41 @@ export function HallOfMind() {
       });
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const selectNoteFromNavigator = async (note: Note) => {
+    setSelectedNote(note);
+    setNoteContent(note.content);
+    setRevisedContent(note.revised_content || note.content);
+    setEditingRevised(false);
+    setHasUnsavedChanges(false);
+
+    try {
+      const freshNote = await api.getNote(note.id);
+      const updatedNote = {
+        id: freshNote.note.id,
+        title: freshNote.note.title || freshNote.original.content.split('\n')[0].substring(0, 50) || "Untitled",
+        content: freshNote.original.content,
+        revised_content: freshNote.revised ? freshNote.revised.content : null,
+        createdAt: freshNote.note.created_at_utc,
+        updatedAt: freshNote.note.updated_at_utc,
+        tags: freshNote.tags,
+        starred: freshNote.note.starred || false,
+        archived: freshNote.note.archived || false,
+        ai_generated_title: freshNote.note.title,
+        revised_model: freshNote.revised ? freshNote.revised.model : null
+      };
+
+      setNotes(prev => prev.map(n => n.id === updatedNote.id ? updatedNote : n));
+      setSelectedNote(updatedNote);
+      setNoteContent(updatedNote.content);
+      setRevisedContent(updatedNote.revised_content || updatedNote.content);
+
+      savedNotes.current.set(freshNote.note.id, freshNote);
+
+    } catch (error) {
+      console.error("Failed to refresh note:", error);
     }
   };
 
@@ -1549,6 +1640,15 @@ export function HallOfMind() {
                 <SidebarMenu>
                   <SidebarMenuItem>
                     <SidebarMenuButton
+                      onClick={() => setCurrentView("dashboard")}
+                      className={currentView === "dashboard" ? "bg-primary/10" : ""}
+                    >
+                      <Activity className="h-4 w-4" />
+                      <span>Dashboard</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton
                       onClick={() => setCurrentView("notes")}
                       className={currentView === "notes" ? "bg-primary/10" : ""}
                     >
@@ -1686,257 +1786,6 @@ export function HallOfMind() {
                   )}
                 </SidebarMenu>
               )}
-            </SidebarGroup>
-
-            {/* Notes List - Primary sidebar content */}
-            <SidebarGroup className="flex-1 flex flex-col min-h-0">
-              <div className="px-3 py-2 flex-shrink-0">
-                <div className="flex items-center justify-between">
-                  <SidebarGroupLabel className="p-0">
-                    Notes ({filteredNotes.length})
-                    <Badge variant="outline" className="ml-2 text-xs">
-                      loaded {notes.length}/{notesTotalCount}
-                    </Badge>
-                    {quickAccessFilter !== "all" && (
-                      <Badge variant="outline" className="ml-2 text-xs">
-                        {quickAccessFilter}
-                      </Badge>
-                    )}
-                    {selectedTags.size > 0 && (
-                      <Badge variant="secondary" className="ml-1 text-xs">
-                        {selectedTags.size} tag{selectedTags.size > 1 ? 's' : ''}
-                      </Badge>
-                    )}
-                  </SidebarGroupLabel>
-                  <div className="flex items-center gap-1">
-                    {quickAccessFilter !== "all" && (
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-5 w-5"
-                            onClick={() => setQuickAccessFilter("all")}
-                          >
-                            <X className="h-3 w-3" />
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>Clear filter</TooltipContent>
-                      </Tooltip>
-                    )}
-                    <TooltipProvider>
-                      {/* Sort Control */}
-                      <DropdownMenu>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="icon" className="h-6 w-6">
-                                {sortBy === "created" ? (
-                                  <Calendar className="h-3 w-3" />
-                                ) : sortBy === "updated" ? (
-                                  <Clock className="h-3 w-3" />
-                                ) : (
-                                  <Type className="h-3 w-3" />
-                                )}
-                              </Button>
-                            </DropdownMenuTrigger>
-                          </TooltipTrigger>
-                          <TooltipContent side="bottom">
-                            <p>Sort: {sortBy === "created" ? "Created" : sortBy === "updated" ? "Updated" : "Title"} {sortOrder === "asc" ? "↑" : "↓"}</p>
-                          </TooltipContent>
-                        </Tooltip>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => { setSortBy("created"); setSortOrder("desc"); }}>
-                            <Calendar className="h-3 w-3 mr-2" />
-                            Newest First
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => { setSortBy("created"); setSortOrder("asc"); }}>
-                            <Calendar className="h-3 w-3 mr-2" />
-                            Oldest First
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => { setSortBy("updated"); setSortOrder("desc"); }}>
-                            <Clock className="h-3 w-3 mr-2" />
-                            Recently Updated
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => { setSortBy("updated"); setSortOrder("asc"); }}>
-                            <Clock className="h-3 w-3 mr-2" />
-                            Least Recently Updated
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => { setSortBy("title"); setSortOrder("asc"); }}>
-                            <Type className="h-3 w-3 mr-2" />
-                            Title A-Z
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => { setSortBy("title"); setSortOrder("desc"); }}>
-                            <Type className="h-3 w-3 mr-2" />
-                            Title Z-A
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                      
-                      {/* Group Control */}
-                      <DropdownMenu>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="icon" className="h-6 w-6">
-                                <Folder className="h-3 w-3" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                          </TooltipTrigger>
-                          <TooltipContent side="bottom">
-                            <p>Group: {groupBy === "none" ? "None" : groupBy === "category" ? "Category" : "Topic"}</p>
-                          </TooltipContent>
-                        </Tooltip>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => setGroupBy("none")}>
-                            <X className="h-3 w-3 mr-2" />
-                            No Grouping
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => setGroupBy("category")}>
-                            <Hash className="h-3 w-3 mr-2" />
-                            By Category
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => setGroupBy("topic")}>
-                            <Archive className="h-3 w-3 mr-2" />
-                            By Topic
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TooltipProvider>
-                  </div>
-                </div>
-              </div>
-              <ScrollArea className="flex-1 overflow-y-auto" onScrollCapture={handleNotesListScroll}>
-                <SidebarMenu>
-                  {filteredNotes.length === 0 ? (
-                    <div className="p-4 text-center text-sm text-muted-foreground">
-                      {isLoading ? "Loading notes..." : "No notes yet. Create your first note above!"}
-                    </div>
-                  ) : (
-                    Object.entries(groupedNotes()).map(([groupName, groupNotes]) => (
-                      <div key={groupName || "all"}>
-                        {groupName && (
-                          <div 
-                            className="px-3 py-1 flex items-center gap-1 text-xs text-muted-foreground hover:bg-accent/50 cursor-pointer sticky top-0 bg-background z-10"
-                            onClick={() => toggleGroupExpansion(groupName)}
-                          >
-                            {expandedGroups.has(groupName) ? (
-                              <ChevronDown className="h-3 w-3" />
-                            ) : (
-                              <ChevronRight className="h-3 w-3" />
-                            )}
-                            <Folder className="h-3 w-3" />
-                            <span className="font-medium">{groupName}</span>
-                            <span className="ml-auto">({groupNotes.length})</span>
-                          </div>
-                        )}
-                        {(!groupName || expandedGroups.has(groupName)) && groupNotes.map((note) => (
-                          <NoteContextMenu
-                            key={note.id}
-                            noteId={note.id}
-                            isArchived={note.archived}
-                            isStarred={note.starred}
-                            onEdit={() => handleEditNote(note.id)}
-                            onViewMetadata={() => handleViewMetadata(note.id)}
-                            onRegenerate={() => handleRegenerateAI(note.id)}
-                            onDelete={() => handleDeleteNote(note.id)}
-                            onArchive={() => handleArchiveNote(note.id)}
-                            onToggleStar={() => toggleStar(note.id)}
-                          >
-                            <SidebarMenuItem data-allow-context="true" className={groupName ? "pl-6" : ""}>
-                              <SidebarMenuButton
-                                onClick={async () => {
-                                  // First set the local state
-                                  setSelectedNote(note);
-                                  setNoteContent(note.content);
-                                  setRevisedContent(note.revised_content || note.content);
-                                  setEditingRevised(false); // Default to editing original
-                                  setHasUnsavedChanges(false); // Reset unsaved changes flag
-                                  
-                                  // Then fetch fresh data from server
-                                  try {
-                                    const freshNote = await api.getNote(note.id);
-                                    const updatedNote = {
-                                      id: freshNote.note.id,
-                                      title: freshNote.note.title || freshNote.original.content.split('\n')[0].substring(0, 50) || "Untitled",
-                                      content: freshNote.original.content,
-                                      revised_content: freshNote.revised ? freshNote.revised.content : null,
-                                      createdAt: freshNote.note.created_at_utc,
-                                      updatedAt: freshNote.note.updated_at_utc,
-                                      tags: freshNote.tags,
-                                      starred: freshNote.note.starred || false,
-                                      archived: freshNote.note.archived || false,
-                                      ai_generated_title: freshNote.note.title,
-                                      revised_model: freshNote.revised ? freshNote.revised.model : null
-                                    };
-                                    console.log(`Fetched note ${note.id} - starred: ${updatedNote.starred}, archived: ${updatedNote.archived}`);
-                                    
-                                    // Update the note in the list
-                                    setNotes(prev => prev.map(n => n.id === updatedNote.id ? updatedNote : n));
-                                    
-                                    // Update selected note with fresh data
-                                    setSelectedNote(updatedNote);
-                                    setNoteContent(updatedNote.content);
-                                    setRevisedContent(updatedNote.revised_content || updatedNote.content);
-                                    
-                                    // Update saved notes cache
-                                    savedNotes.current.set(freshNote.note.id, freshNote);
-                                    
-                                    // Load metadata labels for this note
-                                    try {
-                                      const labels = await api.getMetadataLabels(note.id);
-                                      setNoteLabels(new Map(noteLabels.set(note.id, labels)));
-                                    } catch (error) {
-                                      // Labels endpoint not available in Fortemi API
-                                    }
-                                    
-                                    console.log("Note refreshed from server:", note.id);
-                                  } catch (error) {
-                                    console.error("Failed to refresh note:", error);
-                                  }
-                                }}
-                                className={selectedNote?.id === note.id ? "bg-primary/10 border-l-2 border-l-primary" : ""}
-                              >
-                                {processingNotes.has(note.id) && !note.revised_content ? (
-                                  <Loader2 className="h-4 w-4 animate-spin text-primary" />
-                                ) : (
-                                  <BookOpen className="h-4 w-4" />
-                                )}
-                                <span className="flex-1 truncate">
-                                  {titleAnimations.has(note.id) && titleAnimations.get(note.id)?.isAnimating ? (
-                                    <TypingAnimation
-                                      oldText={titleAnimations.get(note.id)!.oldTitle}
-                                      newText={titleAnimations.get(note.id)!.newTitle}
-                                      onComplete={() => {
-                                        setTitleAnimations(prev => {
-                                          const newMap = new Map(prev);
-                                          newMap.delete(note.id);
-                                          return newMap;
-                                        });
-                                      }}
-                                      speed="fast"
-                                      className="text-sidebar-foreground"
-                                    />
-                                  ) : (
-                                    note.title
-                                  )}
-                                </span>
-                                {note.starred && <Star className="h-3 w-3 fill-yellow-500 text-yellow-500" />}
-                              </SidebarMenuButton>
-                            </SidebarMenuItem>
-                          </NoteContextMenu>
-                        ))}
-                      </div>
-                    ))
-                  )}
-                </SidebarMenu>
-                {isLoadingMoreNotes && (
-                  <div className="px-4 py-2 text-xs text-muted-foreground flex items-center gap-2">
-                    <Loader2 className="h-3 w-3 animate-spin" />
-                    Loading more notes...
-                  </div>
-                )}
-              </ScrollArea>
             </SidebarGroup>
 
             <Separator className="my-1 flex-shrink-0" />
@@ -2391,414 +2240,7 @@ export function HallOfMind() {
               />
             ) : currentView === "realtime-debug" ? (
               <RealtimeEventInspector />
-            ) : selectedNote ? (
-              <div className="mx-auto max-w-4xl">
-                {(() => {
-                  const fullNote = savedNotes.current.get(selectedNote.id);
-                  const metadataConceptTags =
-                    selectedNoteConceptTags.length > 0
-                      ? selectedNoteConceptTags
-                      : (fullNote?.concepts ?? [])
-                          .filter(
-                            (concept): concept is NoteConceptSummary =>
-                              typeof concept?.concept_id === "string" &&
-                              concept.concept_id.length > 0 &&
-                              typeof concept?.pref_label === "string" &&
-                              concept.pref_label.trim().length > 0
-                          )
-                          .sort((a, b) => {
-                            if ((a.is_primary ?? false) !== (b.is_primary ?? false)) {
-                              return (b.is_primary ? 1 : 0) - (a.is_primary ? 1 : 0);
-                            }
-                            const relevanceA = a.relevance_score ?? -1;
-                            const relevanceB = b.relevance_score ?? -1;
-                            if (relevanceA !== relevanceB) {
-                              return relevanceB - relevanceA;
-                            }
-                            const confidenceA = a.confidence ?? -1;
-                            const confidenceB = b.confidence ?? -1;
-                            if (confidenceA !== confidenceB) {
-                              return confidenceB - confidenceA;
-                            }
-                            return a.pref_label.localeCompare(b.pref_label);
-                          });
-                  return (
-                <Tabs value={activeTab} onValueChange={setActiveTab} className="h-full">
-                  <TabsList className="mb-4">
-                    {activeTab !== 'search' && (
-                      <>
-                        <TabsTrigger value="preview" className="gap-2">
-                          <Sparkles className="h-4 w-4" />
-                          AI Enhanced
-                        </TabsTrigger>
-                        <TabsTrigger value="original" className="gap-2">
-                          <BookOpen className="h-4 w-4" />
-                          Original
-                        </TabsTrigger>
-                        <TabsTrigger value="edit" className="gap-2">
-                          <Edit3 className="h-4 w-4" />
-                          Edit
-                        </TabsTrigger>
-                        <TabsTrigger value="metadata" className="gap-2">
-                          <Hash className="h-4 w-4" />
-                          Metadata
-                        </TabsTrigger>
-                        <TabsTrigger value="attachments" className="gap-2">
-                          <Paperclip className="h-4 w-4" />
-                          Attachments
-                        </TabsTrigger>
-                      </>
-                    )}
-                    {activeTab === 'search' && (
-                      <TabsTrigger value="search" className="gap-2">
-                        <Search className="h-4 w-4" />
-                        Search Results
-                      </TabsTrigger>
-                    )}
-                  </TabsList>
-
-                  <TabsContent value="edit" className="h-full">
-                    <Card className="border-0 shadow-none">
-                      <CardHeader>
-                        <div className="flex items-center justify-between">
-                          <input
-                            type="text"
-                            className="text-3xl font-bold bg-transparent outline-none placeholder:text-muted-foreground flex-1"
-                            placeholder="Note title..."
-                            value={selectedNote.title}
-                            onChange={(e) => {
-                              const updatedNote = { ...selectedNote, title: e.target.value };
-                              setSelectedNote(updatedNote);
-                              setNotes(notes.map(n => n.id === updatedNote.id ? updatedNote : n));
-                            }}
-                          />
-                          <div className="flex gap-2">
-                            <Button
-                              variant={editingRevised ? "default" : "outline"}
-                              size="sm"
-                              onClick={() => {
-                                setEditingRevised(true);
-                                if (!revisedContent && selectedNote.revised_content) {
-                                  setRevisedContent(selectedNote.revised_content);
-                                }
-                              }}
-                            >
-                              <Sparkles className="h-4 w-4 mr-1" />
-                              Edit AI Version
-                            </Button>
-                            <Button
-                              variant={!editingRevised ? "default" : "outline"}
-                              size="sm"
-                              onClick={() => setEditingRevised(false)}
-                            >
-                              <Edit3 className="h-4 w-4 mr-1" />
-                              Edit Original
-                            </Button>
-                          </div>
-                        </div>
-                        <CardDescription>
-                          {editingRevised ? "Editing AI-enhanced version" : "Editing original note"} • Last edited {new Date(selectedNote.updatedAt).toLocaleString()}
-                        </CardDescription>
-                      </CardHeader>
-                      <CardContent>
-                        <MarkdownEditor
-                          value={editingRevised ? revisedContent : noteContent}
-                          onChange={(value) => {
-                            if (editingRevised) {
-                              setRevisedContent(value);
-                            } else {
-                              setNoteContent(value);
-                            }
-                            setHasUnsavedChanges(true);
-                          }}
-                          height={500}
-                        />
-                      </CardContent>
-                    </Card>
-                  </TabsContent>
-
-                  <TabsContent value="preview">
-                    <Card className="overflow-hidden">
-                      <CardHeader className="border-b bg-muted/30">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <CardTitle className="flex items-center gap-2">
-                              <Sparkles className="h-5 w-5 text-primary" />
-                              {titleAnimations.has(selectedNote.id) && titleAnimations.get(selectedNote.id)?.isAnimating ? (
-                                <TypingAnimation
-                                  oldText={titleAnimations.get(selectedNote.id)!.oldTitle}
-                                  newText={titleAnimations.get(selectedNote.id)!.newTitle}
-                                  onComplete={() => {
-                                    setTitleAnimations(prev => {
-                                      const newMap = new Map(prev);
-                                      newMap.delete(selectedNote.id);
-                                      return newMap;
-                                    });
-                                  }}
-                                  speed="normal"
-                                  className="text-card-foreground"
-                                />
-                              ) : (
-                                selectedNote.title
-                              )}
-                            </CardTitle>
-                            <CardDescription className="mt-1">
-                              AI-enhanced version • Updated {new Date(selectedNote.updatedAt).toLocaleString()}
-                            </CardDescription>
-                          </div>
-                          <div className="flex gap-2">
-                            <Button
-                              onClick={() => copyToClipboard(selectedNote.revised_content || selectedNote.content, 'preview-markdown')}
-                              size="sm"
-                              variant="outline"
-                              title="Copy markdown"
-                            >
-                              {copiedState['preview-markdown'] ? (
-                                <Check className="h-4 w-4" />
-                              ) : (
-                                <Copy className="h-4 w-4" />
-                              )}
-                              <span className="ml-2">Copy MD</span>
-                            </Button>
-                            <Button
-                              onClick={regenerateAI}
-                              disabled={isLoading}
-                              size="sm"
-                              variant="outline"
-                            >
-                              {processingNotes.has(selectedNote.id) ? (
-                                <Loader2 className="h-4 w-4 animate-spin" />
-                              ) : (
-                                <RefreshCw className="h-4 w-4" />
-                              )}
-                              <span className="ml-2">Regenerate AI</span>
-                            </Button>
-                          </div>
-                        </div>
-                      </CardHeader>
-                      <CardContent className="p-0">
-                        <ScrollArea className="h-[500px]">
-                          <div className="p-6">
-                            {processingNotes.has(selectedNote.id) && !selectedNote.revised_content ? (
-                              <div className="flex flex-col items-center justify-center h-[400px] space-y-4">
-                                <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                                <div className="text-center">
-                                  <p className="text-sm font-medium">AI is enhancing your note...</p>
-                                  <p className="text-xs text-muted-foreground mt-1">This usually takes 5-10 seconds</p>
-                                </div>
-                              </div>
-                            ) : (
-                              <MarkdownPreview 
-                                content={selectedNote.revised_content || noteContent}
-                              />
-                            )}
-                          </div>
-                        </ScrollArea>
-                      </CardContent>
-                      <div className="border-t bg-muted/30 px-6 py-3">
-                        <div className="flex items-center justify-between text-xs text-muted-foreground">
-                          <span>Enhanced with AI • Powered by {selectedNote.revised_model || 'gpt-oss:20b'}</span>
-                          <span>{selectedNote.revised_content ? `${selectedNote.revised_content.length} characters` : 'Original content'}</span>
-                        </div>
-                      </div>
-                    </Card>
-                  </TabsContent>
-
-                  <TabsContent value="original">
-                    <Card>
-                      <CardHeader>
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <CardTitle>
-                              {titleAnimations.has(selectedNote.id) && titleAnimations.get(selectedNote.id)?.isAnimating ? (
-                                <TypingAnimation
-                                  oldText={titleAnimations.get(selectedNote.id)!.oldTitle}
-                                  newText={titleAnimations.get(selectedNote.id)!.newTitle}
-                                  onComplete={() => {
-                                    setTitleAnimations(prev => {
-                                      const newMap = new Map(prev);
-                                      newMap.delete(selectedNote.id);
-                                      return newMap;
-                                    });
-                                  }}
-                                  speed="normal"
-                                  className="text-card-foreground"
-                                />
-                              ) : (
-                                selectedNote.title
-                              )}
-                            </CardTitle>
-                            <CardDescription>
-                              Original note • Created {new Date(selectedNote.createdAt).toLocaleString()}
-                            </CardDescription>
-                          </div>
-                          <Button
-                            onClick={() => copyToClipboard(noteContent, 'original-markdown')}
-                            size="sm"
-                            variant="outline"
-                            title="Copy markdown"
-                          >
-                            {copiedState['original-markdown'] ? (
-                              <Check className="h-4 w-4" />
-                            ) : (
-                              <Copy className="h-4 w-4" />
-                            )}
-                            <span className="ml-2">Copy MD</span>
-                          </Button>
-                        </div>
-                      </CardHeader>
-                      <CardContent>
-                        <ScrollArea className="h-[600px]">
-                          <MarkdownPreview content={noteContent} />
-                        </ScrollArea>
-                      </CardContent>
-                    </Card>
-                  </TabsContent>
-
-                  <TabsContent value="search">
-                    <EnhancedSearch 
-                      searchQuery={searchQuery}
-                      searchMode={searchMode === 'local' ? 'hybrid' : searchMode as 'hybrid' | 'fts' | 'semantic'}
-                      onSearchModeChange={(mode) => setSearchMode(mode)}
-                      onSelectNote={(noteId) => {
-                        const note = notes.find(n => n.id === noteId);
-                        if (note) {
-                          setSelectedNote(note);
-                          setNoteContent(note.content);
-                          setRevisedContent(note.revised_content || note.content);
-                          // Jump to AI enhanced view
-                          setActiveTab('preview');
-                        }
-                      }}
-                    />
-                  </TabsContent>
-                  <TabsContent value="metadata">
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-                      <div className="lg:col-span-2">
-                        <NoteMetadata
-                          metadata={fullNote?.note?.metadata}
-                          provenance={selectedNoteProvenance}
-                          tags={fullNote?.tags || []}
-                          conceptTags={metadataConceptTags}
-                          links={fullNote?.links || []}
-                          starred={fullNote?.note?.starred}
-                          archived={fullNote?.note?.archived}
-                          aiMetadata={fullNote?.revised?.ai_metadata}
-                          onTagClick={(tag) => {
-                            // Search for the tag
-                            setSearchQuery(`#${tag}`);
-                          }}
-                          onLinkClick={async (noteId) => {
-                            // Load the linked note
-                            try {
-                              const linkedNote = await api.getNote(noteId);
-                              const simpleNote = {
-                                id: linkedNote.note.id,
-                                title: linkedNote.original.content.split('\n')[0].substring(0, 50) || "Untitled",
-                                content: linkedNote.original.content,
-                                revised_content: linkedNote.revised ? linkedNote.revised.content : null,
-                                createdAt: linkedNote.note.created_at_utc,
-                                updatedAt: linkedNote.note.updated_at_utc,
-                                tags: linkedNote.tags,
-                                starred: linkedNote.note.starred || false,
-                                archived: linkedNote.note.archived || false,
-                                revised_model: linkedNote.revised ? linkedNote.revised.model : null
-                              };
-                              
-                              // Add to notes if not already there
-                              setNotes(prev => {
-                                const exists = prev.find(n => n.id === simpleNote.id);
-                                if (!exists) {
-                                  return [...prev, simpleNote];
-                                }
-                                return prev;
-                              });
-                              
-                              // Select the linked note
-                              setSelectedNote(simpleNote);
-                              setNoteContent(simpleNote.content);
-                              setRevisedContent(simpleNote.revised_content || simpleNote.content);
-                              setHasUnsavedChanges(false);
-                              
-                              // Cache the full note
-                              savedNotes.current.set(linkedNote.note.id, linkedNote);
-                            } catch (error) {
-                              console.error("Failed to load linked note:", error);
-                            }
-                          }}
-                        />
-                      </div>
-                      
-                      {/* Related Notes */}
-                      <div className="h-full">
-                        <RelatedNotes 
-                          noteId={selectedNote.id} 
-                          onSelectNote={async (noteId) => {
-                            try {
-                              const linkedNote = await api.getNote(noteId);
-                              const simpleNote = {
-                                id: linkedNote.note.id,
-                                title: linkedNote.original.content.split('\n')[0].substring(0, 50) || "Untitled",
-                                content: linkedNote.original.content,
-                                revised_content: linkedNote.revised ? linkedNote.revised.content : null,
-                                createdAt: linkedNote.note.created_at_utc,
-                                updatedAt: linkedNote.note.updated_at_utc,
-                                tags: linkedNote.tags,
-                                starred: linkedNote.note.starred || false,
-                                archived: linkedNote.note.archived || false,
-                                revised_model: linkedNote.revised ? linkedNote.revised.model : null
-                              };
-                              
-                              // Add to notes if not already there
-                              setNotes(prev => {
-                                const exists = prev.find(n => n.id === simpleNote.id);
-                                if (!exists) {
-                                  return [...prev, simpleNote];
-                                }
-                                return prev;
-                              });
-                              
-                              // Select the linked note
-                              setSelectedNote(simpleNote);
-                              setNoteContent(simpleNote.content);
-                              setRevisedContent(simpleNote.revised_content || simpleNote.content);
-                              setHasUnsavedChanges(false);
-                              
-                              // Cache the full note
-                              savedNotes.current.set(linkedNote.note.id, linkedNote);
-                            } catch (error) {
-                              console.error("Failed to load linked note:", error);
-                            }
-                          }}
-                        />
-                      </div>
-                    </div>
-                  </TabsContent>
-
-                  <TabsContent value="attachments">
-                    <Card>
-                      <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
-                          <Paperclip className="h-5 w-5" />
-                          Note Attachments
-                        </CardTitle>
-                        <CardDescription>
-                          Review, upload, download, and manage files attached to this note
-                        </CardDescription>
-                      </CardHeader>
-                      <CardContent className="p-0">
-                        <AttachmentsPanel
-                          noteId={selectedNote.id}
-                          className="h-[620px]"
-                        />
-                      </CardContent>
-                    </Card>
-                  </TabsContent>
-                </Tabs>
-                );
-                })()}
-              </div>
-            ) : (
+            ) : currentView === "dashboard" ? (
               <div className="flex flex-col h-full gap-6">
                 <div className="space-y-6">
                   <div className="flex flex-wrap items-start justify-between gap-3">
@@ -2940,7 +2382,599 @@ export function HallOfMind() {
                   <RealtimeEventInspector />
                 </div>
               </div>
-            )}
+            ) : currentView === "notes" ? (
+              <div className="flex h-full flex-col gap-4 lg:flex-row">
+                {!notesNavigatorExpanded && (
+                  <div className="lg:hidden">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setNotesNavigatorExpanded(true)}
+                      className="gap-2"
+                    >
+                      <BookOpen className="h-4 w-4" />
+                      Open Notes Navigator
+                    </Button>
+                  </div>
+                )}
+                <div className="min-w-0 flex-1">
+                  {selectedNote ? (
+                    <div className="mx-auto max-w-6xl">
+                      {(() => {
+                        const fullNote = savedNotes.current.get(selectedNote.id);
+                        const metadataConceptTags =
+                          selectedNoteConceptTags.length > 0
+                            ? selectedNoteConceptTags
+                            : (fullNote?.concepts ?? [])
+                                .filter(
+                                  (concept): concept is NoteConceptSummary =>
+                                    typeof concept?.concept_id === "string" &&
+                                    concept.concept_id.length > 0 &&
+                                    typeof concept?.pref_label === "string" &&
+                                    concept.pref_label.trim().length > 0
+                                )
+                                .sort((a, b) => {
+                                  if ((a.is_primary ?? false) !== (b.is_primary ?? false)) {
+                                    return (b.is_primary ? 1 : 0) - (a.is_primary ? 1 : 0);
+                                  }
+                                  const relevanceA = a.relevance_score ?? -1;
+                                  const relevanceB = b.relevance_score ?? -1;
+                                  if (relevanceA !== relevanceB) {
+                                    return relevanceB - relevanceA;
+                                  }
+                                  const confidenceA = a.confidence ?? -1;
+                                  const confidenceB = b.confidence ?? -1;
+                                  if (confidenceA !== confidenceB) {
+                                    return confidenceB - confidenceA;
+                                  }
+                                  return a.pref_label.localeCompare(b.pref_label);
+                                });
+                        return (
+                      <Tabs value={activeTab} onValueChange={setActiveTab} className="h-full">
+                        <TabsList className="mb-4 flex w-full flex-wrap justify-start gap-1">
+                          {activeTab !== 'search' && (
+                            <>
+                              <TabsTrigger value="preview" className="gap-2">
+                                <Sparkles className="h-4 w-4" />
+                                AI Enhanced
+                              </TabsTrigger>
+                              <TabsTrigger value="original" className="gap-2">
+                                <BookOpen className="h-4 w-4" />
+                                Original
+                              </TabsTrigger>
+                              <TabsTrigger value="edit" className="gap-2">
+                                <Edit3 className="h-4 w-4" />
+                                Edit
+                              </TabsTrigger>
+                              <TabsTrigger value="metadata" className="gap-2">
+                                <Hash className="h-4 w-4" />
+                                Metadata
+                              </TabsTrigger>
+                              <TabsTrigger value="attachments" className="gap-2">
+                                <Paperclip className="h-4 w-4" />
+                                Attachments
+                              </TabsTrigger>
+                            </>
+                          )}
+                          {activeTab === 'search' && (
+                            <TabsTrigger value="search" className="gap-2">
+                              <Search className="h-4 w-4" />
+                              Search Results
+                            </TabsTrigger>
+                          )}
+                        </TabsList>
+
+                        <TabsContent value="edit" className="h-full">
+                          <Card className="border-0 shadow-none">
+                            <CardHeader>
+                              <div className="flex items-center justify-between">
+                                <input
+                                  type="text"
+                                  className="text-3xl font-bold bg-transparent outline-none placeholder:text-muted-foreground flex-1"
+                                  placeholder="Note title..."
+                                  value={selectedNote.title}
+                                  onChange={(e) => {
+                                    const updatedNote = { ...selectedNote, title: e.target.value };
+                                    setSelectedNote(updatedNote);
+                                    setNotes(notes.map(n => n.id === updatedNote.id ? updatedNote : n));
+                                  }}
+                                />
+                                <div className="flex gap-2">
+                                  <Button
+                                    variant={editingRevised ? "default" : "outline"}
+                                    size="sm"
+                                    onClick={() => {
+                                      setEditingRevised(true);
+                                      if (!revisedContent && selectedNote.revised_content) {
+                                        setRevisedContent(selectedNote.revised_content);
+                                      }
+                                    }}
+                                  >
+                                    <Sparkles className="h-4 w-4 mr-1" />
+                                    Edit AI Version
+                                  </Button>
+                                  <Button
+                                    variant={!editingRevised ? "default" : "outline"}
+                                    size="sm"
+                                    onClick={() => setEditingRevised(false)}
+                                  >
+                                    <Edit3 className="h-4 w-4 mr-1" />
+                                    Edit Original
+                                  </Button>
+                                </div>
+                              </div>
+                              <CardDescription>
+                                {editingRevised ? "Editing AI-enhanced version" : "Editing original note"} • Last edited {new Date(selectedNote.updatedAt).toLocaleString()}
+                              </CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                              <MarkdownEditor
+                                value={editingRevised ? revisedContent : noteContent}
+                                onChange={(value) => {
+                                  if (editingRevised) {
+                                    setRevisedContent(value);
+                                  } else {
+                                    setNoteContent(value);
+                                  }
+                                  setHasUnsavedChanges(true);
+                                }}
+                                height={500}
+                              />
+                            </CardContent>
+                          </Card>
+                        </TabsContent>
+
+                        <TabsContent value="preview">
+                          <Card className="overflow-hidden">
+                            <CardHeader className="border-b bg-muted/30">
+                              <div className="flex items-center justify-between">
+                                <div>
+                                  <CardTitle className="flex items-center gap-2">
+                                    <Sparkles className="h-5 w-5 text-primary" />
+                                    {titleAnimations.has(selectedNote.id) && titleAnimations.get(selectedNote.id)?.isAnimating ? (
+                                      <TypingAnimation
+                                        oldText={titleAnimations.get(selectedNote.id)!.oldTitle}
+                                        newText={titleAnimations.get(selectedNote.id)!.newTitle}
+                                        onComplete={() => {
+                                          setTitleAnimations(prev => {
+                                            const newMap = new Map(prev);
+                                            newMap.delete(selectedNote.id);
+                                            return newMap;
+                                          });
+                                        }}
+                                        speed="normal"
+                                        className="text-card-foreground"
+                                      />
+                                    ) : (
+                                      selectedNote.title
+                                    )}
+                                  </CardTitle>
+                                  <CardDescription className="mt-1">
+                                    AI-enhanced version • Updated {new Date(selectedNote.updatedAt).toLocaleString()}
+                                  </CardDescription>
+                                </div>
+                                <div className="flex gap-2">
+                                  <Button
+                                    onClick={() => copyToClipboard(selectedNote.revised_content || selectedNote.content, 'preview-markdown')}
+                                    size="sm"
+                                    variant="outline"
+                                    title="Copy markdown"
+                                  >
+                                    {copiedState['preview-markdown'] ? (
+                                      <Check className="h-4 w-4" />
+                                    ) : (
+                                      <Copy className="h-4 w-4" />
+                                    )}
+                                    <span className="ml-2">Copy MD</span>
+                                  </Button>
+                                  <Button
+                                    onClick={regenerateAI}
+                                    disabled={isLoading}
+                                    size="sm"
+                                    variant="outline"
+                                  >
+                                    {processingNotes.has(selectedNote.id) ? (
+                                      <Loader2 className="h-4 w-4 animate-spin" />
+                                    ) : (
+                                      <RefreshCw className="h-4 w-4" />
+                                    )}
+                                    <span className="ml-2">Regenerate AI</span>
+                                  </Button>
+                                </div>
+                              </div>
+                            </CardHeader>
+                            <CardContent className="p-0">
+                              <ScrollArea className="h-[500px]">
+                                <div className="p-6">
+                                  {processingNotes.has(selectedNote.id) && !selectedNote.revised_content ? (
+                                    <div className="flex flex-col items-center justify-center h-[400px] space-y-4">
+                                      <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                                      <div className="text-center">
+                                        <p className="text-sm font-medium">AI is enhancing your note...</p>
+                                        <p className="text-xs text-muted-foreground mt-1">This usually takes 5-10 seconds</p>
+                                      </div>
+                                    </div>
+                                  ) : (
+                                    <MarkdownPreview
+                                      content={selectedNote.revised_content || noteContent}
+                                    />
+                                  )}
+                                </div>
+                              </ScrollArea>
+                            </CardContent>
+                            <div className="border-t bg-muted/30 px-6 py-3">
+                              <div className="flex items-center justify-between text-xs text-muted-foreground">
+                                <span>Enhanced with AI • Powered by {selectedNote.revised_model || 'gpt-oss:20b'}</span>
+                                <span>{selectedNote.revised_content ? `${selectedNote.revised_content.length} characters` : 'Original content'}</span>
+                              </div>
+                            </div>
+                          </Card>
+                        </TabsContent>
+
+                        <TabsContent value="original">
+                          <Card>
+                            <CardHeader>
+                              <div className="flex items-center justify-between">
+                                <div>
+                                  <CardTitle>
+                                    {titleAnimations.has(selectedNote.id) && titleAnimations.get(selectedNote.id)?.isAnimating ? (
+                                      <TypingAnimation
+                                        oldText={titleAnimations.get(selectedNote.id)!.oldTitle}
+                                        newText={titleAnimations.get(selectedNote.id)!.newTitle}
+                                        onComplete={() => {
+                                          setTitleAnimations(prev => {
+                                            const newMap = new Map(prev);
+                                            newMap.delete(selectedNote.id);
+                                            return newMap;
+                                          });
+                                        }}
+                                        speed="normal"
+                                        className="text-card-foreground"
+                                      />
+                                    ) : (
+                                      selectedNote.title
+                                    )}
+                                  </CardTitle>
+                                  <CardDescription>
+                                    Original note • Created {new Date(selectedNote.createdAt).toLocaleString()}
+                                  </CardDescription>
+                                </div>
+                                <Button
+                                  onClick={() => copyToClipboard(noteContent, 'original-markdown')}
+                                  size="sm"
+                                  variant="outline"
+                                  title="Copy markdown"
+                                >
+                                  {copiedState['original-markdown'] ? (
+                                    <Check className="h-4 w-4" />
+                                  ) : (
+                                    <Copy className="h-4 w-4" />
+                                  )}
+                                  <span className="ml-2">Copy MD</span>
+                                </Button>
+                              </div>
+                            </CardHeader>
+                            <CardContent>
+                              <ScrollArea className="h-[600px]">
+                                <MarkdownPreview content={noteContent} />
+                              </ScrollArea>
+                            </CardContent>
+                          </Card>
+                        </TabsContent>
+
+                        <TabsContent value="search">
+                          <EnhancedSearch
+                            searchQuery={searchQuery}
+                            searchMode={searchMode === 'local' ? 'hybrid' : searchMode as 'hybrid' | 'fts' | 'semantic'}
+                            onSearchModeChange={(mode) => setSearchMode(mode)}
+                            onSelectNote={(noteId) => {
+                              const note = notes.find(n => n.id === noteId);
+                              if (note) {
+                                setSelectedNote(note);
+                                setNoteContent(note.content);
+                                setRevisedContent(note.revised_content || note.content);
+                                setActiveTab('preview');
+                              }
+                            }}
+                          />
+                        </TabsContent>
+                        <TabsContent value="metadata">
+                          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                            <div className="lg:col-span-2">
+                              <NoteMetadata
+                                metadata={fullNote?.note?.metadata}
+                                provenance={selectedNoteProvenance}
+                                tags={fullNote?.tags || []}
+                                conceptTags={metadataConceptTags}
+                                links={fullNote?.links || []}
+                                starred={fullNote?.note?.starred}
+                                archived={fullNote?.note?.archived}
+                                aiMetadata={fullNote?.revised?.ai_metadata}
+                                onTagClick={(tag) => {
+                                  setSearchQuery(`#${tag}`);
+                                }}
+                                onLinkClick={async (noteId) => {
+                                  try {
+                                    const linkedNote = await api.getNote(noteId);
+                                    const simpleNote = {
+                                      id: linkedNote.note.id,
+                                      title: linkedNote.original.content.split('\n')[0].substring(0, 50) || "Untitled",
+                                      content: linkedNote.original.content,
+                                      revised_content: linkedNote.revised ? linkedNote.revised.content : null,
+                                      createdAt: linkedNote.note.created_at_utc,
+                                      updatedAt: linkedNote.note.updated_at_utc,
+                                      tags: linkedNote.tags,
+                                      starred: linkedNote.note.starred || false,
+                                      archived: linkedNote.note.archived || false,
+                                      revised_model: linkedNote.revised ? linkedNote.revised.model : null
+                                    };
+
+                                    setNotes(prev => {
+                                      const exists = prev.find(n => n.id === simpleNote.id);
+                                      if (!exists) {
+                                        return [...prev, simpleNote];
+                                      }
+                                      return prev;
+                                    });
+
+                                    setSelectedNote(simpleNote);
+                                    setNoteContent(simpleNote.content);
+                                    setRevisedContent(simpleNote.revised_content || simpleNote.content);
+                                    setHasUnsavedChanges(false);
+                                    savedNotes.current.set(linkedNote.note.id, linkedNote);
+                                  } catch (error) {
+                                    console.error("Failed to load linked note:", error);
+                                  }
+                                }}
+                              />
+                            </div>
+
+                            <div className="h-full">
+                              <RelatedNotes
+                                noteId={selectedNote.id}
+                                onSelectNote={async (noteId) => {
+                                  try {
+                                    const linkedNote = await api.getNote(noteId);
+                                    const simpleNote = {
+                                      id: linkedNote.note.id,
+                                      title: linkedNote.original.content.split('\n')[0].substring(0, 50) || "Untitled",
+                                      content: linkedNote.original.content,
+                                      revised_content: linkedNote.revised ? linkedNote.revised.content : null,
+                                      createdAt: linkedNote.note.created_at_utc,
+                                      updatedAt: linkedNote.note.updated_at_utc,
+                                      tags: linkedNote.tags,
+                                      starred: linkedNote.note.starred || false,
+                                      archived: linkedNote.note.archived || false,
+                                      revised_model: linkedNote.revised ? linkedNote.revised.model : null
+                                    };
+
+                                    setNotes(prev => {
+                                      const exists = prev.find(n => n.id === simpleNote.id);
+                                      if (!exists) {
+                                        return [...prev, simpleNote];
+                                      }
+                                      return prev;
+                                    });
+
+                                    setSelectedNote(simpleNote);
+                                    setNoteContent(simpleNote.content);
+                                    setRevisedContent(simpleNote.revised_content || simpleNote.content);
+                                    setHasUnsavedChanges(false);
+                                    savedNotes.current.set(linkedNote.note.id, linkedNote);
+                                  } catch (error) {
+                                    console.error("Failed to load linked note:", error);
+                                  }
+                                }}
+                              />
+                            </div>
+                          </div>
+                        </TabsContent>
+
+                        <TabsContent value="attachments">
+                          <Card>
+                            <CardHeader>
+                              <CardTitle className="flex items-center gap-2">
+                                <Paperclip className="h-5 w-5" />
+                                Note Attachments
+                              </CardTitle>
+                              <CardDescription>
+                                Review, upload, download, and manage files attached to this note
+                              </CardDescription>
+                            </CardHeader>
+                            <CardContent className="p-0">
+                              <AttachmentsPanel
+                                noteId={selectedNote.id}
+                                className="h-[620px]"
+                              />
+                            </CardContent>
+                          </Card>
+                        </TabsContent>
+                      </Tabs>
+                      );
+                      })()}
+                    </div>
+                  ) : (
+                    <Card className="h-full">
+                      <CardHeader>
+                        <CardTitle>Notes Workspace</CardTitle>
+                        <CardDescription>Select a note from the navigator to begin.</CardDescription>
+                      </CardHeader>
+                      <CardContent className="text-sm text-muted-foreground">
+                        Use filters and grouping on the right panel to find notes quickly.
+                      </CardContent>
+                    </Card>
+                  )}
+                </div>
+
+                <div
+                  className={`shrink-0 rounded-lg border bg-card transition-all duration-200 lg:h-[calc(100vh-11rem)] ${
+                    notesNavigatorExpanded
+                      ? "block w-full lg:w-[360px] xl:w-[420px]"
+                      : "hidden lg:block lg:w-12"
+                  }`}
+                >
+                  <div className="flex items-center justify-between border-b p-2">
+                    {notesNavigatorExpanded && (
+                      <div className="flex items-center gap-2 text-sm font-medium">
+                        <BookOpen className="h-4 w-4" />
+                        <span>Notes Navigator</span>
+                      </div>
+                    )}
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-7 w-7"
+                      onClick={() => setNotesNavigatorExpanded(prev => !prev)}
+                    >
+                      <ChevronRight className={`h-4 w-4 transition-transform ${notesNavigatorExpanded ? "rotate-180" : ""}`} />
+                    </Button>
+                  </div>
+
+                  {notesNavigatorExpanded && (
+                    <>
+                      <div className="space-y-2 border-b p-3">
+                        <div className="flex flex-wrap items-center gap-2 text-xs">
+                          <Badge variant="outline">showing {filteredNotes.length}</Badge>
+                          <Badge variant="outline">loaded {notes.length}/{notesTotalCount}</Badge>
+                          {quickAccessFilter !== "all" && (
+                            <Badge variant="outline">{quickAccessFilter}</Badge>
+                          )}
+                          {selectedTags.size > 0 && (
+                            <Badge variant="secondary">
+                              {selectedTags.size} tag{selectedTags.size > 1 ? "s" : ""}
+                            </Badge>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-1">
+                          {quickAccessFilter !== "all" && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="h-7 text-xs"
+                              onClick={() => setQuickAccessFilter("all")}
+                            >
+                              Clear Filter
+                            </Button>
+                          )}
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="outline" size="sm" className="h-7 text-xs">
+                                Sort
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem onClick={() => { setSortBy("created"); setSortOrder("desc"); }}>Newest First</DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => { setSortBy("created"); setSortOrder("asc"); }}>Oldest First</DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => { setSortBy("updated"); setSortOrder("desc"); }}>Recently Updated</DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => { setSortBy("updated"); setSortOrder("asc"); }}>Least Recently Updated</DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => { setSortBy("title"); setSortOrder("asc"); }}>Title A-Z</DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => { setSortBy("title"); setSortOrder("desc"); }}>Title Z-A</DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="outline" size="sm" className="h-7 text-xs">
+                                Group
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem onClick={() => setGroupBy("none")}>No Grouping</DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => setGroupBy("category")}>By Category</DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => setGroupBy("topic")}>By Topic</DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </div>
+                      </div>
+
+                      <ScrollArea className="max-h-[60vh] overflow-y-auto lg:h-[calc(100%-116px)] lg:max-h-none" onScrollCapture={handleNotesListScroll}>
+                        <div className="space-y-1 p-2">
+                          {filteredNotes.length === 0 ? (
+                            <div className="p-4 text-center text-sm text-muted-foreground">
+                              {isLoading ? "Loading notes..." : "No notes match the current filters."}
+                            </div>
+                          ) : (
+                            Object.entries(groupedNotes()).map(([groupName, groupNotes]) => (
+                              <div key={groupName || "all"} className="space-y-1">
+                                {groupName && (
+                                  <button
+                                    className="flex w-full items-center gap-1 rounded px-2 py-1 text-xs text-muted-foreground hover:bg-accent/50"
+                                    onClick={() => toggleGroupExpansion(groupName)}
+                                  >
+                                    {expandedGroups.has(groupName) ? (
+                                      <ChevronDown className="h-3 w-3" />
+                                    ) : (
+                                      <ChevronRight className="h-3 w-3" />
+                                    )}
+                                    <Folder className="h-3 w-3" />
+                                    <span className="font-medium">{groupName}</span>
+                                    <span className="ml-auto">({groupNotes.length})</span>
+                                  </button>
+                                )}
+                                {(!groupName || expandedGroups.has(groupName)) && groupNotes.map((note) => (
+                                  <NoteContextMenu
+                                    key={note.id}
+                                    noteId={note.id}
+                                    isArchived={note.archived}
+                                    isStarred={note.starred}
+                                    onEdit={() => handleEditNote(note.id)}
+                                    onViewMetadata={() => handleViewMetadata(note.id)}
+                                    onRegenerate={() => handleRegenerateAI(note.id)}
+                                    onDelete={() => handleDeleteNote(note.id)}
+                                    onArchive={() => handleArchiveNote(note.id)}
+                                    onToggleStar={() => toggleStar(note.id)}
+                                  >
+                                    <button
+                                      className={`flex w-full items-center gap-2 rounded px-2 py-2 text-left text-sm transition-colors hover:bg-accent ${
+                                        selectedNote?.id === note.id ? "bg-primary/10" : ""
+                                      }`}
+                                      onClick={() => {
+                                        void selectNoteFromNavigator(note);
+                                      }}
+                                    >
+                                      {processingNotes.has(note.id) && !note.revised_content ? (
+                                        <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                                      ) : (
+                                        <BookOpen className="h-4 w-4 shrink-0" />
+                                      )}
+                                      <span className="flex-1 truncate">
+                                        {titleAnimations.has(note.id) && titleAnimations.get(note.id)?.isAnimating ? (
+                                          <TypingAnimation
+                                            oldText={titleAnimations.get(note.id)!.oldTitle}
+                                            newText={titleAnimations.get(note.id)!.newTitle}
+                                            onComplete={() => {
+                                              setTitleAnimations(prev => {
+                                                const newMap = new Map(prev);
+                                                newMap.delete(note.id);
+                                                return newMap;
+                                              });
+                                            }}
+                                            speed="fast"
+                                            className="text-card-foreground"
+                                          />
+                                        ) : (
+                                          note.title
+                                        )}
+                                      </span>
+                                      {note.starred && <Star className="h-3 w-3 fill-yellow-500 text-yellow-500" />}
+                                    </button>
+                                  </NoteContextMenu>
+                                ))}
+                              </div>
+                            ))
+                          )}
+                          {isLoadingMoreNotes && (
+                            <div className="px-2 py-2 text-xs text-muted-foreground flex items-center gap-2">
+                              <Loader2 className="h-3 w-3 animate-spin" />
+                              Loading more notes...
+                            </div>
+                          )}
+                        </div>
+                      </ScrollArea>
+                    </>
+                  )}
+                </div>
+              </div>
+            ) : null}
           </main>
         </div>
       </div>
