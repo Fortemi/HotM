@@ -5,6 +5,8 @@ export type RealtimeEventType =
   | 'JobProgress'
   | 'JobCompleted'
   | 'JobFailed'
+  | 'JobsPaused'
+  | 'JobsResumed'
   | 'NoteUpdated'
   | 'NoteCreated'
   | 'NoteDeleted'
@@ -39,6 +41,7 @@ export interface RealtimeEvent {
   has_links?: boolean;
   memory?: string;
   correlation_id?: string;
+  scope?: string;
 }
 
 type RealtimeEventHandler = (event: RealtimeEvent) => void;
@@ -54,6 +57,8 @@ const SUPPORTED_TYPES = new Set<RealtimeEventType>([
   'JobProgress',
   'JobCompleted',
   'JobFailed',
+  'JobsPaused',
+  'JobsResumed',
   'NoteUpdated',
   'NoteCreated',
   'NoteDeleted',
@@ -160,6 +165,7 @@ export function normalizeTransportEvent(input: unknown): RealtimeEvent {
     has_links: getBooleanField(normalizedInput, 'has_links'),
     memory: getStringField(normalizedInput, 'memory'),
     correlation_id: getStringField(normalizedInput, 'correlation_id'),
+    scope: getStringField(normalizedInput, 'scope'),
   };
 }
 

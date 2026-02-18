@@ -24,6 +24,7 @@ import { createProvenanceApi } from './provenance';
 import { createEventsClient } from './events';
 import { createWebhooksApi } from './webhooks';
 import { createArchivesApi } from './archives';
+import { createJobsApi } from './jobs';
 
 // Export core types
 export type {
@@ -186,6 +187,7 @@ export { createEventsClient } from './events';
 export type { ServerEvent, EventsClient } from './events';
 export { createWebhooksApi } from './webhooks';
 export { createArchivesApi } from './archives';
+export { createJobsApi } from './jobs';
 export type {
   Webhook,
   CreateWebhookRequest,
@@ -215,6 +217,7 @@ export type { EmbeddingsApi } from './embeddings';
 export type { LinksApi } from './links';
 export type { ProvenanceApi } from './provenance';
 export type { ArchivesApi } from './archives';
+export type { JobsApi, JobPauseState, JobPauseActionResponse, JobQueueStats } from './jobs';
 
 // Export compatibility layer
 export { api as compatApi } from './compat';
@@ -286,6 +289,7 @@ export function createApi(baseUrl?: string) {
     events: createEventsClient(url),
     webhooks: createWebhooksApi(client),
     archives: createArchivesApi(client),
+    jobs: createJobsApi(client),
 
     /**
      * Quick health check endpoint (legacy)

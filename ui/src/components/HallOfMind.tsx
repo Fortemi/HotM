@@ -114,6 +114,7 @@ import { ArchiveManager } from "./archives/ArchiveManager";
 import { TagManager } from "./tags";
 import { AdvancedSearchFilters } from "./search";
 import { useWebSocket } from "@/services/websocket";
+import { JobManagementPanel } from "./JobManagementPanel";
 
 type AppView =
   | "notes"
@@ -2921,6 +2922,8 @@ export function HallOfMind() {
                       </CardContent>
                     </Card>
                   </div>
+
+                  <JobManagementPanel archives={availableMemories} />
 
                   <Card>
                     <CardHeader>

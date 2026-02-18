@@ -29,6 +29,7 @@ interface EventsClientOptions {
 export const DEFAULT_SSE_EVENT_TYPES = [
   'JobStarted', 'JobProgress', 'JobCompleted', 'JobFailed',
   'JobQueued', 'NoteUpdated', 'NoteCreated', 'NoteDeleted',
+  'JobsPaused', 'JobsResumed',
   'QueueStatus',
 ] as const;
 
