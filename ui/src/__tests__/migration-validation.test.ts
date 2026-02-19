@@ -14,8 +14,8 @@ import { readFileSync, readdirSync, statSync } from 'fs';
 import { join, relative } from 'path';
 
 describe('Migration Validation', () => {
-  describe('No Tauri Dependencies', () => {
-    it('should not have @tauri-apps/api imports in production code', () => {
+  describe('Tauri Isolation', () => {
+    it('should only have @tauri-apps/api imports in dedicated Tauri files', () => {
       const srcDir = join(__dirname, '..');
       const violations: string[] = [];
 
@@ -40,9 +40,14 @@ describe('Migration Validation', () => {
           if (stat.isDirectory()) {
             scanDirectory(fullPath);
           } else if (fullPath.match(/\.(ts|tsx|js|jsx)$/)) {
+            // Skip dedicated Tauri integration files
+            const relPath = relative(srcDir, fullPath);
+            if (relPath.includes('tauri') || relPath.includes('use-tauri')) {
+              continue;
+            }
             const content = readFileSync(fullPath, 'utf-8');
             if (content.includes('@tauri-apps/api')) {
-              violations.push(relative(srcDir, fullPath));
+              violations.push(relPath);
             }
           }
         }
@@ -180,14 +185,18 @@ describe('Migration Validation', () => {
   });
 
   describe('Build Validation', () => {
-    it('package.json should not have Tauri dependencies in production', () => {
+    it('package.json should have @tauri-apps/api in dependencies and @tauri-apps/cli in devDependencies', () => {
       const packageJsonPath = join(__dirname, '../../package.json');
       const packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf-8'));
 
       const dependencies = packageJson.dependencies || {};
+      const devDependencies = packageJson.devDependencies || {};
 
-      // Allow Tauri in devDependencies only
-      expect(dependencies['@tauri-apps/api']).toBeUndefined();
+      // @tauri-apps/api is a runtime dependency (used for IPC in desktop mode)
+      expect(dependencies['@tauri-apps/api']).toBeDefined();
+      // @tauri-apps/cli is a dev dependency (build tooling only)
+      expect(devDependencies['@tauri-apps/cli']).toBeDefined();
+      // CLI should NOT be in production dependencies
       expect(dependencies['@tauri-apps/cli']).toBeUndefined();
     });
 
@@ -248,7 +257,7 @@ describe('Migration Validation', () => {
       expect(foundEnvUsage).toBe(true);
     });
 
-    it('should not use Tauri-specific environment variables', () => {
+    it('should only use Tauri-specific environment variables in dedicated Tauri files', () => {
       const srcDir = join(__dirname, '..');
       const violations: string[] = [];
 
@@ -271,9 +280,14 @@ describe('Migration Validation', () => {
           if (stat.isDirectory()) {
             scanDirectory(fullPath);
           } else if (fullPath.match(/\.(ts|tsx|js|jsx)$/)) {
+            // Skip dedicated Tauri integration files and type declarations
+            const relPath = relative(srcDir, fullPath);
+            if (relPath.includes('tauri') || relPath.includes('use-tauri') || relPath.endsWith('.d.ts')) {
+              continue;
+            }
             const content = readFileSync(fullPath, 'utf-8');
             if (content.includes('TAURI_')) {
-              violations.push(relative(srcDir, fullPath));
+              violations.push(relPath);
             }
           }
         }
@@ -330,7 +344,7 @@ describe('Migration Validation', () => {
       expect(hallOfMind).not.toContain('@tauri-apps');
     });
 
-    it('should use standard React patterns (no Tauri-specific hooks)', () => {
+    it('should isolate Tauri hooks to dedicated tauri files', () => {
       const srcDir = join(__dirname, '..');
       const violations: string[] = [];
 
@@ -353,10 +367,15 @@ describe('Migration Validation', () => {
           if (stat.isDirectory()) {
             scanDirectory(fullPath);
           } else if (fullPath.endsWith('.tsx') || fullPath.endsWith('.ts')) {
+            // Skip dedicated Tauri integration files
+            const relPath = relative(srcDir, fullPath);
+            if (relPath.includes('tauri') || relPath.includes('use-tauri')) {
+              continue;
+            }
             const content = readFileSync(fullPath, 'utf-8');
-            // Check for Tauri-specific hooks
+            // Check for Tauri-specific hooks in non-Tauri files
             if (content.match(/use\w*Tauri/i)) {
-              violations.push(relative(srcDir, fullPath));
+              violations.push(relPath);
             }
           }
         }

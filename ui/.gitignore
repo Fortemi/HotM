@@ -28,3 +28,6 @@ blob-report
 
 # PlantUML JAR (downloaded during build)
 src-tauri/resources/plantuml.jar
+
+# Tauri build artifacts
+src-tauri/target/

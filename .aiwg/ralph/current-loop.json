@@ -1,52 +1,55 @@
 {
-  "task": "Complete UI redesign for HotM/Fortemi with full AIWG lifecycle",
-  "completion_criteria": "UI redesign complete: all AIWG phases documented, flow gates passed, issues tracked in Gitea, Construction phase delivers production-ready interface with full Fortemi capabilities",
-  "max_iterations": 10,
-  "current_iteration": 8,
+  "task": "Re-add Tauri wrapper/launcher with dual build modes and cross-platform installers",
+  "completion_criteria": "Tauri app builds, runs, launches on Ubuntu; CI configs ready for Windows/Mac platform builds; new tests covering Tauri code at ~70% coverage",
+  "max_iterations": 50,
+  "current_iteration": 5,
   "status": "complete",
-  "started_at": "2026-02-05T06:50:00Z",
-  "completed_at": "2026-02-05T21:23:00Z",
+  "started_at": "2026-02-19T06:30:00Z",
+  "completed_at": "2026-02-19T06:52:00Z",
   "current_phase": "construction",
-  "current_task": "All UI features complete - Construction phase done",
+  "current_task": "All Tauri integration complete",
   "phases": {
-    "inception": "passed",
-    "elaboration": "passed",
+    "research": "complete",
+    "planning": "complete",
+    "issues": "complete",
     "construction": "complete"
   },
-  "gitea_issues_closed": [9, 10, 11, 12, 13, 14, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26],
-  "gitea_issues_open": [1, 2, 3, 4, 5, 6, 7, 8, 15],
-  "gitea_issues_open_notes": "Remaining issues are API-side (Fortemi backend) or branding - not UI component work",
-  "flow_gates_passed": ["LOM", "ABM"],
-  "construction_components_built": [
-    "src/components/collections/CollectionsManager.tsx",
-    "src/components/graph/GraphExplorer.tsx",
-    "src/components/timeline/TimelineView.tsx",
-    "src/components/admin/AdminPanel.tsx",
-    "src/components/tags/TagManager.tsx",
-    "src/components/search/AdvancedSearchFilters.tsx"
-  ],
-  "construction_components_integrated": [
-    "CollectionsManager", "KnowledgeHealthDashboard", "MemorySearch",
-    "GraphExplorer", "TemplateManager", "AdminPanel", "TimelineView",
-    "AttachmentsPanel", "ConceptBrowser", "VersionHistory", "BackupManager",
-    "TagManager", "AdvancedSearchFilters"
-  ],
-  "artifacts_created": [
-    ".aiwg/inception/ui-redesign-vision.md",
-    ".aiwg/inception/ui-redesign-requirements.md",
-    ".aiwg/issues/ISSUES.md",
-    ".aiwg/gates/ui-redesign-lom-validation.md",
-    ".aiwg/elaboration/api-endpoint-verification.md",
-    ".aiwg/elaboration/wireframes/p1-wireframes.md",
-    ".aiwg/elaboration/responsive-design-spec.md",
-    ".aiwg/risks/ui-redesign-risk-register.md",
-    ".aiwg/testing/ui-redesign-performance-strategy.md",
-    ".aiwg/gates/ui-redesign-abm-validation.md"
-  ],
+  "gitea_issues_created": [54, 55, 56, 57, 58, 59, 60, 61],
   "verification": {
     "typescript": "npx tsc --noEmit exits 0",
-    "tests": "427 pass, 7 pre-existing failures (MarkdownPreview table rendering)",
-    "sidebar_views": 14,
-    "total_feature_components": 13
-  }
+    "tests": "514 pass (37 files), 0 failures",
+    "tauri_coverage": "100% on lib/tauri.ts and hooks/use-tauri.ts",
+    "spa_build": "npm run build succeeds (standalone SPA)",
+    "tauri_build": "npm run tauri build succeeds",
+    "bundles_produced": [
+      "HotM_2026.2.0_amd64.deb (6.0MB)",
+      "HotM-2026.2.0-1.x86_64.rpm (6.0MB)",
+      "HotM_2026.2.0_amd64.AppImage (82MB)"
+    ],
+    "binary": "ELF 64-bit LSB, x86-64, stripped"
+  },
+  "files_created": [
+    "ui/src-tauri/tauri.conf.json",
+    "ui/src-tauri/Cargo.toml",
+    "ui/src-tauri/build.rs",
+    "ui/src-tauri/capabilities/default.json",
+    "ui/src-tauri/src/lib.rs",
+    "ui/src-tauri/src/main.rs",
+    "ui/src-tauri/src/plantuml.rs",
+    "ui/src-tauri/icons/ (19 files recovered)",
+    "ui/src/lib/tauri.ts",
+    "ui/src/hooks/use-tauri.ts",
+    "ui/src/lib/__tests__/tauri.test.ts",
+    "ui/src/hooks/__tests__/use-tauri.test.ts",
+    ".github/workflows/tauri-build.yml",
+    ".aiwg/planning/tauri-integration-plan.md"
+  ],
+  "files_modified": [
+    "ui/vite.config.ts",
+    "ui/package.json",
+    "ui/.gitignore",
+    "ui/index.html",
+    "ui/src/vite-env.d.ts",
+    "ui/src/__tests__/migration-validation.test.ts"
+  ]
 }

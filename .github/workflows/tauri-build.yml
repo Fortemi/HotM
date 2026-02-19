@@ -1,0 +1,84 @@
+name: Tauri Desktop Build
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'ui/src-tauri/**'
+      - 'ui/src/**'
+      - 'ui/package.json'
+      - 'ui/package-lock.json'
+      - '.github/workflows/tauri-build.yml'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'ui/src-tauri/**'
+      - 'ui/src/**'
+      - 'ui/package.json'
+      - '.github/workflows/tauri-build.yml'
+  workflow_dispatch:
+
+jobs:
+  build-tauri:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+          - platform: windows-latest
+            target: x86_64-pc-windows-msvc
+          - platform: macos-latest
+            target: aarch64-apple-darwin
+
+    runs-on: ${{ matrix.platform }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: ui/package-lock.json
+
+      - name: Install Rust stable
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - name: Rust cache
+        uses: swatinem/rust-cache@v2
+        with:
+          workspaces: ui/src-tauri -> target
+
+      - name: Install Linux dependencies
+        if: matrix.platform == 'ubuntu-latest'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libgtk-3-dev \
+            libsoup-3.0-dev libjavascriptcoregtk-4.1-dev librsvg2-dev patchelf
+
+      - name: Install frontend dependencies
+        working-directory: ui
+        run: npm ci
+
+      - name: Build Tauri app
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          projectPath: ui
+          tauriScript: npm run tauri
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: tauri-${{ matrix.platform }}
+          path: |
+            ui/src-tauri/target/release/bundle/**/*.deb
+            ui/src-tauri/target/release/bundle/**/*.AppImage
+            ui/src-tauri/target/release/bundle/**/*.dmg
+            ui/src-tauri/target/release/bundle/**/*.exe
+            ui/src-tauri/target/release/bundle/**/*.msi
+          if-no-files-found: warn
