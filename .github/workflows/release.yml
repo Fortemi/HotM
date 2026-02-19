@@ -188,22 +188,12 @@ jobs:
           push_with_retry "${IMAGE}:latest"
           push_with_retry "${IMAGE}:sha-${SHORT_SHA}"
 
-  # ─── Build: Tauri desktop installers (3-platform matrix) ────────────
+  # ─── Build: Tauri desktop installer (Linux) ──────────────────────────
+  # Cross-platform builds (Windows/macOS) via tauri-build-cross.yml on-demand
   build-tauri:
-    name: Build Tauri (${{ matrix.platform }})
+    name: Build Tauri (Linux)
     needs: quality-gate
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - platform: ubuntu-latest
-            target: x86_64-unknown-linux-gnu
-          - platform: windows-latest
-            target: x86_64-pc-windows-msvc
-          - platform: macos-latest
-            target: aarch64-apple-darwin
-
-    runs-on: ${{ matrix.platform }}
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
@@ -217,7 +207,7 @@ jobs:
       - name: Install Rust stable
         uses: dtolnay/rust-toolchain@stable
         with:
-          targets: ${{ matrix.target }}
+          targets: x86_64-unknown-linux-gnu
 
       - name: Rust cache
         uses: swatinem/rust-cache@v2
@@ -225,7 +215,6 @@ jobs:
           workspaces: ui/src-tauri -> target
 
       - name: Install Linux dependencies
-        if: matrix.platform == 'ubuntu-latest'
         run: |
           sudo apt-get update
           sudo apt-get install -y libwebkit2gtk-4.1-dev libgtk-3-dev \
@@ -248,13 +237,10 @@ jobs:
       - name: Upload artifacts
         uses: actions/upload-artifact@v3
         with:
-          name: tauri-${{ matrix.platform }}
+          name: tauri-linux
           path: |
             ui/src-tauri/target/release/bundle/**/*.deb
             ui/src-tauri/target/release/bundle/**/*.AppImage
-            ui/src-tauri/target/release/bundle/**/*.dmg
-            ui/src-tauri/target/release/bundle/**/*.exe
-            ui/src-tauri/target/release/bundle/**/*.msi
           if-no-files-found: warn
 
   # ─── Release: collect all artifacts → GitHub Release ────────────────
@@ -293,35 +279,16 @@ jobs:
 
       - name: Download Tauri Linux artifacts
         uses: actions/download-artifact@v3
-        continue-on-error: true
         with:
-          name: tauri-ubuntu-latest
+          name: tauri-linux
           path: release-assets/tauri-linux
 
-      - name: Download Tauri Windows artifacts
-        uses: actions/download-artifact@v3
-        continue-on-error: true
-        with:
-          name: tauri-windows-latest
-          path: release-assets/tauri-windows
-
-      - name: Download Tauri macOS artifacts
-        uses: actions/download-artifact@v3
-        continue-on-error: true
-        with:
-          name: tauri-macos-latest
-          path: release-assets/tauri-macos
-
-      - name: Flatten Tauri artifacts
+      - name: Flatten release artifacts
         run: |
           set -euo pipefail
           mkdir -p release-assets/flat
-          # Move SPA tarball
           mv release-assets/hotm-spa.tar.gz release-assets/flat/ 2>/dev/null || true
-          # Flatten nested Tauri bundles into a single directory
           find release-assets/tauri-linux -type f \( -name '*.deb' -o -name '*.AppImage' \) -exec mv {} release-assets/flat/ \; 2>/dev/null || true
-          find release-assets/tauri-windows -type f \( -name '*.exe' -o -name '*.msi' \) -exec mv {} release-assets/flat/ \; 2>/dev/null || true
-          find release-assets/tauri-macos -type f -name '*.dmg' -exec mv {} release-assets/flat/ \; 2>/dev/null || true
           echo "Release assets:"
           ls -lh release-assets/flat/
 
@@ -344,13 +311,12 @@ jobs:
             | GHCR (public) | `docker pull ghcr.io/${{ github.repository_owner }}/hotm-ui:${{ env.VERSION }}` |
             | Gitea (internal) | `docker pull git.integrolabs.net/${{ github.repository_owner }}/hotm-ui:${{ env.VERSION }}` |
 
-            ### Desktop Installers
+            ### Desktop Installer (Linux)
 
-            | Platform | Format |
-            |----------|--------|
-            | Linux | `.deb`, `.AppImage` |
-            | Windows | `.exe`, `.msi` |
-            | macOS | `.dmg` |
+            | Format | Description |
+            |--------|-------------|
+            | `.deb` | Debian/Ubuntu package |
+            | `.AppImage` | Portable Linux binary |
 
             ### SPA Bundle
 
@@ -359,7 +325,7 @@ jobs:
             ### System Requirements
 
             - **Web**: Modern browser (Chrome, Firefox, Edge, Safari) + network access to Fortemi API
-            - **Desktop**: 64-bit OS — Linux (Ubuntu 22.04+), Windows 10+, macOS 12+
+            - **Desktop**: Linux x86_64 (Ubuntu 22.04+, or any distro via AppImage)
             - **Docker**: Any host running Docker Engine 20+
 
             ### Links
