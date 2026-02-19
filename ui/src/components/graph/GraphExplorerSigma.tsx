@@ -198,6 +198,7 @@ export function GraphExplorer({ className, initialNoteId, onNoteSelect }: GraphE
     const nodeId = selectionHistoryRef.current[selectionCursorRef.current];
     setSelectedGraphNodeId(nodeId);
     setVisualRootId(nodeId);
+    setRootNoteId(nodeId);
   }, []);
 
   const goForward = React.useCallback(() => {
@@ -207,6 +208,7 @@ export function GraphExplorer({ className, initialNoteId, onNoteSelect }: GraphE
     const nodeId = selectionHistoryRef.current[selectionCursorRef.current];
     setSelectedGraphNodeId(nodeId);
     setVisualRootId(nodeId);
+    setRootNoteId(nodeId);
   }, []);
 
   // Restore persisted filter state
@@ -837,6 +839,7 @@ export function GraphExplorer({ className, initialNoteId, onNoteSelect }: GraphE
           setSelectedGraphNodeId(node);
           setSelectedEdgeKey(null);
           setVisualRootId(node);
+          setRootNoteId(node);
           pushSelection(node);
         });
         renderer.on('doubleClickNode', ({ node, preventSigmaDefault }) => {
