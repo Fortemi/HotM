@@ -1230,6 +1230,7 @@ export function GraphExplorer({ className, initialNoteId, onNoteSelect }: GraphE
         <Button
           variant="ghost" size="sm" className="h-7 text-xs"
           onClick={() => {
+            // Reset all filters
             setSelectedTags([]);
             setSelectedConcepts([]);
             setArchiveFilter('all');
@@ -1239,6 +1240,26 @@ export function GraphExplorer({ className, initialNoteId, onNoteSelect }: GraphE
             setCommunityOverlay(true);
             setShowBridgesOnly(false);
             setHighlightedCommunity(null);
+            // Reset graph parameters to defaults
+            setDepth(2);
+            setMaxNodes(100);
+            setMinScore(0.0);
+            setMaxEdgesPerNode(0);
+            // Reset view mode
+            setViewMode('nodes');
+            setFocusedCommunity(null);
+            setZoomLevel(2);
+            // Reset selection and navigation
+            setSelectedGraphNodeId(null);
+            setSelectedEdgeKey(null);
+            setVisualRootId(initialNoteId);
+            setRootNoteId(initialNoteId);
+            // Reset navigation history
+            selectionHistoryRef.current = initialNoteId ? [initialNoteId] : [];
+            selectionCursorRef.current = 0;
+            setHistoryCursor(0);
+            // Clear persisted filter state
+            try { sessionStorage.removeItem(FILTER_STATE_KEY); } catch { /* no-op */ }
           }}
         >
           Clear
