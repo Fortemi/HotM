@@ -60,6 +60,40 @@ interface PersistedFilterState {
   maxEdgesPerNode: number;
 }
 
+/**
+ * Custom label renderer that draws a dark semi-transparent background pill behind text.
+ */
+function drawLabelWithBackground(
+  context: CanvasRenderingContext2D,
+  data: { x: number; y: number; size: number; label: string | null; color: string },
+  settings: { labelSize: number; labelFont: string; labelWeight: string },
+): void {
+  if (!data.label) return;
+
+  const size = settings.labelSize;
+  const font = settings.labelFont;
+  const weight = settings.labelWeight;
+
+  context.font = `${weight} ${size}px ${font}`;
+  const textWidth = context.measureText(data.label).width;
+
+  const PADDING_X = 4;
+  const PADDING_Y = 2;
+  const bgX = data.x + data.size + 3 - PADDING_X;
+  const bgY = data.y - size / 2 - PADDING_Y;
+  const bgW = textWidth + PADDING_X * 2;
+  const bgH = size + PADDING_Y * 2;
+  const radius = 3;
+
+  context.fillStyle = 'rgba(15, 23, 42, 0.85)';
+  context.beginPath();
+  context.roundRect(bgX, bgY, bgW, bgH, radius);
+  context.fill();
+
+  context.fillStyle = '#e2e8f0';
+  context.fillText(data.label, data.x + data.size + 3, data.y + size / 3);
+}
+
 function getCollectionColor(collectionId: string | undefined, collections: Collection[]): string {
   if (!collectionId) return '#6b7280';
   const index = collections.findIndex((c) => c.id === collectionId);
@@ -627,6 +661,8 @@ export function GraphExplorer({ className, initialNoteId, onNoteSelect }: GraphE
           labelGridCellSize: 100,
           labelRenderedSizeThreshold: 6,
           labelColor: { color: '#e2e8f0' },
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          defaultDrawNodeLabel: drawLabelWithBackground as any,
           minCameraRatio: 0.02,
           maxCameraRatio: 10,
           defaultEdgeType: 'line',
@@ -741,8 +777,17 @@ export function GraphExplorer({ className, initialNoteId, onNoteSelect }: GraphE
             setFocusedCommunity(cid);
             return;
           }
+          // Single click: re-center graph from this node
           setSelectedGraphNodeId(node);
           setSelectedEdgeKey(null);
+          setRootNoteId(node);
+        });
+        renderer.on('doubleClickNode', ({ node, preventSigmaDefault }) => {
+          // Double click: open the note (prevent default zoom)
+          preventSigmaDefault();
+          if (!node.startsWith('community:') && onNoteSelect) {
+            onNoteSelect(node);
+          }
         });
         renderer.on('clickEdge', ({ edge }) => {
           setSelectedEdgeKey(edge);
@@ -1228,11 +1273,36 @@ export function GraphExplorer({ className, initialNoteId, onNoteSelect }: GraphE
               </div>
             )}
             {hoveredNode && !loading && !error && (
-              <div className="pointer-events-none absolute left-3 top-3 z-10 max-w-[70%] rounded border border-border bg-background/90 px-2 py-1 text-xs font-medium shadow-sm">
-                {hoveredNode.title}
+              <div className="pointer-events-none absolute left-3 top-3 z-10 max-w-[280px] rounded border border-border bg-background/95 px-3 py-2 shadow-md space-y-1">
+                <div className="text-xs font-semibold truncate">{hoveredNode.title}</div>
                 {hoveredNode.community_label && (
-                  <span className="ml-2 text-muted-foreground">({hoveredNode.community_label})</span>
+                  <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
+                    <span
+                      className="inline-block h-2 w-2 rounded-full shrink-0"
+                      style={{ backgroundColor: getCommunityColor(hoveredNode.community_id ?? 0) }}
+                    />
+                    {hoveredNode.community_label}
+                  </div>
                 )}
+                {hoveredNode.tags.length > 0 && (
+                  <div className="flex flex-wrap gap-1">
+                    {hoveredNode.tags.slice(0, 5).map((tag) => (
+                      <span key={tag} className="rounded bg-muted px-1 py-0 text-[10px] text-muted-foreground">{tag}</span>
+                    ))}
+                    {hoveredNode.tags.length > 5 && (
+                      <span className="text-[10px] text-muted-foreground">+{hoveredNode.tags.length - 5}</span>
+                    )}
+                  </div>
+                )}
+                {hoveredNode.concepts.length > 0 && (
+                  <div className="text-[10px] text-muted-foreground truncate">
+                    {hoveredNode.concepts.slice(0, 3).join(', ')}
+                    {hoveredNode.concepts.length > 3 && ` +${hoveredNode.concepts.length - 3}`}
+                  </div>
+                )}
+                <div className="text-[10px] text-muted-foreground/60">
+                  Click to explore &middot; Double-click to open
+                </div>
               </div>
             )}
             {!loading && graphData.nodes.length === 0 && (
@@ -1339,13 +1409,6 @@ export function GraphExplorer({ className, initialNoteId, onNoteSelect }: GraphE
                     onClick={() => onNoteSelect?.(selectedNode.id)}
                   >
                     Open Note
-                  </Button>
-                  <Button
-                    size="sm" variant="outline" className="h-7 text-xs"
-                    onClick={() => { markOperation('refresh'); setRootNoteId(selectedNode.id); }}
-                    disabled={selectedNode.id === rootNoteId}
-                  >
-                    Explore From Here
                   </Button>
                 </div>
                 {/* Edge list */}
