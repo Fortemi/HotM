@@ -155,8 +155,8 @@ describe('Migration Validation', () => {
       // Should export createApi function
       expect(apiIndex).toContain('export function createApi');
 
-      // Should export api instance
-      expect(apiIndex).toContain('export const api');
+      // Should export api instance (let — mutable for Tauri config reinit)
+      expect(apiIndex).toContain('export let api');
 
       // Should export client types (can be either individual or grouped exports)
       expect(apiIndex).toContain('export type Api');

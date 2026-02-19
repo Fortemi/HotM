@@ -3,6 +3,7 @@
  * Main entry point for all API operations
  */
 
+import { getCachedConfig } from '@/lib/tauri';
 import { createApiClient } from './client';
 import { createNotesApi } from './notes';
 import { createSearchApi } from './search';
@@ -223,15 +224,26 @@ export type { JobsApi, JobPauseState, JobPauseActionResponse, JobQueueStats } fr
 export { api as compatApi } from './compat';
 
 /**
- * Get API base URL from environment or use default
+ * Get API base URL from environment or use default.
+ *
+ * Priority:
+ * 1. Tauri runtime config (~/.config/com.hotm.app/config.json) — desktop only
+ * 2. VITE_API_BASE_URL env var — set at build time
+ * 3. http://localhost:3000 — development default
  */
 function getApiBaseUrl(): string {
+  // Tauri desktop config (loaded at startup, cached synchronously)
+  const tauriConfig = getCachedConfig();
+  if (tauriConfig?.api_base_url) {
+    return tauriConfig.api_base_url;
+  }
+
   // Vite environment variables
   if (import.meta.env.VITE_API_BASE_URL) {
     return import.meta.env.VITE_API_BASE_URL as string;
   }
 
-  // Default to Fortemi server port (changed from 53211 to 3000)
+  // Default to Fortemi server port
   return 'http://localhost:3000';
 }
 
@@ -334,9 +346,17 @@ export function createApi(baseUrl?: string) {
 }
 
 /**
- * Default API instance using environment configuration
+ * Default API instance using environment configuration.
+ * Mutable so it can be recreated after Tauri config loads at startup.
  */
-export const api = createApi();
+export let api = createApi();
+
+/**
+ * Recreate the default API instance (e.g. after loading Tauri runtime config).
+ */
+export function reinitializeApi(baseUrl?: string) {
+  api = createApi(baseUrl);
+}
 
 /**
  * API client type

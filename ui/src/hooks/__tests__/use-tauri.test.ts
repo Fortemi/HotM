@@ -8,6 +8,8 @@ vi.mock("@/lib/tauri", () => ({
   invokeTauri: vi.fn(async () => undefined),
   renderPlantUML: vi.fn(async () => undefined),
   ensurePlantUML: vi.fn(async () => undefined),
+  getCachedConfig: vi.fn(() => null),
+  saveAppConfig: vi.fn(async () => undefined),
 }));
 
 describe("useTauri hook", () => {

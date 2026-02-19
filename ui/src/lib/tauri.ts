@@ -25,6 +25,43 @@ export async function invokeTauri<T>(
   return invoke<T>(cmd, args);
 }
 
+// --- App Config (runtime API URL for desktop builds) ---
+
+export interface AppConfig {
+  api_base_url: string;
+}
+
+let _cachedConfig: AppConfig | null = null;
+
+/**
+ * Load app config from Tauri config file.
+ * Returns undefined when not in Tauri or if no config exists.
+ * Caches the result for synchronous access via getCachedConfig().
+ */
+export async function loadAppConfig(): Promise<AppConfig | undefined> {
+  const config = await invokeTauri<AppConfig>("get_app_config");
+  if (config) {
+    _cachedConfig = config;
+  }
+  return config;
+}
+
+/** Return the cached config loaded at startup. Null if not in Tauri or not yet loaded. */
+export function getCachedConfig(): AppConfig | null {
+  return _cachedConfig;
+}
+
+/** Save config to disk and update the cache. */
+export async function saveAppConfig(config: AppConfig): Promise<void> {
+  await invokeTauri("save_app_config", { config });
+  _cachedConfig = config;
+}
+
+/** Reset cached config (for testing). */
+export function _resetConfigCache(): void {
+  _cachedConfig = null;
+}
+
 /** Render PlantUML to SVG via Tauri command. Returns undefined in web mode. */
 export async function renderPlantUML(
   code: string,

@@ -4,6 +4,9 @@ import {
   renderPlantUML,
   ensurePlantUML,
   invokeTauri,
+  getCachedConfig,
+  saveAppConfig as saveConfig,
+  type AppConfig,
 } from "@/lib/tauri";
 
 export interface UseTauriResult {
@@ -18,6 +21,10 @@ export interface UseTauriResult {
     cmd: string,
     args?: Record<string, unknown>,
   ) => Promise<T | undefined>;
+  /** Runtime app config loaded at startup. Null when not in Tauri. */
+  appConfig: AppConfig | null;
+  /** Save app config to disk and update cache. */
+  saveAppConfig: (config: AppConfig) => Promise<void>;
 }
 
 /**
@@ -44,10 +51,19 @@ export function useTauri(): UseTauriResult {
     [],
   );
 
+  const appConfig = useMemo(() => getCachedConfig(), []);
+
+  const wrappedSaveConfig = useCallback(
+    (config: AppConfig) => saveConfig(config),
+    [],
+  );
+
   return {
     isTauri: tauriDetected,
     renderPlantUML: wrappedRenderPlantUML,
     ensurePlantUML: wrappedEnsurePlantUML,
     invoke: wrappedInvoke,
+    appConfig,
+    saveAppConfig: wrappedSaveConfig,
   };
 }

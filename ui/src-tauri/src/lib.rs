@@ -3,6 +3,7 @@ use tauri::tray::TrayIconBuilder;
 use tauri::{Manager, WindowEvent};
 use tauri_plugin_global_shortcut::GlobalShortcutExt;
 
+mod config;
 mod plantuml;
 
 #[tauri::command]
@@ -15,6 +16,16 @@ async fn ensure_plantuml(app: tauri::AppHandle) -> Result<(), String> {
     plantuml::ensure_plantuml_jar(&app)
         .await
         .map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+fn get_app_config(app: tauri::AppHandle) -> config::AppConfig {
+    config::load_config(&app)
+}
+
+#[tauri::command]
+fn save_app_config(app: tauri::AppHandle, config: config::AppConfig) -> Result<(), String> {
+    config::save_config(&app, &config)
 }
 
 /// Create a fallback icon programmatically (purple gradient with brain shape)
@@ -91,7 +102,7 @@ pub fn run() {
         .plugin(tauri_plugin_shell::init())
         .plugin(tauri_plugin_notification::init())
         .plugin(shortcut_plugin)
-        .invoke_handler(tauri::generate_handler![render_plantuml, ensure_plantuml])
+        .invoke_handler(tauri::generate_handler![render_plantuml, ensure_plantuml, get_app_config, save_app_config])
         .setup(move |app| {
             // Register global shortcut: Ctrl+Alt+H
             app.global_shortcut()
