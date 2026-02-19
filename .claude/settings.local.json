@@ -51,7 +51,8 @@
       "Bash(npx tsc:*)",
       "Bash(npx vitest:*)",
       "Bash(docker compose:*)",
-      "Bash(docker ps:*)"
+      "Bash(docker ps:*)",
+      "Skill(commit-and-push)"
     ],
     "deny": [],
     "ask": []
