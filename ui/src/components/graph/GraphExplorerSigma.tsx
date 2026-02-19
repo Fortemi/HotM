@@ -770,15 +770,15 @@ export function GraphExplorer({ className, initialNoteId, onNoteSelect }: GraphE
                 res.zIndex = 1;
               }
             }
-            // Dim non-selected when a node is selected
-            if (selectedGraphNodeIdRef.current) {
-              const selId = selectedGraphNodeIdRef.current;
+            // Dim non-connected nodes when hovering
+            if (hoveredGraphNodeIdRef.current) {
+              const hovId = hoveredGraphNodeIdRef.current;
               const isConnected = graphData.edges.some(
                 (e) =>
-                  (e.source === selId && e.target === nodeId) ||
-                  (e.target === selId && e.source === nodeId)
+                  (e.source === hovId && e.target === nodeId) ||
+                  (e.target === hovId && e.source === nodeId)
               );
-              if (nodeId !== selId && !isConnected) {
+              if (nodeId !== hovId && !isConnected) {
                 res.color = '#404040';
                 res.label = '';
                 res.zIndex = 0;
@@ -818,10 +818,11 @@ export function GraphExplorer({ className, initialNoteId, onNoteSelect }: GraphE
                 }
               }
             }
-            // Selection-based hiding
-            if (selectedGraphNodeIdRef.current) {
-              if (!edgeKey.includes(selectedGraphNodeIdRef.current)) {
-                res.hidden = true;
+            // Hover-based edge dimming: dim edges not connected to hovered node
+            if (hoveredGraphNodeIdRef.current) {
+              if (!edgeKey.includes(hoveredGraphNodeIdRef.current)) {
+                res.color = 'rgba(100, 100, 100, 0.08)';
+                res.size = 0.2;
               }
             }
             return res;
