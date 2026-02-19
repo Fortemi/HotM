@@ -16,7 +16,7 @@ import {
 } from '@/components/ui/select';
 import { Slider } from '@/components/ui/slider';
 import { Input } from '@/components/ui/input';
-import { Loader2, RefreshCw, Play, Square, Info, X } from 'lucide-react';
+import { Loader2, RefreshCw, Play, Square, Info, X, ChevronLeft, ChevronRight } from 'lucide-react';
 import {
   buildCommunityMap,
   buildCommunityLabelMap,
@@ -122,6 +122,10 @@ export function GraphExplorer({ className, initialNoteId, onNoteSelect }: GraphE
   }>({});
   const [rootNoteId, setRootNoteId] = React.useState<string | undefined>(initialNoteId);
   const [visualRootId, setVisualRootId] = React.useState<string | undefined>(initialNoteId);
+  // Navigation history: tracks selected node IDs for back/forward
+  const selectionHistoryRef = React.useRef<string[]>(initialNoteId ? [initialNoteId] : []);
+  const selectionCursorRef = React.useRef(0);
+  const [historyCursor, setHistoryCursor] = React.useState(0); // triggers re-render for button state
   const [depth, setDepth] = React.useState(2);
   const [maxNodes, setMaxNodes] = React.useState(100);
   const [minScore, setMinScore] = React.useState(0.0);
@@ -153,6 +157,42 @@ export function GraphExplorer({ className, initialNoteId, onNoteSelect }: GraphE
   // Meta-graph view mode
   const [viewMode, setViewMode] = React.useState<'nodes' | 'community'>('nodes');
   const [focusedCommunity, setFocusedCommunity] = React.useState<number | null>(null);
+
+  const pushSelection = React.useCallback((nodeId: string) => {
+    const hist = selectionHistoryRef.current;
+    const cursor = selectionCursorRef.current;
+    // If we're not at the end, truncate forward history
+    if (cursor < hist.length - 1) {
+      selectionHistoryRef.current = hist.slice(0, cursor + 1);
+    }
+    // Don't push duplicates
+    if (selectionHistoryRef.current[selectionHistoryRef.current.length - 1] !== nodeId) {
+      selectionHistoryRef.current.push(nodeId);
+    }
+    selectionCursorRef.current = selectionHistoryRef.current.length - 1;
+    setHistoryCursor(selectionCursorRef.current);
+  }, []);
+
+  const canGoBack = historyCursor > 0;
+  const canGoForward = historyCursor < selectionHistoryRef.current.length - 1;
+
+  const goBack = React.useCallback(() => {
+    if (selectionCursorRef.current <= 0) return;
+    selectionCursorRef.current -= 1;
+    setHistoryCursor(selectionCursorRef.current);
+    const nodeId = selectionHistoryRef.current[selectionCursorRef.current];
+    setSelectedGraphNodeId(nodeId);
+    setVisualRootId(nodeId);
+  }, []);
+
+  const goForward = React.useCallback(() => {
+    if (selectionCursorRef.current >= selectionHistoryRef.current.length - 1) return;
+    selectionCursorRef.current += 1;
+    setHistoryCursor(selectionCursorRef.current);
+    const nodeId = selectionHistoryRef.current[selectionCursorRef.current];
+    setSelectedGraphNodeId(nodeId);
+    setVisualRootId(nodeId);
+  }, []);
 
   // Restore persisted filter state
   React.useEffect(() => {
@@ -781,6 +821,7 @@ export function GraphExplorer({ className, initialNoteId, onNoteSelect }: GraphE
           setSelectedGraphNodeId(node);
           setSelectedEdgeKey(null);
           setVisualRootId(node);
+          pushSelection(node);
         });
         renderer.on('doubleClickNode', ({ node, preventSigmaDefault }) => {
           // Double click: open the note (prevent default zoom)
@@ -1096,6 +1137,26 @@ export function GraphExplorer({ className, initialNoteId, onNoteSelect }: GraphE
           </Button>
           <Button size="sm" variant="outline" className="h-7 text-xs px-2" onClick={() => applyPreset('deep')}>
             Deep
+          </Button>
+        </div>
+
+        {/* Navigation back/forward */}
+        <div className="flex items-center gap-0.5">
+          <Button
+            variant="outline" size="sm" className="h-7 w-7 p-0"
+            onClick={goBack}
+            disabled={!canGoBack}
+            title="Go back"
+          >
+            <ChevronLeft className="h-3.5 w-3.5" />
+          </Button>
+          <Button
+            variant="outline" size="sm" className="h-7 w-7 p-0"
+            onClick={goForward}
+            disabled={!canGoForward}
+            title="Go forward"
+          >
+            <ChevronRight className="h-3.5 w-3.5" />
           </Button>
         </div>
 
