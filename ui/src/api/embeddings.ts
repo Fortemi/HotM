@@ -17,19 +17,37 @@ function toEmbeddingConfig(input: unknown): EmbeddingConfig | null {
   const item = input as Record<string, unknown>;
 
   const id = typeof item.id === 'string' ? item.id : null;
-  const name = typeof item.name === 'string' ? item.name : null;
-  const model = typeof item.model === 'string' ? item.model : null;
-  const createdAt = typeof item.created_at === 'string' ? item.created_at : null;
-  const dimensionsRaw = item.dimensions;
+  const name =
+    (typeof item.name === 'string' && item.name) ||
+    (typeof item.slug === 'string' && item.slug) ||
+    (typeof item.title === 'string' && item.title) ||
+    null;
+  const model =
+    (typeof item.model === 'string' && item.model) ||
+    (typeof item.model_name === 'string' && item.model_name) ||
+    (typeof item.model_id === 'string' && item.model_id) ||
+    null;
+  const createdAt =
+    (typeof item.created_at === 'string' && item.created_at) ||
+    (typeof item.updated_at === 'string' && item.updated_at) ||
+    new Date(0).toISOString();
+  const dimensionsRaw =
+    item.dimensions ??
+    item.embedding_dimensions ??
+    item.vector_dimensions ??
+    item.dimension_count;
   const dimensions =
     typeof dimensionsRaw === 'number'
       ? dimensionsRaw
       : typeof dimensionsRaw === 'string'
         ? Number(dimensionsRaw)
         : NaN;
-  const isDefault = item.is_default === true;
+  const isDefault =
+    item.is_default === true ||
+    item.default === true ||
+    item.active === true;
 
-  if (!id || !name || !model || !createdAt || !Number.isFinite(dimensions)) {
+  if (!id || !name || !model || !Number.isFinite(dimensions)) {
     return null;
   }
 
@@ -82,6 +100,18 @@ function parseDefaultEmbeddingConfig(input: unknown): EmbeddingConfig | null {
 }
 
 export function createEmbeddingsApi(client: ApiClient) {
+  const listConfigPaths = [
+    '/api/v1/embedding-configs',
+    '/api/v1/inference/embedding-configs',
+    '/api/v1/inference/embeddings',
+  ];
+
+  const defaultConfigPaths = [
+    '/api/v1/embedding-configs/default',
+    '/api/v1/inference/embedding-configs/default',
+    '/api/v1/inference/embeddings/default',
+  ];
+
   return {
     // ===========================
     // Embedding Sets
@@ -225,20 +255,43 @@ export function createEmbeddingsApi(client: ApiClient) {
      * List available embedding model configurations
      */
     async listConfigs(): Promise<EmbeddingConfig[]> {
-      const response = await client.get<unknown>('/api/v1/embedding-configs');
-      return parseEmbeddingConfigList(response);
+      for (const path of listConfigPaths) {
+        try {
+          const response = await client.get<unknown>(path);
+          const parsed = parseEmbeddingConfigList(response);
+          if (parsed.length > 0) {
+            return parsed;
+          }
+        } catch {
+          // try next path
+        }
+      }
+      return [];
     },
 
     /**
      * Get the default embedding configuration
      */
     async getDefaultConfig(): Promise<EmbeddingConfig> {
-      const response = await client.get<unknown>('/api/v1/embedding-configs/default');
-      const parsed = parseDefaultEmbeddingConfig(response);
-      if (!parsed) {
-        throw new Error('Invalid default embedding config response');
+      for (const path of defaultConfigPaths) {
+        try {
+          const response = await client.get<unknown>(path);
+          const parsed = parseDefaultEmbeddingConfig(response);
+          if (parsed) {
+            return parsed;
+          }
+        } catch {
+          // try next path
+        }
       }
-      return parsed;
+
+      const configs = await this.listConfigs();
+      const fallback = configs.find((cfg) => cfg.is_default) || configs[0];
+      if (fallback) {
+        return fallback;
+      }
+
+      throw new Error('Invalid default embedding config response');
     },
   };
 }

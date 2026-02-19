@@ -75,12 +75,17 @@ export function AdminPanel({ className }: AdminPanelProps) {
     setLoading(true);
     setError(null);
     try {
-      const [configs, defaultCfg] = await Promise.all([
-        api.embeddings.listConfigs(),
-        api.embeddings.getDefaultConfig(),
-      ]);
+      const configs = await api.embeddings.listConfigs();
       setEmbeddingConfigs(configs);
-      setDefaultConfig(defaultCfg);
+
+      try {
+        const defaultCfg = await api.embeddings.getDefaultConfig();
+        setDefaultConfig(defaultCfg);
+      } catch {
+        const fallback = configs.find((cfg) => cfg.is_default) || configs[0] || null;
+        setDefaultConfig(fallback);
+      }
+
     } catch (err) {
       setError('Error loading embedding configs');
       console.error('Failed to fetch embedding configs:', err);
