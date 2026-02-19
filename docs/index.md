@@ -1,7 +1,7 @@
 # HotM Documentation Index
 
 ## Overview
-HotM is a client application (React/Tauri UI) that consumes the Fortemi API.
+HotM is a React SPA that consumes the Fortemi API for note-taking, knowledge exploration, and analysis.
 
 ## Active Docs
 - `quick-start.md`
@@ -12,8 +12,12 @@ HotM is a client application (React/Tauri UI) that consumes the Fortemi API.
 - `ux/`
 - `ui/src/api/README.md` (API client usage)
 
+## Releases
+- [Changelog](../CHANGELOG.md)
+- [Release Notes](releases/)
+
 ## Architecture
-- Frontend: HotM UI (this repo)
+- Frontend: HotM UI (this repo) — React SPA
 - Backend: Fortemi API (separate repo/service)
 
 ## Scope Rules

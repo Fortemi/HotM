@@ -1,11 +1,11 @@
 # Quick Start
 
-HotM is a client application that connects to Fortemi.
+HotM is a React SPA that connects to Fortemi.
 
 ## Prerequisites
 - Node.js 20+
 - npm 10+
-- Rust toolchain (only if building/running Tauri desktop)
+- A running Fortemi API instance
 
 ## Configure API
 Create `ui/.env.local`:
