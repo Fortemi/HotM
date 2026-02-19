@@ -1617,10 +1617,13 @@ export function GraphExplorer({ className, initialNoteId, onNoteSelect }: GraphE
           </div>
         </div>
 
-        {/* Right sidebar: faceted filters */}
+        {/* Right sidebar: faceted filters — stop event propagation to prevent Sigma from capturing inputs */}
         <aside
           className="rounded-md border p-3 space-y-3 h-fit lg:sticky lg:top-2 overflow-auto max-h-[calc(100vh-12rem)]"
           onPointerDown={(e) => e.stopPropagation()}
+          onKeyDown={(e) => e.stopPropagation()}
+          onKeyUp={(e) => e.stopPropagation()}
+          onKeyPress={(e) => e.stopPropagation()}
         >
           <div className="flex items-center justify-between">
             <span className="text-sm font-medium">
