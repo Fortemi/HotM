@@ -65,49 +65,6 @@ interface PersistedFilterState {
  * Uses sign-preserving log1p: sign(v) * log(1 + |v|) * scale
  * This compresses long-range distances while expanding short-range ones.
  */
-/**
- * Gently spread dense clusters without destroying layout topology.
- * Uses a soft sqrt-blend: nodes close to center get pushed outward more,
- * distant nodes are barely affected. The `strength` parameter (0..1)
- * controls how much spreading to apply (0 = no change, 1 = full sqrt).
- */
-function applyDensitySpreading(graph: Graph, strength = 0.35): void {
-  let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
-  graph.forEachNode((_id, attrs) => {
-    const x = attrs.x as number;
-    const y = attrs.y as number;
-    if (x < minX) minX = x;
-    if (x > maxX) maxX = x;
-    if (y < minY) minY = y;
-    if (y > maxY) maxY = y;
-  });
-
-  const rangeX = maxX - minX || 1;
-  const rangeY = maxY - minY || 1;
-  const cx = (minX + maxX) / 2;
-  const cy = (minY + maxY) / 2;
-  // Half-extent used to normalize distances to 0..1 range
-  const halfX = rangeX / 2;
-  const halfY = rangeY / 2;
-
-  graph.forEachNode((id, attrs) => {
-    const dx = (attrs.x as number) - cx;
-    const dy = (attrs.y as number) - cy;
-    // Normalize to -1..1 relative to bounding box
-    const nx = dx / halfX;
-    const ny = dy / halfY;
-    // sqrt-based spreading: pushes small values outward, large values barely move
-    const sx = Math.sign(nx) * Math.sqrt(Math.abs(nx));
-    const sy = Math.sign(ny) * Math.sqrt(Math.abs(ny));
-    // Blend between original (linear) and spread (sqrt) positions
-    const bx = nx + (sx - nx) * strength;
-    const by = ny + (sy - ny) * strength;
-    // Map back to world coordinates
-    graph.setNodeAttribute(id, 'x', cx + bx * halfX);
-    graph.setNodeAttribute(id, 'y', cy + by * halfY);
-  });
-}
-
 function getCollectionColor(collectionId: string | undefined, collections: Collection[]): string {
   if (!collectionId) return '#6b7280';
   const index = collections.findIndex((c) => c.id === collectionId);
@@ -634,11 +591,6 @@ export function GraphExplorer({ className, initialNoteId, onNoteSelect }: GraphE
     const checkInterval = setInterval(() => {
       if (!fa2Ref.current || !fa2Ref.current.isRunning()) {
         clearInterval(checkInterval);
-        // Apply log scaling to spread dense clusters after layout converges
-        if (graphRef.current && graphRef.current.order > 1) {
-          applyDensitySpreading(graphRef.current);
-          rendererRef.current?.refresh();
-        }
         setLayoutRunning(false);
         return;
       }
@@ -649,11 +601,6 @@ export function GraphExplorer({ className, initialNoteId, onNoteSelect }: GraphE
       clearInterval(checkInterval);
       if (fa2Ref.current && fa2Ref.current.isRunning()) {
         fa2Ref.current.stop();
-        // Apply log scaling after forced stop too
-        if (graphRef.current && graphRef.current.order > 1) {
-          applyDensitySpreading(graphRef.current);
-          rendererRef.current?.refresh();
-        }
         setLayoutRunning(false);
       }
     }, 8000);
