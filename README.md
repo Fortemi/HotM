@@ -1,6 +1,6 @@
 # HotM — Hall of the Mind
 
-[![Version](https://img.shields.io/badge/version-0.2.0-blue)]()
+[![Version](https://img.shields.io/badge/version-2026.2.0-blue)]()
 [![Channel](https://img.shields.io/badge/channel-beta-orange)]()
 [![React](https://img.shields.io/badge/React-19-61dafb)]()
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.8-3178c6)]()

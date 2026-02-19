@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
-## [0.2.0] - 2026-02-19
+## [2026.2.0] - 2026-02-19
 
 First formal release of HotM as a standalone React SPA.
 
@@ -55,4 +55,4 @@ First formal release of HotM as a standalone React SPA.
 - Note refresh on background job completion
 - WebGL global stubs in test setup for Sigma compatibility
 
-[0.2.0]: https://github.com/Fortemi/HotM/releases/tag/v0.2.0
+[2026.2.0]: https://github.com/Fortemi/HotM/releases/tag/v2026.2.0
