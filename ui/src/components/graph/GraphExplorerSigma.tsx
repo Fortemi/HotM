@@ -65,8 +65,13 @@ interface PersistedFilterState {
  * Uses sign-preserving log1p: sign(v) * log(1 + |v|) * scale
  * This compresses long-range distances while expanding short-range ones.
  */
-function applyLogScaling(graph: Graph): void {
-  // Compute bounding box to choose scale factor
+/**
+ * Gently spread dense clusters without destroying layout topology.
+ * Uses a soft sqrt-blend: nodes close to center get pushed outward more,
+ * distant nodes are barely affected. The `strength` parameter (0..1)
+ * controls how much spreading to apply (0 = no change, 1 = full sqrt).
+ */
+function applyDensitySpreading(graph: Graph, strength = 0.35): void {
   let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
   graph.forEachNode((_id, attrs) => {
     const x = attrs.x as number;
@@ -81,19 +86,25 @@ function applyLogScaling(graph: Graph): void {
   const rangeY = maxY - minY || 1;
   const cx = (minX + maxX) / 2;
   const cy = (minY + maxY) / 2;
+  // Half-extent used to normalize distances to 0..1 range
+  const halfX = rangeX / 2;
+  const halfY = rangeY / 2;
 
   graph.forEachNode((id, attrs) => {
-    // Center-relative coordinates
     const dx = (attrs.x as number) - cx;
     const dy = (attrs.y as number) - cy;
-    // Sign-preserving log transform
-    const lx = Math.sign(dx) * Math.log1p(Math.abs(dx));
-    const ly = Math.sign(dy) * Math.log1p(Math.abs(dy));
-    // Re-scale to approximate original bounding box
-    const logRangeX = Math.log1p(rangeX / 2) * 2 || 1;
-    const logRangeY = Math.log1p(rangeY / 2) * 2 || 1;
-    graph.setNodeAttribute(id, 'x', cx + lx * (rangeX / logRangeX));
-    graph.setNodeAttribute(id, 'y', cy + ly * (rangeY / logRangeY));
+    // Normalize to -1..1 relative to bounding box
+    const nx = dx / halfX;
+    const ny = dy / halfY;
+    // sqrt-based spreading: pushes small values outward, large values barely move
+    const sx = Math.sign(nx) * Math.sqrt(Math.abs(nx));
+    const sy = Math.sign(ny) * Math.sqrt(Math.abs(ny));
+    // Blend between original (linear) and spread (sqrt) positions
+    const bx = nx + (sx - nx) * strength;
+    const by = ny + (sy - ny) * strength;
+    // Map back to world coordinates
+    graph.setNodeAttribute(id, 'x', cx + bx * halfX);
+    graph.setNodeAttribute(id, 'y', cy + by * halfY);
   });
 }
 
@@ -625,7 +636,7 @@ export function GraphExplorer({ className, initialNoteId, onNoteSelect }: GraphE
         clearInterval(checkInterval);
         // Apply log scaling to spread dense clusters after layout converges
         if (graphRef.current && graphRef.current.order > 1) {
-          applyLogScaling(graphRef.current);
+          applyDensitySpreading(graphRef.current);
           rendererRef.current?.refresh();
         }
         setLayoutRunning(false);
@@ -640,7 +651,7 @@ export function GraphExplorer({ className, initialNoteId, onNoteSelect }: GraphE
         fa2Ref.current.stop();
         // Apply log scaling after forced stop too
         if (graphRef.current && graphRef.current.order > 1) {
-          applyLogScaling(graphRef.current);
+          applyDensitySpreading(graphRef.current);
           rendererRef.current?.refresh();
         }
         setLayoutRunning(false);
