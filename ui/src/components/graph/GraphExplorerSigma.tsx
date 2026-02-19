@@ -60,11 +60,6 @@ interface PersistedFilterState {
   maxEdgesPerNode: number;
 }
 
-/**
- * Apply log scaling to node positions to spread dense clusters.
- * Uses sign-preserving log1p: sign(v) * log(1 + |v|) * scale
- * This compresses long-range distances while expanding short-range ones.
- */
 function getCollectionColor(collectionId: string | undefined, collections: Collection[]): string {
   if (!collectionId) return '#6b7280';
   const index = collections.findIndex((c) => c.id === collectionId);
@@ -635,14 +630,12 @@ export function GraphExplorer({ className, initialNoteId, onNoteSelect }: GraphE
           minCameraRatio: 0.02,
           maxCameraRatio: 10,
           defaultEdgeType: 'line',
-          // Node reducer for hover-only labels, semantic zoom, ghost state, community highlighting, and selection
+          // Node reducer for semantic zoom, ghost state, community highlighting, and selection
           nodeReducer: (nodeId, data) => {
             const res = { ...data };
             const isRoot = nodeId === rootNoteId;
             const isHovered = nodeId === hoveredGraphNodeId;
             const isSelected = nodeId === selectedGraphNodeId;
-
-            // Labels only on hover, selection, or root node
             const showLabel = isHovered || isSelected || isRoot;
 
             // Semantic zoom: Level 1 = overview (hide labels, shrink), Level 3 = full detail
@@ -654,7 +647,7 @@ export function GraphExplorer({ className, initialNoteId, onNoteSelect }: GraphE
               res.size = Math.max(4, (res.size as number || 5) * 1.1);
             }
 
-            // Hide label unless hovered/selected/root (after zoom check so zoom 3 doesn't force-show all)
+            // Hide label unless hovered/selected/root
             if (!showLabel && zoomLevel !== 3) {
               res.label = '';
             }
@@ -683,7 +676,7 @@ export function GraphExplorer({ className, initialNoteId, onNoteSelect }: GraphE
                 res.zIndex = 1;
               }
             }
-            // Dim non-selected when a node is selected — but keep label on selected + neighbors
+            // Dim non-selected when a node is selected
             if (selectedGraphNodeId) {
               const isConnected = graphData.edges.some(
                 (e) =>
@@ -695,7 +688,6 @@ export function GraphExplorer({ className, initialNoteId, onNoteSelect }: GraphE
                 res.label = '';
                 res.zIndex = 0;
               } else if (isConnected) {
-                // Show labels on direct neighbors of selected node
                 res.label = data.label as string;
               }
             }
