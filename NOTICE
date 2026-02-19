@@ -1,0 +1,102 @@
+HotM (Hall of the Mind)
+Desktop and Web Interface for Fortemi API
+
+Copyright (C) 2026 Joseph Magly
+
+This product is licensed under the Business Source License 1.1.
+See BSL-LICENSE for details.
+
+================================================================================
+
+THIRD-PARTY SOFTWARE
+
+This product includes or depends on the following third-party software:
+
+================================================================================
+
+Core Framework
+--------------
+
+React - MIT License
+  JavaScript library for building user interfaces
+  Copyright (c) Meta Platforms, Inc. and affiliates
+  https://github.com/facebook/react
+
+Vite - MIT License
+  Next generation frontend tooling
+  Copyright (c) Evan You and Vite contributors
+  https://github.com/vitejs/vite
+
+TypeScript - Apache-2.0
+  Typed superset of JavaScript
+  Copyright (c) Microsoft Corporation
+  https://github.com/microsoft/TypeScript
+
+================================================================================
+
+UI Libraries
+------------
+
+Radix UI - MIT License
+  Unstyled, accessible UI components
+  Copyright (c) WorkOS
+  https://github.com/radix-ui
+
+TailwindCSS - MIT License
+  Utility-first CSS framework
+  Copyright (c) Tailwind Labs, Inc.
+  https://github.com/tailwindlabs/tailwindcss
+
+Lucide React - ISC License
+  Beautiful, consistent icon toolkit
+  Copyright (c) Lucide Contributors
+  https://github.com/lucide-icons/lucide
+
+================================================================================
+
+Desktop Runtime (Tauri)
+-----------------------
+
+Tauri - MIT OR Apache-2.0
+  Build smaller, faster, and more secure desktop applications
+  Copyright (c) Tauri Programme within The Commons Conservancy
+  https://github.com/tauri-apps/tauri
+
+================================================================================
+
+Rust Dependencies (Tauri Backend)
+---------------------------------
+
+serde - MIT OR Apache-2.0
+  Serialization framework for Rust
+  Copyright (c) serde-rs contributors
+  https://github.com/serde-rs/serde
+
+serde_json - MIT OR Apache-2.0
+  JSON serialization for serde
+  Copyright (c) serde-rs contributors
+  https://github.com/serde-rs/json
+
+reqwest - MIT OR Apache-2.0
+  HTTP client for Rust
+  Copyright (c) Sean McArthur
+  https://github.com/seanmonstar/reqwest
+
+flate2 - MIT OR Apache-2.0
+  DEFLATE compression for Rust
+  Copyright (c) Alex Crichton and contributors
+  https://github.com/rust-lang/flate2-rs
+
+For a complete list of dependencies and their licenses, see:
+- ui/package-lock.json (Node.js/frontend dependencies)
+- ui/src-tauri/Cargo.lock (Rust/desktop dependencies)
+
+================================================================================
+
+DISCLAIMER
+
+This software is provided "as is", without warranty of any kind, express or
+implied, including but not limited to the warranties of merchantability,
+fitness for a particular purpose and noninfringement.
+
+================================================================================

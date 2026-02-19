@@ -38,6 +38,7 @@
       "icons/icon.icns",
       "icons/icon.ico"
     ],
+    "copyright": "Copyright (C) 2026 Joseph Magly. Licensed under BUSL-1.1.",
     "shortDescription": "Knowledge exploration and note-taking",
     "longDescription": "Hall of the Mind - A desktop application for note-taking, knowledge exploration, and analysis powered by the Fortemi API.",
     "category": "Utility",
