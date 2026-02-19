@@ -1,4 +1,4 @@
-name: React SPA Release
+name: Release
 
 on:
   push:
@@ -9,143 +9,359 @@ permissions:
   contents: write
   packages: write
 
+env:
+  GITEA_REGISTRY: git.integrolabs.net
+  GHCR_REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository_owner }}/hotm-ui
+  FORTEMI_API_URL: https://memory.integrolabs.net
+
 jobs:
-  release-artifacts:
-    name: Release React SPA Artifacts and Public Image
+  # ─── Gate: typecheck, tests, coverage, audit ────────────────────────
+  quality-gate:
+    name: Quality Gate
     runs-on: ubuntu-latest
-
+    container:
+      image: node:20-bookworm
     steps:
-    - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
-    - name: Setup Node.js
-      uses: actions/setup-node@v3
-      with:
-        node-version: '20'
-        cache: 'npm'
-        cache-dependency-path: ui/package-lock.json
+      - name: Install dependencies
+        working-directory: ui
+        run: npm ci
 
-    - name: Install dependencies
-      run: |
-        cd ui
-        npm ci
+      - name: Type check
+        working-directory: ui
+        run: npm run typecheck
 
-    - name: Build React SPA
-      run: |
-        cd ui
-        npm run build
+      - name: Run tests with coverage
+        working-directory: ui
+        run: npm run test:coverage -- --run
 
-    - name: Create production artifact
-      run: |
-        cd ui/dist
-        tar -czf ../../hotm-spa.tar.gz .
+      - name: Security audit (non-blocking)
+        working-directory: ui
+        run: npm audit --audit-level high || true
 
-    - name: Extract version and channel from tag
-      shell: bash
-      run: |
-        TAG_NAME=${GITHUB_REF#refs/tags/v}
-        echo "TAG_NAME=$TAG_NAME" >> $GITHUB_ENV
+  # ─── Build: SPA tarball ─────────────────────────────────────────────
+  build-spa:
+    name: Build SPA
+    runs-on: ubuntu-latest
+    needs: quality-gate
+    steps:
+      - uses: actions/checkout@v4
 
-        # Extract version and channel (e.g., "0.2.0-beta" -> version="0.2.0", channel="beta")
-        if [[ "$TAG_NAME" =~ ^([0-9]+\.[0-9]+\.[0-9]+)-(.+)$ ]]; then
-          VERSION="${BASH_REMATCH[1]}"
-          CHANNEL="${BASH_REMATCH[2]}"
-        elif [[ "$TAG_NAME" =~ ^([0-9]+\.[0-9]+\.[0-9]+)$ ]]; then
-          VERSION="$TAG_NAME"
-          CHANNEL="stable"
-        else
-          echo "Error: Invalid tag format. Expected v0.0.0 or v0.0.0-channel"
-          exit 1
-        fi
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: ui/package-lock.json
 
-        echo "VERSION=$VERSION" >> $GITHUB_ENV
-        echo "CHANNEL=$CHANNEL" >> $GITHUB_ENV
-        echo "DISPLAY_VERSION=${VERSION}$([ "$CHANNEL" != "stable" ] && echo "-$CHANNEL")" >> $GITHUB_ENV
+      - name: Install dependencies
+        working-directory: ui
+        run: npm ci
 
-        echo "Release version: $VERSION"
-        echo "Release channel: $CHANNEL"
+      - name: Build React SPA
+        working-directory: ui
+        run: npm run build
 
-    - name: Log in to GHCR
-      env:
-        GHCR_REGISTRY: ghcr.io
-        GHCR_USERNAME: ${{ secrets.REGISTRY_USER }}
-      run: |
-        USERNAME="${GHCR_USERNAME:-fortemi}"
-        echo "${{ secrets.GH_PUBLISH_TOKEN }}" | docker login "${GHCR_REGISTRY}" -u "${USERNAME}" --password-stdin
+      - name: Create production tarball
+        run: tar -czf hotm-spa.tar.gz -C ui/dist .
 
-    - name: Publish UI image to GHCR (public)
-      env:
-        GHCR_REGISTRY: ghcr.io
-        GHCR_IMAGE_NAME: ${{ github.repository_owner }}/hotm-ui
-        FORTEMI_API_URL: https://memory.integrolabs.net
-      run: |
-        set -euo pipefail
-        IMAGE="$(echo "${GHCR_REGISTRY}/${GHCR_IMAGE_NAME}" | tr '[:upper:]' '[:lower:]')"
-        SHORT_SHA="${GITHUB_SHA::7}"
+      - name: Upload SPA artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: hotm-spa
+          path: hotm-spa.tar.gz
+          retention-days: 5
 
-        push_with_retry() {
-          local image="$1"
-          local max_attempts=3
-          local attempt=1
-          while [ $attempt -le $max_attempts ]; do
-            echo "Pushing ${image} (attempt ${attempt}/${max_attempts})"
-            if docker push "${image}"; then
-              return 0
-            fi
-            sleep $((attempt * 5))
-            attempt=$((attempt + 1))
-          done
-          echo "Failed to push ${image} after ${max_attempts} attempts"
-          return 1
-        }
+  # ─── Build: Docker image → Gitea + GHCR ────────────────────────────
+  build-docker:
+    name: Build & Push Docker Image
+    runs-on: ubuntu-latest
+    needs: quality-gate
+    steps:
+      - uses: actions/checkout@v4
 
-        docker build \
-          -f ui/Dockerfile \
-          --build-arg VITE_API_BASE_URL="${FORTEMI_API_URL}" \
-          -t "${IMAGE}:${VERSION}" \
-          -t "${IMAGE}:latest" \
-          -t "${IMAGE}:sha-${SHORT_SHA}" \
-          ui
+      - name: Extract version and channel from tag
+        shell: bash
+        run: |
+          TAG_NAME=${GITHUB_REF#refs/tags/v}
+          echo "TAG_NAME=$TAG_NAME" >> $GITHUB_ENV
 
-        push_with_retry "${IMAGE}:${VERSION}"
-        push_with_retry "${IMAGE}:latest"
-        push_with_retry "${IMAGE}:sha-${SHORT_SHA}"
+          if [[ "$TAG_NAME" =~ ^([0-9]+\.[0-9]+\.[0-9]+)-(.+)$ ]]; then
+            VERSION="${BASH_REMATCH[1]}"
+            CHANNEL="${BASH_REMATCH[2]}"
+          elif [[ "$TAG_NAME" =~ ^([0-9]+\.[0-9]+\.[0-9]+)$ ]]; then
+            VERSION="$TAG_NAME"
+            CHANNEL="stable"
+          else
+            echo "Error: Invalid tag format. Expected v0.0.0 or v0.0.0-channel"
+            exit 1
+          fi
 
-    - name: Create Release
-      uses: softprops/action-gh-release@v2
-      if: github.ref_type == 'tag'
-      with:
-        name: HotM SPA ${{ env.DISPLAY_VERSION }}
-        body: |
-          ## HotM React SPA ${{ env.DISPLAY_VERSION }}
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+          echo "CHANNEL=$CHANNEL" >> $GITHUB_ENV
+          echo "Release version: $VERSION (channel: $CHANNEL)"
 
-          **Release Channel**: ${{ env.CHANNEL }}
+      - name: Build Docker image
+        run: |
+          set -euo pipefail
+          SHORT_SHA="${GITHUB_SHA::7}"
 
-          ### Download
+          docker build \
+            -f ui/Dockerfile \
+            --build-arg VITE_API_BASE_URL="${FORTEMI_API_URL}" \
+            -t "hotm-ui:build" \
+            ui
 
-          **React SPA (tar.gz)**: Download `hotm-spa.tar.gz` below
-          **Container (GHCR)**: `ghcr.io/${{ github.repository_owner }}/hotm-ui:${{ env.VERSION }}`
+          # Tag for Gitea internal registry
+          GITEA_IMAGE="$(echo "${GITEA_REGISTRY}/${IMAGE_NAME}" | tr '[:upper:]' '[:lower:]')"
+          docker tag "hotm-ui:build" "${GITEA_IMAGE}:${VERSION}"
+          docker tag "hotm-ui:build" "${GITEA_IMAGE}:latest"
+          docker tag "hotm-ui:build" "${GITEA_IMAGE}:sha-${SHORT_SHA}"
 
-          ### Installation
+          # Tag for GHCR public registry
+          GHCR_IMAGE="$(echo "${GHCR_REGISTRY}/${IMAGE_NAME}" | tr '[:upper:]' '[:lower:]')"
+          docker tag "hotm-ui:build" "${GHCR_IMAGE}:${VERSION}"
+          docker tag "hotm-ui:build" "${GHCR_IMAGE}:latest"
+          docker tag "hotm-ui:build" "${GHCR_IMAGE}:sha-${SHORT_SHA}"
 
-          1. Download the SPA artifact
-          2. Extract to your static hosting directory
-          3. Configure environment variables for matric-memory API endpoint
-          4. Serve the static files with your preferred static host (nginx, Apache, S3+CDN, etc.)
+      - name: Push to Gitea internal registry
+        run: |
+          set -euo pipefail
+          IMAGE="$(echo "${GITEA_REGISTRY}/${IMAGE_NAME}" | tr '[:upper:]' '[:lower:]')"
+          SHORT_SHA="${GITHUB_SHA::7}"
 
-          ### System Requirements
+          REG_USER="${{ secrets.REGISTRY_USER }}"
+          if [ -z "${REG_USER}" ]; then
+            REG_USER="fortemi"
+          fi
+          echo "${{ secrets.BUILD_REPO_TOKEN }}" | docker login "${GITEA_REGISTRY}" -u "${REG_USER}" --password-stdin
 
-          - Modern web browser (Chrome, Firefox, Edge, Safari)
-          - Network access to Fortemi API
+          push_with_retry() {
+            local image="$1"
+            local max_attempts=3
+            local attempt=1
+            while [ $attempt -le $max_attempts ]; do
+              echo "Pushing ${image} (attempt ${attempt}/${max_attempts})"
+              if docker push "${image}"; then
+                return 0
+              fi
+              sleep $((attempt * 5))
+              attempt=$((attempt + 1))
+            done
+            echo "Failed to push ${image} after ${max_attempts} attempts"
+            return 1
+          }
 
-          ### Features
+          push_with_retry "${IMAGE}:${VERSION}"
+          push_with_retry "${IMAGE}:latest"
+          push_with_retry "${IMAGE}:sha-${SHORT_SHA}"
 
-          - Local-first notes with immutable originals
-          - AI-powered revisions and summarization
-          - Hybrid search (full-text + semantic)
-          - Automatic link detection
-          - React 19 SPA architecture
+      - name: Push to GHCR public registry
+        run: |
+          set -euo pipefail
+          IMAGE="$(echo "${GHCR_REGISTRY}/${IMAGE_NAME}" | tr '[:upper:]' '[:lower:]')"
+          SHORT_SHA="${GITHUB_SHA::7}"
 
-          For setup instructions, see the [documentation](https://github.com/${{ github.repository }}/blob/main/CLAUDE.md).
-        draft: false
-        prerelease: ${{ env.CHANNEL != 'stable' }}
-        files: hotm-spa.tar.gz
+          USERNAME="${{ secrets.REGISTRY_USER }}"
+          USERNAME="${USERNAME:-fortemi}"
+          echo "${{ secrets.GH_PUBLISH_TOKEN }}" | docker login "${GHCR_REGISTRY}" -u "${USERNAME}" --password-stdin
+
+          push_with_retry() {
+            local image="$1"
+            local max_attempts=3
+            local attempt=1
+            while [ $attempt -le $max_attempts ]; do
+              echo "Pushing ${image} (attempt ${attempt}/${max_attempts})"
+              if docker push "${image}"; then
+                return 0
+              fi
+              sleep $((attempt * 5))
+              attempt=$((attempt + 1))
+            done
+            echo "Failed to push ${image} after ${max_attempts} attempts"
+            return 1
+          }
+
+          push_with_retry "${IMAGE}:${VERSION}"
+          push_with_retry "${IMAGE}:latest"
+          push_with_retry "${IMAGE}:sha-${SHORT_SHA}"
+
+  # ─── Build: Tauri desktop installers (3-platform matrix) ────────────
+  build-tauri:
+    name: Build Tauri (${{ matrix.platform }})
+    needs: quality-gate
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+          - platform: windows-latest
+            target: x86_64-pc-windows-msvc
+          - platform: macos-latest
+            target: aarch64-apple-darwin
+
+    runs-on: ${{ matrix.platform }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: ui/package-lock.json
+
+      - name: Install Rust stable
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - name: Rust cache
+        uses: swatinem/rust-cache@v2
+        with:
+          workspaces: ui/src-tauri -> target
+
+      - name: Install Linux dependencies
+        if: matrix.platform == 'ubuntu-latest'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libgtk-3-dev \
+            libsoup-3.0-dev libjavascriptcoregtk-4.1-dev librsvg2-dev patchelf \
+            libayatana-appindicator3-dev
+
+      - name: Install frontend dependencies
+        working-directory: ui
+        run: npm ci
+
+      - name: Build Tauri app
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          projectPath: ui
+          tauriScript: npm run tauri
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: tauri-${{ matrix.platform }}
+          path: |
+            ui/src-tauri/target/release/bundle/**/*.deb
+            ui/src-tauri/target/release/bundle/**/*.AppImage
+            ui/src-tauri/target/release/bundle/**/*.dmg
+            ui/src-tauri/target/release/bundle/**/*.exe
+            ui/src-tauri/target/release/bundle/**/*.msi
+          if-no-files-found: warn
+
+  # ─── Release: collect all artifacts → GitHub Release ────────────────
+  create-release:
+    name: Create GitHub Release
+    runs-on: ubuntu-latest
+    needs: [build-spa, build-docker, build-tauri]
+    steps:
+      - name: Extract version and channel from tag
+        shell: bash
+        run: |
+          TAG_NAME=${GITHUB_REF#refs/tags/v}
+          echo "TAG_NAME=$TAG_NAME" >> $GITHUB_ENV
+
+          if [[ "$TAG_NAME" =~ ^([0-9]+\.[0-9]+\.[0-9]+)-(.+)$ ]]; then
+            VERSION="${BASH_REMATCH[1]}"
+            CHANNEL="${BASH_REMATCH[2]}"
+          elif [[ "$TAG_NAME" =~ ^([0-9]+\.[0-9]+\.[0-9]+)$ ]]; then
+            VERSION="$TAG_NAME"
+            CHANNEL="stable"
+          else
+            echo "Error: Invalid tag format. Expected v0.0.0 or v0.0.0-channel"
+            exit 1
+          fi
+
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+          echo "CHANNEL=$CHANNEL" >> $GITHUB_ENV
+          DISPLAY_VERSION="${VERSION}$([ "$CHANNEL" != "stable" ] && echo "-$CHANNEL" || true)"
+          echo "DISPLAY_VERSION=$DISPLAY_VERSION" >> $GITHUB_ENV
+
+      - name: Download SPA artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: hotm-spa
+          path: release-assets
+
+      - name: Download Tauri Linux artifacts
+        uses: actions/download-artifact@v4
+        continue-on-error: true
+        with:
+          name: tauri-ubuntu-latest
+          path: release-assets/tauri-linux
+
+      - name: Download Tauri Windows artifacts
+        uses: actions/download-artifact@v4
+        continue-on-error: true
+        with:
+          name: tauri-windows-latest
+          path: release-assets/tauri-windows
+
+      - name: Download Tauri macOS artifacts
+        uses: actions/download-artifact@v4
+        continue-on-error: true
+        with:
+          name: tauri-macos-latest
+          path: release-assets/tauri-macos
+
+      - name: Flatten Tauri artifacts
+        run: |
+          set -euo pipefail
+          mkdir -p release-assets/flat
+          # Move SPA tarball
+          mv release-assets/hotm-spa.tar.gz release-assets/flat/ 2>/dev/null || true
+          # Flatten nested Tauri bundles into a single directory
+          find release-assets/tauri-linux -type f \( -name '*.deb' -o -name '*.AppImage' \) -exec mv {} release-assets/flat/ \; 2>/dev/null || true
+          find release-assets/tauri-windows -type f \( -name '*.exe' -o -name '*.msi' \) -exec mv {} release-assets/flat/ \; 2>/dev/null || true
+          find release-assets/tauri-macos -type f -name '*.dmg' -exec mv {} release-assets/flat/ \; 2>/dev/null || true
+          echo "Release assets:"
+          ls -lh release-assets/flat/
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: HotM ${{ env.DISPLAY_VERSION }}
+          draft: false
+          prerelease: ${{ env.CHANNEL != 'stable' }}
+          files: release-assets/flat/*
+          body: |
+            ## HotM ${{ env.DISPLAY_VERSION }}
+
+            **Release Channel**: ${{ env.CHANNEL }}
+
+            ### Docker Images
+
+            | Registry | Pull Command |
+            |----------|-------------|
+            | GHCR (public) | `docker pull ghcr.io/${{ github.repository_owner }}/hotm-ui:${{ env.VERSION }}` |
+            | Gitea (internal) | `docker pull git.integrolabs.net/${{ github.repository_owner }}/hotm-ui:${{ env.VERSION }}` |
+
+            ### Desktop Installers
+
+            | Platform | Format |
+            |----------|--------|
+            | Linux | `.deb`, `.AppImage` |
+            | Windows | `.exe`, `.msi` |
+            | macOS | `.dmg` |
+
+            ### SPA Bundle
+
+            Download `hotm-spa.tar.gz` below — extract and serve with any static host (nginx, Apache, S3+CDN).
+
+            ### System Requirements
+
+            - **Web**: Modern browser (Chrome, Firefox, Edge, Safari) + network access to Fortemi API
+            - **Desktop**: 64-bit OS — Linux (Ubuntu 22.04+), Windows 10+, macOS 12+
+            - **Docker**: Any host running Docker Engine 20+
+
+            ### Links
+
+            - [Documentation](https://github.com/${{ github.repository }}/blob/main/docs/index.md)
+            - [Deployment Guide](https://github.com/${{ github.repository }}/blob/main/docs/deployment/)
