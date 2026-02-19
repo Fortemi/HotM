@@ -121,7 +121,12 @@ export function GraphExplorer({ className, initialNoteId, onNoteSelect }: GraphE
     totalCandidateEdges?: number;
   }>({});
   const [rootNoteId, setRootNoteId] = React.useState<string | undefined>(initialNoteId);
-  const [visualRootId, setVisualRootId] = React.useState<string | undefined>(initialNoteId);
+  const [visualRootId, _setVisualRootId] = React.useState<string | undefined>(initialNoteId);
+  const visualRootIdRef = React.useRef<string | undefined>(initialNoteId);
+  const setVisualRootId = React.useCallback((id: string | undefined) => {
+    visualRootIdRef.current = id;
+    _setVisualRootId(id);
+  }, []);
   // Navigation history: tracks selected node IDs for back/forward
   const selectionHistoryRef = React.useRef<string[]>(initialNoteId ? [initialNoteId] : []);
   const selectionCursorRef = React.useRef(0);
@@ -139,9 +144,19 @@ export function GraphExplorer({ className, initialNoteId, onNoteSelect }: GraphE
   const [communityOverlay, setCommunityOverlay] = React.useState(true);
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
-  const [selectedGraphNodeId, setSelectedGraphNodeId] = React.useState<string | null>(null);
+  const [selectedGraphNodeId, _setSelectedGraphNodeId] = React.useState<string | null>(null);
+  const selectedGraphNodeIdRef = React.useRef<string | null>(null);
+  const setSelectedGraphNodeId = React.useCallback((id: string | null) => {
+    selectedGraphNodeIdRef.current = id;
+    _setSelectedGraphNodeId(id);
+  }, []);
   const [selectedEdgeKey, setSelectedEdgeKey] = React.useState<string | null>(null);
-  const [hoveredGraphNodeId, setHoveredGraphNodeId] = React.useState<string | null>(null);
+  const [hoveredGraphNodeId, _setHoveredGraphNodeId] = React.useState<string | null>(null);
+  const hoveredGraphNodeIdRef = React.useRef<string | null>(null);
+  const setHoveredGraphNodeId = React.useCallback((id: string | null) => {
+    hoveredGraphNodeIdRef.current = id;
+    _setHoveredGraphNodeId(id);
+  }, []);
   const [lastRenderMs, setLastRenderMs] = React.useState<number | null>(null);
   const [, setOperationTimings] = React.useState<Partial<Record<TimingOperation, number>>>({});
   const [tagFacetOpen, setTagFacetOpen] = React.useState(true);
@@ -710,9 +725,9 @@ export function GraphExplorer({ className, initialNoteId, onNoteSelect }: GraphE
           // Node reducer for semantic zoom, ghost state, community highlighting, and selection
           nodeReducer: (nodeId, data) => {
             const res = { ...data };
-            const isRoot = nodeId === visualRootId;
-            const isHovered = nodeId === hoveredGraphNodeId;
-            const isSelected = nodeId === selectedGraphNodeId;
+            const isRoot = nodeId === visualRootIdRef.current;
+            const isHovered = nodeId === hoveredGraphNodeIdRef.current;
+            const isSelected = nodeId === selectedGraphNodeIdRef.current;
             const showLabel = isHovered || isSelected || isRoot;
 
             // Semantic zoom: Level 1 = overview (hide labels, shrink), Level 3 = full detail
@@ -754,13 +769,14 @@ export function GraphExplorer({ className, initialNoteId, onNoteSelect }: GraphE
               }
             }
             // Dim non-selected when a node is selected
-            if (selectedGraphNodeId) {
+            if (selectedGraphNodeIdRef.current) {
+              const selId = selectedGraphNodeIdRef.current;
               const isConnected = graphData.edges.some(
                 (e) =>
-                  (e.source === selectedGraphNodeId && e.target === nodeId) ||
-                  (e.target === selectedGraphNodeId && e.source === nodeId)
+                  (e.source === selId && e.target === nodeId) ||
+                  (e.target === selId && e.source === nodeId)
               );
-              if (nodeId !== selectedGraphNodeId && !isConnected) {
+              if (nodeId !== selId && !isConnected) {
                 res.color = '#404040';
                 res.label = '';
                 res.zIndex = 0;
@@ -801,8 +817,8 @@ export function GraphExplorer({ className, initialNoteId, onNoteSelect }: GraphE
               }
             }
             // Selection-based hiding
-            if (selectedGraphNodeId) {
-              if (!edgeKey.includes(selectedGraphNodeId)) {
+            if (selectedGraphNodeIdRef.current) {
+              if (!edgeKey.includes(selectedGraphNodeIdRef.current)) {
                 res.hidden = true;
               }
             }
