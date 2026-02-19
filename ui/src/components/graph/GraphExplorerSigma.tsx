@@ -121,6 +121,7 @@ export function GraphExplorer({ className, initialNoteId, onNoteSelect }: GraphE
     totalCandidateEdges?: number;
   }>({});
   const [rootNoteId, setRootNoteId] = React.useState<string | undefined>(initialNoteId);
+  const [visualRootId, setVisualRootId] = React.useState<string | undefined>(initialNoteId);
   const [depth, setDepth] = React.useState(2);
   const [maxNodes, setMaxNodes] = React.useState(100);
   const [minScore, setMinScore] = React.useState(0.0);
@@ -669,7 +670,7 @@ export function GraphExplorer({ className, initialNoteId, onNoteSelect }: GraphE
           // Node reducer for semantic zoom, ghost state, community highlighting, and selection
           nodeReducer: (nodeId, data) => {
             const res = { ...data };
-            const isRoot = nodeId === rootNoteId;
+            const isRoot = nodeId === visualRootId;
             const isHovered = nodeId === hoveredGraphNodeId;
             const isSelected = nodeId === selectedGraphNodeId;
             const showLabel = isHovered || isSelected || isRoot;
@@ -779,6 +780,7 @@ export function GraphExplorer({ className, initialNoteId, onNoteSelect }: GraphE
           }
           setSelectedGraphNodeId(node);
           setSelectedEdgeKey(null);
+          setVisualRootId(node);
         });
         renderer.on('doubleClickNode', ({ node, preventSigmaDefault }) => {
           // Double click: open the note (prevent default zoom)
@@ -993,7 +995,7 @@ export function GraphExplorer({ className, initialNoteId, onNoteSelect }: GraphE
   // Re-render sigma when highlight/filter/zoom state changes
   React.useEffect(() => {
     rendererRef.current?.refresh();
-  }, [highlightedCommunity, hoveredGraphNodeId, selectedGraphNodeId, showBridgesOnly, hasNodeFilters, zoomLevel]);
+  }, [highlightedCommunity, hoveredGraphNodeId, selectedGraphNodeId, showBridgesOnly, hasNodeFilters, visualRootId, zoomLevel]);
 
   // Cleanup on unmount
   React.useEffect(() => {
@@ -1410,7 +1412,7 @@ export function GraphExplorer({ className, initialNoteId, onNoteSelect }: GraphE
                   </Button>
                   <Button
                     size="sm" variant="outline" className="h-7 text-xs"
-                    onClick={() => { markOperation('refresh'); setRootNoteId(selectedNode.id); }}
+                    onClick={() => { markOperation('refresh'); setRootNoteId(selectedNode.id); setVisualRootId(selectedNode.id); }}
                     disabled={selectedNode.id === rootNoteId}
                   >
                     Explore From Here
