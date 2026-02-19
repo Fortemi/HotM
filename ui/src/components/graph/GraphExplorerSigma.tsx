@@ -777,10 +777,8 @@ export function GraphExplorer({ className, initialNoteId, onNoteSelect }: GraphE
             setFocusedCommunity(cid);
             return;
           }
-          // Single click: re-center graph from this node
           setSelectedGraphNodeId(node);
           setSelectedEdgeKey(null);
-          setRootNoteId(node);
         });
         renderer.on('doubleClickNode', ({ node, preventSigmaDefault }) => {
           // Double click: open the note (prevent default zoom)
@@ -1301,7 +1299,7 @@ export function GraphExplorer({ className, initialNoteId, onNoteSelect }: GraphE
                   </div>
                 )}
                 <div className="text-[10px] text-muted-foreground/60">
-                  Click to explore &middot; Double-click to open
+                  Click to select &middot; Double-click to open
                 </div>
               </div>
             )}
@@ -1409,6 +1407,13 @@ export function GraphExplorer({ className, initialNoteId, onNoteSelect }: GraphE
                     onClick={() => onNoteSelect?.(selectedNode.id)}
                   >
                     Open Note
+                  </Button>
+                  <Button
+                    size="sm" variant="outline" className="h-7 text-xs"
+                    onClick={() => { markOperation('refresh'); setRootNoteId(selectedNode.id); }}
+                    disabled={selectedNode.id === rootNoteId}
+                  >
+                    Explore From Here
                   </Button>
                 </div>
                 {/* Edge list */}
