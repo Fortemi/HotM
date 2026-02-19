@@ -393,25 +393,40 @@ export function GraphExplorer({ className, initialNoteId, onNoteSelect }: GraphE
       // Normalize the response (handles both v1 and legacy payloads)
       const normalized = normalizeGraphResponse(response);
 
-      // If not v1 payload, enrich nodes with per-note details (N+1 fallback)
+      // Enrich nodes missing tags/concepts with per-note API calls.
+      // v1 payloads may include these fields, but the explore-graph endpoint
+      // often omits them — so enrich any node that lacks tags or concepts.
+      const needsEnrichment = normalized.nodes.some(
+        (n) => n.tags.length === 0 && n.concepts.length === 0
+      );
       let enrichedNodes = normalized.nodes;
-      if (!normalized.isV1) {
+      if (needsEnrichment) {
         const noteDetails = await Promise.all(
           normalized.nodes.map(async (node) => {
+            // Skip enrichment for nodes that already have data
+            if (node.tags.length > 0 || node.concepts.length > 0) {
+              return { detail: null, concepts: [] as { pref_label?: string }[] };
+            }
             const detail = await api.notes.get(node.id).catch(() => null);
             const concepts = await api.concepts.getNoteConcepts(node.id).catch(() => []);
             return { detail, concepts };
           })
         );
-        enrichedNodes = normalized.nodes.map((node, index) => ({
-          ...node,
-          collection_id: noteDetails[index]?.detail?.note.collection_id || node.collection_id,
-          archived: noteDetails[index]?.detail?.note.archived || node.archived,
-          tags: noteDetails[index]?.detail?.tags || node.tags,
-          concepts: (noteDetails[index]?.concepts || []).map((c) => c.pref_label).filter(Boolean),
-          created_at: noteDetails[index]?.detail?.note.created_at_utc || node.created_at,
-          updated_at: noteDetails[index]?.detail?.note.updated_at_utc || node.updated_at,
-        }));
+        enrichedNodes = normalized.nodes.map((node, index) => {
+          const det = noteDetails[index];
+          if (!det?.detail && det?.concepts.length === 0) return node;
+          return {
+            ...node,
+            collection_id: det?.detail?.note.collection_id || node.collection_id,
+            archived: det?.detail?.note.archived || node.archived,
+            tags: det?.detail?.tags?.length ? det.detail.tags : node.tags,
+            concepts: det?.concepts?.length
+              ? det.concepts.map((c) => c.pref_label).filter(Boolean) as string[]
+              : node.concepts,
+            created_at: det?.detail?.note.created_at_utc || node.created_at,
+            updated_at: det?.detail?.note.updated_at_utc || node.updated_at,
+          };
+        });
       }
 
       setBaseGraphData({ nodes: enrichedNodes, edges: normalized.edges, isV1: normalized.isV1 });
