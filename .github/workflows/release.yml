@@ -240,6 +240,7 @@ jobs:
         uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CARGO_BUILD_JOBS: "8"
         with:
           projectPath: ui
           tauriScript: npm run tauri
