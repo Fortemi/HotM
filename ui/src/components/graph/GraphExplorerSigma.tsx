@@ -15,7 +15,6 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Slider } from '@/components/ui/slider';
-import { Input } from '@/components/ui/input';
 import { Loader2, RefreshCw, Play, Square, Info, X, ChevronLeft, ChevronRight } from 'lucide-react';
 import {
   buildCommunityMap,
@@ -1647,89 +1646,135 @@ export function GraphExplorer({ className, initialNoteId, onNoteSelect }: GraphE
               </Button>
             )}
           </div>
-          <details
-            open={tagFacetOpen}
-            onToggle={(e) => setTagFacetOpen((e.target as HTMLDetailsElement).open)}
-          >
-            <summary className="cursor-pointer text-sm font-medium">
-              Tags
-              {selectedTags.length > 0 && (
-                <Badge variant="secondary" className="ml-2 text-[10px]">{selectedTags.length}</Badge>
-              )}
-            </summary>
-            <div className="mt-2 space-y-2">
-              <Input
-                value={tagSearch}
-                onChange={(e) => setTagSearch(e.target.value)}
-                placeholder="Search tags"
-                className="h-7 text-xs"
-              />
-              <div className="flex max-h-40 flex-wrap gap-1.5 overflow-auto pr-1">
-                {filteredTags.length === 0 && (
-                  <span className="text-xs text-muted-foreground">No tags match</span>
+          <div>
+            <button
+              type="button"
+              className="flex w-full items-center justify-between cursor-pointer text-sm font-medium"
+              onClick={() => setTagFacetOpen((p) => !p)}
+            >
+              <span>
+                Tags ({availableTags.length})
+                {selectedTags.length > 0 && (
+                  <Badge variant="secondary" className="ml-2 text-[10px]">{selectedTags.length} active</Badge>
                 )}
-                {filteredTags.map((tag) => {
-                  const active = selectedTags.includes(tag);
-                  return (
-                    <Badge
-                      key={tag}
-                      variant={active ? 'default' : 'outline'}
-                      className="cursor-pointer text-[11px]"
-                      onClick={() =>
-                        setSelectedTags((prev) =>
-                          prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]
-                        )
-                      }
-                    >
-                      {tag} ({tagCounts.get(tag) || 0})
-                    </Badge>
-                  );
-                })}
+              </span>
+              <span className="text-muted-foreground text-xs">{tagFacetOpen ? '▾' : '▸'}</span>
+            </button>
+            {tagFacetOpen && (
+              <div className="mt-2 space-y-2">
+                <input
+                  type="text"
+                  value={tagSearch}
+                  onChange={(e) => setTagSearch(e.target.value)}
+                  placeholder={`Search ${availableTags.length} tags…`}
+                  className="flex h-7 w-full rounded-md border border-input bg-transparent px-2 py-1 text-xs shadow-xs outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
+                />
+                {selectedTags.length > 0 && (
+                  <div className="flex flex-wrap gap-1 pb-1 border-b border-border">
+                    {selectedTags.map((tag) => (
+                      <Badge
+                        key={tag}
+                        variant="default"
+                        className="cursor-pointer text-[11px]"
+                        onClick={() => setSelectedTags((prev) => prev.filter((t) => t !== tag))}
+                      >
+                        {tag} ✕
+                      </Badge>
+                    ))}
+                  </div>
+                )}
+                <div className="flex max-h-48 flex-wrap gap-1.5 overflow-auto pr-1">
+                  {filteredTags.length === 0 && (
+                    <span className="text-xs text-muted-foreground">
+                      {availableTags.length === 0 ? 'No tags in graph' : 'No tags match'}
+                    </span>
+                  )}
+                  {filteredTags.map((tag) => {
+                    const active = selectedTags.includes(tag);
+                    return (
+                      <Badge
+                        key={tag}
+                        variant={active ? 'default' : 'outline'}
+                        className="cursor-pointer text-[11px]"
+                        onClick={() =>
+                          setSelectedTags((prev) =>
+                            prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]
+                          )
+                        }
+                      >
+                        {tag} ({tagCounts.get(tag) || 0})
+                      </Badge>
+                    );
+                  })}
+                </div>
               </div>
-            </div>
-          </details>
+            )}
+          </div>
 
-          <details
-            open={conceptFacetOpen}
-            onToggle={(e) => setConceptFacetOpen((e.target as HTMLDetailsElement).open)}
-          >
-            <summary className="cursor-pointer text-sm font-medium">
-              SKOS Concepts
-              {selectedConcepts.length > 0 && (
-                <Badge variant="secondary" className="ml-2 text-[10px]">{selectedConcepts.length}</Badge>
-              )}
-            </summary>
-            <div className="mt-2 space-y-2">
-              <Input
-                value={conceptSearch}
-                onChange={(e) => setConceptSearch(e.target.value)}
-                placeholder="Search concepts"
-                className="h-7 text-xs"
-              />
-              <div className="flex max-h-40 flex-wrap gap-1.5 overflow-auto pr-1">
-                {filteredConcepts.length === 0 && (
-                  <span className="text-xs text-muted-foreground">No concepts match</span>
+          <div>
+            <button
+              type="button"
+              className="flex w-full items-center justify-between cursor-pointer text-sm font-medium"
+              onClick={() => setConceptFacetOpen((p) => !p)}
+            >
+              <span>
+                Concepts ({availableConcepts.length})
+                {selectedConcepts.length > 0 && (
+                  <Badge variant="secondary" className="ml-2 text-[10px]">{selectedConcepts.length} active</Badge>
                 )}
-                {filteredConcepts.map((concept) => {
-                  const active = selectedConcepts.includes(concept);
-                  return (
-                    <Badge
-                      key={concept}
-                      variant={active ? 'default' : 'outline'}
-                      className="cursor-pointer text-[11px]"
-                      onClick={() =>
-                        setSelectedConcepts((prev) =>
-                          prev.includes(concept) ? prev.filter((c) => c !== concept) : [...prev, concept]
-                        )
-                      }
-                    >
-                      {concept} ({conceptCounts.get(concept) || 0})
-                    </Badge>
-                  );
-                })}
+              </span>
+              <span className="text-muted-foreground text-xs">{conceptFacetOpen ? '▾' : '▸'}</span>
+            </button>
+            {conceptFacetOpen && (
+              <div className="mt-2 space-y-2">
+                <input
+                  type="text"
+                  value={conceptSearch}
+                  onChange={(e) => setConceptSearch(e.target.value)}
+                  placeholder={`Search ${availableConcepts.length} concepts…`}
+                  className="flex h-7 w-full rounded-md border border-input bg-transparent px-2 py-1 text-xs shadow-xs outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
+                />
+                {selectedConcepts.length > 0 && (
+                  <div className="flex flex-wrap gap-1 pb-1 border-b border-border">
+                    {selectedConcepts.map((concept) => (
+                      <Badge
+                        key={concept}
+                        variant="default"
+                        className="cursor-pointer text-[11px]"
+                        onClick={() => setSelectedConcepts((prev) => prev.filter((c) => c !== concept))}
+                      >
+                        {concept} ✕
+                      </Badge>
+                    ))}
+                  </div>
+                )}
+                <div className="flex max-h-48 flex-wrap gap-1.5 overflow-auto pr-1">
+                  {filteredConcepts.length === 0 && (
+                    <span className="text-xs text-muted-foreground">
+                      {availableConcepts.length === 0 ? 'No concepts in graph' : 'No concepts match'}
+                    </span>
+                  )}
+                  {filteredConcepts.map((concept) => {
+                    const active = selectedConcepts.includes(concept);
+                    return (
+                      <Badge
+                        key={concept}
+                        variant={active ? 'default' : 'outline'}
+                        className="cursor-pointer text-[11px]"
+                        onClick={() =>
+                          setSelectedConcepts((prev) =>
+                            prev.includes(concept) ? prev.filter((c) => c !== concept) : [...prev, concept]
+                          )
+                        }
+                      >
+                        {concept} ({conceptCounts.get(concept) || 0})
+                      </Badge>
+                    );
+                  })}
+                </div>
               </div>
-            </div>
-          </details>
+            )}
+          </div>
         </aside>
       </div>
     </div>
