@@ -60,6 +60,43 @@ interface PersistedFilterState {
   maxEdgesPerNode: number;
 }
 
+/**
+ * Apply log scaling to node positions to spread dense clusters.
+ * Uses sign-preserving log1p: sign(v) * log(1 + |v|) * scale
+ * This compresses long-range distances while expanding short-range ones.
+ */
+function applyLogScaling(graph: Graph): void {
+  // Compute bounding box to choose scale factor
+  let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+  graph.forEachNode((_id, attrs) => {
+    const x = attrs.x as number;
+    const y = attrs.y as number;
+    if (x < minX) minX = x;
+    if (x > maxX) maxX = x;
+    if (y < minY) minY = y;
+    if (y > maxY) maxY = y;
+  });
+
+  const rangeX = maxX - minX || 1;
+  const rangeY = maxY - minY || 1;
+  const cx = (minX + maxX) / 2;
+  const cy = (minY + maxY) / 2;
+
+  graph.forEachNode((id, attrs) => {
+    // Center-relative coordinates
+    const dx = (attrs.x as number) - cx;
+    const dy = (attrs.y as number) - cy;
+    // Sign-preserving log transform
+    const lx = Math.sign(dx) * Math.log1p(Math.abs(dx));
+    const ly = Math.sign(dy) * Math.log1p(Math.abs(dy));
+    // Re-scale to approximate original bounding box
+    const logRangeX = Math.log1p(rangeX / 2) * 2 || 1;
+    const logRangeY = Math.log1p(rangeY / 2) * 2 || 1;
+    graph.setNodeAttribute(id, 'x', cx + lx * (rangeX / logRangeX));
+    graph.setNodeAttribute(id, 'y', cy + ly * (rangeY / logRangeY));
+  });
+}
+
 function getCollectionColor(collectionId: string | undefined, collections: Collection[]): string {
   if (!collectionId) return '#6b7280';
   const index = collections.findIndex((c) => c.id === collectionId);
@@ -586,6 +623,11 @@ export function GraphExplorer({ className, initialNoteId, onNoteSelect }: GraphE
     const checkInterval = setInterval(() => {
       if (!fa2Ref.current || !fa2Ref.current.isRunning()) {
         clearInterval(checkInterval);
+        // Apply log scaling to spread dense clusters after layout converges
+        if (graphRef.current && graphRef.current.order > 1) {
+          applyLogScaling(graphRef.current);
+          rendererRef.current?.refresh();
+        }
         setLayoutRunning(false);
         return;
       }
@@ -596,6 +638,11 @@ export function GraphExplorer({ className, initialNoteId, onNoteSelect }: GraphE
       clearInterval(checkInterval);
       if (fa2Ref.current && fa2Ref.current.isRunning()) {
         fa2Ref.current.stop();
+        // Apply log scaling after forced stop too
+        if (graphRef.current && graphRef.current.order > 1) {
+          applyLogScaling(graphRef.current);
+          rendererRef.current?.refresh();
+        }
         setLayoutRunning(false);
       }
     }, 8000);
@@ -626,13 +673,19 @@ export function GraphExplorer({ className, initialNoteId, onNoteSelect }: GraphE
           labelDensity: 0.12,
           labelGridCellSize: 100,
           labelRenderedSizeThreshold: 6,
+          labelColor: { color: '#e2e8f0' },
           minCameraRatio: 0.02,
           maxCameraRatio: 10,
           defaultEdgeType: 'line',
-          // Node reducer for semantic zoom, ghost state, community highlighting, and selection
+          // Node reducer for hover-only labels, semantic zoom, ghost state, community highlighting, and selection
           nodeReducer: (nodeId, data) => {
             const res = { ...data };
             const isRoot = nodeId === rootNoteId;
+            const isHovered = nodeId === hoveredGraphNodeId;
+            const isSelected = nodeId === selectedGraphNodeId;
+
+            // Labels only on hover, selection, or root node
+            const showLabel = isHovered || isSelected || isRoot;
 
             // Semantic zoom: Level 1 = overview (hide labels, shrink), Level 3 = full detail
             if (zoomLevel === 1 && !isRoot) {
@@ -641,6 +694,11 @@ export function GraphExplorer({ className, initialNoteId, onNoteSelect }: GraphE
             } else if (zoomLevel === 3) {
               // Full detail: slightly larger labels
               res.size = Math.max(4, (res.size as number || 5) * 1.1);
+            }
+
+            // Hide label unless hovered/selected/root (after zoom check so zoom 3 doesn't force-show all)
+            if (!showLabel && zoomLevel !== 3) {
+              res.label = '';
             }
 
             // Root node always highlighted with ring effect (larger size)
@@ -667,7 +725,7 @@ export function GraphExplorer({ className, initialNoteId, onNoteSelect }: GraphE
                 res.zIndex = 1;
               }
             }
-            // Dim non-selected when a node is selected
+            // Dim non-selected when a node is selected — but keep label on selected + neighbors
             if (selectedGraphNodeId) {
               const isConnected = graphData.edges.some(
                 (e) =>
@@ -678,6 +736,9 @@ export function GraphExplorer({ className, initialNoteId, onNoteSelect }: GraphE
                 res.color = '#404040';
                 res.label = '';
                 res.zIndex = 0;
+              } else if (isConnected) {
+                // Show labels on direct neighbors of selected node
+                res.label = data.label as string;
               }
             }
             return res;
@@ -939,7 +1000,7 @@ export function GraphExplorer({ className, initialNoteId, onNoteSelect }: GraphE
   // Re-render sigma when highlight/filter/zoom state changes
   React.useEffect(() => {
     rendererRef.current?.refresh();
-  }, [highlightedCommunity, selectedGraphNodeId, showBridgesOnly, hasNodeFilters, zoomLevel]);
+  }, [highlightedCommunity, hoveredGraphNodeId, selectedGraphNodeId, showBridgesOnly, hasNodeFilters, zoomLevel]);
 
   // Cleanup on unmount
   React.useEffect(() => {
