@@ -838,29 +838,74 @@ export interface AddEmbeddingSetMembersRequest {
 // ===========================
 
 /**
- * Graph node
+ * Graph node (v1 payload — enriched with community, tags, concepts)
  */
 export interface GraphNode {
   id: string;
   title: string;
   depth: number;
+  // v1 enriched fields (populated by backend, may be absent on legacy payloads)
+  collection_id?: string | null;
+  tags?: string[];
+  concepts?: string[];
+  archived?: boolean;
+  created_at_utc?: string;
+  updated_at_utc?: string;
+  community_id?: number | null;
+  community_label?: string | null;
+  community_confidence?: number | null;
 }
 
 /**
- * Graph edge
+ * Edge provenance metadata (v1)
+ */
+export interface GraphEdgeMetadata {
+  normalized_weight?: number;
+  embedding_set?: string;
+  model?: string;
+  computed_at?: string;
+  snn_score?: number | null;
+}
+
+/**
+ * Graph edge (v1 payload — supports both legacy from/to and new source/target)
  */
 export interface GraphEdge {
-  from: string;
-  to: string;
+  // v1 fields
+  source?: string;
+  target?: string;
+  edge_type?: 'semantic' | 'explicit';
+  rank?: number;
+  metadata?: GraphEdgeMetadata;
+  // Legacy fields (served during transition alongside source/target)
+  from?: string;
+  to?: string;
+  // Common
   score: number;
 }
 
 /**
- * Graph exploration response
+ * Graph response metadata (v1)
+ */
+export interface GraphMeta {
+  returned_nodes?: number;
+  returned_edges?: number;
+  total_candidate_nodes?: number;
+  total_candidate_edges?: number;
+  truncated_nodes?: boolean;
+  truncated_edges?: boolean;
+}
+
+/**
+ * Graph exploration response (v1 with backward compatibility)
  */
 export interface GraphExploreResponse {
+  graph_version?: string;
+  generated_at?: string;
+  root_note_id?: string;
   nodes: GraphNode[];
   edges: GraphEdge[];
+  meta?: GraphMeta;
 }
 
 /**

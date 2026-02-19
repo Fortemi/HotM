@@ -48,7 +48,7 @@ interface SimulationNode extends GraphNode {
   collection_id?: string;
 }
 
-interface SimulationEdge extends GraphEdge {
+interface SimulationEdge extends Omit<GraphEdge, 'source' | 'target'> {
   source: SimulationNode;
   target: SimulationNode;
 }
@@ -278,8 +278,8 @@ export function GraphExplorer({ className, initialNoteId, onNoteSelect }: GraphE
         const simEdges: SimulationEdge[] = response.edges
           .map((edge) => ({
             ...edge,
-            source: nodeMap.get(edge.from)!,
-            target: nodeMap.get(edge.to)!,
+            source: nodeMap.get(edge.source || edge.from || '')!,
+            target: nodeMap.get(edge.target || edge.to || '')!,
           }))
           .filter((e) => e.source && e.target);
 

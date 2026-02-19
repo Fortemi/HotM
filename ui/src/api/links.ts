@@ -101,6 +101,7 @@ export function createLinksApi(client: ApiClient) {
         depth?: number;
         max_nodes?: number;
         min_score?: number;
+        max_edges_per_node?: number;
       } = {}
     ): Promise<GraphExploreResponse> {
       if (!noteId || noteId.trim() === '') {
@@ -119,6 +120,10 @@ export function createLinksApi(client: ApiClient) {
 
       if (options.min_score !== undefined) {
         params.min_score = String(options.min_score);
+      }
+
+      if (options.max_edges_per_node !== undefined) {
+        params.max_edges_per_node = String(options.max_edges_per_node);
       }
 
       return client.get<GraphExploreResponse>(

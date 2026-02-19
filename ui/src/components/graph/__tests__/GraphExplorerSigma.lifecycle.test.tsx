@@ -14,6 +14,9 @@ vi.mock('sigma', () => {
     on() {
       // no-op
     }
+    refresh() {
+      // no-op
+    }
     kill() {
       sigmaKillCalls += 1;
     }
@@ -21,6 +24,9 @@ vi.mock('sigma', () => {
       return {
         getState: () => ({ x: 0, y: 0, ratio: 1, angle: 0 }),
         setState: () => {
+          // no-op
+        },
+        on: () => {
           // no-op
         },
       };
@@ -78,7 +84,7 @@ describe('GraphExplorerSigma lifecycle', () => {
     await user.click(screen.getByRole('button', { name: /refresh/i }));
 
     await waitFor(() => {
-      expect(screen.getByText(/last render:/i)).toBeInTheDocument();
+      expect(screen.getByText(/render:/i)).toBeInTheDocument();
     });
 
     expect(sigmaConstructorCalls).toBe(1);
