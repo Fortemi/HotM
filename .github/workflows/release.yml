@@ -68,7 +68,7 @@ jobs:
         run: tar -czf hotm-spa.tar.gz -C ui/dist .
 
       - name: Upload SPA artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v3
         with:
           name: hotm-spa
           path: hotm-spa.tar.gz
@@ -245,7 +245,7 @@ jobs:
           tauriScript: npm run tauri
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v3
         with:
           name: tauri-${{ matrix.platform }}
           path: |
@@ -285,27 +285,27 @@ jobs:
           echo "DISPLAY_VERSION=$DISPLAY_VERSION" >> $GITHUB_ENV
 
       - name: Download SPA artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v3
         with:
           name: hotm-spa
           path: release-assets
 
       - name: Download Tauri Linux artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v3
         continue-on-error: true
         with:
           name: tauri-ubuntu-latest
           path: release-assets/tauri-linux
 
       - name: Download Tauri Windows artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v3
         continue-on-error: true
         with:
           name: tauri-windows-latest
           path: release-assets/tauri-windows
 
       - name: Download Tauri macOS artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v3
         continue-on-error: true
         with:
           name: tauri-macos-latest

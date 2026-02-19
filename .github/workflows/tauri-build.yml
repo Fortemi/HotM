@@ -73,7 +73,7 @@ jobs:
           tauriScript: npm run tauri
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v3
         with:
           name: tauri-${{ matrix.platform }}
           path: |
