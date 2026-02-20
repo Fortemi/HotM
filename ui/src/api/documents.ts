@@ -25,12 +25,12 @@ export function createDocumentsApi(client: ApiClient) {
         params.category = category;
       }
 
-      const response = await client.get<DocumentTypeListResponse>(
+      const response = await client.get<DocumentTypeListResponse | DocumentType[]>(
         '/api/v1/document-types',
         params
       );
 
-      return response.document_types;
+      return Array.isArray(response) ? response : response.document_types;
     },
 
     /**

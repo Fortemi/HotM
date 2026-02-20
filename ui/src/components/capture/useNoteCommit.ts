@@ -11,6 +11,7 @@ export interface CommitResult {
   conceptLabel: string;
   timestamp: Date;
   warnings: string[];
+  attachmentCount: number;
 }
 
 export function useNoteCommit() {
@@ -21,7 +22,8 @@ export function useNoteCommit() {
   const commit = useCallback(
     async (
       content: string,
-      settings: StickySettings
+      settings: StickySettings,
+      files?: File[]
     ): Promise<CommitResult> => {
       setIsCommitting(true);
       setLastError(null);
@@ -84,6 +86,19 @@ export function useNoteCommit() {
             }
           }
 
+          // Step 5: Upload attachments (if any)
+          let attachmentCount = 0;
+          if (files && files.length > 0) {
+            for (const file of files) {
+              try {
+                await api.attachments.uploadAttachment(note_id, file);
+                attachmentCount++;
+              } catch {
+                warnings.push(`Could not upload: ${file.name}`);
+              }
+            }
+          }
+
           return {
             noteId: note_id,
             content,
@@ -92,6 +107,7 @@ export function useNoteCommit() {
             conceptLabel: settings.conceptLabel,
             timestamp: new Date(),
             warnings,
+            attachmentCount,
           };
         } finally {
           // Restore previous memory routing

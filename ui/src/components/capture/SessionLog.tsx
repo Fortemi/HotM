@@ -1,3 +1,4 @@
+import { Paperclip } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import type { CommitResult } from "./useNoteCommit";
 
@@ -63,6 +64,12 @@ export function SessionLog({ notes }: SessionLogProps) {
                 <Badge variant="outline" className="text-[10px] px-1.5 py-0">
                   {note.conceptLabel}
                 </Badge>
+              )}
+              {note.attachmentCount > 0 && (
+                <span className="inline-flex items-center gap-0.5 text-[10px] text-muted-foreground">
+                  <Paperclip className="h-2.5 w-2.5" />
+                  {note.attachmentCount}
+                </span>
               )}
               {note.warnings.length > 0 &&
                 note.warnings.map((w, j) => (

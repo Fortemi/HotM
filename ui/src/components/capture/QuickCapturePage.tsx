@@ -4,6 +4,7 @@ import {
   useRef,
   useCallback,
   type KeyboardEvent,
+  type DragEvent,
 } from "react";
 import {
   Zap,
@@ -15,6 +16,8 @@ import {
   Sparkles,
   PenLine,
   FileText,
+  Paperclip,
+  Upload,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -62,6 +65,11 @@ export function QuickCapturePage() {
   const [sessionNotes, setSessionNotes] = useState<CommitResult[]>([]);
   const [successFlash, setSuccessFlash] = useState(false);
 
+  // Pending file attachments
+  const [pendingFiles, setPendingFiles] = useState<File[]>([]);
+  const [isDragOver, setIsDragOver] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   // Concept autocomplete
   const [conceptQuery, setConceptQuery] = useState("");
   const [conceptSuggestions, setConceptSuggestions] = useState<Concept[]>([]);
@@ -92,7 +100,7 @@ export function QuickCapturePage() {
 
     api.archives
       .list()
-      .then(setArchives)
+      .then((a) => setArchives(Array.isArray(a) ? a : []))
       .catch(() => {
         errors.archives = true;
         setLoadErrors((prev) => ({ ...prev, archives: true }));
@@ -100,7 +108,8 @@ export function QuickCapturePage() {
 
     api.collections
       .list()
-      .then((cols) => {
+      .then((raw) => {
+        const cols = Array.isArray(raw) ? raw : [];
         setCollections(cols);
         // Clear stale collection reference
         if (
@@ -117,7 +126,7 @@ export function QuickCapturePage() {
 
     api.tags
       .list()
-      .then(setAllTags)
+      .then((t) => setAllTags(Array.isArray(t) ? t : []))
       .catch(() => {
         errors.tags = true;
         setLoadErrors((prev) => ({ ...prev, tags: true }));
@@ -125,7 +134,7 @@ export function QuickCapturePage() {
 
     api.documents
       .list()
-      .then(setDocumentTypes)
+      .then((types) => setDocumentTypes(Array.isArray(types) ? types : []))
       .catch(() => {
         setLoadErrors((prev) => ({ ...prev, documentTypes: true }));
       });
@@ -191,25 +200,74 @@ export function QuickCapturePage() {
     [settings.format, setFormat]
   );
 
+  // File attachment handlers
+  const addFiles = useCallback((files: FileList | File[]) => {
+    const arr = Array.from(files);
+    if (arr.length === 0) return;
+    setPendingFiles((prev) => [...prev, ...arr]);
+  }, []);
+
+  const removeFile = useCallback((index: number) => {
+    setPendingFiles((prev) => prev.filter((_, i) => i !== index));
+  }, []);
+
+  const handleDragOver = useCallback((e: DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOver(true);
+  }, []);
+
+  const handleDragLeave = useCallback((e: DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOver(false);
+  }, []);
+
+  const handleDrop = useCallback(
+    (e: DragEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      setIsDragOver(false);
+      if (e.dataTransfer.files.length > 0) {
+        addFiles(e.dataTransfer.files);
+      }
+    },
+    [addFiles]
+  );
+
   // Commit handler
   const handleCommit = useCallback(async () => {
     const trimmed = content.trim();
-    if (!trimmed || isCommitting) return;
+    const hasFiles = pendingFiles.length > 0;
+
+    // Need either text or files
+    if ((!trimmed && !hasFiles) || isCommitting) return;
+
+    // "Attachment-as-note": if files but no text, auto-generate content from filenames
+    const noteContent = trimmed
+      ? trimmed
+      : pendingFiles
+          .map((f) => f.name)
+          .join(", ");
 
     const savedContent = content;
+    const savedFiles = [...pendingFiles];
 
     try {
-      const result = await commit(trimmed, settings);
+      const result = await commit(noteContent, settings, pendingFiles.length > 0 ? pendingFiles : undefined);
       setContent("");
+      setPendingFiles([]);
       setSessionNotes((prev) => [result, ...prev]);
       setSuccessFlash(true);
       setTimeout(() => setSuccessFlash(false), 400);
 
       // Announce to screen reader
       if (liveRegionRef.current) {
-        liveRegionRef.current.textContent = `Note committed. ${
-          sessionNotes.length + 1
-        } notes captured this session.`;
+        liveRegionRef.current.textContent = `Note committed${
+          result.attachmentCount > 0
+            ? ` with ${result.attachmentCount} attachment${result.attachmentCount > 1 ? "s" : ""}`
+            : ""
+        }. ${sessionNotes.length + 1} notes captured this session.`;
       }
 
       // Restore focus
@@ -217,12 +275,13 @@ export function QuickCapturePage() {
     } catch {
       // Content preserved, error shown via lastError
       setContent(savedContent);
+      setPendingFiles(savedFiles);
       if (errorRegionRef.current) {
         errorRegionRef.current.textContent =
           "Failed to save note. Your text is preserved.";
       }
     }
-  }, [content, isCommitting, commit, settings, sessionNotes.length]);
+  }, [content, pendingFiles, isCommitting, commit, settings, sessionNotes.length]);
 
   // Keyboard handler for textarea
   const handleTextareaKeyDown = useCallback(
@@ -724,15 +783,36 @@ export function QuickCapturePage() {
         </div>
       )}
 
-      {/* Capture Area */}
-      <div className="mb-4">
+      {/* Capture Area with drag-and-drop */}
+      <div
+        className={`mb-4 relative rounded-md transition-colors ${
+          isDragOver ? "ring-2 ring-primary bg-primary/5" : ""
+        }`}
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
+      >
+        {/* Drag overlay */}
+        {isDragOver && (
+          <div className="absolute inset-0 z-10 flex items-center justify-center bg-primary/5 border-2 border-dashed border-primary rounded-md pointer-events-none">
+            <div className="flex flex-col items-center gap-1 text-primary">
+              <Upload className="h-6 w-6" />
+              <span className="text-sm font-medium">Drop files to attach</span>
+            </div>
+          </div>
+        )}
+
         <textarea
           ref={textareaRef}
           value={content}
           onChange={(e) => setContent(e.target.value)}
           onKeyDown={handleTextareaKeyDown}
           onPaste={handlePaste}
-          placeholder="Capture your thought... (Shift+Enter to commit)"
+          placeholder={
+            pendingFiles.length > 0
+              ? "Add a description (optional with attachments)... (Shift+Enter to commit)"
+              : "Capture your thought... (Shift+Enter to commit)"
+          }
           disabled={isCommitting}
           className={`w-full font-mono text-sm border rounded-md px-3 py-2 resize-none bg-background transition-colors duration-300 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none ${
             successFlash ? "bg-green-500/10" : ""
@@ -741,34 +821,95 @@ export function QuickCapturePage() {
           aria-label="Note content"
           aria-describedby="char-counter shortcut-hint"
         />
-        <div className="flex items-center justify-between mt-2">
-          <Button
-            onClick={handleCommit}
-            disabled={!content.trim() || isCommitting}
-            className="gap-2"
-          >
-            {isCommitting ? (
-              <>
-                <Loader2 className="h-4 w-4 animate-spin" />
-                Saving...
-              </>
-            ) : (
-              <>
-                Commit note
-                <kbd
-                  id="shortcut-hint"
-                  className="hidden sm:inline-flex items-center px-1.5 py-0.5 text-[10px] font-mono bg-primary/20 rounded"
+
+        {/* Pending files list */}
+        {pendingFiles.length > 0 && (
+          <div className="border border-t-0 rounded-b-md px-3 py-2 bg-muted/30 space-y-1">
+            {pendingFiles.map((file, i) => (
+              <div
+                key={`${file.name}-${i}`}
+                className="flex items-center gap-2 text-xs"
+              >
+                <Paperclip className="h-3 w-3 text-muted-foreground flex-shrink-0" />
+                <span className="truncate flex-1">{file.name}</span>
+                <span className="text-muted-foreground flex-shrink-0">
+                  {file.size < 1024
+                    ? `${file.size} B`
+                    : file.size < 1024 * 1024
+                    ? `${(file.size / 1024).toFixed(1)} KB`
+                    : `${(file.size / (1024 * 1024)).toFixed(1)} MB`}
+                </span>
+                <button
+                  onClick={() => removeFile(i)}
+                  className="text-muted-foreground hover:text-destructive flex-shrink-0"
+                  aria-label={`Remove ${file.name}`}
                 >
-                  Shift+Enter
-                </kbd>
-              </>
-            )}
-          </Button>
+                  <X className="h-3 w-3" />
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Hidden file input */}
+        <input
+          ref={fileInputRef}
+          type="file"
+          multiple
+          className="hidden"
+          onChange={(e) => {
+            if (e.target.files) addFiles(e.target.files);
+            e.target.value = "";
+          }}
+        />
+
+        <div className="flex items-center justify-between mt-2">
+          <div className="flex items-center gap-2">
+            <Button
+              onClick={handleCommit}
+              disabled={(!content.trim() && pendingFiles.length === 0) || isCommitting}
+              className="gap-2"
+            >
+              {isCommitting ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                <>
+                  Commit note
+                  <kbd
+                    id="shortcut-hint"
+                    className="hidden sm:inline-flex items-center px-1.5 py-0.5 text-[10px] font-mono bg-primary/20 rounded"
+                  >
+                    Shift+Enter
+                  </kbd>
+                </>
+              )}
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              className="h-9 w-9"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={isCommitting}
+              title="Attach files"
+              aria-label="Attach files"
+            >
+              <Paperclip className="h-4 w-4" />
+            </Button>
+          </div>
           <span
             id="char-counter"
             className={`text-xs ${charColor}`}
           >
             {charCount} chars
+            {pendingFiles.length > 0 && (
+              <span className="ml-2">
+                {pendingFiles.length} file{pendingFiles.length !== 1 ? "s" : ""}
+              </span>
+            )}
           </span>
         </div>
       </div>
