@@ -152,6 +152,7 @@ jobs:
         docker build \
           -f ui/Dockerfile \
           --build-arg VITE_API_BASE_URL="${FORTEMI_API_URL}" \
+          --build-arg VITE_GIT_SHA="${SHORT_SHA}" \
           -t "${IMAGE}:${BRANCH_TAG}" \
           -t "${IMAGE}:sha-${SHORT_SHA}" \
           ui

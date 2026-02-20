@@ -4,6 +4,10 @@ import path from 'path';
 
 export default defineConfig({
   plugins: [react()],
+  define: {
+    __APP_VERSION__: JSON.stringify('test'),
+    __GIT_SHA__: JSON.stringify('abc1234'),
+  },
   test: {
     globals: true,
     environment: 'jsdom',

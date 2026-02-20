@@ -302,7 +302,12 @@ export function AdminPanel({ className }: AdminPanelProps) {
               <div className="flex flex-col gap-3">
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-medium">Version</span>
-                  <span className="text-sm text-muted-foreground">0.1.2</span>
+                  <span className="text-sm text-muted-foreground">{__APP_VERSION__}</span>
+                </div>
+                <Separator />
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium">Commit</span>
+                  <span className="text-sm text-muted-foreground font-mono">{__GIT_SHA__}</span>
                 </div>
                 <Separator />
                 <div className="flex items-center justify-between">

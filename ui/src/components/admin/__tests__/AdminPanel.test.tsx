@@ -238,7 +238,8 @@ describe('AdminPanel', () => {
 
       await waitFor(() => {
         expect(screen.getAllByText(/Version/i).length).toBeGreaterThan(0);
-        expect(screen.getByText('0.1.2')).toBeInTheDocument();
+        expect(screen.getByText('test')).toBeInTheDocument();
+        expect(screen.getByText('abc1234')).toBeInTheDocument();
       });
     });
   });

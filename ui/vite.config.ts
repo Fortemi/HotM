@@ -1,12 +1,25 @@
 import path from "path";
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
+import { execSync } from "child_process";
 
 const host = process.env.TAURI_DEV_HOST;
+
+function getGitSha(): string {
+  try {
+    return execSync("git rev-parse --short HEAD", { encoding: "utf-8" }).trim();
+  } catch {
+    return "unknown";
+  }
+}
 
 // https://vite.dev/config/
 export default defineConfig(async () => ({
   plugins: [react()],
+  define: {
+    __APP_VERSION__: JSON.stringify(process.env.npm_package_version || "dev"),
+    __GIT_SHA__: JSON.stringify(process.env.VITE_GIT_SHA || getGitSha()),
+  },
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
