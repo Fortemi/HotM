@@ -89,7 +89,15 @@ export function createNotesApi(client: ApiClient) {
         ...(request.document_type && { document_type: request.document_type }),
       };
 
-      return client.post<CreateNoteResponse>('/api/v1/notes', payload);
+      // Fortemi returns { id } but callers expect { note_id }
+      const raw = await client.post<{ id?: string; note_id?: string; status?: string }>(
+        '/api/v1/notes',
+        payload,
+      );
+      return {
+        note_id: raw.note_id || raw.id || '',
+        status: raw.status,
+      };
     },
 
     /**

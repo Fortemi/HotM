@@ -154,7 +154,14 @@ describe('Notes API', () => {
         format: 'markdown',
         source: 'user'
       });
-      expect(result).toEqual(mockResponse);
+      expect(result.note_id).toBe('new-123');
+    });
+
+    it('normalizes Fortemi id field to note_id', async () => {
+      vi.mocked(mockClient.post).mockResolvedValueOnce({ id: 'uuid-456' });
+
+      const result = await notesApi.create({ content: 'Test' });
+      expect(result.note_id).toBe('uuid-456');
     });
 
     it('uses default format and source when not provided', async () => {
