@@ -12,6 +12,7 @@ import type { EmbeddingConfig, KnowledgeHealth } from '@/api';
 // Mock the API
 vi.mock('@/api', () => ({
   api: {
+    client: { baseUrl: 'http://localhost:3000' },
     embeddings: {
       listConfigs: vi.fn(),
       getDefaultConfig: vi.fn(),
@@ -21,6 +22,11 @@ vi.mock('@/api', () => ({
     },
     healthCheck: vi.fn(),
   },
+}));
+
+// Mock tauri utilities
+vi.mock('@/lib/tauri', () => ({
+  getCachedConfig: vi.fn(() => null),
 }));
 
 import { api } from '@/api';
