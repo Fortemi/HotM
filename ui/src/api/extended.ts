@@ -299,63 +299,78 @@ export function createExtendedApi(client: ApiClient) {
     // ============================================================
 
     /**
-     * Get related notes for a specific note
+     * Get related notes for a specific note.
+     * Tries endpoints in order: /related (LLM context) -> /similar (vector) -> /links+/backlinks
      */
     async getRelatedNotes(noteId: string): Promise<RelatedNotesResponse> {
+      // 1. Try the full /related endpoint (includes LLM context_summary)
+      try {
+        const raw = await client.get<unknown>(`/api/v1/notes/${noteId}/related`);
+        const obj = raw as { related?: unknown[]; context_summary?: string } | null;
+        const related = normalizeSearchResults(obj?.related ?? obj);
+        if (related.length > 0) {
+          return {
+            related,
+            context_summary: typeof obj?.context_summary === 'string'
+              ? obj.context_summary
+              : `Found ${related.length} related notes.`,
+          };
+        }
+      } catch {
+        // /related not available, try next
+      }
+
+      // 2. Try /similar (semantic vector search, includes snippets)
       try {
         const similar = await client.get<unknown>(`/api/v1/notes/${noteId}/similar`);
         const related = normalizeSearchResults(similar);
-        return {
-          related,
-          context_summary: related.length
-            ? `Found ${related.length} similar notes.`
-            : 'No similar notes found.',
-        };
+        if (related.length > 0) {
+          return {
+            related,
+            context_summary: `Found ${related.length} similar notes by semantic search.`,
+          };
+        }
       } catch {
-        const [linksRaw, backlinksRaw] = await Promise.all([
-          client.get<unknown>(`/api/v1/notes/${noteId}/links`),
-          client.get<unknown>(`/api/v1/notes/${noteId}/backlinks`),
-        ]);
+        // /similar not available, try next
+      }
 
-        const linksObj = (linksRaw ?? {}) as {
-          outgoing?: Array<{ to_note_id?: string; score?: number }>;
-        };
-        const backlinksObj = (backlinksRaw ?? {}) as {
-          backlinks?: Array<{ from_note_id?: string; score?: number }>;
-        };
+      // 3. Fall back to graph links + backlinks
+      const [linksRaw, backlinksRaw] = await Promise.all([
+        client.get<unknown>(`/api/v1/notes/${noteId}/links`).catch(() => null),
+        client.get<unknown>(`/api/v1/notes/${noteId}/backlinks`).catch(() => null),
+      ]);
 
-        const relatedMap = new Map<string, SearchResult>();
-        for (const edge of linksObj.outgoing ?? []) {
-          if (!edge.to_note_id) {
-            continue;
-          }
-          relatedMap.set(edge.to_note_id, {
-            note_id: edge.to_note_id,
+      type LinkEdge = { to_note_id?: string; from_note_id?: string; score?: number; snippet?: string; kind?: string };
+      const linksObj = (linksRaw ?? {}) as { outgoing?: LinkEdge[] };
+      const backlinksObj = (backlinksRaw ?? {}) as { backlinks?: LinkEdge[] };
+
+      const relatedMap = new Map<string, SearchResult>();
+      for (const edge of linksObj.outgoing ?? []) {
+        if (!edge.to_note_id) continue;
+        relatedMap.set(edge.to_note_id, {
+          note_id: edge.to_note_id,
+          score: edge.score ?? 0.5,
+          snippet: edge.snippet ?? '',
+        });
+      }
+      for (const edge of backlinksObj.backlinks ?? []) {
+        if (!edge.from_note_id) continue;
+        if (!relatedMap.has(edge.from_note_id)) {
+          relatedMap.set(edge.from_note_id, {
+            note_id: edge.from_note_id,
             score: edge.score ?? 0.5,
-            snippet: '',
+            snippet: edge.snippet ?? '',
           });
         }
-        for (const edge of backlinksObj.backlinks ?? []) {
-          if (!edge.from_note_id) {
-            continue;
-          }
-          if (!relatedMap.has(edge.from_note_id)) {
-            relatedMap.set(edge.from_note_id, {
-              note_id: edge.from_note_id,
-              score: edge.score ?? 0.5,
-              snippet: '',
-            });
-          }
-        }
-
-        const related = Array.from(relatedMap.values()).sort((a, b) => b.score - a.score);
-        return {
-          related,
-          context_summary: related.length
-            ? `Connected to ${related.length} notes by graph links.`
-            : 'No related notes found.',
-        };
       }
+
+      const related = Array.from(relatedMap.values()).sort((a, b) => b.score - a.score);
+      return {
+        related,
+        context_summary: related.length
+          ? `Connected to ${related.length} notes by graph links.`
+          : 'No related notes found.',
+      };
     },
 
     /**
