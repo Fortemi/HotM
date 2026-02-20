@@ -330,6 +330,7 @@ jobs:
           path: release-assets/tauri-linux
 
       - name: Flatten release artifacts
+        shell: bash
         run: |
           set -euo pipefail
           mkdir -p release-assets/flat
