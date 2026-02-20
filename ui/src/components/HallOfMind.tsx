@@ -31,7 +31,6 @@ import {
   Plus,
   Search,
   Settings,
-  Archive,
   Star,
   Hash,
   Edit3,
@@ -217,7 +216,6 @@ export function HallOfMind() {
   const [sortOrder, setSortOrder] = useState<"desc" | "asc">("desc");
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set(["Uncategorized"]));
   const [activeTab, setActiveTab] = useState<string>("preview");
-  const [quickAccessFilter, setQuickAccessFilter] = useState<"all" | "starred" | "recent" | "archived">("all");
   const [selectedNoteConceptTags, setSelectedNoteConceptTags] = useState<NoteConceptSummary[]>([]);
   const [selectedNoteProvenance, setSelectedNoteProvenance] = useState<any | null>(null);
   const [metadataConceptOptions, setMetadataConceptOptions] = useState<
@@ -227,12 +225,7 @@ export function HallOfMind() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [noteToDelete, setNoteToDelete] = useState<{ id: string; title: string } | null>(null);
   const [quickNoteCollapsed, setQuickNoteCollapsed] = useState(true);
-  const [quickAccessCollapsed, setQuickAccessCollapsed] = useState(true);
-  const [tagsCollapsed, setTagsCollapsed] = useState(true);
   const [featuresCollapsed, setFeaturesCollapsed] = useState(true);
-  const [selectedTags, setSelectedTags] = useState<Set<string>>(new Set());
-  const [tagSearchQuery, setTagSearchQuery] = useState("");
-  const [availableTags, setAvailableTags] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [serverStatus, setServerStatus] = useState<{
     ok: boolean;
@@ -283,7 +276,6 @@ export function HallOfMind() {
   useEffect(() => {
     checkServerHealth();
     loadExistingNotes();
-    loadAvailableTags();
     void loadMemoryRoutingState();
     void refreshSystemSnapshot();
   }, []);
@@ -326,7 +318,6 @@ export function HallOfMind() {
       setNoteContent("");
       setRevisedContent("");
       loadExistingNotes();
-      loadAvailableTags();
     };
 
     window.addEventListener(MEMORY_CHANGED_EVENT, handleMemoryChanged as EventListener);
@@ -546,16 +537,7 @@ export function HallOfMind() {
       }
     };
   }, [selectedNote?.id, activeTab, searchQuery]);
-  
-  // Load available tags for filtering
-  const loadAvailableTags = async () => {
-    try {
-      const tags = await api.getAllLabels();
-      setAvailableTags(tags.slice(0, 50)); // Keep top 50 for performance
-    } catch (error) {
-      console.error('Failed to load tags:', error);
-    }
-  };
+
 
   // Listen for typed realtime note events and converge local state.
   useEffect(() => {
@@ -1709,38 +1691,15 @@ export function HallOfMind() {
     }
   });
 
-  // Apply quick access filter first
-  let quickFilteredNotes = sortedNotes;
-  if (quickAccessFilter === "starred") {
-    quickFilteredNotes = sortedNotes.filter(note => note.starred);
-  } else if (quickAccessFilter === "recent") {
-    // Show the 10 most recent notes (excluding archived)
-    quickFilteredNotes = sortedNotes.filter(note => !note.archived).slice(0, 10);
-  } else if (quickAccessFilter === "archived") {
-    // Show only archived notes
-    quickFilteredNotes = sortedNotes.filter(note => note.archived);
-  } else {
-    // Default: show all non-archived notes
-    quickFilteredNotes = sortedNotes.filter(note => !note.archived);
-  }
-  
-  // Apply tag filter if any tags are selected
-  if (selectedTags.size > 0) {
-    quickFilteredNotes = quickFilteredNotes.filter(note => {
-      if (!note.tags || note.tags.length === 0) return false;
-      // Check if note has ALL selected tags (AND operation)
-      return Array.from(selectedTags).every(tag => 
-        note.tags.includes(tag)
-      );
-    });
-  }
-  
-  const filteredNotes = searchMode === "local" 
-    ? quickFilteredNotes.filter(note =>
+  // Hide archived notes by default
+  const activeNotes = sortedNotes.filter(note => !note.archived);
+
+  const filteredNotes = searchMode === "local"
+    ? activeNotes.filter(note =>
         note.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
         note.content.toLowerCase().includes(searchQuery.toLowerCase())
       )
-    : quickFilteredNotes; // When in search mode, notes are already filtered from server
+    : activeNotes; // When in search mode, notes are already filtered from server
   
   // Group notes by category or topic
   const groupedNotes = (): Record<string, Note[]> => {
@@ -2088,198 +2047,6 @@ export function HallOfMind() {
               )}
             </SidebarGroup>
 
-            {/* Quick Access */}
-            <SidebarGroup className="flex-shrink-0">
-              <SidebarGroupLabel>
-                <button
-                  onClick={() => setQuickAccessCollapsed(!quickAccessCollapsed)}
-                  className="flex items-center justify-between w-full hover:bg-accent/50 rounded px-1 py-0.5 transition-colors"
-                >
-                  <span>Quick Access</span>
-                  {quickAccessCollapsed ? (
-                    <ChevronRight className="h-3 w-3" />
-                  ) : (
-                    <ChevronDown className="h-3 w-3" />
-                  )}
-                </button>
-              </SidebarGroupLabel>
-              {!quickAccessCollapsed && (
-                <SidebarMenu>
-                  <SidebarMenuItem>
-                    <SidebarMenuButton
-                      onClick={() => setQuickAccessFilter(quickAccessFilter === "starred" ? "all" : "starred")}
-                      className={quickAccessFilter === "starred" ? "bg-primary/10" : ""}
-                    >
-                      <Star className="h-4 w-4" />
-                      <span>Starred</span>
-                      <Badge variant="secondary" className="ml-auto">
-                        {notes.filter(n => n.starred).length}
-                      </Badge>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                  <SidebarMenuItem>
-                    <SidebarMenuButton
-                      onClick={() => setQuickAccessFilter(quickAccessFilter === "archived" ? "all" : "archived")}
-                      className={quickAccessFilter === "archived" ? "bg-primary/10" : ""}
-                    >
-                      <Archive className="h-4 w-4" />
-                      <span>Archived</span>
-                      <Badge variant="secondary" className="ml-auto">
-                        {notes.filter(n => n.archived).length}
-                      </Badge>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                </SidebarMenu>
-              )}
-            </SidebarGroup>
-
-            {/* Tag Filter */}
-            <SidebarGroup className="flex-shrink-0">
-              <SidebarGroupLabel>
-                <button
-                  onClick={() => setTagsCollapsed(!tagsCollapsed)}
-                  className="flex items-center gap-1 w-full hover:bg-accent/50 rounded px-1 py-0.5 transition-colors"
-                >
-                  <span>Tag Filter</span>
-                  {selectedTags.size > 0 && (
-                    <Badge variant="secondary" className="ml-2 text-xs">
-                      {selectedTags.size}
-                    </Badge>
-                  )}
-                  {tagsCollapsed ? (
-                    <ChevronRight className="h-3 w-3 ml-auto" />
-                  ) : (
-                    <ChevronDown className="h-3 w-3 ml-auto" />
-                  )}
-                </button>
-              </SidebarGroupLabel>
-              {!tagsCollapsed && (
-                <SidebarGroupContent>
-                  <div className="px-3 py-2 space-y-2">
-                    <div className="relative">
-                      <Search className="absolute left-2 top-2.5 h-3 w-3 text-muted-foreground" />
-                      <input
-                        type="text"
-                        placeholder="Search tags..."
-                        value={tagSearchQuery}
-                        onChange={(e) => setTagSearchQuery(e.target.value)}
-                        className="w-full pl-7 pr-2 py-1.5 text-xs bg-background border rounded focus:outline-none focus:ring-1 focus:ring-primary"
-                      />
-                    </div>
-                    {selectedTags.size > 0 && (
-                      <div>
-                        <div className="flex items-center justify-between mb-1">
-                          <span className="text-xs text-muted-foreground">Active filters:</span>
-                          <button
-                            onClick={() => setSelectedTags(new Set())}
-                            className="text-xs text-muted-foreground hover:text-primary"
-                          >
-                            Clear all
-                          </button>
-                        </div>
-                        <div className="flex flex-wrap gap-1">
-                          {Array.from(selectedTags).map((tag) => (
-                            <Badge
-                              key={`selected-${tag}`}
-                              variant="secondary"
-                              className="text-xs"
-                            >
-                              {tag}
-                              <button
-                                onClick={() => {
-                                  const newSelected = new Set(selectedTags);
-                                  newSelected.delete(tag);
-                                  setSelectedTags(newSelected);
-                                }}
-                                className="ml-1 hover:text-destructive"
-                              >
-                                <X className="h-2 w-2" />
-                              </button>
-                            </Badge>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                    {tagSearchQuery && (
-                      <div>
-                        <div className="text-xs text-muted-foreground mb-1">
-                          Available tags:
-                        </div>
-                        <div className="space-y-1 max-h-[200px] overflow-y-auto">
-                          {(() => {
-                            const filtered = availableTags
-                              .filter(tag =>
-                                tag.toLowerCase().includes(tagSearchQuery.toLowerCase()) &&
-                                !selectedTags.has(tag)
-                              )
-                              .slice(0, 10);
-
-                            if (filtered.length === 0) {
-                              return (
-                                <div className="text-xs text-muted-foreground py-2">
-                                  No matching tags found
-                                </div>
-                              );
-                            }
-
-                            const rows: string[][] = [];
-                            let currentRow: string[] = [];
-                            let currentRowLength = 0;
-
-                            filtered.forEach(tag => {
-                              const tagLength = tag.length;
-                              if (currentRowLength + tagLength > 20 && currentRow.length > 0) {
-                                rows.push(currentRow);
-                                currentRow = [tag];
-                                currentRowLength = tagLength;
-                              } else {
-                                currentRow.push(tag);
-                                currentRowLength += tagLength + 1;
-                                if (currentRow.length >= 3) {
-                                  rows.push(currentRow);
-                                  currentRow = [];
-                                  currentRowLength = 0;
-                                }
-                              }
-                            });
-
-                            if (currentRow.length > 0) {
-                              rows.push(currentRow);
-                            }
-
-                            return rows.map((row, rowIndex) => (
-                              <div key={`row-${rowIndex}`} className="flex flex-wrap gap-1">
-                                {row.map(tag => (
-                                  <Badge
-                                    key={tag}
-                                    variant="outline"
-                                    className="text-xs cursor-pointer hover:bg-accent transition-colors"
-                                    onClick={() => {
-                                      const newSelected = new Set(selectedTags);
-                                      newSelected.add(tag);
-                                      setSelectedTags(newSelected);
-                                      setTagSearchQuery("");
-                                    }}
-                                  >
-                                    <Plus className="h-2 w-2 mr-1" />
-                                    {tag}
-                                  </Badge>
-                                ))}
-                              </div>
-                            ));
-                          })()}
-                        </div>
-                      </div>
-                    )}
-                    {!tagSearchQuery && selectedTags.size === 0 && (
-                      <div className="text-xs text-muted-foreground">
-                        Type to search and filter by tags
-                      </div>
-                    )}
-                  </div>
-                </SidebarGroupContent>
-              )}
-            </SidebarGroup>
           </SidebarContent>
 
           <SidebarFooter className="p-4">
@@ -3136,26 +2903,8 @@ export function HallOfMind() {
                         <div className="flex flex-wrap items-center gap-2 text-xs">
                           <Badge variant="outline">showing {filteredNotes.length}</Badge>
                           <Badge variant="outline">loaded {notes.length}/{notesTotalCount}</Badge>
-                          {quickAccessFilter !== "all" && (
-                            <Badge variant="outline">{quickAccessFilter}</Badge>
-                          )}
-                          {selectedTags.size > 0 && (
-                            <Badge variant="secondary">
-                              {selectedTags.size} tag{selectedTags.size > 1 ? "s" : ""}
-                            </Badge>
-                          )}
                         </div>
                         <div className="flex items-center gap-1">
-                          {quickAccessFilter !== "all" && (
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="h-7 text-xs"
-                              onClick={() => setQuickAccessFilter("all")}
-                            >
-                              Clear Filter
-                            </Button>
-                          )}
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                               <Button variant="outline" size="sm" className="h-7 text-xs">
