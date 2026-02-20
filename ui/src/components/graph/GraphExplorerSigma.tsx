@@ -2,6 +2,7 @@ import * as React from 'react';
 import Graph from 'graphology';
 import Sigma from 'sigma';
 import FA2Layout from 'graphology-layout-forceatlas2/worker';
+import forceAtlas2 from 'graphology-layout-forceatlas2';
 import { api } from '@/api';
 import type { Collection } from '@/api';
 import { cn } from '@/lib/utils';
@@ -667,24 +668,33 @@ export function GraphExplorer({ className, initialNoteId, onNoteSelect }: GraphE
     }
 
     const nodeCount = graph.order;
-    try {
-      const layout = new FA2Layout(graph, {
-        settings: {
-          linLogMode: true,
-          gravity: nodeCount < 50 ? 2.0 : 1.0,
-          scalingRatio: Math.max(1, nodeCount / 20),
-          barnesHutOptimize: nodeCount > 500,
-          strongGravityMode: false,
-          slowDown: 5,
-          adjustSizes: false,
-        },
-      });
+    const fa2Settings = {
+      linLogMode: true,
+      gravity: nodeCount < 50 ? 2.0 : 1.0,
+      scalingRatio: Math.max(1, nodeCount / 20),
+      barnesHutOptimize: nodeCount > 500,
+      strongGravityMode: false,
+      slowDown: 5,
+      adjustSizes: false,
+    };
 
+    try {
+      const layout = new FA2Layout(graph, { settings: fa2Settings });
       fa2Ref.current = layout;
       layout.start();
     } catch {
-      // FA2 worker may fail in environments without URL.createObjectURL (e.g. jsdom)
-      console.warn('FA2Layout unavailable, using static positions');
+      // FA2 worker fails in Tauri WebKit2GTK (blob: worker URLs blocked)
+      // and in jsdom. Fall back to synchronous layout.
+      console.warn('FA2Layout worker unavailable, using synchronous fallback');
+      try {
+        const iterations = Math.min(200, Math.max(50, nodeCount * 2));
+        forceAtlas2.assign(graph, { iterations, settings: fa2Settings });
+        rendererRef.current?.refresh();
+      } catch (syncErr) {
+        console.warn('Synchronous FA2 also failed:', syncErr);
+      }
+      setLayoutRunning(false);
+      return;
     }
     setLayoutRunning(true);
 

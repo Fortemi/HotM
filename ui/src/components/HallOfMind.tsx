@@ -960,39 +960,26 @@ export function HallOfMind() {
     []
   );
 
-  const hydrateNotes = useCallback(async (summaries: NoteSummary[]): Promise<Note[]> => {
-    if (summaries.length === 0) {
-      return [];
-    }
-
-    const batchSize = 10;
-    const fullNotes: NoteFull[] = [];
-    for (let i = 0; i < summaries.length; i += batchSize) {
-      const batch = summaries.slice(i, i + batchSize);
-      const results = await Promise.allSettled(batch.map((s) => api.getNote(s.id)));
-      for (const result of results) {
-        if (result.status === "fulfilled") {
-          fullNotes.push(result.value);
-        }
-      }
-    }
-
-    return fullNotes.map((note) => {
-      savedNotes.current.set(note.note.id, note);
-      return {
-        id: note.note.id,
-        title: note.note.title || note.original.content.split('\n')[0].substring(0, 50) || "Untitled",
-        content: note.original.content,
-        revised_content: note.revised ? note.revised.content : null,
-        createdAt: note.note.created_at_utc,
-        updatedAt: note.note.updated_at_utc,
-        tags: note.tags,
-        starred: note.note.starred || false,
-        archived: note.note.archived || false,
-        ai_generated_title: note.note.title,
-        revised_model: note.revised ? note.revised.model : null,
-      };
-    });
+  /**
+   * Build Note objects from summaries without individual API calls.
+   * Uses snippet as initial content — full content loads on selection
+   * via selectNoteFromNavigator(). This eliminates the N+1 query
+   * pattern that made Tauri desktop loads slow.
+   */
+  const notesFromSummaries = useCallback((summaries: NoteSummary[]): Note[] => {
+    return summaries.map((s) => ({
+      id: s.id,
+      title: s.title || "Untitled",
+      content: s.snippet || "",
+      revised_content: s.has_revision ? null : null,
+      createdAt: s.created_at_utc,
+      updatedAt: s.updated_at_utc,
+      tags: s.tags || [],
+      starred: s.starred || false,
+      archived: s.archived || false,
+      ai_generated_title: s.title,
+      revised_model: null,
+    }));
   }, []);
 
   const loadExistingNotes = useCallback(async () => {
@@ -1007,7 +994,7 @@ export function HallOfMind() {
       const page = await fetchNotesPage(pageSize, 0);
       setNotesTotalCount(page.total);
 
-      const simpleNotes = await hydrateNotes(page.notes);
+      const simpleNotes = notesFromSummaries(page.notes);
       setNotes(simpleNotes);
       setNotesOffset(simpleNotes.length);
       setHasMoreNotes(simpleNotes.length < page.total);
@@ -1030,7 +1017,7 @@ export function HallOfMind() {
     } finally {
       setIsLoading(false);
     }
-  }, [fetchNotesPage, hydrateNotes, selectedNote]);
+  }, [fetchNotesPage, notesFromSummaries, selectedNote]);
 
   const loadMoreNotes = useCallback(async () => {
     if (isLoadingMoreNotes || isLoading || !hasMoreNotes) {
@@ -1043,7 +1030,7 @@ export function HallOfMind() {
       const page = await fetchNotesPage(pageSize, notesOffset);
       setNotesTotalCount(page.total);
 
-      const simpleNotes = await hydrateNotes(page.notes);
+      const simpleNotes = notesFromSummaries(page.notes);
       if (simpleNotes.length > 0) {
         setNotes((prev) => {
           const existingIds = new Set(prev.map((n) => n.id));
@@ -1060,7 +1047,7 @@ export function HallOfMind() {
     } finally {
       setIsLoadingMoreNotes(false);
     }
-  }, [fetchNotesPage, hasMoreNotes, hydrateNotes, isLoading, isLoadingMoreNotes, notesOffset]);
+  }, [fetchNotesPage, hasMoreNotes, notesFromSummaries, isLoading, isLoadingMoreNotes, notesOffset]);
 
   const toggleTheme = () => {
     setIsDarkMode(!isDarkMode);

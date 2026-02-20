@@ -37,6 +37,7 @@ import {
 } from '@/components/ui/dialog';
 import { api } from '@/api';
 import { realtimeEventBus } from '@/services/realtimeEventBus';
+import { useBlobUrl } from '@/lib/tauri';
 import type { Attachment, AttachmentMetadata } from '@/api/types-extended';
 
 interface AttachmentsPanelProps {
@@ -72,6 +73,11 @@ interface AttachmentCardProps {
 
 function AttachmentCard({ attachment, viewMode, onView, onDownload, onDelete }: AttachmentCardProps) {
   const isImage = attachment.content_type.startsWith('image/');
+  // In Tauri, direct URLs can't be loaded as <img src> cross-origin.
+  // useBlobUrl fetches via the HTTP plugin and returns a blob: URL.
+  const thumbnailUrl = useBlobUrl(
+    isImage ? api.attachments.getDownloadUrl(attachment.id) : undefined
+  );
 
   if (viewMode === 'grid') {
     return (
@@ -82,13 +88,15 @@ function AttachmentCard({ attachment, viewMode, onView, onDownload, onDelete }: 
       >
         {/* Preview */}
         <div className="aspect-square bg-muted flex items-center justify-center">
-          {isImage ? (
+          {isImage && thumbnailUrl ? (
             <img
-              src={api.attachments.getDownloadUrl(attachment.id)}
+              src={thumbnailUrl}
               alt={attachment.filename}
               className="w-full h-full object-cover"
               loading="lazy"
             />
+          ) : isImage ? (
+            <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
           ) : (
             getFileIcon(attachment.content_type)
           )}
@@ -153,13 +161,15 @@ function AttachmentCard({ attachment, viewMode, onView, onDownload, onDelete }: 
       data-testid={`attachment-row-${attachment.id}`}
     >
       <div className="flex-shrink-0">
-        {isImage ? (
+        {isImage && thumbnailUrl ? (
           <img
-            src={api.attachments.getDownloadUrl(attachment.id)}
+            src={thumbnailUrl}
             alt={attachment.filename}
             className="w-12 h-12 object-cover rounded"
             loading="lazy"
           />
+        ) : isImage ? (
+          <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
         ) : (
           getFileIcon(attachment.content_type)
         )}

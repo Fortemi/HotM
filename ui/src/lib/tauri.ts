@@ -101,3 +101,60 @@ export async function renderPlantUML(
 export async function ensurePlantUML(): Promise<void> {
   await invokeTauri<void>("ensure_plantuml");
 }
+
+// --- Tauri blob URL helper for cross-origin resources ---
+
+import { useState, useEffect } from "react";
+
+/**
+ * React hook that resolves a remote URL to a displayable src.
+ *
+ * In browser mode the URL is returned as-is (same-origin or CORS works).
+ * In Tauri mode the webview can't load cross-origin resources directly,
+ * so we fetch through the HTTP plugin and return a blob: URL.
+ *
+ * Revokes the blob URL on unmount or URL change to prevent leaks.
+ */
+export function useBlobUrl(url: string | undefined): string | undefined {
+  const [blobUrl, setBlobUrl] = useState<string | undefined>(undefined);
+
+  useEffect(() => {
+    if (!url) {
+      setBlobUrl(undefined);
+      return;
+    }
+
+    // In browser mode, direct URLs work fine
+    if (!isTauri()) {
+      setBlobUrl(url);
+      return;
+    }
+
+    let revoked = false;
+    let currentBlobUrl: string | null = null;
+
+    getTauriFetch()(url)
+      .then((res) => {
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        return res.blob();
+      })
+      .then((blob) => {
+        if (revoked) return;
+        currentBlobUrl = URL.createObjectURL(blob);
+        setBlobUrl(currentBlobUrl);
+      })
+      .catch((err) => {
+        console.error("useBlobUrl failed:", err);
+        if (!revoked) setBlobUrl(undefined);
+      });
+
+    return () => {
+      revoked = true;
+      if (currentBlobUrl) {
+        URL.revokeObjectURL(currentBlobUrl);
+      }
+    };
+  }, [url]);
+
+  return blobUrl;
+}
