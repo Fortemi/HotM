@@ -366,7 +366,7 @@ export function AdminPanel({ className }: AdminPanelProps) {
                 <Separator />
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-medium">License</span>
-                  <span className="text-sm text-muted-foreground">MIT</span>
+                  <span className="text-sm text-muted-foreground">BSL-1.1</span>
                 </div>
                 <Separator />
                 <div className="flex items-center justify-between">
