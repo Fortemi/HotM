@@ -11,52 +11,77 @@ interface RelatedNotesProps {
 
 export function RelatedNotes({ noteId, onSelectNote }: RelatedNotesProps) {
   const [relatedData, setRelatedData] = useState<RelatedNotesResponse | null>(null);
+  const [titles, setTitles] = useState<Map<string, string>>(new Map());
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  
+  const [retryCount, setRetryCount] = useState(0);
+
   // Cache for related notes data to prevent excessive API calls
-  const relatedCache = useRef<Map<string, { data: RelatedNotesResponse; timestamp: number }>>(new Map());
+  const relatedCache = useRef<Map<string, { data: RelatedNotesResponse; titles: Map<string, string>; timestamp: number }>>(new Map());
 
   useEffect(() => {
     if (!noteId) return;
-    
+    let cancelled = false;
+
     const fetchRelated = async () => {
       // Check cache first
       const now = Date.now();
       const cachedData = relatedCache.current.get(noteId);
-      const CACHE_DURATION = 60000; // 60 seconds cache for related notes (more expensive computation)
-      
+      const CACHE_DURATION = 60000;
+
       if (cachedData && (now - cachedData.timestamp) < CACHE_DURATION) {
         setRelatedData(cachedData.data);
-        console.log("Using cached related notes for:", noteId);
+        setTitles(cachedData.titles);
         return;
       }
-      
+
       setLoading(true);
       setError(null);
       try {
         const data = await api.getRelatedNotes(noteId);
+        if (cancelled) return;
         setRelatedData(data);
-        
-        // Cache the result
-        relatedCache.current.set(noteId, {
-          data: data,
-          timestamp: now
-        });
-        
-        console.log("Fetched and cached related notes for:", noteId);
+
+        // Fetch titles for top 5 displayed results in parallel
+        const top5 = (data.related || [])
+          .filter((hit: SearchHit) => (hit?.score || 0) > 0.5)
+          .slice(0, 5);
+
+        const titleMap = new Map<string, string>();
+        const titleResults = await Promise.allSettled(
+          top5.map(async (hit: SearchHit) => {
+            if (!hit?.note_id) return null;
+            const full = await api.getNote(hit.note_id);
+            const content = full.revised?.content || full.original?.content || '';
+            const firstLine = content.split('\n')[0]?.replace(/^#+\s*/, '').trim();
+            return { id: hit.note_id, title: firstLine?.substring(0, 80) || 'Untitled' };
+          })
+        );
+
+        if (cancelled) return;
+        for (const result of titleResults) {
+          if (result.status === 'fulfilled' && result.value) {
+            titleMap.set(result.value.id, result.value.title);
+          }
+        }
+        setTitles(titleMap);
+
+        // Cache both related data and titles
+        relatedCache.current.set(noteId, { data, titles: titleMap, timestamp: now });
       } catch (error) {
+        if (cancelled) return;
         console.error('Failed to fetch related notes:', error);
         const errorMessage = error instanceof Error ? error.message : 'Failed to load related notes';
         setError(errorMessage);
         setRelatedData(null);
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     };
 
     fetchRelated();
-  }, [noteId]);
+    return () => { cancelled = true; };
+  }, [noteId, retryCount]);
 
   if (loading) {
     return (
@@ -87,35 +112,10 @@ export function RelatedNotes({ noteId, onSelectNote }: RelatedNotesProps) {
           <div className="text-sm text-red-600">
             Error loading related notes: {error}
           </div>
-          <button 
+          <button
             onClick={() => {
-              setError(null);
-              // Clear cache for this note to force fresh fetch
               relatedCache.current.delete(noteId);
-              const fetchRelated = async () => {
-                setLoading(true);
-                setError(null);
-                try {
-                  const data = await api.getRelatedNotes(noteId);
-                  setRelatedData(data);
-                  
-                  // Cache the result
-                  relatedCache.current.set(noteId, {
-                    data: data,
-                    timestamp: Date.now()
-                  });
-                  
-                  console.log("Retry: Fetched and cached related notes for:", noteId);
-                } catch (error) {
-                  console.error('Failed to fetch related notes:', error);
-                  const errorMessage = error instanceof Error ? error.message : 'Failed to load related notes';
-                  setError(errorMessage);
-                  setRelatedData(null);
-                } finally {
-                  setLoading(false);
-                }
-              };
-              fetchRelated();
+              setRetryCount((c) => c + 1);
             }}
             className="mt-2 text-xs text-primary hover:underline"
           >
@@ -189,13 +189,12 @@ export function RelatedNotes({ noteId, onSelectNote }: RelatedNotesProps) {
                     {index + 1}.
                   </div>
                   <div className="flex-1 min-w-0">
-                    {hit?.snippet ? (
-                      <div className="text-xs text-foreground/80 line-clamp-2 group-hover:text-foreground">
+                    <div className="text-xs font-medium text-foreground truncate group-hover:text-primary">
+                      {(hit?.note_id && titles.get(hit.note_id)) || 'Untitled'}
+                    </div>
+                    {hit?.snippet && (
+                      <div className="text-xs text-muted-foreground line-clamp-1 mt-0.5">
                         {hit.snippet}
-                      </div>
-                    ) : (
-                      <div className="text-xs text-foreground/60 font-mono truncate group-hover:text-foreground">
-                        {hit?.note_id ? `Note ${hit.note_id.slice(0, 8)}...` : 'Unknown note'}
                       </div>
                     )}
                     <div className="flex items-center justify-between mt-0.5">
