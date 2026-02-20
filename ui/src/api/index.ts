@@ -51,6 +51,7 @@ export type {
   TagListOptions,
   SimilarNotesOptions,
   TagUpdateRequest,
+  RevisionMode,
 } from './types';
 
 // Export extended types

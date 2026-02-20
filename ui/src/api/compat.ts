@@ -172,8 +172,8 @@ class CompatApiClient {
     return this.extended.updateOriginalContent(id, content);
   }
 
-  async regenerateAI(id: string): Promise<any> {
-    return this.extended.regenerateAI(id);
+  async regenerateAI(id: string, revisionMode?: string): Promise<any> {
+    return this.extended.regenerateAI(id, revisionMode);
   }
 
   async deleteNote(id: string): Promise<any> {

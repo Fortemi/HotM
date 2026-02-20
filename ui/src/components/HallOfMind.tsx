@@ -64,6 +64,8 @@ import {
   Database,
   Bug,
   Zap,
+  PenLine,
+  FileText,
 } from "lucide-react";
 import { api, NoteFull, NoteSummary } from "@/services/api";
 import { realtimeEventBus, type RealtimeEvent } from "@/services/realtimeEventBus";
@@ -1101,28 +1103,28 @@ export function HallOfMind() {
     }
   };
 
-  const regenerateAI = async () => {
+  const regenerateAI = async (revisionMode?: string) => {
     if (!selectedNote) return;
-    
+
     if (!serverStatus?.ok) {
       alert("Cannot regenerate while offline. Please check your connection.");
       return;
     }
-    
+
     try {
       setIsLoading(true);
       // Mark as processing - WebSocket events will clear this when jobs complete
       setProcessingNotes(prev => new Set(prev).add(selectedNote.id));
-      
+
       // Trigger AI regeneration using the dedicated endpoint
-      await api.regenerateAI(selectedNote.id);
-      
-      console.log("AI regeneration triggered for note:", selectedNote.id);
+      await api.regenerateAI(selectedNote.id, revisionMode);
+
+      console.log("AI regeneration triggered for note:", selectedNote.id, "mode:", revisionMode ?? "default");
       // The realtime NoteUpdated event will handle updating the UI when jobs complete
     } catch (error) {
       console.error("Failed to regenerate AI enhancement:", error);
       alert("Failed to regenerate AI enhancement");
-      
+
       // Remove from processing on error
       setProcessingNotes(prev => {
         const newSet = new Set(prev);
@@ -2638,19 +2640,46 @@ export function HallOfMind() {
                                     )}
                                     <span className="ml-2">Copy MD</span>
                                   </Button>
-                                  <Button
-                                    onClick={regenerateAI}
-                                    disabled={isLoading}
-                                    size="sm"
-                                    variant="outline"
-                                  >
-                                    {processingNotes.has(selectedNote.id) ? (
-                                      <Loader2 className="h-4 w-4 animate-spin" />
-                                    ) : (
-                                      <RefreshCw className="h-4 w-4" />
-                                    )}
-                                    <span className="ml-2">Regenerate AI</span>
-                                  </Button>
+                                  <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                      <Button
+                                        disabled={isLoading || processingNotes.has(selectedNote.id)}
+                                        size="sm"
+                                        variant="outline"
+                                      >
+                                        {processingNotes.has(selectedNote.id) ? (
+                                          <Loader2 className="h-4 w-4 animate-spin" />
+                                        ) : (
+                                          <RefreshCw className="h-4 w-4" />
+                                        )}
+                                        <span className="ml-2">Regenerate AI</span>
+                                        <ChevronDown className="h-3 w-3 ml-1 opacity-50" />
+                                      </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end">
+                                      <DropdownMenuItem onClick={() => regenerateAI("full")}>
+                                        <Sparkles className="h-4 w-4 mr-2" />
+                                        <div>
+                                          <div className="font-medium">Full</div>
+                                          <div className="text-xs text-muted-foreground">Contextual expansion</div>
+                                        </div>
+                                      </DropdownMenuItem>
+                                      <DropdownMenuItem onClick={() => regenerateAI("light")}>
+                                        <PenLine className="h-4 w-4 mr-2" />
+                                        <div>
+                                          <div className="font-medium">Light</div>
+                                          <div className="text-xs text-muted-foreground">Format only</div>
+                                        </div>
+                                      </DropdownMenuItem>
+                                      <DropdownMenuItem onClick={() => regenerateAI("none")}>
+                                        <FileText className="h-4 w-4 mr-2" />
+                                        <div>
+                                          <div className="font-medium">None</div>
+                                          <div className="text-xs text-muted-foreground">Revert to original</div>
+                                        </div>
+                                      </DropdownMenuItem>
+                                    </DropdownMenuContent>
+                                  </DropdownMenu>
                                 </div>
                               </div>
                             </CardHeader>

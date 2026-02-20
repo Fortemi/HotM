@@ -85,6 +85,8 @@ export function createNotesApi(client: ApiClient) {
         content: request.content,
         format: request.format || 'markdown',
         source: request.source || 'manual',
+        ...(request.revision_mode && { revision_mode: request.revision_mode }),
+        ...(request.document_type && { document_type: request.document_type }),
       };
 
       return client.post<CreateNoteResponse>('/api/v1/notes', payload);

@@ -213,8 +213,11 @@ export function createExtendedApi(client: ApiClient) {
     /**
      * Trigger AI regeneration for a note
      */
-    async regenerateAI(noteId: string): Promise<unknown> {
-      return client.post(`/api/v1/notes/${noteId}/reprocess`);
+    async regenerateAI(noteId: string, revisionMode?: string): Promise<unknown> {
+      return client.post(
+        `/api/v1/notes/${noteId}/reprocess`,
+        revisionMode ? { revision_mode: revisionMode } : undefined
+      );
     },
 
     async getNotesPage(

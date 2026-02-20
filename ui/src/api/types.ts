@@ -101,12 +101,19 @@ export interface NoteSummary {
 }
 
 /**
+ * Revision mode for AI enhancement pipeline
+ */
+export type RevisionMode = 'full' | 'light' | 'none';
+
+/**
  * Request to create a new note
  */
 export interface CreateNoteRequest {
   content: string;
   format?: string;
   source?: string;
+  revision_mode?: RevisionMode;
+  document_type?: string;
 }
 
 /**

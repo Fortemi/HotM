@@ -45,6 +45,8 @@ export function useNoteCommit() {
             content,
             format: settings.format,
             source: "manual",
+            revision_mode: settings.revisionMode,
+            ...(settings.documentType && { document_type: settings.documentType }),
           });
 
           // Step 2: Apply tags (if any)

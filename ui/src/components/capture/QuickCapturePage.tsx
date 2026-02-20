@@ -12,6 +12,9 @@ import {
   AlertCircle,
   RefreshCw,
   ChevronDown,
+  Sparkles,
+  PenLine,
+  FileText,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -23,8 +26,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { api } from "@/api";
+import type { RevisionMode } from "@/api/types";
 import type { Collection, MemoryArchive, Tag } from "@/api";
-import type { Concept } from "@/api/types-extended";
+import type { Concept, DocumentType } from "@/api/types-extended";
 import { useStickySettings } from "./useStickySettings";
 import { useNoteCommit, type CommitResult } from "./useNoteCommit";
 import { SessionLog } from "./SessionLog";
@@ -40,6 +44,8 @@ export function QuickCapturePage() {
     addTag,
     removeTag,
     setFormat,
+    setRevisionMode,
+    setDocumentType,
   } = useStickySettings();
   const { commit, isCommitting, lastError, retry, clearError } =
     useNoteCommit();
@@ -48,6 +54,7 @@ export function QuickCapturePage() {
   const [archives, setArchives] = useState<MemoryArchive[]>([]);
   const [collections, setCollections] = useState<Collection[]>([]);
   const [allTags, setAllTags] = useState<Tag[]>([]);
+  const [documentTypes, setDocumentTypes] = useState<DocumentType[]>([]);
   const [loadErrors, setLoadErrors] = useState<Record<string, boolean>>({});
 
   // Capture state
@@ -114,6 +121,13 @@ export function QuickCapturePage() {
       .catch(() => {
         errors.tags = true;
         setLoadErrors((prev) => ({ ...prev, tags: true }));
+      });
+
+    api.documents
+      .list()
+      .then(setDocumentTypes)
+      .catch(() => {
+        setLoadErrors((prev) => ({ ...prev, documentTypes: true }));
       });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -414,6 +428,59 @@ export function QuickCapturePage() {
             )}
           </div>
 
+          {/* Document Type Selector */}
+          <div className="min-w-[160px] flex-1">
+            <label className="text-xs text-muted-foreground block mb-1">
+              Document Type
+            </label>
+            {loadErrors.documentTypes ? (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() =>
+                  api.documents
+                    .list()
+                    .then(setDocumentTypes)
+                    .then(() =>
+                      setLoadErrors((prev) => ({
+                        ...prev,
+                        documentTypes: false,
+                      }))
+                    )
+                }
+              >
+                <RefreshCw className="h-3 w-3 mr-1" /> Retry
+              </Button>
+            ) : (
+              <Select
+                value={settings.documentType ?? NONE_VALUE}
+                onValueChange={(v) => {
+                  if (v === NONE_VALUE) {
+                    setDocumentType(null, "");
+                  } else {
+                    const dt = documentTypes.find((d) => d.name === v);
+                    setDocumentType(v, dt?.display_name ?? v);
+                  }
+                }}
+              >
+                <SelectTrigger
+                  className="h-8 text-xs"
+                  aria-label="Document type"
+                >
+                  <SelectValue placeholder="(auto-detect)" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={NONE_VALUE}>(auto-detect)</SelectItem>
+                  {documentTypes.map((dt) => (
+                    <SelectItem key={dt.name} value={dt.name}>
+                      {dt.display_name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+          </div>
+
           {/* Concept Picker */}
           <div className="min-w-[160px] flex-1 relative">
             <label className="text-xs text-muted-foreground block mb-1">
@@ -567,31 +634,62 @@ export function QuickCapturePage() {
           </div>
         </div>
 
-        {/* Format Selector */}
-        <div className="flex items-center gap-4">
-          <span className="text-xs text-muted-foreground">Format:</span>
-          <label className="flex items-center gap-1.5 text-xs cursor-pointer">
-            <input
-              type="radio"
-              name="format"
-              value="markdown"
-              checked={settings.format === "markdown"}
-              onChange={() => setFormat("markdown")}
-              className="h-3.5 w-3.5"
-            />
-            Markdown
-          </label>
-          <label className="flex items-center gap-1.5 text-xs cursor-pointer">
-            <input
-              type="radio"
-              name="format"
-              value="plaintext"
-              checked={settings.format === "plaintext"}
-              onChange={() => setFormat("plaintext")}
-              className="h-3.5 w-3.5"
-            />
-            Plain text
-          </label>
+        {/* Enhancement Level & Format */}
+        <div className="flex flex-wrap items-center gap-6">
+          {/* Enhancement Level */}
+          <div className="flex items-center gap-1">
+            <span className="text-xs text-muted-foreground mr-1">AI Enhancement:</span>
+            {(
+              [
+                { value: "full", label: "Full", icon: Sparkles, desc: "Contextual expansion" },
+                { value: "light", label: "Light", icon: PenLine, desc: "Format only" },
+                { value: "none", label: "None", icon: FileText, desc: "As-is" },
+              ] as const
+            ).map(({ value, label, icon: Icon, desc }) => (
+              <button
+                key={value}
+                onClick={() => setRevisionMode(value as RevisionMode)}
+                title={desc}
+                className={`inline-flex items-center gap-1 px-2 py-1 rounded text-xs transition-colors ${
+                  settings.revisionMode === value
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-background border border-border hover:bg-accent"
+                }`}
+                aria-pressed={settings.revisionMode === value}
+                aria-label={`${label}: ${desc}`}
+              >
+                <Icon className="h-3 w-3" />
+                {label}
+              </button>
+            ))}
+          </div>
+
+          {/* Format */}
+          <div className="flex items-center gap-4">
+            <span className="text-xs text-muted-foreground">Format:</span>
+            <label className="flex items-center gap-1.5 text-xs cursor-pointer">
+              <input
+                type="radio"
+                name="format"
+                value="markdown"
+                checked={settings.format === "markdown"}
+                onChange={() => setFormat("markdown")}
+                className="h-3.5 w-3.5"
+              />
+              Markdown
+            </label>
+            <label className="flex items-center gap-1.5 text-xs cursor-pointer">
+              <input
+                type="radio"
+                name="format"
+                value="plaintext"
+                checked={settings.format === "plaintext"}
+                onChange={() => setFormat("plaintext")}
+                className="h-3.5 w-3.5"
+              />
+              Plain text
+            </label>
+          </div>
         </div>
       </div>
 

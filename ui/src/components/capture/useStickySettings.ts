@@ -1,4 +1,5 @@
 import { useState, useCallback } from "react";
+import type { RevisionMode } from "@/api/types";
 
 export interface StickySettings {
   archive: string | null;
@@ -8,6 +9,9 @@ export interface StickySettings {
   conceptId: string | null;
   conceptLabel: string;
   format: "markdown" | "plaintext";
+  revisionMode: RevisionMode;
+  documentType: string | null;
+  documentTypeName: string;
 }
 
 const KEYS = {
@@ -18,6 +22,9 @@ const KEYS = {
   conceptId: "hotm.quickCapture.conceptId",
   conceptLabel: "hotm.quickCapture.conceptLabel",
   format: "hotm.quickCapture.format",
+  revisionMode: "hotm.quickCapture.revisionMode",
+  documentType: "hotm.quickCapture.documentType",
+  documentTypeName: "hotm.quickCapture.documentTypeName",
 } as const;
 
 function readString(key: string): string | null {
@@ -67,6 +74,9 @@ function loadSettings(): StickySettings {
     conceptId: readString(KEYS.conceptId),
     conceptLabel: readString(KEYS.conceptLabel) ?? "",
     format: (readString(KEYS.format) as StickySettings["format"]) ?? "markdown",
+    revisionMode: (readString(KEYS.revisionMode) as RevisionMode) ?? "full",
+    documentType: readString(KEYS.documentType),
+    documentTypeName: readString(KEYS.documentTypeName) ?? "",
   };
 }
 
@@ -131,6 +141,24 @@ export function useStickySettings() {
     setSettingsState((prev) => ({ ...prev, format }));
   }, []);
 
+  const setRevisionMode = useCallback((revisionMode: RevisionMode) => {
+    writeString(KEYS.revisionMode, revisionMode);
+    setSettingsState((prev) => ({ ...prev, revisionMode }));
+  }, []);
+
+  const setDocumentType = useCallback(
+    (slug: string | null, name: string) => {
+      writeString(KEYS.documentType, slug);
+      writeString(KEYS.documentTypeName, name);
+      setSettingsState((prev) => ({
+        ...prev,
+        documentType: slug,
+        documentTypeName: name,
+      }));
+    },
+    []
+  );
+
   return {
     settings,
     setArchive,
@@ -140,5 +168,7 @@ export function useStickySettings() {
     addTag,
     removeTag,
     setFormat,
+    setRevisionMode,
+    setDocumentType,
   };
 }
