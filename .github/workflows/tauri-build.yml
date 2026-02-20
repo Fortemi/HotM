@@ -23,45 +23,50 @@ jobs:
     # CI verification: Linux-only (only runner available on Gitea)
     # Cross-platform builds (Windows/macOS) run in release.yml on tag push
     runs-on: ubuntu-latest
+    container:
+      image: node:20-bookworm
     steps:
-      - uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'npm'
-          cache-dependency-path: ui/package-lock.json
+      - name: Checkout source
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          REPO_URL="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}.git"
+          AUTH_REPO_URL="${REPO_URL/https:\/\//https:\/\/x-access-token:${GITHUB_TOKEN}@}"
+          if [ ! -d .git ]; then
+            git init .
+          fi
+          git remote remove origin >/dev/null 2>&1 || true
+          git remote add origin "${AUTH_REPO_URL}"
+          git fetch --depth=1 origin "${GITHUB_SHA}"
+          git checkout --force FETCH_HEAD
 
       - name: Install Rust stable
-        uses: dtolnay/rust-toolchain@stable
-        with:
-          targets: x86_64-unknown-linux-gnu
-
-      - name: Rust cache
-        uses: swatinem/rust-cache@v2
-        with:
-          workspaces: ui/src-tauri -> target
+        run: |
+          curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain stable --target x86_64-unknown-linux-gnu
+          echo "$HOME/.cargo/bin" >> $GITHUB_PATH
 
       - name: Install Linux dependencies
         run: |
-          sudo apt-get update
-          sudo apt-get install -y libwebkit2gtk-4.1-dev libgtk-3-dev \
+          apt-get update
+          apt-get install -y --no-install-recommends \
+            libwebkit2gtk-4.1-dev libgtk-3-dev \
             libsoup-3.0-dev libjavascriptcoregtk-4.1-dev librsvg2-dev patchelf \
-            libayatana-appindicator3-dev xdg-utils
+            libayatana-appindicator3-dev xdg-utils \
+            build-essential pkg-config libssl-dev
 
       - name: Install frontend dependencies
         working-directory: ui
         run: npm ci
 
       - name: Build Tauri app
-        uses: tauri-apps/tauri-action@v0
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           CARGO_BUILD_JOBS: "8"
-        with:
-          projectPath: ui
-          tauriScript: npm run tauri
+        run: |
+          export PATH="$HOME/.cargo/bin:$PATH"
+          cd ui
+          npx tauri build
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v3
