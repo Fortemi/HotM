@@ -159,22 +159,6 @@ export function AdminPanel({ className }: AdminPanelProps) {
                       </div>
                     </>
                   )}
-                  <Separator />
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium">API Endpoint</span>
-                    <span className="text-sm text-muted-foreground font-mono truncate ml-4">{api.client.baseUrl}</span>
-                  </div>
-                  <Separator />
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium">Config Source</span>
-                    <span className="text-sm text-muted-foreground">
-                      {getCachedConfig()?.api_base_url
-                        ? 'Desktop config file'
-                        : import.meta.env.VITE_API_BASE_URL
-                          ? 'Environment variable'
-                          : 'Default'}
-                    </span>
-                  </div>
                 </CardContent>
               </Card>
 
@@ -324,6 +308,22 @@ export function AdminPanel({ className }: AdminPanelProps) {
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-medium">License</span>
                   <span className="text-sm text-muted-foreground">MIT</span>
+                </div>
+                <Separator />
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium">API Endpoint</span>
+                  <span className="text-sm text-muted-foreground font-mono truncate ml-4">{api.client.baseUrl}</span>
+                </div>
+                <Separator />
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium">Config Source</span>
+                  <span className="text-sm text-muted-foreground">
+                    {getCachedConfig()?.api_base_url
+                      ? 'Desktop config file'
+                      : import.meta.env.VITE_API_BASE_URL
+                        ? 'Environment variable'
+                        : 'Default'}
+                  </span>
                 </div>
                 <Separator />
                 <div className="flex flex-col gap-2">
