@@ -4,3 +4,4 @@
  */
 
 export { AttachmentsPanel } from './AttachmentsPanel';
+export { AttachmentsBrowser } from './AttachmentsBrowser';

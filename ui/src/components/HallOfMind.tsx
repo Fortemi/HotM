@@ -98,6 +98,7 @@ import { AdminPanel } from "./admin";
 import { RealtimeEventInspector } from "./debug/RealtimeEventInspector";
 import { TimelineView } from "./timeline";
 import { AttachmentsPanel } from "./attachments/AttachmentsPanel";
+import { AttachmentsBrowser } from "./attachments/AttachmentsBrowser";
 import { ConceptBrowser } from "./concepts/ConceptBrowser";
 import { VersionHistory } from "./versions/VersionHistory";
 import { BackupManager } from "./backup/BackupManager";
@@ -2466,7 +2467,7 @@ export function HallOfMind() {
             ) : currentView === "admin" ? (
               <AdminPanel />
             ) : currentView === "attachments" ? (
-              <AttachmentsPanel noteId={selectedNote?.id || ""} />
+              <AttachmentsBrowser />
             ) : currentView === "concepts" ? (
               <ConceptBrowser />
             ) : currentView === "versions" ? (
