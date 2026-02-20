@@ -63,6 +63,7 @@ import {
   SlidersHorizontal,
   Database,
   Bug,
+  Zap,
 } from "lucide-react";
 import { api, NoteFull, NoteSummary } from "@/services/api";
 import { realtimeEventBus, type RealtimeEvent } from "@/services/realtimeEventBus";
@@ -106,10 +107,12 @@ import { TagManager } from "./tags";
 import { AdvancedSearchFilters } from "./search";
 import { useWebSocket } from "@/services/websocket";
 import { JobManagementPanel } from "./JobManagementPanel";
+import { QuickCapturePage } from "./capture";
 
 type AppView =
   | "dashboard"
   | "notes"
+  | "capture"
   | "collections"
   | "health"
   | "memory-search"
@@ -1871,6 +1874,15 @@ export function HallOfMind() {
                   </SidebarMenuItem>
                   <SidebarMenuItem>
                     <SidebarMenuButton
+                      onClick={() => setCurrentView("capture")}
+                      className={currentView === "capture" ? "bg-primary/10" : ""}
+                    >
+                      <Zap className="h-4 w-4" />
+                      <span>Capture</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton
                       onClick={() => setCurrentView("collections")}
                       className={currentView === "collections" ? "bg-primary/10" : ""}
                     >
@@ -2163,7 +2175,9 @@ export function HallOfMind() {
           </header>
 
           <main className="flex-1 p-6 overflow-auto">
-            {currentView === "collections" ? (
+            {currentView === "capture" ? (
+              <QuickCapturePage />
+            ) : currentView === "collections" ? (
               <CollectionsManager
                 onNoteSelect={(noteId) => {
                   const note = notes.find(n => n.id === noteId);

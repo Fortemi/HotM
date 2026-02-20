@@ -1,0 +1,1 @@
+export { QuickCapturePage } from "./QuickCapturePage";
