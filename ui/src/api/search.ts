@@ -115,29 +115,26 @@ export function createSearchApi(client: ApiClient) {
         );
         return response.results;
       } catch {
-        const [linksResp, backlinksResp] = await Promise.all([
-          client.get<{ outgoing?: Array<{ to_note_id: string; score?: number }> }>(
-            `/api/v1/notes/${noteId}/links`
-          ),
-          client.get<{ backlinks?: Array<{ from_note_id: string; score?: number }> }>(
-            `/api/v1/notes/${noteId}/backlinks`
-          ),
-        ]);
+        // /similar not available — fall back to graph links (single endpoint)
+        const linksResp = await client.get<{
+          outgoing?: Array<{ to_note_id: string; score?: number; snippet?: string }>;
+          incoming?: Array<{ from_note_id: string; score?: number; snippet?: string }>;
+        }>(`/api/v1/notes/${noteId}/links`);
 
         const results: SearchResult[] = [];
         for (const edge of linksResp.outgoing ?? []) {
           results.push({
             note_id: edge.to_note_id,
             score: edge.score ?? 0.5,
-            snippet: '',
+            snippet: edge.snippet ?? '',
           });
         }
-        for (const edge of backlinksResp.backlinks ?? []) {
+        for (const edge of linksResp.incoming ?? []) {
           if (!results.some((item) => item.note_id === edge.from_note_id)) {
             results.push({
               note_id: edge.from_note_id,
               score: edge.score ?? 0.5,
-              snippet: '',
+              snippet: edge.snippet ?? '',
             });
           }
         }

@@ -334,15 +334,11 @@ export function createExtendedApi(client: ApiClient) {
         // /similar not available, try next
       }
 
-      // 3. Fall back to graph links + backlinks
-      const [linksRaw, backlinksRaw] = await Promise.all([
-        client.get<unknown>(`/api/v1/notes/${noteId}/links`).catch(() => null),
-        client.get<unknown>(`/api/v1/notes/${noteId}/backlinks`).catch(() => null),
-      ]);
+      // 3. Fall back to graph links (single endpoint returns outgoing + incoming)
+      const linksRaw = await client.get<unknown>(`/api/v1/notes/${noteId}/links`).catch(() => null);
 
       type LinkEdge = { to_note_id?: string; from_note_id?: string; score?: number; snippet?: string; kind?: string };
-      const linksObj = (linksRaw ?? {}) as { outgoing?: LinkEdge[] };
-      const backlinksObj = (backlinksRaw ?? {}) as { backlinks?: LinkEdge[] };
+      const linksObj = (linksRaw ?? {}) as { outgoing?: LinkEdge[]; incoming?: LinkEdge[] };
 
       const relatedMap = new Map<string, SearchResult>();
       for (const edge of linksObj.outgoing ?? []) {
@@ -353,7 +349,7 @@ export function createExtendedApi(client: ApiClient) {
           snippet: edge.snippet ?? '',
         });
       }
-      for (const edge of backlinksObj.backlinks ?? []) {
+      for (const edge of linksObj.incoming ?? []) {
         if (!edge.from_note_id) continue;
         if (!relatedMap.has(edge.from_note_id)) {
           relatedMap.set(edge.from_note_id, {
