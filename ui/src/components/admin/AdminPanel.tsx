@@ -27,8 +27,16 @@ export interface AdminPanelProps {
 interface SystemHealth {
   status: string;
   version: string;
-  database: string;
-  ollama?: string;
+  git_sha?: string;
+  build_date?: string;
+  job_processing?: string;
+  capabilities?: Record<string, unknown>;
+  sse?: {
+    active_connections: number;
+    connections_total: number;
+    events_delivered: number;
+    events_emitted: number;
+  };
 }
 
 export function AdminPanel({ className }: AdminPanelProps) {
@@ -59,7 +67,7 @@ export function AdminPanel({ className }: AdminPanelProps) {
     setError(null);
     try {
       const [healthData, knowledgeData] = await Promise.all([
-        api.healthCheck(),
+        api.client.get<SystemHealth>('/api/v1/health'),
         api.health.getKnowledgeHealth(),
       ]);
       setSystemHealth(healthData);
@@ -130,8 +138,8 @@ export function AdminPanel({ className }: AdminPanelProps) {
             <div className="flex flex-col gap-4">
               <Card>
                 <CardHeader>
-                  <CardTitle>System Health</CardTitle>
-                  <CardDescription>API and service status</CardDescription>
+                  <CardTitle>Fortemi API</CardTitle>
+                  <CardDescription>Server health and service status</CardDescription>
                 </CardHeader>
                 <CardContent className="flex flex-col gap-3">
                   <div className="flex items-center justify-between">
@@ -145,17 +153,63 @@ export function AdminPanel({ className }: AdminPanelProps) {
                     <span className="text-sm font-medium">API Version</span>
                     <span className="text-sm text-muted-foreground">{systemHealth?.version || 'N/A'}</span>
                   </div>
-                  <Separator />
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium">Database</span>
-                    <span className="text-sm text-muted-foreground">{systemHealth?.database || 'N/A'}</span>
-                  </div>
-                  {systemHealth?.ollama && (
+                  {systemHealth?.git_sha && (
                     <>
                       <Separator />
                       <div className="flex items-center justify-between">
-                        <span className="text-sm font-medium">Ollama</span>
-                        <span className="text-sm text-muted-foreground">{systemHealth.ollama}</span>
+                        <span className="text-sm font-medium">API Commit</span>
+                        <span className="text-sm text-muted-foreground font-mono">{systemHealth.git_sha.slice(0, 7)}</span>
+                      </div>
+                    </>
+                  )}
+                  {systemHealth?.build_date && (
+                    <>
+                      <Separator />
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm font-medium">Build Date</span>
+                        <span className="text-sm text-muted-foreground">{new Date(systemHealth.build_date).toLocaleString()}</span>
+                      </div>
+                    </>
+                  )}
+                  {systemHealth?.job_processing && (
+                    <>
+                      <Separator />
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm font-medium">Job Processing</span>
+                        <Badge variant={systemHealth.job_processing === 'running' ? 'default' : 'secondary'}>
+                          {systemHealth.job_processing}
+                        </Badge>
+                      </div>
+                    </>
+                  )}
+                  {systemHealth?.capabilities && (
+                    <>
+                      <Separator />
+                      <div className="flex flex-col gap-1.5">
+                        <span className="text-sm font-medium">Capabilities</span>
+                        <div className="flex flex-wrap gap-1">
+                          {Object.entries(systemHealth.capabilities)
+                            .filter(([, v]) => v === true)
+                            .map(([key]) => (
+                              <Badge key={key} variant="outline" className="text-xs">
+                                {key.replace(/_/g, ' ')}
+                              </Badge>
+                            ))}
+                        </div>
+                      </div>
+                    </>
+                  )}
+                  {systemHealth?.sse && (
+                    <>
+                      <Separator />
+                      <div className="flex flex-col gap-1.5">
+                        <span className="text-sm font-medium">SSE</span>
+                        <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
+                          <span className="text-muted-foreground">Active connections</span>
+                          <span>{systemHealth.sse.active_connections}</span>
+                          <span className="text-muted-foreground">Events delivered</span>
+                          <span>{systemHealth.sse.events_delivered}</span>
+                        </div>
                       </div>
                     </>
                   )}

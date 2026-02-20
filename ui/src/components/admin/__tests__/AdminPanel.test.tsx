@@ -12,7 +12,7 @@ import type { EmbeddingConfig, KnowledgeHealth } from '@/api';
 // Mock the API
 vi.mock('@/api', () => ({
   api: {
-    client: { baseUrl: 'http://localhost:3000' },
+    client: { baseUrl: 'http://localhost:3000', get: vi.fn() },
     embeddings: {
       listConfigs: vi.fn(),
       getDefaultConfig: vi.fn(),
@@ -20,7 +20,6 @@ vi.mock('@/api', () => ({
     health: {
       getKnowledgeHealth: vi.fn(),
     },
-    healthCheck: vi.fn(),
   },
 }));
 
@@ -63,9 +62,12 @@ describe('AdminPanel', () => {
 
   const mockSystemHealth = {
     status: 'healthy',
-    version: '0.1.2',
-    database: 'connected',
-    ollama: 'available',
+    version: '2026.2.3',
+    git_sha: 'abc1234def5678',
+    build_date: '2026-02-20T17:47:29Z',
+    job_processing: 'running',
+    capabilities: { ner: true, vision: true, audio_transcription: true },
+    sse: { active_connections: 1, connections_total: 65, events_delivered: 289, events_emitted: 615 },
   };
 
   beforeEach(() => {
@@ -73,7 +75,7 @@ describe('AdminPanel', () => {
     (api.embeddings.listConfigs as any).mockResolvedValue(mockEmbeddingConfigs);
     (api.embeddings.getDefaultConfig as any).mockResolvedValue(mockEmbeddingConfigs[0]);
     (api.health.getKnowledgeHealth as any).mockResolvedValue(mockHealthData);
-    (api.healthCheck as any).mockResolvedValue(mockSystemHealth);
+    (api.client.get as any).mockResolvedValue(mockSystemHealth);
   });
 
   describe('Rendering', () => {
@@ -103,9 +105,10 @@ describe('AdminPanel', () => {
 
       await waitFor(() => {
         expect(screen.getByText(/API Version/i)).toBeInTheDocument();
-        expect(screen.getByText('0.1.2')).toBeInTheDocument();
-        expect(screen.getByText(/Database/i)).toBeInTheDocument();
-        expect(screen.getByText('connected')).toBeInTheDocument();
+        expect(screen.getByText('2026.2.3')).toBeInTheDocument();
+        expect(screen.getByText(/API Commit/i)).toBeInTheDocument();
+        expect(screen.getByText('abc1234')).toBeInTheDocument();
+        expect(screen.getByText(/Job Processing/i)).toBeInTheDocument();
       });
     });
 
@@ -121,7 +124,7 @@ describe('AdminPanel', () => {
     });
 
     it('should show loading state while fetching data', async () => {
-      (api.healthCheck as any).mockImplementation(() => new Promise(() => {}));
+      (api.client.get as any).mockImplementation(() => new Promise(() => {}));
       render(<AdminPanel />);
 
       await waitFor(() => {
@@ -131,7 +134,7 @@ describe('AdminPanel', () => {
 
     it('should handle API errors gracefully', async () => {
       const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-      (api.healthCheck as any).mockRejectedValue(new Error('API Error'));
+      (api.client.get as any).mockRejectedValue(new Error('API Error'));
       render(<AdminPanel />);
 
       await waitFor(() => {
