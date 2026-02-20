@@ -1,5 +1,5 @@
 {
-  "channel": "beta",
+  "channel": "alpha",
   "description": "Release channel configuration for HotM builds",
   "channels": {
     "alpha": "Early development releases with experimental features",
