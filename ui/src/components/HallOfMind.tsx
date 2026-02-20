@@ -2468,10 +2468,7 @@ export function HallOfMind() {
             ) : currentView === "attachments" ? (
               <AttachmentsPanel noteId={selectedNote?.id || ""} />
             ) : currentView === "concepts" ? (
-              <ConceptBrowser
-                isOpen={true}
-                onClose={() => setCurrentView("notes")}
-              />
+              <ConceptBrowser />
             ) : currentView === "versions" ? (
               <VersionHistory
                 noteId={selectedNote?.id || ""}

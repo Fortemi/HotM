@@ -58,25 +58,22 @@ describe('ConceptBrowser', () => {
   });
 
   describe('Rendering', () => {
-    it('should not render when closed', () => {
-      const onClose = vi.fn();
-      const { container } = render(<ConceptBrowser isOpen={false} onClose={onClose} />);
+    it('should not render when isOpen is false', () => {
+      const { container } = render(<ConceptBrowser isOpen={false} />);
       expect(container.firstChild).toBeNull();
     });
 
-    it('should render dialog when open', async () => {
-      const onClose = vi.fn();
-      render(<ConceptBrowser isOpen={true} onClose={onClose} />);
+    it('should render region when open', async () => {
+      render(<ConceptBrowser />);
 
       await waitFor(() => {
-        expect(screen.getByRole('dialog')).toBeInTheDocument();
+        expect(screen.getByRole('region')).toBeInTheDocument();
         expect(screen.getByText('Concepts')).toBeInTheDocument();
       });
     });
 
     it('should load schemes on open', async () => {
-      const onClose = vi.fn();
-      render(<ConceptBrowser isOpen={true} onClose={onClose} />);
+      render(<ConceptBrowser />);
 
       await waitFor(() => {
         expect(api.concepts.listSchemes).toHaveBeenCalled();
@@ -84,8 +81,7 @@ describe('ConceptBrowser', () => {
     });
 
     it('should render scheme selector', async () => {
-      const onClose = vi.fn();
-      render(<ConceptBrowser isOpen={true} onClose={onClose} />);
+      render(<ConceptBrowser />);
 
       await waitFor(() => {
         expect(screen.getByRole('combobox')).toBeInTheDocument();
@@ -93,8 +89,7 @@ describe('ConceptBrowser', () => {
     });
 
     it('should render search input', async () => {
-      const onClose = vi.fn();
-      render(<ConceptBrowser isOpen={true} onClose={onClose} />);
+      render(<ConceptBrowser />);
 
       await waitFor(() => {
         expect(screen.getByPlaceholderText('Search concepts...')).toBeInTheDocument();
@@ -104,8 +99,7 @@ describe('ConceptBrowser', () => {
 
   describe('Scheme Selection', () => {
     it('should auto-select first scheme', async () => {
-      const onClose = vi.fn();
-      render(<ConceptBrowser isOpen={true} onClose={onClose} />);
+      render(<ConceptBrowser />);
 
       await waitFor(() => {
         expect(api.concepts.listConcepts).toHaveBeenCalledWith({
@@ -118,10 +112,7 @@ describe('ConceptBrowser', () => {
     });
 
     it('should use initial scheme if provided', async () => {
-      const onClose = vi.fn();
-      render(
-        <ConceptBrowser isOpen={true} onClose={onClose} initialSchemeId="scheme-2" />
-      );
+      render(<ConceptBrowser initialSchemeId="scheme-2" />);
 
       await waitFor(() => {
         expect(api.concepts.listConcepts).toHaveBeenCalledWith({
@@ -134,15 +125,8 @@ describe('ConceptBrowser', () => {
 
   describe('Concept Selection', () => {
     it('should call onSelectConcept when concept is selected', async () => {
-      const onClose = vi.fn();
       const onSelectConcept = vi.fn();
-      render(
-        <ConceptBrowser
-          isOpen={true}
-          onClose={onClose}
-          onSelectConcept={onSelectConcept}
-        />
-      );
+      render(<ConceptBrowser onSelectConcept={onSelectConcept} />);
 
       // Wait for concepts to load
       await waitFor(() => {
@@ -160,8 +144,7 @@ describe('ConceptBrowser', () => {
 
   describe('Search', () => {
     it('should search concepts when typing', async () => {
-      const onClose = vi.fn();
-      render(<ConceptBrowser isOpen={true} onClose={onClose} />);
+      render(<ConceptBrowser />);
 
       await waitFor(() => {
         expect(screen.getByPlaceholderText('Search concepts...')).toBeInTheDocument();
@@ -184,33 +167,11 @@ describe('ConceptBrowser', () => {
     });
   });
 
-  describe('Close Behavior', () => {
-    it('should call onClose when close button clicked', async () => {
-      const onClose = vi.fn();
-      render(<ConceptBrowser isOpen={true} onClose={onClose} />);
-
-      await waitFor(() => {
-        expect(screen.getByRole('dialog')).toBeInTheDocument();
-      });
-
-      // Find and click close button
-      const closeButtons = screen.getAllByRole('button');
-      const closeButton = closeButtons.find((btn) =>
-        btn.querySelector('.lucide-x')
-      );
-      if (closeButton) {
-        fireEvent.click(closeButton);
-        expect(onClose).toHaveBeenCalled();
-      }
-    });
-  });
-
   describe('Error Handling', () => {
     it('should display error when load fails', async () => {
       vi.mocked(api.concepts.listSchemes).mockRejectedValue(new Error('Network error'));
 
-      const onClose = vi.fn();
-      render(<ConceptBrowser isOpen={true} onClose={onClose} />);
+      render(<ConceptBrowser />);
 
       await waitFor(() => {
         expect(screen.getByText('Failed to load concept schemes')).toBeInTheDocument();
@@ -221,8 +182,7 @@ describe('ConceptBrowser', () => {
       vi.mocked(api.concepts.listConcepts).mockRejectedValueOnce(new Error('Error'));
       vi.mocked(api.concepts.listConcepts).mockResolvedValueOnce(mockConcepts);
 
-      const onClose = vi.fn();
-      render(<ConceptBrowser isOpen={true} onClose={onClose} />);
+      render(<ConceptBrowser />);
 
       await waitFor(() => {
         expect(screen.getByText('Failed to load concepts')).toBeInTheDocument();
@@ -240,8 +200,7 @@ describe('ConceptBrowser', () => {
   describe('Empty State', () => {
     it('should show no-scheme empty state when no schemes exist', async () => {
       vi.mocked(api.concepts.listSchemes).mockResolvedValueOnce([]);
-      const onClose = vi.fn();
-      render(<ConceptBrowser isOpen={true} onClose={onClose} />);
+      render(<ConceptBrowser />);
 
       await waitFor(() => {
         expect(screen.getByText('No concept schemes available')).toBeInTheDocument();
@@ -249,8 +208,7 @@ describe('ConceptBrowser', () => {
     });
 
     it('should show placeholder when no concept selected', async () => {
-      const onClose = vi.fn();
-      render(<ConceptBrowser isOpen={true} onClose={onClose} />);
+      render(<ConceptBrowser />);
 
       await waitFor(() => {
         expect(screen.getByText('Select a concept to view details')).toBeInTheDocument();
@@ -259,12 +217,11 @@ describe('ConceptBrowser', () => {
   });
 
   describe('Accessibility', () => {
-    it('should have accessible dialog role', async () => {
-      const onClose = vi.fn();
-      render(<ConceptBrowser isOpen={true} onClose={onClose} />);
+    it('should have accessible region role', async () => {
+      render(<ConceptBrowser />);
 
       await waitFor(() => {
-        expect(screen.getByRole('dialog')).toHaveAttribute(
+        expect(screen.getByRole('region')).toHaveAttribute(
           'aria-label',
           'SKOS Concept Browser'
         );

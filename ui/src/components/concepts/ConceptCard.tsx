@@ -11,6 +11,7 @@ import type { ConceptFull, Concept } from '@/api/types-extended';
 
 interface ConceptCardProps {
   concept: ConceptFull;
+  schemeName?: string;
   onEdit?: (concept: ConceptFull) => void;
   onNavigateToConcept?: (concept: Concept) => void;
 }
@@ -81,7 +82,13 @@ function ConceptLinkList({ concepts, emptyMessage, onNavigate }: ConceptLinkList
   );
 }
 
-export function ConceptCard({ concept, onEdit, onNavigateToConcept }: ConceptCardProps) {
+function confidenceBadgeVariant(confidence: number): 'default' | 'secondary' | 'outline' {
+  if (confidence >= 80) return 'default';
+  if (confidence >= 50) return 'secondary';
+  return 'outline';
+}
+
+export function ConceptCard({ concept, schemeName, onEdit, onNavigateToConcept }: ConceptCardProps) {
   return (
     <div className="bg-card border rounded-lg overflow-hidden">
       {/* Header */}
@@ -127,6 +134,56 @@ export function ConceptCard({ concept, onEdit, onNavigateToConcept }: ConceptCar
                 {label}
               </Badge>
             ))}
+          </div>
+        </div>
+      )}
+
+      {/* Metadata */}
+      {(concept.confidence !== undefined || concept.relevance_score !== undefined ||
+        concept.is_primary !== undefined || concept.source || schemeName || concept.created_at) && (
+        <div className="px-4 py-3 border-b">
+          <h4 className="text-xs font-medium text-muted-foreground uppercase mb-2">Metadata</h4>
+          <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
+            {concept.confidence !== undefined && (
+              <>
+                <span className="text-muted-foreground">Confidence</span>
+                <Badge variant={confidenceBadgeVariant(concept.confidence)}>
+                  {Math.round(concept.confidence)}%
+                </Badge>
+              </>
+            )}
+            {concept.relevance_score !== undefined && (
+              <>
+                <span className="text-muted-foreground">Relevance</span>
+                <span>{concept.relevance_score.toFixed(2)}</span>
+              </>
+            )}
+            {concept.is_primary !== undefined && (
+              <>
+                <span className="text-muted-foreground">Primary</span>
+                <Badge variant={concept.is_primary ? 'default' : 'outline'}>
+                  {concept.is_primary ? 'Yes' : 'No'}
+                </Badge>
+              </>
+            )}
+            {concept.source && (
+              <>
+                <span className="text-muted-foreground">Source</span>
+                <span>{concept.source}</span>
+              </>
+            )}
+            {schemeName && (
+              <>
+                <span className="text-muted-foreground">Scheme</span>
+                <span>{schemeName}</span>
+              </>
+            )}
+            {concept.created_at && (
+              <>
+                <span className="text-muted-foreground">Created</span>
+                <span>{new Date(concept.created_at).toLocaleDateString()}</span>
+              </>
+            )}
           </div>
         </div>
       )}
