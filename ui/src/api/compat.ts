@@ -345,6 +345,15 @@ class CompatApiClient {
 }
 
 /**
- * Singleton instance for global use
+ * Singleton instance for global use.
+ * Mutable so it can be recreated after Tauri config loads at startup.
  */
-export const api = new CompatApiClient();
+export let api = new CompatApiClient();
+
+/**
+ * Recreate the compat API instance (e.g. after loading Tauri runtime config).
+ * Must be called after loadAppConfig() so getCachedConfig() returns the URL.
+ */
+export function reinitializeCompatApi() {
+  api = new CompatApiClient();
+}
