@@ -5,7 +5,7 @@
  */
 
 import { createApiClient } from './client';
-import { getTauriFetch } from '@/lib/tauri';
+import { getCachedConfig, getTauriFetch } from '@/lib/tauri';
 import { createNotesApi } from './notes';
 import { createSearchApi } from './search';
 import { createTagsApi } from './tags';
@@ -53,9 +53,15 @@ export interface HealthResponse {
 }
 
 /**
- * Get API base URL - uses HotM's default port
+ * Get API base URL - checks Tauri config, env var, then default port
  */
 function getApiBaseUrl(): string {
+  // Tauri desktop config (loaded at startup, cached synchronously)
+  const tauriConfig = getCachedConfig();
+  if (tauriConfig?.api_base_url) {
+    return tauriConfig.api_base_url;
+  }
+
   if (import.meta.env.VITE_API_BASE_URL) {
     return import.meta.env.VITE_API_BASE_URL as string;
   }

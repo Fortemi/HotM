@@ -2,7 +2,13 @@
  * SSE Events API client
  * Connects to Fortemi's /api/v1/events endpoint for real-time event streaming
  * Complements the WebSocket connection with unidirectional server-sent events
+ *
+ * In Tauri desktop mode, uses fetch-based streaming via the HTTP plugin
+ * because native EventSource cannot make cross-origin requests from
+ * the tauri:// scheme in WebKit2GTK.
  */
+
+import { isTauri, getTauriFetch } from '@/lib/tauri';
 
 export interface ServerEvent {
   type: string;
@@ -35,10 +41,12 @@ export const DEFAULT_SSE_EVENT_TYPES = [
 
 export function createEventsClient(baseUrl: string, options: EventsClientOptions = {}) {
   let eventSource: EventSource | null = null;
+  let fetchAbort: AbortController | null = null;
   let reconnectTimeout: ReturnType<typeof setTimeout> | null = null;
   const handlers = new Set<EventHandler>();
   let isClosing = false;
   let lastEventId: string | null = null;
+  let isFetchConnected = false;
 
   const notifyStatus = (status: EventsClientStatus) => {
     try {
@@ -48,7 +56,7 @@ export function createEventsClient(baseUrl: string, options: EventsClientOptions
     }
   };
 
-function getEventsUrl(): string {
+  function getEventsUrl(): string {
     const fallbackOrigin =
       typeof window !== 'undefined' ? window.location.origin : 'http://localhost';
     const parsedBase = new URL(baseUrl, fallbackOrigin);
@@ -63,7 +71,122 @@ function getEventsUrl(): string {
     return url.toString();
   }
 
-  function connect(): void {
+  function dispatchEvent(data: ServerEvent, eventId?: string): void {
+    const replayCursor = typeof data.event_id === 'string' ? data.event_id : eventId;
+    if (replayCursor) {
+      lastEventId = replayCursor;
+      data.event_id = replayCursor;
+    }
+    handlers.forEach(handler => {
+      try {
+        handler(data);
+      } catch (err) {
+        console.error('SSE handler error:', err);
+      }
+    });
+  }
+
+  /**
+   * Fetch-based SSE for Tauri desktop mode.
+   * Uses getTauriFetch() which routes through the Rust HTTP plugin,
+   * bypassing WebKit2GTK cross-origin restrictions.
+   */
+  async function connectFetch(): Promise<void> {
+    if (isClosing || fetchAbort) return;
+
+    try {
+      notifyStatus('connecting');
+      fetchAbort = new AbortController();
+      const httpFetch = getTauriFetch();
+      const url = getEventsUrl();
+
+      console.log('SSE fetch connecting to:', url);
+      const response = await httpFetch(url, {
+        headers: { 'Accept': 'text/event-stream' },
+        signal: fetchAbort.signal,
+      });
+
+      if (!response.ok) {
+        throw new Error(`SSE endpoint returned ${response.status}`);
+      }
+
+      if (!response.body) {
+        throw new Error('SSE response has no body stream');
+      }
+
+      isFetchConnected = true;
+      notifyStatus('connected');
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = '';
+      let currentEventType = '';
+      let currentData = '';
+      let currentId = '';
+
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done || isClosing) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n');
+        // Keep incomplete last line in buffer
+        buffer = lines.pop() || '';
+
+        for (const line of lines) {
+          if (line === '') {
+            // Empty line = end of event
+            if (currentData) {
+              try {
+                const parsed: ServerEvent = JSON.parse(currentData);
+                if (currentEventType) {
+                  parsed.type = currentEventType;
+                }
+                dispatchEvent(parsed, currentId);
+              } catch {
+                // Ignore non-JSON (keepalive etc.)
+              }
+            }
+            currentEventType = '';
+            currentData = '';
+            currentId = '';
+          } else if (line.startsWith('data:')) {
+            const dataValue = line.startsWith('data: ') ? line.slice(6) : line.slice(5);
+            currentData += (currentData ? '\n' : '') + dataValue;
+          } else if (line.startsWith('event:')) {
+            currentEventType = line.startsWith('event: ') ? line.slice(7) : line.slice(6);
+          } else if (line.startsWith('id:')) {
+            currentId = line.startsWith('id: ') ? line.slice(4) : line.slice(3);
+          }
+          // Ignore retry: and comment lines (starting with :)
+        }
+      }
+    } catch (err) {
+      if (fetchAbort?.signal.aborted) {
+        // Intentional abort
+        return;
+      }
+      console.error('SSE fetch error:', err);
+    } finally {
+      isFetchConnected = false;
+      fetchAbort = null;
+    }
+
+    // Reconnect if not intentionally closing
+    if (!isClosing && handlers.size > 0) {
+      notifyStatus('reconnecting');
+      reconnectTimeout = setTimeout(() => {
+        connectFetch();
+      }, 5000);
+    } else {
+      notifyStatus('closed');
+    }
+  }
+
+  /**
+   * Native EventSource for web/browser mode.
+   */
+  function connectNative(): void {
     if (isClosing || eventSource) return;
 
     try {
@@ -78,43 +201,19 @@ function getEventsUrl(): string {
       eventSource.onmessage = (event) => {
         try {
           const data: ServerEvent = JSON.parse(event.data);
-          const replayCursor = typeof data.event_id === 'string' ? data.event_id : event.lastEventId;
-          if (replayCursor) {
-            lastEventId = replayCursor;
-            data.event_id = replayCursor;
-          }
-          handlers.forEach(handler => {
-            try {
-              handler(data);
-            } catch (err) {
-              console.error('SSE handler error:', err);
-            }
-          });
+          dispatchEvent(data, event.lastEventId);
         } catch {
           // Ignore non-JSON messages (keepalive etc.)
         }
       };
 
       // Listen for typed events from Fortemi
-      const eventTypes = DEFAULT_SSE_EVENT_TYPES;
-
-      for (const eventType of eventTypes) {
+      for (const eventType of DEFAULT_SSE_EVENT_TYPES) {
         eventSource.addEventListener(eventType, (event: MessageEvent) => {
           try {
             const data: ServerEvent = JSON.parse(event.data);
             data.type = eventType;
-            const replayCursor = typeof data.event_id === 'string' ? data.event_id : event.lastEventId;
-            if (replayCursor) {
-              lastEventId = replayCursor;
-              data.event_id = replayCursor;
-            }
-            handlers.forEach(handler => {
-              try {
-                handler(data);
-              } catch (err) {
-                console.error('SSE handler error:', err);
-              }
-            });
+            dispatchEvent(data, event.lastEventId);
           } catch {
             // Ignore parse errors
           }
@@ -128,7 +227,7 @@ function getEventsUrl(): string {
         if (!isClosing && handlers.size > 0) {
           notifyStatus('reconnecting');
           reconnectTimeout = setTimeout(() => {
-            connect();
+            connectNative();
           }, 5000);
         } else {
           notifyStatus('closed');
@@ -140,11 +239,35 @@ function getEventsUrl(): string {
     }
   }
 
+  function connect(): void {
+    if (isTauri()) {
+      connectFetch();
+    } else {
+      connectNative();
+    }
+  }
+
+  function closeConnection(): void {
+    isClosing = true;
+    if (reconnectTimeout) {
+      clearTimeout(reconnectTimeout);
+      reconnectTimeout = null;
+    }
+    // Close native EventSource
+    eventSource?.close();
+    eventSource = null;
+    // Abort fetch-based SSE
+    fetchAbort?.abort();
+    fetchAbort = null;
+    isFetchConnected = false;
+    notifyStatus('closed');
+  }
+
   return {
     subscribe(handler: EventHandler): () => void {
       handlers.add(handler);
 
-      if (!eventSource && !isClosing) {
+      if (!eventSource && !fetchAbort && !isClosing) {
         connect();
       }
 
@@ -153,15 +276,8 @@ function getEventsUrl(): string {
         if (handlers.size === 0) {
           setTimeout(() => {
             if (handlers.size === 0) {
-              isClosing = true;
-              eventSource?.close();
-              eventSource = null;
-              if (reconnectTimeout) {
-                clearTimeout(reconnectTimeout);
-                reconnectTimeout = null;
-              }
+              closeConnection();
               isClosing = false;
-              notifyStatus('closed');
             }
           }, 100);
         }
@@ -169,17 +285,13 @@ function getEventsUrl(): string {
     },
 
     close(): void {
-      isClosing = true;
-      if (reconnectTimeout) {
-        clearTimeout(reconnectTimeout);
-        reconnectTimeout = null;
-      }
-      eventSource?.close();
-      eventSource = null;
-      notifyStatus('closed');
+      closeConnection();
     },
 
     get connected(): boolean {
+      if (isTauri()) {
+        return isFetchConnected;
+      }
       return eventSource?.readyState === EventSource.OPEN;
     },
     get replayCursor(): string | null {

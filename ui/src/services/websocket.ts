@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react';
 import { createEventsClient, type ServerEvent, DEFAULT_SSE_EVENT_TYPES } from '@/api/events';
 import { realtimeEventBus, type RealtimeEvent } from '@/services/realtimeEventBus';
+import { getCachedConfig } from '@/lib/tauri';
 
 export interface WsActiveJob {
   job_id: string;
@@ -90,11 +91,22 @@ class WebSocketService {
   }
 
   private getApiBaseUrl(): string {
+    // Tauri desktop config (loaded at startup, cached synchronously)
+    const tauriConfig = getCachedConfig();
+    if (tauriConfig?.api_base_url) {
+      return tauriConfig.api_base_url;
+    }
+
+    const envUrl = (import.meta.env.VITE_API_BASE_URL as string | undefined)?.trim();
+    if (envUrl) {
+      return envUrl;
+    }
+
     const fallbackBase =
       typeof window !== 'undefined' && window.location?.origin
         ? window.location.origin
         : 'http://localhost:3000';
-    return (import.meta.env.VITE_API_BASE_URL as string | undefined)?.trim() || fallbackBase;
+    return fallbackBase;
   }
 
   private buildWebSocketUrl(): string {
