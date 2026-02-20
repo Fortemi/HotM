@@ -292,6 +292,8 @@ jobs:
     name: Create GitHub Release
     runs-on: ubuntu-latest
     needs: [build-spa, build-docker, build-tauri]
+    container:
+      image: node:20-bookworm
     steps:
       - name: Extract version and channel from tag
         shell: bash
