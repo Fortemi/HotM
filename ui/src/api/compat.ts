@@ -5,6 +5,7 @@
  */
 
 import { createApiClient } from './client';
+import { getTauriFetch } from '@/lib/tauri';
 import { createNotesApi } from './notes';
 import { createSearchApi } from './search';
 import { createTagsApi } from './tags';
@@ -106,7 +107,7 @@ class CompatApiClient {
       ? this.baseUrl.slice(0, -1)
       : this.baseUrl;
     const normalizedPath = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
-    const response = await fetch(`${normalizedBase}${normalizedPath}`);
+    const response = await getTauriFetch()(`${normalizedBase}${normalizedPath}`);
     if (!response.ok) {
       throw new Error(`Health endpoint ${endpoint} returned ${response.status}`);
     }

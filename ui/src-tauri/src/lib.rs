@@ -101,6 +101,7 @@ pub fn run() {
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_shell::init())
         .plugin(tauri_plugin_notification::init())
+        .plugin(tauri_plugin_http::init())
         .plugin(shortcut_plugin)
         .invoke_handler(tauri::generate_handler![render_plantuml, ensure_plantuml, get_app_config, save_app_config])
         .setup(move |app| {

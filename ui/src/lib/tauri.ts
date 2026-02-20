@@ -62,6 +62,34 @@ export function _resetConfigCache(): void {
   _cachedConfig = null;
 }
 
+// --- Tauri HTTP fetch (bypasses webview network restrictions) ---
+
+let _tauriFetch: typeof globalThis.fetch | null = null;
+
+/**
+ * Initialize the Tauri HTTP plugin fetch.
+ * Must be called at startup before API requests are made.
+ * In web mode this is a no-op.
+ */
+export async function initTauriFetch(): Promise<void> {
+  if (!isTauri()) return;
+  try {
+    const mod = await import("@tauri-apps/plugin-http");
+    _tauriFetch = mod.fetch;
+  } catch {
+    // Plugin not available — fall back to native fetch
+  }
+}
+
+/**
+ * Get the appropriate fetch function.
+ * Returns the Tauri HTTP plugin fetch when running in desktop mode,
+ * or the native window.fetch for web SPA mode.
+ */
+export function getTauriFetch(): typeof globalThis.fetch {
+  return _tauriFetch || globalThis.fetch;
+}
+
 /** Render PlantUML to SVG via Tauri command. Returns undefined in web mode. */
 export async function renderPlantUML(
   code: string,

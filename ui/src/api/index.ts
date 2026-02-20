@@ -3,7 +3,7 @@
  * Main entry point for all API operations
  */
 
-import { getCachedConfig } from '@/lib/tauri';
+import { getCachedConfig, getTauriFetch } from '@/lib/tauri';
 import { createApiClient } from './client';
 import { createNotesApi } from './notes';
 import { createSearchApi } from './search';
@@ -310,9 +310,10 @@ export function createApi(baseUrl?: string) {
       const endpoints = ['/health', '/health/live', '/api/v1/health', '/healthz'];
       let lastError: unknown;
 
+      const httpFetch = getTauriFetch();
       for (const endpoint of endpoints) {
         try {
-          const response = await fetch(`${normalizedBase}${endpoint}`);
+          const response = await httpFetch(`${normalizedBase}${endpoint}`);
           if (!response.ok) {
             throw new Error(`${endpoint} returned ${response.status}`);
           }

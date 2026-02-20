@@ -4,6 +4,7 @@
  */
 
 import type { ApiClient } from './client';
+import { getTauriFetch } from '@/lib/tauri';
 import type {
   ConceptScheme,
   CreateConceptSchemeRequest,
@@ -630,7 +631,7 @@ export function createConceptsApi(client: ApiClient) {
       }
 
       // Returns text/turtle
-      const response = await fetch(
+      const response = await getTauriFetch()(
         `/api/v1/concepts/schemes/${schemeId}/export/turtle`
       );
 

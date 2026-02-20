@@ -40,6 +40,7 @@
     "@radix-ui/react-tooltip": "^1.2.8",
     "@tailwindcss/typography": "^0.5.16",
     "@tauri-apps/api": "^2.10.1",
+    "@tauri-apps/plugin-http": "^2.5.7",
     "@types/leaflet": "^1.9.21",
     "@types/pako": "^2.0.4",
     "@uiw/react-md-editor": "^4.0.8",

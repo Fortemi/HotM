@@ -5,6 +5,7 @@
 
 import { ApiError, NetworkError } from './errors';
 import { getActiveMemory, getMemoryRoutingHeaderName } from './memory-context';
+import { getTauriFetch } from '@/lib/tauri';
 
 interface RequestOptions {
   method?: 'GET' | 'POST' | 'PATCH' | 'PUT' | 'DELETE';
@@ -87,7 +88,8 @@ export function createApiClient(baseUrl: string) {
     // Initial attempt + retries
     for (let attempt = 0; attempt <= retryAttempts; attempt++) {
       try {
-        const response = await fetch(url, {
+        const httpFetch = getTauriFetch();
+        const response = await httpFetch(url, {
           method,
           headers: requestHeaders,
           body: body ? JSON.stringify(body) : undefined,

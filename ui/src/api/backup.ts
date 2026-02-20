@@ -14,6 +14,7 @@ import type {
   SwapBackupRequest,
 } from './types-extended';
 import { getActiveMemory, getMemoryRoutingHeaderName } from './memory-context';
+import { getTauriFetch } from '@/lib/tauri';
 
 export function createBackupApi(client: ApiClient) {
   const getBaseUrl = (): string => client.baseUrl;
@@ -57,7 +58,7 @@ export function createBackupApi(client: ApiClient) {
       const baseUrl = getBaseUrl();
       const url = `${baseUrl}/api/v1/backup/download`;
 
-      const response = await fetch(url, {
+      const response = await getTauriFetch()(url, {
         headers: getMemoryHeaders(),
       });
 
@@ -121,7 +122,7 @@ export function createBackupApi(client: ApiClient) {
       const queryString = new URLSearchParams(params).toString();
       const url = `${baseUrl}/api/v1/backup/knowledge-shard${queryString ? `?${queryString}` : ''}`;
 
-      const response = await fetch(url, {
+      const response = await getTauriFetch()(url, {
         headers: getMemoryHeaders(),
       });
 
@@ -157,7 +158,7 @@ export function createBackupApi(client: ApiClient) {
       const baseUrl = getBaseUrl();
       const url = `${baseUrl}/api/v1/backup/database`;
 
-      const response = await fetch(url, {
+      const response = await getTauriFetch()(url, {
         headers: getMemoryHeaders(),
       });
 
@@ -217,7 +218,7 @@ export function createBackupApi(client: ApiClient) {
       const baseUrl = getBaseUrl();
       const url = `${baseUrl}/api/v1/backup/memory/${encodeURIComponent(name)}`;
 
-      const response = await fetch(url, {
+      const response = await getTauriFetch()(url, {
         headers: getMemoryHeaders(),
       });
 
@@ -243,7 +244,7 @@ export function createBackupApi(client: ApiClient) {
       const baseUrl = getBaseUrl();
       const url = `${baseUrl}/api/v1/backup/knowledge-archive/${filename}`;
 
-      const response = await fetch(url);
+      const response = await getTauriFetch()(url);
 
       if (!response.ok) {
         throw new Error(`Download failed: ${response.statusText}`);
@@ -266,7 +267,7 @@ export function createBackupApi(client: ApiClient) {
       const baseUrl = getBaseUrl();
       const url = `${baseUrl}/api/v1/backup/knowledge-archive`;
 
-      const response = await fetch(url, {
+      const response = await getTauriFetch()(url, {
         method: 'POST',
         headers: getMemoryHeaders(),
         body: formData,

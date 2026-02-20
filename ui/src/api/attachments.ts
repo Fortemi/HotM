@@ -5,6 +5,7 @@
 
 import type { ApiClient } from './client';
 import { getActiveMemory, getMemoryRoutingHeaderName } from './memory-context';
+import { getTauriFetch } from '@/lib/tauri';
 import type {
   Attachment,
   AttachmentListResponse,
@@ -48,7 +49,7 @@ export function createAttachmentsApi(client: ApiClient) {
       const baseUrl = getBaseUrl();
       const url = `${baseUrl}/api/v1/notes/${noteId}/attachments/upload`;
 
-      const response = await fetch(url, {
+      const response = await getTauriFetch()(url, {
         method: 'POST',
         body: formData,
         headers: buildRoutingHeaders(),
@@ -92,7 +93,7 @@ export function createAttachmentsApi(client: ApiClient) {
       const baseUrl = getBaseUrl();
       const url = `${baseUrl}/api/v1/attachments/${attachmentId}/download`;
 
-      const response = await fetch(url, {
+      const response = await getTauriFetch()(url, {
         method: 'GET',
         headers: buildRoutingHeaders(),
         credentials: 'include',

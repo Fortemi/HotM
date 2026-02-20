@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import pako from 'pako';
+import { getTauriFetch } from '@/lib/tauri';
 
 interface PlantUMLRendererProps {
   code: string;
@@ -89,7 +90,7 @@ export function PlantUMLRenderer({ code, className = '' }: PlantUMLRendererProps
       const url = `http://localhost:8080/svg/${encoded}`;
       
       console.log('Fetching PlantUML diagram from:', url.substring(0, 100) + '...');
-      const response = await fetch(url);
+      const response = await getTauriFetch()(url);
       
       if (!response.ok) {
         throw new Error(`PlantUML server returned ${response.status}`);

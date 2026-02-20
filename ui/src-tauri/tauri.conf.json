@@ -25,7 +25,7 @@
       "tooltip": "HotM - Hall of the Mind"
     },
     "security": {
-      "csp": null
+      "csp": "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; connect-src 'self' https: http: ws: wss:; img-src 'self' data: blob: https:; font-src 'self' data:"
     }
   },
   "bundle": {

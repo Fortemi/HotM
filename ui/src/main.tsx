@@ -2,12 +2,13 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import App from "./App";
 import "./index.css";
-import { isTauri, loadAppConfig } from "@/lib/tauri";
+import { isTauri, loadAppConfig, initTauriFetch } from "@/lib/tauri";
 import { reinitializeApi } from "@/api";
 
 async function bootstrap() {
   if (isTauri()) {
     await loadAppConfig();
+    await initTauriFetch();
     reinitializeApi();
   }
 
