@@ -181,7 +181,7 @@ export function RelatedNotes({ noteId, onSelectNote }: RelatedNotesProps) {
               <button
                 key={uniqueKey}
                 onClick={() => hit?.note_id && onSelectNote?.(hit.note_id)}
-                className="w-full text-left px-2 py-1.5 rounded hover:bg-muted/50 transition-colors group"
+                className="w-full text-left px-2 py-1.5 rounded border border-transparent hover:border-border hover:bg-muted/50 transition-colors group cursor-pointer"
                 disabled={!hit?.note_id}
               >
                 <div className="flex items-start gap-2">
@@ -189,13 +189,22 @@ export function RelatedNotes({ noteId, onSelectNote }: RelatedNotesProps) {
                     {index + 1}.
                   </div>
                   <div className="flex-1 min-w-0">
-                    {hit?.snippet && (
+                    {hit?.snippet ? (
                       <div className="text-xs text-foreground/80 line-clamp-2 group-hover:text-foreground">
                         {hit.snippet}
                       </div>
+                    ) : (
+                      <div className="text-xs text-foreground/60 font-mono truncate group-hover:text-foreground">
+                        {hit?.note_id ? `Note ${hit.note_id.slice(0, 8)}...` : 'Unknown note'}
+                      </div>
                     )}
-                    <div className="text-xs text-muted-foreground mt-0.5">
-                      {hit?.score ? `${(hit.score * 100).toFixed(0)}% match` : 'Related'}
+                    <div className="flex items-center justify-between mt-0.5">
+                      <div className="text-xs text-muted-foreground">
+                        {hit?.score ? `${(hit.score * 100).toFixed(0)}% match` : 'Related'}
+                      </div>
+                      <div className="text-xs text-primary opacity-0 group-hover:opacity-100 transition-opacity">
+                        Open →
+                      </div>
                     </div>
                   </div>
                 </div>
