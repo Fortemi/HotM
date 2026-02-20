@@ -969,7 +969,7 @@ export function HallOfMind() {
   const notesFromSummaries = useCallback((summaries: NoteSummary[]): Note[] => {
     return summaries.map((s) => ({
       id: s.id,
-      title: s.title || "Untitled",
+      title: s.title || (s.snippet ? s.snippet.split('\n')[0].substring(0, 50) : "") || "Untitled",
       content: s.snippet || "",
       revised_content: s.has_revision ? null : null,
       createdAt: s.created_at_utc,
@@ -977,7 +977,7 @@ export function HallOfMind() {
       tags: s.tags || [],
       starred: s.starred || false,
       archived: s.archived || false,
-      ai_generated_title: s.title,
+      ai_generated_title: s.title || null,
       revised_model: null,
     }));
   }, []);

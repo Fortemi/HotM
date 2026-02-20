@@ -259,9 +259,9 @@ describe('HallOfMind WebSocket Integration', () => {
       });
 
       mockApi.getNotes.mockResolvedValue([createNoteSummary(existingNote)]);
-      mockApi.getNote
-        .mockResolvedValueOnce(existingNote)
-        .mockResolvedValueOnce(createdNote);
+      // notesFromSummaries builds from summaries without calling getNote,
+      // so only mock getNote for the NoteCreated event handler
+      mockApi.getNote.mockResolvedValueOnce(createdNote);
 
       render(<HallOfMind />);
 
