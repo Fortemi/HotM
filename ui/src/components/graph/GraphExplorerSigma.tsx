@@ -106,6 +106,7 @@ export function GraphExplorer({ className, initialNoteId, onNoteSelect }: GraphE
   const graphRef = React.useRef<Graph | null>(null);
   const cameraStateRef = React.useRef<{ x: number; y: number; ratio: number; angle: number } | null>(null);
   const fa2Ref = React.useRef<FA2Layout | null>(null);
+  const syncLayoutIdRef = React.useRef(0); // Incremented to cancel chunked sync FA2
   const pendingOperationRef = React.useRef<{ operation: TimingOperation; startedAtMs: number } | null>(null);
 
   const [collections, setCollections] = React.useState<Collection[]>([]);
@@ -327,7 +328,7 @@ export function GraphExplorer({ className, initialNoteId, onNoteSelect }: GraphE
           const checks = await Promise.all(
             candidates
               .filter((c) => c.id !== excludeNoteId)
-              .slice(0, 20)
+              .slice(0, 10)
               .map(async (c) => {
                 try {
                   const links = await api.links.getLinks(c.id);
@@ -395,17 +396,23 @@ export function GraphExplorer({ className, initialNoteId, onNoteSelect }: GraphE
       const normalized = normalizeGraphResponse(response);
 
       // Enrich nodes missing tags/concepts with per-note API calls.
-      // v1 payloads may include these fields, but the explore-graph endpoint
-      // often omits them — so enrich any node that lacks tags or concepts.
-      const needsEnrichment = normalized.nodes.some(
-        (n) => n.tags.length === 0 && n.concepts.length === 0
-      );
+      // Cap enrichment to 30 nodes to avoid N+1 explosion on large graphs.
+      // Prioritize the root node and nodes closest to it (lowest depth).
+      const MAX_ENRICH = 30;
+      const toEnrich = normalized.nodes
+        .map((n, i) => ({ node: n, index: i }))
+        .filter(({ node }) => node.tags.length === 0 && node.concepts.length === 0);
+
       let enrichedNodes = normalized.nodes;
-      if (needsEnrichment) {
+      if (toEnrich.length > 0) {
+        // Sort by depth (root first) then take at most MAX_ENRICH
+        toEnrich.sort((a, b) => a.node.depth - b.node.depth);
+        const enrichBatch = toEnrich.slice(0, MAX_ENRICH);
+        const enrichIndices = new Set(enrichBatch.map((e) => e.index));
+
         const noteDetails = await Promise.all(
-          normalized.nodes.map(async (node) => {
-            // Skip enrichment for nodes that already have data
-            if (node.tags.length > 0 || node.concepts.length > 0) {
+          normalized.nodes.map(async (node, i) => {
+            if (!enrichIndices.has(i)) {
               return { detail: null, concepts: [] as { pref_label?: string }[] };
             }
             const detail = await api.notes.get(node.id).catch(() => null);
@@ -684,16 +691,42 @@ export function GraphExplorer({ className, initialNoteId, onNoteSelect }: GraphE
       layout.start();
     } catch {
       // FA2 worker fails in Tauri WebKit2GTK (blob: worker URLs blocked)
-      // and in jsdom. Fall back to synchronous layout.
-      console.warn('FA2Layout worker unavailable, using synchronous fallback');
+      // and in jsdom. Fall back to chunked synchronous layout via rAF
+      // so the UI stays responsive and nodes animate into position.
+      console.warn('FA2Layout worker unavailable, using chunked synchronous fallback');
       try {
-        const iterations = Math.min(200, Math.max(50, nodeCount * 2));
-        forceAtlas2.assign(graph, { iterations, settings: fa2Settings });
-        rendererRef.current?.refresh();
+        const totalIterations = Math.min(200, Math.max(50, nodeCount * 2));
+        const chunkSize = 5; // iterations per animation frame
+        let completed = 0;
+        const layoutId = ++syncLayoutIdRef.current;
+
+        setLayoutRunning(true);
+
+        const runChunk = () => {
+          // Cancelled (user clicked stop, or new layout started)
+          if (syncLayoutIdRef.current !== layoutId) return;
+          if (!graphRef.current) { setLayoutRunning(false); return; }
+
+          const remaining = totalIterations - completed;
+          if (remaining <= 0) {
+            setLayoutRunning(false);
+            rendererRef.current?.refresh();
+            return;
+          }
+
+          const iters = Math.min(chunkSize, remaining);
+          forceAtlas2.assign(graphRef.current, { iterations: iters, settings: fa2Settings });
+          completed += iters;
+          rendererRef.current?.refresh();
+
+          requestAnimationFrame(runChunk);
+        };
+
+        requestAnimationFrame(runChunk);
       } catch (syncErr) {
         console.warn('Synchronous FA2 also failed:', syncErr);
+        setLayoutRunning(false);
       }
-      setLayoutRunning(false);
       return;
     }
     setLayoutRunning(true);
@@ -720,8 +753,10 @@ export function GraphExplorer({ className, initialNoteId, onNoteSelect }: GraphE
   const stopLayout = React.useCallback(() => {
     if (fa2Ref.current) {
       fa2Ref.current.stop();
-      setLayoutRunning(false);
     }
+    // Cancel any chunked sync fallback by bumping the ID
+    syncLayoutIdRef.current++;
+    setLayoutRunning(false);
   }, []);
 
   // --- Sigma renderer ---
