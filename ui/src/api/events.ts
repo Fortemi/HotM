@@ -47,6 +47,7 @@ export function createEventsClient(baseUrl: string, options: EventsClientOptions
   let isClosing = false;
   let lastEventId: string | null = null;
   let isFetchConnected = false;
+  let fetchReconnectAttempts = 0;
 
   const notifyStatus = (status: EventsClientStatus) => {
     try {
@@ -115,6 +116,7 @@ export function createEventsClient(baseUrl: string, options: EventsClientOptions
       }
 
       isFetchConnected = true;
+      fetchReconnectAttempts = 0; // Reset backoff on successful connect
       notifyStatus('connected');
 
       const reader = response.body.getReader();
@@ -172,12 +174,14 @@ export function createEventsClient(baseUrl: string, options: EventsClientOptions
       fetchAbort = null;
     }
 
-    // Reconnect if not intentionally closing
+    // Reconnect if not intentionally closing (exponential backoff: 1s, 2s, 4s, 8s, max 15s)
     if (!isClosing && handlers.size > 0) {
       notifyStatus('reconnecting');
+      const delay = Math.min(1000 * Math.pow(2, fetchReconnectAttempts), 15000);
+      fetchReconnectAttempts++;
       reconnectTimeout = setTimeout(() => {
         connectFetch();
-      }, 5000);
+      }, delay);
     } else {
       notifyStatus('closed');
     }
@@ -221,16 +225,22 @@ export function createEventsClient(baseUrl: string, options: EventsClientOptions
       }
 
       eventSource.onerror = () => {
-        eventSource?.close();
-        eventSource = null;
-
-        if (!isClosing && handlers.size > 0) {
+        // EventSource fires onerror during auto-reconnection attempts.
+        // Don't close — let the browser handle reconnection natively.
+        if (eventSource?.readyState === EventSource.CLOSED) {
+          // Server permanently closed the connection; manual reconnect needed
+          eventSource = null;
+          if (!isClosing && handlers.size > 0) {
+            notifyStatus('reconnecting');
+            reconnectTimeout = setTimeout(() => {
+              connectNative();
+            }, 2000);
+          } else {
+            notifyStatus('closed');
+          }
+        } else if (eventSource?.readyState === EventSource.CONNECTING) {
+          // Browser is auto-reconnecting — just update status
           notifyStatus('reconnecting');
-          reconnectTimeout = setTimeout(() => {
-            connectNative();
-          }, 5000);
-        } else {
-          notifyStatus('closed');
         }
       };
     } catch (err) {

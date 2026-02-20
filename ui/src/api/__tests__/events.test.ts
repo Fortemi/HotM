@@ -4,6 +4,9 @@ import { createEventsClient } from '@/api/events';
 type Listener = (event: MessageEvent) => void;
 
 class MockEventSource {
+  static CONNECTING = 0;
+  static OPEN = 1;
+  static CLOSED = 2;
   static instances: MockEventSource[] = [];
   url: string;
   readyState = 0;
@@ -55,8 +58,10 @@ describe('events client replay handling', () => {
     expect(first.url).toContain('/api/v1/events');
 
     first.onmessage?.({ data: JSON.stringify({ type: 'NoteUpdated', event_id: 'evt-42' }), lastEventId: '' } as MessageEvent);
+    // Simulate permanent close (readyState=CLOSED) so client reconnects manually
+    first.readyState = 2;
     first.onerror?.();
-    vi.advanceTimersByTime(5000);
+    vi.advanceTimersByTime(2000);
 
     const second = MockEventSource.instances[1];
     expect(second.url).toContain('last_event_id=evt-42');
