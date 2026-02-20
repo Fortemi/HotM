@@ -53,7 +53,9 @@
       "Bash(docker compose:*)",
       "Bash(docker ps:*)",
       "Skill(commit-and-push)",
-      "Skill(flow-deploy-to-production)"
+      "Skill(flow-deploy-to-production)",
+      "mcp__gitea__delete_release",
+      "mcp__gitea__delete_tag"
     ],
     "deny": [],
     "ask": []
