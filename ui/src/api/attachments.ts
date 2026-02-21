@@ -53,7 +53,6 @@ export function createAttachmentsApi(client: ApiClient) {
         method: 'POST',
         body: formData,
         headers: buildRoutingHeaders(),
-        credentials: 'include',
         // Let browser set Content-Type with boundary
       });
 
@@ -96,7 +95,6 @@ export function createAttachmentsApi(client: ApiClient) {
       const response = await getTauriFetch()(url, {
         method: 'GET',
         headers: buildRoutingHeaders(),
-        credentials: 'include',
       });
 
       if (!response.ok) {

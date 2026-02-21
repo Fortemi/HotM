@@ -93,8 +93,10 @@ export function useNoteCommit() {
               try {
                 await api.attachments.uploadAttachment(note_id, file);
                 attachmentCount++;
-              } catch {
-                warnings.push(`Could not upload: ${file.name}`);
+              } catch (err) {
+                const reason = err instanceof Error ? err.message : String(err);
+                console.error(`[Capture] attachment upload failed for ${file.name}:`, reason);
+                warnings.push(`Could not upload: ${file.name} — ${reason}`);
               }
             }
           }
