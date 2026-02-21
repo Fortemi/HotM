@@ -154,6 +154,7 @@ export type {
   FederatedSearchRequest,
   FederatedSearchHit,
   FederatedSearchResponse,
+  ExtractionStatus,
 } from './types-extended';
 
 // Export error classes

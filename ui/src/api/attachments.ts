@@ -132,6 +132,10 @@ export function createAttachmentsApi(client: ApiClient) {
         content_type: attachment.content_type,
         size_bytes: attachment.size_bytes,
         created_at: attachment.created_at,
+        ai_description: attachment.ai_description,
+        ai_model: attachment.ai_model,
+        extracted_content: attachment.extracted_content,
+        extracted_metadata: attachment.extracted_metadata,
       };
     },
 

@@ -18,6 +18,15 @@ import {
   MapPin,
   Calendar,
   Loader2,
+  Sparkles,
+  Clock,
+  AlertCircle,
+  ChevronDown,
+  ChevronRight,
+  FileCode,
+  Music,
+  Video,
+  Box,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -38,7 +47,7 @@ import {
 import { api } from '@/api';
 import { realtimeEventBus } from '@/services/realtimeEventBus';
 import { useBlobUrl } from '@/lib/tauri';
-import type { Attachment, AttachmentMetadata } from '@/api/types-extended';
+import type { Attachment, AttachmentMetadata, ExtractionStatus } from '@/api/types-extended';
 
 interface AttachmentsPanelProps {
   noteId: string;
@@ -57,10 +66,94 @@ function getFileIcon(contentType: string) {
   if (contentType.startsWith('image/')) {
     return <ImageIcon className="w-8 h-8 text-blue-500" />;
   }
+  if (contentType.startsWith('model/')) {
+    return <Box className="w-8 h-8 text-purple-500" />;
+  }
+  if (contentType.startsWith('audio/')) {
+    return <Music className="w-8 h-8 text-green-500" />;
+  }
+  if (contentType.startsWith('video/')) {
+    return <Video className="w-8 h-8 text-orange-500" />;
+  }
   if (contentType === 'application/pdf') {
     return <FileText className="w-8 h-8 text-red-500" />;
   }
+  if (contentType.startsWith('text/') || contentType.includes('javascript') || contentType.includes('json') || contentType.includes('xml')) {
+    return <FileCode className="w-8 h-8 text-cyan-500" />;
+  }
   return <File className="w-8 h-8 text-gray-500" />;
+}
+
+/**
+ * Infer extraction status from attachment fields.
+ * - No extractable content type → 'none'
+ * - Has ai_description or extracted_content → 'complete'
+ * - Has extracted_metadata.error → 'failed'
+ * - Otherwise → 'pending'
+ */
+function getExtractionStatus(attachment: Attachment): ExtractionStatus {
+  const hasExtractableType =
+    attachment.content_type.startsWith('image/') ||
+    attachment.content_type.startsWith('model/') ||
+    attachment.content_type.startsWith('audio/') ||
+    attachment.content_type.startsWith('video/') ||
+    attachment.content_type === 'application/pdf' ||
+    attachment.content_type.startsWith('text/') ||
+    attachment.content_type.includes('javascript') ||
+    attachment.content_type.includes('json') ||
+    attachment.content_type.includes('xml');
+
+  if (!hasExtractableType) return 'none';
+
+  if (attachment.ai_description || attachment.extracted_content) return 'complete';
+
+  const meta = attachment.extracted_metadata;
+  if (meta && typeof meta === 'object' && 'error' in meta) return 'failed';
+
+  return 'pending';
+}
+
+function ExtractionStatusBadge({ status }: { status: ExtractionStatus }) {
+  switch (status) {
+    case 'complete':
+      return (
+        <Badge variant="secondary" className="text-xs px-1 gap-0.5 bg-green-500/10 text-green-700 dark:text-green-400">
+          <Sparkles className="w-3 h-3" />
+          <span className="sr-only">Extraction complete</span>
+        </Badge>
+      );
+    case 'pending':
+      return (
+        <Badge variant="secondary" className="text-xs px-1 gap-0.5 bg-yellow-500/10 text-yellow-700 dark:text-yellow-400">
+          <Clock className="w-3 h-3" />
+          <span className="sr-only">Extraction pending</span>
+        </Badge>
+      );
+    case 'failed':
+      return (
+        <Badge variant="secondary" className="text-xs px-1 gap-0.5 bg-red-500/10 text-red-700 dark:text-red-400">
+          <AlertCircle className="w-3 h-3" />
+          <span className="sr-only">Extraction failed</span>
+        </Badge>
+      );
+    default:
+      return null;
+  }
+}
+
+/** Get a short preview label for extracted content based on MIME type */
+function getExtractionPreview(attachment: Attachment): string | null {
+  if (attachment.ai_description) {
+    return attachment.ai_description.length > 100
+      ? attachment.ai_description.slice(0, 100) + '...'
+      : attachment.ai_description;
+  }
+  if (attachment.extracted_content) {
+    return attachment.extracted_content.length > 100
+      ? attachment.extracted_content.slice(0, 100) + '...'
+      : attachment.extracted_content;
+  }
+  return null;
 }
 
 interface AttachmentCardProps {
@@ -78,6 +171,8 @@ function AttachmentCard({ attachment, viewMode, onView, onDownload, onDelete }: 
   const thumbnailUrl = useBlobUrl(
     isImage ? api.attachments.getDownloadUrl(attachment.id) : undefined
   );
+  const extractionStatus = getExtractionStatus(attachment);
+  const extractionPreview = getExtractionPreview(attachment);
 
   if (viewMode === 'grid') {
     return (
@@ -106,23 +201,27 @@ function AttachmentCard({ attachment, viewMode, onView, onDownload, onDelete }: 
         <div className="p-2">
           <p className="text-sm font-medium truncate">{attachment.filename}</p>
           <p className="text-xs text-muted-foreground">{formatFileSize(attachment.size_bytes)}</p>
+          {extractionPreview && (
+            <p className="text-xs text-muted-foreground mt-1 line-clamp-2" data-testid="extraction-preview">
+              {extractionPreview}
+            </p>
+          )}
         </div>
 
         {/* Metadata badges */}
-        {(attachment.has_exif || attachment.has_location) && (
-          <div className="absolute top-2 left-2 flex gap-1">
-            {attachment.has_location && (
-              <Badge variant="secondary" className="text-xs px-1">
-                <MapPin className="w-3 h-3" />
-              </Badge>
-            )}
-            {attachment.has_exif && (
-              <Badge variant="secondary" className="text-xs px-1">
-                <Calendar className="w-3 h-3" />
-              </Badge>
-            )}
-          </div>
-        )}
+        <div className="absolute top-2 left-2 flex gap-1">
+          {attachment.has_location && (
+            <Badge variant="secondary" className="text-xs px-1">
+              <MapPin className="w-3 h-3" />
+            </Badge>
+          )}
+          {attachment.has_exif && (
+            <Badge variant="secondary" className="text-xs px-1">
+              <Calendar className="w-3 h-3" />
+            </Badge>
+          )}
+          <ExtractionStatusBadge status={extractionStatus} />
+        </div>
 
         {/* Actions */}
         <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -175,13 +274,21 @@ function AttachmentCard({ attachment, viewMode, onView, onDownload, onDelete }: 
         )}
       </div>
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-medium truncate">{attachment.filename}</p>
+        <div className="flex items-center gap-2">
+          <p className="text-sm font-medium truncate">{attachment.filename}</p>
+          <ExtractionStatusBadge status={extractionStatus} />
+        </div>
         <div className="flex items-center gap-2 text-xs text-muted-foreground">
           <span>{formatFileSize(attachment.size_bytes)}</span>
           <span>·</span>
           <span>{new Date(attachment.created_at).toLocaleDateString()}</span>
           {attachment.has_location && <MapPin className="w-3 h-3" />}
         </div>
+        {extractionPreview && (
+          <p className="text-xs text-muted-foreground mt-0.5 truncate" data-testid="extraction-preview">
+            {extractionPreview}
+          </p>
+        )}
       </div>
       <DropdownMenu>
         <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
@@ -205,6 +312,28 @@ function AttachmentCard({ attachment, viewMode, onView, onDownload, onDelete }: 
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
+    </div>
+  );
+}
+
+function ExtractedMetadataSection({ metadata }: { metadata: Record<string, unknown> }) {
+  const [isOpen, setIsOpen] = useState(false);
+
+  return (
+    <div className="rounded-lg border p-3" data-testid="extracted-metadata">
+      <button
+        type="button"
+        className="flex items-center gap-2 w-full text-left text-sm font-medium hover:text-primary transition-colors"
+        onClick={() => setIsOpen((prev) => !prev)}
+      >
+        {isOpen ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+        Extraction Metadata
+      </button>
+      {isOpen && (
+        <pre className="mt-2 text-xs bg-muted/50 rounded p-3 max-h-48 overflow-y-auto font-mono whitespace-pre-wrap">
+          {JSON.stringify(metadata, null, 2)}
+        </pre>
+      )}
     </div>
   );
 }
@@ -515,9 +644,12 @@ export function AttachmentsPanel({ noteId, className }: AttachmentsPanelProps) {
           }
         }}
       >
-        <DialogContent className="max-w-3xl">
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>{previewAttachment?.filename}</DialogTitle>
+            <DialogTitle className="flex items-center gap-2">
+              {previewAttachment?.filename}
+              {previewAttachment && <ExtractionStatusBadge status={getExtractionStatus(previewAttachment)} />}
+            </DialogTitle>
           </DialogHeader>
           {previewAttachment && (
             <div className="space-y-4">
@@ -544,7 +676,60 @@ export function AttachmentsPanel({ noteId, className }: AttachmentsPanelProps) {
                 )
               )}
 
-              {/* Metadata */}
+              {/* AI Description */}
+              {previewAttachment.ai_description && (
+                <div className="rounded-lg border bg-muted/30 p-4" data-testid="ai-description">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Sparkles className="w-4 h-4 text-primary" />
+                    <span className="text-sm font-medium">AI Description</span>
+                    {previewAttachment.ai_model && (
+                      <span className="text-xs text-muted-foreground ml-auto">
+                        by {previewAttachment.ai_model}
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-sm">{previewAttachment.ai_description}</p>
+                </div>
+              )}
+
+              {/* Extracted Content */}
+              {previewAttachment.extracted_content && (
+                <div className="rounded-lg border p-4" data-testid="extracted-content">
+                  <div className="flex items-center gap-2 mb-2">
+                    <FileText className="w-4 h-4 text-primary" />
+                    <span className="text-sm font-medium">Extracted Content</span>
+                  </div>
+                  <pre className="text-sm whitespace-pre-wrap bg-muted/50 rounded p-3 max-h-60 overflow-y-auto font-mono text-xs">
+                    {previewAttachment.extracted_content}
+                  </pre>
+                </div>
+              )}
+
+              {/* Extraction Pending/Failed States */}
+              {getExtractionStatus(previewAttachment) === 'pending' && (
+                <div className="rounded-lg border border-yellow-500/20 bg-yellow-500/5 p-4 text-sm" data-testid="extraction-pending">
+                  <div className="flex items-center gap-2">
+                    <Clock className="w-4 h-4 text-yellow-600" />
+                    <span className="font-medium text-yellow-700 dark:text-yellow-400">Processing...</span>
+                  </div>
+                  <p className="text-muted-foreground mt-1">Content extraction is in progress. Results will appear here when complete.</p>
+                </div>
+              )}
+              {getExtractionStatus(previewAttachment) === 'failed' && (
+                <div className="rounded-lg border border-red-500/20 bg-red-500/5 p-4 text-sm" data-testid="extraction-failed">
+                  <div className="flex items-center gap-2">
+                    <AlertCircle className="w-4 h-4 text-red-600" />
+                    <span className="font-medium text-red-700 dark:text-red-400">Extraction Failed</span>
+                  </div>
+                  {previewAttachment.extracted_metadata && typeof previewAttachment.extracted_metadata === 'object' && 'error' in previewAttachment.extracted_metadata && (
+                    <p className="text-muted-foreground mt-1">
+                      {String(previewAttachment.extracted_metadata.error)}
+                    </p>
+                  )}
+                </div>
+              )}
+
+              {/* File Metadata */}
               {previewMetadata && (
                 <div className="grid grid-cols-2 gap-4 text-sm">
                   <div>
@@ -577,6 +762,14 @@ export function AttachmentsPanel({ noteId, className }: AttachmentsPanelProps) {
                     </div>
                   )}
                 </div>
+              )}
+
+              {/* Collapsible Extracted Metadata */}
+              {previewAttachment.extracted_metadata &&
+                typeof previewAttachment.extracted_metadata === 'object' &&
+                !('error' in previewAttachment.extracted_metadata) &&
+                Object.keys(previewAttachment.extracted_metadata).length > 0 && (
+                <ExtractedMetadataSection metadata={previewAttachment.extracted_metadata} />
               )}
             </div>
           )}

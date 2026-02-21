@@ -5,7 +5,7 @@
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { act, render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { act, render, screen, fireEvent, waitFor, within } from '@testing-library/react';
 import { AttachmentsPanel } from '../AttachmentsPanel';
 import { api, Attachment, AttachmentMetadata } from '@/api';
 import { realtimeEventBus } from '@/services/realtimeEventBus';
@@ -400,6 +400,213 @@ describe('AttachmentsPanel', () => {
         const cards = screen.getAllByTestId(/attachment-card/);
         expect(cards[0]).toBeInTheDocument();
       });
+    });
+  });
+
+  describe('Extraction Display', () => {
+    const attachmentWithExtraction: Attachment[] = [
+      {
+        id: 'att-ext-1',
+        note_id: 'note-123',
+        filename: 'photo.jpg',
+        content_type: 'image/jpeg',
+        size_bytes: 2048000,
+        storage_path: '/attachments/att-ext-1/photo.jpg',
+        has_exif: false,
+        has_location: false,
+        created_at: '2024-01-15T10:00:00Z',
+        ai_description: 'A sunset over the ocean with vibrant orange and purple clouds',
+        ai_model: 'qwen3-vl:8b',
+        extracted_content: null,
+        extracted_metadata: { angles_rendered: 4 },
+      },
+    ];
+
+    const attachmentPending: Attachment[] = [
+      {
+        id: 'att-pending',
+        note_id: 'note-123',
+        filename: 'new-photo.jpg',
+        content_type: 'image/jpeg',
+        size_bytes: 1024000,
+        storage_path: '/attachments/att-pending/new-photo.jpg',
+        has_exif: false,
+        has_location: false,
+        created_at: '2024-01-15T10:00:00Z',
+        ai_description: null,
+        extracted_content: null,
+        extracted_metadata: null,
+      },
+    ];
+
+    const attachmentFailed: Attachment[] = [
+      {
+        id: 'att-failed',
+        note_id: 'note-123',
+        filename: 'corrupt.jpg',
+        content_type: 'image/jpeg',
+        size_bytes: 512000,
+        storage_path: '/attachments/att-failed/corrupt.jpg',
+        has_exif: false,
+        has_location: false,
+        created_at: '2024-01-15T10:00:00Z',
+        ai_description: null,
+        extracted_content: null,
+        extracted_metadata: { error: 'Failed to decode image' },
+      },
+    ];
+
+    it('should show extraction preview on card when ai_description is present', async () => {
+      vi.mocked(api.attachments.listAttachments).mockResolvedValue(attachmentWithExtraction);
+
+      render(<AttachmentsPanel noteId="note-123" />);
+
+      await waitFor(() => {
+        expect(screen.getByText(/A sunset over the ocean/)).toBeInTheDocument();
+      });
+    });
+
+    it('should show AI description in preview dialog', async () => {
+      vi.mocked(api.attachments.listAttachments).mockResolvedValue(attachmentWithExtraction);
+
+      render(<AttachmentsPanel noteId="note-123" />);
+
+      await waitFor(() => {
+        expect(screen.getByText('photo.jpg')).toBeInTheDocument();
+      });
+
+      fireEvent.click(screen.getByTestId('attachment-card-att-ext-1'));
+
+      await waitFor(() => {
+        const descSection = screen.getByTestId('ai-description');
+        expect(descSection).toBeInTheDocument();
+        expect(within(descSection).getByText('AI Description')).toBeInTheDocument();
+        expect(within(descSection).getByText(/A sunset over the ocean/)).toBeInTheDocument();
+        expect(screen.getByText('by qwen3-vl:8b')).toBeInTheDocument();
+      });
+    });
+
+    it('should show extraction pending state in preview dialog', async () => {
+      vi.mocked(api.attachments.listAttachments).mockResolvedValue(attachmentPending);
+
+      render(<AttachmentsPanel noteId="note-123" />);
+
+      await waitFor(() => {
+        expect(screen.getByText('new-photo.jpg')).toBeInTheDocument();
+      });
+
+      fireEvent.click(screen.getByTestId('attachment-card-att-pending'));
+
+      await waitFor(() => {
+        expect(screen.getByTestId('extraction-pending')).toBeInTheDocument();
+        expect(screen.getByText(/Processing/)).toBeInTheDocument();
+      });
+    });
+
+    it('should show extraction failed state in preview dialog', async () => {
+      vi.mocked(api.attachments.listAttachments).mockResolvedValue(attachmentFailed);
+
+      render(<AttachmentsPanel noteId="note-123" />);
+
+      await waitFor(() => {
+        expect(screen.getByText('corrupt.jpg')).toBeInTheDocument();
+      });
+
+      fireEvent.click(screen.getByTestId('attachment-card-att-failed'));
+
+      await waitFor(() => {
+        expect(screen.getByTestId('extraction-failed')).toBeInTheDocument();
+        expect(screen.getByText('Extraction Failed')).toBeInTheDocument();
+        expect(screen.getByText('Failed to decode image')).toBeInTheDocument();
+      });
+    });
+
+    it('should show collapsible extracted metadata section', async () => {
+      vi.mocked(api.attachments.listAttachments).mockResolvedValue(attachmentWithExtraction);
+
+      render(<AttachmentsPanel noteId="note-123" />);
+
+      await waitFor(() => {
+        expect(screen.getByText('photo.jpg')).toBeInTheDocument();
+      });
+
+      fireEvent.click(screen.getByTestId('attachment-card-att-ext-1'));
+
+      await waitFor(() => {
+        expect(screen.getByTestId('extracted-metadata')).toBeInTheDocument();
+        expect(screen.getByText('Extraction Metadata')).toBeInTheDocument();
+      });
+
+      // Click to expand
+      fireEvent.click(screen.getByText('Extraction Metadata'));
+
+      await waitFor(() => {
+        expect(screen.getByText(/"angles_rendered": 4/)).toBeInTheDocument();
+      });
+    });
+
+    it('should show extracted content for document attachments', async () => {
+      const docAttachment: Attachment[] = [
+        {
+          id: 'att-doc',
+          note_id: 'note-123',
+          filename: 'report.pdf',
+          content_type: 'application/pdf',
+          size_bytes: 4096000,
+          storage_path: '/attachments/att-doc/report.pdf',
+          has_exif: false,
+          has_location: false,
+          created_at: '2024-01-15T10:00:00Z',
+          ai_description: null,
+          extracted_content: 'Executive Summary\n\nThis report covers the Q4 results...',
+          extracted_metadata: { page_count: 12 },
+        },
+      ];
+
+      vi.mocked(api.attachments.listAttachments).mockResolvedValue(docAttachment);
+
+      render(<AttachmentsPanel noteId="note-123" />);
+
+      await waitFor(() => {
+        expect(screen.getByText('report.pdf')).toBeInTheDocument();
+      });
+
+      fireEvent.click(screen.getByTestId('attachment-card-att-doc'));
+
+      await waitFor(() => {
+        const contentSection = screen.getByTestId('extracted-content');
+        expect(contentSection).toBeInTheDocument();
+        expect(within(contentSection).getByText('Extracted Content')).toBeInTheDocument();
+        expect(within(contentSection).getByText(/Executive Summary/)).toBeInTheDocument();
+      });
+    });
+
+    it('should gracefully handle null extraction fields', async () => {
+      const noExtractionAttachment: Attachment[] = [
+        {
+          id: 'att-plain',
+          note_id: 'note-123',
+          filename: 'readme.txt',
+          content_type: 'text/plain',
+          size_bytes: 256,
+          storage_path: '/attachments/att-plain/readme.txt',
+          has_exif: false,
+          has_location: false,
+          created_at: '2024-01-15T10:00:00Z',
+        },
+      ];
+
+      vi.mocked(api.attachments.listAttachments).mockResolvedValue(noExtractionAttachment);
+
+      render(<AttachmentsPanel noteId="note-123" />);
+
+      await waitFor(() => {
+        expect(screen.getByText('readme.txt')).toBeInTheDocument();
+      });
+
+      // Should render without errors even without extraction fields
+      expect(screen.queryByTestId('ai-description')).not.toBeInTheDocument();
+      expect(screen.queryByTestId('extraction-preview')).not.toBeInTheDocument();
     });
   });
 });

@@ -89,7 +89,20 @@ export interface Attachment {
   storage_path: string;
   has_exif?: boolean;
   has_location?: boolean;
+  /** AI-generated description (vision models for images/3D, transcription for audio) */
+  ai_description?: string | null;
+  /** Model used to generate ai_description */
+  ai_model?: string | null;
+  /** Extracted text content (OCR, transcription, PDF text, code) */
+  extracted_content?: string | null;
+  /** Structured metadata from extraction pipeline */
+  extracted_metadata?: Record<string, unknown> | null;
 }
+
+/**
+ * Extraction status inferred from attachment fields
+ */
+export type ExtractionStatus = 'pending' | 'complete' | 'failed' | 'none';
 
 /**
  * List attachments response
@@ -169,6 +182,10 @@ export interface AttachmentMetadata {
   exif?: ExifData;
   provenance?: DeviceProvenance & { location?: LocationData };
   processing?: ProcessingStatus;
+  ai_description?: string | null;
+  ai_model?: string | null;
+  extracted_content?: string | null;
+  extracted_metadata?: Record<string, unknown> | null;
 }
 
 // ===========================
