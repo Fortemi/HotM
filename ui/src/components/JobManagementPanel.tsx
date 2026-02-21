@@ -3,7 +3,8 @@ import { Pause, Play, RefreshCw, Loader2 } from 'lucide-react';
 
 import { api } from '@/api';
 import type { MemoryArchive } from '@/api';
-import { realtimeEventBus } from '@/services/realtimeEventBus';
+import { useJobStore } from '@/hooks/useJobStore';
+import { jobEventStore } from '@/services/jobEventStore';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -22,13 +23,15 @@ interface JobManagementPanelProps {
 }
 
 export function JobManagementPanel({ archives }: JobManagementPanelProps) {
-  const [pauseState, setPauseState] = useState<Record<string, string>>({});
-  const [globalState, setGlobalState] = useState<'running' | 'paused' | string>('running');
+  const { pauseState } = useJobStore();
   const [selectedArchive, setSelectedArchive] = useState<string>('');
   const [archiveCounts, setArchiveCounts] = useState<Record<string, ArchiveJobCounts>>({});
   const [isLoading, setIsLoading] = useState(false);
   const [isMutating, setIsMutating] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const globalState = pauseState.global;
+  const archivePauseStates = pauseState.archives;
 
   const archiveNames = useMemo(() => {
     return archives
@@ -38,17 +41,13 @@ export function JobManagementPanel({ archives }: JobManagementPanelProps) {
   }, [archives]);
 
   const selectedArchiveState = selectedArchive
-    ? (pauseState[selectedArchive] ?? 'running')
+    ? (archivePauseStates[selectedArchive] ?? 'running')
     : 'running';
 
-  const refresh = useCallback(async () => {
+  const refreshCounts = useCallback(async () => {
     setIsLoading(true);
     setError(null);
     try {
-      const status = await api.jobs.getPauseStatus();
-      setGlobalState(status.global ?? 'running');
-      setPauseState(status.archives ?? {});
-
       const countsByArchive = await Promise.all(
         archiveNames.map(async (archiveName) => {
           const stats = await api.jobs.getArchiveJobCounts(archiveName);
@@ -81,31 +80,30 @@ export function JobManagementPanel({ archives }: JobManagementPanelProps) {
   }, [archiveNames, selectedArchive]);
 
   useEffect(() => {
-    void refresh();
-  }, [refresh]);
+    // Refresh pause state from API on mount
+    void jobEventStore.refreshPauseState();
+    void refreshCounts();
+  }, [refreshCounts]);
 
-  useEffect(() => {
-    const unsubscribe = realtimeEventBus.subscribe((event) => {
-      if (event.type === 'JobsPaused' || event.type === 'JobsResumed') {
-        void refresh();
-      }
-    });
-    return () => unsubscribe();
-  }, [refresh]);
+  const refresh = useCallback(async () => {
+    await jobEventStore.refreshPauseState();
+    await refreshCounts();
+  }, [refreshCounts]);
 
   const mutate = useCallback(async (action: () => Promise<unknown>) => {
     setIsMutating(true);
     setError(null);
     try {
       await action();
-      await refresh();
+      await jobEventStore.refreshPauseState();
+      await refreshCounts();
     } catch (err) {
       console.error('Job management action failed:', err);
       setError('Action failed. Verify server supports job pause controls.');
     } finally {
       setIsMutating(false);
     }
-  }, [refresh]);
+  }, [refreshCounts]);
 
   return (
     <Card>
@@ -215,7 +213,7 @@ export function JobManagementPanel({ archives }: JobManagementPanelProps) {
                   failedLastHour: 0,
                   total: 0,
                 };
-                const state = pauseState[name] ?? 'running';
+                const state = archivePauseStates[name] ?? 'running';
                 return (
                   <tr key={name} className="border-t">
                     <td className="px-3 py-2 font-medium">{name}</td>

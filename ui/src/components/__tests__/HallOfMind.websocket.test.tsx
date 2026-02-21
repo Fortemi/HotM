@@ -13,10 +13,36 @@ vi.mock('@/services/api');
 vi.mock('@/services/websocket', () => ({
   useWebSocket: vi.fn(),
   default: {
-    subscribe: vi.fn(() => vi.fn()), // Returns unsubscribe function
+    subscribe: vi.fn(() => vi.fn()),
+    subscribeConnection: vi.fn(() => vi.fn()),
+    subscribeConnectionState: vi.fn(() => vi.fn()),
+    getConnectionStatus: vi.fn(() => false),
+    getConnectionState: vi.fn(() => 'disconnected'),
     connect: vi.fn(),
     disconnect: vi.fn(),
     send: vi.fn(),
+  },
+}));
+
+// Mock jobEventStore — useSyncExternalStore requires referential stability
+const _mockJobStoreSnapshot = {
+  activeJobs: new Map(),
+  completedJobs: [] as unknown[],
+  queueStatus: { total_jobs: 0, running: 0, pending: 0 },
+  activeStepLabel: null,
+  pauseState: { global: 'running', archives: {} },
+  connected: false,
+  connectionState: 'disconnected',
+  isQueueStalled: false,
+  queueStatusAgeMs: 0,
+  lastUpdatedAt: Date.now(),
+};
+vi.mock('@/services/jobEventStore', () => ({
+  jobEventStore: {
+    subscribe: vi.fn(() => vi.fn()),
+    getSnapshot: vi.fn(() => _mockJobStoreSnapshot),
+    getServerSnapshot: vi.fn(() => _mockJobStoreSnapshot),
+    refreshPauseState: vi.fn(),
   },
 }));
 

@@ -1,31 +1,16 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
 import { Activity, Loader2, CheckCircle2, AlertCircle, AlertTriangle, RefreshCw } from 'lucide-react';
 import JobQueueMonitor from './JobQueueMonitor';
+import { useJobStore } from '@/hooks/useJobStore';
 import { useWebSocket } from '@/services/websocket';
-import type { WsMessage } from '@/services/websocket';
-import webSocketService from '@/services/websocket';
 
 export const JobQueueIndicator: React.FC = () => {
-  const { connected, connectionState, transportMode, queueStatus, isQueueStalled, queueStatusAgeMs, lastResyncAt } = useWebSocket();
+  const { connected, connectionState, queueStatus, isQueueStalled, queueStatusAgeMs, activeStepLabel } = useJobStore();
+  const { transportMode, lastResyncAt } = useWebSocket();
   const [isOpen, setIsOpen] = useState(false);
-  const [activeStepLabel, setActiveStepLabel] = useState<string | null>(null);
-
-  useEffect(() => {
-    const unsubscribe = webSocketService.subscribe((message: WsMessage) => {
-      if (message.type === 'JobProgress' && message.step_name) {
-        const label = message.steps_total && message.step_current
-          ? `${message.step_current}/${message.steps_total}: ${message.step_name}`
-          : message.step_name;
-        setActiveStepLabel(label);
-      } else if (message.type === 'JobCompleted' || message.type === 'JobFailed') {
-        setActiveStepLabel(null);
-      }
-    });
-    return unsubscribe;
-  }, []);
 
   // Determine status icon
   const getStatusIcon = () => {
@@ -106,7 +91,7 @@ export const JobQueueIndicator: React.FC = () => {
               <span>State resync triggered</span>
             </div>
           )}
-          
+
           <div className="grid grid-cols-3 gap-2 mt-3 text-xs">
             <div className="text-center">
               <div className="font-medium text-lg text-blue-600">{queueStatus.running}</div>
@@ -128,7 +113,7 @@ export const JobQueueIndicator: React.FC = () => {
             </div>
           )}
         </div>
-        
+
         <JobQueueMonitor />
       </PopoverContent>
     </Popover>

@@ -67,6 +67,7 @@ import {
   Zap,
   PenLine,
   FileText,
+  ListChecks,
 } from "lucide-react";
 import { api, NoteFull, NoteSummary } from "@/services/api";
 import { realtimeEventBus, type RealtimeEvent } from "@/services/realtimeEventBus";
@@ -111,6 +112,7 @@ import { TagManager } from "./tags";
 import { AdvancedSearchFilters } from "./search";
 import { useWebSocket } from "@/services/websocket";
 import { JobManagementPanel } from "./JobManagementPanel";
+import { JobQueueView } from "./jobs";
 import { QuickCapturePage } from "./capture";
 
 type AppView =
@@ -132,6 +134,7 @@ type AppView =
   | "embeddings"
   | "tags"
   | "advanced-search"
+  | "jobs"
   | "realtime-debug";
 
 export interface Note {
@@ -2018,6 +2021,15 @@ export function HallOfMind() {
                       <span>Admin</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton
+                      onClick={() => setCurrentView("jobs")}
+                      className={currentView === "jobs" ? "bg-primary/10" : ""}
+                    >
+                      <ListChecks className="h-4 w-4" />
+                      <span>Job Queue</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
                   {showRealtimeDebug && (
                     <SidebarMenuItem>
                       <SidebarMenuButton
@@ -2322,6 +2334,8 @@ export function HallOfMind() {
                   }
                 }}
               />
+            ) : currentView === "jobs" ? (
+              <JobQueueView archives={availableMemories} />
             ) : currentView === "realtime-debug" ? (
               <RealtimeEventInspector />
             ) : currentView === "dashboard" ? (

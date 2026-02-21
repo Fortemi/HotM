@@ -1,121 +1,15 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Badge } from './ui/badge';
 import { ScrollArea } from './ui/scroll-area';
 import { Clock, CheckCircle2, XCircle, AlertCircle, Loader2 } from 'lucide-react';
-import { useWebSocket } from '@/services/websocket';
-import webSocketService from '@/services/websocket';
-import type { WsMessage } from '@/services/websocket';
-
-interface Job {
-  job_id: string;
-  job_type: string;
-  note_id?: string;
-  progress_percent: number;
-  message?: string;
-  started_at: string;
-  step_name?: string;
-  steps_total?: number;
-  step_current?: number;
-}
-
-interface CompletedJob {
-  job_id: string;
-  job_type: string;
-  note_id?: string;
-  status: 'completed' | 'failed';
-  duration_ms?: number;
-  error?: string;
-  timestamp: Date;
-}
+import { useJobStore } from '@/hooks/useJobStore';
+import { getJobTypeColor, formatJobType, formatDuration } from '@/components/jobs/job-utils';
 
 const JobQueueMonitor: React.FC = () => {
-  const { connected, queueStatus, isQueueStalled, queueStatusAgeMs } = useWebSocket();
-  const [activeJob, setActiveJob] = useState<Job | null>(null);
-  const [completedJobs, setCompletedJobs] = useState<CompletedJob[]>([]);
+  const { connected, queueStatus, isQueueStalled, queueStatusAgeMs, activeJobs, completedJobs } = useJobStore();
 
-  // Subscribe to WebSocket messages for detailed job info
-  useEffect(() => {
-    const unsubscribe = webSocketService.subscribe((message: WsMessage) => {
-      switch (message.type) {
-        case 'JobStarted':
-          if (message.job_id && message.job_type) {
-            setActiveJob({
-              job_id: message.job_id,
-              job_type: message.job_type,
-              note_id: message.note_id,
-              progress_percent: 0,
-              message: 'Starting...',
-              started_at: new Date().toISOString(),
-            });
-          }
-          break;
-
-        case 'JobProgress':
-          if (message.job_id && typeof message.progress_percent === 'number') {
-            setActiveJob(prev => prev && prev.job_id === message.job_id ? {
-              ...prev,
-              progress_percent: message.progress_percent ?? prev.progress_percent,
-              message: message.message || prev.message,
-              step_name: message.step_name ?? prev.step_name,
-              steps_total: message.steps_total ?? prev.steps_total,
-              step_current: message.step_current ?? prev.step_current,
-            } : prev);
-          }
-          break;
-
-        case 'JobCompleted':
-        case 'JobFailed':
-          if (message.job_id) {
-            setCompletedJobs(prev => [
-              {
-                job_id: message.job_id!,
-                job_type: message.job_type || 'unknown',
-                note_id: message.note_id,
-                status: message.type === 'JobCompleted' ? 'completed' : 'failed',
-                duration_ms: message.duration_ms,
-                error: message.error,
-                timestamp: new Date(),
-              },
-              ...prev.slice(0, 9)
-            ]);
-
-            setActiveJob(prev => prev?.job_id === message.job_id ? null : prev);
-          }
-          break;
-      }
-    });
-
-    return unsubscribe;
-  }, []);
-
-  const getJobTypeColor = (jobType: string) => {
-    switch (jobType.toLowerCase()) {
-      case 'airevision':
-        return 'bg-purple-500';
-      case 'embedding':
-        return 'bg-blue-500';
-      case 'linking':
-        return 'bg-green-500';
-      case 'contextupdate':
-        return 'bg-orange-500';
-      case 'titlegeneration':
-        return 'bg-pink-500';
-      default:
-        return 'bg-gray-500';
-    }
-  };
-
-  const formatJobType = (jobType: string) => {
-    return jobType.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
-  };
-
-  const formatDuration = (ms?: number) => {
-    if (!ms) return '';
-    if (ms < 1000) return `${ms}ms`;
-    if (ms < 60000) return `${(ms / 1000).toFixed(1)}s`;
-    return `${(ms / 60000).toFixed(1)}m`;
-  };
+  const activeJobList = Array.from(activeJobs.values());
 
   return (
     <div className="space-y-4 p-4">
@@ -134,9 +28,9 @@ const JobQueueMonitor: React.FC = () => {
         </div>
       )}
 
-      {/* Active Job */}
-      {activeJob && (
-        <Card>
+      {/* Active Jobs */}
+      {activeJobList.map((activeJob) => (
+        <Card key={activeJob.job_id}>
           <CardHeader className="pb-2">
             <div className="flex items-center justify-between">
               <CardTitle className="text-base">Active Job</CardTitle>
@@ -181,7 +75,7 @@ const JobQueueMonitor: React.FC = () => {
             )}
           </CardContent>
         </Card>
-      )}
+      ))}
 
       {/* Queue Status Summary */}
       <Card>
@@ -236,7 +130,7 @@ const JobQueueMonitor: React.FC = () => {
                         <span>{formatDuration(job.duration_ms)}</span>
                       )}
                       <Clock className="h-3 w-3" />
-                      <span>{job.timestamp.toLocaleTimeString()}</span>
+                      <span>{new Date(job.timestamp).toLocaleTimeString()}</span>
                     </div>
                   </div>
                 ))}
