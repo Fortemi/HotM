@@ -67,6 +67,7 @@ import type { Attachment, AttachmentMetadata, ExtractionStatus, AttachmentStatus
 import { getPreviewMode, shouldDownloadBlob, getDocTypeLabel, getLanguageFromType } from './preview-utils';
 import type { PreviewMode } from './preview-utils';
 import { StreamingVideoPlayer, StreamingAudioPlayer } from './StreamingMedia';
+import { getThumbnailUrl } from './media-utils';
 
 const ModelPreview = lazy(() => import('./ModelPreview').then((m) => ({ default: m.ModelPreview })));
 
@@ -376,11 +377,31 @@ function BrowserPreviewContent({
         <PreviewLoader height="h-[70vh]" />
       );
 
-    case 'video':
-      return <StreamingVideoPlayer attachmentId={attachment.id} />;
+    case 'video': {
+      const posterUrl = getThumbnailUrl(attachment, api.attachments.getDownloadUrl, api.attachments.getThumbnailUrl);
+      const meta = attachment.extracted_metadata as Record<string, unknown> | null;
+      const segments = meta && Array.isArray(meta.transcript_segments) ? meta.transcript_segments as import('./subtitle-utils').TranscriptSegment[] : undefined;
+      const hasTranscript = segments && segments.length > 0;
+      const subtitleUrl = hasTranscript ? api.attachments.getSubtitleUrl(attachment.id, 'vtt') : undefined;
+      return (
+        <StreamingVideoPlayer
+          attachmentId={attachment.id}
+          posterUrl={posterUrl}
+          sizeBytes={attachment.size_bytes}
+          transcriptSegments={segments}
+          filename={attachment.filename}
+          subtitleUrl={subtitleUrl}
+        />
+      );
+    }
 
     case 'audio':
-      return <StreamingAudioPlayer attachmentId={attachment.id} />;
+      return (
+        <StreamingAudioPlayer
+          attachmentId={attachment.id}
+          sizeBytes={attachment.size_bytes}
+        />
+      );
 
     case 'model':
       return objectUrl ? (

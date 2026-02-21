@@ -143,6 +143,30 @@ export function createAttachmentsApi(client: ApiClient) {
     },
 
     /**
+     * Get thumbnail URL for an attachment (dedicated endpoint with immutable cache headers)
+     */
+    getThumbnailUrl(attachmentId: string): string {
+      if (!attachmentId || attachmentId.trim() === '') {
+        throw new Error('Attachment ID is required');
+      }
+
+      const baseUrl = getBaseUrl();
+      return `${baseUrl}/api/v1/attachments/${attachmentId}/thumbnail`;
+    },
+
+    /**
+     * Get subtitle URL for an attachment (server-side VTT/SRT/RTTM)
+     */
+    getSubtitleUrl(attachmentId: string, format: 'vtt' | 'srt' | 'rttm' = 'vtt'): string {
+      if (!attachmentId || attachmentId.trim() === '') {
+        throw new Error('Attachment ID is required');
+      }
+
+      const baseUrl = getBaseUrl();
+      return `${baseUrl}/api/v1/attachments/${attachmentId}/subtitles?format=${format}`;
+    },
+
+    /**
      * Delete an attachment permanently
      */
     async deleteAttachment(attachmentId: string): Promise<void> {

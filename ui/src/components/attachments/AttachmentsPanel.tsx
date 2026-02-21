@@ -54,6 +54,7 @@ import type { Attachment, AttachmentMetadata, ExtractionStatus, AttachmentStatus
 import { getPreviewMode, shouldDownloadBlob, getDocTypeLabel, getLanguageFromType } from './preview-utils';
 import type { PreviewMode } from './preview-utils';
 import { StreamingVideoPlayer, StreamingAudioPlayer } from './StreamingMedia';
+import { getMediaType, extractMediaInfo, formatMediaDuration, getThumbnailUrl } from './media-utils';
 
 const ModelPreview = lazy(() => import('./ModelPreview').then((m) => ({ default: m.ModelPreview })));
 
@@ -178,6 +179,9 @@ interface AttachmentCardProps {
 
 function AttachmentCard({ attachment, viewMode, onView, onDownload, onDelete }: AttachmentCardProps) {
   const isImage = attachment.content_type.startsWith('image/');
+  const mediaType = getMediaType(attachment.content_type);
+  const isMedia = mediaType === 'video' || mediaType === 'audio';
+  const mediaInfo = isMedia ? extractMediaInfo(attachment) : null;
   // In Tauri, direct URLs can't be loaded as <img src> cross-origin.
   // useBlobUrl fetches via the HTTP plugin and returns a blob: URL.
   const thumbnailUrl = useBlobUrl(
@@ -194,7 +198,7 @@ function AttachmentCard({ attachment, viewMode, onView, onDownload, onDelete }: 
         data-testid={`attachment-card-${attachment.id}`}
       >
         {/* Preview */}
-        <div className="aspect-square bg-muted flex items-center justify-center">
+        <div className="relative aspect-square bg-muted flex items-center justify-center">
           {isImage && thumbnailUrl ? (
             <img
               src={thumbnailUrl}
@@ -206,6 +210,13 @@ function AttachmentCard({ attachment, viewMode, onView, onDownload, onDelete }: 
             <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
           ) : (
             getFileIcon(attachment.content_type)
+          )}
+
+          {/* Media duration badge */}
+          {isMedia && mediaInfo?.durationSecs != null && (
+            <div className="absolute bottom-1.5 right-1.5 bg-black/80 text-white text-[10px] font-medium px-1.5 py-0.5 rounded">
+              {mediaType === 'video' ? '\u25B6' : '\u266B'} {formatMediaDuration(mediaInfo.durationSecs)}
+            </div>
           )}
         </div>
 
@@ -292,6 +303,12 @@ function AttachmentCard({ attachment, viewMode, onView, onDownload, onDelete }: 
         </div>
         <div className="flex items-center gap-2 text-xs text-muted-foreground">
           <span>{formatFileSize(attachment.size_bytes)}</span>
+          {isMedia && mediaInfo?.durationSecs != null && (
+            <>
+              <span>·</span>
+              <span>{formatMediaDuration(mediaInfo.durationSecs)}</span>
+            </>
+          )}
           <span>·</span>
           <span>{new Date(attachment.created_at).toLocaleDateString()}</span>
           {attachment.has_location && <MapPin className="w-3 h-3" />}
@@ -369,11 +386,31 @@ function AttachmentPreviewContent({
         <PreviewLoader height="h-[70vh]" />
       );
 
-    case 'video':
-      return <StreamingVideoPlayer attachmentId={attachment.id} />;
+    case 'video': {
+      const posterUrl = getThumbnailUrl(attachment, api.attachments.getDownloadUrl, api.attachments.getThumbnailUrl);
+      const meta = attachment.extracted_metadata as Record<string, unknown> | null;
+      const segments = meta && Array.isArray(meta.transcript_segments) ? meta.transcript_segments as import('./subtitle-utils').TranscriptSegment[] : undefined;
+      const hasTranscript = segments && segments.length > 0;
+      const subtitleUrl = hasTranscript ? api.attachments.getSubtitleUrl(attachment.id, 'vtt') : undefined;
+      return (
+        <StreamingVideoPlayer
+          attachmentId={attachment.id}
+          posterUrl={posterUrl}
+          sizeBytes={attachment.size_bytes}
+          transcriptSegments={segments}
+          filename={attachment.filename}
+          subtitleUrl={subtitleUrl}
+        />
+      );
+    }
 
     case 'audio':
-      return <StreamingAudioPlayer attachmentId={attachment.id} />;
+      return (
+        <StreamingAudioPlayer
+          attachmentId={attachment.id}
+          sizeBytes={attachment.size_bytes}
+        />
+      );
 
     case 'model':
       return objectUrl ? (

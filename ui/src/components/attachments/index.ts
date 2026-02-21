@@ -6,6 +6,11 @@
 export { AttachmentsPanel } from './AttachmentsPanel';
 export { AttachmentsBrowser } from './AttachmentsBrowser';
 export { ModelPreview } from './ModelPreview';
-export { StreamingVideoPlayer, StreamingAudioPlayer } from './StreamingMedia';
+export { StreamingVideoPlayer, StreamingAudioPlayer, formatFileSize, formatDuration } from './StreamingMedia';
 export { getPreviewMode, shouldDownloadBlob, isStreamingPreview, getDocTypeLabel, getLanguageFromType } from './preview-utils';
 export type { PreviewMode } from './preview-utils';
+export { getMediaType, isMediaAttachment, extractMediaInfo, formatMediaDuration, getThumbnailUrl } from './media-utils';
+export type { MediaType, MediaInfo } from './media-utils';
+export { segmentsToVtt, segmentsToSrt, createVttBlobUrl, downloadSubtitles, findActiveSegmentIndex, formatSegmentTime } from './subtitle-utils';
+export type { TranscriptSegment } from './subtitle-utils';
+export { TranscriptPanel } from './TranscriptPanel';
