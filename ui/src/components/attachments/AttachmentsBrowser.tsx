@@ -31,6 +31,9 @@ import {
   Presentation,
   ChevronDown,
   ChevronRight,
+  Sparkles,
+  Clock,
+  AlertCircle,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -49,6 +52,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import {
   Select,
   SelectContent,
@@ -59,7 +63,7 @@ import {
 import { api } from '@/api';
 import { ApiError } from '@/api';
 import { useBlobUrl } from '@/lib/tauri';
-import type { Attachment, AttachmentMetadata } from '@/api/types-extended';
+import type { Attachment, AttachmentMetadata, ExtractionStatus, AttachmentStatus } from '@/api/types-extended';
 import { getPreviewMode, shouldDownloadBlob, getDocTypeLabel, getLanguageFromType } from './preview-utils';
 import type { PreviewMode } from './preview-utils';
 import { StreamingVideoPlayer, StreamingAudioPlayer } from './StreamingMedia';
@@ -124,6 +128,61 @@ function matchesTypeFilter(contentType: string, filter: ContentTypeFilter): bool
     !contentType.includes('document') && !contentType.includes('spreadsheet') &&
     !contentType.includes('excel') && !contentType.includes('presentation') &&
     !contentType.includes('powerpoint') && contentType !== 'application/rtf';
+}
+
+function getExtractionStatus(attachment: Attachment): ExtractionStatus {
+  if (attachment.status) {
+    const statusMap: Record<AttachmentStatus, ExtractionStatus> = {
+      completed: 'complete',
+      failed: 'failed',
+      processing: 'pending',
+      uploaded: 'pending',
+    };
+    return statusMap[attachment.status] ?? 'pending';
+  }
+  if (attachment.ai_description || attachment.extracted_text) return 'complete';
+  const meta = attachment.extracted_metadata;
+  if (meta && typeof meta === 'object' && 'error' in meta) return 'failed';
+  return 'pending';
+}
+
+function ExtractionStatusBadge({ status }: { status: ExtractionStatus }) {
+  switch (status) {
+    case 'complete':
+      return (
+        <Badge variant="secondary" className="text-xs px-1 gap-0.5 bg-green-500/10 text-green-700 dark:text-green-400">
+          <Sparkles className="w-3 h-3" />
+          <span className="sr-only">Extraction complete</span>
+        </Badge>
+      );
+    case 'pending':
+      return (
+        <Badge variant="secondary" className="text-xs px-1 gap-0.5 bg-yellow-500/10 text-yellow-700 dark:text-yellow-400">
+          <Clock className="w-3 h-3" />
+          <span className="sr-only">Extraction pending</span>
+        </Badge>
+      );
+    case 'failed':
+      return (
+        <Badge variant="secondary" className="text-xs px-1 gap-0.5 bg-red-500/10 text-red-700 dark:text-red-400">
+          <AlertCircle className="w-3 h-3" />
+          <span className="sr-only">Extraction failed</span>
+        </Badge>
+      );
+    default:
+      return null;
+  }
+}
+
+function browserHasAiContent(attachment: Attachment): boolean {
+  if (attachment.ai_description) return true;
+  if (attachment.extracted_text) return true;
+  const meta = attachment.extracted_metadata;
+  if (!meta || typeof meta !== 'object') return false;
+  const m = meta as Record<string, unknown>;
+  if (Array.isArray(m.transcript_segments) && m.transcript_segments.length > 0) return true;
+  if (Array.isArray(m.keyframe_descriptions) && m.keyframe_descriptions.length > 0) return true;
+  return false;
 }
 
 // ── Attachment Card ────────────────────────────────────────────────────
@@ -933,97 +992,182 @@ export function AttachmentsBrowser({ className }: AttachmentsBrowserProps) {
           }
         }}
       >
-        <DialogContent className="max-w-3xl">
+        <DialogContent className="max-w-3xl max-h-[90vh] flex flex-col">
           <DialogHeader>
-            <DialogTitle>{previewAttachment?.filename}</DialogTitle>
+            <DialogTitle className="flex items-center gap-2">
+              {previewAttachment?.filename}
+              {previewAttachment && <ExtractionStatusBadge status={getExtractionStatus(previewAttachment)} />}
+            </DialogTitle>
             {previewAttachment && (
-              <p className="text-sm text-muted-foreground flex items-center gap-1.5">
-                <StickyNote className="w-3.5 h-3.5" />
-                {previewAttachment.note_title}
-              </p>
-            )}
-          </DialogHeader>
-          {previewAttachment && (
-            <div className="space-y-4">
-              {/* Inline Preview — dispatched by content type */}
-              <BrowserPreviewContent
-                attachment={previewAttachment}
-                objectUrl={previewObjectUrl}
-                textContent={previewTextContent}
-                onDownload={() => handleDownload(previewAttachment)}
-              />
-
-              {previewMetadata && (
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                  <div>
-                    <p className="text-muted-foreground">Size</p>
-                    <p>{formatFileSize(previewMetadata.size_bytes)}</p>
-                  </div>
-                  <div>
-                    <p className="text-muted-foreground">Type</p>
-                    <p>{previewMetadata.content_type}</p>
-                  </div>
-                  {previewMetadata.exif?.capture_time && (
-                    <div>
-                      <p className="text-muted-foreground">Captured</p>
-                      <p>{new Date(previewMetadata.exif.capture_time).toLocaleString()}</p>
-                    </div>
-                  )}
-                  {previewMetadata.exif?.camera_model && (
-                    <div>
-                      <p className="text-muted-foreground">Camera</p>
-                      <p>{previewMetadata.exif.camera_make} {previewMetadata.exif.camera_model}</p>
-                    </div>
-                  )}
-                  {previewMetadata.provenance?.location && (
-                    <div className="col-span-2">
-                      <p className="text-muted-foreground">Location</p>
-                      <p>
-                        {previewMetadata.provenance.location.latitude.toFixed(6)},{' '}
-                        {previewMetadata.provenance.location.longitude.toFixed(6)}
-                      </p>
-                    </div>
+              <>
+                <p className="text-sm text-muted-foreground flex items-center gap-1.5">
+                  <StickyNote className="w-3.5 h-3.5" />
+                  {previewAttachment.note_title}
+                </p>
+                <div className="flex items-center gap-2 text-xs text-muted-foreground flex-wrap" data-testid="file-info-bar">
+                  <span>{formatFileSize(previewAttachment.size_bytes)}</span>
+                  <span className="text-muted-foreground/40">|</span>
+                  <span>{previewAttachment.content_type}</span>
+                  <span className="text-muted-foreground/40">|</span>
+                  <span>{new Date(previewAttachment.created_at).toLocaleDateString()}</span>
+                  {previewAttachment.has_location && (
+                    <>
+                      <span className="text-muted-foreground/40">|</span>
+                      <MapPin className="w-3 h-3" />
+                    </>
                   )}
                 </div>
-              )}
+              </>
+            )}
+          </DialogHeader>
+          {previewAttachment && (() => {
+            const extractionStatus = getExtractionStatus(previewAttachment);
+            const showAiTab = browserHasAiContent(previewAttachment) || extractionStatus === 'pending' || extractionStatus === 'failed';
+            const meta = (previewAttachment.extracted_metadata ?? {}) as Record<string, unknown>;
+            const transcriptSegments = Array.isArray(meta.transcript_segments) ? meta.transcript_segments as BrowserTranscriptSegment[] : null;
+            const keyframeDescs = Array.isArray(meta.keyframe_descriptions) ? meta.keyframe_descriptions as BrowserKeyframeDesc[] : null;
 
-              {/* Extracted Text / Transcript */}
-              {previewAttachment.extracted_text && (
-                <BrowserExtractedTextSection
-                  text={previewAttachment.extracted_text}
-                  strategy={previewAttachment.extraction_strategy}
-                />
-              )}
+            return (
+              <Tabs defaultValue="preview" className="flex-1 min-h-0 flex flex-col">
+                <TabsList className="w-full">
+                  <TabsTrigger value="preview">Preview</TabsTrigger>
+                  {showAiTab && <TabsTrigger value="ai-content">AI Content</TabsTrigger>}
+                  <TabsTrigger value="details">Details</TabsTrigger>
+                </TabsList>
 
-              {/* Transcript Segments (timed) */}
-              {previewAttachment.extracted_metadata &&
-                typeof previewAttachment.extracted_metadata === 'object' &&
-                Array.isArray((previewAttachment.extracted_metadata as Record<string, unknown>).transcript_segments) && (
-                <BrowserTranscriptSegments
-                  segments={(previewAttachment.extracted_metadata as Record<string, unknown>).transcript_segments as BrowserTranscriptSegment[]}
-                />
-              )}
+                <TabsContent value="preview" className="overflow-y-auto flex-1">
+                  <div className="space-y-4 py-2">
+                    <BrowserPreviewContent
+                      attachment={previewAttachment}
+                      objectUrl={previewObjectUrl}
+                      textContent={previewTextContent}
+                      onDownload={() => handleDownload(previewAttachment)}
+                    />
+                    <div className="flex justify-end">
+                      <Button variant="outline" size="sm" onClick={() => handleDownload(previewAttachment)}>
+                        <Download className="w-4 h-4 mr-2" /> Download
+                      </Button>
+                    </div>
+                  </div>
+                </TabsContent>
 
-              {/* Keyframe / Scene Descriptions */}
-              {previewAttachment.extracted_metadata &&
-                typeof previewAttachment.extracted_metadata === 'object' &&
-                Array.isArray((previewAttachment.extracted_metadata as Record<string, unknown>).keyframe_descriptions) && (
-                <BrowserKeyframeDescriptions
-                  keyframes={(previewAttachment.extracted_metadata as Record<string, unknown>).keyframe_descriptions as BrowserKeyframeDesc[]}
-                />
-              )}
+                {showAiTab && (
+                  <TabsContent value="ai-content" className="overflow-y-auto flex-1">
+                    <div className="space-y-4 py-2">
+                      {getExtractionStatus(previewAttachment) === 'pending' && (
+                        <div className="rounded-lg border border-yellow-500/20 bg-yellow-500/5 p-4 text-sm" data-testid="extraction-pending">
+                          <div className="flex items-center gap-2">
+                            <Clock className="w-4 h-4 text-yellow-600" />
+                            <span className="font-medium text-yellow-700 dark:text-yellow-400">Processing...</span>
+                          </div>
+                          <p className="text-muted-foreground mt-1">Content extraction is in progress.</p>
+                        </div>
+                      )}
+                      {getExtractionStatus(previewAttachment) === 'failed' && (
+                        <div className="rounded-lg border border-red-500/20 bg-red-500/5 p-4 text-sm" data-testid="extraction-failed">
+                          <div className="flex items-center gap-2">
+                            <AlertCircle className="w-4 h-4 text-red-600" />
+                            <span className="font-medium text-red-700 dark:text-red-400">Extraction Failed</span>
+                          </div>
+                          {meta && 'error' in meta && (
+                            <p className="text-muted-foreground mt-1">{String(meta.error)}</p>
+                          )}
+                        </div>
+                      )}
 
-              <div className="flex justify-end gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleDownload(previewAttachment)}
-                >
-                  <Download className="w-4 h-4 mr-2" /> Download
-                </Button>
-              </div>
-            </div>
-          )}
+                      {previewAttachment.ai_description && (
+                        <div className="rounded-lg border bg-muted/30 p-4" data-testid="ai-description">
+                          <div className="flex items-center gap-2 mb-2">
+                            <Sparkles className="w-4 h-4 text-primary" />
+                            <span className="text-sm font-medium">AI Description</span>
+                            {previewAttachment.ai_model && (
+                              <span className="text-xs text-muted-foreground ml-auto">by {previewAttachment.ai_model}</span>
+                            )}
+                          </div>
+                          <p className="text-sm">{previewAttachment.ai_description}</p>
+                        </div>
+                      )}
+
+                      {previewAttachment.extracted_text && (
+                        <BrowserExtractedTextSection
+                          text={previewAttachment.extracted_text}
+                          strategy={previewAttachment.extraction_strategy}
+                        />
+                      )}
+
+                      {transcriptSegments && <BrowserTranscriptSegments segments={transcriptSegments} />}
+                      {keyframeDescs && <BrowserKeyframeDescriptions keyframes={keyframeDescs} />}
+                    </div>
+                  </TabsContent>
+                )}
+
+                <TabsContent value="details" className="overflow-y-auto flex-1">
+                  <div className="space-y-4 py-2">
+                    <div className="grid grid-cols-2 gap-4 text-sm">
+                      <div>
+                        <p className="text-muted-foreground">Filename</p>
+                        <p className="break-all">{previewAttachment.filename}</p>
+                      </div>
+                      <div>
+                        <p className="text-muted-foreground">Size</p>
+                        <p>{formatFileSize(previewAttachment.size_bytes)}</p>
+                      </div>
+                      <div>
+                        <p className="text-muted-foreground">Type</p>
+                        <p>{previewAttachment.content_type}</p>
+                      </div>
+                      <div>
+                        <p className="text-muted-foreground">Status</p>
+                        <div className="flex items-center gap-1.5">
+                          <ExtractionStatusBadge status={getExtractionStatus(previewAttachment)} />
+                          <span className="capitalize">{previewAttachment.status || 'unknown'}</span>
+                        </div>
+                      </div>
+                      <div>
+                        <p className="text-muted-foreground">Created</p>
+                        <p>{new Date(previewAttachment.created_at).toLocaleString()}</p>
+                      </div>
+                      <div>
+                        <p className="text-muted-foreground">Note</p>
+                        <p className="truncate">{previewAttachment.note_title}</p>
+                      </div>
+                      {previewAttachment.extraction_strategy && (
+                        <div>
+                          <p className="text-muted-foreground">Extraction</p>
+                          <p>{previewAttachment.extraction_strategy}</p>
+                        </div>
+                      )}
+                    </div>
+
+                    {previewMetadata?.exif?.capture_time && (
+                      <div className="grid grid-cols-2 gap-4 text-sm border-t pt-4">
+                        <div>
+                          <p className="text-muted-foreground">Captured</p>
+                          <p>{new Date(previewMetadata.exif.capture_time).toLocaleString()}</p>
+                        </div>
+                        {previewMetadata.exif.camera_model && (
+                          <div>
+                            <p className="text-muted-foreground">Camera</p>
+                            <p>{previewMetadata.exif.camera_make} {previewMetadata.exif.camera_model}</p>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {previewMetadata?.provenance?.location && (
+                      <div className="text-sm border-t pt-4">
+                        <p className="text-muted-foreground">Location</p>
+                        <p>
+                          {previewMetadata.provenance.location.latitude.toFixed(6)},{' '}
+                          {previewMetadata.provenance.location.longitude.toFixed(6)}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </TabsContent>
+              </Tabs>
+            );
+          })()}
         </DialogContent>
       </Dialog>
     </div>

@@ -293,9 +293,23 @@ describe('AttachmentsPanel', () => {
 
       fireEvent.click(screen.getByTestId('attachment-card-att-1'));
 
+      // Wait for dialog AND metadata to load (getMetadata resolves asynchronously)
+      await waitFor(() => {
+        expect(screen.getByRole('dialog')).toBeInTheDocument();
+        expect(api.attachments.getMetadata).toHaveBeenCalledWith('att-1');
+      });
+
+      // Flush pending state updates from async metadata load
+      await act(async () => {});
+
+      // Switch to Details tab to see metadata (Radix uses onMouseDown for tab activation)
+      const detailsTab = screen.getByRole('tab', { name: 'Details' });
+      fireEvent.mouseDown(detailsTab);
+
       await waitFor(() => {
         expect(screen.getByText('Canon EOS 5D')).toBeInTheDocument();
-        expect(screen.getByText('image/jpeg')).toBeInTheDocument();
+        // image/jpeg appears in both file info bar and Details tab
+        expect(screen.getAllByText('image/jpeg').length).toBeGreaterThanOrEqual(1);
       });
     });
 
@@ -486,6 +500,14 @@ describe('AttachmentsPanel', () => {
       fireEvent.click(screen.getByTestId('attachment-card-att-ext-1'));
 
       await waitFor(() => {
+        expect(screen.getByRole('dialog')).toBeInTheDocument();
+      });
+
+      // Switch to AI Content tab (Radix uses onMouseDown for tab activation)
+      const aiTab = screen.getByRole('tab', { name: 'AI Content' });
+      fireEvent.mouseDown(aiTab);
+
+      await waitFor(() => {
         const descSection = screen.getByTestId('ai-description');
         expect(descSection).toBeInTheDocument();
         expect(within(descSection).getByText('AI Description')).toBeInTheDocument();
@@ -506,6 +528,14 @@ describe('AttachmentsPanel', () => {
       fireEvent.click(screen.getByTestId('attachment-card-att-pending'));
 
       await waitFor(() => {
+        expect(screen.getByRole('dialog')).toBeInTheDocument();
+      });
+
+      // Pending status shows in AI Content tab (Radix uses onMouseDown for tab activation)
+      const aiTab = screen.getByRole('tab', { name: 'AI Content' });
+      fireEvent.mouseDown(aiTab);
+
+      await waitFor(() => {
         expect(screen.getByTestId('extraction-pending')).toBeInTheDocument();
         expect(screen.getByText(/Processing/)).toBeInTheDocument();
       });
@@ -521,6 +551,14 @@ describe('AttachmentsPanel', () => {
       });
 
       fireEvent.click(screen.getByTestId('attachment-card-att-failed'));
+
+      await waitFor(() => {
+        expect(screen.getByRole('dialog')).toBeInTheDocument();
+      });
+
+      // Failed status shows in AI Content tab (Radix uses onMouseDown for tab activation)
+      const aiTab = screen.getByRole('tab', { name: 'AI Content' });
+      fireEvent.mouseDown(aiTab);
 
       await waitFor(() => {
         expect(screen.getByTestId('extraction-failed')).toBeInTheDocument();
@@ -539,6 +577,14 @@ describe('AttachmentsPanel', () => {
       });
 
       fireEvent.click(screen.getByTestId('attachment-card-att-ext-1'));
+
+      await waitFor(() => {
+        expect(screen.getByRole('dialog')).toBeInTheDocument();
+      });
+
+      // Switch to Details tab for extraction metadata (Radix uses onMouseDown for tab activation)
+      const detailsTab = screen.getByRole('tab', { name: 'Details' });
+      fireEvent.mouseDown(detailsTab);
 
       await waitFor(() => {
         expect(screen.getByTestId('extracted-metadata')).toBeInTheDocument();
@@ -581,6 +627,14 @@ describe('AttachmentsPanel', () => {
       });
 
       fireEvent.click(screen.getByTestId('attachment-card-att-doc'));
+
+      await waitFor(() => {
+        expect(screen.getByRole('dialog')).toBeInTheDocument();
+      });
+
+      // Switch to AI Content tab for extracted text (Radix uses onMouseDown for tab activation)
+      const aiTab = screen.getByRole('tab', { name: 'AI Content' });
+      fireEvent.mouseDown(aiTab);
 
       await waitFor(() => {
         const contentSection = screen.getByTestId('extracted-text');

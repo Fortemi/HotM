@@ -46,6 +46,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { api } from '@/api';
 import { realtimeEventBus } from '@/services/realtimeEventBus';
 import { useBlobUrl } from '@/lib/tauri';
@@ -587,6 +588,197 @@ function ExtractedMetadataSection({ metadata }: { metadata: Record<string, unkno
   );
 }
 
+// ── Tabbed preview dialog content ────────────────────────────────────
+
+function hasAiContent(attachment: Attachment): boolean {
+  if (attachment.ai_description) return true;
+  if (attachment.extracted_text) return true;
+  const meta = attachment.extracted_metadata;
+  if (!meta || typeof meta !== 'object') return false;
+  const m = meta as Record<string, unknown>;
+  if (Array.isArray(m.transcript_segments) && m.transcript_segments.length > 0) return true;
+  if (Array.isArray(m.keyframe_descriptions) && m.keyframe_descriptions.length > 0) return true;
+  return false;
+}
+
+function PreviewDialogTabs({
+  attachment,
+  metadata,
+  objectUrl,
+  textContent,
+  onDownload,
+}: {
+  attachment: Attachment;
+  metadata: AttachmentMetadata | null;
+  objectUrl: string | null;
+  textContent: string | null;
+  onDownload: () => void;
+}) {
+  const extractionStatus = getExtractionStatus(attachment);
+  const showAiTab = hasAiContent(attachment) || extractionStatus === 'pending' || extractionStatus === 'failed';
+  const meta = (attachment.extracted_metadata ?? {}) as Record<string, unknown>;
+  const transcriptSegments = Array.isArray(meta.transcript_segments) ? meta.transcript_segments as TranscriptSegment[] : null;
+  const keyframeDescs = Array.isArray(meta.keyframe_descriptions) ? meta.keyframe_descriptions as KeyframeDescription[] : null;
+
+  return (
+    <Tabs defaultValue="preview" className="flex-1 min-h-0 flex flex-col">
+      <TabsList className="w-full">
+        <TabsTrigger value="preview">Preview</TabsTrigger>
+        {showAiTab && <TabsTrigger value="ai-content">AI Content</TabsTrigger>}
+        <TabsTrigger value="details">Details</TabsTrigger>
+      </TabsList>
+
+      {/* Preview Tab */}
+      <TabsContent value="preview" className="overflow-y-auto flex-1">
+        <div className="space-y-4 py-2">
+          <AttachmentPreviewContent
+            attachment={attachment}
+            objectUrl={objectUrl}
+            textContent={textContent}
+            onDownload={onDownload}
+          />
+          <div className="flex justify-end">
+            <Button variant="outline" size="sm" onClick={onDownload}>
+              <Download className="w-4 h-4 mr-2" /> Download
+            </Button>
+          </div>
+        </div>
+      </TabsContent>
+
+      {/* AI Content Tab */}
+      {showAiTab && (
+        <TabsContent value="ai-content" className="overflow-y-auto flex-1">
+          <div className="space-y-4 py-2">
+            {/* Extraction Pending/Failed States */}
+            {getExtractionStatus(attachment) === 'pending' && (
+              <div className="rounded-lg border border-yellow-500/20 bg-yellow-500/5 p-4 text-sm" data-testid="extraction-pending">
+                <div className="flex items-center gap-2">
+                  <Clock className="w-4 h-4 text-yellow-600" />
+                  <span className="font-medium text-yellow-700 dark:text-yellow-400">Processing...</span>
+                </div>
+                <p className="text-muted-foreground mt-1">Content extraction is in progress. Results will appear here when complete.</p>
+              </div>
+            )}
+            {getExtractionStatus(attachment) === 'failed' && (
+              <div className="rounded-lg border border-red-500/20 bg-red-500/5 p-4 text-sm" data-testid="extraction-failed">
+                <div className="flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4 text-red-600" />
+                  <span className="font-medium text-red-700 dark:text-red-400">Extraction Failed</span>
+                </div>
+                {meta && 'error' in meta && (
+                  <p className="text-muted-foreground mt-1">{String(meta.error)}</p>
+                )}
+              </div>
+            )}
+
+            {/* AI Description */}
+            {attachment.ai_description && (
+              <div className="rounded-lg border bg-muted/30 p-4" data-testid="ai-description">
+                <div className="flex items-center gap-2 mb-2">
+                  <Sparkles className="w-4 h-4 text-primary" />
+                  <span className="text-sm font-medium">AI Description</span>
+                  {attachment.ai_model && (
+                    <span className="text-xs text-muted-foreground ml-auto">
+                      by {attachment.ai_model}
+                    </span>
+                  )}
+                </div>
+                <p className="text-sm">{attachment.ai_description}</p>
+              </div>
+            )}
+
+            {/* Extracted Text / Transcript */}
+            {attachment.extracted_text && (
+              <ExtractedTextSection
+                text={attachment.extracted_text}
+                strategy={attachment.extraction_strategy}
+              />
+            )}
+
+            {/* Transcript Segments (timed) */}
+            {transcriptSegments && <TranscriptSegmentsSection segments={transcriptSegments} />}
+
+            {/* Keyframe / Scene Descriptions */}
+            {keyframeDescs && <KeyframeDescriptionsSection keyframes={keyframeDescs} />}
+          </div>
+        </TabsContent>
+      )}
+
+      {/* Details Tab */}
+      <TabsContent value="details" className="overflow-y-auto flex-1">
+        <div className="space-y-4 py-2">
+          {/* Core file info */}
+          <div className="grid grid-cols-2 gap-4 text-sm">
+            <div>
+              <p className="text-muted-foreground">Filename</p>
+              <p className="break-all">{attachment.filename}</p>
+            </div>
+            <div>
+              <p className="text-muted-foreground">Size</p>
+              <p>{formatFileSize(attachment.size_bytes)}</p>
+            </div>
+            <div>
+              <p className="text-muted-foreground">Type</p>
+              <p>{attachment.content_type}</p>
+            </div>
+            <div>
+              <p className="text-muted-foreground">Status</p>
+              <div className="flex items-center gap-1.5">
+                <ExtractionStatusBadge status={getExtractionStatus(attachment)} />
+                <span className="capitalize">{attachment.status || 'unknown'}</span>
+              </div>
+            </div>
+            <div>
+              <p className="text-muted-foreground">Created</p>
+              <p>{new Date(attachment.created_at).toLocaleString()}</p>
+            </div>
+            {attachment.extraction_strategy && (
+              <div>
+                <p className="text-muted-foreground">Extraction</p>
+                <p>{attachment.extraction_strategy}</p>
+              </div>
+            )}
+          </div>
+
+          {/* EXIF / Provenance from metadata */}
+          {metadata?.exif?.capture_time && (
+            <div className="grid grid-cols-2 gap-4 text-sm border-t pt-4">
+              <div>
+                <p className="text-muted-foreground">Captured</p>
+                <p>{new Date(metadata.exif.capture_time).toLocaleString()}</p>
+              </div>
+              {metadata.exif.camera_model && (
+                <div>
+                  <p className="text-muted-foreground">Camera</p>
+                  <p>{metadata.exif.camera_make} {metadata.exif.camera_model}</p>
+                </div>
+              )}
+            </div>
+          )}
+
+          {metadata?.provenance?.location && (
+            <div className="text-sm border-t pt-4">
+              <p className="text-muted-foreground">Location</p>
+              <p>
+                {metadata.provenance.location.latitude.toFixed(6)},{' '}
+                {metadata.provenance.location.longitude.toFixed(6)}
+              </p>
+            </div>
+          )}
+
+          {/* Raw Extraction Metadata */}
+          {attachment.extracted_metadata &&
+            typeof attachment.extracted_metadata === 'object' &&
+            !('error' in attachment.extracted_metadata) &&
+            Object.keys(attachment.extracted_metadata).length > 0 && (
+            <ExtractedMetadataSection metadata={attachment.extracted_metadata} />
+          )}
+        </div>
+      </TabsContent>
+    </Tabs>
+  );
+}
+
 export function AttachmentsPanel({ noteId, className }: AttachmentsPanelProps) {
   const [attachments, setAttachments] = useState<Attachment[]>([]);
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
@@ -916,132 +1108,37 @@ export function AttachmentsPanel({ noteId, className }: AttachmentsPanelProps) {
           }
         }}
       >
-        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-3xl max-h-[90vh] flex flex-col">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               {previewAttachment?.filename}
               {previewAttachment && <ExtractionStatusBadge status={getExtractionStatus(previewAttachment)} />}
             </DialogTitle>
+            {/* File info bar — always visible */}
+            {previewAttachment && (
+              <div className="flex items-center gap-2 text-xs text-muted-foreground flex-wrap" data-testid="file-info-bar">
+                <span>{formatFileSize(previewAttachment.size_bytes)}</span>
+                <span className="text-muted-foreground/40">|</span>
+                <span>{previewAttachment.content_type}</span>
+                <span className="text-muted-foreground/40">|</span>
+                <span>{new Date(previewAttachment.created_at).toLocaleDateString()}</span>
+                {previewAttachment.has_location && (
+                  <>
+                    <span className="text-muted-foreground/40">|</span>
+                    <MapPin className="w-3 h-3" />
+                  </>
+                )}
+              </div>
+            )}
           </DialogHeader>
           {previewAttachment && (
-            <div className="space-y-4">
-              {/* Inline Preview — dispatched by content type */}
-              <AttachmentPreviewContent
-                attachment={previewAttachment}
-                objectUrl={previewObjectUrl}
-                textContent={previewTextContent}
-                onDownload={() => handleDownload(previewAttachment)}
-              />
-
-              {/* AI Description */}
-              {previewAttachment.ai_description && (
-                <div className="rounded-lg border bg-muted/30 p-4" data-testid="ai-description">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Sparkles className="w-4 h-4 text-primary" />
-                    <span className="text-sm font-medium">AI Description</span>
-                    {previewAttachment.ai_model && (
-                      <span className="text-xs text-muted-foreground ml-auto">
-                        by {previewAttachment.ai_model}
-                      </span>
-                    )}
-                  </div>
-                  <p className="text-sm">{previewAttachment.ai_description}</p>
-                </div>
-              )}
-
-              {/* Extracted Text / Transcript */}
-              {previewAttachment.extracted_text && (
-                <ExtractedTextSection
-                  text={previewAttachment.extracted_text}
-                  strategy={previewAttachment.extraction_strategy}
-                />
-              )}
-
-              {/* Transcript Segments (timed) */}
-              {previewAttachment.extracted_metadata &&
-                typeof previewAttachment.extracted_metadata === 'object' &&
-                Array.isArray((previewAttachment.extracted_metadata as Record<string, unknown>).transcript_segments) && (
-                <TranscriptSegmentsSection
-                  segments={(previewAttachment.extracted_metadata as Record<string, unknown>).transcript_segments as TranscriptSegment[]}
-                />
-              )}
-
-              {/* Keyframe / Scene Descriptions */}
-              {previewAttachment.extracted_metadata &&
-                typeof previewAttachment.extracted_metadata === 'object' &&
-                Array.isArray((previewAttachment.extracted_metadata as Record<string, unknown>).keyframe_descriptions) && (
-                <KeyframeDescriptionsSection
-                  keyframes={(previewAttachment.extracted_metadata as Record<string, unknown>).keyframe_descriptions as KeyframeDescription[]}
-                />
-              )}
-
-              {/* Extraction Pending/Failed States */}
-              {getExtractionStatus(previewAttachment) === 'pending' && (
-                <div className="rounded-lg border border-yellow-500/20 bg-yellow-500/5 p-4 text-sm" data-testid="extraction-pending">
-                  <div className="flex items-center gap-2">
-                    <Clock className="w-4 h-4 text-yellow-600" />
-                    <span className="font-medium text-yellow-700 dark:text-yellow-400">Processing...</span>
-                  </div>
-                  <p className="text-muted-foreground mt-1">Content extraction is in progress. Results will appear here when complete.</p>
-                </div>
-              )}
-              {getExtractionStatus(previewAttachment) === 'failed' && (
-                <div className="rounded-lg border border-red-500/20 bg-red-500/5 p-4 text-sm" data-testid="extraction-failed">
-                  <div className="flex items-center gap-2">
-                    <AlertCircle className="w-4 h-4 text-red-600" />
-                    <span className="font-medium text-red-700 dark:text-red-400">Extraction Failed</span>
-                  </div>
-                  {previewAttachment.extracted_metadata && typeof previewAttachment.extracted_metadata === 'object' && 'error' in previewAttachment.extracted_metadata && (
-                    <p className="text-muted-foreground mt-1">
-                      {String(previewAttachment.extracted_metadata.error)}
-                    </p>
-                  )}
-                </div>
-              )}
-
-              {/* File Metadata */}
-              {previewMetadata && (
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                  <div>
-                    <p className="text-muted-foreground">Size</p>
-                    <p>{formatFileSize(previewMetadata.size_bytes)}</p>
-                  </div>
-                  <div>
-                    <p className="text-muted-foreground">Type</p>
-                    <p>{previewMetadata.content_type}</p>
-                  </div>
-                  {previewMetadata.exif?.capture_time && (
-                    <div>
-                      <p className="text-muted-foreground">Captured</p>
-                      <p>{new Date(previewMetadata.exif.capture_time).toLocaleString()}</p>
-                    </div>
-                  )}
-                  {previewMetadata.exif?.camera_model && (
-                    <div>
-                      <p className="text-muted-foreground">Camera</p>
-                      <p>{previewMetadata.exif.camera_make} {previewMetadata.exif.camera_model}</p>
-                    </div>
-                  )}
-                  {previewMetadata.provenance?.location && (
-                    <div className="col-span-2">
-                      <p className="text-muted-foreground">Location</p>
-                      <p>
-                        {previewMetadata.provenance.location.latitude.toFixed(6)},{' '}
-                        {previewMetadata.provenance.location.longitude.toFixed(6)}
-                      </p>
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {/* Collapsible Extracted Metadata */}
-              {previewAttachment.extracted_metadata &&
-                typeof previewAttachment.extracted_metadata === 'object' &&
-                !('error' in previewAttachment.extracted_metadata) &&
-                Object.keys(previewAttachment.extracted_metadata).length > 0 && (
-                <ExtractedMetadataSection metadata={previewAttachment.extracted_metadata} />
-              )}
-            </div>
+            <PreviewDialogTabs
+              attachment={previewAttachment}
+              metadata={previewMetadata}
+              objectUrl={previewObjectUrl}
+              textContent={previewTextContent}
+              onDownload={() => handleDownload(previewAttachment)}
+            />
           )}
         </DialogContent>
       </Dialog>
