@@ -28,8 +28,9 @@ export default defineConfig(async () => ({
   build: {
     rollupOptions: {
       external: (id) => {
-        // Exclude test files from production build
-        return id.includes('.test.') || id.includes('__tests__') || id.includes('/test/');
+        // Exclude test files from production build (but not library paths like @iconify/utils/lib/emoji/test/)
+        if (id.includes('node_modules')) return false;
+        return id.includes('.test.') || id.includes('__tests__');
       },
       output: {
         // Temporarily disabled manual chunking to diagnose white screen issue
