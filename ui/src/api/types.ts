@@ -101,9 +101,45 @@ export interface NoteSummary {
 }
 
 /**
- * Revision mode for AI enhancement pipeline
+ * Revision mode for AI enhancement pipeline.
+ *
+ * New modes (fortemi#494):
+ *  - none:                 No AI revision
+ *  - light:                Formatting cleanup only
+ *  - standard:             Revision using only submitted content (default)
+ *  - contextual:           Revision with cross-references from knowledge base
+ *  - contextual_filtered:  Contextual revision scoped to specific tags/collections
+ *
+ * Legacy alias: 'full' maps to 'contextual' for backward compatibility.
  */
-export type RevisionMode = 'full' | 'light' | 'none';
+export type RevisionMode =
+  | 'none'
+  | 'light'
+  | 'standard'
+  | 'contextual'
+  | 'contextual_filtered'
+  | 'full';   // legacy alias for contextual
+
+/**
+ * Scoping filters for contextual_filtered revision mode.
+ * At least one filter must be provided when using contextual_filtered.
+ */
+export interface ContextFilter {
+  tags?: string[];
+  collection_id?: string | null;
+  query?: string;
+}
+
+/**
+ * Pipeline processing options controlling post-submission behavior.
+ */
+export interface ProcessingOptions {
+  autoTagConcepts: boolean;
+  generateEmbeddings: boolean;
+  autoLinkRelated: boolean;
+  extractMedia: boolean;
+  generateTitle: boolean;
+}
 
 /**
  * Request to create a new note
@@ -114,6 +150,8 @@ export interface CreateNoteRequest {
   source?: string;
   revision_mode?: RevisionMode;
   document_type?: string;
+  context_filter?: ContextFilter;
+  processing?: Partial<ProcessingOptions>;
 }
 
 /**

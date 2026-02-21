@@ -13,9 +13,6 @@ import {
   AlertCircle,
   RefreshCw,
   ChevronDown,
-  Sparkles,
-  PenLine,
-  FileText,
   Paperclip,
   Upload,
 } from "lucide-react";
@@ -29,12 +26,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { api } from "@/api";
-import type { RevisionMode } from "@/api/types";
 import type { Collection, MemoryArchive, Tag } from "@/api";
 import type { Concept, DocumentType } from "@/api/types-extended";
 import { useStickySettings } from "./useStickySettings";
 import { useNoteCommit, type CommitResult } from "./useNoteCommit";
 import { SessionLog } from "./SessionLog";
+import { ProcessingOptionsPanel } from "./ProcessingOptionsPanel";
 
 const NONE_VALUE = "__none__";
 
@@ -49,6 +46,8 @@ export function QuickCapturePage() {
     setFormat,
     setRevisionMode,
     setDocumentType,
+    setContextFilter,
+    setProcessingOption,
   } = useStickySettings();
   const { commit, isCommitting, lastError, retry, clearError } =
     useNoteCommit();
@@ -693,64 +692,45 @@ export function QuickCapturePage() {
           </div>
         </div>
 
-        {/* Enhancement Level & Format */}
-        <div className="flex flex-wrap items-center gap-6">
-          {/* Enhancement Level */}
-          <div className="flex items-center gap-1">
-            <span className="text-xs text-muted-foreground mr-1">AI Enhancement:</span>
-            {(
-              [
-                { value: "full", label: "Full", icon: Sparkles, desc: "Contextual expansion" },
-                { value: "light", label: "Light", icon: PenLine, desc: "Format only" },
-                { value: "none", label: "None", icon: FileText, desc: "As-is" },
-              ] as const
-            ).map(({ value, label, icon: Icon, desc }) => (
-              <button
-                key={value}
-                onClick={() => setRevisionMode(value as RevisionMode)}
-                title={desc}
-                className={`inline-flex items-center gap-1 px-2 py-1 rounded text-xs transition-colors ${
-                  settings.revisionMode === value
-                    ? "bg-primary text-primary-foreground"
-                    : "bg-background border border-border hover:bg-accent"
-                }`}
-                aria-pressed={settings.revisionMode === value}
-                aria-label={`${label}: ${desc}`}
-              >
-                <Icon className="h-3 w-3" />
-                {label}
-              </button>
-            ))}
-          </div>
-
-          {/* Format */}
-          <div className="flex items-center gap-4">
-            <span className="text-xs text-muted-foreground">Format:</span>
-            <label className="flex items-center gap-1.5 text-xs cursor-pointer">
-              <input
-                type="radio"
-                name="format"
-                value="markdown"
-                checked={settings.format === "markdown"}
-                onChange={() => setFormat("markdown")}
-                className="h-3.5 w-3.5"
-              />
-              Markdown
-            </label>
-            <label className="flex items-center gap-1.5 text-xs cursor-pointer">
-              <input
-                type="radio"
-                name="format"
-                value="plaintext"
-                checked={settings.format === "plaintext"}
-                onChange={() => setFormat("plaintext")}
-                className="h-3.5 w-3.5"
-              />
-              Plain text
-            </label>
-          </div>
+        {/* Format */}
+        <div className="flex items-center gap-4">
+          <span className="text-xs text-muted-foreground">Format:</span>
+          <label className="flex items-center gap-1.5 text-xs cursor-pointer">
+            <input
+              type="radio"
+              name="format"
+              value="markdown"
+              checked={settings.format === "markdown"}
+              onChange={() => setFormat("markdown")}
+              className="h-3.5 w-3.5"
+            />
+            Markdown
+          </label>
+          <label className="flex items-center gap-1.5 text-xs cursor-pointer">
+            <input
+              type="radio"
+              name="format"
+              value="plaintext"
+              checked={settings.format === "plaintext"}
+              onChange={() => setFormat("plaintext")}
+              className="h-3.5 w-3.5"
+            />
+            Plain text
+          </label>
         </div>
       </div>
+
+      {/* Processing Options Panel (revision mode, context filters, pipeline toggles) */}
+      <ProcessingOptionsPanel
+        revisionMode={settings.revisionMode}
+        contextFilter={settings.contextFilter}
+        processing={settings.processing}
+        collections={collections}
+        allTags={allTags}
+        onRevisionModeChange={setRevisionMode}
+        onContextFilterChange={setContextFilter}
+        onProcessingOptionChange={setProcessingOption}
+      />
 
       {/* Error Banner */}
       {lastError && (

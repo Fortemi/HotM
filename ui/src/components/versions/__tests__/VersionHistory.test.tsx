@@ -17,6 +17,7 @@ vi.mock('@/api', () => ({
       getVersion: vi.fn(),
       diffVersions: vi.fn(),
       restoreVersion: vi.fn(),
+      deleteVersion: vi.fn(),
     },
   },
 }));
@@ -151,18 +152,18 @@ describe('VersionHistory', () => {
       render(<VersionHistory noteId="note-123" isOpen={true} onClose={onClose} />);
 
       await waitFor(() => {
-        const viewButtons = screen.getAllByText('View');
+        const viewButtons = screen.getAllByTitle('View version content');
         expect(viewButtons.length).toBe(3);
       });
     });
 
-    it('should have Diff button for non-first versions', async () => {
+    it('should have Diff button for all versions', async () => {
       const onClose = vi.fn();
       render(<VersionHistory noteId="note-123" isOpen={true} onClose={onClose} />);
 
       await waitFor(() => {
-        const diffButtons = screen.getAllByText('Diff');
-        expect(diffButtons.length).toBe(2); // Not on the oldest version
+        const diffButtons = screen.getAllByTitle(/Compare with adjacent version/);
+        expect(diffButtons.length).toBe(3); // All versions when multiple exist
       });
     });
 
@@ -171,7 +172,7 @@ describe('VersionHistory', () => {
       render(<VersionHistory noteId="note-123" isOpen={true} onClose={onClose} />);
 
       await waitFor(() => {
-        const restoreButtons = screen.getAllByText('Restore');
+        const restoreButtons = screen.getAllByTitle(/Restore this version/);
         expect(restoreButtons.length).toBe(2); // Not on current version
       });
     });

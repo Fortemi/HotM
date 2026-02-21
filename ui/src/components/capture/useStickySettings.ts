@@ -1,5 +1,13 @@
 import { useState, useCallback } from "react";
-import type { RevisionMode } from "@/api/types";
+import type { RevisionMode, ContextFilter, ProcessingOptions } from "@/api/types";
+
+export const DEFAULT_PROCESSING: ProcessingOptions = {
+  autoTagConcepts: true,
+  generateEmbeddings: true,
+  autoLinkRelated: true,
+  extractMedia: true,
+  generateTitle: true,
+};
 
 export interface StickySettings {
   archive: string | null;
@@ -12,6 +20,8 @@ export interface StickySettings {
   revisionMode: RevisionMode;
   documentType: string | null;
   documentTypeName: string;
+  contextFilter: ContextFilter;
+  processing: ProcessingOptions;
 }
 
 const KEYS = {
@@ -25,6 +35,8 @@ const KEYS = {
   revisionMode: "hotm.quickCapture.revisionMode",
   documentType: "hotm.quickCapture.documentType",
   documentTypeName: "hotm.quickCapture.documentTypeName",
+  contextFilter: "hotm.quickCapture.contextFilter",
+  processing: "hotm.quickCapture.processing",
 } as const;
 
 function readString(key: string): string | null {
@@ -66,6 +78,9 @@ function writeJson(key: string, value: unknown): void {
 }
 
 function loadSettings(): StickySettings {
+  const storedMode = readString(KEYS.revisionMode) as RevisionMode | null;
+  // Migrate legacy "full" default to "standard"
+  const revisionMode = storedMode === "full" ? "contextual" : (storedMode ?? "standard");
   return {
     archive: readString(KEYS.archive),
     collectionId: readString(KEYS.collectionId),
@@ -74,9 +89,11 @@ function loadSettings(): StickySettings {
     conceptId: readString(KEYS.conceptId),
     conceptLabel: readString(KEYS.conceptLabel) ?? "",
     format: (readString(KEYS.format) as StickySettings["format"]) ?? "markdown",
-    revisionMode: (readString(KEYS.revisionMode) as RevisionMode) ?? "full",
+    revisionMode: revisionMode as RevisionMode,
     documentType: readString(KEYS.documentType),
     documentTypeName: readString(KEYS.documentTypeName) ?? "",
+    contextFilter: readJson<ContextFilter>(KEYS.contextFilter, {}),
+    processing: readJson<ProcessingOptions>(KEYS.processing, DEFAULT_PROCESSING),
   };
 }
 
@@ -159,6 +176,27 @@ export function useStickySettings() {
     []
   );
 
+  const setContextFilter = useCallback((filter: ContextFilter) => {
+    writeJson(KEYS.contextFilter, filter);
+    setSettingsState((prev) => ({ ...prev, contextFilter: filter }));
+  }, []);
+
+  const setProcessing = useCallback((processing: ProcessingOptions) => {
+    writeJson(KEYS.processing, processing);
+    setSettingsState((prev) => ({ ...prev, processing }));
+  }, []);
+
+  const setProcessingOption = useCallback(
+    <K extends keyof ProcessingOptions>(key: K, value: ProcessingOptions[K]) => {
+      setSettingsState((prev) => {
+        const next = { ...prev.processing, [key]: value };
+        writeJson(KEYS.processing, next);
+        return { ...prev, processing: next };
+      });
+    },
+    []
+  );
+
   return {
     settings,
     setArchive,
@@ -170,5 +208,8 @@ export function useStickySettings() {
     setFormat,
     setRevisionMode,
     setDocumentType,
+    setContextFilter,
+    setProcessing,
+    setProcessingOption,
   };
 }

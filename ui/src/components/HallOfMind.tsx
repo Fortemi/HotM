@@ -2264,6 +2264,33 @@ export function HallOfMind() {
                 noteId={selectedNote?.id || ""}
                 isOpen={true}
                 onClose={() => setCurrentView("notes")}
+                onRestore={async () => {
+                  // Refresh the selected note after version restore
+                  if (selectedNote?.id) {
+                    try {
+                      const freshNote = await api.getNote(selectedNote.id);
+                      const updatedNote = {
+                        id: freshNote.note.id,
+                        title: freshNote.note.title || freshNote.original.content.split('\n')[0].substring(0, 50) || "Untitled",
+                        content: freshNote.original.content,
+                        revised_content: freshNote.revised ? freshNote.revised.content : null,
+                        createdAt: freshNote.note.created_at_utc,
+                        updatedAt: freshNote.note.updated_at_utc,
+                        tags: freshNote.tags,
+                        starred: freshNote.note.starred || false,
+                        archived: freshNote.note.archived || false,
+                        ai_generated_title: freshNote.note.title,
+                        revised_model: freshNote.revised ? freshNote.revised.model : null
+                      };
+                      setNotes(prev => prev.map(n => n.id === updatedNote.id ? updatedNote : n));
+                      setSelectedNote(updatedNote);
+                      setNoteContent(updatedNote.content);
+                      setRevisedContent(updatedNote.revised_content || updatedNote.content);
+                    } catch (error) {
+                      console.error("Failed to refresh note after version restore:", error);
+                    }
+                  }
+                }}
               />
             ) : currentView === "backup" ? (
               <BackupManager />

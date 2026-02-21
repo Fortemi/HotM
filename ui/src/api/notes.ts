@@ -87,6 +87,8 @@ export function createNotesApi(client: ApiClient) {
         source: request.source || 'manual',
         ...(request.revision_mode && { revision_mode: request.revision_mode }),
         ...(request.document_type && { document_type: request.document_type }),
+        ...(request.context_filter && { context_filter: request.context_filter }),
+        ...(request.processing && { processing: request.processing }),
       };
 
       // Fortemi returns { id } but callers expect { note_id }

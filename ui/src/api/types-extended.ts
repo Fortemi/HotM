@@ -217,6 +217,14 @@ export interface NoteVersion {
   created_at: string;
   change_summary?: string;
   content_hash: string;
+  /** Author type: 'user' | 'ai' — absent on older API versions */
+  author_type?: 'user' | 'ai';
+  /** AI model used for this version (e.g. 'llama3.2') */
+  author_model?: string;
+  /** Characters added in this version vs previous */
+  chars_added?: number;
+  /** Characters removed in this version vs previous */
+  chars_removed?: number;
 }
 
 /**

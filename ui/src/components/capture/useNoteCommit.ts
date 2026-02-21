@@ -49,6 +49,16 @@ export function useNoteCommit() {
             source: "manual",
             revision_mode: settings.revisionMode,
             ...(settings.documentType && { document_type: settings.documentType }),
+            ...(settings.revisionMode === "contextual_filtered" &&
+              settings.contextFilter &&
+              (settings.contextFilter.tags?.length ||
+                settings.contextFilter.collection_id ||
+                settings.contextFilter.query) && {
+                context_filter: settings.contextFilter,
+              }),
+            ...(!Object.values(settings.processing).every(Boolean) && {
+              processing: settings.processing,
+            }),
           });
 
           // Step 2: Apply tags (if any)
