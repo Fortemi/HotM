@@ -77,24 +77,38 @@ export interface CreateApiKeyResponse {
 // ===========================
 
 /**
+ * Attachment processing status from the API
+ */
+export type AttachmentStatus = 'uploaded' | 'processing' | 'completed' | 'failed';
+
+/**
  * File attachment
  */
 export interface Attachment {
   id: string;
   note_id: string;
   filename: string;
+  original_filename?: string;
   content_type: string;
   size_bytes: number;
+  /** Pipeline processing status (authoritative - use this for status display) */
+  status: AttachmentStatus;
+  /** Extraction strategy used by pipeline (e.g. 'video_multimodal', 'audio_transcribe') */
+  extraction_strategy?: string | null;
   created_at: string;
-  storage_path: string;
+  updated_at?: string;
+  storage_path?: string;
+  blob_id?: string;
   has_exif?: boolean;
   has_location?: boolean;
-  /** AI-generated description (vision models for images/3D, transcription for audio) */
+  has_preview?: boolean;
+  is_canonical_content?: boolean;
+  /** AI-generated description (vision models for images/3D) */
   ai_description?: string | null;
   /** Model used to generate ai_description */
   ai_model?: string | null;
-  /** Extracted text content (OCR, transcription, PDF text, code) */
-  extracted_content?: string | null;
+  /** Extracted text content (transcript, OCR, PDF text, code) */
+  extracted_text?: string | null;
   /** Structured metadata from extraction pipeline */
   extracted_metadata?: Record<string, unknown> | null;
 }
@@ -178,13 +192,16 @@ export interface AttachmentMetadata {
   filename: string;
   content_type: string;
   size_bytes: number;
+  status: AttachmentStatus;
+  extraction_strategy?: string | null;
   created_at: string;
+  updated_at?: string;
   exif?: ExifData;
   provenance?: DeviceProvenance & { location?: LocationData };
   processing?: ProcessingStatus;
   ai_description?: string | null;
   ai_model?: string | null;
-  extracted_content?: string | null;
+  extracted_text?: string | null;
   extracted_metadata?: Record<string, unknown> | null;
 }
 

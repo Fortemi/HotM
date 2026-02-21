@@ -29,6 +29,8 @@ import {
   FileCode,
   FileSpreadsheet,
   Presentation,
+  ChevronDown,
+  ChevronRight,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -362,7 +364,7 @@ function BrowserPreviewContent({
             <p className="text-sm font-medium">{getDocTypeLabel(attachment.content_type)}</p>
             <p className="text-xs text-muted-foreground mt-1">
               Inline preview not available for this format.
-              {attachment.extracted_content ? ' See extracted content below.' : ''}
+              {attachment.extracted_text ? ' See extracted content below.' : ''}
             </p>
           </div>
           <Button variant="outline" size="sm" onClick={onDownload}>
@@ -382,6 +384,119 @@ function BrowserPreviewContent({
         </div>
       );
   }
+}
+
+// ── Extracted data types & sections ─────────────────────────────────────
+
+interface BrowserTranscriptSegment {
+  start_secs: number;
+  end_secs: number;
+  text: string;
+}
+
+interface BrowserKeyframeDesc {
+  frame_index: number;
+  timestamp_secs: number;
+  description: string;
+}
+
+function fmtTime(secs: number): string {
+  const m = Math.floor(secs / 60);
+  const s = Math.floor(secs % 60);
+  return `${m}:${s.toString().padStart(2, '0')}`;
+}
+
+function BrowserExtractedTextSection({ text, strategy }: { text: string; strategy?: string | null }) {
+  const [isOpen, setIsOpen] = useState(false);
+  const label = strategy?.includes('audio') ? 'Transcript'
+    : strategy?.includes('video') ? 'Transcript & Visual Content'
+    : 'Extracted Text';
+
+  return (
+    <div className="rounded-lg border p-3" data-testid="extracted-text">
+      <button
+        type="button"
+        className="flex items-center gap-2 w-full text-left text-sm font-medium hover:text-primary transition-colors"
+        onClick={() => setIsOpen((prev) => !prev)}
+      >
+        {isOpen ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+        <FileText className="w-4 h-4 text-primary" />
+        {label}
+        <span className="text-xs text-muted-foreground font-normal ml-auto">
+          {text.length.toLocaleString()} chars
+        </span>
+      </button>
+      {isOpen && (
+        <pre className="mt-2 text-sm whitespace-pre-wrap bg-muted/50 rounded p-3 max-h-60 overflow-y-auto font-mono text-xs">
+          {text}
+        </pre>
+      )}
+    </div>
+  );
+}
+
+function BrowserTranscriptSegments({ segments }: { segments: BrowserTranscriptSegment[] }) {
+  const [isOpen, setIsOpen] = useState(false);
+
+  return (
+    <div className="rounded-lg border p-3" data-testid="transcript-segments">
+      <button
+        type="button"
+        className="flex items-center gap-2 w-full text-left text-sm font-medium hover:text-primary transition-colors"
+        onClick={() => setIsOpen((prev) => !prev)}
+      >
+        {isOpen ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+        Timed Segments
+        <span className="text-xs text-muted-foreground font-normal ml-auto">{segments.length} segments</span>
+      </button>
+      {isOpen && (
+        <div className="mt-2 space-y-1 max-h-60 overflow-y-auto">
+          {segments.map((seg, i) => (
+            <div key={i} className="flex gap-2 text-xs py-1 border-b border-muted/50 last:border-0">
+              <span className="text-muted-foreground font-mono shrink-0 w-20">
+                {fmtTime(seg.start_secs)} – {fmtTime(seg.end_secs)}
+              </span>
+              <span>{seg.text}</span>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function BrowserKeyframeDescriptions({ keyframes }: { keyframes: BrowserKeyframeDesc[] }) {
+  const [isOpen, setIsOpen] = useState(false);
+
+  return (
+    <div className="rounded-lg border p-3" data-testid="keyframe-descriptions">
+      <button
+        type="button"
+        className="flex items-center gap-2 w-full text-left text-sm font-medium hover:text-primary transition-colors"
+        onClick={() => setIsOpen((prev) => !prev)}
+      >
+        {isOpen ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+        <Eye className="w-4 h-4 text-primary" />
+        Scene Descriptions
+        <span className="text-xs text-muted-foreground font-normal ml-auto">{keyframes.length} frames</span>
+      </button>
+      {isOpen && (
+        <div className="mt-2 space-y-2 max-h-60 overflow-y-auto">
+          {keyframes.map((kf, i) => (
+            <div key={i} className="text-xs py-2 border-b border-muted/50 last:border-0">
+              <div className="flex items-center gap-2 mb-1">
+                <Badge variant="secondary" className="text-xs px-1.5">
+                  {fmtTime(kf.timestamp_secs)}
+                </Badge>
+                <span className="text-muted-foreground">Frame {kf.frame_index}</span>
+              </div>
+              <p className="text-sm leading-relaxed">{kf.description}</p>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
 }
 
 // ── Main Component ─────────────────────────────────────────────────────
@@ -870,6 +985,32 @@ export function AttachmentsBrowser({ className }: AttachmentsBrowserProps) {
                     </div>
                   )}
                 </div>
+              )}
+
+              {/* Extracted Text / Transcript */}
+              {previewAttachment.extracted_text && (
+                <BrowserExtractedTextSection
+                  text={previewAttachment.extracted_text}
+                  strategy={previewAttachment.extraction_strategy}
+                />
+              )}
+
+              {/* Transcript Segments (timed) */}
+              {previewAttachment.extracted_metadata &&
+                typeof previewAttachment.extracted_metadata === 'object' &&
+                Array.isArray((previewAttachment.extracted_metadata as Record<string, unknown>).transcript_segments) && (
+                <BrowserTranscriptSegments
+                  segments={(previewAttachment.extracted_metadata as Record<string, unknown>).transcript_segments as BrowserTranscriptSegment[]}
+                />
+              )}
+
+              {/* Keyframe / Scene Descriptions */}
+              {previewAttachment.extracted_metadata &&
+                typeof previewAttachment.extracted_metadata === 'object' &&
+                Array.isArray((previewAttachment.extracted_metadata as Record<string, unknown>).keyframe_descriptions) && (
+                <BrowserKeyframeDescriptions
+                  keyframes={(previewAttachment.extracted_metadata as Record<string, unknown>).keyframe_descriptions as BrowserKeyframeDesc[]}
+                />
               )}
 
               <div className="flex justify-end gap-2">

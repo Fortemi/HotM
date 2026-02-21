@@ -49,7 +49,7 @@ import {
 import { api } from '@/api';
 import { realtimeEventBus } from '@/services/realtimeEventBus';
 import { useBlobUrl } from '@/lib/tauri';
-import type { Attachment, AttachmentMetadata, ExtractionStatus } from '@/api/types-extended';
+import type { Attachment, AttachmentMetadata, ExtractionStatus, AttachmentStatus } from '@/api/types-extended';
 import { getPreviewMode, shouldDownloadBlob, getDocTypeLabel, getLanguageFromType } from './preview-utils';
 import type { PreviewMode } from './preview-utils';
 import { StreamingVideoPlayer, StreamingAudioPlayer } from './StreamingMedia';
@@ -101,39 +101,26 @@ function getFileIcon(contentType: string) {
 }
 
 /**
- * Infer extraction status from attachment fields.
- * - No extractable content type → 'none'
- * - Has ai_description or extracted_content → 'complete'
- * - Has extracted_metadata.error → 'failed'
- * - Otherwise → 'pending'
+ * Map API attachment status to UI extraction status.
+ * Uses the authoritative `status` field from the API when available,
+ * falling back to field-presence inference for older payloads.
  */
 function getExtractionStatus(attachment: Attachment): ExtractionStatus {
-  const hasExtractableType =
-    attachment.content_type.startsWith('image/') ||
-    attachment.content_type.startsWith('model/') ||
-    attachment.content_type.startsWith('audio/') ||
-    attachment.content_type.startsWith('video/') ||
-    attachment.content_type === 'application/pdf' ||
-    attachment.content_type.startsWith('text/') ||
-    attachment.content_type.includes('javascript') ||
-    attachment.content_type.includes('json') ||
-    attachment.content_type.includes('xml') ||
-    attachment.content_type.includes('word') ||
-    attachment.content_type.includes('document') ||
-    attachment.content_type.includes('spreadsheet') ||
-    attachment.content_type.includes('excel') ||
-    attachment.content_type.includes('presentation') ||
-    attachment.content_type.includes('powerpoint') ||
-    attachment.content_type === 'application/rtf' ||
-    attachment.content_type === 'application/epub+zip';
+  // Use authoritative API status when present
+  if (attachment.status) {
+    const statusMap: Record<AttachmentStatus, ExtractionStatus> = {
+      completed: 'complete',
+      failed: 'failed',
+      processing: 'pending',
+      uploaded: 'pending',
+    };
+    return statusMap[attachment.status] ?? 'pending';
+  }
 
-  if (!hasExtractableType) return 'none';
-
-  if (attachment.ai_description || attachment.extracted_content) return 'complete';
-
+  // Fallback inference for older API payloads without status field
+  if (attachment.ai_description || attachment.extracted_text) return 'complete';
   const meta = attachment.extracted_metadata;
   if (meta && typeof meta === 'object' && 'error' in meta) return 'failed';
-
   return 'pending';
 }
 
@@ -172,10 +159,10 @@ function getExtractionPreview(attachment: Attachment): string | null {
       ? attachment.ai_description.slice(0, 100) + '...'
       : attachment.ai_description;
   }
-  if (attachment.extracted_content) {
-    return attachment.extracted_content.length > 100
-      ? attachment.extracted_content.slice(0, 100) + '...'
-      : attachment.extracted_content;
+  if (attachment.extracted_text) {
+    return attachment.extracted_text.length > 100
+      ? attachment.extracted_text.slice(0, 100) + '...'
+      : attachment.extracted_text;
   }
   return null;
 }
@@ -432,7 +419,7 @@ function AttachmentPreviewContent({
             <p className="text-sm font-medium">{getDocTypeLabel(attachment.content_type)}</p>
             <p className="text-xs text-muted-foreground mt-1">
               Inline preview not available for this format.
-              {attachment.extracted_content ? ' See extracted content below.' : ''}
+              {attachment.extracted_text ? ' See extracted content below.' : ''}
             </p>
           </div>
           <Button variant="outline" size="sm" onClick={onDownload}>
@@ -458,6 +445,122 @@ function PreviewLoader({ height }: { height: string }) {
   return (
     <div className={`flex items-center justify-center ${height} rounded border`}>
       <Loader2 className="h-6 w-6 animate-spin text-primary" />
+    </div>
+  );
+}
+
+// ── Extracted data types ─────────────────────────────────────────────
+
+interface TranscriptSegment {
+  start_secs: number;
+  end_secs: number;
+  text: string;
+}
+
+interface KeyframeDescription {
+  frame_index: number;
+  timestamp_secs: number;
+  description: string;
+}
+
+function formatTimestamp(secs: number): string {
+  const m = Math.floor(secs / 60);
+  const s = Math.floor(secs % 60);
+  return `${m}:${s.toString().padStart(2, '0')}`;
+}
+
+// ── Extracted content display sections ──────────────────────────────
+
+function ExtractedTextSection({ text, strategy }: { text: string; strategy?: string | null }) {
+  const [isOpen, setIsOpen] = useState(true);
+  const label = strategy?.includes('audio') ? 'Transcript'
+    : strategy?.includes('video') ? 'Transcript & Visual Content'
+    : 'Extracted Text';
+
+  return (
+    <div className="rounded-lg border p-4" data-testid="extracted-text">
+      <button
+        type="button"
+        className="flex items-center gap-2 w-full text-left text-sm font-medium hover:text-primary transition-colors"
+        onClick={() => setIsOpen((prev) => !prev)}
+      >
+        {isOpen ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+        <FileText className="w-4 h-4 text-primary" />
+        {label}
+        <span className="text-xs text-muted-foreground font-normal ml-auto">
+          {text.length.toLocaleString()} chars
+        </span>
+      </button>
+      {isOpen && (
+        <pre className="mt-2 text-sm whitespace-pre-wrap bg-muted/50 rounded p-3 max-h-60 overflow-y-auto font-mono text-xs">
+          {text}
+        </pre>
+      )}
+    </div>
+  );
+}
+
+function TranscriptSegmentsSection({ segments }: { segments: TranscriptSegment[] }) {
+  const [isOpen, setIsOpen] = useState(false);
+
+  return (
+    <div className="rounded-lg border p-3" data-testid="transcript-segments">
+      <button
+        type="button"
+        className="flex items-center gap-2 w-full text-left text-sm font-medium hover:text-primary transition-colors"
+        onClick={() => setIsOpen((prev) => !prev)}
+      >
+        {isOpen ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+        <Clock className="w-4 h-4 text-primary" />
+        Timed Segments
+        <span className="text-xs text-muted-foreground font-normal ml-auto">{segments.length} segments</span>
+      </button>
+      {isOpen && (
+        <div className="mt-2 space-y-1 max-h-60 overflow-y-auto">
+          {segments.map((seg, i) => (
+            <div key={i} className="flex gap-2 text-xs py-1 border-b border-muted/50 last:border-0">
+              <span className="text-muted-foreground font-mono shrink-0 w-20">
+                {formatTimestamp(seg.start_secs)} – {formatTimestamp(seg.end_secs)}
+              </span>
+              <span>{seg.text}</span>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function KeyframeDescriptionsSection({ keyframes }: { keyframes: KeyframeDescription[] }) {
+  const [isOpen, setIsOpen] = useState(false);
+
+  return (
+    <div className="rounded-lg border p-3" data-testid="keyframe-descriptions">
+      <button
+        type="button"
+        className="flex items-center gap-2 w-full text-left text-sm font-medium hover:text-primary transition-colors"
+        onClick={() => setIsOpen((prev) => !prev)}
+      >
+        {isOpen ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+        <Eye className="w-4 h-4 text-primary" />
+        Scene Descriptions
+        <span className="text-xs text-muted-foreground font-normal ml-auto">{keyframes.length} frames</span>
+      </button>
+      {isOpen && (
+        <div className="mt-2 space-y-2 max-h-60 overflow-y-auto">
+          {keyframes.map((kf, i) => (
+            <div key={i} className="text-xs py-2 border-b border-muted/50 last:border-0">
+              <div className="flex items-center gap-2 mb-1">
+                <Badge variant="secondary" className="text-xs px-1.5">
+                  {formatTimestamp(kf.timestamp_secs)}
+                </Badge>
+                <span className="text-muted-foreground">Frame {kf.frame_index}</span>
+              </div>
+              <p className="text-sm leading-relaxed">{kf.description}</p>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
@@ -556,6 +659,20 @@ export function AttachmentsPanel({ noteId, className }: AttachmentsPanelProps) {
     });
     return () => unsubscribe();
   }, [loadAttachments, noteId]);
+
+  // When the attachment list refreshes and the preview is open, update preview data
+  // if the attachment's status has changed (e.g. processing → completed)
+  useEffect(() => {
+    if (!previewAttachment) return;
+    const fresh = attachments.find((a) => a.id === previewAttachment.id);
+    if (!fresh || fresh.status === previewAttachment.status) return;
+    // Status changed — update the preview attachment and re-fetch full detail
+    setPreviewAttachment(fresh);
+    if (fresh.status === 'completed') {
+      // Re-fetch metadata to get extracted_text, ai_description, etc.
+      api.attachments.getMetadata(fresh.id).then(setPreviewMetadata).catch(console.error);
+    }
+  }, [attachments, previewAttachment]);
 
   const handleUpload = async (files: FileList | null) => {
     if (!files || files.length === 0) return;
@@ -832,17 +949,30 @@ export function AttachmentsPanel({ noteId, className }: AttachmentsPanelProps) {
                 </div>
               )}
 
-              {/* Extracted Content */}
-              {previewAttachment.extracted_content && (
-                <div className="rounded-lg border p-4" data-testid="extracted-content">
-                  <div className="flex items-center gap-2 mb-2">
-                    <FileText className="w-4 h-4 text-primary" />
-                    <span className="text-sm font-medium">Extracted Content</span>
-                  </div>
-                  <pre className="text-sm whitespace-pre-wrap bg-muted/50 rounded p-3 max-h-60 overflow-y-auto font-mono text-xs">
-                    {previewAttachment.extracted_content}
-                  </pre>
-                </div>
+              {/* Extracted Text / Transcript */}
+              {previewAttachment.extracted_text && (
+                <ExtractedTextSection
+                  text={previewAttachment.extracted_text}
+                  strategy={previewAttachment.extraction_strategy}
+                />
+              )}
+
+              {/* Transcript Segments (timed) */}
+              {previewAttachment.extracted_metadata &&
+                typeof previewAttachment.extracted_metadata === 'object' &&
+                Array.isArray((previewAttachment.extracted_metadata as Record<string, unknown>).transcript_segments) && (
+                <TranscriptSegmentsSection
+                  segments={(previewAttachment.extracted_metadata as Record<string, unknown>).transcript_segments as TranscriptSegment[]}
+                />
+              )}
+
+              {/* Keyframe / Scene Descriptions */}
+              {previewAttachment.extracted_metadata &&
+                typeof previewAttachment.extracted_metadata === 'object' &&
+                Array.isArray((previewAttachment.extracted_metadata as Record<string, unknown>).keyframe_descriptions) && (
+                <KeyframeDescriptionsSection
+                  keyframes={(previewAttachment.extracted_metadata as Record<string, unknown>).keyframe_descriptions as KeyframeDescription[]}
+                />
               )}
 
               {/* Extraction Pending/Failed States */}

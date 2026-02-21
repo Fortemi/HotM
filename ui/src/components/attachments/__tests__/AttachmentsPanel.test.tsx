@@ -44,6 +44,7 @@ const mockAttachments: Attachment[] = [
     filename: 'image.jpg',
     content_type: 'image/jpeg',
     size_bytes: 1024000,
+    status: 'completed',
     storage_path: '/attachments/att-1/image.jpg',
     has_exif: true,
     has_location: true,
@@ -55,6 +56,7 @@ const mockAttachments: Attachment[] = [
     filename: 'document.pdf',
     content_type: 'application/pdf',
     size_bytes: 2048000,
+    status: 'completed',
     storage_path: '/attachments/att-2/document.pdf',
     has_exif: false,
     has_location: false,
@@ -67,6 +69,7 @@ const mockMetadata: AttachmentMetadata = {
   filename: 'image.jpg',
   size_bytes: 1024000,
   content_type: 'image/jpeg',
+  status: 'completed',
   created_at: '2024-01-15T10:00:00Z',
   exif: {
     capture_time: '2024-01-15T10:00:00Z',
@@ -93,6 +96,7 @@ describe('AttachmentsPanel', () => {
       filename: 'test.txt',
       content_type: 'text/plain',
       size_bytes: 12,
+      status: 'uploaded',
       storage_path: '/attachments/new-att/test.txt',
       created_at: '2024-01-15T12:00:00Z',
     });
@@ -138,6 +142,7 @@ describe('AttachmentsPanel', () => {
           filename: 'new.png',
           content_type: 'image/png',
           size_bytes: 1024,
+          status: 'completed',
           storage_path: '/attachments/att-3/new.png',
           has_exif: false,
           has_location: false,
@@ -411,13 +416,14 @@ describe('AttachmentsPanel', () => {
         filename: 'photo.jpg',
         content_type: 'image/jpeg',
         size_bytes: 2048000,
+        status: 'completed',
         storage_path: '/attachments/att-ext-1/photo.jpg',
         has_exif: false,
         has_location: false,
         created_at: '2024-01-15T10:00:00Z',
         ai_description: 'A sunset over the ocean with vibrant orange and purple clouds',
         ai_model: 'qwen3-vl:8b',
-        extracted_content: null,
+        extracted_text: null,
         extracted_metadata: { angles_rendered: 4 },
       },
     ];
@@ -429,12 +435,13 @@ describe('AttachmentsPanel', () => {
         filename: 'new-photo.jpg',
         content_type: 'image/jpeg',
         size_bytes: 1024000,
+        status: 'uploaded',
         storage_path: '/attachments/att-pending/new-photo.jpg',
         has_exif: false,
         has_location: false,
         created_at: '2024-01-15T10:00:00Z',
         ai_description: null,
-        extracted_content: null,
+        extracted_text: null,
         extracted_metadata: null,
       },
     ];
@@ -446,12 +453,13 @@ describe('AttachmentsPanel', () => {
         filename: 'corrupt.jpg',
         content_type: 'image/jpeg',
         size_bytes: 512000,
+        status: 'failed',
         storage_path: '/attachments/att-failed/corrupt.jpg',
         has_exif: false,
         has_location: false,
         created_at: '2024-01-15T10:00:00Z',
         ai_description: null,
-        extracted_content: null,
+        extracted_text: null,
         extracted_metadata: { error: 'Failed to decode image' },
       },
     ];
@@ -545,7 +553,7 @@ describe('AttachmentsPanel', () => {
       });
     });
 
-    it('should show extracted content for document attachments', async () => {
+    it('should show extracted text for document attachments', async () => {
       const docAttachment: Attachment[] = [
         {
           id: 'att-doc',
@@ -553,12 +561,13 @@ describe('AttachmentsPanel', () => {
           filename: 'report.pdf',
           content_type: 'application/pdf',
           size_bytes: 4096000,
+          status: 'completed',
           storage_path: '/attachments/att-doc/report.pdf',
           has_exif: false,
           has_location: false,
           created_at: '2024-01-15T10:00:00Z',
           ai_description: null,
-          extracted_content: 'Executive Summary\n\nThis report covers the Q4 results...',
+          extracted_text: 'Executive Summary\n\nThis report covers the Q4 results...',
           extracted_metadata: { page_count: 12 },
         },
       ];
@@ -574,9 +583,9 @@ describe('AttachmentsPanel', () => {
       fireEvent.click(screen.getByTestId('attachment-card-att-doc'));
 
       await waitFor(() => {
-        const contentSection = screen.getByTestId('extracted-content');
+        const contentSection = screen.getByTestId('extracted-text');
         expect(contentSection).toBeInTheDocument();
-        expect(within(contentSection).getByText('Extracted Content')).toBeInTheDocument();
+        expect(within(contentSection).getByText(/Extracted Text/)).toBeInTheDocument();
         expect(within(contentSection).getByText(/Executive Summary/)).toBeInTheDocument();
       });
     });
@@ -589,6 +598,7 @@ describe('AttachmentsPanel', () => {
           filename: 'recording.mp4',
           content_type: 'video/mp4',
           size_bytes: 10240000,
+          status: 'completed',
           storage_path: '/attachments/att-video/recording.mp4',
           has_exif: false,
           has_location: false,
@@ -619,6 +629,7 @@ describe('AttachmentsPanel', () => {
           filename: 'podcast.mp3',
           content_type: 'audio/mpeg',
           size_bytes: 5120000,
+          status: 'completed',
           storage_path: '/attachments/att-audio/podcast.mp3',
           has_exif: false,
           has_location: false,
@@ -649,6 +660,7 @@ describe('AttachmentsPanel', () => {
           filename: 'config.json',
           content_type: 'application/json',
           size_bytes: 512,
+          status: 'completed',
           storage_path: '/attachments/att-text/config.json',
           has_exif: false,
           has_location: false,
@@ -686,6 +698,7 @@ describe('AttachmentsPanel', () => {
           filename: 'report.docx',
           content_type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
           size_bytes: 8192000,
+          status: 'completed',
           storage_path: '/attachments/att-docx/report.docx',
           has_exif: false,
           has_location: false,
@@ -718,6 +731,7 @@ describe('AttachmentsPanel', () => {
           filename: 'readme.txt',
           content_type: 'text/plain',
           size_bytes: 256,
+          status: 'completed',
           storage_path: '/attachments/att-plain/readme.txt',
           has_exif: false,
           has_location: false,

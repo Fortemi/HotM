@@ -22,6 +22,7 @@ export interface RealtimeEvent {
   received_at?: number;
   event_id?: string;
   note_id?: string;
+  attachment_id?: string;
   job_id?: string;
   job_type?: string;
   status?: string;
@@ -146,6 +147,7 @@ export function normalizeTransportEvent(input: unknown): RealtimeEvent {
     received_at: Date.now(),
     event_id: getStringField(normalizedInput, 'event_id') ?? getStringField(normalizedInput, 'id'),
     note_id: getStringField(normalizedInput, 'note_id'),
+    attachment_id: getStringField(normalizedInput, 'attachment_id'),
     job_id: getStringField(normalizedInput, 'job_id'),
     job_type: getStringField(normalizedInput, 'job_type'),
     status: getStringField(normalizedInput, 'status'),

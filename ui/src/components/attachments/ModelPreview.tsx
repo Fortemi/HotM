@@ -92,13 +92,13 @@ export function ModelPreview({ url, filename, contentType, className }: ModelPre
 
   return (
     <div className={className ?? 'h-[400px] w-full rounded-lg overflow-hidden border bg-background'} data-testid="model-preview">
-      <Canvas camera={{ position: [0, 0, 5], fov: 50 }}>
+      <Canvas camera={{ fov: 45 }}>
         <Suspense fallback={null}>
-          <Stage adjustCamera intensity={0.5} environment="city">
+          <Stage adjustCamera={1.75} intensity={0.5} environment="city">
             <ModelContent url={url} format={format} />
           </Stage>
         </Suspense>
-        <OrbitControls makeDefault autoRotate autoRotateSpeed={1} />
+        <OrbitControls makeDefault autoRotate autoRotateSpeed={1} minDistance={0.5} maxDistance={100} />
       </Canvas>
       <div className="absolute bottom-2 left-2 text-xs text-muted-foreground bg-background/80 px-2 py-1 rounded">
         Drag to rotate &middot; Scroll to zoom
