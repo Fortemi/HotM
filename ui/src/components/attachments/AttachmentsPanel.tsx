@@ -3,7 +3,7 @@
  * File attachment management with upload, preview, and metadata display
  */
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, lazy, Suspense } from 'react';
 import {
   Upload,
   Grid,
@@ -27,6 +27,8 @@ import {
   Music,
   Video,
   Box,
+  FileSpreadsheet,
+  Presentation,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -48,6 +50,11 @@ import { api } from '@/api';
 import { realtimeEventBus } from '@/services/realtimeEventBus';
 import { useBlobUrl } from '@/lib/tauri';
 import type { Attachment, AttachmentMetadata, ExtractionStatus } from '@/api/types-extended';
+import { getPreviewMode, shouldDownloadBlob, getDocTypeLabel, getLanguageFromType } from './preview-utils';
+import type { PreviewMode } from './preview-utils';
+import { StreamingVideoPlayer, StreamingAudioPlayer } from './StreamingMedia';
+
+const ModelPreview = lazy(() => import('./ModelPreview').then((m) => ({ default: m.ModelPreview })));
 
 interface AttachmentsPanelProps {
   noteId: string;
@@ -78,6 +85,15 @@ function getFileIcon(contentType: string) {
   if (contentType === 'application/pdf') {
     return <FileText className="w-8 h-8 text-red-500" />;
   }
+  if (contentType.includes('spreadsheet') || contentType.includes('excel') || contentType === 'text/csv') {
+    return <FileSpreadsheet className="w-8 h-8 text-green-600" />;
+  }
+  if (contentType.includes('presentation') || contentType.includes('powerpoint')) {
+    return <Presentation className="w-8 h-8 text-orange-600" />;
+  }
+  if (contentType.includes('word') || contentType.includes('document') || contentType === 'application/rtf') {
+    return <FileText className="w-8 h-8 text-blue-600" />;
+  }
   if (contentType.startsWith('text/') || contentType.includes('javascript') || contentType.includes('json') || contentType.includes('xml')) {
     return <FileCode className="w-8 h-8 text-cyan-500" />;
   }
@@ -101,7 +117,15 @@ function getExtractionStatus(attachment: Attachment): ExtractionStatus {
     attachment.content_type.startsWith('text/') ||
     attachment.content_type.includes('javascript') ||
     attachment.content_type.includes('json') ||
-    attachment.content_type.includes('xml');
+    attachment.content_type.includes('xml') ||
+    attachment.content_type.includes('word') ||
+    attachment.content_type.includes('document') ||
+    attachment.content_type.includes('spreadsheet') ||
+    attachment.content_type.includes('excel') ||
+    attachment.content_type.includes('presentation') ||
+    attachment.content_type.includes('powerpoint') ||
+    attachment.content_type === 'application/rtf' ||
+    attachment.content_type === 'application/epub+zip';
 
   if (!hasExtractableType) return 'none';
 
@@ -316,6 +340,128 @@ function AttachmentCard({ attachment, viewMode, onView, onDownload, onDelete }: 
   );
 }
 
+/**
+ * Renders the appropriate inline preview for an attachment based on content type.
+ */
+function AttachmentPreviewContent({
+  attachment,
+  objectUrl,
+  textContent,
+  onDownload,
+}: {
+  attachment: Attachment;
+  objectUrl: string | null;
+  textContent: string | null;
+  onDownload: () => void;
+}) {
+  const mode: PreviewMode = getPreviewMode(attachment.content_type, attachment.filename);
+
+  switch (mode) {
+    case 'image':
+      return objectUrl ? (
+        <img
+          src={objectUrl}
+          alt={attachment.filename}
+          className="max-h-[400px] mx-auto object-contain"
+          data-testid="attachment-image-preview"
+        />
+      ) : (
+        <PreviewLoader height="h-[300px]" />
+      );
+
+    case 'pdf':
+      return objectUrl ? (
+        <iframe
+          src={`${objectUrl}#toolbar=1&navpanes=0&view=FitH`}
+          title={`PDF preview: ${attachment.filename}`}
+          className="w-full h-[70vh] border rounded"
+          data-testid="attachment-pdf-preview"
+        />
+      ) : (
+        <PreviewLoader height="h-[70vh]" />
+      );
+
+    case 'video':
+      return <StreamingVideoPlayer attachmentId={attachment.id} />;
+
+    case 'audio':
+      return <StreamingAudioPlayer attachmentId={attachment.id} />;
+
+    case 'model':
+      return objectUrl ? (
+        <Suspense fallback={<PreviewLoader height="h-[400px]" />}>
+          <ModelPreview
+            url={objectUrl}
+            filename={attachment.filename}
+            contentType={attachment.content_type}
+          />
+        </Suspense>
+      ) : (
+        <PreviewLoader height="h-[400px]" />
+      );
+
+    case 'text':
+      return textContent !== null ? (
+        <div className="rounded-lg border overflow-hidden" data-testid="attachment-text-preview">
+          <div className="flex items-center gap-2 px-3 py-1.5 border-b bg-muted/30 text-xs text-muted-foreground">
+            <FileCode className="w-3.5 h-3.5" />
+            <span>{getLanguageFromType(attachment.content_type, attachment.filename)}</span>
+            <span className="ml-auto">{textContent.split('\n').length} lines</span>
+          </div>
+          <pre className="text-xs font-mono p-4 max-h-[60vh] overflow-auto whitespace-pre-wrap break-words bg-muted/20">
+            {textContent}
+          </pre>
+        </div>
+      ) : (
+        <PreviewLoader height="h-[300px]" />
+      );
+
+    case 'office':
+      return (
+        <div className="rounded-lg border p-6 text-center space-y-3" data-testid="attachment-office-preview">
+          <div className="flex justify-center">
+            {attachment.content_type.includes('spreadsheet') || attachment.content_type.includes('excel') ? (
+              <FileSpreadsheet className="w-12 h-12 text-green-600" />
+            ) : attachment.content_type.includes('presentation') || attachment.content_type.includes('powerpoint') ? (
+              <Presentation className="w-12 h-12 text-orange-600" />
+            ) : (
+              <FileText className="w-12 h-12 text-blue-600" />
+            )}
+          </div>
+          <div>
+            <p className="text-sm font-medium">{getDocTypeLabel(attachment.content_type)}</p>
+            <p className="text-xs text-muted-foreground mt-1">
+              Inline preview not available for this format.
+              {attachment.extracted_content ? ' See extracted content below.' : ''}
+            </p>
+          </div>
+          <Button variant="outline" size="sm" onClick={onDownload}>
+            <Download className="w-4 h-4 mr-2" /> Download to view
+          </Button>
+        </div>
+      );
+
+    default:
+      return (
+        <div className="rounded-lg border p-6 text-center space-y-3" data-testid="attachment-no-preview">
+          <File className="w-12 h-12 mx-auto text-muted-foreground" />
+          <p className="text-sm text-muted-foreground">Preview not available</p>
+          <Button variant="outline" size="sm" onClick={onDownload}>
+            <Download className="w-4 h-4 mr-2" /> Download
+          </Button>
+        </div>
+      );
+  }
+}
+
+function PreviewLoader({ height }: { height: string }) {
+  return (
+    <div className={`flex items-center justify-center ${height} rounded border`}>
+      <Loader2 className="h-6 w-6 animate-spin text-primary" />
+    </div>
+  );
+}
+
 function ExtractedMetadataSection({ metadata }: { metadata: Record<string, unknown> }) {
   const [isOpen, setIsOpen] = useState(false);
 
@@ -348,6 +494,7 @@ export function AttachmentsPanel({ noteId, className }: AttachmentsPanelProps) {
   const [previewAttachment, setPreviewAttachment] = useState<Attachment | null>(null);
   const [previewMetadata, setPreviewMetadata] = useState<AttachmentMetadata | null>(null);
   const [previewObjectUrl, setPreviewObjectUrl] = useState<string | null>(null);
+  const [previewTextContent, setPreviewTextContent] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -440,15 +587,22 @@ export function AttachmentsPanel({ noteId, className }: AttachmentsPanelProps) {
     revokePreviewObjectUrl();
     setPreviewAttachment(attachment);
     setPreviewMetadata(null);
+    setPreviewTextContent(null);
+    const needsBlob = shouldDownloadBlob(attachment.content_type, attachment.filename);
     try {
       const [metadata, blob] = await Promise.all([
         api.attachments.getMetadata(attachment.id),
-        (attachment.content_type.startsWith('image/') || attachment.content_type === 'application/pdf')
+        needsBlob
           ? api.attachments.downloadAttachment(attachment.id)
           : Promise.resolve<Blob | null>(null),
       ]);
       setPreviewMetadata(metadata);
       if (blob) {
+        const mode = getPreviewMode(attachment.content_type, attachment.filename);
+        if (mode === 'text') {
+          const text = await blob.text();
+          setPreviewTextContent(text);
+        }
         setPreviewObjectUrl(URL.createObjectURL(blob));
       }
     } catch (err) {
@@ -640,6 +794,7 @@ export function AttachmentsPanel({ noteId, className }: AttachmentsPanelProps) {
           if (!open) {
             setPreviewAttachment(null);
             setPreviewMetadata(null);
+            setPreviewTextContent(null);
             revokePreviewObjectUrl();
           }
         }}
@@ -653,28 +808,13 @@ export function AttachmentsPanel({ noteId, className }: AttachmentsPanelProps) {
           </DialogHeader>
           {previewAttachment && (
             <div className="space-y-4">
-              {/* Preview */}
-              {previewAttachment.content_type.startsWith('image/') && (
-                <img
-                  src={previewObjectUrl ?? undefined}
-                  alt={previewAttachment.filename}
-                  className="max-h-[400px] mx-auto object-contain"
-                />
-              )}
-              {previewAttachment.content_type === 'application/pdf' && (
-                previewObjectUrl ? (
-                  <iframe
-                    src={`${previewObjectUrl}#toolbar=1&navpanes=0&view=FitH`}
-                    title={`PDF preview: ${previewAttachment.filename}`}
-                    className="w-full h-[70vh] border rounded"
-                    data-testid="attachment-pdf-preview"
-                  />
-                ) : (
-                  <div className="flex h-[70vh] items-center justify-center rounded border">
-                    <Loader2 className="h-6 w-6 animate-spin text-primary" />
-                  </div>
-                )
-              )}
+              {/* Inline Preview — dispatched by content type */}
+              <AttachmentPreviewContent
+                attachment={previewAttachment}
+                objectUrl={previewObjectUrl}
+                textContent={previewTextContent}
+                onDownload={() => handleDownload(previewAttachment)}
+              />
 
               {/* AI Description */}
               {previewAttachment.ai_description && (

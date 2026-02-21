@@ -581,6 +581,135 @@ describe('AttachmentsPanel', () => {
       });
     });
 
+    it('should show video player for video attachments', async () => {
+      const videoAttachment: Attachment[] = [
+        {
+          id: 'att-video',
+          note_id: 'note-123',
+          filename: 'recording.mp4',
+          content_type: 'video/mp4',
+          size_bytes: 10240000,
+          storage_path: '/attachments/att-video/recording.mp4',
+          has_exif: false,
+          has_location: false,
+          created_at: '2024-01-15T10:00:00Z',
+        },
+      ];
+
+      vi.mocked(api.attachments.listAttachments).mockResolvedValue(videoAttachment);
+
+      render(<AttachmentsPanel noteId="note-123" />);
+
+      await waitFor(() => {
+        expect(screen.getByText('recording.mp4')).toBeInTheDocument();
+      });
+
+      fireEvent.click(screen.getByTestId('attachment-card-att-video'));
+
+      await waitFor(() => {
+        expect(screen.getByTestId('attachment-video-preview')).toBeInTheDocument();
+      });
+    });
+
+    it('should show audio player for audio attachments', async () => {
+      const audioAttachment: Attachment[] = [
+        {
+          id: 'att-audio',
+          note_id: 'note-123',
+          filename: 'podcast.mp3',
+          content_type: 'audio/mpeg',
+          size_bytes: 5120000,
+          storage_path: '/attachments/att-audio/podcast.mp3',
+          has_exif: false,
+          has_location: false,
+          created_at: '2024-01-15T10:00:00Z',
+        },
+      ];
+
+      vi.mocked(api.attachments.listAttachments).mockResolvedValue(audioAttachment);
+
+      render(<AttachmentsPanel noteId="note-123" />);
+
+      await waitFor(() => {
+        expect(screen.getByText('podcast.mp3')).toBeInTheDocument();
+      });
+
+      fireEvent.click(screen.getByTestId('attachment-card-att-audio'));
+
+      await waitFor(() => {
+        expect(screen.getByTestId('attachment-audio-preview')).toBeInTheDocument();
+      });
+    });
+
+    it('should show text preview for text-based attachments', async () => {
+      const textAttachment: Attachment[] = [
+        {
+          id: 'att-text',
+          note_id: 'note-123',
+          filename: 'config.json',
+          content_type: 'application/json',
+          size_bytes: 512,
+          storage_path: '/attachments/att-text/config.json',
+          has_exif: false,
+          has_location: false,
+          created_at: '2024-01-15T10:00:00Z',
+        },
+      ];
+
+      vi.mocked(api.attachments.listAttachments).mockResolvedValue(textAttachment);
+      // Create a proper blob with .text() method for jsdom
+      const textContent = '{"key": "value"}';
+      const blob = new Blob([textContent], { type: 'application/json' });
+      blob.text = vi.fn().mockResolvedValue(textContent);
+      vi.mocked(api.attachments.downloadAttachment).mockResolvedValue(blob);
+
+      render(<AttachmentsPanel noteId="note-123" />);
+
+      await waitFor(() => {
+        expect(screen.getByText('config.json')).toBeInTheDocument();
+      });
+
+      fireEvent.click(screen.getByTestId('attachment-card-att-text'));
+
+      await waitFor(() => {
+        const textPreview = screen.getByTestId('attachment-text-preview');
+        expect(textPreview).toBeInTheDocument();
+        expect(within(textPreview).getByText(/json/)).toBeInTheDocument();
+      });
+    });
+
+    it('should show office document fallback with download button', async () => {
+      const docxAttachment: Attachment[] = [
+        {
+          id: 'att-docx',
+          note_id: 'note-123',
+          filename: 'report.docx',
+          content_type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+          size_bytes: 8192000,
+          storage_path: '/attachments/att-docx/report.docx',
+          has_exif: false,
+          has_location: false,
+          created_at: '2024-01-15T10:00:00Z',
+        },
+      ];
+
+      vi.mocked(api.attachments.listAttachments).mockResolvedValue(docxAttachment);
+
+      render(<AttachmentsPanel noteId="note-123" />);
+
+      await waitFor(() => {
+        expect(screen.getByText('report.docx')).toBeInTheDocument();
+      });
+
+      fireEvent.click(screen.getByTestId('attachment-card-att-docx'));
+
+      await waitFor(() => {
+        expect(screen.getByTestId('attachment-office-preview')).toBeInTheDocument();
+        expect(screen.getByText('Word Document')).toBeInTheDocument();
+        expect(screen.getByText(/Download to view/)).toBeInTheDocument();
+      });
+    });
+
     it('should gracefully handle null extraction fields', async () => {
       const noExtractionAttachment: Attachment[] = [
         {
