@@ -7,6 +7,7 @@ import type { ApiClient } from './client';
 import type {
   EmbeddingSet,
   CreateEmbeddingSetRequest,
+  UpdateEmbeddingSetRequest,
   EmbeddingConfig,
   AddEmbeddingSetMembersRequest,
 } from './types-extended';
@@ -164,7 +165,7 @@ export function createEmbeddingsApi(client: ApiClient) {
      */
     async updateSet(
       slug: string,
-      updates: Partial<CreateEmbeddingSetRequest>
+      updates: UpdateEmbeddingSetRequest
     ): Promise<EmbeddingSet> {
       if (!slug || slug.trim() === '') {
         throw new Error('Embedding set slug is required');

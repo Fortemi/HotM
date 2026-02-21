@@ -39,6 +39,10 @@ interface GraphExplorerProps {
   className?: string;
   initialNoteId?: string;
   onNoteSelect?: (noteId: string) => void;
+  /** Node whitelist for real embedding sets — nodes not in the set become ghosts */
+  externalNodeFilter?: Set<string> | null;
+  /** Pre-apply criteria-derived filters for virtual embedding sets */
+  initialFilterOverrides?: Partial<PersistedFilterState>;
 }
 
 type EdgeLayer = 'explicit' | 'semantic' | 'both';
@@ -101,7 +105,7 @@ function getCollectionColor(collectionId: string | undefined, collections: Colle
   return index >= 0 ? COMMUNITY_PALETTE[index % COMMUNITY_PALETTE.length] : '#6b7280';
 }
 
-export function GraphExplorer({ className, initialNoteId, onNoteSelect }: GraphExplorerProps) {
+export function GraphExplorer({ className, initialNoteId, onNoteSelect, externalNodeFilter, initialFilterOverrides }: GraphExplorerProps) {
   const containerRef = React.useRef<HTMLDivElement>(null);
   const rendererRef = React.useRef<Sigma | null>(null);
   const graphRef = React.useRef<Graph | null>(null);
@@ -213,7 +217,7 @@ export function GraphExplorer({ className, initialNoteId, onNoteSelect }: GraphE
     setRootNoteId(nodeId);
   }, []);
 
-  // Restore persisted filter state
+  // Restore persisted filter state, with initialFilterOverrides as fallback
   React.useEffect(() => {
     try {
       const savedTagFacetOpen = localStorage.getItem('graph.tagFacetOpen');
@@ -222,9 +226,11 @@ export function GraphExplorer({ className, initialNoteId, onNoteSelect }: GraphE
       if (savedConceptFacetOpen !== null) setConceptFacetOpen(savedConceptFacetOpen === 'true');
 
       const rawFilterState = sessionStorage.getItem(FILTER_STATE_KEY);
-      if (!rawFilterState) return;
+      // Use persisted state if available, otherwise fall back to initialFilterOverrides
+      const parsed: Partial<PersistedFilterState> = rawFilterState
+        ? JSON.parse(rawFilterState) as Partial<PersistedFilterState>
+        : (initialFilterOverrides ?? {});
 
-      const parsed = JSON.parse(rawFilterState) as Partial<PersistedFilterState>;
       if (typeof parsed.selectedCollection === 'string') setSelectedCollection(parsed.selectedCollection);
       if (parsed.archiveFilter === 'all' || parsed.archiveFilter === 'active' || parsed.archiveFilter === 'archived') {
         setArchiveFilter(parsed.archiveFilter);
@@ -247,6 +253,7 @@ export function GraphExplorer({ className, initialNoteId, onNoteSelect }: GraphE
     } catch {
       // no-op
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   React.useEffect(() => {
@@ -529,6 +536,8 @@ export function GraphExplorer({ className, initialNoteId, onNoteSelect }: GraphE
     // Build set of nodes that match all active facet filters
     const matchingNodeIds = new Set<string>();
     baseGraphData.nodes.forEach((node) => {
+      // External node filter (embedding set membership) — non-members become ghosts
+      if (externalNodeFilter && !externalNodeFilter.has(node.id)) return;
       if (selectedCollection !== 'all' && node.collection_id !== selectedCollection) return;
       if (archiveFilter === 'active' && node.archived) return;
       if (archiveFilter === 'archived' && !node.archived) return;
@@ -571,7 +580,7 @@ export function GraphExplorer({ className, initialNoteId, onNoteSelect }: GraphE
 
     const capped = capEdgesByScore(edges, maxRenderableEdges);
     return { nodes, edges: capped.edges, matchingNodeIds, truncated: capped.truncated };
-  }, [archiveFilter, baseGraphData, edgeLayer, selectedCollection, selectedConcepts, selectedTags, updatedWithinDays]);
+  }, [archiveFilter, baseGraphData, edgeLayer, externalNodeFilter, selectedCollection, selectedConcepts, selectedTags, updatedWithinDays]);
 
   // Community data
   const communityMap = React.useMemo(

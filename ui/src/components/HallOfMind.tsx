@@ -27,6 +27,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
+  Boxes,
   Brain,
   Plus,
   Search,
@@ -105,6 +106,7 @@ import { ConceptBrowser } from "./concepts/ConceptBrowser";
 import { VersionHistory } from "./versions/VersionHistory";
 import { BackupManager } from "./backup/BackupManager";
 import { ArchiveManager } from "./archives/ArchiveManager";
+import { EmbeddingSetManager } from "./embeddings";
 import { TagManager } from "./tags";
 import { AdvancedSearchFilters } from "./search";
 import { useWebSocket } from "@/services/websocket";
@@ -127,6 +129,7 @@ type AppView =
   | "versions"
   | "backup"
   | "archives"
+  | "embeddings"
   | "tags"
   | "advanced-search"
   | "realtime-debug";
@@ -1999,6 +2002,15 @@ export function HallOfMind() {
                   </SidebarMenuItem>
                   <SidebarMenuItem>
                     <SidebarMenuButton
+                      onClick={() => setCurrentView("embeddings")}
+                      className={currentView === "embeddings" ? "bg-primary/10" : ""}
+                    >
+                      <Boxes className="h-4 w-4" />
+                      <span>Embeddings</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton
                       onClick={() => setCurrentView("admin")}
                       className={currentView === "admin" ? "bg-primary/10" : ""}
                     >
@@ -2296,6 +2308,8 @@ export function HallOfMind() {
               <BackupManager />
             ) : currentView === "archives" ? (
               <ArchiveManager />
+            ) : currentView === "embeddings" ? (
+              <EmbeddingSetManager />
             ) : currentView === "tags" ? (
               <TagManager />
             ) : currentView === "advanced-search" ? (

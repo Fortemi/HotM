@@ -835,6 +835,16 @@ export interface FederatedSearchResponse {
 // Embedding Sets
 // ===========================
 
+export type EmbeddingSetMode = 'auto' | 'manual' | 'mixed';
+
+export interface EmbeddingSetCriteria {
+  tags?: string[];
+  collections?: string[];
+  fts_query?: string;
+  include_all?: boolean;
+  exclude_archived?: boolean;
+}
+
 /**
  * Embedding set (isolated vector space)
  */
@@ -845,6 +855,12 @@ export interface EmbeddingSet {
   created_at: string;
   updated_at: string;
   note_count?: number;
+  mode?: EmbeddingSetMode;
+  criteria?: EmbeddingSetCriteria;
+  description?: string;
+  purpose?: string;
+  keywords?: string[];
+  usage_hints?: string;
 }
 
 /**
@@ -854,6 +870,26 @@ export interface CreateEmbeddingSetRequest {
   slug: string;
   name: string;
   embedding_config_id: string;
+  mode?: EmbeddingSetMode;
+  criteria?: EmbeddingSetCriteria;
+  description?: string;
+  purpose?: string;
+  keywords?: string[];
+  usage_hints?: string;
+}
+
+/**
+ * Update embedding set request (all fields optional, slug omitted)
+ */
+export interface UpdateEmbeddingSetRequest {
+  name?: string;
+  embedding_config_id?: string;
+  mode?: EmbeddingSetMode;
+  criteria?: EmbeddingSetCriteria;
+  description?: string;
+  purpose?: string;
+  keywords?: string[];
+  usage_hints?: string;
 }
 
 /**
