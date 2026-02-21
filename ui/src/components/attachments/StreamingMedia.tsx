@@ -473,6 +473,7 @@ export function StreamingVideoPlayer({
             src={subtitleUrl ?? vttBlobUrl!}
             srcLang="en"
             label="English"
+            default
             data-testid="subtitle-track"
           />
         )}

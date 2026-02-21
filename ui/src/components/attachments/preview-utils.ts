@@ -29,6 +29,10 @@ export function getPreviewMode(contentType: string, filename?: string): PreviewM
     if (ext && ['glb', 'gltf', 'stl', 'obj', 'fbx', 'ply'].includes(ext)) {
       return 'model';
     }
+    // Subtitle files that may arrive as application/octet-stream
+    if (ext && ['srt', 'vtt', 'ass', 'ssa', 'sub'].includes(ext)) {
+      return 'text';
+    }
   }
 
   // Text-based types renderable in <pre>
@@ -57,6 +61,8 @@ export function isTextBasedType(contentType: string): boolean {
     'application/x-shellscript',
     'application/sql',
     'application/graphql',
+    'application/x-subrip',       // .srt
+    'text/vtt',                    // .vtt (WebVTT)
   ];
   return textLikeTypes.includes(contentType);
 }
@@ -165,6 +171,10 @@ export function getLanguageFromType(contentType: string, filename?: string): str
     csv: 'csv',
     graphql: 'graphql',
     gql: 'graphql',
+    srt: 'subrip',
+    vtt: 'webvtt',
+    ass: 'ass',
+    ssa: 'ass',
   };
   if (ext && extMap[ext]) return extMap[ext];
 
