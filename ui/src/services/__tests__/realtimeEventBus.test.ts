@@ -120,4 +120,146 @@ describe('realtimeEventBus', () => {
       vi.useRealTimers();
     }
   });
+
+  describe('dot-notation event types (SSE v2)', () => {
+    it('maps dot-notation core event types to PascalCase buckets', () => {
+      expect(normalizeTransportEvent({ type: 'note.created' }).type).toBe('NoteCreated');
+      expect(normalizeTransportEvent({ type: 'note.updated' }).type).toBe('NoteUpdated');
+      expect(normalizeTransportEvent({ type: 'note.deleted' }).type).toBe('NoteDeleted');
+      expect(normalizeTransportEvent({ type: 'job.queued' }).type).toBe('JobQueued');
+      expect(normalizeTransportEvent({ type: 'job.started' }).type).toBe('JobStarted');
+      expect(normalizeTransportEvent({ type: 'job.progress' }).type).toBe('JobProgress');
+      expect(normalizeTransportEvent({ type: 'job.completed' }).type).toBe('JobCompleted');
+      expect(normalizeTransportEvent({ type: 'job.failed' }).type).toBe('JobFailed');
+      expect(normalizeTransportEvent({ type: 'jobs.paused' }).type).toBe('JobsPaused');
+      expect(normalizeTransportEvent({ type: 'jobs.resumed' }).type).toBe('JobsResumed');
+      expect(normalizeTransportEvent({ type: 'queue.status' }).type).toBe('QueueStatus');
+    });
+
+    it('maps dot-notation note mutation aliases to NoteUpdated', () => {
+      expect(normalizeTransportEvent({ type: 'note.archived' }).type).toBe('NoteUpdated');
+      expect(normalizeTransportEvent({ type: 'note.starred' }).type).toBe('NoteUpdated');
+      expect(normalizeTransportEvent({ type: 'note.tagged' }).type).toBe('NoteUpdated');
+      expect(normalizeTransportEvent({ type: 'note.metadata_updated' }).type).toBe('NoteUpdated');
+      expect(normalizeTransportEvent({ type: 'note.links_updated' }).type).toBe('NoteUpdated');
+      expect(normalizeTransportEvent({ type: 'note.revision_updated' }).type).toBe('NoteUpdated');
+    });
+
+    it('maps dot-notation domain events to view buckets', () => {
+      expect(normalizeTransportEvent({ type: 'tag.created' }).type).toBe('TagUpdated');
+      expect(normalizeTransportEvent({ type: 'tag.merged' }).type).toBe('TagUpdated');
+      expect(normalizeTransportEvent({ type: 'concept.scheme.updated' }).type).toBe('ConceptUpdated');
+      expect(normalizeTransportEvent({ type: 'concept.relations.updated' }).type).toBe('ConceptUpdated');
+      expect(normalizeTransportEvent({ type: 'collection.updated' }).type).toBe('CollectionUpdated');
+      expect(normalizeTransportEvent({ type: 'attachment.extraction.updated' }).type).toBe('AttachmentUpdated');
+      expect(normalizeTransportEvent({ type: 'archive.updated' }).type).toBe('ArchiveUpdated');
+    });
+
+    it('preserves raw_event_type for dot-notation events', () => {
+      const event = normalizeTransportEvent({ type: 'note.created', note_id: 'n-1' });
+      expect(event.raw_event_type).toBe('note.created');
+      expect(event.type).toBe('NoteCreated');
+    });
+  });
+
+  describe('envelope metadata extraction', () => {
+    it('extracts actor and occurred_at from unwrapped envelope data', () => {
+      const event = normalizeTransportEvent({
+        type: 'NoteCreated',
+        note_id: 'note-1',
+        actor: 'user-123',
+        occurred_at: '2026-02-21T12:00:00Z',
+        correlation_id: 'corr-abc',
+        memory: 'mem-xyz',
+      });
+
+      expect(event.actor).toBe('user-123');
+      expect(event.occurred_at).toBe('2026-02-21T12:00:00Z');
+      expect(event.correlation_id).toBe('corr-abc');
+      expect(event.memory).toBe('mem-xyz');
+    });
+
+    it('handles events without envelope metadata gracefully', () => {
+      const event = normalizeTransportEvent({
+        type: 'NoteUpdated',
+        note_id: 'note-1',
+      });
+
+      expect(event.actor).toBeUndefined();
+      expect(event.occurred_at).toBeUndefined();
+    });
+  });
+
+  describe('search/index and graph event types', () => {
+    it('maps search/index events to SearchIndexUpdated', () => {
+      expect(normalizeTransportEvent({ type: 'index.embedding.updated' }).type).toBe('SearchIndexUpdated');
+      expect(normalizeTransportEvent({ type: 'index.fts.updated' }).type).toBe('SearchIndexUpdated');
+      expect(normalizeTransportEvent({ type: 'readmodel.search.ready' }).type).toBe('SearchIndexUpdated');
+    });
+
+    it('maps readmodel.graph.updated to GraphUpdated', () => {
+      expect(normalizeTransportEvent({ type: 'readmodel.graph.updated' }).type).toBe('GraphUpdated');
+    });
+  });
+
+  describe('synthetic event types', () => {
+    it('maps resync_required to ResyncRequired', () => {
+      expect(normalizeTransportEvent({ type: 'resync_required' }).type).toBe('ResyncRequired');
+    });
+
+    it('maps events.lagged to EventsLagged with dropped_count', () => {
+      const event = normalizeTransportEvent({ type: 'events.lagged', dropped_count: 15 });
+      expect(event.type).toBe('EventsLagged');
+      expect(event.dropped_count).toBe(15);
+    });
+  });
+
+  describe('progress field normalization', () => {
+    it('reads progress_percent field', () => {
+      const event = normalizeTransportEvent({
+        type: 'JobProgress',
+        job_id: 'j-1',
+        progress_percent: 50,
+      });
+      expect(event.progress_percent).toBe(50);
+    });
+
+    it('falls back to progress field when progress_percent absent', () => {
+      const event = normalizeTransportEvent({
+        type: 'job.progress',
+        job_id: 'j-1',
+        progress: 75,
+      });
+      expect(event.progress_percent).toBe(75);
+    });
+  });
+
+  describe('step-level progress fields', () => {
+    it('extracts step_name, steps_total, and step_current from progress events', () => {
+      const event = normalizeTransportEvent({
+        type: 'job.progress',
+        job_id: 'j-1',
+        progress: 40,
+        step_name: 'Generating embeddings',
+        steps_total: 5,
+        step_current: 2,
+      });
+      expect(event.type).toBe('JobProgress');
+      expect(event.step_name).toBe('Generating embeddings');
+      expect(event.steps_total).toBe(5);
+      expect(event.step_current).toBe(2);
+      expect(event.progress_percent).toBe(40);
+    });
+
+    it('handles events without step fields gracefully', () => {
+      const event = normalizeTransportEvent({
+        type: 'JobProgress',
+        job_id: 'j-2',
+        progress_percent: 60,
+      });
+      expect(event.step_name).toBeUndefined();
+      expect(event.steps_total).toBeUndefined();
+      expect(event.step_current).toBeUndefined();
+    });
+  });
 });

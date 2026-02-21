@@ -5,6 +5,7 @@ import FA2Layout from 'graphology-layout-forceatlas2/worker';
 import forceAtlas2 from 'graphology-layout-forceatlas2';
 import { api } from '@/api';
 import type { Collection } from '@/api';
+import { realtimeEventBus } from '@/services/realtimeEventBus';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -455,6 +456,23 @@ export function GraphExplorer({ className, initialNoteId, onNoteSelect }: GraphE
 
   React.useEffect(() => {
     void loadGraph();
+  }, [loadGraph]);
+
+  // Subscribe to realtime events for auto-refresh
+  React.useEffect(() => {
+    let debounceTimer: ReturnType<typeof setTimeout> | null = null;
+    const unsubscribe = realtimeEventBus.subscribe((event) => {
+      if (event.type === 'GraphUpdated' || event.type === 'ConceptUpdated') {
+        if (debounceTimer) clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(() => {
+          void loadGraph();
+        }, 500);
+      }
+    });
+    return () => {
+      unsubscribe();
+      if (debounceTimer) clearTimeout(debounceTimer);
+    };
   }, [loadGraph]);
 
   // --- Derived data ---

@@ -1,14 +1,31 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
-import { Activity, Loader2, CheckCircle2, AlertCircle, AlertTriangle } from 'lucide-react';
+import { Activity, Loader2, CheckCircle2, AlertCircle, AlertTriangle, RefreshCw } from 'lucide-react';
 import JobQueueMonitor from './JobQueueMonitor';
 import { useWebSocket } from '@/services/websocket';
+import type { WsMessage } from '@/services/websocket';
+import webSocketService from '@/services/websocket';
 
 export const JobQueueIndicator: React.FC = () => {
-  const { connected, connectionState, transportMode, queueStatus, isQueueStalled, queueStatusAgeMs } = useWebSocket();
+  const { connected, connectionState, transportMode, queueStatus, isQueueStalled, queueStatusAgeMs, lastResyncAt } = useWebSocket();
   const [isOpen, setIsOpen] = useState(false);
+  const [activeStepLabel, setActiveStepLabel] = useState<string | null>(null);
+
+  useEffect(() => {
+    const unsubscribe = webSocketService.subscribe((message: WsMessage) => {
+      if (message.type === 'JobProgress' && message.step_name) {
+        const label = message.steps_total && message.step_current
+          ? `${message.step_current}/${message.steps_total}: ${message.step_name}`
+          : message.step_name;
+        setActiveStepLabel(label);
+      } else if (message.type === 'JobCompleted' || message.type === 'JobFailed') {
+        setActiveStepLabel(null);
+      }
+    });
+    return unsubscribe;
+  }, []);
 
   // Determine status icon
   const getStatusIcon = () => {
@@ -39,13 +56,11 @@ export const JobQueueIndicator: React.FC = () => {
   const connectionLabel =
     connectionState === 'stale'
       ? 'Stale'
-      : connectionState === 'degraded'
-        ? 'Degraded (SSE)'
-        : connectionState === 'reconnecting'
-          ? 'Reconnecting'
-          : connected
-            ? 'Connected'
-            : 'Disconnected';
+      : connectionState === 'reconnecting'
+        ? 'Reconnecting'
+        : connected
+          ? 'Connected'
+          : 'Disconnected';
 
   return (
     <Popover open={isOpen} onOpenChange={setIsOpen}>
@@ -85,6 +100,12 @@ export const JobQueueIndicator: React.FC = () => {
               Queue appears stalled ({Math.floor(queueStatusAgeMs / 60000)}m since last update).
             </div>
           )}
+          {lastResyncAt && Date.now() - lastResyncAt < 60000 && (
+            <div className="mt-2 flex items-center gap-1 text-xs text-blue-600">
+              <RefreshCw className="h-3 w-3" />
+              <span>State resync triggered</span>
+            </div>
+          )}
           
           <div className="grid grid-cols-3 gap-2 mt-3 text-xs">
             <div className="text-center">
@@ -100,6 +121,12 @@ export const JobQueueIndicator: React.FC = () => {
               <div className="text-muted-foreground">Total</div>
             </div>
           </div>
+          {activeStepLabel && queueStatus.running > 0 && (
+            <div className="mt-2 text-xs text-muted-foreground truncate">
+              <Loader2 className="h-3 w-3 animate-spin inline mr-1" />
+              {activeStepLabel}
+            </div>
+          )}
         </div>
         
         <JobQueueMonitor />

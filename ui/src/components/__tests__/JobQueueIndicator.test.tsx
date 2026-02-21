@@ -3,9 +3,12 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { JobQueueIndicator } from '../JobQueueIndicator';
 import * as websocketModule from '@/services/websocket';
 
-// Mock the useWebSocket hook
+// Mock the useWebSocket hook and default export
 vi.mock('@/services/websocket', () => ({
   useWebSocket: vi.fn(),
+  default: {
+    subscribe: vi.fn(() => vi.fn()),
+  },
 }));
 
 describe('JobQueueIndicator', () => {

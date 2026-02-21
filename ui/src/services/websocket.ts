@@ -1,4 +1,4 @@
-// Shared WebSocket service for job queue updates
+// Shared realtime service — SSE primary transport, WS for commands
 import { useEffect, useState } from 'react';
 import { createEventsClient, type ServerEvent, DEFAULT_SSE_EVENT_TYPES } from '@/api/events';
 import { realtimeEventBus, type RealtimeEvent } from '@/services/realtimeEventBus';
@@ -10,7 +10,14 @@ export interface WsActiveJob {
   progress_percent: number;
   message?: string;
   started_at?: string;
+  step_name?: string;
+  steps_total?: number;
+  step_current?: number;
+  duration_ms?: number;
 }
+
+export type ResyncReason = 'resync_required' | 'events_lagged';
+type ResyncHandler = (reason: ResyncReason, droppedCount?: number) => void;
 
 export interface WsMessage extends RealtimeEvent {
   active_job?: WsActiveJob;
@@ -33,6 +40,7 @@ export interface UseWebSocketState {
   queueStatus: QueueStatus;
   queueStatusAgeMs: number;
   isQueueStalled: boolean;
+  lastResyncAt?: number;
   sendMessage: (message: string) => void;
 }
 
@@ -47,7 +55,9 @@ class WebSocketService {
   private eventsClient: ReturnType<typeof createEventsClient> | null = null;
   private unsubscribeEvents: (() => void) | null = null;
   private reconnectTimeout: NodeJS.Timeout | null = null;
+  private wsReconnectTimeout: NodeJS.Timeout | null = null;
   private isConnected = false;
+  private sseConnected = false;
   private handlers: Set<MessageHandler> = new Set();
   private connectionHandlers: Set<ConnectionHandler> = new Set();
   private connectionStateHandlers: Set<ConnectionStateHandler> = new Set();
@@ -56,6 +66,8 @@ class WebSocketService {
   private isDisabled = false;
   private transportMode: RealtimeTransportMode = 'none';
   private connectionState: RealtimeConnectionState = 'disconnected';
+  private resyncHandlers: Set<ResyncHandler> = new Set();
+  private lastResyncAt: number | null = null;
 
   constructor() {
     // Check if WebSocket is disabled via environment variable
@@ -65,6 +77,21 @@ class WebSocketService {
     }
 
     realtimeEventBus.subscribe((event) => {
+      // Handle synthetic SSE events for client resilience
+      if (event.type === 'ResyncRequired') {
+        console.warn('SSE resync_required: replay buffer expired, triggering full state refresh');
+        this.lastResyncAt = Date.now();
+        this.notifyResync('resync_required');
+        // Trigger refresh via WS if available
+        this.send('refresh');
+      } else if (event.type === 'EventsLagged') {
+        const dropped = event.dropped_count;
+        console.warn(`SSE events.lagged: ${dropped ?? 'unknown'} events dropped, client was too slow`);
+        this.lastResyncAt = Date.now();
+        this.notifyResync('events_lagged', dropped);
+        // Trigger refresh to recover from dropped events
+        this.send('refresh');
+      }
       this.broadcastMessage(event);
     });
   }
@@ -137,7 +164,7 @@ class WebSocketService {
     });
   }
 
-  private startSseFallback(): void {
+  private startSseTransport(): void {
     if (this.isClosing || this.handlers.size === 0) {
       return;
     }
@@ -149,41 +176,56 @@ class WebSocketService {
       this.eventsClient = createEventsClient(this.getApiBaseUrl(), {
         onStatusChange: (status) => {
           if (status === 'reconnecting') {
-            this.isConnected = false;
-            this.notifyConnection(false);
-            this.notifyConnectionState('reconnecting');
+            this.sseConnected = false;
+            // Only mark disconnected if WS isn't providing fallback
+            if (!this.isWsReceiving()) {
+              this.isConnected = false;
+              this.notifyConnection(false);
+              this.notifyConnectionState('reconnecting');
+            }
           } else if (status === 'connected') {
+            this.sseConnected = true;
             this.isConnected = true;
+            this.transportMode = 'sse';
             this.notifyConnection(true);
-            this.notifyConnectionState('degraded');
+            this.notifyConnectionState('connected');
           } else if (status === 'closed' && !this.isClosing && this.handlers.size > 0) {
-            this.isConnected = false;
-            this.notifyConnection(false);
-            this.notifyConnectionState('reconnecting');
+            this.sseConnected = false;
+            // Fall back to WS if available
+            if (!this.isWsReceiving()) {
+              this.isConnected = false;
+              this.notifyConnection(false);
+              this.notifyConnectionState('reconnecting');
+            }
           }
         },
       });
       this.unsubscribeEvents = this.eventsClient.subscribe((event) => {
+        if (!this.sseConnected) {
+          this.sseConnected = true;
+        }
         if (!this.isConnected) {
           this.isConnected = true;
+          this.transportMode = 'sse';
           this.notifyConnection(true);
+          this.notifyConnectionState('connected');
         }
-        this.transportMode = 'sse';
-        this.notifyConnectionState('degraded');
         realtimeEventBus.publishFromTransport(event);
       });
 
-      console.log('Falling back to SSE real-time events');
+      console.log('SSE transport starting (primary)');
     } catch (error) {
-      console.error('Failed to initialize SSE fallback:', error);
-      this.isConnected = false;
-      this.transportMode = 'none';
-      this.notifyConnection(false);
-      this.notifyConnectionState('disconnected');
+      console.error('Failed to initialize SSE transport:', error);
+      this.sseConnected = false;
+      // Try WS fallback for receiving
+      if (!this.ws) {
+        this.connectWsChannel(true);
+      }
     }
   }
 
-  private stopSseFallback(): void {
+  private stopSseTransport(): void {
+    this.sseConnected = false;
     if (this.unsubscribeEvents) {
       this.unsubscribeEvents();
       this.unsubscribeEvents = null;
@@ -194,8 +236,13 @@ class WebSocketService {
     }
   }
 
+  /** Check if WS is open and actively receiving events (fallback mode) */
+  private isWsReceiving(): boolean {
+    return this.ws?.readyState === WebSocket.OPEN && !this.sseConnected;
+  }
+
   private connect(): Promise<void> {
-    // If WebSocket is disabled, don't attempt connection
+    // If disabled, don't attempt any connection
     if (this.isDisabled) {
       this.notifyConnectionState('disconnected');
       return Promise.resolve();
@@ -210,109 +257,125 @@ class WebSocketService {
       return this.connectionPromise;
     }
 
-    // If we already have a connected WebSocket, return immediately
-    if (this.ws && this.isConnected) {
+    // If already connected via SSE, just ensure WS command channel is up
+    if (this.sseConnected && this.isConnected) {
+      this.connectWsChannel(false);
       return Promise.resolve();
     }
 
-    this.connectionPromise = new Promise((resolve, reject) => {
-      try {
-        this.notifyConnectionState('connecting');
-        // Clear any existing connection
-        if (this.ws) {
-          this.ws.close();
-          this.ws = null;
-        }
+    this.connectionPromise = new Promise<void>((resolve) => {
+      this.notifyConnectionState('connecting');
 
-        // Clear any existing timeout
-        if (this.reconnectTimeout) {
-          clearTimeout(this.reconnectTimeout);
-          this.reconnectTimeout = null;
-        }
+      // Clear any existing timeout
+      if (this.reconnectTimeout) {
+        clearTimeout(this.reconnectTimeout);
+        this.reconnectTimeout = null;
+      }
 
-        // Build WebSocket URL from API base URL.
-        // Supports base URLs like:
-        // - https://memory.integrolabs.net
-        // - https://memory.integrolabs.net/api/v1
-        // - relative/default origin fallbacks
-        const wsUrl = this.buildWebSocketUrl();
-        this.ws = new WebSocket(wsUrl);
+      // 1. Start SSE as primary event transport
+      this.startSseTransport();
 
-        this.ws.onopen = () => {
-          console.log('Shared WebSocket connected');
-          this.stopSseFallback();
+      // 2. Start WS command channel in parallel (non-blocking)
+      this.connectWsChannel(false);
+
+      this.isClosing = false;
+      this.connectionPromise = null;
+      resolve();
+    });
+
+    return this.connectionPromise;
+  }
+
+  /**
+   * Connect WebSocket as a command channel (for send('refresh') etc.)
+   * When `fallbackReceive` is true, also use WS for receiving events (SSE failed).
+   */
+  private connectWsChannel(fallbackReceive: boolean): void {
+    if (this.isClosing || this.ws) return;
+
+    try {
+      const wsUrl = this.buildWebSocketUrl();
+      this.ws = new WebSocket(wsUrl);
+
+      this.ws.onopen = () => {
+        console.log('WebSocket command channel connected');
+        // If SSE is not connected, WS serves as receive fallback
+        if (!this.sseConnected || fallbackReceive) {
           this.isConnected = true;
           this.transportMode = 'ws';
           this.notifyConnection(true);
           this.notifyConnectionState('connected');
-          this.isClosing = false;
-          this.connectionPromise = null;
-          this.ws?.send('refresh');
-          resolve();
-        };
+        }
+        // Send initial refresh to get queue status
+        this.ws?.send('refresh');
+      };
 
-        this.ws.onmessage = (event) => {
+      this.ws.onmessage = (event) => {
+        // Only publish WS messages if SSE is not the active event source
+        // This avoids duplicate events when both transports are connected
+        if (!this.sseConnected) {
           try {
             const message: ServerEvent = JSON.parse(event.data);
             realtimeEventBus.publishFromTransport(message);
           } catch (error) {
             console.error('Failed to parse WebSocket message:', error);
           }
-        };
+        }
+      };
 
-        this.ws.onerror = (error) => {
-          console.error('Shared WebSocket error:', error);
-          this.isConnected = false;
-          this.transportMode = 'none';
-          this.notifyConnection(false);
-          this.connectionPromise = null;
-          this.startSseFallback();
-          
-          // Don't reject immediately - let onclose handle it
-          // This prevents double error handling
-        };
+      this.ws.onerror = () => {
+        // WS errors are non-fatal if SSE is healthy
+        if (this.sseConnected) {
+          console.log('WebSocket command channel error (SSE active, non-critical)');
+        } else {
+          console.error('WebSocket command channel error');
+        }
+      };
 
-        this.ws.onclose = (event) => {
-          console.log('Shared WebSocket disconnected:', event.code, event.reason);
-          this.isConnected = false;
-          this.transportMode = 'none';
-          this.notifyConnection(false);
-          this.connectionPromise = null;
-          this.startSseFallback();
-          
-          // If we were in the process of closing, don't reconnect
-          if (this.isClosing) {
-            return;
+      this.ws.onclose = (event) => {
+        console.log('WebSocket command channel disconnected:', event.code);
+        this.ws = null;
+
+        // If SSE is connected, WS loss is non-critical
+        if (this.sseConnected) {
+          // Attempt quiet reconnect for command channel
+          if (!this.isClosing && event.code !== 1000 && this.handlers.size > 0) {
+            this.wsReconnectTimeout = setTimeout(() => {
+              this.connectWsChannel(false);
+            }, 5000);
           }
-          
-          // Only reconnect if it wasn't a manual close (code 1000) and we have active handlers
-          if (event.code !== 1000 && this.handlers.size > 0) {
-            this.notifyConnectionState('reconnecting');
-            this.reconnectTimeout = setTimeout(() => {
-              console.log('Shared WebSocket attempting to reconnect...');
-              this.connect().catch(console.error);
-            }, 3000);
-          } else if (event.code === 1000) {
-            this.notifyConnectionState('disconnected');
-          }
-          
-          // If this was an error during connection, reject the promise
-          if (event.code !== 1000) {
-            reject(new Error(`WebSocket closed with code ${event.code}: ${event.reason}`));
-          }
-        };
-      } catch (error) {
-        console.error('Failed to create WebSocket connection:', error);
+          return;
+        }
+
+        // SSE is also down — we're disconnected
         this.isConnected = false;
         this.transportMode = 'none';
         this.notifyConnection(false);
-        this.connectionPromise = null;
-        this.notifyConnectionState('disconnected');
-        reject(error);
-      }
-    });
 
-    return this.connectionPromise;
+        if (this.isClosing) {
+          this.notifyConnectionState('disconnected');
+          return;
+        }
+
+        // Attempt reconnect
+        if (event.code !== 1000 && this.handlers.size > 0) {
+          this.notifyConnectionState('reconnecting');
+          this.wsReconnectTimeout = setTimeout(() => {
+            this.connectWsChannel(true);
+          }, 3000);
+        } else {
+          this.notifyConnectionState('disconnected');
+        }
+      };
+    } catch (error) {
+      console.error('Failed to create WebSocket command channel:', error);
+      if (!this.sseConnected) {
+        this.isConnected = false;
+        this.transportMode = 'none';
+        this.notifyConnection(false);
+        this.notifyConnectionState('disconnected');
+      }
+    }
   }
 
   public subscribe(handler: MessageHandler): () => void {
@@ -340,26 +403,32 @@ class WebSocketService {
   }
 
   public send(message: string): void {
-    if (this.ws && this.isConnected) {
+    if (this.ws?.readyState === WebSocket.OPEN) {
       this.ws.send(message);
     }
   }
 
   public close(): void {
     this.isClosing = true;
-    
+
     if (this.reconnectTimeout) {
       clearTimeout(this.reconnectTimeout);
       this.reconnectTimeout = null;
     }
-    
+    if (this.wsReconnectTimeout) {
+      clearTimeout(this.wsReconnectTimeout);
+      this.wsReconnectTimeout = null;
+    }
+
+    this.stopSseTransport();
+
     if (this.ws) {
       this.ws.close(1000, 'Service closing');
       this.ws = null;
     }
-    this.stopSseFallback();
-    
+
     this.isConnected = false;
+    this.sseConnected = false;
     this.transportMode = 'none';
     this.notifyConnection(false);
     this.notifyConnectionState('disconnected');
@@ -402,6 +471,27 @@ class WebSocketService {
     return [...DEFAULT_SSE_EVENT_TYPES];
   }
 
+  public subscribeResync(handler: ResyncHandler): () => void {
+    this.resyncHandlers.add(handler);
+    return () => {
+      this.resyncHandlers.delete(handler);
+    };
+  }
+
+  private notifyResync(reason: ResyncReason, droppedCount?: number): void {
+    this.resyncHandlers.forEach((handler) => {
+      try {
+        handler(reason, droppedCount);
+      } catch (error) {
+        console.error('Resync handler error:', error);
+      }
+    });
+  }
+
+  public getLastResyncAt(): number | null {
+    return this.lastResyncAt;
+  }
+
   // Reset the closing state - useful for development mode
   public reset(): void {
     this.isClosing = false;
@@ -426,6 +516,7 @@ export function useWebSocket(): UseWebSocketState {
     pending: 0,
   });
   const [lastQueueUpdateAt, setLastQueueUpdateAt] = useState<number>(Date.now());
+  const [lastResyncAt, setLastResyncAt] = useState<number | undefined>(undefined);
   const [now, setNow] = useState<number>(Date.now());
 
   const markQueueUpdated = () => {
@@ -445,6 +536,11 @@ export function useWebSocket(): UseWebSocketState {
     const unsubscribeConnectionState = webSocketService.subscribeConnectionState((status) => {
       if (!isSubscribed) return;
       setConnectionState(status);
+    });
+
+    const unsubscribeResync = webSocketService.subscribeResync(() => {
+      if (!isSubscribed) return;
+      setLastResyncAt(Date.now());
     });
 
     const unsubscribe = webSocketService.subscribe((message) => {
@@ -498,6 +594,7 @@ export function useWebSocket(): UseWebSocketState {
       isSubscribed = false;
       unsubscribeConnection();
       unsubscribeConnectionState();
+      unsubscribeResync();
       unsubscribe();
     };
   }, []);
@@ -532,6 +629,7 @@ export function useWebSocket(): UseWebSocketState {
     queueStatus,
     queueStatusAgeMs,
     isQueueStalled,
+    lastResyncAt,
     sendMessage,
   };
 }

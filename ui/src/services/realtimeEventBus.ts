@@ -14,7 +14,11 @@ export type RealtimeEventType =
   | 'TagUpdated'
   | 'CollectionUpdated'
   | 'ArchiveUpdated'
-  | 'ConceptUpdated';
+  | 'ConceptUpdated'
+  | 'SearchIndexUpdated'
+  | 'GraphUpdated'
+  | 'ResyncRequired'
+  | 'EventsLagged';
 
 export interface RealtimeEvent {
   type: RealtimeEventType;
@@ -43,6 +47,15 @@ export interface RealtimeEvent {
   memory?: string;
   correlation_id?: string;
   scope?: string;
+  // Envelope metadata (SSE EventEnvelope)
+  actor?: string;
+  occurred_at?: string;
+  // Step-level progress (job pipeline)
+  step_name?: string;
+  steps_total?: number;
+  step_current?: number;
+  // Synthetic event fields
+  dropped_count?: number;
 }
 
 type RealtimeEventHandler = (event: RealtimeEvent) => void;
@@ -68,6 +81,10 @@ const SUPPORTED_TYPES = new Set<RealtimeEventType>([
   'CollectionUpdated',
   'ArchiveUpdated',
   'ConceptUpdated',
+  'SearchIndexUpdated',
+  'GraphUpdated',
+  'ResyncRequired',
+  'EventsLagged',
 ]);
 const NOTE_UPDATE_ALIASES = new Set<string>([
   'NoteArchived',
@@ -105,31 +122,90 @@ function getStringArrayField(input: Record<string, unknown>, key: string): strin
   return Array.isArray(value) ? value.filter((item): item is string => typeof item === 'string') : undefined;
 }
 
+// Dot-notation (SSE v2) → PascalCase mapping
+const DOT_NOTATION_MAP: Record<string, string> = {
+  'note.created': 'NoteCreated',
+  'note.updated': 'NoteUpdated',
+  'note.deleted': 'NoteDeleted',
+  'note.archived': 'NoteArchived',
+  'note.unarchived': 'NoteUnarchived',
+  'note.starred': 'NoteStarred',
+  'note.unstarred': 'NoteUnstarred',
+  'note.tagged': 'NoteTagged',
+  'note.untagged': 'NoteUntagged',
+  'note.concept_tagged': 'NoteConceptTagged',
+  'note.concept_untagged': 'NoteConceptUntagged',
+  'note.concept_updated': 'NoteConceptUpdated',
+  'note.metadata_updated': 'NoteMetadataUpdated',
+  'note.links_updated': 'NoteLinksUpdated',
+  'note.provenance_updated': 'NoteProvenanceUpdated',
+  'note.revision_updated': 'NoteRevisionUpdated',
+  'job.queued': 'JobQueued',
+  'job.started': 'JobStarted',
+  'job.progress': 'JobProgress',
+  'job.completed': 'JobCompleted',
+  'job.failed': 'JobFailed',
+  'jobs.paused': 'JobsPaused',
+  'jobs.resumed': 'JobsResumed',
+  'queue.status': 'QueueStatus',
+  'collection.created': 'CollectionUpdated',
+  'collection.updated': 'CollectionUpdated',
+  'collection.deleted': 'CollectionUpdated',
+  'archive.updated': 'ArchiveUpdated',
+  'attachment.updated': 'AttachmentUpdated',
+  'attachment.extraction.updated': 'AttachmentUpdated',
+  'tag.created': 'TagUpdated',
+  'tag.renamed': 'TagUpdated',
+  'tag.deleted': 'TagUpdated',
+  'tag.merged': 'TagUpdated',
+  'tag.stats.updated': 'TagUpdated',
+  'concept.created': 'ConceptUpdated',
+  'concept.updated': 'ConceptUpdated',
+  'concept.deleted': 'ConceptUpdated',
+  'concept.scheme.created': 'ConceptUpdated',
+  'concept.scheme.updated': 'ConceptUpdated',
+  'concept.scheme.deleted': 'ConceptUpdated',
+  'concept.relations.updated': 'ConceptUpdated',
+  'concept.scheme.changed': 'ConceptUpdated',
+  'concept.collection.membership.changed': 'ConceptUpdated',
+  // Search/index materialization events
+  'index.embedding.updated': 'SearchIndexUpdated',
+  'index.linking.updated': 'SearchIndexUpdated',
+  'index.fts.updated': 'SearchIndexUpdated',
+  'readmodel.search.ready': 'SearchIndexUpdated',
+  'readmodel.graph.updated': 'GraphUpdated',
+  // Synthetic SSE events
+  'resync_required': 'ResyncRequired',
+  'events.lagged': 'EventsLagged',
+};
+
 function normalizeEventType(input: Record<string, unknown>): RealtimeEventType {
   const rawType = getStringField(input, 'type') ?? getStringField(input, 'event_type');
   if (!rawType) {
     return DEFAULT_EVENT_TYPE;
   }
-  if (NOTE_UPDATE_ALIASES.has(rawType)) {
+  // Map dot-notation to PascalCase, then normalize through existing logic
+  const mapped = DOT_NOTATION_MAP[rawType] ?? rawType;
+  if (NOTE_UPDATE_ALIASES.has(mapped)) {
     return 'NoteUpdated';
   }
-  if (rawType.includes('Attachment')) {
+  if (mapped.includes('Attachment')) {
     return 'AttachmentUpdated';
   }
-  if (rawType.includes('Collection')) {
+  if (mapped.includes('Collection')) {
     return 'CollectionUpdated';
   }
-  if (rawType.includes('Archive')) {
+  if (mapped.includes('Archive')) {
     return 'ArchiveUpdated';
   }
-  if (rawType.includes('Concept')) {
+  if (mapped.includes('Concept')) {
     return 'ConceptUpdated';
   }
-  if (rawType.includes('Tag')) {
+  if (mapped.includes('Tag')) {
     return 'TagUpdated';
   }
-  return SUPPORTED_TYPES.has(rawType as RealtimeEventType)
-    ? (rawType as RealtimeEventType)
+  return SUPPORTED_TYPES.has(mapped as RealtimeEventType)
+    ? (mapped as RealtimeEventType)
     : DEFAULT_EVENT_TYPE;
 }
 
@@ -151,7 +227,7 @@ export function normalizeTransportEvent(input: unknown): RealtimeEvent {
     job_id: getStringField(normalizedInput, 'job_id'),
     job_type: getStringField(normalizedInput, 'job_type'),
     status: getStringField(normalizedInput, 'status'),
-    progress_percent: getNumberField(normalizedInput, 'progress_percent'),
+    progress_percent: getNumberField(normalizedInput, 'progress_percent') ?? getNumberField(normalizedInput, 'progress'),
     message: getStringField(normalizedInput, 'message'),
     error: getStringField(normalizedInput, 'error'),
     retry_count: getNumberField(normalizedInput, 'retry_count'),
@@ -168,6 +244,15 @@ export function normalizeTransportEvent(input: unknown): RealtimeEvent {
     memory: getStringField(normalizedInput, 'memory'),
     correlation_id: getStringField(normalizedInput, 'correlation_id'),
     scope: getStringField(normalizedInput, 'scope'),
+    // Step-level progress (job pipeline)
+    step_name: getStringField(normalizedInput, 'step_name'),
+    steps_total: getNumberField(normalizedInput, 'steps_total'),
+    step_current: getNumberField(normalizedInput, 'step_current'),
+    // Envelope metadata
+    actor: getStringField(normalizedInput, 'actor'),
+    occurred_at: getStringField(normalizedInput, 'occurred_at'),
+    // Synthetic event fields
+    dropped_count: getNumberField(normalizedInput, 'dropped_count'),
   };
 }
 

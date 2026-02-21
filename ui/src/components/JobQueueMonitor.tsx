@@ -14,6 +14,9 @@ interface Job {
   progress_percent: number;
   message?: string;
   started_at: string;
+  step_name?: string;
+  steps_total?: number;
+  step_current?: number;
 }
 
 interface CompletedJob {
@@ -54,6 +57,9 @@ const JobQueueMonitor: React.FC = () => {
               ...prev,
               progress_percent: message.progress_percent ?? prev.progress_percent,
               message: message.message || prev.message,
+              step_name: message.step_name ?? prev.step_name,
+              steps_total: message.steps_total ?? prev.steps_total,
+              step_current: message.step_current ?? prev.step_current,
             } : prev);
           }
           break;
@@ -146,9 +152,26 @@ const JobQueueMonitor: React.FC = () => {
                 <div className={`w-2 h-2 rounded-full ${getJobTypeColor(activeJob.job_type)}`} />
                 <span className="font-medium">{formatJobType(activeJob.job_type)}</span>
               </div>
-              <span className="text-sm text-muted-foreground animate-pulse">Processing...</span>
+              <span className="text-sm text-muted-foreground">
+                {activeJob.progress_percent > 0 ? `${activeJob.progress_percent}%` : <span className="animate-pulse">Processing...</span>}
+              </span>
             </div>
-            {activeJob.message && (
+            {activeJob.progress_percent > 0 && (
+              <div className="w-full bg-muted rounded-full h-1.5">
+                <div
+                  className={`h-1.5 rounded-full transition-all duration-300 ${getJobTypeColor(activeJob.job_type)}`}
+                  style={{ width: `${Math.min(100, activeJob.progress_percent)}%` }}
+                />
+              </div>
+            )}
+            {activeJob.step_name && (
+              <p className="text-sm text-muted-foreground">
+                {activeJob.steps_total && activeJob.step_current
+                  ? `Step ${activeJob.step_current}/${activeJob.steps_total}: ${activeJob.step_name}`
+                  : activeJob.step_name}
+              </p>
+            )}
+            {activeJob.message && !activeJob.step_name && (
               <p className="text-sm text-muted-foreground">{activeJob.message}</p>
             )}
             {activeJob.note_id && (

@@ -22,6 +22,11 @@ export interface ServerEvent {
   duration_ms?: number;
   title?: string;
   tags?: string[];
+  // Envelope metadata (SSE EventEnvelope format)
+  actor?: string;
+  memory?: string;
+  correlation_id?: string;
+  occurred_at?: string;
   [key: string]: unknown;
 }
 
@@ -30,13 +35,42 @@ type EventsClientStatus = 'connecting' | 'connected' | 'reconnecting' | 'closed'
 
 interface EventsClientOptions {
   onStatusChange?: (status: EventsClientStatus) => void;
+  /** SSE type prefixes for server-side filtering (e.g., ['note', 'job', 'queue']) */
+  typePrefixes?: string[];
 }
 
+/** Default type prefixes that cover all events the UI currently handles */
+export const DEFAULT_SSE_TYPE_PREFIXES = [
+  'note', 'job', 'jobs', 'queue', 'collection', 'tag', 'concept',
+  'archive', 'attachment', 'events', 'resync_required',
+  'index', 'readmodel',
+] as const;
+
 export const DEFAULT_SSE_EVENT_TYPES = [
+  // PascalCase (WebSocket legacy format)
   'JobStarted', 'JobProgress', 'JobCompleted', 'JobFailed',
   'JobQueued', 'NoteUpdated', 'NoteCreated', 'NoteDeleted',
   'JobsPaused', 'JobsResumed',
   'QueueStatus',
+  // Dot-notation (SSE EventEnvelope format)
+  'job.started', 'job.progress', 'job.completed', 'job.failed',
+  'job.queued', 'note.updated', 'note.created', 'note.deleted',
+  'jobs.paused', 'jobs.resumed',
+  'queue.status',
+  // SKOS concept events
+  'concept.created', 'concept.updated', 'concept.deleted',
+  'concept.scheme.created', 'concept.scheme.updated', 'concept.scheme.deleted',
+  'concept.relations.updated', 'concept.scheme.changed',
+  'concept.collection.membership.changed',
+  // Tag governance events
+  'tag.created', 'tag.renamed', 'tag.deleted', 'tag.merged', 'tag.stats.updated',
+  // Search/index materialization events
+  'index.embedding.updated', 'index.linking.updated', 'index.fts.updated',
+  'readmodel.search.ready', 'readmodel.graph.updated',
+  // Attachment extraction
+  'attachment.extraction.updated',
+  // Synthetic SSE events (client resilience)
+  'resync_required', 'events.lagged',
 ] as const;
 
 export function createEventsClient(baseUrl: string, options: EventsClientOptions = {}) {
@@ -57,6 +91,8 @@ export function createEventsClient(baseUrl: string, options: EventsClientOptions
     }
   };
 
+  const typePrefixes = options.typePrefixes ?? [...DEFAULT_SSE_TYPE_PREFIXES];
+
   function getEventsUrl(): string {
     const fallbackOrigin =
       typeof window !== 'undefined' ? window.location.origin : 'http://localhost';
@@ -69,18 +105,47 @@ export function createEventsClient(baseUrl: string, options: EventsClientOptions
     if (lastEventId) {
       url.searchParams.set('last_event_id', lastEventId);
     }
+    if (typePrefixes.length > 0) {
+      url.searchParams.set('types', typePrefixes.join(','));
+    }
     return url.toString();
   }
 
+  function unwrapEnvelope(data: Record<string, unknown>): ServerEvent {
+    const payload = data.payload;
+    if (payload && typeof payload === 'object' && !Array.isArray(payload)) {
+      const payloadObj = payload as Record<string, unknown>;
+      const metadata = data.metadata;
+      const metadataObj = (metadata && typeof metadata === 'object' && !Array.isArray(metadata))
+        ? metadata as Record<string, unknown>
+        : {};
+
+      return {
+        ...payloadObj,
+        // Preserve type from outer data if payload doesn't have one
+        type: (payloadObj.type as string) ?? (data.type as string) ?? '',
+        // Preserve event_id from either level
+        event_id: (payloadObj.event_id as string) ?? (data.event_id as string),
+        // Flatten envelope metadata
+        actor: metadataObj.actor as string | undefined,
+        memory: metadataObj.memory as string | undefined,
+        correlation_id: metadataObj.correlation_id as string | undefined,
+        occurred_at: metadataObj.occurred_at as string | undefined,
+      } as ServerEvent;
+    }
+    return data as ServerEvent;
+  }
+
   function dispatchEvent(data: ServerEvent, eventId?: string): void {
-    const replayCursor = typeof data.event_id === 'string' ? data.event_id : eventId;
+    const unwrapped = unwrapEnvelope(data as Record<string, unknown>);
+    const replayCursor = typeof unwrapped.event_id === 'string' ? unwrapped.event_id : eventId;
     if (replayCursor) {
       lastEventId = replayCursor;
-      data.event_id = replayCursor;
+      unwrapped.event_id = replayCursor;
     }
     handlers.forEach(handler => {
       try {
-        handler(data);
+        handler(unwrapped);
       } catch (err) {
         console.error('SSE handler error:', err);
       }

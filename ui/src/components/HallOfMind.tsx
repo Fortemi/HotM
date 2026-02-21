@@ -793,6 +793,12 @@ export function HallOfMind() {
       }
       if (event.type === 'JobFailed') {
         handleJobFailed(event);
+        return;
+      }
+      if (event.type === 'ResyncRequired') {
+        // Full state refresh triggered by SSE replay buffer expiry
+        void loadExistingNotes();
+        return;
       }
     });
 
