@@ -32,6 +32,28 @@ vi.mock('@/api', () => ({
   },
 }));
 
+// jsdom does not implement scrollIntoView; Radix Select uses it during portal mount
+if (typeof window !== 'undefined') {
+  window.HTMLElement.prototype.scrollIntoView = function () {};
+}
+
+// Mock Radix Select with plain HTML select — avoids portal/scrollIntoView issues in CI
+vi.mock('@/components/ui/select', () => ({
+  Select: ({ value, onValueChange, children }: { value?: string; onValueChange?: (v: string) => void; children: React.ReactNode }) => (
+    <div data-testid="select-root" data-value={value}>{typeof onValueChange === 'function' ? (
+      <select data-testid="select-native" value={value ?? ''} onChange={(e) => onValueChange(e.target.value)}>
+        {children}
+      </select>
+    ) : children}</div>
+  ),
+  SelectTrigger: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+  SelectValue: ({ placeholder }: { placeholder?: string }) => <span>{placeholder}</span>,
+  SelectContent: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+  SelectItem: ({ value, children }: { value: string; children: React.ReactNode }) => (
+    <option value={value}>{children}</option>
+  ),
+}));
+
 // Stub out child dialogs so we don't need their own deps in scope
 vi.mock('../MemberManager', () => ({
   MemberManager: vi.fn(({ isOpen, slug, onClose }) =>
@@ -391,32 +413,17 @@ describe('EmbeddingSetManager', () => {
       });
 
       // Fill slug
-      const slugInput = screen.getByPlaceholderText('my-embedding-set');
-      fireEvent.change(slugInput, { target: { value: 'new-set' } });
+      fireEvent.change(screen.getByPlaceholderText('my-embedding-set'), { target: { value: 'new-set' } });
 
       // Fill name
-      const nameInput = screen.getByPlaceholderText('My Embedding Set');
-      fireEvent.change(nameInput, { target: { value: 'New Set' } });
+      fireEvent.change(screen.getByPlaceholderText('My Embedding Set'), { target: { value: 'New Set' } });
 
-      // Select config via the Select component (open trigger, pick item)
-      // Comboboxes in dialog order: [0] = Embedding Config, [1] = Mode
-      const comboboxes = screen.getAllByRole('combobox');
-      fireEvent.click(comboboxes[0]);
-
-      // Radix SelectItem text may be split across spans — use text matcher function
-      await waitFor(() => {
-        expect(
-          screen.getByText((content) => content.includes('nomic-embed-text') && content.includes('768d'))
-        ).toBeInTheDocument();
-      });
-
-      fireEvent.click(
-        screen.getByText((content) => content.includes('nomic-embed-text') && content.includes('768d'))
-      );
+      // Select config via native select mock
+      const selects = screen.getAllByTestId('select-native');
+      fireEvent.change(selects[0], { target: { value: 'cfg-1' } });
 
       // Click create
-      const createButton = screen.getByRole('button', { name: /^Create$/ });
-      fireEvent.click(createButton);
+      fireEvent.click(screen.getByRole('button', { name: /^Create$/ }));
 
       await waitFor(() => {
         expect(api.embeddings.createSet).toHaveBeenCalledWith(
@@ -450,18 +457,8 @@ describe('EmbeddingSetManager', () => {
         target: { value: 'New Set' },
       });
 
-      const comboboxes = screen.getAllByRole('combobox');
-      fireEvent.click(comboboxes[0]);
-
-      await waitFor(() => {
-        expect(
-          screen.getByText((c) => c.includes('nomic-embed-text') && c.includes('768d'))
-        ).toBeInTheDocument();
-      });
-
-      fireEvent.click(
-        screen.getByText((c) => c.includes('nomic-embed-text') && c.includes('768d'))
-      );
+      const selects = screen.getAllByTestId('select-native');
+      fireEvent.change(selects[0], { target: { value: 'cfg-1' } });
 
       fireEvent.click(screen.getByRole('button', { name: /^Create$/ }));
 
@@ -492,16 +489,8 @@ describe('EmbeddingSetManager', () => {
         target: { value: 'Error Set' },
       });
 
-      const comboboxes = screen.getAllByRole('combobox');
-      fireEvent.click(comboboxes[0]);
-
-      await waitFor(() => {
-        expect(
-          screen.getByText('Default Config (nomic-embed-text, 768d)')
-        ).toBeInTheDocument();
-      });
-
-      fireEvent.click(screen.getByText('Default Config (nomic-embed-text, 768d)'));
+      const selects = screen.getAllByTestId('select-native');
+      fireEvent.change(selects[0], { target: { value: 'cfg-1' } });
 
       fireEvent.click(screen.getByRole('button', { name: /^Create$/ }));
 
@@ -530,27 +519,11 @@ describe('EmbeddingSetManager', () => {
         target: { value: 'Manual New' },
       });
 
-      // Select config — comboboxes in dialog order: [0]=config, [1]=mode
-      const comboboxes = screen.getAllByRole('combobox');
-      fireEvent.click(comboboxes[0]);
-
-      await waitFor(() => {
-        expect(
-          screen.getByText('Default Config (nomic-embed-text, 768d)')
-        ).toBeInTheDocument();
-      });
-
-      fireEvent.click(screen.getByText('Default Config (nomic-embed-text, 768d)'));
-
-      // Switch mode to manual (re-query after config selection closes the dropdown)
-      const comboboxesAfter = screen.getAllByRole('combobox');
-      fireEvent.click(comboboxesAfter[1]);
-
-      await waitFor(() => {
-        expect(screen.getByText(/Manual — Explicit member management/)).toBeInTheDocument();
-      });
-
-      fireEvent.click(screen.getByText(/Manual — Explicit member management/));
+      // Select config and mode via native select mocks
+      // selects in dialog order: [0]=config, [1]=mode
+      const selects = screen.getAllByTestId('select-native');
+      fireEvent.change(selects[0], { target: { value: 'cfg-1' } });
+      fireEvent.change(selects[1], { target: { value: 'manual' } });
 
       fireEvent.click(screen.getByRole('button', { name: /^Create$/ }));
 
