@@ -1,156 +1,155 @@
 # System Constraints
 
+## Scope
+
+HotM is a **client-only React SPA**. Constraints are labeled:
+
+- **CLIENT**: Applies to HotM frontend
+- **BACKEND**: Applies to Fortemi API (documented for context, owned by Fortemi)
+
 ## Technical Constraints
 
-### Platform Constraints
-- **Operating System**: Windows 11 (22H2+) required
-- **Architecture**: x64 or ARM64 only
-- **WebView2**: Must be installed for UI rendering
-- **Display**: Minimum 1280x720 resolution
+### Client Platform (CLIENT)
 
-### Database Constraints
-- **PostgreSQL Version**: 14.0+ required
-- **Extensions Required**: 
-  - `vector` extension for pgvector
-  - `pg_trgm` optional for fuzzy search
-- **DocumentDB Compatibility**: Must support PostgreSQL wire protocol
-- **Connection**: Direct TCP connection required (no proxy)
+- **Runtime**: Modern web browser with ES2020+ support
+- **Display**: Minimum 320px viewport (responsive), recommended 1280x720+
+- **Node.js**: 20+ for development
+- **Package Manager**: npm 10+
+- **Build Tool**: Vite 7+
+- **Framework**: React 19 with TypeScript 5.8+ strict mode
 
-### Runtime Dependencies
-- **Ollama**: Required for NLP features
-  - Models: `gpt-oss:20b`, `nomic-embed-text`
-  - Minimum 16GB RAM for model loading
-  - CUDA/ROCm optional for GPU acceleration
-- **Network**: Localhost access for Ollama API
+### Backend Platform (BACKEND)
 
-### Development Constraints
-- **Rust**: 1.70+ with stable toolchain
-- **Node.js**: 18 LTS for UI development
-- **Build Tools**: Visual Studio C++ Build Tools on Windows
+- **PostgreSQL**: 14.0+ with pgvector extension
+- **Ollama**: Required for NLP features (embedding, revision, tagging)
+- **Rust**: Axum HTTP server (Fortemi repository)
+
+### Development Constraints (CLIENT)
+
+- **TypeScript**: Strict mode enabled, no implicit `any`
+- **Testing**: Vitest + React Testing Library, `gh act` as authoritative CI
+- **Linting**: ESLint enforced
+- **Build**: Must produce static assets servable by any HTTP server
 
 ## Business Constraints
 
 ### Licensing
-- **Open Source**: MIT or Apache 2.0 license
-- **Dependencies**: Must use compatible licenses
-- **Commercial Use**: No restrictions
+
+- **License**: BUSL-1.1 (Business Source License 1.1)
+- **Dependencies**: Must use compatible open-source licenses
+- **UI Components**: Radix UI (MIT), TailwindCSS (MIT)
 
 ### Budget
-- **Development**: Self-funded/community driven
-- **Infrastructure**: User provides own hardware
-- **Third-party Services**: None required
+
+- **Development**: Self-funded
+- **Infrastructure**: User provides hosting (Docker, static server, or Tauri desktop)
+- **Third-Party Services**: None required — all local
 
 ### Timeline
-- **v0.1.0 Alpha**: Core functionality (Q1 2025)
-- **v0.2.0 Beta**: MCP integration (Q2 2025)
-- **v1.0.0 Release**: Production ready (Q4 2025)
+
+- **2026.1.x**: Core SPA with note management and search
+- **2026.2.x**: Feature views (graph, concepts, templates, capture)
+- **Post-MVP**: Authentication, PWA, dark mode
 
 ## Design Constraints
 
-### Architectural Patterns
-- **SOLID Principles**: Required for all components
-- **Separation of Concerns**: UI, API, and NLP layers
-- **Dependency Injection**: For testability
-- **Event-Driven**: Background job processing
+### Architectural Patterns (CLIENT)
 
-### Data Model
+- **SPA Architecture**: Single page application, no server-side rendering
+- **API-Driven**: All data operations via Fortemi REST API
+- **Component-Based**: Reusable React components with Radix UI primitives
+- **Hooks Pattern**: React hooks for state management (no Redux/MobX)
+- **Event-Driven**: Realtime updates via SSE/WebSocket transport
+
+### Data Model (BACKEND)
+
 - **Immutable Originals**: Never modify source content
-- **Event Sourcing**: Track all revisions
-- **JSONB Storage**: For flexible schema evolution
-- **UTC Timestamps**: All dates stored in UTC
+- **Revision History**: All edits create new revisions
+- **UTC Timestamps**: All dates stored in UTC, displayed in local time
+- **Soft Deletes**: Data preserved for recovery
 
-### API Design
-- **RESTful**: Follow REST conventions
-- **Versioning**: URL path versioning (/api/v1)
-- **OpenAPI**: Document all endpoints
-- **Idempotency**: Safe retry semantics
+### API Design (BACKEND)
+
+- **RESTful**: `/api/v1/*` endpoints
+- **Snake Case**: All API response fields use `snake_case`
+- **Versioned**: URL path versioning
+- **Idempotent**: Safe retry semantics for mutations
 
 ## Operational Constraints
 
-### Deployment
-- **Local-First**: Must work without internet
-- **Single Binary**: Server as standalone executable
-- **MSI Installer**: Windows deployment via Tauri
-- **No Admin Rights**: Run in user space
+### Deployment (CLIENT)
 
-### Performance
-- **Startup Time**: < 5 seconds
-- **Memory Limit**: < 2GB without models
-- **Disk Usage**: < 100MB base installation
-- **Database Size**: Support up to 100GB
+- **Docker**: Primary deployment via `docker compose` with nginx
+- **Static**: Vite production build servable by any HTTP server
+- **Tauri**: Optional desktop shell for native features
+- **Port**: Default 4180 (nginx container)
+
+### Configuration (CLIENT)
+
+- **Environment Variables**: `VITE_API_BASE_URL`, `VITE_API_TIMEOUT`, `VITE_APP_TITLE`
+- **No Build-Time Secrets**: All config via environment variables
+- **Sticky Settings**: User preferences persisted in localStorage
 
 ### Maintenance
-- **Backward Compatibility**: Preserve data format
-- **Migration Path**: Automated schema updates
-- **Logging**: Configurable log levels
-- **Diagnostics**: Built-in health checks
+
+- **Backward Compatibility**: API client handles response shape variations
+- **CalVer Versioning**: `YYYY.M.PATCH` format, no leading zeros
+- **CI/CD**: GitHub Actions workflows, `gh act` for local validation
 
 ## Security Constraints
 
-### Data Protection
-- **Local Storage**: No cloud dependency
-- **Encryption**: Optional, user-controlled
-- **No Telemetry**: Zero external communication
-- **Audit Trail**: Log all data modifications
+### Client (CLIENT)
 
-### Access Control
-- **Single User**: Local access by default
-- **Network Mode**: Explicit opt-in required
-- **API Keys**: For programmatic access
-- **Rate Limiting**: Prevent abuse
+- **No Credentials Storage**: No API keys or tokens in frontend bundle
+- **Input Sanitization**: All user input validated before display and API submission
+- **CSP**: Content Security Policy headers via nginx
+- **Dependency Auditing**: `npm audit` in CI pipeline
 
-## Regulatory Constraints
+### Backend (BACKEND)
 
-### Privacy
-- **GDPR Compliance**: Data portability and deletion
-- **No PII Leakage**: Sanitize logs and errors
-- **User Consent**: Explicit for any external calls
-- **Data Sovereignty**: User controls all data
+- **Authentication**: Deferred to post-MVP (Keycloak OIDC planned)
+- **TLS**: Required for non-localhost deployments
+- **No Telemetry**: Zero external calls
 
-### Accessibility
+## Accessibility Constraints (CLIENT)
+
 - **WCAG 2.1**: Level AA compliance target
-- **Keyboard Navigation**: Full functionality
-- **Screen Reader**: Compatible markup
-- **High Contrast**: Windows theme support
+- **Keyboard Navigation**: Full functionality without mouse
+- **Screen Reader**: ARIA attributes on all interactive elements
+- **Focus Management**: Visible focus indicators, logical tab order
+- **Touch Targets**: 44px minimum on mobile viewports
+- **Color Contrast**: 4.5:1 for text, 3:1 for UI components
 
 ## External Interface Constraints
 
-### API Compatibility
-- **HTTP/1.1**: Minimum protocol version
-- **JSON**: Primary data format
-- **UTF-8**: Character encoding
-- **ISO 8601**: Date/time format
+### API Communication
 
-### Integration Points
-- **Ollama API**: HTTP REST on port 11434
-- **PostgreSQL**: Standard wire protocol
-- **MCP Server**: JSON-RPC 2.0
-- **WebSocket**: For real-time events
+- **Protocol**: HTTP/1.1 minimum, HTTPS for production
+- **Data Format**: JSON with UTF-8 encoding
+- **Date Format**: ISO 8601
+- **File Upload**: Multipart form data for attachments
+- **Realtime**: WebSocket or SSE for event streaming
+
+### Integration Points (BACKEND)
+
+| Service | Protocol | Port | Purpose |
+|---------|----------|------|---------|
+| Fortemi API | HTTP REST | 3000 | All data operations |
+| WebSocket | WS | 3000 | Realtime events |
+| Ollama | HTTP REST | 11434 | NLP processing |
 
 ## Quality Constraints
 
-### Code Quality
-- **Linting**: Must pass clippy/ESLint
-- **Formatting**: rustfmt/prettier enforced
-- **Documentation**: All public APIs documented
-- **Examples**: Usage examples required
+### Code Quality (CLIENT)
 
-### Testing
-- **Unit Tests**: Minimum 60% coverage
-- **Integration Tests**: API endpoints covered
-- **E2E Tests**: Critical user flows
-- **Performance Tests**: Baseline metrics
+- **Linting**: ESLint must pass
+- **Type Safety**: TypeScript strict mode, zero `any` in new code
+- **Test Coverage**: 60-80% target
+- **CI Gates**: `gh act -j frontend-tests` exit code 0 before push
 
-## Future Compatibility
+### Testing (CLIENT)
 
-### Extensibility Points
-- **Plugin System**: Reserved for future
-- **Theme Support**: UI customization
-- **Language Packs**: i18n preparation
-- **Model Providers**: Abstract LLM interface
-
-### Migration Considerations
-- **Data Format**: Version schema changes
-- **API Evolution**: Deprecation policy
-- **Feature Flags**: Gradual rollout
-- **Rollback**: Support downgrade path
+- **Unit Tests**: Vitest with React Testing Library
+- **Integration**: API client contract tests with mocked HTTP
+- **E2E**: Playwright for critical user journeys (optional)
+- **Security**: `npm audit` in CI pipeline

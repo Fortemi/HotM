@@ -1,6 +1,6 @@
 # HotM — Hall of the Mind
 
-[![Version](https://img.shields.io/badge/version-2026.2.0-blue)]()
+[![Version](https://img.shields.io/badge/version-2026.2.3-blue)]()
 [![Channel](https://img.shields.io/badge/channel-beta-orange)]()
 [![React](https://img.shields.io/badge/React-19-61dafb)]()
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.8-3178c6)]()
@@ -10,6 +10,7 @@ A React single-page application for note-taking, knowledge exploration, and anal
 ## Features
 
 ### Notes & Editing
+- **Quick Capture** — dedicated capture view with sticky classification settings, drag-and-drop attachments, AI enhancement level selection (full/light/none), and document type classification
 - Markdown editor with live preview, KaTeX math, Mermaid diagrams, and PlantUML rendering
 - Immutable originals with NLP-generated revisions (summarization, rewriting)
 - Metadata editing with title typing animation and edit locking
@@ -115,6 +116,7 @@ hotm/
 │   │   │   ├── archives/        # Archive management
 │   │   │   ├── attachments/     # File attachments & PDF preview
 │   │   │   ├── backup/          # Backup & restore
+│   │   │   ├── capture/         # Quick Capture
 │   │   │   ├── collections/     # Collection management
 │   │   │   ├── concepts/        # NLP concept browser
 │   │   │   ├── graph/           # Knowledge graph (Sigma.js)
@@ -158,7 +160,7 @@ The container serves the SPA on port **4180** via nginx.
 - [Quick Start](docs/quick-start.md) — get running in minutes
 - [Changelog](CHANGELOG.md) — version history
 - [Release Notes](docs/releases/) — detailed release announcements
-- [API Specification](docs/specifications/api-specification.md) — Fortemi API endpoints
+- [API Specification](docs/specifications/api-specification.md) — Fortemi API endpoints (v2)
 - [Architecture](docs/architecture/) — system design and decisions
 - [Testing Strategy](docs/implementation/testing-strategy.md) — test approach and coverage
 

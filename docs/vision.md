@@ -11,7 +11,7 @@ Principles
 - Interactions map to deterministic MCP tools for auditability
 
 What you get
-- Quick capture anywhere (tray + global hotkey)
+- Quick capture with dedicated capture view and keyboard shortcuts
 - Automatic revision, summarization, tagging, linking
 - Provenance view showing how revisions were produced
 - Powerful command palette for analytics, review, and editing

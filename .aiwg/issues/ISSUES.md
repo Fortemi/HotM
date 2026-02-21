@@ -1,39 +1,39 @@
 # HotM UI Redesign - Issue Tracker
 
-*Note: Gitea repo is archived. Using local tracking.*
+*Note: Active issue tracking moved to Gitea (Fortemi/HotM). This file is retained for historical reference.*
 
 ## Epic: UI Redesign - Complete Fortemi API Coverage
 
-| ID | Title | Priority | Status | Estimate |
-|----|-------|----------|--------|----------|
-| HOTM-001 | Collections Management UI | P1 | Open | 30h |
-| HOTM-002 | Knowledge Health Dashboard | P1 | Open | 40h |
-| HOTM-003 | Memory Search (Spatiotemporal) | P1 | Open | 60h |
-| HOTM-004 | Graph Explorer | P2 | Open | 50h |
-| HOTM-005 | Template Management | P2 | Open | 25h |
-| HOTM-006 | Admin Panel | P2 | Open | 45h |
-| HOTM-007 | Timeline View | P2 | Open | 35h |
-| HOTM-008 | Enhanced Tag Management | P2 | Open | 20h |
-| HOTM-009 | Enhanced Attachments | P2 | Open | 30h |
-| HOTM-010 | Advanced Search Filters | P3 | Open | 25h |
+| ID | Title | Priority | Status | Version |
+|----|-------|----------|--------|---------|
+| HOTM-001 | Collections Management UI | P1 | **DONE** | 2026.2.0 |
+| HOTM-002 | Knowledge Health Dashboard | P1 | **DONE** | 2026.2.0 |
+| HOTM-003 | Memory Search (Spatiotemporal) | P1 | **DONE** | 2026.2.0 |
+| HOTM-004 | Graph Explorer | P2 | **DONE** | 2026.2.0 |
+| HOTM-005 | Template Management | P2 | **DONE** | 2026.2.0 |
+| HOTM-006 | Admin Panel | P2 | **DONE** | 2026.2.0 |
+| HOTM-007 | Timeline View | P2 | **DONE** | 2026.2.0 |
+| HOTM-008 | Enhanced Tag Management | P2 | **DONE** | 2026.2.0 |
+| HOTM-009 | Enhanced Attachments | P2 | **DONE** | 2026.2.3 |
+| HOTM-010 | Advanced Search Filters | P3 | **DONE** | 2026.2.0 |
 
-**Total Estimate: ~360 hours**
+**All items complete as of v2026.2.3.**
 
 ---
 
 ## Epic: Elaboration Phase - Gate Deficiencies
 
-| ID | Title | Priority | Status | Estimate | Blocks |
-|----|-------|----------|--------|----------|--------|
-| HOTM-011 | API Endpoint Verification | P0 | **DONE** | 6h | ABM Gate |
-| HOTM-012 | Wireframes & UI Mockups | P1 | **DONE** | 30h | Construction |
-| HOTM-013 | Risk Register Expansion | P2 | **DONE** | 8h | ABM Gate |
-| HOTM-014 | Performance Validation Strategy | P2 | **DONE** | 12h | IOC Gate |
-| HOTM-015 | Responsive Design Specifications | P2 | **DONE** | 12h | Construction |
-| HOTM-016 | Client-Side Tag Bulk Operations | P2 | Open | 4h | HOTM-008 |
-| HOTM-017 | Auth UI Placeholder (Deferred) | P3 | Deferred | 0h | Future |
+| ID | Title | Priority | Status | Blocks |
+|----|-------|----------|--------|--------|
+| HOTM-011 | API Endpoint Verification | P0 | **DONE** | ABM Gate |
+| HOTM-012 | Wireframes & UI Mockups | P1 | **DONE** | Construction |
+| HOTM-013 | Risk Register Expansion | P2 | **DONE** | ABM Gate |
+| HOTM-014 | Performance Validation Strategy | P2 | **DONE** | IOC Gate |
+| HOTM-015 | Responsive Design Specifications | P2 | **DONE** | Construction |
+| HOTM-016 | Client-Side Tag Bulk Operations | P2 | **DONE** | HOTM-008 |
+| HOTM-017 | Auth UI Placeholder (Deferred) | P3 | Deferred | Future |
 
-**Total Elaboration Estimate: ~72 hours**
+**All items complete except deferred auth (post-MVP).**
 
 ---
 

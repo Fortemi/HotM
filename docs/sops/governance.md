@@ -12,7 +12,7 @@
 ## Definition of Done
 - Tests added and passing (UI).
 - Security/privacy review complete when applicable.
-- Documentation updated (`docs/*`, `AGENTS.md`, changelog).
+- Documentation updated (`docs/*`, changelog).
 - Release notes drafted for user-visible changes.
 
 ## Tooling

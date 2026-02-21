@@ -21,10 +21,11 @@ HotM (Hall of the Mind) is a React-based single-page application (SPA) providing
 Comprehensive documentation is available in the `docs/` directory:
 - [Documentation Index](docs/index.md) - Complete navigation guide
 - [Requirements](docs/requirements/) - Functional and non-functional requirements
-- [Specifications](docs/specifications/) - API, MCP, and data model specs
-- [Architecture](docs/architecture/) - System design and NLP pipeline
+- [Specifications](docs/specifications/) - API specification (v2)
+- [Architecture](docs/architecture/) - System design
 - [Implementation](docs/implementation/) - Development and testing guides
-- [Deployment](docs/deployment/) - Installation and deployment
+- [UX Design](docs/ux/) - Wireframes, accessibility, feature specs
+- [Operations](docs/sops/) - Release, governance, incident response SOPs
 
 ---
 

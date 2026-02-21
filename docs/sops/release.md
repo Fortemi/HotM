@@ -7,7 +7,7 @@
 1. Update version in `ui/package.json`.
 2. Update `CHANGELOG.md` with all changes, breaking notes, and manual steps.
 3. Create release notes in `docs/releases/v<version>.md`.
-4. Tag: `git tag v0.<minor>.<patch>[-channel] && git push --tags`.
+4. Tag: `git tag v<YYYY.M.PATCH>[-channel] && git push --tags` (e.g., `v2026.2.3`).
 5. Build artifacts:
    - Web SPA: `cd ui && npm ci && npm run build`
    - Docker: `docker compose -f docker-compose.prod.yml build`

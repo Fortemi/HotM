@@ -1,27 +1,37 @@
 # HotM Test Coverage Baseline Report
 
-**Date**: 2025-12-04
-**Phase**: Inception
+**Last Updated**: 2026-02-20
+**Phase**: Construction (Iteration 2+)
 **Target Coverage**: 60% for MVP Gate Check
-**Project Version**: 0.1.2
+**Project Version**: 2026.2.3
 
 ---
 
-## Executive Summary
+## Current Snapshot (2026-02-20)
 
-HotM currently has **partial test coverage** with a functional test infrastructure in place for both backend (Rust) and frontend (React/TypeScript). Both now have measured coverage baselines.
+- **Frontend (HotM SPA)**: 46.73% statement coverage (541 tests passing)
+- **Backend (Fortemi)**: Owned by Fortemi repository (not tracked here)
+- **CI/CD**: GitHub Actions + Gitea runners, `gh act -j frontend-tests` as local validator
+- **Test Framework**: Vitest 1.0 + React Testing Library 16.1
 
-**Key Findings:**
+**Progress from Inception:**
+- Frontend coverage: 33.48% -> 46.73% (+13.25%)
+- Test count: ~254 -> 541 (+287 tests)
+- Gap to 60% target: 13.27% remaining
+
+---
+
+## Historical Baseline (2025-12-04)
+
+> The section below captures the original inception-phase baseline for reference.
+
+HotM had **partial test coverage** at inception with a functional test infrastructure in place.
+
+**Key Findings (Inception):**
 - Frontend: 33.48% line coverage (measured via Vitest + v8)
-- Backend: **9.91% line coverage** (measured via cargo-tarpaulin 2025-12-04)
-- CI/CD: Fully integrated with GitHub Actions (act-compatible)
+- Backend: 9.91% line coverage (measured via cargo-tarpaulin, now Fortemi-owned)
+- CI/CD: Integrated with GitHub Actions (act-compatible)
 - Test frameworks: Properly configured and operational
-- Test database infrastructure: Docker-based with greenfield schema support
-
-**Gap to 60% Target:**
-- Frontend needs: +26.52% coverage
-- Backend needs: **+50.09% coverage**
-- Priority areas identified below
 
 ---
 

@@ -2,8 +2,8 @@
 
 ## Branching & Releases
 - Strategy: Trunk-based. Short-lived feature branches, frequent merges to `main` via PR.
-- Versioning: SemVer with pre-releases. Stage 1 uses `0.x` with `-alpha.N` tags. Stage 2 introduces `-beta` and stable.
-- Tags: `v<version>` (e.g., `v0.1.2-alpha.1`). Each tag has a changelog entry and release artifacts.
+- Versioning: CalVer `YYYY.M.PATCH` (e.g., `2026.2.3`). No leading zeros. Pre-release suffixes for channels: `-alpha.N`, `-beta.N`.
+- Tags: `v<version>` (e.g., `v2026.2.3`). Each tag has a changelog entry and release artifacts.
 
 ## Reviews & CI Gates
 - Required reviews: 1 (docs), 1–2 (code touching `ui/`). Owners auto-requested via CODEOWNERS.
@@ -25,4 +25,4 @@
 
 ## Quality Targets
 - UI: Vitest coverage for new logic; visual verification for UI changes.
-- Docs: Feature PRs update `docs/` and `AGENTS.md` as needed.
+- Docs: Feature PRs update `docs/` and changelog as needed.
