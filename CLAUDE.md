@@ -35,21 +35,21 @@ Comprehensive documentation is available in the `docs/` directory:
 
 ### Testing Discipline
 
-**Act (GitHub Actions locally) is the AUTHORITATIVE standard for all testing**
+**Gitea act_runner is the AUTHORITATIVE standard for all testing**
 
-Before pushing ANY changes to GitHub:
-1. Run `gh act -j frontend-tests` from repo root and wait for completion
+Before pushing ANY changes:
+1. Run `act_runner exec -j ui-quality-checks -W .github/workflows/ui-ci.yml` from repo root and wait for completion
 2. Verify exit code 0 and all tests passing
 3. Only push after confirming green local test runs
 4. If any tests fail, fix issues and repeat from step 1
 
-**No exceptions - even for "simple" fixes. Act tests are the single source of truth.**
+**No exceptions - even for "simple" fixes. act_runner tests are the single source of truth.**
 
 #### Standard Test Commands (Use These)
-- **Full frontend validation**: `gh act -j frontend-tests` (React tests, TypeScript build, coverage, security audit)
+- **Full frontend validation**: `act_runner exec -j ui-quality-checks -W .github/workflows/ui-ci.yml` (React tests, TypeScript build, coverage, security audit)
 - **Quick local iteration**: `cd ui && npm test -- --run`
 
-All shell-based test scripts have been removed - use `gh act` for consistent CI/CD parity.
+All shell-based test scripts have been removed - use `act_runner` for consistent CI/CD parity.
 
 ### Key Technical Decisions
 
@@ -99,14 +99,14 @@ npm run typecheck
 # Linting
 npm run lint
 
-# Run tests (use act for full validation)
-gh act -j frontend-tests
+# Run tests (use act_runner for full CI validation)
+act_runner exec -j ui-quality-checks -W .github/workflows/ui-ci.yml
 ```
 
-### Testing (Use Act - Authoritative Standard)
+### Testing (Use act_runner - Authoritative Standard)
 ```bash
-# STANDARD: Run full frontend test suite (includes tests, build, coverage, security)
-gh act -j frontend-tests
+# STANDARD: Run full frontend test suite via Gitea act_runner (mirrors CI exactly)
+act_runner exec -j ui-quality-checks -W .github/workflows/ui-ci.yml
 
 # Quick local iteration only (not comprehensive)
 cd ui && npm test -- --run     # Basic React unit tests only
