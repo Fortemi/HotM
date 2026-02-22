@@ -107,8 +107,6 @@ interface StreamingVideoPlayerProps {
   transcriptSegments?: TranscriptSegment[];
   /** Attachment filename (used for subtitle download naming) */
   filename?: string;
-  /** Server-side subtitle URL (e.g. from /attachments/:id/subtitles endpoint) */
-  subtitleUrl?: string;
   /** Preferred media variant (e.g. 'web_compatible', 'faststart', 'preview_720p') */
   variant?: string;
 }
@@ -120,7 +118,6 @@ export function StreamingVideoPlayer({
   sizeBytes,
   transcriptSegments,
   filename,
-  subtitleUrl,
   variant,
 }: StreamingVideoPlayerProps) {
   const [mode, setMode] = useState<PlaybackMode>('direct');
@@ -458,7 +455,6 @@ export function StreamingVideoPlayer({
         controls
         preload="metadata"
         poster={posterUrl}
-        crossOrigin={posterUrl || subtitleUrl ? 'anonymous' : undefined}
         className={className ?? 'w-full max-h-[500px] rounded border bg-black'}
         data-testid="attachment-video-preview"
         onLoadedMetadata={handleLoadedMetadata}
@@ -470,10 +466,10 @@ export function StreamingVideoPlayer({
         onError={handleVideoError}
         onTimeUpdate={handleTimeUpdate}
       >
-        {(subtitleUrl || vttBlobUrl) && (
+        {vttBlobUrl && (
           <track
             kind="subtitles"
-            src={subtitleUrl ?? vttBlobUrl!}
+            src={vttBlobUrl}
             srcLang="en"
             label="English"
             default
@@ -522,6 +518,10 @@ interface StreamingAudioPlayerProps {
   posterUrl?: string;
   /** Preferred media variant (e.g. 'web_audio', 'audio_preview') */
   variant?: string;
+  /** Transcript segments for interactive transcript panel */
+  transcriptSegments?: TranscriptSegment[];
+  /** Attachment filename (used for transcript download naming) */
+  filename?: string;
 }
 
 export function StreamingAudioPlayer({
@@ -530,10 +530,13 @@ export function StreamingAudioPlayer({
   sizeBytes,
   posterUrl,
   variant,
+  transcriptSegments,
+  filename,
 }: StreamingAudioPlayerProps) {
   const [mode, setMode] = useState<PlaybackMode>('direct');
   const [blobUrl, setBlobUrl] = useState<string | null>(null);
   const [retryCount, setRetryCount] = useState(0);
+  const [currentTime, setCurrentTime] = useState(0);
   const audioRef = useRef<HTMLAudioElement>(null);
   const positionTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const retryTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -541,6 +544,21 @@ export function StreamingAudioPlayer({
 
   const directUrl = api.attachments.getDownloadUrl(attachmentId, variant);
   const downloadUrl = api.attachments.getDownloadUrl(attachmentId);
+
+  const hasTranscript = !!transcriptSegments && transcriptSegments.length > 0;
+
+  const handleTimeUpdate = useCallback(() => {
+    const audio = audioRef.current;
+    if (audio) setCurrentTime(audio.currentTime);
+  }, []);
+
+  const handleTranscriptSeek = useCallback((timeSecs: number) => {
+    const audio = audioRef.current;
+    if (audio) {
+      audio.currentTime = timeSecs;
+      setCurrentTime(timeSecs);
+    }
+  }, []);
 
   const activeMemory = getActiveMemory();
   const startWithBlob = !!activeMemory;
@@ -721,9 +739,19 @@ export function StreamingAudioPlayer({
         onPause={handlePause}
         onEnded={handleEnded}
         onError={handleAudioError}
+        onTimeUpdate={handleTimeUpdate}
       >
         Your browser does not support audio playback.
       </audio>
+      {hasTranscript && (
+        <TranscriptPanel
+          segments={transcriptSegments!}
+          currentTime={currentTime}
+          onSeek={handleTranscriptSeek}
+          filename={filename}
+          className="w-full max-w-md mt-2"
+        />
+      )}
     </div>
   );
 }

@@ -447,10 +447,10 @@ function AttachmentPreviewContent({
 
     case 'video': {
       const posterUrl = getThumbnailUrl(attachment, api.attachments.getDownloadUrl, api.attachments.getThumbnailUrl);
-      const meta = attachment.extracted_metadata as Record<string, unknown> | null;
-      const segments = meta && Array.isArray(meta.transcript_segments) ? meta.transcript_segments as import('./subtitle-utils').TranscriptSegment[] : undefined;
-      const hasTranscript = segments && segments.length > 0;
-      const subtitleUrl = hasTranscript ? api.attachments.getSubtitleUrl(attachment.id, 'vtt') : undefined;
+      const videoMeta = attachment.extracted_metadata as Record<string, unknown> | null;
+      const segments = videoMeta && Array.isArray(videoMeta.transcript_segments)
+        ? videoMeta.transcript_segments as import('./subtitle-utils').TranscriptSegment[]
+        : undefined;
       const videoVariant = getPreferredVariant(attachment);
       return (
         <StreamingVideoPlayer
@@ -459,7 +459,6 @@ function AttachmentPreviewContent({
           sizeBytes={attachment.size_bytes}
           transcriptSegments={segments}
           filename={attachment.filename}
-          subtitleUrl={subtitleUrl}
           variant={videoVariant}
         />
       );
@@ -468,12 +467,18 @@ function AttachmentPreviewContent({
     case 'audio': {
       const audioPosterUrl = getThumbnailUrl(attachment, api.attachments.getDownloadUrl, api.attachments.getThumbnailUrl);
       const audioVariant = getPreferredVariant(attachment);
+      const audioMeta = attachment.extracted_metadata as Record<string, unknown> | null;
+      const audioSegments = audioMeta && Array.isArray(audioMeta.transcript_segments)
+        ? audioMeta.transcript_segments as import('./subtitle-utils').TranscriptSegment[]
+        : undefined;
       return (
         <StreamingAudioPlayer
           attachmentId={attachment.id}
           sizeBytes={attachment.size_bytes}
           posterUrl={audioPosterUrl}
           variant={audioVariant}
+          transcriptSegments={audioSegments}
+          filename={attachment.filename}
         />
       );
     }

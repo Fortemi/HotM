@@ -220,48 +220,41 @@ describe('StreamingVideoPlayer', () => {
   });
 
   describe('subtitle track', () => {
-    it('renders track with server subtitle URL when subtitleUrl is provided', () => {
+    it('renders track with VTT blob URL from transcript segments', () => {
       render(
         <StreamingVideoPlayer
           attachmentId="vid-1"
-          subtitleUrl="http://test/api/v1/attachments/vid-1/subtitles?format=vtt"
+          transcriptSegments={[{ start_secs: 0, end_secs: 5, text: 'Hello world' }]}
         />
       );
       const track = screen.getByTestId('subtitle-track');
       expect(track).toBeInTheDocument();
-      expect(track).toHaveAttribute('src', 'http://test/api/v1/attachments/vid-1/subtitles?format=vtt');
+      expect(track.getAttribute('src')).toMatch(/^blob:/);
     });
 
-    it('prefers subtitleUrl over client-side VTT blob', () => {
+    it('uses same-origin VTT blob URL for subtitles (avoids CORS)', () => {
       render(
         <StreamingVideoPlayer
           attachmentId="vid-1"
-          subtitleUrl="http://test/server-subtitles.vtt"
           transcriptSegments={[{ start_secs: 0, end_secs: 5, text: 'Hello' }]}
         />
       );
       const track = screen.getByTestId('subtitle-track');
-      expect(track).toHaveAttribute('src', 'http://test/server-subtitles.vtt');
+      expect(track.getAttribute('src')).toMatch(/^blob:/);
     });
 
-    it('renders no track when neither subtitleUrl nor segments provided', () => {
+    it('renders no track when no segments provided', () => {
       render(<StreamingVideoPlayer attachmentId="vid-1" />);
       expect(screen.queryByTestId('subtitle-track')).not.toBeInTheDocument();
     });
 
-    it('sets crossOrigin=anonymous when subtitleUrl is provided (CORS for track)', () => {
+    it('does not set crossOrigin on video element (prevents CORS blocking)', () => {
       render(
         <StreamingVideoPlayer
           attachmentId="vid-1"
-          subtitleUrl="http://test/api/v1/attachments/vid-1/subtitles?format=vtt"
+          transcriptSegments={[{ start_secs: 0, end_secs: 5, text: 'Hello' }]}
         />
       );
-      const video = screen.getByTestId('attachment-video-preview');
-      expect(video).toHaveAttribute('crossOrigin', 'anonymous');
-    });
-
-    it('does not set crossOrigin when no poster or subtitle URL', () => {
-      render(<StreamingVideoPlayer attachmentId="vid-1" />);
       const video = screen.getByTestId('attachment-video-preview');
       expect(video).not.toHaveAttribute('crossOrigin');
     });
