@@ -244,6 +244,31 @@ export function createAttachmentsApi(client: ApiClient) {
     },
 
     /**
+     * Get thumbnail sprites VTT URL for video scrubbing preview.
+     * Returns the URL to a WebVTT file mapping timestamps to sprite sheet coordinates.
+     */
+    getThumbnailVttUrl(attachmentId: string): string {
+      if (!attachmentId || attachmentId.trim() === '') {
+        throw new Error('Attachment ID is required');
+      }
+
+      const baseUrl = getBaseUrl();
+      return `${baseUrl}/api/v1/attachments/${attachmentId}/thumbnails.vtt`;
+    },
+
+    /**
+     * Get sprite sheet image URL for a specific sprite index.
+     */
+    getSpriteUrl(attachmentId: string, index: number): string {
+      if (!attachmentId || attachmentId.trim() === '') {
+        throw new Error('Attachment ID is required');
+      }
+
+      const baseUrl = getBaseUrl();
+      return `${baseUrl}/api/v1/attachments/${attachmentId}/sprites/${index}.jpg`;
+    },
+
+    /**
      * Delete an attachment permanently
      */
     async deleteAttachment(attachmentId: string): Promise<void> {

@@ -21,6 +21,8 @@ vi.mock('@/api', () => ({
       getDownloadUrl: vi.fn((id: string) => `http://test/api/v1/attachments/${id}/download`),
       getThumbnailUrl: vi.fn((id: string) => `http://test/api/v1/attachments/${id}/thumbnail`),
       getSubtitleUrl: vi.fn((id: string, fmt = 'vtt') => `http://test/api/v1/attachments/${id}/subtitles?format=${fmt}`),
+      getThumbnailVttUrl: vi.fn((id: string) => `http://test/api/v1/attachments/${id}/thumbnails.vtt`),
+      getSpriteUrl: vi.fn((id: string, index: number) => `http://test/api/v1/attachments/${id}/sprites/${index}.jpg`),
       deleteAttachment: vi.fn(),
     },
   },

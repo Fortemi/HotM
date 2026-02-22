@@ -30,6 +30,10 @@ import { TranscriptPanel } from './TranscriptPanel';
 import type { MediaInfo } from './media-utils';
 import { useMediaStats } from './useMediaStats';
 import { ExpertModeOverlay } from './ExpertModeOverlay';
+import { VideoControls } from './VideoControls';
+import { ThumbnailPreview } from './ThumbnailPreview';
+import type { ThumbnailCue } from './thumbnail-vtt';
+import { parseThumbnailVtt, getCueForTime } from './thumbnail-vtt';
 
 // ---------------------------------------------------------------------------
 // Shared types
@@ -141,6 +145,11 @@ export function StreamingVideoPlayer({
   const [retryCount, setRetryCount] = useState(0);
   const [duration, setDuration] = useState<number | null>(null);
   const [currentTime, setCurrentTime] = useState(0);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [volume, setVolume] = useState(1);
+  const [isMuted, setIsMuted] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [buffered, setBuffered] = useState<TimeRanges | null>(null);
 
   // Expert mode stats overlay (fully inert until toggled)
   const [showExpertMode, setShowExpertMode] = useState(false);
@@ -211,7 +220,10 @@ export function StreamingVideoPlayer({
   // ---- Time tracking for transcript sync ----
   const handleTimeUpdate = useCallback(() => {
     const video = videoRef.current;
-    if (video) setCurrentTime(video.currentTime);
+    if (video) {
+      setCurrentTime(video.currentTime);
+      setBuffered(video.buffered);
+    }
   }, []);
 
   const handleTranscriptSeek = useCallback((timeSecs: number) => {
@@ -221,6 +233,102 @@ export function StreamingVideoPlayer({
       setCurrentTime(timeSecs);
     }
   }, []);
+
+  // ---- Custom controls handlers ----
+  const handleControlPlay = useCallback(() => {
+    videoRef.current?.play();
+  }, []);
+
+  const handleControlPause = useCallback(() => {
+    videoRef.current?.pause();
+  }, []);
+
+  const handleControlSeek = useCallback((time: number) => {
+    const video = videoRef.current;
+    if (video) {
+      video.currentTime = time;
+      setCurrentTime(time);
+    }
+  }, []);
+
+  const handleControlVolumeChange = useCallback((v: number) => {
+    const video = videoRef.current;
+    if (video) {
+      video.volume = v;
+      setVolume(v);
+      if (v > 0 && isMuted) {
+        video.muted = false;
+        setIsMuted(false);
+      }
+    }
+  }, [isMuted]);
+
+  const handleControlMuteToggle = useCallback(() => {
+    const video = videoRef.current;
+    if (video) {
+      video.muted = !video.muted;
+      setIsMuted(video.muted);
+    }
+  }, []);
+
+  const handleControlFullscreenToggle = useCallback(() => {
+    if (document.fullscreenElement) {
+      document.exitFullscreen();
+    } else {
+      containerRef.current?.requestFullscreen();
+    }
+  }, []);
+
+  // Track fullscreen changes
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+    };
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
+  }, []);
+
+  // ---- Thumbnail sprite preview for seek bar ----
+  const [thumbnailCues, setThumbnailCues] = useState<ThumbnailCue[] | null>(null);
+  const [hoverTime, setHoverTime] = useState<number | null>(null);
+  const [hoverPositionX, setHoverPositionX] = useState<number | null>(null);
+  const [seekBarWidth, setSeekBarWidth] = useState(0);
+
+  // Fetch thumbnail VTT when player initializes
+  useEffect(() => {
+    let cancelled = false;
+    const vttUrl = api.attachments.getThumbnailVttUrl(attachmentId);
+    const headers: HeadersInit = {};
+    const mem = getActiveMemory();
+    if (mem) headers[getMemoryRoutingHeaderName()] = mem;
+
+    fetch(vttUrl, { headers })
+      .then((res) => (res.ok ? res.text() : null))
+      .then((text) => {
+        if (cancelled || !text) return;
+        const cues = parseThumbnailVtt(text);
+        if (cues.length > 0) setThumbnailCues(cues);
+      })
+      .catch(() => {/* thumbnail VTT not available — graceful degradation */});
+    return () => { cancelled = true; };
+  }, [attachmentId]);
+
+  // Track seek bar width for thumbnail position clamping
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+    const observer = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        setSeekBarWidth(entry.contentRect.width);
+      }
+    });
+    observer.observe(container);
+    return () => observer.disconnect();
+  }, []);
+
+  const activeThumbnailCue = thumbnailCues && hoverTime !== null
+    ? getCueForTime(thumbnailCues, hoverTime) ?? null
+    : null;
 
   // ---- Memory routing: skip direct URL if memory headers needed ----
   useEffect(() => {
@@ -318,10 +426,12 @@ export function StreamingVideoPlayer({
 
   const handlePlaying = useCallback(() => {
     setPlaybackState('ready');
+    setIsPlaying(true);
     startPositionSaving();
   }, [startPositionSaving]);
 
   const handlePause = useCallback(() => {
+    setIsPlaying(false);
     stopPositionSaving();
     // Save position on pause
     const video = videoRef.current;
@@ -331,6 +441,7 @@ export function StreamingVideoPlayer({
   }, [attachmentId, stopPositionSaving]);
 
   const handleEnded = useCallback(() => {
+    setIsPlaying(false);
     stopPositionSaving();
     clearPlaybackPosition(attachmentId);
   }, [attachmentId, stopPositionSaving]);
@@ -440,6 +551,7 @@ export function StreamingVideoPlayer({
       case 'm':
         e.preventDefault();
         video.muted = !video.muted;
+        setIsMuted(video.muted);
         break;
       case 'c':
         e.preventDefault();
@@ -523,11 +635,11 @@ export function StreamingVideoPlayer({
       <video
         ref={videoRef}
         src={mode === 'direct' ? directUrl : (blobUrl ?? undefined)}
-        controls
         preload="metadata"
         poster={posterUrl}
         className={className ?? 'w-full max-h-[500px] rounded border bg-black'}
         data-testid="attachment-video-preview"
+        onClick={isPlaying ? handleControlPause : handleControlPlay}
         onLoadedMetadata={handleLoadedMetadata}
         onCanPlay={handleCanPlay}
         onWaiting={handleWaiting}
@@ -550,31 +662,42 @@ export function StreamingVideoPlayer({
         Your browser does not support video playback.
       </video>
 
-      {/* CC toggle button (top-left, shown on hover) */}
-      {hasTranscript && (
-        <button
-          type="button"
-          className={cn(
-            'absolute top-2 left-2 flex items-center gap-1 px-1.5 py-1 rounded text-xs transition-opacity z-10',
-            showCaptions
-              ? 'bg-primary text-primary-foreground opacity-80 hover:opacity-100'
-              : 'bg-black/70 text-white opacity-0 group-hover:opacity-80 hover:!opacity-100',
-          )}
-          onClick={() => setShowCaptions((prev) => !prev)}
-          title={showCaptions ? 'Hide captions (C)' : 'Show captions (C)'}
-          data-testid="cc-toggle"
-        >
-          <Subtitles className="w-3.5 h-3.5" />
-          CC
-        </button>
-      )}
+      {/* Custom video controls overlay */}
+      <VideoControls
+        containerRef={containerRef}
+        duration={duration ?? 0}
+        currentTime={currentTime}
+        isPlaying={isPlaying}
+        volume={volume}
+        isMuted={isMuted}
+        isFullscreen={isFullscreen}
+        buffered={buffered}
+        showCaptions={showCaptions}
+        hasCaptions={hasTranscript}
+        onPlay={handleControlPlay}
+        onPause={handleControlPause}
+        onSeek={handleControlSeek}
+        onVolumeChange={handleControlVolumeChange}
+        onMuteToggle={handleControlMuteToggle}
+        onFullscreenToggle={handleControlFullscreenToggle}
+        onCaptionToggle={() => setShowCaptions((prev) => !prev)}
+        onHoverTime={setHoverTime}
+        onHoverPosition={setHoverPositionX}
+        seekBarChildren={
+          <ThumbnailPreview
+            cue={activeThumbnailCue}
+            hoverTime={hoverTime}
+            hoverPositionX={hoverPositionX}
+            seekBarWidth={seekBarWidth}
+          />
+        }
+      />
 
-      {/* Expert mode toggle button (top-right area, shown on hover) */}
+      {/* Expert mode toggle button (top-left, shown on hover) */}
       <button
         type="button"
         className={cn(
-          'absolute top-2 flex items-center gap-1 px-1.5 py-1 rounded text-xs transition-opacity z-10',
-          hasTranscript ? 'left-[4.5rem]' : 'left-2',
+          'absolute top-2 left-2 flex items-center gap-1 px-1.5 py-1 rounded text-xs transition-opacity z-10',
           showExpertMode
             ? 'bg-primary text-primary-foreground opacity-80 hover:opacity-100'
             : 'bg-black/70 text-white opacity-0 group-hover:opacity-80 hover:!opacity-100',
@@ -601,18 +724,6 @@ export function StreamingVideoPlayer({
           onClose={() => setShowExpertMode(false)}
         />
       )}
-
-      {/* Duration badge (top-right, shown on hover when ready) */}
-      {duration && playbackState === 'ready' && (
-        <div className="absolute top-2 right-2 bg-black/70 text-white text-xs px-1.5 py-0.5 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
-          {formatDuration(duration)}
-        </div>
-      )}
-
-      {/* Keyboard hints (bottom, shown briefly on focus) */}
-      <div className="absolute bottom-12 left-1/2 -translate-x-1/2 bg-black/70 text-white text-[10px] px-2 py-1 rounded opacity-0 group-focus-within:opacity-100 transition-opacity pointer-events-none whitespace-nowrap">
-        Space: play/pause &middot; J/L: &plusmn;10s &middot; F: fullscreen &middot; M: mute &middot; C: captions &middot; I: stats
-      </div>
 
       {/* Interactive transcript panel */}
       {hasTranscript && showCaptions && (

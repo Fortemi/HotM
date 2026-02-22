@@ -20,6 +20,8 @@ vi.mock('@/api', () => ({
       getDownloadUrl: vi.fn((id: string) => `http://test/api/v1/attachments/${id}/download`),
       getThumbnailUrl: vi.fn((id: string) => `http://test/api/v1/attachments/${id}/thumbnail`),
       getSubtitleUrl: vi.fn((id: string, fmt = 'vtt') => `http://test/api/v1/attachments/${id}/subtitles?format=${fmt}`),
+      getThumbnailVttUrl: vi.fn((id: string) => `http://test/api/v1/attachments/${id}/thumbnails.vtt`),
+      getSpriteUrl: vi.fn((id: string, index: number) => `http://test/api/v1/attachments/${id}/sprites/${index}.jpg`),
       downloadAttachment: vi.fn(),
     },
   },
@@ -259,37 +261,36 @@ describe('StreamingVideoPlayer', () => {
       expect(video).not.toHaveAttribute('crossOrigin');
     });
 
-    it('shows CC toggle button when transcript segments exist', () => {
+    it('shows CC toggle in custom controls when transcript segments exist', () => {
       render(
         <StreamingVideoPlayer
           attachmentId="vid-1"
           transcriptSegments={[{ start_secs: 0, end_secs: 5, text: 'Hello' }]}
         />
       );
-      const ccButton = screen.getByTestId('cc-toggle');
+      const ccButton = screen.getByTestId('controls-captions');
       expect(ccButton).toBeInTheDocument();
-      expect(ccButton).toHaveTextContent('CC');
     });
 
     it('does not show CC toggle when no segments', () => {
       render(<StreamingVideoPlayer attachmentId="vid-1" />);
-      expect(screen.queryByTestId('cc-toggle')).not.toBeInTheDocument();
+      expect(screen.queryByTestId('controls-captions')).not.toBeInTheDocument();
     });
 
-    it('toggles CC button on click', () => {
+    it('toggles CC via custom controls button', () => {
       render(
         <StreamingVideoPlayer
           attachmentId="vid-1"
           transcriptSegments={[{ start_secs: 0, end_secs: 5, text: 'Hello' }]}
         />
       );
-      const ccButton = screen.getByTestId('cc-toggle');
-      // Initially active (primary color)
-      expect(ccButton.className).toContain('bg-primary');
+      const ccButton = screen.getByTestId('controls-captions');
+      // Initially captions are on (showCaptions default=true) -> highlighted
+      expect(ccButton.className).toContain('bg-white/20');
 
       fireEvent.click(ccButton);
-      // After toggle, should be inactive
-      expect(ccButton.className).toContain('bg-black/70');
+      // After toggle, no highlight
+      expect(ccButton.className).not.toContain('bg-white/20');
     });
 
     it('responds to c key for caption toggle', () => {
@@ -300,11 +301,11 @@ describe('StreamingVideoPlayer', () => {
         />
       );
       const container = screen.getByTestId('video-player-container');
-      const ccButton = screen.getByTestId('cc-toggle');
+      const ccButton = screen.getByTestId('controls-captions');
 
-      expect(ccButton.className).toContain('bg-primary');
+      expect(ccButton.className).toContain('bg-white/20');
       fireEvent.keyDown(container, { key: 'c' });
-      expect(ccButton.className).toContain('bg-black/70');
+      expect(ccButton.className).not.toContain('bg-white/20');
     });
   });
 
@@ -516,10 +517,8 @@ describe('StreamingVideoPlayer expert mode', () => {
     expect(toggle.className).not.toContain('bg-primary');
   });
 
-  it('shows updated keyboard hints including I: stats', () => {
+  it('renders custom video controls overlay', () => {
     render(<StreamingVideoPlayer attachmentId="vid-1" />);
-    const container = screen.getByTestId('video-player-container');
-    const hints = container.querySelector('[class*="bottom-12"]');
-    expect(hints?.textContent).toContain('I: stats');
+    expect(screen.getByTestId('video-controls')).toBeInTheDocument();
   });
 });
