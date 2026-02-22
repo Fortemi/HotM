@@ -108,5 +108,82 @@ describe('Attachments API', () => {
         attachmentsApi.uploadAttachment('note-123', null as unknown as File),
       ).rejects.toThrow('File is required');
     });
+
+    describe('error extraction', () => {
+      it('extracts Fortemi nested error format { error: { message } }', async () => {
+        mockFetch.mockResolvedValueOnce({
+          ok: false,
+          status: 415,
+          json: () => Promise.resolve({ error: { code: 'UNSUPPORTED_MEDIA_TYPE', message: 'video/x-matroska is not supported' } }),
+        });
+
+        const file = new File(['data'], 'video.mkv', { type: 'video/x-matroska' });
+        await expect(attachmentsApi.uploadAttachment('note-123', file))
+          .rejects.toThrow('video/x-matroska is not supported');
+      });
+
+      it('extracts flat { message } format', async () => {
+        mockFetch.mockResolvedValueOnce({
+          ok: false,
+          status: 413,
+          json: () => Promise.resolve({ message: 'File exceeds 100MB limit' }),
+        });
+
+        const file = new File(['data'], 'big.mkv', { type: 'video/x-matroska' });
+        await expect(attachmentsApi.uploadAttachment('note-123', file))
+          .rejects.toThrow('File exceeds 100MB limit');
+      });
+
+      it('extracts { error: "string" } format', async () => {
+        mockFetch.mockResolvedValueOnce({
+          ok: false,
+          status: 400,
+          json: () => Promise.resolve({ error: 'Invalid file' }),
+        });
+
+        const file = new File(['data'], 'test.bin', { type: 'application/octet-stream' });
+        await expect(attachmentsApi.uploadAttachment('note-123', file))
+          .rejects.toThrow('Invalid file');
+      });
+
+      it('falls back to response.text() when JSON parse fails', async () => {
+        mockFetch.mockResolvedValueOnce({
+          ok: false,
+          status: 502,
+          json: () => Promise.reject(new Error('not json')),
+          text: () => Promise.resolve('Bad Gateway'),
+        });
+
+        const file = new File(['data'], 'video.mkv', { type: 'video/x-matroska' });
+        await expect(attachmentsApi.uploadAttachment('note-123', file))
+          .rejects.toThrow('Bad Gateway');
+      });
+
+      it('falls back to HTTP status when all parsing fails', async () => {
+        mockFetch.mockResolvedValueOnce({
+          ok: false,
+          status: 413,
+          json: () => Promise.reject(new Error('not json')),
+          text: () => Promise.reject(new Error('not text')),
+        });
+
+        const file = new File(['data'], 'video.mkv', { type: 'video/x-matroska' });
+        await expect(attachmentsApi.uploadAttachment('note-123', file))
+          .rejects.toThrow('HTTP 413');
+      });
+
+      it('never shows empty statusText from HTTP/2', async () => {
+        mockFetch.mockResolvedValueOnce({
+          ok: false,
+          status: 500,
+          statusText: '',
+          json: () => Promise.resolve({ error: { message: 'Internal error' } }),
+        });
+
+        const file = new File(['data'], 'video.mkv', { type: 'video/x-matroska' });
+        await expect(attachmentsApi.uploadAttachment('note-123', file))
+          .rejects.toThrow('Upload failed: Internal error');
+      });
+    });
   });
 });

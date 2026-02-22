@@ -12,6 +12,35 @@ import type {
   AttachmentMetadata,
 } from './types-extended';
 
+/**
+ * Extract a human-readable error message from an API error response.
+ * Handles Fortemi standard format, flat error objects, and plain text responses.
+ * Falls back to HTTP status code when no message can be extracted.
+ */
+function extractErrorMessage(body: unknown, status: number): string {
+  if (typeof body === 'string' && body.length > 0) {
+    return body;
+  }
+
+  if (body && typeof body === 'object') {
+    const obj = body as Record<string, unknown>;
+
+    // Fortemi standard: { error: { message: "..." } }
+    if (obj.error && typeof obj.error === 'object') {
+      const nested = obj.error as Record<string, unknown>;
+      if (typeof nested.message === 'string') return nested.message;
+      if (typeof nested.code === 'string') return nested.code;
+    }
+
+    // Flat variants: { error: "..." }, { message: "..." }, { detail: "..." }
+    if (typeof obj.error === 'string') return obj.error;
+    if (typeof obj.message === 'string') return obj.message;
+    if (typeof obj.detail === 'string') return obj.detail;
+  }
+
+  return `HTTP ${status}`;
+}
+
 export function createAttachmentsApi(client: ApiClient) {
   const getBaseUrl = (): string => {
     return client.baseUrl;
@@ -67,8 +96,10 @@ export function createAttachmentsApi(client: ApiClient) {
       });
 
       if (!response.ok) {
-        const error = await response.json().catch(() => ({}));
-        throw new Error(error.message || `Upload failed: ${response.statusText}`);
+        let body: unknown;
+        try { body = await response.json(); }
+        catch { try { body = await response.text(); } catch { /* empty */ } }
+        throw new Error(`Upload failed: ${extractErrorMessage(body, response.status)}`);
       }
 
       return response.json();
@@ -140,7 +171,10 @@ export function createAttachmentsApi(client: ApiClient) {
       });
 
       if (!response.ok) {
-        throw new Error(`Download failed: ${response.statusText}`);
+        let body: unknown;
+        try { body = await response.json(); }
+        catch { try { body = await response.text(); } catch { /* empty */ } }
+        throw new Error(`Download failed: ${extractErrorMessage(body, response.status)}`);
       }
 
       return response.blob();

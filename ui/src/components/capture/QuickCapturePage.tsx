@@ -262,11 +262,16 @@ export function QuickCapturePage() {
 
       // Announce to screen reader
       if (liveRegionRef.current) {
-        liveRegionRef.current.textContent = `Note committed${
+        let announcement = `Note committed${
           result.attachmentCount > 0
             ? ` with ${result.attachmentCount} attachment${result.attachmentCount > 1 ? "s" : ""}`
             : ""
-        }. ${sessionNotes.length + 1} notes captured this session.`;
+        }.`;
+        if (result.warnings.length > 0) {
+          announcement += ` ${result.warnings.length} warning${result.warnings.length > 1 ? "s" : ""}: ${result.warnings[0]}`;
+        }
+        announcement += ` ${sessionNotes.length + 1} notes captured this session.`;
+        liveRegionRef.current.textContent = announcement;
       }
 
       // Restore focus

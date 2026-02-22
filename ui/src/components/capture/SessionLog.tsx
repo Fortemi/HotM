@@ -1,4 +1,4 @@
-import { Paperclip } from "lucide-react";
+import { AlertTriangle, Paperclip } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import type { CommitResult } from "./useNoteCommit";
 
@@ -71,16 +71,21 @@ export function SessionLog({ notes }: SessionLogProps) {
                   {note.attachmentCount}
                 </span>
               )}
-              {note.warnings.length > 0 &&
-                note.warnings.map((w, j) => (
-                  <span
-                    key={j}
-                    className="text-[10px] text-amber-500"
-                  >
-                    {w}
-                  </span>
-                ))}
             </div>
+            {note.warnings.length > 0 && (
+              <div className="mt-1.5 space-y-1">
+                {note.warnings.map((w, j) => (
+                  <div
+                    key={j}
+                    className="flex items-start gap-1.5 text-xs text-amber-500"
+                    role="alert"
+                  >
+                    <AlertTriangle className="h-3 w-3 mt-0.5 flex-shrink-0" />
+                    <span>{w}</span>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         ))}
       </div>
