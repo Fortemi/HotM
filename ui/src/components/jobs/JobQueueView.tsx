@@ -333,7 +333,7 @@ export function JobQueueView({ archives }: JobQueueViewProps) {
         </CardHeader>
         <CardContent>
           {filteredCompletedJobs.length > 0 && (
-            <ScrollArea className="max-h-[400px]">
+            <ScrollArea className="h-[400px]">
               <div className="space-y-1">
                 {filteredCompletedJobs.map((job, index) => (
                   <div
