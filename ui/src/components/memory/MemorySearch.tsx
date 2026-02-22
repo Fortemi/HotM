@@ -223,7 +223,9 @@ function MemoryResultCard({ result, onClick }: MemoryResultCardProps) {
 
         {/* Content */}
         <div className="flex-1 min-w-0">
-          <h4 className="text-sm font-medium truncate">{result.title}</h4>
+          <h4 className="text-sm font-medium truncate">
+            {result.title || `Note ${result.note_id.substring(0, 8)}...`}
+          </h4>
 
           {result.snippet && (
             <p className="text-xs text-muted-foreground line-clamp-2 mt-1">
@@ -315,6 +317,31 @@ export function MemorySearch({ isOpen, onClose, onSelectResult }: MemorySearchPr
           start: new Date(startDate).toISOString(),
           end: new Date(endDate).toISOString(),
         });
+      }
+      // Fetch note titles for results that don't have them
+      const needsTitles = results.filter((r) => !r.title);
+      if (needsTitles.length > 0) {
+        const uniqueNoteIds = [...new Set(needsTitles.map((r) => r.note_id))];
+        const titleMap = new Map<string, string>();
+        await Promise.all(
+          uniqueNoteIds.map(async (noteId) => {
+            try {
+              const note = await api.notes.get(noteId);
+              const title = note.note?.title
+                || note.revised?.content?.substring(0, 80)
+                || note.original?.content?.substring(0, 80)
+                || `Note ${noteId.substring(0, 8)}`;
+              titleMap.set(noteId, title);
+            } catch {
+              titleMap.set(noteId, `Note ${noteId.substring(0, 8)}`);
+            }
+          })
+        );
+        for (const r of results) {
+          if (!r.title && titleMap.has(r.note_id)) {
+            r.title = titleMap.get(r.note_id)!;
+          }
+        }
       }
       setResults(results);
     } catch (err) {

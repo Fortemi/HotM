@@ -11,14 +11,45 @@ import type {
   MemorySearchResult,
 } from './types-extended';
 
+interface RawMemoryResult {
+  note_id: string;
+  attachment_id?: string | null;
+  title?: string;
+  snippet?: string;
+  distance_meters?: number;
+  capture_time?: string;
+  capture_time_start?: string;
+  capture_time_end?: string;
+  location_name?: string | null;
+  location?: { latitude?: number; longitude?: number } | null;
+  device?: string;
+  event_type?: string | null;
+  provenance_id?: string | null;
+}
+
+function normalizeResult(raw: RawMemoryResult): MemorySearchResult {
+  return {
+    note_id: raw.note_id,
+    attachment_id: raw.attachment_id ?? undefined,
+    title: raw.title ?? '',
+    snippet: raw.snippet ?? raw.location_name ?? undefined,
+    distance_meters: raw.distance_meters,
+    capture_time: raw.capture_time ?? raw.capture_time_start ?? undefined,
+    location: raw.location && raw.location.latitude != null && raw.location.longitude != null
+      ? { latitude: raw.location.latitude, longitude: raw.location.longitude }
+      : undefined,
+    device: raw.device,
+  };
+}
+
 function extractMemoryResults(payload: unknown): MemorySearchResult[] {
   if (!payload) {
     return [];
   }
-  if (Array.isArray(payload)) {
-    return payload as MemorySearchResult[];
-  }
-  return ((payload as { results?: MemorySearchResult[] }).results ?? []);
+  const items: unknown[] = Array.isArray(payload)
+    ? payload
+    : ((payload as Record<string, unknown>).results as unknown[] | undefined) ?? [];
+  return items.map((item) => normalizeResult(item as RawMemoryResult));
 }
 
 export function createMemoryApi(client: ApiClient) {
