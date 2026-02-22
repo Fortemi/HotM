@@ -53,7 +53,7 @@ import {
   Folder,
   FolderOpen,
   Activity,
-  MapPin,
+
   Network,
   LayoutTemplate,
   Shield,
@@ -86,7 +86,6 @@ import { MarkdownPreview } from "./MarkdownPreview";
 import { MarkdownEditor } from "./MarkdownEditor";
 import { RelatedNotes } from "./RelatedNotes";
 import { NoteMetadata } from "./NoteMetadata";
-import { EnhancedSearch } from "./EnhancedSearch";
 import { NoteContextMenu, useGlobalContextMenuPrevention } from "./NoteContextMenu";
 import { DeleteNoteDialog } from "./DeleteNoteDialog";
 import { SearchDropdown } from "./SearchDropdown";
@@ -95,7 +94,7 @@ import { JobQueueIndicator } from "./JobQueueIndicator";
 import { TypingAnimation } from "./TypingAnimation";
 import { CollectionsManager } from "./collections";
 import { KnowledgeHealthDashboard } from "./health/KnowledgeHealthDashboard";
-import { MemorySearch } from "./memory/MemorySearch";
+
 import { GraphExplorer } from "./graph";
 import { TemplateManager } from "./templates/TemplateManager";
 import { AdminPanel } from "./admin";
@@ -109,7 +108,7 @@ import { BackupManager } from "./backup/BackupManager";
 import { ArchiveManager } from "./archives/ArchiveManager";
 import { EmbeddingSetManager } from "./embeddings";
 import { TagManager } from "./tags";
-import { AdvancedSearchFilters } from "./search";
+import { SearchPage } from "./search";
 import { useWebSocket } from "@/services/websocket";
 import { JobManagementPanel } from "./JobManagementPanel";
 import { JobQueueView } from "./jobs";
@@ -121,7 +120,7 @@ type AppView =
   | "capture"
   | "collections"
   | "health"
-  | "memory-search"
+
   | "graph"
   | "templates"
   | "admin"
@@ -133,7 +132,7 @@ type AppView =
   | "archives"
   | "embeddings"
   | "tags"
-  | "advanced-search"
+  | "search"
   | "jobs"
   | "realtime-debug";
 
@@ -219,6 +218,7 @@ export function HallOfMind() {
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [searchMode, setSearchMode] = useState<"local" | "fts" | "semantic" | "hybrid">("local");
+  const [pendingSearchQuery, setPendingSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<Note[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [showSearchResults, setShowSearchResults] = useState(false);
@@ -1971,11 +1971,11 @@ export function HallOfMind() {
                   </SidebarMenuItem>
                   <SidebarMenuItem>
                     <SidebarMenuButton
-                      onClick={() => setCurrentView("advanced-search")}
-                      className={currentView === "advanced-search" ? "bg-primary/10" : ""}
+                      onClick={() => setCurrentView("search")}
+                      className={currentView === "search" ? "bg-primary/10" : ""}
                     >
-                      <SlidersHorizontal className="h-4 w-4" />
-                      <span>Advanced Search</span>
+                      <Search className="h-4 w-4" />
+                      <span>Search</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                   <SidebarMenuItem>
@@ -2012,15 +2012,6 @@ export function HallOfMind() {
                     >
                       <BookMarked className="h-4 w-4" />
                       <span>Concepts</span>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                  <SidebarMenuItem>
-                    <SidebarMenuButton
-                      onClick={() => setCurrentView("memory-search")}
-                      className={currentView === "memory-search" ? "bg-primary/10" : ""}
-                    >
-                      <MapPin className="h-4 w-4" />
-                      <span>Memory Search</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                   <SidebarMenuItem>
@@ -2225,14 +2216,9 @@ export function HallOfMind() {
                   onChange={(e) => setSearchQuery(e.target.value)}
                   onKeyDown={(e) => {
                     if (e.key === 'Enter' && searchQuery) {
-                      // Navigate to search tab - select first note if none selected
-                      if (!selectedNote && notes.length > 0) {
-                        const firstNote = notes[0];
-                        setSelectedNote(firstNote);
-                        setNoteContent(firstNote.content);
-                        setRevisedContent(firstNote.revised_content || firstNote.content);
-                      }
-                      setActiveTab('search');
+                      // Navigate to the full Search page with the query preloaded
+                      setPendingSearchQuery(searchQuery);
+                      setCurrentView("search");
                       setShowSearchResults(false);
                     }
                   }}
@@ -2272,14 +2258,9 @@ export function HallOfMind() {
                   }}
                   onClose={() => setShowSearchResults(false)}
                   onViewAll={() => {
-                    // Navigate to search tab
-                    if (!selectedNote && notes.length > 0) {
-                      const firstNote = notes[0];
-                      setSelectedNote(firstNote);
-                      setNoteContent(firstNote.content);
-                      setRevisedContent(firstNote.revised_content || firstNote.content);
-                    }
-                    setActiveTab('search');
+                    // Navigate to the full Search page with the query preloaded
+                    setPendingSearchQuery(searchQuery);
+                    setCurrentView("search");
                     setShowSearchResults(false);
                   }}
                   anchorRef={searchInputRef}
@@ -2334,20 +2315,6 @@ export function HallOfMind() {
                 </Card>
                 <KnowledgeHealthDashboard />
               </div>
-            ) : currentView === "memory-search" ? (
-              <MemorySearch
-                isOpen={true}
-                onClose={() => setCurrentView("notes")}
-                onSelectResult={(result) => {
-                  const note = notes.find(n => n.id === result.note_id);
-                  if (note) {
-                    setSelectedNote(note);
-                    setNoteContent(note.content);
-                    setRevisedContent(note.revised_content || note.content);
-                    setCurrentView("notes");
-                  }
-                }}
-              />
             ) : currentView === "graph" ? (
               <GraphExplorer
                 initialNoteId={selectedNote?.id || notes[0]?.id}
@@ -2422,8 +2389,10 @@ export function HallOfMind() {
               <EmbeddingSetManager />
             ) : currentView === "tags" ? (
               <TagManager />
-            ) : currentView === "advanced-search" ? (
-              <AdvancedSearchFilters
+            ) : currentView === "search" ? (
+              <SearchPage
+                initialQuery={pendingSearchQuery}
+                initialMode={searchMode !== 'local' ? searchMode : undefined}
                 onSelectResult={(noteId) => {
                   const note = notes.find((n) => n.id === noteId);
                   if (note) {
@@ -2656,8 +2625,6 @@ export function HallOfMind() {
                         return (
                       <Tabs value={activeTab} onValueChange={setActiveTab} className="h-full">
                         <TabsList className="mb-4 flex w-full flex-wrap justify-start gap-1">
-                          {activeTab !== 'search' && (
-                            <>
                               <TabsTrigger value="preview" className="gap-2">
                                 <Sparkles className="h-4 w-4" />
                                 AI Enhanced
@@ -2678,14 +2645,6 @@ export function HallOfMind() {
                                 <Paperclip className="h-4 w-4" />
                                 Attachments
                               </TabsTrigger>
-                            </>
-                          )}
-                          {activeTab === 'search' && (
-                            <TabsTrigger value="search" className="gap-2">
-                              <Search className="h-4 w-4" />
-                              Search Results
-                            </TabsTrigger>
-                          )}
                         </TabsList>
 
                         <TabsContent value="edit" className="h-full">
@@ -2935,22 +2894,6 @@ export function HallOfMind() {
                           </Card>
                         </TabsContent>
 
-                        <TabsContent value="search">
-                          <EnhancedSearch
-                            searchQuery={searchQuery}
-                            searchMode={searchMode === 'local' ? 'hybrid' : searchMode as 'hybrid' | 'fts' | 'semantic'}
-                            onSearchModeChange={(mode) => setSearchMode(mode)}
-                            onSelectNote={(noteId) => {
-                              const note = notes.find(n => n.id === noteId);
-                              if (note) {
-                                setSelectedNote(note);
-                                setNoteContent(note.content);
-                                setRevisedContent(note.revised_content || note.content);
-                                setActiveTab('preview');
-                              }
-                            }}
-                          />
-                        </TabsContent>
                         <TabsContent value="metadata">
                           <div className="mb-3 flex justify-end">
                             <Button

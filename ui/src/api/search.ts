@@ -28,6 +28,7 @@ export function createSearchApi(client: ApiClient) {
       const {
         mode = 'hybrid',
         tags,
+        concepts,
         starred,
         archived,
         collection,
@@ -45,6 +46,10 @@ export function createSearchApi(client: ApiClient) {
 
       if (tags && tags.length > 0) {
         params.tags = tags.join(',');
+      }
+
+      if (concepts && concepts.length > 0) {
+        params.concepts = concepts.join(',');
       }
 
       if (starred !== undefined) {

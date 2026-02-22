@@ -1,1 +1,1 @@
-export { AdvancedSearchFilters } from './AdvancedSearchFilters';
+export { SearchPage } from './SearchPage';

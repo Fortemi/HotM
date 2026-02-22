@@ -1,6 +1,4 @@
 /**
- * Memory Search Components
- * Barrel export for spatiotemporal search components
+ * Memory Components
+ * Spatiotemporal search filters are now integrated into the unified SearchPage
  */
-
-export { MemorySearch } from './MemorySearch';

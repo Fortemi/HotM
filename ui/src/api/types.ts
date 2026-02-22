@@ -263,6 +263,7 @@ export interface NoteListOptions {
 export interface SearchOptions {
   mode?: SearchMode;
   tags?: string[];
+  concepts?: string[];
   starred?: boolean;
   archived?: boolean;
   collection?: string;

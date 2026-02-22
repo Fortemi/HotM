@@ -1,6 +1,6 @@
 /**
- * AdvancedSearchFilters Component
- * Search with mode selection, tag filtering, date ranges, and result display
+ * SearchPage Component
+ * Full-featured search with mode selection, tag filtering, date ranges, and result display
  */
 
 import { useState, useEffect, useCallback } from 'react';
@@ -15,22 +15,29 @@ import {
   FileText,
   AlertCircle,
   Database,
+  Network,
+  Calendar,
+  MapPin,
+  Navigation,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
+import { Slider } from '@/components/ui/slider';
 import { api } from '@/api';
 import { getActiveMemory, MEMORY_CHANGED_EVENT } from '@/api/memory-context';
 import type { MemoryArchive, SearchResult, SearchMode, Tag } from '@/api';
 
-interface AdvancedSearchFiltersProps {
+interface SearchPageProps {
   className?: string;
   onSelectResult?: (noteId: string) => void;
+  initialQuery?: string;
+  initialMode?: SearchMode;
 }
 
-export function AdvancedSearchFilters({ className, onSelectResult }: AdvancedSearchFiltersProps) {
-  const [query, setQuery] = useState('');
+export function SearchPage({ className, onSelectResult, initialQuery, initialMode }: SearchPageProps) {
+  const [query, setQuery] = useState(initialQuery || '');
   const [mode, setMode] = useState<SearchMode | 'federated'>('hybrid');
   const [results, setResults] = useState<SearchResult[]>([]);
   const [isSearching, setIsSearching] = useState(false);
@@ -46,6 +53,20 @@ export function AdvancedSearchFilters({ className, onSelectResult }: AdvancedSea
   // Available tags for filter
   const [availableTags, setAvailableTags] = useState<Tag[]>([]);
   const [tagSearch, setTagSearch] = useState('');
+
+  // Concept filter
+  const [selectedConcepts, setSelectedConcepts] = useState<Array<{ id: string; label: string }>>([]);
+  const [conceptSearch, setConceptSearch] = useState('');
+  const [conceptSuggestions, setConceptSuggestions] = useState<Array<{ id: string; pref_label: string; scheme_id: string }>>([]);
+
+  // Temporal filter
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
+
+  // Location filter
+  const [location, setLocation] = useState<{ lat: number; lon: number } | null>(null);
+  const [radius, setRadius] = useState(1000);
+  const [isGettingLocation, setIsGettingLocation] = useState(false);
   const [availableMemories, setAvailableMemories] = useState<MemoryArchive[]>([]);
   const [selectedMemories, setSelectedMemories] = useState<string[]>([]);
   const [searchAllMemories, setSearchAllMemories] = useState(true);
@@ -57,6 +78,26 @@ export function AdvancedSearchFilters({ className, onSelectResult }: AdvancedSea
     api.archives.list().then(setAvailableMemories).catch(console.error);
   }, []);
 
+  // Concept autocomplete
+  useEffect(() => {
+    if (!conceptSearch.trim()) {
+      setConceptSuggestions([]);
+      return;
+    }
+    const timer = setTimeout(async () => {
+      try {
+        const response = await api.concepts.autocompleteConcepts(conceptSearch.trim());
+        const filtered = response.suggestions.filter(
+          (s) => !selectedConcepts.some((c) => c.id === s.id)
+        );
+        setConceptSuggestions(filtered);
+      } catch {
+        setConceptSuggestions([]);
+      }
+    }, 200);
+    return () => clearTimeout(timer);
+  }, [conceptSearch, selectedConcepts]);
+
   useEffect(() => {
     const onMemoryChanged = () => {
       setActiveMemory(getActiveMemory());
@@ -65,6 +106,20 @@ export function AdvancedSearchFilters({ className, onSelectResult }: AdvancedSea
     return () => {
       window.removeEventListener(MEMORY_CHANGED_EVENT, onMemoryChanged as EventListener);
     };
+  }, []);
+
+  const getCurrentLocation = useCallback(() => {
+    if (!navigator.geolocation) return;
+    setIsGettingLocation(true);
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setLocation({ lat: position.coords.latitude, lon: position.coords.longitude });
+        setIsGettingLocation(false);
+      },
+      () => {
+        setIsGettingLocation(false);
+      }
+    );
   }, []);
 
   const defaultMemory = availableMemories.find((m) => m.is_default)?.name ?? null;
@@ -112,13 +167,48 @@ export function AdvancedSearchFilters({ className, onSelectResult }: AdvancedSea
           )
         );
       } else {
+        const conceptIds = selectedConcepts.length > 0 ? selectedConcepts.map((c) => c.id) : undefined;
         const searchResults = await api.search.search(trimmed, {
           mode,
           tags: selectedTags.length > 0 ? selectedTags : undefined,
+          concepts: conceptIds,
           starred: filterStarred,
           archived: filterArchived,
+          before: dateTo ? new Date(dateTo + 'T23:59:59').toISOString() : undefined,
+          after: dateFrom ? new Date(dateFrom + 'T00:00:00').toISOString() : undefined,
           limit: 50,
         });
+
+        // If location filter is active, also search memory API and merge results
+        if (location) {
+          try {
+            const memoryQuery = {
+              lat: location.lat,
+              lon: location.lon,
+              radius_meters: radius,
+              ...(dateFrom && dateTo ? {
+                start: new Date(dateFrom + 'T00:00:00').toISOString(),
+                end: new Date(dateTo + 'T23:59:59').toISOString(),
+              } : {}),
+            };
+            const memoryResults = dateFrom && dateTo
+              ? await api.memory.searchCombined(memoryQuery as Parameters<typeof api.memory.searchCombined>[0])
+              : await api.memory.searchByLocation(memoryQuery);
+            const existingIds = new Set(searchResults.map((r) => r.note_id));
+            for (const mr of memoryResults) {
+              if (!existingIds.has(mr.note_id)) {
+                searchResults.push({
+                  note_id: mr.note_id,
+                  score: 0.5,
+                  snippet: mr.snippet || mr.title || '',
+                });
+              }
+            }
+          } catch {
+            // Memory search unavailable — continue with standard results
+          }
+        }
+
         setResults(searchResults);
         setResultTitles(new Map());
       }
@@ -129,7 +219,24 @@ export function AdvancedSearchFilters({ className, onSelectResult }: AdvancedSea
     } finally {
       setIsSearching(false);
     }
-  }, [query, mode, selectedTags, filterStarred, filterArchived, searchAllMemories, selectedMemories, activeMemory, defaultMemory]);
+  }, [query, mode, selectedTags, selectedConcepts, filterStarred, filterArchived, dateFrom, dateTo, location, radius, searchAllMemories, selectedMemories, activeMemory, defaultMemory]);
+
+  // Auto-execute search when initialQuery changes (e.g. navigating from quick search bar)
+  useEffect(() => {
+    if (initialQuery && initialQuery.trim()) {
+      setQuery(initialQuery);
+      if (initialMode) {
+        setMode(initialMode);
+      }
+    }
+  }, [initialQuery, initialMode]);
+
+  // Trigger search when query is set from initialQuery
+  useEffect(() => {
+    if (query.trim() && !hasSearched) {
+      handleSearch();
+    }
+  }, [query, hasSearched, handleSearch]);
 
   useEffect(() => {
     let cancelled = false;
@@ -208,24 +315,42 @@ export function AdvancedSearchFilters({ className, onSelectResult }: AdvancedSea
     setSelectedTags((prev) => prev.filter((t) => t !== name));
   };
 
+  const addConcept = (id: string, label: string) => {
+    setSelectedConcepts((prev) => [...prev, { id, label }]);
+    setConceptSearch('');
+    setConceptSuggestions([]);
+  };
+
+  const removeConcept = (id: string) => {
+    setSelectedConcepts((prev) => prev.filter((c) => c.id !== id));
+  };
+
   const clearFilters = () => {
     setSelectedTags([]);
+    setSelectedConcepts([]);
     setFilterStarred(undefined);
     setFilterArchived(undefined);
+    setDateFrom('');
+    setDateTo('');
+    setLocation(null);
+    setRadius(1000);
   };
 
   const activeFilterCount =
     selectedTags.length +
+    selectedConcepts.length +
     (filterStarred !== undefined ? 1 : 0) +
-    (filterArchived !== undefined ? 1 : 0);
+    (filterArchived !== undefined ? 1 : 0) +
+    (dateFrom || dateTo ? 1 : 0) +
+    (location ? 1 : 0);
 
   return (
-    <div className={cn('flex flex-col h-full', className)} role="region" aria-label="Advanced Search">
+    <div className={cn('flex flex-col h-full', className)} role="region" aria-label="Search">
       {/* Header */}
       <div className="px-6 py-4 border-b space-y-3">
         <div className="flex items-center gap-2">
           <Search className="w-5 h-5 text-primary" />
-          <h2 className="text-lg font-semibold">Advanced Search</h2>
+          <h2 className="text-lg font-semibold">Search</h2>
         </div>
 
         {/* Search Bar */}
@@ -344,6 +469,158 @@ export function AdvancedSearchFilters({ className, onSelectResult }: AdvancedSea
                 </div>
               )}
             </div>
+          </div>
+
+          {/* Concept Filter */}
+          <div>
+            <label className="text-sm font-medium flex items-center gap-1 mb-1">
+              <Network className="w-3.5 h-3.5" /> Concepts
+            </label>
+            {selectedConcepts.length > 0 && (
+              <div className="flex flex-wrap gap-1 mb-2">
+                {selectedConcepts.map((concept) => (
+                  <Badge key={concept.id} variant="secondary" className="gap-1">
+                    {concept.label}
+                    <button onClick={() => removeConcept(concept.id)} aria-label={`Remove ${concept.label}`}>
+                      <X className="w-3 h-3" />
+                    </button>
+                  </Badge>
+                ))}
+              </div>
+            )}
+            <div className="relative">
+              <Input
+                placeholder="Search concepts..."
+                value={conceptSearch}
+                onChange={(e) => setConceptSearch(e.target.value)}
+                className="h-8 text-sm"
+              />
+              {conceptSearch && conceptSuggestions.length > 0 && (
+                <div className="absolute z-10 top-full mt-1 w-full bg-popover border rounded-md shadow-md max-h-32 overflow-y-auto">
+                  {conceptSuggestions.slice(0, 8).map((suggestion) => (
+                    <button
+                      key={suggestion.id}
+                      onClick={() => addConcept(suggestion.id, suggestion.pref_label)}
+                      className="w-full px-3 py-1.5 text-left text-sm hover:bg-muted flex items-center justify-between"
+                    >
+                      <span>{suggestion.pref_label}</span>
+                      <span className="text-xs text-muted-foreground truncate ml-2">{suggestion.scheme_id}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Temporal Filter */}
+          <div>
+            <label className="text-sm font-medium flex items-center gap-1 mb-1">
+              <Calendar className="w-3.5 h-3.5" /> Date Range
+            </label>
+            <div className="grid grid-cols-2 gap-2 mb-2">
+              <div>
+                <label className="text-xs text-muted-foreground">From</label>
+                <Input
+                  type="date"
+                  value={dateFrom}
+                  onChange={(e) => setDateFrom(e.target.value)}
+                  className="h-8 text-sm"
+                />
+              </div>
+              <div>
+                <label className="text-xs text-muted-foreground">To</label>
+                <Input
+                  type="date"
+                  value={dateTo}
+                  onChange={(e) => setDateTo(e.target.value)}
+                  className="h-8 text-sm"
+                />
+              </div>
+            </div>
+            <div className="flex flex-wrap gap-1">
+              {[
+                { label: 'Today', days: 0 },
+                { label: '7 days', days: 7 },
+                { label: '30 days', days: 30 },
+                { label: '1 year', days: 365 },
+              ].map(({ label, days }) => (
+                <Button
+                  key={label}
+                  variant="outline"
+                  size="sm"
+                  className="h-6 text-xs"
+                  onClick={() => {
+                    const end = new Date();
+                    const start = new Date();
+                    start.setDate(end.getDate() - days);
+                    setDateFrom(start.toISOString().split('T')[0]);
+                    setDateTo(end.toISOString().split('T')[0]);
+                  }}
+                >
+                  {label}
+                </Button>
+              ))}
+              {(dateFrom || dateTo) && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-6 text-xs"
+                  onClick={() => { setDateFrom(''); setDateTo(''); }}
+                >
+                  <X className="w-3 h-3 mr-1" /> Clear
+                </Button>
+              )}
+            </div>
+          </div>
+
+          {/* Location Filter */}
+          <div>
+            <label className="text-sm font-medium flex items-center gap-1 mb-1">
+              <MapPin className="w-3.5 h-3.5" /> Location
+            </label>
+            {location ? (
+              <div className="space-y-2">
+                <div className="flex items-center justify-between bg-muted rounded-lg px-3 py-2">
+                  <p className="text-xs font-mono">
+                    {location.lat.toFixed(6)}, {location.lon.toFixed(6)}
+                  </p>
+                  <Button variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={() => setLocation(null)}>
+                    <X className="w-3 h-3" />
+                  </Button>
+                </div>
+                <div className="space-y-1">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-muted-foreground">Radius</span>
+                    <span className="font-medium">
+                      {radius >= 1000 ? `${(radius / 1000).toFixed(1)} km` : `${radius} m`}
+                    </span>
+                  </div>
+                  <Slider
+                    value={[radius]}
+                    min={100}
+                    max={50000}
+                    step={100}
+                    onValueChange={([v]) => setRadius(v)}
+                    aria-label="Search radius"
+                  />
+                </div>
+              </div>
+            ) : (
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full h-8 text-sm"
+                onClick={getCurrentLocation}
+                disabled={isGettingLocation}
+              >
+                {isGettingLocation ? (
+                  <Loader2 className="w-3.5 h-3.5 mr-1 animate-spin" />
+                ) : (
+                  <Navigation className="w-3.5 h-3.5 mr-1" />
+                )}
+                Use Current Location
+              </Button>
+            )}
           </div>
 
           {/* Boolean Filters */}
