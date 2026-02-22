@@ -39,8 +39,20 @@ function UploadEntryRow({ entry }: { entry: UploadFileEntry }) {
         </div>
         {isActive && (
           <div className="w-full bg-muted rounded-full h-1 mt-1">
-            <div className="h-1 rounded-full bg-blue-500 animate-pulse w-full" />
+            {entry.bytesUploaded > 0 ? (
+              <div
+                className="h-1 rounded-full bg-blue-500 transition-all duration-300"
+                style={{ width: `${Math.round((entry.bytesUploaded / entry.bytesTotal) * 100)}%` }}
+              />
+            ) : (
+              <div className="h-1 rounded-full bg-blue-500 animate-pulse w-full" />
+            )}
           </div>
+        )}
+        {isActive && entry.bytesUploaded > 0 && (
+          <span className="text-xs text-muted-foreground">
+            {formatFileSize(entry.bytesUploaded)} / {formatFileSize(entry.bytesTotal)}
+          </span>
         )}
         {isFailed && entry.error && (
           <p className="text-xs text-red-500 truncate mt-0.5">{entry.error}</p>

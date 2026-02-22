@@ -9,6 +9,7 @@
 
 import { api } from '@/api';
 import type { Attachment } from '@/api/types-extended';
+import { startTusUpload, shouldUseTus, type TusUploadHandle } from './tusUploader';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -64,6 +65,7 @@ class UploadStore {
   private listeners = new Set<Listener>();
   private noteUploadCallbacks = new Set<NoteUploadCallback>();
   private clearTimers = new Map<string, ReturnType<typeof setTimeout>>();
+  private activeTusUploads = new Map<string, TusUploadHandle>();
 
   constructor() {
     this.state = {
@@ -130,6 +132,10 @@ class UploadStore {
     const entry = this.state.entries.get(id);
     if (!entry || entry.status !== 'failed') return;
 
+    // tus resumes from server offset via HEAD — preserve bytesUploaded.
+    // Fetch uploads restart from scratch.
+    const preserveProgress = shouldUseTus(entry.file);
+
     this.mutate((s) => {
       const newEntries = new Map(s.entries);
       newEntries.set(id, {
@@ -137,7 +143,7 @@ class UploadStore {
         status: 'queued',
         error: null,
         retryCount: entry.retryCount + 1,
-        bytesUploaded: 0,
+        bytesUploaded: preserveProgress ? entry.bytesUploaded : 0,
         result: null,
         completedAt: null,
       });
@@ -159,8 +165,10 @@ class UploadStore {
     }
 
     if (entry.status === 'uploading') {
-      // Can't abort an in-flight fetch without AbortController — mark cancelled
-      // and skip on completion
+      // Abort active tus upload if present; fetch uploads just get marked cancelled
+      this.activeTusUploads.get(id)?.abort();
+      this.activeTusUploads.delete(id);
+
       this.mutate((s) => {
         const newEntries = new Map(s.entries);
         newEntries.set(id, { ...entry, status: 'cancelled' });
@@ -277,12 +285,9 @@ class UploadStore {
       if (!current) continue;
 
       try {
-        const opts = current.mediaOptimize ? { mediaOptimize: true } : undefined;
-        const result = await api.attachments.uploadAttachment(
-          current.noteId,
-          current.file,
-          opts,
-        );
+        const result = shouldUseTus(current.file)
+          ? await this.uploadViaTus(entryId, current)
+          : await this.uploadViaFetch(entryId, current);
 
         // Check if cancelled during upload
         const postUpload = this.state.entries.get(entryId);
@@ -339,12 +344,39 @@ class UploadStore {
 
         this.emitNoteCallback(current.noteId, this.state.entries.get(entryId)!);
         this.scheduleAutoClear(entryId);
+      } finally {
+        this.activeTusUploads.delete(entryId);
       }
     }
 
     this.mutate((s) => {
       s.isProcessing = false;
     });
+  }
+
+  private async uploadViaFetch(_entryId: string, entry: UploadFileEntry): Promise<Attachment> {
+    const opts = entry.mediaOptimize ? { mediaOptimize: true } : undefined;
+    return api.attachments.uploadAttachment(entry.noteId, entry.file, opts);
+  }
+
+  private async uploadViaTus(entryId: string, entry: UploadFileEntry): Promise<Attachment> {
+    const handle = startTusUpload({
+      noteId: entry.noteId,
+      file: entry.file,
+      mediaOptimize: entry.mediaOptimize,
+      onProgress: (bytesUploaded, bytesTotal) => {
+        this.mutate((s) => {
+          const current = s.entries.get(entryId);
+          if (!current || current.status !== 'uploading') return;
+          const newEntries = new Map(s.entries);
+          newEntries.set(entryId, { ...current, bytesUploaded, bytesTotal });
+          s.entries = newEntries;
+        });
+      },
+    });
+
+    this.activeTusUploads.set(entryId, handle);
+    return handle.promise;
   }
 
   private emitNoteCallback(noteId: string, entry: UploadFileEntry): void {

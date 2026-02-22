@@ -6,18 +6,30 @@ vi.mock('@/api', () => ({
     attachments: {
       uploadAttachment: vi.fn(),
     },
+    client: { baseUrl: 'http://localhost:3000' },
   },
+}));
+
+// Mock tusUploader — threshold constant inlined to avoid importOriginal issues with resetModules
+const TUS_THRESHOLD = 50 * 1024 * 1024;
+vi.mock('@/services/tusUploader', () => ({
+  TUS_THRESHOLD_BYTES: TUS_THRESHOLD,
+  TUS_CHUNK_SIZE: 5 * 1024 * 1024,
+  shouldUseTus: vi.fn((file: File) => file.size >= TUS_THRESHOLD),
+  startTusUpload: vi.fn(),
 }));
 
 describe('uploadStore', () => {
   let mod: typeof import('@/services/uploadStore');
   let apiMod: typeof import('@/api');
+  let tusMod: typeof import('@/services/tusUploader');
 
   beforeEach(async () => {
     vi.useFakeTimers();
     vi.resetModules();
     mod = await import('@/services/uploadStore');
     apiMod = await import('@/api');
+    tusMod = await import('@/services/tusUploader');
   });
 
   afterEach(() => {
@@ -259,5 +271,180 @@ describe('uploadStore', () => {
 
     state = mod.uploadStore.getSnapshot();
     expect(state.entries.size).toBe(0);
+  });
+
+  // ---- tus integration tests ----
+
+  describe('tus integration', () => {
+    const TUS_SIZE = 60 * 1024 * 1024; // 60 MB — above threshold
+
+    beforeEach(() => {
+      // Clear accumulated call counts from earlier tests since
+      // vi.resetModules() does not re-evaluate vi.mock() factories
+      vi.mocked(apiMod.api.attachments.uploadAttachment).mockClear();
+      vi.mocked(tusMod.startTusUpload).mockClear();
+      vi.mocked(tusMod.shouldUseTus).mockClear();
+    });
+
+    function makeLargeFile(name: string, type = 'application/octet-stream'): File {
+      const file = makeFile(name, type, 1);
+      Object.defineProperty(file, 'size', { value: TUS_SIZE, configurable: true });
+      return file;
+    }
+
+    it('uses tus for files >= 50MB', async () => {
+      const mockAbort = vi.fn();
+      vi.mocked(tusMod.startTusUpload).mockReturnValueOnce({
+        promise: Promise.resolve({ id: 'att-tus', filename: 'big.bin' } as never),
+        abort: mockAbort,
+      });
+
+      mod.uploadStore.enqueueFiles('note-1', [makeLargeFile('big.bin')]);
+
+      await flushQueue();
+
+      expect(tusMod.startTusUpload).toHaveBeenCalledTimes(1);
+      expect(tusMod.startTusUpload).toHaveBeenCalledWith(
+        expect.objectContaining({
+          noteId: 'note-1',
+          mediaOptimize: false,
+        }),
+      );
+      // Should NOT have called the fetch-based upload
+      expect(apiMod.api.attachments.uploadAttachment).not.toHaveBeenCalled();
+
+      const state = mod.uploadStore.getSnapshot();
+      const entry = Array.from(state.entries.values())[0];
+      expect(entry.status).toBe('completed');
+      expect(entry.result).toEqual({ id: 'att-tus', filename: 'big.bin' });
+    });
+
+    it('uses fetch for files < 50MB', async () => {
+      vi.mocked(apiMod.api.attachments.uploadAttachment).mockResolvedValue({ id: 'att-fetch' } as never);
+
+      mod.uploadStore.enqueueFiles('note-1', [makeFile('small.txt')]);
+
+      await flushQueue();
+
+      expect(apiMod.api.attachments.uploadAttachment).toHaveBeenCalledTimes(1);
+      expect(tusMod.startTusUpload).not.toHaveBeenCalled();
+    });
+
+    it('reports tus progress via bytesUploaded', async () => {
+      let capturedOnProgress: ((uploaded: number, total: number) => void) | undefined;
+
+      vi.mocked(tusMod.startTusUpload).mockImplementationOnce((opts) => {
+        capturedOnProgress = opts.onProgress;
+        return {
+          promise: new Promise((resolve) => {
+            // Resolve after progress is reported
+            setTimeout(() => resolve({ id: 'att-tus' } as never), 10);
+          }),
+          abort: vi.fn(),
+        };
+      });
+
+      mod.uploadStore.enqueueFiles('note-1', [makeLargeFile('big.bin')]);
+
+      // Wait for upload to start
+      await vi.advanceTimersByTimeAsync(0);
+
+      // Simulate progress callback from tus
+      expect(capturedOnProgress).toBeDefined();
+      capturedOnProgress!(10 * 1024 * 1024, TUS_SIZE);
+
+      // Check that bytesUploaded was updated in the store
+      let state = mod.uploadStore.getSnapshot();
+      let entry = Array.from(state.entries.values())[0];
+      expect(entry.bytesUploaded).toBe(10 * 1024 * 1024);
+      expect(entry.bytesTotal).toBe(TUS_SIZE);
+
+      // Complete the upload
+      await vi.advanceTimersByTimeAsync(10);
+      await flushQueue();
+
+      state = mod.uploadStore.getSnapshot();
+      entry = Array.from(state.entries.values())[0];
+      expect(entry.status).toBe('completed');
+    });
+
+    it('cancelFile aborts active tus upload', async () => {
+      const mockAbort = vi.fn();
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      let resolveUpload!: (v: any) => void;
+
+      vi.mocked(tusMod.startTusUpload).mockImplementationOnce(() => ({
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        promise: new Promise<any>((resolve) => { resolveUpload = resolve; }),
+        abort: mockAbort,
+      }));
+
+      mod.uploadStore.enqueueFiles('note-1', [makeLargeFile('big.bin')]);
+
+      // Wait for upload to start processing
+      await vi.advanceTimersByTimeAsync(0);
+
+      const state = mod.uploadStore.getSnapshot();
+      const entry = Array.from(state.entries.values())[0];
+      expect(entry.status).toBe('uploading');
+
+      // Cancel the uploading file
+      mod.uploadStore.cancelFile(entry.id);
+
+      expect(mockAbort).toHaveBeenCalledTimes(1);
+
+      const after = mod.uploadStore.getSnapshot();
+      const cancelled = after.entries.get(entry.id);
+      expect(cancelled?.status).toBe('cancelled');
+
+      // Resolve to avoid unhandled rejection
+      resolveUpload!({ id: 'att-tus' });
+      await flushQueue();
+    });
+
+    it('retryFile preserves bytesUploaded for tus entries', async () => {
+      vi.mocked(tusMod.startTusUpload).mockImplementationOnce((opts) => {
+        // Report some progress before failing
+        opts.onProgress?.(20 * 1024 * 1024, TUS_SIZE);
+        return {
+          promise: Promise.reject(new Error('Connection lost')),
+          abort: vi.fn(),
+        };
+      });
+
+      mod.uploadStore.enqueueFiles('note-1', [makeLargeFile('big.bin')]);
+
+      await flushQueue();
+
+      const state = mod.uploadStore.getSnapshot();
+      const failedEntry = Array.from(state.entries.values())[0];
+      expect(failedEntry.status).toBe('failed');
+
+      // Retry — should preserve bytesUploaded for tus files
+      mod.uploadStore.retryFile(failedEntry.id);
+
+      const retried = mod.uploadStore.getSnapshot().entries.get(failedEntry.id)!;
+      expect(retried.bytesUploaded).toBe(20 * 1024 * 1024);
+      expect(retried.retryCount).toBe(1);
+    });
+
+    it('retryFile resets bytesUploaded for fetch entries', async () => {
+      vi.mocked(apiMod.api.attachments.uploadAttachment)
+        .mockRejectedValueOnce(new Error('fail'))
+        .mockResolvedValueOnce({ id: 'att-1' } as never);
+
+      mod.uploadStore.enqueueFiles('note-1', [makeFile('small.txt')]);
+
+      await flushQueue();
+
+      const state = mod.uploadStore.getSnapshot();
+      const failedEntry = Array.from(state.entries.values())[0];
+      expect(failedEntry.status).toBe('failed');
+
+      mod.uploadStore.retryFile(failedEntry.id);
+
+      const retried = mod.uploadStore.getSnapshot().entries.get(failedEntry.id)!;
+      expect(retried.bytesUploaded).toBe(0);
+    });
   });
 });
