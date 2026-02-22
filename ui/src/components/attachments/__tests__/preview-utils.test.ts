@@ -92,8 +92,12 @@ describe('shouldDownloadBlob', () => {
   it('should return true for types that need blob pre-download', () => {
     expect(shouldDownloadBlob('image/jpeg')).toBe(true);
     expect(shouldDownloadBlob('text/plain')).toBe(true);
-    expect(shouldDownloadBlob('model/gltf-binary')).toBe(true);
     expect(shouldDownloadBlob('application/pdf')).toBe(true);
+  });
+
+  it('should return false for 3D models (model-viewer loads directly)', () => {
+    expect(shouldDownloadBlob('model/gltf-binary')).toBe(false);
+    expect(shouldDownloadBlob('application/octet-stream', 'scene.glb')).toBe(false);
   });
 
   it('should return false for streaming types (audio/video)', () => {

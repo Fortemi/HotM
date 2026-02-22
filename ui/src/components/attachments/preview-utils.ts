@@ -153,7 +153,7 @@ export function shouldDownloadBlob(contentType: string, filename?: string): bool
   // Audio/video handle their own URLs via useBlobUrl for streaming support.
   // Office, archive, email, diagram, and unknown types use extracted metadata instead of blobs.
   return mode !== 'office' && mode !== 'none' && mode !== 'audio' && mode !== 'video'
-    && mode !== 'archive' && mode !== 'email' && mode !== 'diagram';
+    && mode !== 'archive' && mode !== 'email' && mode !== 'diagram' && mode !== 'model';
 }
 
 /**

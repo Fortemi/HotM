@@ -479,16 +479,14 @@ function AttachmentPreviewContent({
     }
 
     case 'model':
-      return objectUrl ? (
+      return (
         <Suspense fallback={<PreviewLoader height="h-[400px]" />}>
           <ModelPreview
-            url={objectUrl}
+            url={objectUrl ?? api.attachments.getDownloadUrl(attachment.id)}
             filename={attachment.filename}
             contentType={attachment.content_type}
           />
         </Suspense>
-      ) : (
-        <PreviewLoader height="h-[400px]" />
       );
 
     case 'text':

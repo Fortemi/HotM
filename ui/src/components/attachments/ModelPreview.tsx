@@ -87,7 +87,7 @@ export function ModelPreview({ url, filename, contentType, className }: ModelPre
   }
 
   return (
-    <div className={className ?? 'h-[400px] w-full rounded-lg overflow-hidden border bg-background'} data-testid="model-preview">
+    <div className={className ?? 'relative h-[400px] w-full rounded-lg overflow-hidden border bg-background'} data-testid="model-preview">
       <model-viewer
         ref={viewerRef}
         src={url}
