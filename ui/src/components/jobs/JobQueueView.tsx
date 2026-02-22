@@ -426,24 +426,24 @@ export function JobQueueView({ archives }: JobQueueViewProps) {
                     key={job.id}
                     className="flex items-center justify-between py-2.5 px-3 hover:bg-muted/30"
                   >
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 min-w-0">
                       <Clock className="h-4 w-4 text-yellow-500 flex-shrink-0" />
                       <div
                         className={`w-2 h-2 rounded-full flex-shrink-0 ${getJobTypeColor(job.job_type)}`}
                       />
                       <span className="text-sm font-medium">{formatJobType(job.job_type)}</span>
+                      {job.note_id && (
+                        <span className="text-xs text-muted-foreground font-mono truncate" title={job.note_id}>
+                          {job.note_id.substring(0, 12)}
+                        </span>
+                      )}
                       {job.priority != null && job.priority > 0 && (
                         <Badge variant="outline" className="text-[10px] px-1 py-0">
                           P{job.priority}
                         </Badge>
                       )}
                     </div>
-                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                      {job.note_id && (
-                        <span title={job.note_id}>
-                          {job.note_id.substring(0, 8)}...
-                        </span>
-                      )}
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground flex-shrink-0">
                       {job.retry_count != null && job.retry_count > 0 && (
                         <Badge variant="outline" className="text-[10px] px-1 py-0 text-amber-600">
                           retry {job.retry_count}
@@ -491,7 +491,7 @@ export function JobQueueView({ archives }: JobQueueViewProps) {
                     key={`${job.job_id}-${index}`}
                     className="flex items-center justify-between py-2.5 px-3 hover:bg-muted/30"
                   >
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 min-w-0">
                       {job.status === 'completed' ? (
                         <CheckCircle2 className="h-4 w-4 text-green-500 flex-shrink-0" />
                       ) : (
@@ -501,13 +501,18 @@ export function JobQueueView({ archives }: JobQueueViewProps) {
                         className={`w-2 h-2 rounded-full flex-shrink-0 ${getJobTypeColor(job.job_type)}`}
                       />
                       <span className="text-sm font-medium">{formatJobType(job.job_type)}</span>
+                      {job.note_id && (
+                        <span className="text-xs text-muted-foreground font-mono truncate" title={job.note_id}>
+                          {job.note_id.substring(0, 12)}
+                        </span>
+                      )}
                       {job.memory && (
                         <Badge variant="outline" className="text-[10px] px-1 py-0">
                           {job.memory}
                         </Badge>
                       )}
                     </div>
-                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground flex-shrink-0">
                       {job.error && (
                         <span className="text-red-500 max-w-[200px] truncate" title={job.error}>
                           {job.error}
