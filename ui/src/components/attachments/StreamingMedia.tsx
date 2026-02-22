@@ -109,6 +109,8 @@ interface StreamingVideoPlayerProps {
   filename?: string;
   /** Server-side subtitle URL (e.g. from /attachments/:id/subtitles endpoint) */
   subtitleUrl?: string;
+  /** Preferred media variant (e.g. 'web_compatible', 'faststart', 'preview_720p') */
+  variant?: string;
 }
 
 export function StreamingVideoPlayer({
@@ -119,6 +121,7 @@ export function StreamingVideoPlayer({
   transcriptSegments,
   filename,
   subtitleUrl,
+  variant,
 }: StreamingVideoPlayerProps) {
   const [mode, setMode] = useState<PlaybackMode>('direct');
   const [blobUrl, setBlobUrl] = useState<string | null>(null);
@@ -135,8 +138,8 @@ export function StreamingVideoPlayer({
   const retryTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastKnownPositionRef = useRef(0);
 
-  const directUrl = api.attachments.getDownloadUrl(attachmentId);
-  const downloadUrl = directUrl;
+  const directUrl = api.attachments.getDownloadUrl(attachmentId, variant);
+  const downloadUrl = api.attachments.getDownloadUrl(attachmentId);
 
   const activeMemory = getActiveMemory();
   const startWithBlob = !!activeMemory;
@@ -517,6 +520,8 @@ interface StreamingAudioPlayerProps {
   sizeBytes?: number;
   /** Optional waveform/poster image URL (e.g. from thumbnail API) */
   posterUrl?: string;
+  /** Preferred media variant (e.g. 'web_audio', 'audio_preview') */
+  variant?: string;
 }
 
 export function StreamingAudioPlayer({
@@ -524,6 +529,7 @@ export function StreamingAudioPlayer({
   className,
   sizeBytes,
   posterUrl,
+  variant,
 }: StreamingAudioPlayerProps) {
   const [mode, setMode] = useState<PlaybackMode>('direct');
   const [blobUrl, setBlobUrl] = useState<string | null>(null);
@@ -533,8 +539,8 @@ export function StreamingAudioPlayer({
   const retryTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastKnownPositionRef = useRef(0);
 
-  const directUrl = api.attachments.getDownloadUrl(attachmentId);
-  const downloadUrl = directUrl;
+  const directUrl = api.attachments.getDownloadUrl(attachmentId, variant);
+  const downloadUrl = api.attachments.getDownloadUrl(attachmentId);
 
   const activeMemory = getActiveMemory();
   const startWithBlob = !!activeMemory;

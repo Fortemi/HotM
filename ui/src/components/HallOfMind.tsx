@@ -243,7 +243,16 @@ export function HallOfMind() {
     message?: string;
   } | null>(null);
   const [newNoteContent, setNewNoteContent] = useState("");
+  const [newNoteDocType, setNewNoteDocType] = useState<string>("");
+  const [newNoteRevisionMode, setNewNoteRevisionMode] = useState<string>("");
+  const [newNoteAdvancedOpen, setNewNoteAdvancedOpen] = useState(false);
   const [processingNotes, setProcessingNotes] = useState<Set<string>>(new Set());
+  const [extractionProgress, setExtractionProgress] = useState<Map<string, {
+    status: string;
+    strategy?: string;
+    progress?: number;
+    textPreview?: string;
+  }>>(new Map());
   const [copiedState, setCopiedState] = useState<{ [key: string]: boolean }>({});
   const [currentView, setCurrentView] = useState<AppView>("notes");
   const [notesNavigatorExpanded, setNotesNavigatorExpanded] = useState(() => {
@@ -806,6 +815,44 @@ export function HallOfMind() {
         void loadExistingNotes();
         return;
       }
+      if (event.type === 'GraphUpdated') {
+        // Invalidate cached metadata so next panel open fetches fresh link/graph data
+        if (event.note_id) {
+          metadataCache.current.delete(event.note_id);
+        }
+        return;
+      }
+      if (event.type === 'SearchIndexUpdated') {
+        // Clear search cache so next search uses freshly indexed results
+        searchCache.current.clear();
+        return;
+      }
+      if (event.type === 'ExtractionUpdated') {
+        const attachId = event.attachment_id;
+        if (attachId) {
+          const status = event.extraction_status ?? event.status ?? 'processing';
+          if (status === 'completed' || status === 'failed') {
+            // Remove progress entry on completion
+            setExtractionProgress(prev => {
+              const next = new Map(prev);
+              next.delete(attachId);
+              return next;
+            });
+          } else {
+            setExtractionProgress(prev => {
+              const next = new Map(prev);
+              next.set(attachId, {
+                status,
+                strategy: event.extraction_strategy,
+                progress: event.extraction_progress,
+                textPreview: event.extracted_text_preview,
+              });
+              return next;
+            });
+          }
+        }
+        return;
+      }
     });
 
     return () => {
@@ -1069,7 +1116,13 @@ export function HallOfMind() {
     
     try {
       setIsLoading(true);
-      const response = await api.createNote(newNoteContent);
+      const createOptions = (newNoteDocType || newNoteRevisionMode)
+        ? {
+            ...(newNoteDocType && { document_type: newNoteDocType }),
+            ...(newNoteRevisionMode && { revision_mode: newNoteRevisionMode }),
+          }
+        : undefined;
+      const response = await api.createNote(newNoteContent, createOptions);
       console.log("Note created:", response);
       
       // Fetch the full note details
@@ -1103,6 +1156,9 @@ export function HallOfMind() {
       setSelectedNote(simpleNote);
       setNoteContent(simpleNote.content);
       setNewNoteContent("");
+      setNewNoteDocType("");
+      setNewNoteRevisionMode("");
+      setNewNoteAdvancedOpen(false);
       setHasUnsavedChanges(false);
       
       // Refresh the notes list to ensure sync
@@ -2077,6 +2133,48 @@ export function HallOfMind() {
                         }
                       }}
                     />
+                    <button
+                      type="button"
+                      onClick={() => setNewNoteAdvancedOpen(!newNoteAdvancedOpen)}
+                      className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
+                    >
+                      {newNoteAdvancedOpen ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
+                      Advanced
+                    </button>
+                    {newNoteAdvancedOpen && (
+                      <div className="space-y-2 pl-1">
+                        <div className="space-y-1">
+                          <label className="text-xs text-muted-foreground">Document type</label>
+                          <Select value={newNoteDocType} onValueChange={setNewNoteDocType}>
+                            <SelectTrigger className="h-7 text-xs">
+                              <SelectValue placeholder="Auto-detect" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="general">General</SelectItem>
+                              <SelectItem value="academic">Academic</SelectItem>
+                              <SelectItem value="technical">Technical</SelectItem>
+                              <SelectItem value="personal">Personal</SelectItem>
+                              <SelectItem value="meeting_notes">Meeting Notes</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="space-y-1">
+                          <label className="text-xs text-muted-foreground">Revision mode</label>
+                          <Select value={newNoteRevisionMode} onValueChange={setNewNoteRevisionMode}>
+                            <SelectTrigger className="h-7 text-xs">
+                              <SelectValue placeholder="Default" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="standard">Standard</SelectItem>
+                              <SelectItem value="light">Light</SelectItem>
+                              <SelectItem value="contextual">Contextual</SelectItem>
+                              <SelectItem value="contextual_filtered">Contextual (filtered)</SelectItem>
+                              <SelectItem value="none">None</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+                    )}
                     <Button
                       onClick={createNewNote}
                       className="w-full justify-start gap-2"
@@ -2718,18 +2816,32 @@ export function HallOfMind() {
                                       </Button>
                                     </DropdownMenuTrigger>
                                     <DropdownMenuContent align="end">
-                                      <DropdownMenuItem onClick={() => regenerateAI("full")}>
+                                      <DropdownMenuItem onClick={() => regenerateAI("standard")}>
                                         <Sparkles className="h-4 w-4 mr-2" />
                                         <div>
-                                          <div className="font-medium">Full</div>
-                                          <div className="text-xs text-muted-foreground">Contextual expansion</div>
+                                          <div className="font-medium">Standard</div>
+                                          <div className="text-xs text-muted-foreground">Default NLP revision</div>
                                         </div>
                                       </DropdownMenuItem>
                                       <DropdownMenuItem onClick={() => regenerateAI("light")}>
                                         <PenLine className="h-4 w-4 mr-2" />
                                         <div>
                                           <div className="font-medium">Light</div>
-                                          <div className="text-xs text-muted-foreground">Format only</div>
+                                          <div className="text-xs text-muted-foreground">Formatting only</div>
+                                        </div>
+                                      </DropdownMenuItem>
+                                      <DropdownMenuItem onClick={() => regenerateAI("contextual")}>
+                                        <Brain className="h-4 w-4 mr-2" />
+                                        <div>
+                                          <div className="font-medium">Contextual</div>
+                                          <div className="text-xs text-muted-foreground">Full contextual expansion</div>
+                                        </div>
+                                      </DropdownMenuItem>
+                                      <DropdownMenuItem onClick={() => regenerateAI("contextual_filtered")}>
+                                        <SlidersHorizontal className="h-4 w-4 mr-2" />
+                                        <div>
+                                          <div className="font-medium">Contextual (Filtered)</div>
+                                          <div className="text-xs text-muted-foreground">Focused contextual enhancement</div>
                                         </div>
                                       </DropdownMenuItem>
                                       <DropdownMenuItem onClick={() => regenerateAI("none")}>
@@ -2956,6 +3068,7 @@ export function HallOfMind() {
                               <AttachmentsPanel
                                 noteId={selectedNote.id}
                                 className="h-[620px]"
+                                extractionProgress={extractionProgress}
                               />
                             </CardContent>
                           </Card>

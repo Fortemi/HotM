@@ -72,9 +72,19 @@ describe('getPreviewMode', () => {
     expect(getPreviewMode('application/epub+zip')).toBe('office');
   });
 
+  it('should return archive for archive types', () => {
+    expect(getPreviewMode('application/zip')).toBe('archive');
+    expect(getPreviewMode('application/x-tar')).toBe('archive');
+    expect(getPreviewMode('application/x-7z-compressed')).toBe('archive');
+  });
+
+  it('should return email for email types', () => {
+    expect(getPreviewMode('message/rfc822')).toBe('email');
+    expect(getPreviewMode('application/vnd.ms-outlook')).toBe('email');
+  });
+
   it('should return none for unknown types', () => {
     expect(getPreviewMode('application/octet-stream')).toBe('none');
-    expect(getPreviewMode('application/zip')).toBe('none');
   });
 });
 

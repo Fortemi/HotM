@@ -152,8 +152,15 @@ class CompatApiClient {
   // Note Operations
   // ============================================================
 
-  async createNote(content: string): Promise<CreateNoteResponse> {
-    return this.notes.create({ content });
+  async createNote(
+    content: string,
+    options?: { document_type?: string; revision_mode?: string },
+  ): Promise<CreateNoteResponse> {
+    return this.notes.create({
+      content,
+      ...(options?.document_type && { document_type: options.document_type }),
+      ...(options?.revision_mode && { revision_mode: options.revision_mode as any }),
+    });
   }
 
   async getNote(id: string): Promise<NoteFull> {
@@ -172,8 +179,11 @@ class CompatApiClient {
     return this.extended.updateOriginalContent(id, content);
   }
 
-  async regenerateAI(id: string, revisionMode?: string): Promise<any> {
-    return this.extended.regenerateAI(id, revisionMode);
+  async regenerateAI(id: string, revisionModeOrOptions?: string | { revision_mode?: string; model?: string }): Promise<any> {
+    const options = typeof revisionModeOrOptions === 'string'
+      ? { revision_mode: revisionModeOrOptions }
+      : revisionModeOrOptions;
+    return this.extended.regenerateAI(id, options);
   }
 
   async deleteNote(id: string): Promise<any> {

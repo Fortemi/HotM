@@ -158,3 +158,39 @@ export function getThumbnailUrl(
 
   return undefined;
 }
+
+/**
+ * Video variant preference order for streaming playback.
+ * Fortemi generates: faststart, web_compatible, preview_720p
+ */
+const VIDEO_VARIANT_PREFERENCE = ['web_compatible', 'faststart', 'preview_720p'];
+
+/**
+ * Audio variant preference order for streaming playback.
+ * Fortemi generates: web_audio, audio_only, audio_preview
+ */
+const AUDIO_VARIANT_PREFERENCE = ['web_audio', 'audio_only', 'audio_preview'];
+
+/**
+ * Pick the best streaming variant for an attachment based on its media type.
+ * Returns undefined if no optimized variants are available.
+ */
+export function getPreferredVariant(attachment: Attachment): string | undefined {
+  const meta = attachment.extracted_metadata;
+  if (!meta || typeof meta !== 'object') return undefined;
+
+  const variants = meta.available_variants;
+  if (!Array.isArray(variants) || variants.length === 0) return undefined;
+
+  const available = new Set(variants.filter((v): v is string => typeof v === 'string'));
+  if (available.size === 0) return undefined;
+
+  const mediaType = getMediaType(attachment.content_type);
+  const preference = mediaType === 'audio' ? AUDIO_VARIANT_PREFERENCE : VIDEO_VARIANT_PREFERENCE;
+
+  for (const variant of preference) {
+    if (available.has(variant)) return variant;
+  }
+
+  return undefined;
+}

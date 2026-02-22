@@ -151,7 +151,8 @@ describe('realtimeEventBus', () => {
       expect(normalizeTransportEvent({ type: 'concept.scheme.updated' }).type).toBe('ConceptUpdated');
       expect(normalizeTransportEvent({ type: 'concept.relations.updated' }).type).toBe('ConceptUpdated');
       expect(normalizeTransportEvent({ type: 'collection.updated' }).type).toBe('CollectionUpdated');
-      expect(normalizeTransportEvent({ type: 'attachment.extraction.updated' }).type).toBe('AttachmentUpdated');
+      expect(normalizeTransportEvent({ type: 'attachment.extraction.updated' }).type).toBe('ExtractionUpdated');
+      expect(normalizeTransportEvent({ type: 'tag.stats.updated' }).type).toBe('TagStatsUpdated');
       expect(normalizeTransportEvent({ type: 'archive.updated' }).type).toBe('ArchiveUpdated');
     });
 

@@ -179,6 +179,12 @@ export interface SearchResult {
   note_id: string;
   score: number;
   snippet: string;
+  /** Note title (enriched by /related endpoint) */
+  title?: string;
+  /** Note tags (enriched by /related endpoint) */
+  tags?: string[];
+  /** Note source (enriched by /related endpoint) */
+  source?: string;
 }
 
 /**

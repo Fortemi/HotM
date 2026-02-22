@@ -63,6 +63,7 @@ interface PersistedFilterState {
   maxNodes: number;
   minScore: number;
   maxEdgesPerNode: number;
+  minEdgeWeight: number;
 }
 
 /**
@@ -141,6 +142,7 @@ export function GraphExplorer({ className, initialNoteId, onNoteSelect, external
   const [maxNodes, setMaxNodes] = React.useState(100);
   const [minScore, setMinScore] = React.useState(0.0);
   const [maxEdgesPerNode, setMaxEdgesPerNode] = React.useState(0); // 0 = unlimited
+  const [minEdgeWeight, setMinEdgeWeight] = React.useState(0); // 0 = no filter
   const [selectedCollection, setSelectedCollection] = React.useState<string>('all');
   const [archiveFilter, setArchiveFilter] = React.useState<'all' | 'active' | 'archived'>('all');
   const [updatedWithinDays, setUpdatedWithinDays] = React.useState(0);
@@ -250,6 +252,7 @@ export function GraphExplorer({ className, initialNoteId, onNoteSelect, external
       if (typeof parsed.maxNodes === 'number') setMaxNodes(parsed.maxNodes);
       if (typeof parsed.minScore === 'number') setMinScore(parsed.minScore);
       if (typeof parsed.maxEdgesPerNode === 'number') setMaxEdgesPerNode(parsed.maxEdgesPerNode);
+      if (typeof parsed.minEdgeWeight === 'number') setMinEdgeWeight(parsed.minEdgeWeight);
     } catch {
       // no-op
     }
@@ -279,12 +282,13 @@ export function GraphExplorer({ className, initialNoteId, onNoteSelect, external
         maxNodes,
         minScore,
         maxEdgesPerNode,
+        minEdgeWeight,
       };
       sessionStorage.setItem(FILTER_STATE_KEY, JSON.stringify(filterState));
     } catch {
       // no-op
     }
-  }, [archiveFilter, communityOverlay, depth, edgeLayer, maxEdgesPerNode, maxNodes, minScore, selectedCollection, selectedConcepts, selectedTags, updatedWithinDays]);
+  }, [archiveFilter, communityOverlay, depth, edgeLayer, maxEdgesPerNode, maxNodes, minEdgeWeight, minScore, selectedCollection, selectedConcepts, selectedTags, updatedWithinDays]);
 
   const markOperation = React.useCallback((operation: TimingOperation) => {
     if (typeof performance === 'undefined') return;
@@ -323,6 +327,8 @@ export function GraphExplorer({ className, initialNoteId, onNoteSelect, external
           max_nodes: maxNodes,
           min_score: minScore,
           max_edges_per_node: maxEdgesPerNode > 0 ? maxEdgesPerNode : undefined,
+          min_edge_weight: minEdgeWeight > 0 ? minEdgeWeight : undefined,
+          include_bridges_only: showBridgesOnly || undefined,
         });
 
       const findConnectedRoot = async (excludeNoteId: string): Promise<string | null> => {
@@ -459,7 +465,7 @@ export function GraphExplorer({ className, initialNoteId, onNoteSelect, external
     } finally {
       setLoading(false);
     }
-  }, [depth, maxEdgesPerNode, maxNodes, minScore, rootNoteId]);
+  }, [depth, maxEdgesPerNode, maxNodes, minEdgeWeight, minScore, rootNoteId, showBridgesOnly]);
 
   React.useEffect(() => {
     void loadGraph();
@@ -1331,6 +1337,7 @@ export function GraphExplorer({ className, initialNoteId, onNoteSelect, external
             setMaxNodes(100);
             setMinScore(0.0);
             setMaxEdgesPerNode(0);
+            setMinEdgeWeight(0);
             // Reset view mode
             setViewMode('nodes');
             setFocusedCommunity(null);
@@ -1371,6 +1378,12 @@ export function GraphExplorer({ className, initialNoteId, onNoteSelect, external
             Max edges/node: {maxEdgesPerNode === 0 ? 'unlimited' : maxEdgesPerNode}
           </div>
           <Slider value={[maxEdgesPerNode]} min={0} max={50} step={1} onValueChange={(v) => { markOperation('filter'); setMaxEdgesPerNode(v[0]); }} />
+        </div>
+        <div className="w-[180px] space-y-0.5">
+          <div className="text-muted-foreground">
+            Edge weight: {minEdgeWeight === 0 ? 'any' : `>= ${minEdgeWeight.toFixed(2)}`}
+          </div>
+          <Slider value={[minEdgeWeight]} min={0} max={1} step={0.05} onValueChange={(v) => { markOperation('filter'); setMinEdgeWeight(v[0]); }} />
         </div>
         <div className="w-[180px] space-y-0.5">
           <div className="text-muted-foreground">
@@ -1606,6 +1619,11 @@ export function GraphExplorer({ className, initialNoteId, onNoteSelect, external
                     Explore From Here
                   </Button>
                 </div>
+                {selectedNode.neighborhood_explanation && (
+                  <div className="rounded bg-muted/50 p-2 text-xs text-muted-foreground italic">
+                    {selectedNode.neighborhood_explanation}
+                  </div>
+                )}
                 {/* Edge list */}
                 <div className="space-y-1 mt-2">
                   <div className="text-xs font-medium">Top connections:</div>

@@ -89,7 +89,20 @@ export function TagManager({ className }: TagManagerProps) {
   useEffect(() => {
     const unsubscribe = realtimeEventBus.subscribe((event) => {
       if (event.type === 'TagUpdated' || event.type === 'NoteUpdated') {
+        // Structural change (create/rename/delete/merge) — full reload
         void loadTags();
+        return;
+      }
+      if (event.type === 'TagStatsUpdated') {
+        // Incremental count update — patch in-place without full reload
+        const tagName = event.tag_name;
+        const noteCount = event.note_count;
+        if (tagName && noteCount != null) {
+          setTags(prev =>
+            prev.map(t => t.name === tagName ? { ...t, count: noteCount } : t)
+          );
+        }
+        return;
       }
     });
     return () => unsubscribe();

@@ -173,6 +173,9 @@ function normalizeSearchResults(payload: unknown): SearchResult[] {
         note_id: String(noteId),
         score: typeof raw.score === 'number' ? raw.score : 0.5,
         snippet: typeof raw.snippet === 'string' ? raw.snippet : '',
+        title: typeof raw.title === 'string' ? raw.title : undefined,
+        tags: Array.isArray(raw.tags) ? raw.tags.filter((t): t is string => typeof t === 'string') : undefined,
+        source: typeof raw.source === 'string' ? raw.source : undefined,
       };
     })
     .filter((v): v is SearchResult => v !== null);
@@ -213,10 +216,13 @@ export function createExtendedApi(client: ApiClient) {
     /**
      * Trigger AI regeneration for a note
      */
-    async regenerateAI(noteId: string, revisionMode?: string): Promise<unknown> {
+    async regenerateAI(noteId: string, options?: { revision_mode?: string; model?: string }): Promise<unknown> {
+      const body: Record<string, string> = {};
+      if (options?.revision_mode) body.revision_mode = options.revision_mode;
+      if (options?.model) body.model = options.model;
       return client.post(
         `/api/v1/notes/${noteId}/reprocess`,
-        revisionMode ? { revision_mode: revisionMode } : undefined
+        Object.keys(body).length > 0 ? body : undefined
       );
     },
 

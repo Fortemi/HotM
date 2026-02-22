@@ -13,6 +13,7 @@ export type GraphNodeRecord = {
   community_id?: number | null;
   community_label?: string | null;
   community_confidence?: number | null;
+  neighborhood_explanation?: string | null;
 };
 
 export type GraphEdgeRecord = {
@@ -52,6 +53,7 @@ export function normalizeGraphResponse(response: GraphExploreResponse): {
     community_id: node.community_id ?? null,
     community_label: node.community_label ?? null,
     community_confidence: node.community_confidence ?? null,
+    neighborhood_explanation: node.neighborhood_explanation ?? null,
   }));
 
   const dedupEdges = new Set<string>();

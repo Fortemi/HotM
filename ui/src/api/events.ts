@@ -67,6 +67,8 @@ export const DEFAULT_SSE_EVENT_TYPES = [
   // Search/index materialization events
   'index.embedding.updated', 'index.linking.updated', 'index.fts.updated',
   'readmodel.search.ready', 'readmodel.graph.updated',
+  // Note lifecycle events (NLP pipeline)
+  'note.tags.updated', 'note.links.updated', 'note.revision.created',
   // Attachment extraction
   'attachment.extraction.updated',
   // Synthetic SSE events (client resilience)

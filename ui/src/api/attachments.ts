@@ -90,17 +90,49 @@ export function createAttachmentsApi(client: ApiClient) {
     },
 
     /**
+     * List all attachments across all notes (global)
+     * Supports pagination, content type filtering, and sorting
+     */
+    async listAllAttachments(params?: {
+      page?: number;
+      per_page?: number;
+      content_type?: string;
+      status?: string;
+      sort?: string;
+    }): Promise<{ attachments: Attachment[]; total: number }> {
+      const queryParams: Record<string, string> = {};
+      if (params?.page !== undefined) queryParams.page = String(params.page);
+      if (params?.per_page !== undefined) queryParams.per_page = String(params.per_page);
+      if (params?.content_type) queryParams.content_type = params.content_type;
+      if (params?.status) queryParams.status = params.status;
+      if (params?.sort) queryParams.sort = params.sort;
+
+      const response = await client.get<{ attachments: Attachment[]; total: number } | Attachment[]>(
+        '/api/v1/attachments',
+        queryParams
+      );
+
+      if (Array.isArray(response)) {
+        return { attachments: response, total: response.length };
+      }
+      return response;
+    },
+
+    /**
      * Download an attachment
      * Returns blob URL for client-side handling
      */
-    async downloadAttachment(attachmentId: string): Promise<Blob> {
+    async downloadAttachment(attachmentId: string, variant?: string): Promise<Blob> {
       if (!attachmentId || attachmentId.trim() === '') {
         throw new Error('Attachment ID is required');
       }
 
       // Use fetch directly to handle binary response
       const baseUrl = getBaseUrl();
-      const url = `${baseUrl}/api/v1/attachments/${attachmentId}/download`;
+      let url = `${baseUrl}/api/v1/attachments/${attachmentId}/download`;
+      if (variant) {
+        url += `?variant=${encodeURIComponent(variant)}`;
+      }
 
       const response = await getTauriFetch()(url, {
         method: 'GET',
@@ -117,13 +149,14 @@ export function createAttachmentsApi(client: ApiClient) {
     /**
      * Get download URL for an attachment
      */
-    getDownloadUrl(attachmentId: string): string {
+    getDownloadUrl(attachmentId: string, variant?: string): string {
       if (!attachmentId || attachmentId.trim() === '') {
         throw new Error('Attachment ID is required');
       }
 
       const baseUrl = getBaseUrl();
-      return `${baseUrl}/api/v1/attachments/${attachmentId}/download`;
+      const base = `${baseUrl}/api/v1/attachments/${attachmentId}/download`;
+      return variant ? `${base}?variant=${encodeURIComponent(variant)}` : base;
     },
 
     /**

@@ -111,6 +111,10 @@ export interface Attachment {
   extracted_text?: string | null;
   /** Structured metadata from extraction pipeline */
   extracted_metadata?: Record<string, unknown> | null;
+  /** Derivation type for auto-generated attachments (e.g., 'transcript', 'subtitle', 'thumbnail', 'preview') */
+  derivation_type?: string;
+  /** Parent attachment ID for derived attachments */
+  source_attachment_id?: string;
 }
 
 /**
@@ -916,7 +920,7 @@ export interface AddEmbeddingSetMembersRequest {
 // ===========================
 
 /**
- * Graph node (v1 payload — enriched with community, tags, concepts)
+ * Graph node (v2 payload — enriched with community, tags, concepts, neighborhood)
  */
 export interface GraphNode {
   id: string;
@@ -932,10 +936,12 @@ export interface GraphNode {
   community_id?: number | null;
   community_label?: string | null;
   community_confidence?: number | null;
+  // v2: LLM-generated explanation of this node's neighborhood
+  neighborhood_explanation?: string;
 }
 
 /**
- * Edge provenance metadata (v1)
+ * Edge provenance metadata (v2)
  */
 export interface GraphEdgeMetadata {
   normalized_weight?: number;
@@ -943,6 +949,10 @@ export interface GraphEdgeMetadata {
   model?: string;
   computed_at?: string;
   snn_score?: number | null;
+  // v2 fields
+  edge_community?: number;
+  is_structural?: boolean;
+  content_type?: string;
 }
 
 /**
@@ -975,7 +985,18 @@ export interface GraphMeta {
 }
 
 /**
- * Graph exploration response (v1 with backward compatibility)
+ * Community hint from graph exploration (v2)
+ */
+export interface CommunityHint {
+  community_id: number;
+  label?: string;
+  description?: string;
+  node_count: number;
+  representative_nodes?: string[];
+}
+
+/**
+ * Graph exploration response (v2 with backward compatibility)
  */
 export interface GraphExploreResponse {
   graph_version?: string;
@@ -984,6 +1005,8 @@ export interface GraphExploreResponse {
   nodes: GraphNode[];
   edges: GraphEdge[];
   meta?: GraphMeta;
+  // v2: community detection results
+  community_hints?: CommunityHint[];
 }
 
 /**

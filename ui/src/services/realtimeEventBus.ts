@@ -11,7 +11,9 @@ export type RealtimeEventType =
   | 'NoteCreated'
   | 'NoteDeleted'
   | 'AttachmentUpdated'
+  | 'ExtractionUpdated'
   | 'TagUpdated'
+  | 'TagStatsUpdated'
   | 'CollectionUpdated'
   | 'ArchiveUpdated'
   | 'ConceptUpdated'
@@ -54,6 +56,15 @@ export interface RealtimeEvent {
   step_name?: string;
   steps_total?: number;
   step_current?: number;
+  // Extraction progress fields (attachment.extraction.updated)
+  extraction_status?: string;
+  extraction_strategy?: string;
+  extraction_progress?: number;
+  extracted_text_preview?: string;
+  metadata_count?: number;
+  // Tag stats fields (tag.stats.updated)
+  tag_name?: string;
+  note_count?: number;
   // Synthetic event fields
   dropped_count?: number;
 }
@@ -77,7 +88,9 @@ const SUPPORTED_TYPES = new Set<RealtimeEventType>([
   'NoteCreated',
   'NoteDeleted',
   'AttachmentUpdated',
+  'ExtractionUpdated',
   'TagUpdated',
+  'TagStatsUpdated',
   'CollectionUpdated',
   'ArchiveUpdated',
   'ConceptUpdated',
@@ -100,6 +113,10 @@ const NOTE_UPDATE_ALIASES = new Set<string>([
   'NoteLinksUpdated',
   'NoteProvenanceUpdated',
   'NoteRevisionUpdated',
+  // v2 dot-notation aliases
+  'NoteTagsUpdated',
+  'NoteLinksUpdated',
+  'NoteRevisionCreated',
 ]);
 
 function getStringField(input: Record<string, unknown>, key: string): string | undefined {
@@ -140,6 +157,10 @@ const DOT_NOTATION_MAP: Record<string, string> = {
   'note.links_updated': 'NoteLinksUpdated',
   'note.provenance_updated': 'NoteProvenanceUpdated',
   'note.revision_updated': 'NoteRevisionUpdated',
+  // v2 dot-notation note lifecycle events
+  'note.tags.updated': 'NoteTagsUpdated',
+  'note.links.updated': 'NoteLinksUpdated',
+  'note.revision.created': 'NoteRevisionCreated',
   'job.queued': 'JobQueued',
   'job.started': 'JobStarted',
   'job.progress': 'JobProgress',
@@ -153,12 +174,12 @@ const DOT_NOTATION_MAP: Record<string, string> = {
   'collection.deleted': 'CollectionUpdated',
   'archive.updated': 'ArchiveUpdated',
   'attachment.updated': 'AttachmentUpdated',
-  'attachment.extraction.updated': 'AttachmentUpdated',
+  'attachment.extraction.updated': 'ExtractionUpdated',
   'tag.created': 'TagUpdated',
   'tag.renamed': 'TagUpdated',
   'tag.deleted': 'TagUpdated',
   'tag.merged': 'TagUpdated',
-  'tag.stats.updated': 'TagUpdated',
+  'tag.stats.updated': 'TagStatsUpdated',
   'concept.created': 'ConceptUpdated',
   'concept.updated': 'ConceptUpdated',
   'concept.deleted': 'ConceptUpdated',
@@ -189,6 +210,11 @@ function normalizeEventType(input: Record<string, unknown>): RealtimeEventType {
   if (NOTE_UPDATE_ALIASES.has(mapped)) {
     return 'NoteUpdated';
   }
+  // Check for exact SUPPORTED_TYPES match first (covers ExtractionUpdated, TagStatsUpdated, etc.)
+  if (SUPPORTED_TYPES.has(mapped as RealtimeEventType)) {
+    return mapped as RealtimeEventType;
+  }
+  // Fuzzy fallbacks for unmapped PascalCase variants
   if (mapped.includes('Attachment')) {
     return 'AttachmentUpdated';
   }
@@ -251,6 +277,15 @@ export function normalizeTransportEvent(input: unknown): RealtimeEvent {
     // Envelope metadata
     actor: getStringField(normalizedInput, 'actor'),
     occurred_at: getStringField(normalizedInput, 'occurred_at'),
+    // Extraction progress fields
+    extraction_status: getStringField(normalizedInput, 'extraction_status'),
+    extraction_strategy: getStringField(normalizedInput, 'extraction_strategy'),
+    extraction_progress: getNumberField(normalizedInput, 'extraction_progress'),
+    extracted_text_preview: getStringField(normalizedInput, 'extracted_text_preview'),
+    metadata_count: getNumberField(normalizedInput, 'metadata_count'),
+    // Tag stats fields
+    tag_name: getStringField(normalizedInput, 'tag_name'),
+    note_count: getNumberField(normalizedInput, 'note_count'),
     // Synthetic event fields
     dropped_count: getNumberField(normalizedInput, 'dropped_count'),
   };

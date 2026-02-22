@@ -11,6 +11,9 @@ export type PreviewMode =
   | 'model'
   | 'text'
   | 'office'
+  | 'archive'
+  | 'email'
+  | 'diagram'
   | 'none';
 
 /**
@@ -22,6 +25,13 @@ export function getPreviewMode(contentType: string, filename?: string): PreviewM
   if (contentType.startsWith('video/')) return 'video';
   if (contentType.startsWith('audio/')) return 'audio';
   if (contentType.startsWith('model/')) return 'model';
+
+  // Archive types
+  if (isArchiveType(contentType)) return 'archive';
+  // Email types
+  if (isEmailType(contentType)) return 'email';
+  // Diagram types
+  if (isDiagramType(contentType, filename)) return 'diagram';
 
   // 3D formats that may arrive as application/octet-stream
   if (filename) {
@@ -89,6 +99,49 @@ export function isOfficeDocType(contentType: string): boolean {
 }
 
 /**
+ * Archive content types that Fortemi extracts file listings from.
+ */
+export function isArchiveType(contentType: string): boolean {
+  const archiveTypes = [
+    'application/zip',
+    'application/x-tar',
+    'application/gzip',
+    'application/x-gzip',
+    'application/x-7z-compressed',
+    'application/x-rar-compressed',
+    'application/x-bzip2',
+    'application/x-xz',
+  ];
+  return archiveTypes.includes(contentType);
+}
+
+/**
+ * Email content types that Fortemi extracts headers and body from.
+ */
+export function isEmailType(contentType: string): boolean {
+  const emailTypes = [
+    'message/rfc822',           // .eml
+    'application/vnd.ms-outlook', // .msg
+  ];
+  return emailTypes.includes(contentType);
+}
+
+/**
+ * Diagram content types that may have extracted SVG or metadata.
+ */
+export function isDiagramType(contentType: string, filename?: string): boolean {
+  if (contentType === 'application/xml' || contentType === 'application/json') {
+    if (filename) {
+      const ext = filename.split('.').pop()?.toLowerCase();
+      if (ext && ['drawio', 'excalidraw', 'mermaid'].includes(ext)) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+/**
  * Whether the parent handleView should pre-download the blob.
  *
  * Audio and video are excluded — they use streaming URLs via useBlobUrl
@@ -98,8 +151,9 @@ export function isOfficeDocType(contentType: string): boolean {
 export function shouldDownloadBlob(contentType: string, filename?: string): boolean {
   const mode = getPreviewMode(contentType, filename);
   // Audio/video handle their own URLs via useBlobUrl for streaming support.
-  // Office docs and unknown types don't need blobs at all.
-  return mode !== 'office' && mode !== 'none' && mode !== 'audio' && mode !== 'video';
+  // Office, archive, email, diagram, and unknown types use extracted metadata instead of blobs.
+  return mode !== 'office' && mode !== 'none' && mode !== 'audio' && mode !== 'video'
+    && mode !== 'archive' && mode !== 'email' && mode !== 'diagram';
 }
 
 /**

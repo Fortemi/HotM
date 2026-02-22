@@ -102,6 +102,11 @@ export function createLinksApi(client: ApiClient) {
         max_nodes?: number;
         min_score?: number;
         max_edges_per_node?: number;
+        // v2 guardrail parameters
+        min_edge_weight?: number;
+        max_depth?: number;
+        algorithms?: string[];
+        include_bridges_only?: boolean;
       } = {}
     ): Promise<GraphExploreResponse> {
       if (!noteId || noteId.trim() === '') {
@@ -124,6 +129,23 @@ export function createLinksApi(client: ApiClient) {
 
       if (options.max_edges_per_node !== undefined) {
         params.max_edges_per_node = String(options.max_edges_per_node);
+      }
+
+      // v2 guardrail parameters
+      if (options.min_edge_weight !== undefined) {
+        params.min_edge_weight = String(options.min_edge_weight);
+      }
+
+      if (options.max_depth !== undefined) {
+        params.max_depth = String(options.max_depth);
+      }
+
+      if (options.algorithms !== undefined && options.algorithms.length > 0) {
+        params.algorithms = options.algorithms.join(',');
+      }
+
+      if (options.include_bridges_only !== undefined) {
+        params.include_bridges_only = String(options.include_bridges_only);
       }
 
       return client.get<GraphExploreResponse>(

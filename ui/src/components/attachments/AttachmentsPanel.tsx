@@ -29,6 +29,9 @@ import {
   Box,
   FileSpreadsheet,
   Presentation,
+  Archive,
+  Mail,
+  Workflow,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -54,13 +57,21 @@ import type { Attachment, AttachmentMetadata, ExtractionStatus, AttachmentStatus
 import { getPreviewMode, shouldDownloadBlob, getDocTypeLabel, getLanguageFromType } from './preview-utils';
 import type { PreviewMode } from './preview-utils';
 import { StreamingVideoPlayer, StreamingAudioPlayer } from './StreamingMedia';
-import { getMediaType, extractMediaInfo, formatMediaDuration, getThumbnailUrl } from './media-utils';
+import { getMediaType, extractMediaInfo, formatMediaDuration, getThumbnailUrl, getPreferredVariant } from './media-utils';
 
 const ModelPreview = lazy(() => import('./ModelPreview').then((m) => ({ default: m.ModelPreview })));
+
+interface ExtractionProgressInfo {
+  status: string;
+  strategy?: string;
+  progress?: number;
+  textPreview?: string;
+}
 
 interface AttachmentsPanelProps {
   noteId: string;
   className?: string;
+  extractionProgress?: Map<string, ExtractionProgressInfo>;
 }
 
 type ViewMode = 'grid' | 'list';
@@ -98,6 +109,12 @@ function getFileIcon(contentType: string) {
   }
   if (contentType.startsWith('text/') || contentType.includes('javascript') || contentType.includes('json') || contentType.includes('xml')) {
     return <FileCode className="w-8 h-8 text-cyan-500" />;
+  }
+  if (contentType === 'application/zip' || contentType.includes('tar') || contentType.includes('7z') || contentType.includes('rar') || contentType.includes('bzip') || contentType.includes('xz') || contentType.includes('gzip')) {
+    return <Archive className="w-8 h-8 text-amber-600" />;
+  }
+  if (contentType === 'message/rfc822' || contentType === 'application/vnd.ms-outlook') {
+    return <Mail className="w-8 h-8 text-blue-600" />;
   }
   return <File className="w-8 h-8 text-gray-500" />;
 }
@@ -175,9 +192,10 @@ interface AttachmentCardProps {
   onView: (att: Attachment) => void;
   onDownload: (att: Attachment) => void;
   onDelete: (att: Attachment) => void;
+  extractionInfo?: ExtractionProgressInfo;
 }
 
-function AttachmentCard({ attachment, viewMode, onView, onDownload, onDelete }: AttachmentCardProps) {
+function AttachmentCard({ attachment, viewMode, onView, onDownload, onDelete, extractionInfo }: AttachmentCardProps) {
   const isImage = attachment.content_type.startsWith('image/');
   const mediaType = getMediaType(attachment.content_type);
   const isMedia = mediaType === 'video' || mediaType === 'audio';
@@ -189,6 +207,7 @@ function AttachmentCard({ attachment, viewMode, onView, onDownload, onDelete }: 
   );
   const extractionStatus = getExtractionStatus(attachment);
   const extractionPreview = getExtractionPreview(attachment);
+  const isDerived = !!attachment.derivation_type;
 
   if (viewMode === 'grid') {
     return (
@@ -223,7 +242,12 @@ function AttachmentCard({ attachment, viewMode, onView, onDownload, onDelete }: 
         {/* Info */}
         <div className="p-2">
           <p className="text-sm font-medium truncate">{attachment.filename}</p>
-          <p className="text-xs text-muted-foreground">{formatFileSize(attachment.size_bytes)}</p>
+          <div className="flex items-center gap-1">
+            <p className="text-xs text-muted-foreground">{formatFileSize(attachment.size_bytes)}</p>
+            {isDerived && (
+              <Badge variant="outline" className="text-[10px] px-1 py-0">{attachment.derivation_type}</Badge>
+            )}
+          </div>
           {extractionPreview && (
             <p className="text-xs text-muted-foreground mt-1 line-clamp-2" data-testid="extraction-preview">
               {extractionPreview}
@@ -245,6 +269,25 @@ function AttachmentCard({ attachment, viewMode, onView, onDownload, onDelete }: 
           )}
           <ExtractionStatusBadge status={extractionStatus} />
         </div>
+
+        {/* Extraction progress overlay */}
+        {extractionInfo && (
+          <div className="absolute bottom-0 left-0 right-0 bg-background/90 border-t px-2 py-1.5">
+            <div className="flex items-center gap-1.5">
+              <Loader2 className="w-3 h-3 animate-spin text-primary shrink-0" />
+              <div className="flex-1 min-w-0">
+                <div className="text-[10px] font-medium truncate">
+                  {extractionInfo.strategy ? `Extracting (${extractionInfo.strategy})` : 'Extracting...'}
+                </div>
+                {extractionInfo.progress != null && (
+                  <div className="h-1 mt-0.5 rounded-full bg-muted overflow-hidden">
+                    <div className="h-full bg-primary rounded-full transition-all" style={{ width: `${Math.min(100, extractionInfo.progress)}%` }} />
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Actions */}
         <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -299,6 +342,9 @@ function AttachmentCard({ attachment, viewMode, onView, onDownload, onDelete }: 
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
           <p className="text-sm font-medium truncate">{attachment.filename}</p>
+          {isDerived && (
+            <Badge variant="outline" className="text-[10px] px-1 py-0">{attachment.derivation_type}</Badge>
+          )}
           <ExtractionStatusBadge status={extractionStatus} />
         </div>
         <div className="flex items-center gap-2 text-xs text-muted-foreground">
@@ -313,7 +359,20 @@ function AttachmentCard({ attachment, viewMode, onView, onDownload, onDelete }: 
           <span>{new Date(attachment.created_at).toLocaleDateString()}</span>
           {attachment.has_location && <MapPin className="w-3 h-3" />}
         </div>
-        {extractionPreview && (
+        {extractionInfo && (
+          <div className="flex items-center gap-1.5 mt-0.5">
+            <Loader2 className="w-3 h-3 animate-spin text-primary shrink-0" />
+            <span className="text-[10px] font-medium">
+              {extractionInfo.strategy ? `Extracting (${extractionInfo.strategy})` : 'Extracting...'}
+            </span>
+            {extractionInfo.progress != null && (
+              <div className="h-1 w-16 rounded-full bg-muted overflow-hidden">
+                <div className="h-full bg-primary rounded-full transition-all" style={{ width: `${Math.min(100, extractionInfo.progress)}%` }} />
+              </div>
+            )}
+          </div>
+        )}
+        {!extractionInfo && extractionPreview && (
           <p className="text-xs text-muted-foreground mt-0.5 truncate" data-testid="extraction-preview">
             {extractionPreview}
           </p>
@@ -392,6 +451,7 @@ function AttachmentPreviewContent({
       const segments = meta && Array.isArray(meta.transcript_segments) ? meta.transcript_segments as import('./subtitle-utils').TranscriptSegment[] : undefined;
       const hasTranscript = segments && segments.length > 0;
       const subtitleUrl = hasTranscript ? api.attachments.getSubtitleUrl(attachment.id, 'vtt') : undefined;
+      const videoVariant = getPreferredVariant(attachment);
       return (
         <StreamingVideoPlayer
           attachmentId={attachment.id}
@@ -400,17 +460,20 @@ function AttachmentPreviewContent({
           transcriptSegments={segments}
           filename={attachment.filename}
           subtitleUrl={subtitleUrl}
+          variant={videoVariant}
         />
       );
     }
 
     case 'audio': {
       const audioPosterUrl = getThumbnailUrl(attachment, api.attachments.getDownloadUrl, api.attachments.getThumbnailUrl);
+      const audioVariant = getPreferredVariant(attachment);
       return (
         <StreamingAudioPlayer
           attachmentId={attachment.id}
           sizeBytes={attachment.size_bytes}
           posterUrl={audioPosterUrl}
+          variant={audioVariant}
         />
       );
     }
@@ -465,6 +528,90 @@ function AttachmentPreviewContent({
           </div>
           <Button variant="outline" size="sm" onClick={onDownload}>
             <Download className="w-4 h-4 mr-2" /> Download to view
+          </Button>
+        </div>
+      );
+
+    case 'archive': {
+      const archiveMeta = attachment.extracted_metadata as Record<string, unknown> | null;
+      const fileList = archiveMeta && Array.isArray(archiveMeta.file_listing)
+        ? (archiveMeta.file_listing as string[])
+        : null;
+      return (
+        <div className="rounded-lg border p-4 space-y-3" data-testid="attachment-archive-preview">
+          <div className="flex items-center gap-2">
+            <Archive className="w-8 h-8 text-amber-600" />
+            <div>
+              <p className="text-sm font-medium">{attachment.filename}</p>
+              <p className="text-xs text-muted-foreground">Archive contents</p>
+            </div>
+          </div>
+          {fileList && fileList.length > 0 ? (
+            <div className="bg-muted/20 rounded p-3 max-h-[40vh] overflow-auto">
+              <div className="text-xs text-muted-foreground mb-2">{fileList.length} files</div>
+              {fileList.map((f, i) => (
+                <div key={i} className="text-xs font-mono py-0.5 border-b border-muted last:border-0">{f}</div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-xs text-muted-foreground">File listing not available.</p>
+          )}
+          <Button variant="outline" size="sm" onClick={onDownload}>
+            <Download className="w-4 h-4 mr-2" /> Download archive
+          </Button>
+        </div>
+      );
+    }
+
+    case 'email': {
+      const emailMeta = attachment.extracted_metadata as Record<string, unknown> | null;
+      const headers: Record<string, string> = {};
+      if (emailMeta) {
+        if (typeof emailMeta.from === 'string') headers['From'] = emailMeta.from;
+        if (typeof emailMeta.to === 'string') headers['To'] = emailMeta.to;
+        if (typeof emailMeta.subject === 'string') headers['Subject'] = emailMeta.subject;
+        if (typeof emailMeta.date === 'string') headers['Date'] = emailMeta.date;
+      }
+      return (
+        <div className="rounded-lg border p-4 space-y-3" data-testid="attachment-email-preview">
+          <div className="flex items-center gap-2">
+            <Mail className="w-8 h-8 text-blue-600" />
+            <div>
+              <p className="text-sm font-medium">{headers['Subject'] || attachment.filename}</p>
+              <p className="text-xs text-muted-foreground">Email message</p>
+            </div>
+          </div>
+          {Object.keys(headers).length > 0 && (
+            <div className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-xs bg-muted/20 rounded p-3">
+              {Object.entries(headers).map(([key, value]) => (
+                <><span key={`${key}-label`} className="font-medium text-muted-foreground">{key}:</span><span key={`${key}-value`}>{value}</span></>
+              ))}
+            </div>
+          )}
+          {attachment.extracted_text && (
+            <pre className="text-xs p-3 max-h-[40vh] overflow-auto whitespace-pre-wrap break-words bg-muted/20 rounded">
+              {attachment.extracted_text}
+            </pre>
+          )}
+          <Button variant="outline" size="sm" onClick={onDownload}>
+            <Download className="w-4 h-4 mr-2" /> Download original
+          </Button>
+        </div>
+      );
+    }
+
+    case 'diagram':
+      return (
+        <div className="rounded-lg border p-6 text-center space-y-3" data-testid="attachment-diagram-preview">
+          <Workflow className="w-12 h-12 mx-auto text-purple-600" />
+          <div>
+            <p className="text-sm font-medium">{attachment.filename}</p>
+            <p className="text-xs text-muted-foreground">
+              Diagram file{attachment.extracted_text ? ' — extracted content available below' : ''}
+            </p>
+          </div>
+          <Button variant="outline" size="sm" onClick={onDownload}>
+            <Download className="w-4 h-4 mr-2" /> Download to edit
           </Button>
         </div>
       );
@@ -819,7 +966,7 @@ function PreviewDialogTabs({
   );
 }
 
-export function AttachmentsPanel({ noteId, className }: AttachmentsPanelProps) {
+export function AttachmentsPanel({ noteId, className, extractionProgress }: AttachmentsPanelProps) {
   const [attachments, setAttachments] = useState<Attachment[]>([]);
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
   const [isLoading, setIsLoading] = useState(true);
@@ -832,8 +979,17 @@ export function AttachmentsPanel({ noteId, className }: AttachmentsPanelProps) {
   const [previewTextContent, setPreviewTextContent] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [mediaOptimize, setMediaOptimize] = useState(false);
+  const [derivationFilter, setDerivationFilter] = useState<'all' | 'primary' | 'derived'>('all');
   const [pendingFiles, setPendingFiles] = useState<FileList | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const displayAttachments = derivationFilter === 'all'
+    ? attachments
+    : derivationFilter === 'primary'
+      ? attachments.filter((a) => !a.derivation_type)
+      : attachments.filter((a) => !!a.derivation_type);
+
+  const hasDerivedAttachments = attachments.some((a) => !!a.derivation_type);
 
   const revokePreviewObjectUrl = useCallback(() => {
     setPreviewObjectUrl((current) => {
@@ -1075,6 +1231,21 @@ export function AttachmentsPanel({ noteId, className }: AttachmentsPanelProps) {
           >
             <List className="w-4 h-4" />
           </Button>
+          {hasDerivedAttachments && (
+            <div className="flex items-center gap-0.5 ml-2 border-l pl-2">
+              {(['all', 'primary', 'derived'] as const).map((f) => (
+                <Button
+                  key={f}
+                  variant={derivationFilter === f ? 'secondary' : 'ghost'}
+                  size="sm"
+                  className="h-7 text-xs px-2"
+                  onClick={() => setDerivationFilter(f)}
+                >
+                  {f === 'all' ? 'All' : f === 'primary' ? 'Primary' : 'Derived'}
+                </Button>
+              ))}
+            </div>
+          )}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="icon" className="h-8 w-8" aria-label="more">
@@ -1178,13 +1349,13 @@ export function AttachmentsPanel({ noteId, className }: AttachmentsPanelProps) {
               Retry
             </Button>
           </div>
-        ) : attachments.length === 0 ? (
+        ) : displayAttachments.length === 0 ? (
           <div className="text-center py-8 text-muted-foreground">
-            <p className="text-sm">No attachments yet</p>
+            <p className="text-sm">{attachments.length === 0 ? 'No attachments yet' : 'No matching attachments'}</p>
           </div>
         ) : viewMode === 'grid' ? (
           <div className="grid grid-cols-2 gap-3" data-testid="attachment-grid">
-            {attachments.map((att) => (
+            {displayAttachments.map((att) => (
               <AttachmentCard
                 key={att.id}
                 attachment={att}
@@ -1192,12 +1363,13 @@ export function AttachmentsPanel({ noteId, className }: AttachmentsPanelProps) {
                 onView={handleView}
                 onDownload={handleDownload}
                 onDelete={handleDelete}
+                extractionInfo={extractionProgress?.get(att.id)}
               />
             ))}
           </div>
         ) : (
           <div className="space-y-2" data-testid="attachment-list">
-            {attachments.map((att) => (
+            {displayAttachments.map((att) => (
               <AttachmentCard
                 key={att.id}
                 attachment={att}
@@ -1205,6 +1377,7 @@ export function AttachmentsPanel({ noteId, className }: AttachmentsPanelProps) {
                 onView={handleView}
                 onDownload={handleDownload}
                 onDelete={handleDelete}
+                extractionInfo={extractionProgress?.get(att.id)}
               />
             ))}
           </div>
