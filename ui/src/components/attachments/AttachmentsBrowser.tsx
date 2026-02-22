@@ -346,11 +346,13 @@ function PreviewLoader({ height }: { height: string }) {
 
 function BrowserPreviewContent({
   attachment,
+  metadata,
   objectUrl,
   textContent,
   onDownload,
 }: {
   attachment: Attachment;
+  metadata: AttachmentMetadata | null;
   objectUrl: string | null;
   textContent: string | null;
   onDownload: () => void;
@@ -379,7 +381,7 @@ function BrowserPreviewContent({
 
     case 'video': {
       const posterUrl = getThumbnailUrl(attachment, api.attachments.getDownloadUrl, api.attachments.getThumbnailUrl);
-      const videoMeta = attachment.extracted_metadata as Record<string, unknown> | null;
+      const videoMeta = (metadata?.extracted_metadata ?? attachment.extracted_metadata) as Record<string, unknown> | null;
       const segments = videoMeta && Array.isArray(videoMeta.transcript_segments)
         ? videoMeta.transcript_segments as import('./subtitle-utils').TranscriptSegment[]
         : undefined;
@@ -396,7 +398,7 @@ function BrowserPreviewContent({
 
     case 'audio': {
       const audioPosterUrl = getThumbnailUrl(attachment, api.attachments.getDownloadUrl, api.attachments.getThumbnailUrl);
-      const audioMeta = attachment.extracted_metadata as Record<string, unknown> | null;
+      const audioMeta = (metadata?.extracted_metadata ?? attachment.extracted_metadata) as Record<string, unknown> | null;
       const audioSegments = audioMeta && Array.isArray(audioMeta.transcript_segments)
         ? audioMeta.transcript_segments as import('./subtitle-utils').TranscriptSegment[]
         : undefined;
@@ -1068,6 +1070,7 @@ export function AttachmentsBrowser({ className }: AttachmentsBrowserProps) {
                   <div className="space-y-4 py-2">
                     <BrowserPreviewContent
                       attachment={previewAttachment}
+                      metadata={previewMetadata}
                       objectUrl={previewObjectUrl}
                       textContent={previewTextContent}
                       onDownload={() => handleDownload(previewAttachment)}

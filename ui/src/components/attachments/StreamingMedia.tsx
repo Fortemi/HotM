@@ -19,8 +19,9 @@
  */
 
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import { Music, Loader2, AlertCircle, RefreshCw, Download, Video } from 'lucide-react';
+import { Music, Loader2, AlertCircle, RefreshCw, Download, Video, Subtitles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 import { api } from '@/api';
 import { getActiveMemory, getMemoryRoutingHeaderName } from '@/api/memory-context';
 import type { TranscriptSegment } from './subtitle-utils';
@@ -147,6 +148,7 @@ export function StreamingVideoPlayer({
     ? transcriptSegments
     : fetchedSegments;
   const hasTranscript = !!effectiveSegments && effectiveSegments.length > 0;
+  const [showCaptions, setShowCaptions] = useState(true);
 
   useEffect(() => {
     if (transcriptSegments && transcriptSegments.length > 0) return;
@@ -178,6 +180,16 @@ export function StreamingVideoPlayer({
       if (vttBlobUrl) URL.revokeObjectURL(vttBlobUrl);
     };
   }, [vttBlobUrl]);
+
+  // Sync text track mode with showCaptions toggle
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+    const tracks = video.textTracks;
+    for (let i = 0; i < tracks.length; i++) {
+      tracks[i].mode = showCaptions ? 'showing' : 'hidden';
+    }
+  }, [showCaptions]);
 
   // ---- Time tracking for transcript sync ----
   const handleTimeUpdate = useCallback(() => {
@@ -412,6 +424,10 @@ export function StreamingVideoPlayer({
         e.preventDefault();
         video.muted = !video.muted;
         break;
+      case 'c':
+        e.preventDefault();
+        setShowCaptions((prev) => !prev);
+        break;
       case '0': case '1': case '2': case '3': case '4':
       case '5': case '6': case '7': case '8': case '9':
         e.preventDefault();
@@ -506,12 +522,31 @@ export function StreamingVideoPlayer({
             src={vttBlobUrl}
             srcLang="en"
             label="English"
-            default
+            default={showCaptions}
             data-testid="subtitle-track"
           />
         )}
         Your browser does not support video playback.
       </video>
+
+      {/* CC toggle button (top-left, shown on hover) */}
+      {hasTranscript && (
+        <button
+          type="button"
+          className={cn(
+            'absolute top-2 left-2 flex items-center gap-1 px-1.5 py-1 rounded text-xs transition-opacity z-10',
+            showCaptions
+              ? 'bg-primary text-primary-foreground opacity-80 hover:opacity-100'
+              : 'bg-black/70 text-white opacity-0 group-hover:opacity-80 hover:!opacity-100',
+          )}
+          onClick={() => setShowCaptions((prev) => !prev)}
+          title={showCaptions ? 'Hide captions (C)' : 'Show captions (C)'}
+          data-testid="cc-toggle"
+        >
+          <Subtitles className="w-3.5 h-3.5" />
+          CC
+        </button>
+      )}
 
       {/* Duration badge (top-right, shown on hover when ready) */}
       {duration && playbackState === 'ready' && (
@@ -522,11 +557,11 @@ export function StreamingVideoPlayer({
 
       {/* Keyboard hints (bottom, shown briefly on focus) */}
       <div className="absolute bottom-12 left-1/2 -translate-x-1/2 bg-black/70 text-white text-[10px] px-2 py-1 rounded opacity-0 group-focus-within:opacity-100 transition-opacity pointer-events-none whitespace-nowrap">
-        Space: play/pause &middot; J/L: &plusmn;10s &middot; F: fullscreen &middot; M: mute
+        Space: play/pause &middot; J/L: &plusmn;10s &middot; F: fullscreen &middot; M: mute &middot; C: captions
       </div>
 
       {/* Interactive transcript panel */}
-      {hasTranscript && (
+      {hasTranscript && showCaptions && (
         <TranscriptPanel
           segments={effectiveSegments!}
           currentTime={currentTime}
@@ -585,6 +620,7 @@ export function StreamingAudioPlayer({
     ? transcriptSegments
     : fetchedSegments;
   const hasTranscript = !!effectiveSegments && effectiveSegments.length > 0;
+  const [showCaptions, setShowCaptions] = useState(true);
 
   // Fetch transcript from subtitle endpoint when metadata doesn't include segments
   useEffect(() => {
@@ -795,22 +831,41 @@ export function StreamingAudioPlayer({
       ) : (
         <Music className="w-16 h-16 text-muted-foreground" />
       )}
-      <audio
-        ref={audioRef}
-        src={mode === 'direct' ? directUrl : (blobUrl ?? undefined)}
-        controls
-        preload="metadata"
-        className="w-full max-w-md"
-        onLoadedMetadata={handleLoadedMetadata}
-        onPlaying={handlePlaying}
-        onPause={handlePause}
-        onEnded={handleEnded}
-        onError={handleAudioError}
-        onTimeUpdate={handleTimeUpdate}
-      >
-        Your browser does not support audio playback.
-      </audio>
-      {hasTranscript && (
+      <div className="flex items-center gap-2 w-full max-w-md">
+        <audio
+          ref={audioRef}
+          src={mode === 'direct' ? directUrl : (blobUrl ?? undefined)}
+          controls
+          preload="metadata"
+          className="flex-1 min-w-0"
+          onLoadedMetadata={handleLoadedMetadata}
+          onPlaying={handlePlaying}
+          onPause={handlePause}
+          onEnded={handleEnded}
+          onError={handleAudioError}
+          onTimeUpdate={handleTimeUpdate}
+        >
+          Your browser does not support audio playback.
+        </audio>
+        {hasTranscript && (
+          <button
+            type="button"
+            className={cn(
+              'shrink-0 flex items-center gap-1 px-2 py-1.5 rounded text-xs font-medium transition-colors',
+              showCaptions
+                ? 'bg-primary text-primary-foreground'
+                : 'bg-muted text-muted-foreground hover:bg-muted/80',
+            )}
+            onClick={() => setShowCaptions((prev) => !prev)}
+            title={showCaptions ? 'Hide transcript' : 'Show transcript'}
+            data-testid="cc-toggle"
+          >
+            <Subtitles className="w-3.5 h-3.5" />
+            CC
+          </button>
+        )}
+      </div>
+      {hasTranscript && showCaptions && (
         <TranscriptPanel
           segments={effectiveSegments!}
           currentTime={currentTime}

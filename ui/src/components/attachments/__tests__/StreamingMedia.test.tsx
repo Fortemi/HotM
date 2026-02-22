@@ -258,6 +258,54 @@ describe('StreamingVideoPlayer', () => {
       const video = screen.getByTestId('attachment-video-preview');
       expect(video).not.toHaveAttribute('crossOrigin');
     });
+
+    it('shows CC toggle button when transcript segments exist', () => {
+      render(
+        <StreamingVideoPlayer
+          attachmentId="vid-1"
+          transcriptSegments={[{ start_secs: 0, end_secs: 5, text: 'Hello' }]}
+        />
+      );
+      const ccButton = screen.getByTestId('cc-toggle');
+      expect(ccButton).toBeInTheDocument();
+      expect(ccButton).toHaveTextContent('CC');
+    });
+
+    it('does not show CC toggle when no segments', () => {
+      render(<StreamingVideoPlayer attachmentId="vid-1" />);
+      expect(screen.queryByTestId('cc-toggle')).not.toBeInTheDocument();
+    });
+
+    it('toggles CC button on click', () => {
+      render(
+        <StreamingVideoPlayer
+          attachmentId="vid-1"
+          transcriptSegments={[{ start_secs: 0, end_secs: 5, text: 'Hello' }]}
+        />
+      );
+      const ccButton = screen.getByTestId('cc-toggle');
+      // Initially active (primary color)
+      expect(ccButton.className).toContain('bg-primary');
+
+      fireEvent.click(ccButton);
+      // After toggle, should be inactive
+      expect(ccButton.className).toContain('bg-black/70');
+    });
+
+    it('responds to c key for caption toggle', () => {
+      render(
+        <StreamingVideoPlayer
+          attachmentId="vid-1"
+          transcriptSegments={[{ start_secs: 0, end_secs: 5, text: 'Hello' }]}
+        />
+      );
+      const container = screen.getByTestId('video-player-container');
+      const ccButton = screen.getByTestId('cc-toggle');
+
+      expect(ccButton.className).toContain('bg-primary');
+      fireEvent.keyDown(container, { key: 'c' });
+      expect(ccButton.className).toContain('bg-black/70');
+    });
   });
 
   describe('playback position persistence', () => {
@@ -375,5 +423,38 @@ describe('StreamingAudioPlayer', () => {
       'hotm-playback-aud-1',
       '15.3'
     );
+  });
+
+  it('shows CC toggle button when transcript segments exist', () => {
+    render(
+      <StreamingAudioPlayer
+        attachmentId="aud-1"
+        transcriptSegments={[{ start_secs: 0, end_secs: 5, text: 'Hello' }]}
+      />
+    );
+    const ccButton = screen.getByTestId('cc-toggle');
+    expect(ccButton).toBeInTheDocument();
+    expect(ccButton).toHaveTextContent('CC');
+  });
+
+  it('does not show CC toggle when no segments', () => {
+    render(<StreamingAudioPlayer attachmentId="aud-1" />);
+    expect(screen.queryByTestId('cc-toggle')).not.toBeInTheDocument();
+  });
+
+  it('toggles CC button on click', () => {
+    render(
+      <StreamingAudioPlayer
+        attachmentId="aud-1"
+        transcriptSegments={[{ start_secs: 0, end_secs: 5, text: 'Hello' }]}
+      />
+    );
+    const ccButton = screen.getByTestId('cc-toggle');
+    // Initially active
+    expect(ccButton.className).toContain('bg-primary');
+
+    fireEvent.click(ccButton);
+    // After toggle, should show muted state
+    expect(ccButton.className).toContain('bg-muted');
   });
 });
