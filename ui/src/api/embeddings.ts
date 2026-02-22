@@ -122,10 +122,24 @@ export function createEmbeddingsApi(client: ApiClient) {
      * List all embedding sets
      */
     async listSets(): Promise<EmbeddingSet[]> {
-      const response = await client.get<{ embedding_sets: EmbeddingSet[] }>(
-        '/api/v1/embedding-sets'
-      );
-      return response.embedding_sets;
+      const response = await client.get<unknown>('/api/v1/embedding-sets');
+      const raw = Array.isArray(response)
+        ? response
+        : (response as Record<string, unknown>)?.embedding_sets ?? [];
+      if (!Array.isArray(raw)) return [];
+      return raw.map((item: Record<string, unknown>) => ({
+        slug: (item.slug ?? item.id ?? '') as string,
+        name: (item.name ?? item.slug ?? '') as string,
+        embedding_config_id: (item.embedding_config_id ?? item.model ?? '') as string,
+        created_at: (item.created_at ?? '') as string,
+        updated_at: (item.updated_at ?? '') as string,
+        note_count: (item.note_count ?? item.document_count ?? undefined) as number | undefined,
+        mode: (item.mode ?? (item.set_type === 'filter' ? 'auto' : undefined)) as EmbeddingSet['mode'],
+        criteria: item.criteria as EmbeddingSet['criteria'],
+        description: (item.description ?? undefined) as string | undefined,
+        purpose: (item.purpose ?? undefined) as string | undefined,
+        keywords: item.keywords as string[] | undefined,
+      }));
     },
 
     /**
