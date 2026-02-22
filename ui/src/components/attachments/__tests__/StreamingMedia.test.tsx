@@ -248,6 +248,23 @@ describe('StreamingVideoPlayer', () => {
       render(<StreamingVideoPlayer attachmentId="vid-1" />);
       expect(screen.queryByTestId('subtitle-track')).not.toBeInTheDocument();
     });
+
+    it('sets crossOrigin=anonymous when subtitleUrl is provided (CORS for track)', () => {
+      render(
+        <StreamingVideoPlayer
+          attachmentId="vid-1"
+          subtitleUrl="http://test/api/v1/attachments/vid-1/subtitles?format=vtt"
+        />
+      );
+      const video = screen.getByTestId('attachment-video-preview');
+      expect(video).toHaveAttribute('crossOrigin', 'anonymous');
+    });
+
+    it('does not set crossOrigin when no poster or subtitle URL', () => {
+      render(<StreamingVideoPlayer attachmentId="vid-1" />);
+      const video = screen.getByTestId('attachment-video-preview');
+      expect(video).not.toHaveAttribute('crossOrigin');
+    });
   });
 
   describe('playback position persistence', () => {
@@ -330,11 +347,22 @@ describe('StreamingAudioPlayer', () => {
     expect(screen.getByText(/5\.0 MB/)).toBeInTheDocument();
   });
 
-  it('shows music icon', () => {
+  it('shows music icon when no poster', () => {
     render(<StreamingAudioPlayer attachmentId="aud-1" />);
     const container = screen.getByTestId('attachment-audio-preview');
     // Music icon is rendered as an SVG
     expect(container.querySelector('svg')).toBeInTheDocument();
+    expect(screen.queryByTestId('audio-waveform')).not.toBeInTheDocument();
+  });
+
+  it('shows waveform image when posterUrl is provided', () => {
+    render(<StreamingAudioPlayer attachmentId="aud-1" posterUrl="http://test/api/v1/attachments/aud-1/thumbnail" />);
+    const waveform = screen.getByTestId('audio-waveform');
+    expect(waveform).toBeInTheDocument();
+    expect(waveform).toHaveAttribute('src', 'http://test/api/v1/attachments/aud-1/thumbnail');
+    // Music icon should not be shown
+    const container = screen.getByTestId('attachment-audio-preview');
+    expect(container.querySelector('svg.lucide-music')).not.toBeInTheDocument();
   });
 
   it('saves playback position on pause', () => {

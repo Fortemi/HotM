@@ -404,13 +404,16 @@ function AttachmentPreviewContent({
       );
     }
 
-    case 'audio':
+    case 'audio': {
+      const audioPosterUrl = getThumbnailUrl(attachment, api.attachments.getDownloadUrl, api.attachments.getThumbnailUrl);
       return (
         <StreamingAudioPlayer
           attachmentId={attachment.id}
           sizeBytes={attachment.size_bytes}
+          posterUrl={audioPosterUrl}
         />
       );
+    }
 
     case 'model':
       return objectUrl ? (

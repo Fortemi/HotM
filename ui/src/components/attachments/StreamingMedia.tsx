@@ -455,7 +455,7 @@ export function StreamingVideoPlayer({
         controls
         preload="metadata"
         poster={posterUrl}
-        crossOrigin={posterUrl ? 'anonymous' : undefined}
+        crossOrigin={posterUrl || subtitleUrl ? 'anonymous' : undefined}
         className={className ?? 'w-full max-h-[500px] rounded border bg-black'}
         data-testid="attachment-video-preview"
         onLoadedMetadata={handleLoadedMetadata}
@@ -515,12 +515,15 @@ interface StreamingAudioPlayerProps {
   className?: string;
   /** Optional file size for download fallback display */
   sizeBytes?: number;
+  /** Optional waveform/poster image URL (e.g. from thumbnail API) */
+  posterUrl?: string;
 }
 
 export function StreamingAudioPlayer({
   attachmentId,
   className,
   sizeBytes,
+  posterUrl,
 }: StreamingAudioPlayerProps) {
   const [mode, setMode] = useState<PlaybackMode>('direct');
   const [blobUrl, setBlobUrl] = useState<string | null>(null);
@@ -690,7 +693,17 @@ export function StreamingAudioPlayer({
 
   return (
     <div className={className ?? 'flex flex-col items-center gap-4 py-8'} data-testid="attachment-audio-preview">
-      <Music className="w-16 h-16 text-muted-foreground" />
+      {posterUrl ? (
+        <img
+          src={posterUrl}
+          alt="Audio waveform"
+          className="w-full max-w-md h-[120px] object-contain rounded border bg-muted/10"
+          loading="lazy"
+          data-testid="audio-waveform"
+        />
+      ) : (
+        <Music className="w-16 h-16 text-muted-foreground" />
+      )}
       <audio
         ref={audioRef}
         src={mode === 'direct' ? directUrl : (blobUrl ?? undefined)}
