@@ -461,25 +461,30 @@ export function JobQueueView({ archives }: JobQueueViewProps) {
       </Card>
 
       {/* Recent Activity */}
-      <Card className="flex flex-col overflow-hidden min-h-0">
-        <CardHeader className="pb-3 flex-shrink-0">
+      <Card>
+        <CardHeader className="pb-3">
           <CardTitle className="text-base">
-            Recent Activity{' '}
-            {filteredCompletedJobs.length > 0 && (
-              <Badge variant="outline" className="ml-2">
-                {filteredCompletedJobs.length}
-              </Badge>
-            )}
+            <div className="flex items-center gap-2">
+              <CheckCircle2 className="h-4 w-4" />
+              Recent Activity
+              {filteredCompletedJobs.length > 0 && (
+                <Badge variant="secondary">
+                  {filteredCompletedJobs.length}
+                </Badge>
+              )}
+            </div>
           </CardTitle>
           <CardDescription>
-            {filteredCompletedJobs.length > 0
-              ? `Last ${filteredCompletedJobs.length} completed jobs`
-              : 'No recent activity'}
+            Recently completed and failed jobs
           </CardDescription>
         </CardHeader>
-        <CardContent className="flex-1 min-h-0 overflow-hidden">
-          {filteredCompletedJobs.length > 0 && (
-            <div className="h-full max-h-[400px] overflow-y-auto rounded-md border">
+        <CardContent>
+          {filteredCompletedJobs.length === 0 ? (
+            <p className="text-sm text-muted-foreground py-4 text-center">
+              No recent activity
+            </p>
+          ) : (
+            <div className="max-h-[400px] overflow-y-auto rounded-md border">
               <div className="divide-y divide-border/50">
                 {filteredCompletedJobs.map((job, index) => (
                   <div
