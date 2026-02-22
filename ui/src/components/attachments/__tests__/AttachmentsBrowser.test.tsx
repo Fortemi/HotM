@@ -335,6 +335,219 @@ describe('AttachmentsBrowser', () => {
     });
   });
 
+  describe('Deduplication', () => {
+    it('should deduplicate attachments with same blob_id across notes', async () => {
+      const duplicateAttachments = [
+        {
+          id: 'att-1',
+          note_id: 'note-1',
+          filename: 'shared-file.pdf',
+          content_type: 'application/pdf',
+          size_bytes: 1048576,
+          created_at: '2026-02-15T12:00:00Z',
+          storage_path: '/data/att-1',
+          status: 'completed' as const,
+          has_exif: false,
+          has_location: false,
+          blob_id: 'blob-abc123',
+          note_title: 'Note A',
+        },
+        {
+          id: 'att-2',
+          note_id: 'note-2',
+          filename: 'shared-file.pdf',
+          content_type: 'application/pdf',
+          size_bytes: 1048576,
+          created_at: '2026-02-16T12:00:00Z',
+          storage_path: '/data/att-2',
+          status: 'completed' as const,
+          has_exif: false,
+          has_location: false,
+          blob_id: 'blob-abc123',
+          note_title: 'Note B',
+        },
+        {
+          id: 'att-3',
+          note_id: 'note-3',
+          filename: 'unique-file.jpg',
+          content_type: 'image/jpeg',
+          size_bytes: 524288,
+          created_at: '2026-02-17T12:00:00Z',
+          storage_path: '/data/att-3',
+          status: 'completed' as const,
+          has_exif: false,
+          has_location: false,
+          note_title: 'Note C',
+        },
+      ];
+
+      (api.client.get as any).mockResolvedValue({
+        attachments: duplicateAttachments,
+        total: 3,
+      });
+
+      render(<AttachmentsBrowser />);
+
+      await waitFor(() => {
+        // Should show only 2 unique cards, not 3
+        expect(screen.getByText('unique-file.jpg')).toBeInTheDocument();
+        // shared-file.pdf should appear once (the newer one, att-2)
+        expect(screen.getAllByText('shared-file.pdf').length).toBe(1);
+      });
+    });
+
+    it('should show note count badge for duplicated files', async () => {
+      const duplicateAttachments = [
+        {
+          id: 'att-1',
+          note_id: 'note-1',
+          filename: 'shared-file.pdf',
+          content_type: 'application/pdf',
+          size_bytes: 1048576,
+          created_at: '2026-02-15T12:00:00Z',
+          storage_path: '/data/att-1',
+          status: 'completed' as const,
+          has_exif: false,
+          has_location: false,
+          blob_id: 'blob-abc123',
+          note_title: 'Note A',
+        },
+        {
+          id: 'att-2',
+          note_id: 'note-2',
+          filename: 'shared-file.pdf',
+          content_type: 'application/pdf',
+          size_bytes: 1048576,
+          created_at: '2026-02-16T12:00:00Z',
+          storage_path: '/data/att-2',
+          status: 'completed' as const,
+          has_exif: false,
+          has_location: false,
+          blob_id: 'blob-abc123',
+          note_title: 'Note B',
+        },
+        {
+          id: 'att-3',
+          note_id: 'note-3',
+          filename: 'unique-file.jpg',
+          content_type: 'image/jpeg',
+          size_bytes: 524288,
+          created_at: '2026-02-17T12:00:00Z',
+          storage_path: '/data/att-3',
+          status: 'completed' as const,
+          has_exif: false,
+          has_location: false,
+          note_title: 'Note C',
+        },
+      ];
+
+      (api.client.get as any).mockResolvedValue({
+        attachments: duplicateAttachments,
+        total: 3,
+      });
+
+      render(<AttachmentsBrowser />);
+
+      await waitFor(() => {
+        // The shared file should show "2 notes" instead of a single note title
+        expect(screen.getByText('2 notes')).toBeInTheDocument();
+        // The unique file should show its note title
+        expect(screen.getByText('Note C')).toBeInTheDocument();
+      });
+    });
+
+    it('should deduplicate by composite key when blob_id is absent', async () => {
+      const duplicateAttachments = [
+        {
+          id: 'att-1',
+          note_id: 'note-1',
+          filename: 'report.pdf',
+          content_type: 'application/pdf',
+          size_bytes: 2048,
+          created_at: '2026-02-15T12:00:00Z',
+          storage_path: '/data/att-1',
+          status: 'completed' as const,
+          has_exif: false,
+          has_location: false,
+          note_title: 'Note A',
+        },
+        {
+          id: 'att-2',
+          note_id: 'note-2',
+          filename: 'report.pdf',
+          content_type: 'application/pdf',
+          size_bytes: 2048,
+          created_at: '2026-02-16T12:00:00Z',
+          storage_path: '/data/att-2',
+          status: 'completed' as const,
+          has_exif: false,
+          has_location: false,
+          note_title: 'Note B',
+        },
+      ];
+
+      (api.client.get as any).mockResolvedValue({
+        attachments: duplicateAttachments,
+        total: 2,
+      });
+
+      render(<AttachmentsBrowser />);
+
+      await waitFor(() => {
+        // Should show only 1 card with "2 notes"
+        expect(screen.getAllByText('report.pdf').length).toBe(1);
+        expect(screen.getByText('2 notes')).toBeInTheDocument();
+      });
+    });
+
+    it('should compute stats from unique files, not raw attachments', async () => {
+      const duplicateAttachments = [
+        {
+          id: 'att-1',
+          note_id: 'note-1',
+          filename: 'shared.pdf',
+          content_type: 'application/pdf',
+          size_bytes: 1048576,
+          created_at: '2026-02-15T12:00:00Z',
+          storage_path: '/data/att-1',
+          status: 'completed' as const,
+          has_exif: false,
+          has_location: false,
+          blob_id: 'blob-abc',
+          note_title: 'Note A',
+        },
+        {
+          id: 'att-2',
+          note_id: 'note-2',
+          filename: 'shared.pdf',
+          content_type: 'application/pdf',
+          size_bytes: 1048576,
+          created_at: '2026-02-16T12:00:00Z',
+          storage_path: '/data/att-2',
+          status: 'completed' as const,
+          has_exif: false,
+          has_location: false,
+          blob_id: 'blob-abc',
+          note_title: 'Note B',
+        },
+      ];
+
+      (api.client.get as any).mockResolvedValue({
+        attachments: duplicateAttachments,
+        total: 2,
+      });
+
+      render(<AttachmentsBrowser />);
+
+      await waitFor(() => {
+        // Stats should show 1 PDF (unique), not 2
+        expect(screen.getByText('1 PDFs')).toBeInTheDocument();
+        // Total size should be for 1 file, not 2
+        expect(screen.getByText('1.0 MB total')).toBeInTheDocument();
+      });
+    });
+  });
+
   describe('Accessibility', () => {
     it('should have proper region role', async () => {
       (api.client.get as any).mockResolvedValue({ attachments: [], total: 0 });

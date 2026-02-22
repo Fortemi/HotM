@@ -213,6 +213,16 @@ export function _resetGpuCache(): void {
   _gpuRendererCache = null;
 }
 
+/**
+ * Generate a deduplication key for an attachment.
+ * Uses blob_id (content-addressable hash) when available,
+ * falls back to a composite of filename + size + content_type.
+ */
+export function getAttachmentDedupeKey(att: { blob_id?: string; filename: string; size_bytes: number; content_type: string }): string {
+  if (att.blob_id) return `blob:${att.blob_id}`;
+  return `composite:${att.filename}::${att.size_bytes}::${att.content_type}`;
+}
+
 export function getPreferredVariant(attachment: Attachment): string | undefined {
   const meta = attachment.extracted_metadata;
   if (!meta || typeof meta !== 'object') return undefined;

@@ -4,7 +4,7 @@
  * Tries GET /api/v1/attachments first; falls back to per-note fetching.
  */
 
-import { useState, useEffect, useCallback, useRef, lazy, Suspense } from 'react';
+import { useState, useEffect, useCallback, useRef, useMemo, lazy, Suspense } from 'react';
 import {
   Grid,
   List,
@@ -34,6 +34,7 @@ import {
   Sparkles,
   Clock,
   AlertCircle,
+  Copy,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -67,7 +68,9 @@ import type { Attachment, AttachmentMetadata, ExtractionStatus, AttachmentStatus
 import { getPreviewMode, shouldDownloadBlob, getDocTypeLabel, getLanguageFromType } from './preview-utils';
 import type { PreviewMode } from './preview-utils';
 import { StreamingVideoPlayer, StreamingAudioPlayer } from './StreamingMedia';
-import { getThumbnailUrl } from './media-utils';
+import { getThumbnailUrl, getAttachmentDedupeKey } from './media-utils';
+import { LinkedNotesTab } from './LinkedNotesTab';
+import type { LinkedNote } from './LinkedNotesTab';
 
 const ModelPreview = lazy(() => import('./ModelPreview').then((m) => ({ default: m.ModelPreview })));
 
@@ -190,13 +193,14 @@ function browserHasAiContent(attachment: Attachment): boolean {
 
 interface BrowserCardProps {
   attachment: NoteAttachment;
+  noteCount: number;
   viewMode: ViewMode;
   onView: (att: NoteAttachment) => void;
   onDownload: (att: NoteAttachment) => void;
   onDelete: (att: NoteAttachment) => void;
 }
 
-function BrowserCard({ attachment, viewMode, onView, onDownload, onDelete }: BrowserCardProps) {
+function BrowserCard({ attachment, noteCount, viewMode, onView, onDownload, onDelete }: BrowserCardProps) {
   const isImage = attachment.content_type.startsWith('image/');
   const thumbnailUrl = useBlobUrl(
     isImage ? api.attachments.getDownloadUrl(attachment.id) : undefined,
@@ -227,8 +231,17 @@ function BrowserCard({ attachment, viewMode, onView, onDownload, onDelete }: Bro
         <div className="p-2">
           <p className="text-sm font-medium truncate">{attachment.filename}</p>
           <div className="flex items-center gap-1 mt-0.5">
-            <StickyNote className="w-3 h-3 text-muted-foreground shrink-0" />
-            <p className="text-xs text-muted-foreground truncate">{attachment.note_title}</p>
+            {noteCount > 1 ? (
+              <>
+                <Copy className="w-3 h-3 text-muted-foreground shrink-0" />
+                <p className="text-xs text-muted-foreground truncate">{noteCount} notes</p>
+              </>
+            ) : (
+              <>
+                <StickyNote className="w-3 h-3 text-muted-foreground shrink-0" />
+                <p className="text-xs text-muted-foreground truncate">{attachment.note_title}</p>
+              </>
+            )}
           </div>
           <p className="text-xs text-muted-foreground mt-0.5">{formatFileSize(attachment.size_bytes)}</p>
         </div>
@@ -300,7 +313,7 @@ function BrowserCard({ attachment, viewMode, onView, onDownload, onDelete }: Bro
       <div className="flex-1 min-w-0">
         <p className="text-sm font-medium truncate">{attachment.filename}</p>
         <div className="flex items-center gap-2 text-xs text-muted-foreground">
-          <span className="truncate max-w-[200px]">{attachment.note_title}</span>
+          <span className="truncate max-w-[200px]">{noteCount > 1 ? `${noteCount} notes` : attachment.note_title}</span>
           <span>·</span>
           <span>{formatFileSize(attachment.size_bytes)}</span>
           <span>·</span>
@@ -706,9 +719,33 @@ export function AttachmentsBrowser({ className }: AttachmentsBrowserProps) {
     return () => { abortRef.current = true; };
   }, [fetchAllAttachments]);
 
+  // ── Deduplication ─────────────────────────────────────────────────
+
+  const attachmentGroups = useMemo(() => {
+    const groups = new Map<string, NoteAttachment[]>();
+    for (const att of attachments) {
+      const key = getAttachmentDedupeKey(att);
+      const group = groups.get(key) ?? [];
+      group.push(att);
+      groups.set(key, group);
+    }
+    return groups;
+  }, [attachments]);
+
+  const uniqueAttachments = useMemo(() => {
+    const reps: NoteAttachment[] = [];
+    for (const group of attachmentGroups.values()) {
+      const rep = group.reduce((a, b) =>
+        new Date(b.created_at).getTime() > new Date(a.created_at).getTime() ? b : a
+      );
+      reps.push(rep);
+    }
+    return reps;
+  }, [attachmentGroups]);
+
   // ── Filtering & sorting ────────────────────────────────────────────
 
-  const filteredAttachments = attachments
+  const filteredAttachments = uniqueAttachments
     .filter((att) => {
       if (!matchesTypeFilter(att.content_type, typeFilter)) return false;
       if (searchQuery) {
@@ -789,11 +826,11 @@ export function AttachmentsBrowser({ className }: AttachmentsBrowserProps) {
 
   // ── Stats ──────────────────────────────────────────────────────────
 
-  const totalSize = attachments.reduce((sum, a) => sum + a.size_bytes, 0);
-  const imageCount = attachments.filter((a) => a.content_type.startsWith('image/')).length;
-  const videoCount = attachments.filter((a) => a.content_type.startsWith('video/')).length;
-  const audioCount = attachments.filter((a) => a.content_type.startsWith('audio/')).length;
-  const pdfCount = attachments.filter((a) => a.content_type === 'application/pdf').length;
+  const totalSize = uniqueAttachments.reduce((sum, a) => sum + a.size_bytes, 0);
+  const imageCount = uniqueAttachments.filter((a) => a.content_type.startsWith('image/')).length;
+  const videoCount = uniqueAttachments.filter((a) => a.content_type.startsWith('video/')).length;
+  const audioCount = uniqueAttachments.filter((a) => a.content_type.startsWith('audio/')).length;
+  const pdfCount = uniqueAttachments.filter((a) => a.content_type === 'application/pdf').length;
 
   // ── Render ─────────────────────────────────────────────────────────
 
@@ -806,7 +843,7 @@ export function AttachmentsBrowser({ className }: AttachmentsBrowserProps) {
         {!isLoading && (
           <Badge variant="secondary" className="ml-1">
             {filteredAttachments.length}
-            {filteredAttachments.length !== attachments.length && ` / ${attachments.length}`}
+            {filteredAttachments.length !== uniqueAttachments.length && ` / ${uniqueAttachments.length}`}
           </Badge>
         )}
         <div className="ml-auto flex items-center gap-1">
@@ -886,15 +923,15 @@ export function AttachmentsBrowser({ className }: AttachmentsBrowserProps) {
       </div>
 
       {/* Stats bar */}
-      {!isLoading && attachments.length > 0 && (
+      {!isLoading && uniqueAttachments.length > 0 && (
         <div className="flex items-center gap-4 px-4 py-1.5 text-xs text-muted-foreground border-b shrink-0">
           <span>{formatFileSize(totalSize)} total</span>
           {imageCount > 0 && <span>{imageCount} images</span>}
           {videoCount > 0 && <span>{videoCount} videos</span>}
           {audioCount > 0 && <span>{audioCount} audio</span>}
           {pdfCount > 0 && <span>{pdfCount} PDFs</span>}
-          {attachments.length - imageCount - videoCount - audioCount - pdfCount > 0 && (
-            <span>{attachments.length - imageCount - videoCount - audioCount - pdfCount} other</span>
+          {uniqueAttachments.length - imageCount - videoCount - audioCount - pdfCount > 0 && (
+            <span>{uniqueAttachments.length - imageCount - videoCount - audioCount - pdfCount} other</span>
           )}
         </div>
       )}
@@ -932,6 +969,7 @@ export function AttachmentsBrowser({ className }: AttachmentsBrowserProps) {
                   <BrowserCard
                     key={att.id}
                     attachment={att}
+                    noteCount={attachmentGroups.get(getAttachmentDedupeKey(att))?.length ?? 1}
                     viewMode="grid"
                     onView={handleView}
                     onDownload={handleDownload}
@@ -945,6 +983,7 @@ export function AttachmentsBrowser({ className }: AttachmentsBrowserProps) {
                   <BrowserCard
                     key={att.id}
                     attachment={att}
+                    noteCount={attachmentGroups.get(getAttachmentDedupeKey(att))?.length ?? 1}
                     viewMode="list"
                     onView={handleView}
                     onDownload={handleDownload}
@@ -961,7 +1000,7 @@ export function AttachmentsBrowser({ className }: AttachmentsBrowserProps) {
               Retry
             </Button>
           </div>
-        ) : filteredAttachments.length === 0 && attachments.length > 0 ? (
+        ) : filteredAttachments.length === 0 && uniqueAttachments.length > 0 ? (
           <div className="flex flex-col items-center justify-center py-16 gap-2 text-muted-foreground">
             <Search className="w-10 h-10" />
             <p className="text-sm">No attachments match your filters</p>
@@ -976,7 +1015,7 @@ export function AttachmentsBrowser({ className }: AttachmentsBrowserProps) {
               Clear filters
             </Button>
           </div>
-        ) : attachments.length === 0 ? (
+        ) : uniqueAttachments.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 gap-2 text-muted-foreground">
             <Paperclip className="w-10 h-10" />
             <p className="text-sm">No attachments found</p>
@@ -988,6 +1027,7 @@ export function AttachmentsBrowser({ className }: AttachmentsBrowserProps) {
               <BrowserCard
                 key={att.id}
                 attachment={att}
+                noteCount={attachmentGroups.get(getAttachmentDedupeKey(att))?.length ?? 1}
                 viewMode="grid"
                 onView={handleView}
                 onDownload={handleDownload}
@@ -1001,6 +1041,7 @@ export function AttachmentsBrowser({ className }: AttachmentsBrowserProps) {
               <BrowserCard
                 key={att.id}
                 attachment={att}
+                noteCount={attachmentGroups.get(getAttachmentDedupeKey(att))?.length ?? 1}
                 viewMode="list"
                 onView={handleView}
                 onDownload={handleDownload}
@@ -1058,12 +1099,27 @@ export function AttachmentsBrowser({ className }: AttachmentsBrowserProps) {
             const transcriptSegments = Array.isArray(meta.transcript_segments) ? meta.transcript_segments as BrowserTranscriptSegment[] : null;
             const keyframeDescs = Array.isArray(meta.keyframe_descriptions) ? meta.keyframe_descriptions as BrowserKeyframeDesc[] : null;
 
+            const linkedNotes: LinkedNote[] = (
+              attachmentGroups.get(getAttachmentDedupeKey(previewAttachment)) ?? [previewAttachment]
+            ).map(att => ({
+              noteId: att.note_id,
+              noteTitle: att.note_title,
+              attachmentId: att.id,
+              createdAt: att.created_at,
+            }));
+
             return (
               <Tabs defaultValue="preview" className="flex-1 min-h-0 flex flex-col">
                 <TabsList className="w-full">
                   <TabsTrigger value="preview">Preview</TabsTrigger>
                   {showAiTab && <TabsTrigger value="ai-content">AI Content</TabsTrigger>}
                   <TabsTrigger value="details">Details</TabsTrigger>
+                  <TabsTrigger value="linked-notes">
+                    Linked Notes
+                    {linkedNotes.length > 1 && (
+                      <Badge variant="secondary" className="ml-1 text-xs">{linkedNotes.length}</Badge>
+                    )}
+                  </TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="preview" className="overflow-y-auto flex-1">
@@ -1196,6 +1252,13 @@ export function AttachmentsBrowser({ className }: AttachmentsBrowserProps) {
                       </div>
                     )}
                   </div>
+                </TabsContent>
+
+                <TabsContent value="linked-notes" className="overflow-y-auto flex-1">
+                  <LinkedNotesTab
+                    linkedNotes={linkedNotes}
+                    currentNoteId={previewAttachment.note_id}
+                  />
                 </TabsContent>
               </Tabs>
             );

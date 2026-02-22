@@ -57,7 +57,9 @@ import type { Attachment, AttachmentMetadata, ExtractionStatus, AttachmentStatus
 import { getPreviewMode, shouldDownloadBlob, getDocTypeLabel, getLanguageFromType } from './preview-utils';
 import type { PreviewMode } from './preview-utils';
 import { StreamingVideoPlayer, StreamingAudioPlayer } from './StreamingMedia';
-import { getMediaType, extractMediaInfo, formatMediaDuration, getThumbnailUrl, getPreferredVariant } from './media-utils';
+import { getMediaType, extractMediaInfo, formatMediaDuration, getThumbnailUrl, getPreferredVariant, getAttachmentDedupeKey } from './media-utils';
+import { LinkedNotesTab } from './LinkedNotesTab';
+import type { LinkedNote } from './LinkedNotesTab';
 
 const ModelPreview = lazy(() => import('./ModelPreview').then((m) => ({ default: m.ModelPreview })));
 
@@ -821,12 +823,53 @@ function PreviewDialogTabs({
   const transcriptSegments = Array.isArray(meta.transcript_segments) ? meta.transcript_segments as TranscriptSegment[] : null;
   const keyframeDescs = Array.isArray(meta.keyframe_descriptions) ? meta.keyframe_descriptions as KeyframeDescription[] : null;
 
+  const [linkedNotes, setLinkedNotes] = useState<LinkedNote[] | null>(null);
+  const [linkedNotesLoading, setLinkedNotesLoading] = useState(false);
+
+  const fetchLinkedNotes = useCallback(async () => {
+    if (linkedNotes !== null || linkedNotesLoading) return;
+    setLinkedNotesLoading(true);
+    try {
+      const response = await api.client.get<{
+        attachments: (Attachment & { note_title?: string })[];
+        total: number;
+      }>('/api/v1/attachments', { limit: '500' });
+
+      const key = getAttachmentDedupeKey(attachment);
+      const matches = response.attachments
+        .filter(att => getAttachmentDedupeKey(att) === key)
+        .map(att => ({
+          noteId: att.note_id,
+          noteTitle: att.note_title || 'Unknown note',
+          attachmentId: att.id,
+          createdAt: att.created_at,
+        }));
+      setLinkedNotes(matches);
+    } catch {
+      setLinkedNotes([{
+        noteId: attachment.note_id,
+        noteTitle: 'Current note',
+        attachmentId: attachment.id,
+        createdAt: attachment.created_at,
+      }]);
+    } finally {
+      setLinkedNotesLoading(false);
+    }
+  }, [attachment, linkedNotes, linkedNotesLoading]);
+
+  const handleTabChange = useCallback((value: string) => {
+    if (value === 'linked-notes') {
+      void fetchLinkedNotes();
+    }
+  }, [fetchLinkedNotes]);
+
   return (
-    <Tabs defaultValue="preview" className="flex-1 min-h-0 flex flex-col">
+    <Tabs defaultValue="preview" className="flex-1 min-h-0 flex flex-col" onValueChange={handleTabChange}>
       <TabsList className="w-full">
         <TabsTrigger value="preview">Preview</TabsTrigger>
         {showAiTab && <TabsTrigger value="ai-content">AI Content</TabsTrigger>}
         <TabsTrigger value="details">Details</TabsTrigger>
+        <TabsTrigger value="linked-notes">Linked Notes</TabsTrigger>
       </TabsList>
 
       {/* Preview Tab */}
@@ -976,6 +1019,14 @@ function PreviewDialogTabs({
             <ExtractedMetadataSection metadata={attachment.extracted_metadata} />
           )}
         </div>
+      </TabsContent>
+
+      <TabsContent value="linked-notes" className="overflow-y-auto flex-1">
+        <LinkedNotesTab
+          linkedNotes={linkedNotes ?? []}
+          currentNoteId={attachment.note_id}
+          isLoading={linkedNotesLoading}
+        />
       </TabsContent>
     </Tabs>
   );
