@@ -18,10 +18,17 @@ vi.mock('@/api', () => ({
       uploadAttachment: vi.fn(),
       getMetadata: vi.fn(),
       downloadAttachment: vi.fn(),
-      getDownloadUrl: vi.fn(),
+      getDownloadUrl: vi.fn((id: string) => `http://test/api/v1/attachments/${id}/download`),
+      getThumbnailUrl: vi.fn((id: string) => `http://test/api/v1/attachments/${id}/thumbnail`),
+      getSubtitleUrl: vi.fn((id: string, fmt = 'vtt') => `http://test/api/v1/attachments/${id}/subtitles?format=${fmt}`),
       deleteAttachment: vi.fn(),
     },
   },
+}));
+
+vi.mock('@/api/memory-context', () => ({
+  getActiveMemory: vi.fn(() => null),
+  getMemoryRoutingHeaderName: vi.fn(() => 'X-Fortemi-Memory'),
 }));
 
 // Mock confirm

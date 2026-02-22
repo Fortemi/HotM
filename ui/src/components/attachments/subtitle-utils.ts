@@ -121,6 +121,70 @@ export function downloadSubtitles(
 }
 
 /**
+ * Parse a VTT timestamp (HH:MM:SS.mmm or MM:SS.mmm) into seconds.
+ */
+function parseVttTimestamp(ts: string): number {
+  const parts = ts.trim().split(':');
+  if (parts.length === 3) {
+    return parseInt(parts[0]) * 3600 + parseInt(parts[1]) * 60 + parseFloat(parts[2]);
+  }
+  if (parts.length === 2) {
+    return parseInt(parts[0]) * 60 + parseFloat(parts[1]);
+  }
+  return 0;
+}
+
+/**
+ * Parse WebVTT content into TranscriptSegment objects.
+ * Used as a fallback when transcript_segments aren't embedded in metadata.
+ */
+export function parseVttToSegments(vttContent: string): TranscriptSegment[] {
+  const segments: TranscriptSegment[] = [];
+  const lines = vttContent.split('\n');
+  let i = 0;
+
+  // Skip past WEBVTT header and any metadata blocks
+  while (i < lines.length && !lines[i].includes('-->')) {
+    i++;
+  }
+
+  while (i < lines.length) {
+    const line = lines[i].trim();
+    if (line.includes('-->')) {
+      const [startStr, endStr] = line.split('-->').map((s) => s.trim());
+      const start = parseVttTimestamp(startStr);
+      const end = parseVttTimestamp(endStr);
+
+      // Collect text lines until empty line or end of content
+      i++;
+      const textLines: string[] = [];
+      while (i < lines.length && lines[i].trim() !== '') {
+        textLines.push(lines[i].trim());
+        i++;
+      }
+
+      // Strip VTT voice tags <v Speaker>...</v> but extract speaker
+      let text = textLines.join(' ');
+      let speaker_id: string | undefined;
+      const voiceMatch = text.match(/^<v\s+([^>]+)>(.*?)<\/v>$/);
+      if (voiceMatch) {
+        speaker_id = voiceMatch[1];
+        text = voiceMatch[2];
+      }
+      // Also strip any remaining HTML-like tags
+      text = text.replace(/<[^>]+>/g, '').trim();
+
+      if (text) {
+        segments.push({ start_secs: start, end_secs: end, text, speaker_id });
+      }
+    }
+    i++;
+  }
+
+  return segments;
+}
+
+/**
  * Find the segment index that is active at the given playback time.
  * Returns -1 if no segment is active.
  */

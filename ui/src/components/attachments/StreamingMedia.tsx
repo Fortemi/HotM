@@ -22,9 +22,9 @@ import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { Music, Loader2, AlertCircle, RefreshCw, Download, Video } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { api } from '@/api';
-import { getActiveMemory } from '@/api/memory-context';
+import { getActiveMemory, getMemoryRoutingHeaderName } from '@/api/memory-context';
 import type { TranscriptSegment } from './subtitle-utils';
-import { createVttBlobUrl } from './subtitle-utils';
+import { createVttBlobUrl, parseVttToSegments } from './subtitle-utils';
 import { TranscriptPanel } from './TranscriptPanel';
 
 // ---------------------------------------------------------------------------
@@ -141,19 +141,43 @@ export function StreamingVideoPlayer({
   const activeMemory = getActiveMemory();
   const startWithBlob = !!activeMemory;
 
+  // ---- Transcript: metadata segments or server subtitle fallback ----
+  const [fetchedSegments, setFetchedSegments] = useState<TranscriptSegment[] | null>(null);
+  const effectiveSegments = transcriptSegments && transcriptSegments.length > 0
+    ? transcriptSegments
+    : fetchedSegments;
+  const hasTranscript = !!effectiveSegments && effectiveSegments.length > 0;
+
+  useEffect(() => {
+    if (transcriptSegments && transcriptSegments.length > 0) return;
+    let cancelled = false;
+    const subtitleUrl = api.attachments.getSubtitleUrl(attachmentId, 'vtt');
+    const headers: HeadersInit = {};
+    const mem = getActiveMemory();
+    if (mem) headers[getMemoryRoutingHeaderName()] = mem;
+
+    fetch(subtitleUrl, { headers })
+      .then((res) => (res.ok ? res.text() : null))
+      .then((text) => {
+        if (cancelled || !text) return;
+        const parsed = parseVttToSegments(text);
+        if (parsed.length > 0) setFetchedSegments(parsed);
+      })
+      .catch(() => {/* subtitle endpoint not available */});
+    return () => { cancelled = true; };
+  }, [attachmentId, transcriptSegments]);
+
   // ---- VTT blob URL for subtitle track ----
   const vttBlobUrl = useMemo(() => {
-    if (!transcriptSegments || transcriptSegments.length === 0) return null;
-    return createVttBlobUrl(transcriptSegments);
-  }, [transcriptSegments]);
+    if (!effectiveSegments || effectiveSegments.length === 0) return null;
+    return createVttBlobUrl(effectiveSegments);
+  }, [effectiveSegments]);
 
   useEffect(() => {
     return () => {
       if (vttBlobUrl) URL.revokeObjectURL(vttBlobUrl);
     };
   }, [vttBlobUrl]);
-
-  const hasTranscript = !!transcriptSegments && transcriptSegments.length > 0;
 
   // ---- Time tracking for transcript sync ----
   const handleTimeUpdate = useCallback(() => {
@@ -182,11 +206,21 @@ export function StreamingVideoPlayer({
     let revoked = false;
     let currentUrl: string | null = null;
 
-    api.attachments
-      .downloadAttachment(attachmentId)
+    // Try variant first (web-compatible transcoded version), fall back to original
+    const tryDownload = (v?: string): Promise<Blob> =>
+      api.attachments.downloadAttachment(attachmentId, v).catch((err) => {
+        if (v) return api.attachments.downloadAttachment(attachmentId);
+        throw err;
+      });
+
+    tryDownload(variant)
       .then((blob) => {
         if (revoked) return;
-        currentUrl = URL.createObjectURL(blob);
+        // Ensure video MIME type so the browser selects the right decoder
+        const typed = blob.type.startsWith('video/')
+          ? blob
+          : new Blob([blob], { type: 'video/mp4' });
+        currentUrl = URL.createObjectURL(typed);
         setBlobUrl(currentUrl);
       })
       .catch((err) => {
@@ -200,7 +234,7 @@ export function StreamingVideoPlayer({
       revoked = true;
       if (currentUrl) URL.revokeObjectURL(currentUrl);
     };
-  }, [attachmentId, mode]);
+  }, [attachmentId, mode, variant]);
 
   // ---- Playback position persistence ----
   useEffect(() => {
@@ -494,7 +528,7 @@ export function StreamingVideoPlayer({
       {/* Interactive transcript panel */}
       {hasTranscript && (
         <TranscriptPanel
-          segments={transcriptSegments!}
+          segments={effectiveSegments!}
           currentTime={currentTime}
           onSeek={handleTranscriptSeek}
           filename={filename}
@@ -545,7 +579,32 @@ export function StreamingAudioPlayer({
   const directUrl = api.attachments.getDownloadUrl(attachmentId, variant);
   const downloadUrl = api.attachments.getDownloadUrl(attachmentId);
 
-  const hasTranscript = !!transcriptSegments && transcriptSegments.length > 0;
+  // Transcript: prefer metadata segments, fall back to server subtitle endpoint
+  const [fetchedSegments, setFetchedSegments] = useState<TranscriptSegment[] | null>(null);
+  const effectiveSegments = transcriptSegments && transcriptSegments.length > 0
+    ? transcriptSegments
+    : fetchedSegments;
+  const hasTranscript = !!effectiveSegments && effectiveSegments.length > 0;
+
+  // Fetch transcript from subtitle endpoint when metadata doesn't include segments
+  useEffect(() => {
+    if (transcriptSegments && transcriptSegments.length > 0) return;
+    let cancelled = false;
+    const subtitleUrl = api.attachments.getSubtitleUrl(attachmentId, 'vtt');
+    const headers: HeadersInit = {};
+    const mem = getActiveMemory();
+    if (mem) headers[getMemoryRoutingHeaderName()] = mem;
+
+    fetch(subtitleUrl, { headers })
+      .then((res) => (res.ok ? res.text() : null))
+      .then((text) => {
+        if (cancelled || !text) return;
+        const parsed = parseVttToSegments(text);
+        if (parsed.length > 0) setFetchedSegments(parsed);
+      })
+      .catch(() => {/* subtitle endpoint not available */});
+    return () => { cancelled = true; };
+  }, [attachmentId, transcriptSegments]);
 
   const handleTimeUpdate = useCallback(() => {
     const audio = audioRef.current;
@@ -574,11 +633,19 @@ export function StreamingAudioPlayer({
     let revoked = false;
     let currentUrl: string | null = null;
 
-    api.attachments
-      .downloadAttachment(attachmentId)
+    const tryDownload = (v?: string): Promise<Blob> =>
+      api.attachments.downloadAttachment(attachmentId, v).catch((err) => {
+        if (v) return api.attachments.downloadAttachment(attachmentId);
+        throw err;
+      });
+
+    tryDownload(variant)
       .then((blob) => {
         if (revoked) return;
-        currentUrl = URL.createObjectURL(blob);
+        const typed = blob.type.startsWith('audio/')
+          ? blob
+          : new Blob([blob], { type: 'audio/mpeg' });
+        currentUrl = URL.createObjectURL(typed);
         setBlobUrl(currentUrl);
       })
       .catch((err) => {
@@ -591,7 +658,7 @@ export function StreamingAudioPlayer({
       revoked = true;
       if (currentUrl) URL.revokeObjectURL(currentUrl);
     };
-  }, [attachmentId, mode]);
+  }, [attachmentId, mode, variant]);
 
   // ---- Playback position persistence ----
   useEffect(() => {
@@ -745,7 +812,7 @@ export function StreamingAudioPlayer({
       </audio>
       {hasTranscript && (
         <TranscriptPanel
-          segments={transcriptSegments!}
+          segments={effectiveSegments!}
           currentTime={currentTime}
           onSeek={handleTranscriptSeek}
           filename={filename}
