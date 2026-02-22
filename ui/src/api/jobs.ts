@@ -9,9 +9,23 @@ export interface JobQueueStats {
   total: number;
 }
 
-interface JobListItem {
-  status?: string;
+export interface JobListItem {
+  id: string;
+  job_type: string;
+  status: string;
+  note_id?: string | null;
+  priority?: number;
+  progress_percent?: number;
+  progress_message?: string | null;
+  error_message?: string | null;
+  created_at: string;
+  started_at?: string | null;
   completed_at?: string | null;
+  retry_count?: number;
+  max_retries?: number;
+  cost_tier?: string | null;
+  payload?: Record<string, unknown> | null;
+  result?: Record<string, unknown> | null;
 }
 
 interface JobListResponse {
@@ -62,6 +76,26 @@ export function createJobsApi(client: ApiClient) {
 
     async resumeArchive(archive: string): Promise<JobPauseActionResponse> {
       return client.post<JobPauseActionResponse>(`/api/v1/jobs/resume/${encodeURIComponent(archive)}`);
+    },
+
+    async listJobs(params?: {
+      status?: string;
+      limit?: number;
+      offset?: number;
+      archive?: string;
+    }): Promise<{ jobs: JobListItem[]; total: number }> {
+      const query: Record<string, string> = {};
+      if (params?.status) query.status = params.status;
+      if (params?.limit != null) query.limit = String(params.limit);
+      if (params?.offset != null) query.offset = String(params.offset);
+      if (params?.archive) query.archive = params.archive;
+      const headers: Record<string, string> = {};
+      if (params?.archive) headers[memoryHeader] = params.archive;
+      const resp = await client.get<JobListResponse>('/api/v1/jobs', query, headers);
+      return {
+        jobs: Array.isArray(resp.jobs) ? resp.jobs as JobListItem[] : [],
+        total: resp.total ?? 0,
+      };
     },
 
     async getQueueStats(): Promise<JobQueueStats> {

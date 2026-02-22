@@ -223,7 +223,7 @@ export type { EmbeddingsApi } from './embeddings';
 export type { LinksApi } from './links';
 export type { ProvenanceApi } from './provenance';
 export type { ArchivesApi } from './archives';
-export type { JobsApi, JobPauseState, JobPauseActionResponse, JobQueueStats } from './jobs';
+export type { JobsApi, JobPauseState, JobPauseActionResponse, JobQueueStats, JobListItem } from './jobs';
 
 // Export compatibility layer
 export { api as compatApi } from './compat';

@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   CheckCircle2,
   XCircle,
@@ -11,6 +11,7 @@ import {
   Activity,
   AlertTriangle,
   Filter,
+  ListOrdered,
 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -19,7 +20,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useJobStore } from '@/hooks/useJobStore';
 import { jobEventStore } from '@/services/jobEventStore';
 import { api } from '@/api';
-import type { MemoryArchive } from '@/api';
+import type { MemoryArchive, JobListItem } from '@/api';
 import { getJobTypeColor, formatJobType, formatDuration } from './job-utils';
 import { JobManagementPanel } from '@/components/JobManagementPanel';
 
@@ -43,6 +44,35 @@ export function JobQueueView({ archives }: JobQueueViewProps) {
   } = store;
 
   const [archiveFilter, setArchiveFilter] = useState(ALL_ARCHIVES);
+  const [pendingJobs, setPendingJobs] = useState<JobListItem[]>([]);
+  const [apiCompletedJobs, setApiCompletedJobs] = useState<JobListItem[]>([]);
+  const [isLoadingJobs, setIsLoadingJobs] = useState(false);
+
+  const fetchJobs = useCallback(async () => {
+    setIsLoadingJobs(true);
+    try {
+      const [pendingResp, completedResp, failedResp] = await Promise.all([
+        api.jobs.listJobs({ status: 'pending', limit: 50 }),
+        api.jobs.listJobs({ status: 'completed', limit: 30 }),
+        api.jobs.listJobs({ status: 'failed', limit: 20 }),
+      ]);
+      setPendingJobs(pendingResp.jobs);
+      setApiCompletedJobs([...completedResp.jobs, ...failedResp.jobs].sort((a, b) => {
+        const ta = a.completed_at ? Date.parse(a.completed_at) : 0;
+        const tb = b.completed_at ? Date.parse(b.completed_at) : 0;
+        return tb - ta; // newest first
+      }));
+    } catch (err) {
+      console.error('Failed to fetch jobs from API:', err);
+    } finally {
+      setIsLoadingJobs(false);
+    }
+  }, []);
+
+  // Fetch on mount
+  useEffect(() => {
+    void fetchJobs();
+  }, [fetchJobs]);
 
   const archiveNames = useMemo(
     () =>
@@ -62,12 +92,18 @@ export function JobQueueView({ archives }: JobQueueViewProps) {
     for (const job of completedJobs) {
       if (job.memory) names.add(job.memory);
     }
+    for (const job of pendingJobs) {
+      if (job.payload && typeof job.payload === 'object' && 'memory' in job.payload) {
+        const mem = job.payload.memory;
+        if (typeof mem === 'string') names.add(mem);
+      }
+    }
     // Merge with known archive names
     for (const name of archiveNames) {
       names.add(name);
     }
     return Array.from(names).sort();
-  }, [activeJobs, completedJobs, archiveNames]);
+  }, [activeJobs, completedJobs, pendingJobs, archiveNames]);
 
   const filteredActiveJobs = useMemo(() => {
     const all = Array.from(activeJobs.values());
@@ -75,10 +111,50 @@ export function JobQueueView({ archives }: JobQueueViewProps) {
     return all.filter((j) => j.memory === archiveFilter);
   }, [activeJobs, archiveFilter]);
 
+  const filteredPendingJobs = useMemo(() => {
+    if (archiveFilter === ALL_ARCHIVES) return pendingJobs;
+    return pendingJobs.filter((j) => {
+      const mem = j.payload && typeof j.payload === 'object' && 'memory' in j.payload
+        ? j.payload.memory : undefined;
+      return mem === archiveFilter;
+    });
+  }, [pendingJobs, archiveFilter]);
+
+  // Merge WebSocket-sourced completed jobs with API-fetched ones (deduplicated)
+  const mergedCompletedJobs = useMemo(() => {
+    const seen = new Set<string>();
+    const merged: typeof completedJobs = [];
+    // WebSocket events are more recent, add them first
+    for (const job of completedJobs) {
+      if (!seen.has(job.job_id)) {
+        seen.add(job.job_id);
+        merged.push(job);
+      }
+    }
+    // Add API-fetched completed jobs that weren't already seen via WebSocket
+    for (const apiJob of apiCompletedJobs) {
+      if (!seen.has(apiJob.id)) {
+        seen.add(apiJob.id);
+        merged.push({
+          job_id: apiJob.id,
+          job_type: apiJob.job_type,
+          note_id: apiJob.note_id ?? undefined,
+          status: apiJob.status === 'failed' ? 'failed' : 'completed',
+          duration_ms: apiJob.started_at && apiJob.completed_at
+            ? Date.parse(apiJob.completed_at) - Date.parse(apiJob.started_at)
+            : undefined,
+          error: apiJob.error_message ?? undefined,
+          timestamp: apiJob.completed_at ? Date.parse(apiJob.completed_at) : Date.parse(apiJob.created_at),
+        });
+      }
+    }
+    return merged.sort((a, b) => b.timestamp - a.timestamp).slice(0, 50);
+  }, [completedJobs, apiCompletedJobs]);
+
   const filteredCompletedJobs = useMemo(() => {
-    if (archiveFilter === ALL_ARCHIVES) return completedJobs;
-    return completedJobs.filter((j) => j.memory === archiveFilter);
-  }, [completedJobs, archiveFilter]);
+    if (archiveFilter === ALL_ARCHIVES) return mergedCompletedJobs;
+    return mergedCompletedJobs.filter((j) => j.memory === archiveFilter);
+  }, [mergedCompletedJobs, archiveFilter]);
 
   const globalState = pauseState.global;
   const [isMutating, setIsMutating] = useState(false);
@@ -136,9 +212,13 @@ export function JobQueueView({ archives }: JobQueueViewProps) {
           <Button
             variant="outline"
             size="sm"
-            onClick={() => void jobEventStore.refreshPauseState()}
+            disabled={isLoadingJobs}
+            onClick={() => {
+              void jobEventStore.refreshPauseState();
+              void fetchJobs();
+            }}
           >
-            <RefreshCw className="h-4 w-4 mr-2" />
+            <RefreshCw className={`h-4 w-4 mr-2 ${isLoadingJobs ? 'animate-spin' : ''}`} />
             Refresh
           </Button>
         </div>
@@ -156,7 +236,9 @@ export function JobQueueView({ archives }: JobQueueViewProps) {
         </Card>
         <Card>
           <CardContent className="pt-6 text-center">
-            <div className="text-3xl font-bold text-yellow-600">{queueStatus.pending}</div>
+            <div className="text-3xl font-bold text-yellow-600">
+              {archiveFilter !== ALL_ARCHIVES ? filteredPendingJobs.length : Math.max(queueStatus.pending, pendingJobs.length)}
+            </div>
             <p className="text-sm text-muted-foreground mt-1">Pending</p>
           </CardContent>
         </Card>
@@ -308,6 +390,71 @@ export function JobQueueView({ archives }: JobQueueViewProps) {
                   )}
                 </div>
               ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Pending Queue */}
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base">
+            <div className="flex items-center gap-2">
+              <ListOrdered className="h-4 w-4" />
+              Pending Queue
+              {filteredPendingJobs.length > 0 && (
+                <Badge variant="secondary">
+                  {filteredPendingJobs.length}
+                </Badge>
+              )}
+            </div>
+          </CardTitle>
+          <CardDescription>
+            Jobs waiting to be processed
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {filteredPendingJobs.length === 0 ? (
+            <p className="text-sm text-muted-foreground py-4 text-center">
+              No pending jobs
+            </p>
+          ) : (
+            <div className="max-h-[300px] overflow-y-auto rounded-md border">
+              <div className="divide-y divide-border/50">
+                {filteredPendingJobs.map((job) => (
+                  <div
+                    key={job.id}
+                    className="flex items-center justify-between py-2.5 px-3 hover:bg-muted/30"
+                  >
+                    <div className="flex items-center gap-2">
+                      <Clock className="h-4 w-4 text-yellow-500 flex-shrink-0" />
+                      <div
+                        className={`w-2 h-2 rounded-full flex-shrink-0 ${getJobTypeColor(job.job_type)}`}
+                      />
+                      <span className="text-sm font-medium">{formatJobType(job.job_type)}</span>
+                      {job.priority != null && job.priority > 0 && (
+                        <Badge variant="outline" className="text-[10px] px-1 py-0">
+                          P{job.priority}
+                        </Badge>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                      {job.note_id && (
+                        <span title={job.note_id}>
+                          {job.note_id.substring(0, 8)}...
+                        </span>
+                      )}
+                      {job.retry_count != null && job.retry_count > 0 && (
+                        <Badge variant="outline" className="text-[10px] px-1 py-0 text-amber-600">
+                          retry {job.retry_count}
+                        </Badge>
+                      )}
+                      <Clock className="h-3 w-3" />
+                      <span>{new Date(job.created_at).toLocaleTimeString()}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
         </CardContent>
