@@ -455,6 +455,7 @@ function AttachmentPreviewContent({
         ? videoMeta.transcript_segments as import('./subtitle-utils').TranscriptSegment[]
         : undefined;
       const videoVariant = getPreferredVariant(attachment);
+      const videoMediaInfo = extractMediaInfo(attachment);
       return (
         <StreamingVideoPlayer
           attachmentId={attachment.id}
@@ -463,6 +464,9 @@ function AttachmentPreviewContent({
           transcriptSegments={segments}
           filename={attachment.filename}
           variant={videoVariant}
+          mediaInfo={videoMediaInfo}
+          contentType={attachment.content_type}
+          extractionStrategy={attachment.extraction_strategy ?? undefined}
         />
       );
     }
@@ -474,6 +478,7 @@ function AttachmentPreviewContent({
       const audioSegments = audioMeta && Array.isArray(audioMeta.transcript_segments)
         ? audioMeta.transcript_segments as import('./subtitle-utils').TranscriptSegment[]
         : undefined;
+      const audioMediaInfo = extractMediaInfo(attachment);
       return (
         <StreamingAudioPlayer
           attachmentId={attachment.id}
@@ -482,6 +487,9 @@ function AttachmentPreviewContent({
           variant={audioVariant}
           transcriptSegments={audioSegments}
           filename={attachment.filename}
+          mediaInfo={audioMediaInfo}
+          contentType={attachment.content_type}
+          extractionStrategy={attachment.extraction_strategy ?? undefined}
         />
       );
     }

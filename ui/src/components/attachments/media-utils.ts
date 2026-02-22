@@ -175,6 +175,44 @@ const AUDIO_VARIANT_PREFERENCE = ['web_audio', 'audio_only', 'audio_preview'];
  * Pick the best streaming variant for an attachment based on its media type.
  * Returns undefined if no optimized variants are available.
  */
+// ---------------------------------------------------------------------------
+// GPU renderer detection (cached)
+// ---------------------------------------------------------------------------
+
+let _gpuRendererCache: string | null = null;
+
+/**
+ * Detect the GPU renderer string via WebGL.
+ * Result is cached after first call. Returns a human-readable fallback
+ * when WebGL or the debug extension is unavailable.
+ */
+export function detectGpuRenderer(): string {
+  if (_gpuRendererCache !== null) return _gpuRendererCache;
+  try {
+    const canvas = document.createElement('canvas');
+    const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+    if (!gl || !(gl instanceof WebGLRenderingContext)) {
+      _gpuRendererCache = 'WebGL not available';
+      return _gpuRendererCache;
+    }
+    const ext = gl.getExtension('WEBGL_debug_renderer_info');
+    if (!ext) {
+      _gpuRendererCache = 'Debug info not available';
+      return _gpuRendererCache;
+    }
+    _gpuRendererCache = gl.getParameter(ext.UNMASKED_RENDERER_WEBGL) as string;
+    return _gpuRendererCache;
+  } catch {
+    _gpuRendererCache = 'Detection failed';
+    return _gpuRendererCache;
+  }
+}
+
+/** Reset the GPU cache — exposed only for tests. */
+export function _resetGpuCache(): void {
+  _gpuRendererCache = null;
+}
+
 export function getPreferredVariant(attachment: Attachment): string | undefined {
   const meta = attachment.extracted_metadata;
   if (!meta || typeof meta !== 'object') return undefined;

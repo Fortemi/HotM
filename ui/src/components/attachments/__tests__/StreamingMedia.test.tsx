@@ -457,4 +457,69 @@ describe('StreamingAudioPlayer', () => {
     // After toggle, should show muted state
     expect(ccButton.className).toContain('bg-muted');
   });
+
+  it('renders expert mode toggle button', () => {
+    render(<StreamingAudioPlayer attachmentId="aud-1" />);
+    const toggle = screen.getByTestId('expert-mode-toggle');
+    expect(toggle).toBeInTheDocument();
+  });
+
+  it('does not show expert overlay by default', () => {
+    render(<StreamingAudioPlayer attachmentId="aud-1" />);
+    expect(screen.queryByTestId('expert-mode-overlay')).not.toBeInTheDocument();
+  });
+});
+
+// ---- Expert mode (video) ----
+
+describe('StreamingVideoPlayer expert mode', () => {
+  it('renders expert mode toggle button', () => {
+    render(<StreamingVideoPlayer attachmentId="vid-1" />);
+    const toggle = screen.getByTestId('expert-mode-toggle');
+    expect(toggle).toBeInTheDocument();
+  });
+
+  it('does not show expert overlay by default (zero overhead)', () => {
+    render(<StreamingVideoPlayer attachmentId="vid-1" />);
+    expect(screen.queryByTestId('expert-mode-overlay')).not.toBeInTheDocument();
+  });
+
+  it('toggles expert mode on button click', () => {
+    render(<StreamingVideoPlayer attachmentId="vid-1" />);
+    const toggle = screen.getByTestId('expert-mode-toggle');
+
+    // Toggle on
+    fireEvent.click(toggle);
+    // The overlay may or may not render depending on ref availability in jsdom,
+    // but the button state should toggle
+    expect(toggle.className).toContain('bg-primary');
+
+    // Toggle off
+    fireEvent.click(toggle);
+    expect(toggle.className).not.toContain('bg-primary');
+  });
+
+  it('toggles expert mode via I key shortcut', () => {
+    render(<StreamingVideoPlayer attachmentId="vid-1" />);
+    const container = screen.getByTestId('video-player-container');
+    const toggle = screen.getByTestId('expert-mode-toggle');
+
+    // Initially off
+    expect(toggle.className).not.toContain('bg-primary');
+
+    // Press I to toggle on
+    fireEvent.keyDown(container, { key: 'i' });
+    expect(toggle.className).toContain('bg-primary');
+
+    // Press I again to toggle off
+    fireEvent.keyDown(container, { key: 'i' });
+    expect(toggle.className).not.toContain('bg-primary');
+  });
+
+  it('shows updated keyboard hints including I: stats', () => {
+    render(<StreamingVideoPlayer attachmentId="vid-1" />);
+    const container = screen.getByTestId('video-player-container');
+    const hints = container.querySelector('[class*="bottom-12"]');
+    expect(hints?.textContent).toContain('I: stats');
+  });
 });

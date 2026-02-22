@@ -19,7 +19,7 @@
  */
 
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import { Music, Loader2, AlertCircle, RefreshCw, Download, Video, Subtitles } from 'lucide-react';
+import { Music, Loader2, AlertCircle, RefreshCw, Download, Video, Subtitles, Activity } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { api } from '@/api';
@@ -27,6 +27,9 @@ import { getActiveMemory, getMemoryRoutingHeaderName } from '@/api/memory-contex
 import type { TranscriptSegment } from './subtitle-utils';
 import { createVttBlobUrl, parseVttToSegments } from './subtitle-utils';
 import { TranscriptPanel } from './TranscriptPanel';
+import type { MediaInfo } from './media-utils';
+import { useMediaStats } from './useMediaStats';
+import { ExpertModeOverlay } from './ExpertModeOverlay';
 
 // ---------------------------------------------------------------------------
 // Shared types
@@ -110,6 +113,12 @@ interface StreamingVideoPlayerProps {
   filename?: string;
   /** Preferred media variant (e.g. 'web_compatible', 'faststart', 'preview_720p') */
   variant?: string;
+  /** Extracted media metadata for expert mode overlay */
+  mediaInfo?: MediaInfo;
+  /** MIME content type for expert mode overlay */
+  contentType?: string;
+  /** Extraction strategy label for expert mode overlay */
+  extractionStrategy?: string;
 }
 
 export function StreamingVideoPlayer({
@@ -120,6 +129,9 @@ export function StreamingVideoPlayer({
   transcriptSegments,
   filename,
   variant,
+  mediaInfo,
+  contentType,
+  extractionStrategy,
 }: StreamingVideoPlayerProps) {
   const [mode, setMode] = useState<PlaybackMode>('direct');
   const [blobUrl, setBlobUrl] = useState<string | null>(null);
@@ -130,11 +142,16 @@ export function StreamingVideoPlayer({
   const [duration, setDuration] = useState<number | null>(null);
   const [currentTime, setCurrentTime] = useState(0);
 
+  // Expert mode stats overlay (fully inert until toggled)
+  const [showExpertMode, setShowExpertMode] = useState(false);
+
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const positionTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const retryTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastKnownPositionRef = useRef(0);
+
+  const expertStats = useMediaStats(videoRef, showExpertMode);
 
   const directUrl = api.attachments.getDownloadUrl(attachmentId, variant);
   const downloadUrl = api.attachments.getDownloadUrl(attachmentId);
@@ -428,6 +445,10 @@ export function StreamingVideoPlayer({
         e.preventDefault();
         setShowCaptions((prev) => !prev);
         break;
+      case 'i':
+        e.preventDefault();
+        setShowExpertMode((prev) => !prev);
+        break;
       case '0': case '1': case '2': case '3': case '4':
       case '5': case '6': case '7': case '8': case '9':
         e.preventDefault();
@@ -548,6 +569,39 @@ export function StreamingVideoPlayer({
         </button>
       )}
 
+      {/* Expert mode toggle button (top-right area, shown on hover) */}
+      <button
+        type="button"
+        className={cn(
+          'absolute top-2 flex items-center gap-1 px-1.5 py-1 rounded text-xs transition-opacity z-10',
+          hasTranscript ? 'left-[4.5rem]' : 'left-2',
+          showExpertMode
+            ? 'bg-primary text-primary-foreground opacity-80 hover:opacity-100'
+            : 'bg-black/70 text-white opacity-0 group-hover:opacity-80 hover:!opacity-100',
+        )}
+        onClick={() => setShowExpertMode((prev) => !prev)}
+        title={showExpertMode ? 'Hide stats (I)' : 'Show stats (I)'}
+        data-testid="expert-mode-toggle"
+      >
+        <Activity className="w-3.5 h-3.5" />
+      </button>
+
+      {/* Expert mode overlay */}
+      {showExpertMode && expertStats && (
+        <ExpertModeOverlay
+          stats={expertStats}
+          mediaInfo={mediaInfo ?? null}
+          playbackMode={mode}
+          contentType={contentType}
+          sizeBytes={sizeBytes}
+          variant={variant}
+          filename={filename}
+          extractionStrategy={extractionStrategy}
+          mediaType="video"
+          onClose={() => setShowExpertMode(false)}
+        />
+      )}
+
       {/* Duration badge (top-right, shown on hover when ready) */}
       {duration && playbackState === 'ready' && (
         <div className="absolute top-2 right-2 bg-black/70 text-white text-xs px-1.5 py-0.5 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
@@ -557,7 +611,7 @@ export function StreamingVideoPlayer({
 
       {/* Keyboard hints (bottom, shown briefly on focus) */}
       <div className="absolute bottom-12 left-1/2 -translate-x-1/2 bg-black/70 text-white text-[10px] px-2 py-1 rounded opacity-0 group-focus-within:opacity-100 transition-opacity pointer-events-none whitespace-nowrap">
-        Space: play/pause &middot; J/L: &plusmn;10s &middot; F: fullscreen &middot; M: mute &middot; C: captions
+        Space: play/pause &middot; J/L: &plusmn;10s &middot; F: fullscreen &middot; M: mute &middot; C: captions &middot; I: stats
       </div>
 
       {/* Interactive transcript panel */}
@@ -591,6 +645,12 @@ interface StreamingAudioPlayerProps {
   transcriptSegments?: TranscriptSegment[];
   /** Attachment filename (used for transcript download naming) */
   filename?: string;
+  /** Extracted media metadata for expert mode overlay */
+  mediaInfo?: MediaInfo;
+  /** MIME content type for expert mode overlay */
+  contentType?: string;
+  /** Extraction strategy label for expert mode overlay */
+  extractionStrategy?: string;
 }
 
 export function StreamingAudioPlayer({
@@ -601,15 +661,21 @@ export function StreamingAudioPlayer({
   variant,
   transcriptSegments,
   filename,
+  mediaInfo,
+  contentType,
+  extractionStrategy,
 }: StreamingAudioPlayerProps) {
   const [mode, setMode] = useState<PlaybackMode>('direct');
   const [blobUrl, setBlobUrl] = useState<string | null>(null);
   const [retryCount, setRetryCount] = useState(0);
   const [currentTime, setCurrentTime] = useState(0);
+  const [showExpertMode, setShowExpertMode] = useState(false);
   const audioRef = useRef<HTMLAudioElement>(null);
   const positionTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const retryTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastKnownPositionRef = useRef(0);
+
+  const expertStats = useMediaStats(audioRef, showExpertMode);
 
   const directUrl = api.attachments.getDownloadUrl(attachmentId, variant);
   const downloadUrl = api.attachments.getDownloadUrl(attachmentId);
@@ -864,6 +930,20 @@ export function StreamingAudioPlayer({
             CC
           </button>
         )}
+        <button
+          type="button"
+          className={cn(
+            'shrink-0 flex items-center gap-1 px-2 py-1.5 rounded text-xs font-medium transition-colors',
+            showExpertMode
+              ? 'bg-primary text-primary-foreground'
+              : 'bg-muted text-muted-foreground hover:bg-muted/80',
+          )}
+          onClick={() => setShowExpertMode((prev) => !prev)}
+          title={showExpertMode ? 'Hide stats' : 'Show stats'}
+          data-testid="expert-mode-toggle"
+        >
+          <Activity className="w-3.5 h-3.5" />
+        </button>
       </div>
       {hasTranscript && showCaptions && (
         <TranscriptPanel
@@ -872,6 +952,20 @@ export function StreamingAudioPlayer({
           onSeek={handleTranscriptSeek}
           filename={filename}
           className="w-full max-w-md mt-2"
+        />
+      )}
+      {showExpertMode && expertStats && (
+        <ExpertModeOverlay
+          stats={expertStats}
+          mediaInfo={mediaInfo ?? null}
+          playbackMode={mode}
+          contentType={contentType}
+          sizeBytes={sizeBytes}
+          variant={variant}
+          filename={filename}
+          extractionStrategy={extractionStrategy}
+          mediaType="audio"
+          onClose={() => setShowExpertMode(false)}
         />
       )}
     </div>
