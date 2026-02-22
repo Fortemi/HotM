@@ -5,18 +5,22 @@ import { Badge } from './ui/badge';
 import { Activity, Loader2, CheckCircle2, AlertCircle, AlertTriangle, RefreshCw } from 'lucide-react';
 import JobQueueMonitor from './JobQueueMonitor';
 import { useJobStore } from '@/hooks/useJobStore';
+import { useUploadStore } from '@/hooks/useUploadStore';
 import { useWebSocket } from '@/services/websocket';
 
 export const JobQueueIndicator: React.FC = () => {
   const { connected, connectionState, queueStatus, isQueueStalled, queueStatusAgeMs, activeStepLabel } = useJobStore();
+  const uploadState = useUploadStore();
   const { transportMode, lastResyncAt } = useWebSocket();
   const [isOpen, setIsOpen] = useState(false);
+
+  const uploadActive = uploadState.summary.uploading + uploadState.summary.queued;
 
   // Determine status icon
   const getStatusIcon = () => {
     if (!connected) return <AlertCircle className="h-4 w-4" />;
     if (isQueueStalled) return <AlertTriangle className="h-4 w-4" />;
-    if (queueStatus.running > 0) return <Loader2 className="h-4 w-4 animate-spin" />;
+    if (uploadActive > 0 || queueStatus.running > 0) return <Loader2 className="h-4 w-4 animate-spin" />;
     if (queueStatus.pending > 0) return <Activity className="h-4 w-4" />;
     return <CheckCircle2 className="h-4 w-4" />;
   };
@@ -25,7 +29,7 @@ export const JobQueueIndicator: React.FC = () => {
   const getStatusColor = () => {
     if (!connected) return 'text-red-500';
     if (isQueueStalled) return 'text-amber-500';
-    if (queueStatus.running > 0) return 'text-blue-500';
+    if (uploadActive > 0 || queueStatus.running > 0) return 'text-blue-500';
     if (queueStatus.pending > 0) return 'text-yellow-500';
     return 'text-green-500';
   };
@@ -33,11 +37,11 @@ export const JobQueueIndicator: React.FC = () => {
   // Determine badge color
   const getBadgeColor = () => {
     if (!connected) return 'destructive';
-    if (queueStatus.running > 0 || queueStatus.pending > 0) return 'secondary';
+    if (uploadActive > 0 || queueStatus.running > 0 || queueStatus.pending > 0) return 'secondary';
     return 'outline';
   };
 
-  const totalJobs = queueStatus.running + queueStatus.pending;
+  const totalJobs = queueStatus.running + queueStatus.pending + uploadActive;
   const connectionLabel =
     connectionState === 'stale'
       ? 'Stale'
@@ -92,7 +96,13 @@ export const JobQueueIndicator: React.FC = () => {
             </div>
           )}
 
-          <div className="grid grid-cols-3 gap-2 mt-3 text-xs">
+          <div className={`grid gap-2 mt-3 text-xs ${uploadActive > 0 ? 'grid-cols-4' : 'grid-cols-3'}`}>
+            {uploadActive > 0 && (
+              <div className="text-center">
+                <div className="font-medium text-lg text-purple-600">{uploadActive}</div>
+                <div className="text-muted-foreground">Uploading</div>
+              </div>
+            )}
             <div className="text-center">
               <div className="font-medium text-lg text-blue-600">{queueStatus.running}</div>
               <div className="text-muted-foreground">Running</div>

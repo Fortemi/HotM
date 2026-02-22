@@ -9,6 +9,7 @@ import { act, render, screen, fireEvent, waitFor, within } from '@testing-librar
 import { AttachmentsPanel } from '../AttachmentsPanel';
 import { api, Attachment, AttachmentMetadata } from '@/api';
 import { realtimeEventBus } from '@/services/realtimeEventBus';
+import { uploadStore } from '@/services/uploadStore';
 
 // Mock the API
 vi.mock('@/api', () => ({
@@ -25,6 +26,24 @@ vi.mock('@/api', () => ({
       getSpriteUrl: vi.fn((id: string, index: number) => `http://test/api/v1/attachments/${id}/sprites/${index}.jpg`),
       deleteAttachment: vi.fn(),
     },
+  },
+}));
+
+vi.mock('@/services/uploadStore', () => ({
+  uploadStore: {
+    enqueueFiles: vi.fn(),
+    onNoteUploadsComplete: vi.fn(() => () => {}),
+    subscribe: vi.fn(() => () => {}),
+    getSnapshot: vi.fn(() => ({
+      entries: new Map(),
+      isProcessing: false,
+      summary: { queued: 0, uploading: 0, completed: 0, failed: 0 },
+    })),
+    getServerSnapshot: vi.fn(() => ({
+      entries: new Map(),
+      isProcessing: false,
+      summary: { queued: 0, uploading: 0, completed: 0, failed: 0 },
+    })),
   },
 }));
 
@@ -99,16 +118,8 @@ describe('AttachmentsPanel', () => {
     );
     vi.mocked(api.attachments.getDownloadUrl).mockReturnValue('https://example.com/download');
     vi.mocked(api.attachments.deleteAttachment).mockResolvedValue(undefined);
-    vi.mocked(api.attachments.uploadAttachment).mockResolvedValue({
-      id: 'new-att',
-      note_id: 'note-123',
-      filename: 'test.txt',
-      content_type: 'text/plain',
-      size_bytes: 12,
-      status: 'uploaded',
-      storage_path: '/attachments/new-att/test.txt',
-      created_at: '2024-01-15T12:00:00Z',
-    });
+    vi.mocked(uploadStore.enqueueFiles).mockClear();
+    vi.mocked(uploadStore.onNoteUploadsComplete).mockClear().mockReturnValue(() => {});
     mockConfirm.mockReturnValue(true);
   });
 
@@ -258,7 +269,7 @@ describe('AttachmentsPanel', () => {
       });
     });
 
-    it('should handle file upload via input', async () => {
+    it('should enqueue files via uploadStore on input', async () => {
       render(<AttachmentsPanel noteId="note-123" />);
 
       await waitFor(() => {
@@ -272,7 +283,7 @@ describe('AttachmentsPanel', () => {
       fireEvent.change(fileInput!, { target: { files: [file] } });
 
       await waitFor(() => {
-        expect(api.attachments.uploadAttachment).toHaveBeenCalledWith('note-123', file);
+        expect(uploadStore.enqueueFiles).toHaveBeenCalledWith('note-123', expect.anything(), undefined);
       });
     });
 
@@ -295,7 +306,7 @@ describe('AttachmentsPanel', () => {
       });
     });
 
-    it('should upload with media_optimize when toggle is checked', async () => {
+    it('should enqueue with mediaOptimize when toggle is checked', async () => {
       render(<AttachmentsPanel noteId="note-123" />);
 
       await waitFor(() => {
@@ -318,15 +329,15 @@ describe('AttachmentsPanel', () => {
       fireEvent.click(screen.getByRole('button', { name: /Upload/ }));
 
       await waitFor(() => {
-        expect(api.attachments.uploadAttachment).toHaveBeenCalledWith(
+        expect(uploadStore.enqueueFiles).toHaveBeenCalledWith(
           'note-123',
-          videoFile,
+          expect.anything(),
           { mediaOptimize: true },
         );
       });
     });
 
-    it('should upload without media_optimize when toggle is unchecked', async () => {
+    it('should enqueue without mediaOptimize when toggle is unchecked', async () => {
       render(<AttachmentsPanel noteId="note-123" />);
 
       await waitFor(() => {
@@ -341,11 +352,11 @@ describe('AttachmentsPanel', () => {
         expect(screen.getByText('Media optimize')).toBeInTheDocument();
       });
 
-      // Don't check the toggle — upload with default (off)
+      // Don't check the toggle — enqueue with default (off)
       fireEvent.click(screen.getByRole('button', { name: /Upload/ }));
 
       await waitFor(() => {
-        expect(api.attachments.uploadAttachment).toHaveBeenCalledWith('note-123', audioFile);
+        expect(uploadStore.enqueueFiles).toHaveBeenCalledWith('note-123', expect.anything(), undefined);
       });
     });
 
@@ -371,7 +382,7 @@ describe('AttachmentsPanel', () => {
         expect(screen.queryByText('Media optimize')).not.toBeInTheDocument();
       });
 
-      expect(api.attachments.uploadAttachment).not.toHaveBeenCalled();
+      expect(uploadStore.enqueueFiles).not.toHaveBeenCalled();
     });
 
     it('should not show media optimize toggle for non-media files', async () => {
@@ -385,16 +396,16 @@ describe('AttachmentsPanel', () => {
       const textFile = new File(['hello'], 'readme.md', { type: 'text/markdown' });
       fireEvent.change(fileInput!, { target: { files: [textFile] } });
 
-      // Non-media files upload immediately without staging
+      // Non-media files enqueue immediately without staging
       await waitFor(() => {
-        expect(api.attachments.uploadAttachment).toHaveBeenCalledWith('note-123', textFile);
+        expect(uploadStore.enqueueFiles).toHaveBeenCalledWith('note-123', expect.anything(), undefined);
       });
 
       // Toggle should not be visible
       expect(screen.queryByText('Media optimize')).not.toBeInTheDocument();
     });
 
-    it('should only apply media_optimize to audio/video files in mixed batch', async () => {
+    it('should enqueue mixed batch with mediaOptimize when toggle checked', async () => {
       render(<AttachmentsPanel noteId="note-123" />);
 
       await waitFor(() => {
@@ -426,16 +437,11 @@ describe('AttachmentsPanel', () => {
       fireEvent.click(screen.getByRole('button', { name: /Upload/ }));
 
       await waitFor(() => {
-        // Video file gets media_optimize
-        expect(api.attachments.uploadAttachment).toHaveBeenCalledWith(
+        // uploadStore handles per-file mediaOptimize logic internally
+        expect(uploadStore.enqueueFiles).toHaveBeenCalledWith(
           'note-123',
-          videoFile,
+          expect.anything(),
           { mediaOptimize: true },
-        );
-        // Image file does NOT get media_optimize
-        expect(api.attachments.uploadAttachment).toHaveBeenCalledWith(
-          'note-123',
-          imageFile,
         );
       });
     });

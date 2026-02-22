@@ -52,6 +52,7 @@ import {
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { api } from '@/api';
 import { realtimeEventBus } from '@/services/realtimeEventBus';
+import { uploadStore } from '@/services/uploadStore';
 import { useBlobUrl } from '@/lib/tauri';
 import type { Attachment, AttachmentMetadata, ExtractionStatus, AttachmentStatus } from '@/api/types-extended';
 import { getPreviewMode, shouldDownloadBlob, getDocTypeLabel, getLanguageFromType } from './preview-utils';
@@ -1036,8 +1037,6 @@ export function AttachmentsPanel({ noteId, className, extractionProgress }: Atta
   const [attachments, setAttachments] = useState<Attachment[]>([]);
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
   const [isLoading, setIsLoading] = useState(true);
-  const [isUploading, setIsUploading] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [previewAttachment, setPreviewAttachment] = useState<Attachment | null>(null);
   const [previewMetadata, setPreviewMetadata] = useState<AttachmentMetadata | null>(null);
@@ -1047,6 +1046,7 @@ export function AttachmentsPanel({ noteId, className, extractionProgress }: Atta
   const [mediaOptimize, setMediaOptimize] = useState(false);
   const [derivationFilter, setDerivationFilter] = useState<'all' | 'primary' | 'derived'>('all');
   const [pendingFiles, setPendingFiles] = useState<FileList | null>(null);
+  const [uploadFlash, setUploadFlash] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const displayAttachments = derivationFilter === 'all'
@@ -1116,6 +1116,16 @@ export function AttachmentsPanel({ noteId, className, extractionProgress }: Atta
     return () => unsubscribe();
   }, [loadAttachments, noteId]);
 
+  // Refresh attachment list when background uploads for this note complete
+  useEffect(() => {
+    if (!noteId) return;
+    return uploadStore.onNoteUploadsComplete((completedNoteId) => {
+      if (completedNoteId === noteId) {
+        void loadAttachments();
+      }
+    });
+  }, [noteId, loadAttachments]);
+
   // When the attachment list refreshes and the preview is open, update preview data
   // if the attachment's status has changed (e.g. processing → completed)
   useEffect(() => {
@@ -1130,66 +1140,43 @@ export function AttachmentsPanel({ noteId, className, extractionProgress }: Atta
     }
   }, [attachments, previewAttachment]);
 
-  /** Check whether a File is an audio or video type */
-  const isMediaFile = (file: File): boolean =>
-    file.type.startsWith('audio/') || file.type.startsWith('video/');
-
   /** Check whether a FileList contains any audio/video files */
   const hasMediaFiles = (files: FileList): boolean =>
-    Array.from(files).some(isMediaFile);
+    Array.from(files).some((f) => f.type.startsWith('audio/') || f.type.startsWith('video/'));
 
-  /** Upload the given files, optionally with media_optimize */
-  const executeUpload = async (files: FileList, optimize: boolean) => {
+  /** Enqueue files into the background upload store */
+  const enqueueUpload = useCallback((files: FileList | File[], optimize: boolean) => {
     if (!noteId || noteId.trim() === '') {
       setError('Select a note before uploading attachments');
       return;
     }
-
-    setIsUploading(true);
-    setUploadProgress(0);
-
-    try {
-      for (let i = 0; i < files.length; i++) {
-        const file = files[i];
-        if (optimize && isMediaFile(file)) {
-          await api.attachments.uploadAttachment(noteId, file, { mediaOptimize: true });
-        } else {
-          await api.attachments.uploadAttachment(noteId, file);
-        }
-        setUploadProgress(((i + 1) / files.length) * 100);
-      }
-      await loadAttachments();
-    } catch (err) {
-      setError('Upload failed');
-      console.error(err);
-    } finally {
-      setIsUploading(false);
-      setUploadProgress(0);
-      setPendingFiles(null);
-      setMediaOptimize(false);
-    }
-  };
+    uploadStore.enqueueFiles(noteId, files, optimize ? { mediaOptimize: true } : undefined);
+    setPendingFiles(null);
+    setMediaOptimize(false);
+    // Brief flash to confirm enqueue
+    setUploadFlash(true);
+    setTimeout(() => setUploadFlash(false), 2000);
+  }, [noteId]);
 
   /**
    * Handle file selection. If any files are audio/video, stage them so the
-   * user can toggle media optimization before confirming. Otherwise upload
+   * user can toggle media optimization before confirming. Otherwise enqueue
    * immediately.
    */
-  const handleUpload = async (files: FileList | null) => {
+  const handleUpload = (files: FileList | null) => {
     if (!files || files.length === 0) return;
 
     if (hasMediaFiles(files)) {
       setPendingFiles(files);
-      // Don't upload yet — wait for user to confirm via the staged UI
     } else {
-      await executeUpload(files, false);
+      enqueueUpload(files, false);
     }
   };
 
   /** Confirm upload of staged files (with or without media optimize) */
   const confirmUpload = () => {
     if (pendingFiles) {
-      void executeUpload(pendingFiles, mediaOptimize);
+      enqueueUpload(pendingFiles, mediaOptimize);
     }
   };
 
@@ -1332,7 +1319,6 @@ export function AttachmentsPanel({ noteId, className, extractionProgress }: Atta
         className={cn(
           'mx-4 mt-4 border-2 border-dashed rounded-lg p-4 text-center transition-colors',
           isDragging ? 'border-primary bg-primary/5' : 'border-muted-foreground/25',
-          isUploading && 'pointer-events-none opacity-50'
         )}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
@@ -1345,12 +1331,7 @@ export function AttachmentsPanel({ noteId, className, extractionProgress }: Atta
           className="hidden"
           onChange={(e) => handleUpload(e.target.files)}
         />
-        {isUploading ? (
-          <div className="space-y-2">
-            <Loader2 className="w-8 h-8 mx-auto animate-spin text-primary" />
-            <p className="text-sm text-muted-foreground">Uploading... {Math.round(uploadProgress)}%</p>
-          </div>
-        ) : pendingFiles ? (
+        {pendingFiles ? (
           <div className="space-y-3">
             <p className="text-sm font-medium">
               {pendingFiles.length} file{pendingFiles.length !== 1 ? 's' : ''} selected
@@ -1383,16 +1364,22 @@ export function AttachmentsPanel({ noteId, className, extractionProgress }: Atta
         ) : (
           <>
             <Upload className="w-8 h-8 mx-auto mb-2 text-muted-foreground" />
-            <p className="text-sm text-muted-foreground">
-              Drop files here or{' '}
-              <button
-                type="button"
-                className="text-primary hover:underline"
-                onClick={() => fileInputRef.current?.click()}
-              >
-                browse
-              </button>
-            </p>
+            {uploadFlash ? (
+              <p className="text-sm text-primary font-medium" data-testid="upload-queued-flash">
+                Queued for upload
+              </p>
+            ) : (
+              <p className="text-sm text-muted-foreground">
+                Drop files here or{' '}
+                <button
+                  type="button"
+                  className="text-primary hover:underline"
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  browse
+                </button>
+              </p>
+            )}
           </>
         )}
       </div>

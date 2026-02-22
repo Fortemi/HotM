@@ -56,7 +56,8 @@
       "Skill(flow-deploy-to-production)",
       "mcp__gitea__delete_release",
       "mcp__gitea__delete_tag",
-      "mcp__gitea__get_dir_content"
+      "mcp__gitea__get_dir_content",
+      "mcp__gitea__list_repo_commits"
     ],
     "deny": [],
     "ask": []

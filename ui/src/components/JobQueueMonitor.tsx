@@ -1,15 +1,90 @@
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Badge } from './ui/badge';
+import { Button } from './ui/button';
 import { ScrollArea } from './ui/scroll-area';
-import { Clock, CheckCircle2, XCircle, AlertCircle, Loader2 } from 'lucide-react';
+import { Clock, CheckCircle2, XCircle, AlertCircle, Loader2, Upload, X, RotateCcw } from 'lucide-react';
 import { useJobStore } from '@/hooks/useJobStore';
+import { useUploadStore } from '@/hooks/useUploadStore';
+import { uploadStore, type UploadFileEntry } from '@/services/uploadStore';
 import { getJobTypeColor, formatJobType, formatDuration } from '@/components/jobs/job-utils';
+
+function formatFileSize(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+function UploadEntryRow({ entry }: { entry: UploadFileEntry }) {
+  const isActive = entry.status === 'uploading';
+  const isQueued = entry.status === 'queued';
+  const isCompleted = entry.status === 'completed';
+  const isFailed = entry.status === 'failed';
+
+  return (
+    <div className="flex items-center gap-2 py-2 border-b border-border/50 last:border-0" data-testid={`upload-entry-${entry.id}`}>
+      <div className="flex-shrink-0">
+        {isActive && <Loader2 className="h-4 w-4 animate-spin text-blue-500" />}
+        {isQueued && <Upload className="h-4 w-4 text-yellow-500" />}
+        {isCompleted && <CheckCircle2 className="h-4 w-4 text-green-500" />}
+        {isFailed && <XCircle className="h-4 w-4 text-red-500" />}
+      </div>
+
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-1.5">
+          <span className="text-sm truncate">{entry.file.name}</span>
+          <span className="text-xs text-muted-foreground flex-shrink-0">
+            {formatFileSize(entry.bytesTotal)}
+          </span>
+        </div>
+        {isActive && (
+          <div className="w-full bg-muted rounded-full h-1 mt-1">
+            <div className="h-1 rounded-full bg-blue-500 animate-pulse w-full" />
+          </div>
+        )}
+        {isFailed && entry.error && (
+          <p className="text-xs text-red-500 truncate mt-0.5">{entry.error}</p>
+        )}
+      </div>
+
+      <div className="flex-shrink-0 flex items-center gap-1">
+        {isFailed && (
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-6 w-6"
+            onClick={() => uploadStore.retryFile(entry.id)}
+            aria-label="retry upload"
+          >
+            <RotateCcw className="h-3 w-3" />
+          </Button>
+        )}
+        {(isQueued || isActive) && (
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-6 w-6"
+            onClick={() => uploadStore.cancelFile(entry.id)}
+            aria-label="cancel upload"
+          >
+            <X className="h-3 w-3" />
+          </Button>
+        )}
+      </div>
+    </div>
+  );
+}
 
 const JobQueueMonitor: React.FC = () => {
   const { connected, queueStatus, isQueueStalled, queueStatusAgeMs, activeJobs, completedJobs } = useJobStore();
+  const uploadState = useUploadStore();
 
   const activeJobList = Array.from(activeJobs.values());
+  const uploadEntries = Array.from(uploadState.entries.values());
+  const { summary } = uploadState;
+  const hasUploads = uploadEntries.length > 0;
+  const totalUploadActive = summary.queued + summary.uploading;
+  const hasFinishedUploads = summary.completed > 0 || summary.failed > 0;
 
   return (
     <div className="space-y-4 p-4">
@@ -26,6 +101,49 @@ const JobQueueMonitor: React.FC = () => {
             Queue appears stalled ({Math.floor(queueStatusAgeMs / 60000)}m with no updates).
           </span>
         </div>
+      )}
+
+      {/* Transfers Section */}
+      {hasUploads && (
+        <Card data-testid="transfers-section">
+          <CardHeader className="pb-2">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-base flex items-center gap-2">
+                <Upload className="h-4 w-4" />
+                Transfers
+              </CardTitle>
+              <div className="flex items-center gap-2">
+                {totalUploadActive > 0 && (
+                  <Badge variant="secondary" className="gap-1">
+                    <Loader2 className="h-3 w-3 animate-spin" />
+                    {totalUploadActive === 1
+                      ? '1 file'
+                      : `File ${summary.uploading > 0 ? (uploadEntries.findIndex(e => e.status === 'uploading') + 1) : 0} of ${totalUploadActive}`}
+                  </Badge>
+                )}
+                {hasFinishedUploads && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-6 text-xs px-2"
+                    onClick={() => uploadStore.clearCompleted()}
+                  >
+                    Clear
+                  </Button>
+                )}
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <ScrollArea className={uploadEntries.length > 4 ? 'h-40' : undefined}>
+              <div>
+                {uploadEntries.map((entry) => (
+                  <UploadEntryRow key={entry.id} entry={entry} />
+                ))}
+              </div>
+            </ScrollArea>
+          </CardContent>
+        </Card>
       )}
 
       {/* Active Jobs */}
