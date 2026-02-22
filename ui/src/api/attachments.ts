@@ -31,9 +31,16 @@ export function createAttachmentsApi(client: ApiClient) {
      * Upload a file attachment to a note
      * @param noteId - Note ID to attach file to
      * @param file - File object to upload
+     * @param options - Upload options
+     * @param options.mediaOptimize - When true, request backend media optimization
+     *   (faststart MP4, remuxed containers, preview clips). Only effective for audio/video files.
      * @returns Attachment metadata
      */
-    async uploadAttachment(noteId: string, file: File): Promise<Attachment> {
+    async uploadAttachment(
+      noteId: string,
+      file: File,
+      options?: { mediaOptimize?: boolean },
+    ): Promise<Attachment> {
       if (!noteId || noteId.trim() === '') {
         throw new Error('Note ID is required');
       }
@@ -45,6 +52,9 @@ export function createAttachmentsApi(client: ApiClient) {
       // Fortemi multipart upload endpoint
       const formData = new FormData();
       formData.append('file', file);
+      if (options?.mediaOptimize) {
+        formData.append('media_optimize', 'true');
+      }
 
       const baseUrl = getBaseUrl();
       const url = `${baseUrl}/api/v1/notes/${noteId}/attachments/upload`;

@@ -266,6 +266,170 @@ describe('AttachmentsPanel', () => {
         expect(api.attachments.uploadAttachment).toHaveBeenCalledWith('note-123', file);
       });
     });
+
+    it('should show media optimize toggle when uploading audio/video files', async () => {
+      render(<AttachmentsPanel noteId="note-123" />);
+
+      await waitFor(() => {
+        expect(screen.getByText('browse')).toBeInTheDocument();
+      });
+
+      const fileInput = document.querySelector('input[type="file"]');
+      const videoFile = new File(['video data'], 'recording.mp4', { type: 'video/mp4' });
+      fireEvent.change(fileInput!, { target: { files: [videoFile] } });
+
+      await waitFor(() => {
+        expect(screen.getByText('Media optimize')).toBeInTheDocument();
+        expect(screen.getByText('1 file selected')).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: /Upload/ })).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: /Cancel/ })).toBeInTheDocument();
+      });
+    });
+
+    it('should upload with media_optimize when toggle is checked', async () => {
+      render(<AttachmentsPanel noteId="note-123" />);
+
+      await waitFor(() => {
+        expect(screen.getByText('browse')).toBeInTheDocument();
+      });
+
+      const fileInput = document.querySelector('input[type="file"]');
+      const videoFile = new File(['video data'], 'recording.mp4', { type: 'video/mp4' });
+      fireEvent.change(fileInput!, { target: { files: [videoFile] } });
+
+      await waitFor(() => {
+        expect(screen.getByText('Media optimize')).toBeInTheDocument();
+      });
+
+      // Check the media optimize toggle
+      const checkbox = screen.getByRole('checkbox');
+      fireEvent.click(checkbox);
+
+      // Click upload
+      fireEvent.click(screen.getByRole('button', { name: /Upload/ }));
+
+      await waitFor(() => {
+        expect(api.attachments.uploadAttachment).toHaveBeenCalledWith(
+          'note-123',
+          videoFile,
+          { mediaOptimize: true },
+        );
+      });
+    });
+
+    it('should upload without media_optimize when toggle is unchecked', async () => {
+      render(<AttachmentsPanel noteId="note-123" />);
+
+      await waitFor(() => {
+        expect(screen.getByText('browse')).toBeInTheDocument();
+      });
+
+      const fileInput = document.querySelector('input[type="file"]');
+      const audioFile = new File(['audio data'], 'podcast.mp3', { type: 'audio/mpeg' });
+      fireEvent.change(fileInput!, { target: { files: [audioFile] } });
+
+      await waitFor(() => {
+        expect(screen.getByText('Media optimize')).toBeInTheDocument();
+      });
+
+      // Don't check the toggle — upload with default (off)
+      fireEvent.click(screen.getByRole('button', { name: /Upload/ }));
+
+      await waitFor(() => {
+        expect(api.attachments.uploadAttachment).toHaveBeenCalledWith('note-123', audioFile);
+      });
+    });
+
+    it('should cancel pending upload and reset state', async () => {
+      render(<AttachmentsPanel noteId="note-123" />);
+
+      await waitFor(() => {
+        expect(screen.getByText('browse')).toBeInTheDocument();
+      });
+
+      const fileInput = document.querySelector('input[type="file"]');
+      const videoFile = new File(['video data'], 'clip.webm', { type: 'video/webm' });
+      fireEvent.change(fileInput!, { target: { files: [videoFile] } });
+
+      await waitFor(() => {
+        expect(screen.getByText('Media optimize')).toBeInTheDocument();
+      });
+
+      fireEvent.click(screen.getByRole('button', { name: /Cancel/ }));
+
+      await waitFor(() => {
+        expect(screen.getByText(/Drop files here/)).toBeInTheDocument();
+        expect(screen.queryByText('Media optimize')).not.toBeInTheDocument();
+      });
+
+      expect(api.attachments.uploadAttachment).not.toHaveBeenCalled();
+    });
+
+    it('should not show media optimize toggle for non-media files', async () => {
+      render(<AttachmentsPanel noteId="note-123" />);
+
+      await waitFor(() => {
+        expect(screen.getByText('browse')).toBeInTheDocument();
+      });
+
+      const fileInput = document.querySelector('input[type="file"]');
+      const textFile = new File(['hello'], 'readme.md', { type: 'text/markdown' });
+      fireEvent.change(fileInput!, { target: { files: [textFile] } });
+
+      // Non-media files upload immediately without staging
+      await waitFor(() => {
+        expect(api.attachments.uploadAttachment).toHaveBeenCalledWith('note-123', textFile);
+      });
+
+      // Toggle should not be visible
+      expect(screen.queryByText('Media optimize')).not.toBeInTheDocument();
+    });
+
+    it('should only apply media_optimize to audio/video files in mixed batch', async () => {
+      render(<AttachmentsPanel noteId="note-123" />);
+
+      await waitFor(() => {
+        expect(screen.getByText('browse')).toBeInTheDocument();
+      });
+
+      const fileInput = document.querySelector('input[type="file"]');
+      const videoFile = new File(['video'], 'video.mp4', { type: 'video/mp4' });
+      const imageFile = new File(['image'], 'photo.png', { type: 'image/png' });
+
+      // Create a mock FileList-like with mixed types
+      const files = {
+        0: videoFile,
+        1: imageFile,
+        length: 2,
+        item: (i: number) => [videoFile, imageFile][i],
+        [Symbol.iterator]: function* () { yield videoFile; yield imageFile; },
+      } as unknown as FileList;
+
+      fireEvent.change(fileInput!, { target: { files } });
+
+      await waitFor(() => {
+        expect(screen.getByText('Media optimize')).toBeInTheDocument();
+        expect(screen.getByText('2 files selected')).toBeInTheDocument();
+      });
+
+      // Enable media optimize and upload
+      fireEvent.click(screen.getByRole('checkbox'));
+      fireEvent.click(screen.getByRole('button', { name: /Upload/ }));
+
+      await waitFor(() => {
+        // Video file gets media_optimize
+        expect(api.attachments.uploadAttachment).toHaveBeenCalledWith(
+          'note-123',
+          videoFile,
+          { mediaOptimize: true },
+        );
+        // Image file does NOT get media_optimize
+        expect(api.attachments.uploadAttachment).toHaveBeenCalledWith(
+          'note-123',
+          imageFile,
+        );
+      });
+    });
   });
 
   describe('Preview Dialog', () => {

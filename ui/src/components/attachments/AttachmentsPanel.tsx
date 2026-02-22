@@ -831,6 +831,8 @@ export function AttachmentsPanel({ noteId, className }: AttachmentsPanelProps) {
   const [previewObjectUrl, setPreviewObjectUrl] = useState<string | null>(null);
   const [previewTextContent, setPreviewTextContent] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
+  const [mediaOptimize, setMediaOptimize] = useState(false);
+  const [pendingFiles, setPendingFiles] = useState<FileList | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const revokePreviewObjectUrl = useCallback(() => {
@@ -906,8 +908,16 @@ export function AttachmentsPanel({ noteId, className }: AttachmentsPanelProps) {
     }
   }, [attachments, previewAttachment]);
 
-  const handleUpload = async (files: FileList | null) => {
-    if (!files || files.length === 0) return;
+  /** Check whether a File is an audio or video type */
+  const isMediaFile = (file: File): boolean =>
+    file.type.startsWith('audio/') || file.type.startsWith('video/');
+
+  /** Check whether a FileList contains any audio/video files */
+  const hasMediaFiles = (files: FileList): boolean =>
+    Array.from(files).some(isMediaFile);
+
+  /** Upload the given files, optionally with media_optimize */
+  const executeUpload = async (files: FileList, optimize: boolean) => {
     if (!noteId || noteId.trim() === '') {
       setError('Select a note before uploading attachments');
       return;
@@ -919,7 +929,11 @@ export function AttachmentsPanel({ noteId, className }: AttachmentsPanelProps) {
     try {
       for (let i = 0; i < files.length; i++) {
         const file = files[i];
-        await api.attachments.uploadAttachment(noteId, file);
+        if (optimize && isMediaFile(file)) {
+          await api.attachments.uploadAttachment(noteId, file, { mediaOptimize: true });
+        } else {
+          await api.attachments.uploadAttachment(noteId, file);
+        }
         setUploadProgress(((i + 1) / files.length) * 100);
       }
       await loadAttachments();
@@ -929,7 +943,38 @@ export function AttachmentsPanel({ noteId, className }: AttachmentsPanelProps) {
     } finally {
       setIsUploading(false);
       setUploadProgress(0);
+      setPendingFiles(null);
+      setMediaOptimize(false);
     }
+  };
+
+  /**
+   * Handle file selection. If any files are audio/video, stage them so the
+   * user can toggle media optimization before confirming. Otherwise upload
+   * immediately.
+   */
+  const handleUpload = async (files: FileList | null) => {
+    if (!files || files.length === 0) return;
+
+    if (hasMediaFiles(files)) {
+      setPendingFiles(files);
+      // Don't upload yet — wait for user to confirm via the staged UI
+    } else {
+      await executeUpload(files, false);
+    }
+  };
+
+  /** Confirm upload of staged files (with or without media optimize) */
+  const confirmUpload = () => {
+    if (pendingFiles) {
+      void executeUpload(pendingFiles, mediaOptimize);
+    }
+  };
+
+  /** Cancel staged upload */
+  const cancelPendingUpload = () => {
+    setPendingFiles(null);
+    setMediaOptimize(false);
   };
 
   const handleView = async (attachment: Attachment) => {
@@ -1067,6 +1112,36 @@ export function AttachmentsPanel({ noteId, className }: AttachmentsPanelProps) {
           <div className="space-y-2">
             <Loader2 className="w-8 h-8 mx-auto animate-spin text-primary" />
             <p className="text-sm text-muted-foreground">Uploading... {Math.round(uploadProgress)}%</p>
+          </div>
+        ) : pendingFiles ? (
+          <div className="space-y-3">
+            <p className="text-sm font-medium">
+              {pendingFiles.length} file{pendingFiles.length !== 1 ? 's' : ''} selected
+            </p>
+            <label className="flex items-center justify-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={mediaOptimize}
+                onChange={(e) => setMediaOptimize(e.target.checked)}
+                className="h-4 w-4 rounded border-muted-foreground/50"
+              />
+              <span className="text-sm">Media optimize</span>
+              <span
+                className="text-xs text-muted-foreground"
+                title="Generate web-streamable variants (faststart MP4, preview clips). Recommended for large media files."
+              >
+                (?)
+              </span>
+            </label>
+            <div className="flex items-center justify-center gap-2">
+              <Button size="sm" onClick={confirmUpload}>
+                <Upload className="w-3.5 h-3.5 mr-1.5" />
+                Upload
+              </Button>
+              <Button size="sm" variant="ghost" onClick={cancelPendingUpload}>
+                Cancel
+              </Button>
+            </div>
           </div>
         ) : (
           <>
