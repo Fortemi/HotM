@@ -15,7 +15,6 @@ import {
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useJobStore } from '@/hooks/useJobStore';
 import { jobEventStore } from '@/services/jobEventStore';
@@ -315,8 +314,8 @@ export function JobQueueView({ archives }: JobQueueViewProps) {
       </Card>
 
       {/* Recent Activity */}
-      <Card>
-        <CardHeader className="pb-3">
+      <Card className="flex flex-col overflow-hidden min-h-0">
+        <CardHeader className="pb-3 flex-shrink-0">
           <CardTitle className="text-base">
             Recent Activity{' '}
             {filteredCompletedJobs.length > 0 && (
@@ -331,14 +330,14 @@ export function JobQueueView({ archives }: JobQueueViewProps) {
               : 'No recent activity'}
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="flex-1 min-h-0 overflow-hidden">
           {filteredCompletedJobs.length > 0 && (
-            <ScrollArea className="h-[400px]">
-              <div className="space-y-1">
+            <div className="h-full max-h-[400px] overflow-y-auto rounded-md border">
+              <div className="divide-y divide-border/50">
                 {filteredCompletedJobs.map((job, index) => (
                   <div
                     key={`${job.job_id}-${index}`}
-                    className="flex items-center justify-between py-2.5 px-2 border-b border-border/50 last:border-0 rounded hover:bg-muted/30"
+                    className="flex items-center justify-between py-2.5 px-3 hover:bg-muted/30"
                   >
                     <div className="flex items-center gap-2">
                       {job.status === 'completed' ? (
@@ -371,7 +370,7 @@ export function JobQueueView({ archives }: JobQueueViewProps) {
                   </div>
                 ))}
               </div>
-            </ScrollArea>
+            </div>
           )}
         </CardContent>
       </Card>
