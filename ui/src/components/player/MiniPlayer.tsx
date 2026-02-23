@@ -80,6 +80,10 @@ export function MiniPlayer({ session, mediaRef, variant = 'mini' }: MiniPlayerPr
   const [blobUrl, setBlobUrl] = useState<string | null>(session.blobUrl ?? null);
   const [mode, setMode] = useState<'direct' | 'blob'>(session.blobUrl ? 'blob' : 'direct');
 
+  // Container ref for fullscreen on the whole player (not just <video>)
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+
   // Thumbnail preview state
   const seekBarRef = useRef<HTMLDivElement>(null);
   const [thumbnailCues, setThumbnailCues] = useState<ThumbnailCue[] | null>(null);
@@ -220,8 +224,21 @@ export function MiniPlayer({ session, mediaRef, variant = 'mini' }: MiniPlayerPr
   }, []);
 
   const goFullscreen = useCallback(() => {
-    const el = mediaRef.current;
+    const el = containerRef.current;
     if (el?.requestFullscreen) el.requestFullscreen();
+  }, []);
+
+  const exitFullscreen = useCallback(() => {
+    if (document.fullscreenElement) document.exitFullscreen();
+  }, []);
+
+  // Track fullscreen state
+  useEffect(() => {
+    const handleChange = () => {
+      setIsFullscreen(document.fullscreenElement === containerRef.current);
+    };
+    document.addEventListener('fullscreenchange', handleChange);
+    return () => document.removeEventListener('fullscreenchange', handleChange);
   }, []);
 
   const handleExpand = useCallback(() => {
@@ -257,12 +274,16 @@ export function MiniPlayer({ session, mediaRef, variant = 'mini' }: MiniPlayerPr
 
   return (
     <div
+      ref={containerRef}
       className={cn(
-        'fixed z-[1000] shadow-2xl rounded-lg overflow-hidden bg-background border border-border',
-        isSnapping && 'transition-transform duration-200 ease-out',
-        isDragging && 'cursor-grabbing',
+        'overflow-hidden bg-background',
+        isFullscreen
+          ? 'w-screen h-screen flex flex-col bg-black'
+          : 'fixed z-[1000] shadow-2xl rounded-lg border border-border',
+        !isFullscreen && isSnapping && 'transition-transform duration-200 ease-out',
+        !isFullscreen && isDragging && 'cursor-grabbing',
       )}
-      style={{
+      style={isFullscreen ? undefined : {
         width,
         height,
         left: position.x,
@@ -276,29 +297,34 @@ export function MiniPlayer({ session, mediaRef, variant = 'mini' }: MiniPlayerPr
       data-testid="mini-player"
     >
       {isVideo ? (
-        /* ─── Video Mini Player ─── */
+        /* ─── Video Player ─── */
         <>
-          {/* Title bar / drag handle */}
-          <div
-            className="flex items-center h-5 px-2 bg-muted/80 cursor-grab select-none"
-            onPointerDown={handleDragStart}
-          >
-            <GripHorizontal className="w-3 h-3 text-muted-foreground shrink-0" />
-            <span className="flex-1 text-[10px] text-muted-foreground truncate ml-1">
-              {session.filename}
-            </span>
-            <button
-              type="button"
-              className="p-0.5 rounded hover:bg-destructive/20 text-muted-foreground hover:text-destructive"
-              onClick={endSession}
-              aria-label="Close player"
+          {/* Title bar / drag handle — hidden in fullscreen */}
+          {!isFullscreen && (
+            <div
+              className="flex items-center h-5 px-2 bg-muted/80 cursor-grab select-none"
+              onPointerDown={handleDragStart}
             >
-              <X className="w-3 h-3" />
-            </button>
-          </div>
+              <GripHorizontal className="w-3 h-3 text-muted-foreground shrink-0" />
+              <span className="flex-1 text-[10px] text-muted-foreground truncate ml-1">
+                {session.filename}
+              </span>
+              <button
+                type="button"
+                className="p-0.5 rounded hover:bg-destructive/20 text-muted-foreground hover:text-destructive"
+                onClick={endSession}
+                aria-label="Close player"
+              >
+                <X className="w-3 h-3" />
+              </button>
+            </div>
+          )}
 
           {/* Video frame */}
-          <div className="relative bg-black" style={{ height: isMini ? 158 : 346 }}>
+          <div
+            className={cn('relative bg-black', isFullscreen && 'flex-1')}
+            style={isFullscreen ? undefined : { height: isMini ? 158 : 346 }}
+          >
             <video
               ref={mediaRef}
               src={mediaSrc}
@@ -312,6 +338,7 @@ export function MiniPlayer({ session, mediaRef, variant = 'mini' }: MiniPlayerPr
               onEnded={endSession}
               onError={handleMediaError}
               onClick={togglePlayPause}
+              onDoubleClick={isFullscreen ? exitFullscreen : goFullscreen}
               data-testid="mini-player-video"
             />
           </div>
@@ -319,7 +346,10 @@ export function MiniPlayer({ session, mediaRef, variant = 'mini' }: MiniPlayerPr
           {/* Seek bar with thumbnail preview */}
           <div
             ref={seekBarRef}
-            className="relative h-1 bg-muted/30 cursor-pointer group/miniSeek"
+            className={cn(
+              'relative bg-muted/30 cursor-pointer group/miniSeek',
+              isFullscreen ? 'h-1.5' : 'h-1',
+            )}
             onClick={handleSeek}
             onMouseMove={handleSeekHover}
             onMouseLeave={handleSeekLeave}
@@ -339,31 +369,47 @@ export function MiniPlayer({ session, mediaRef, variant = 'mini' }: MiniPlayerPr
             )}
           </div>
 
-          {/* Controls bar — 32px */}
-          <div className="flex items-center h-8 px-1.5 gap-0.5 bg-muted/50">
-            <button type="button" className="p-1 rounded hover:bg-accent" onClick={togglePlayPause} aria-label={isPlaying ? 'Pause' : 'Play'}>
-              {isPlaying ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
+          {/* Controls bar */}
+          <div className={cn(
+            'flex items-center gap-0.5',
+            isFullscreen
+              ? 'h-10 px-4 gap-1 bg-black/80 text-white'
+              : 'h-8 px-1.5 bg-muted/50',
+          )}>
+            <button type="button" className={cn('rounded hover:bg-accent', isFullscreen ? 'p-2 hover:bg-white/10' : 'p-1')} onClick={togglePlayPause} aria-label={isPlaying ? 'Pause' : 'Play'}>
+              {isPlaying ? <Pause className={isFullscreen ? 'w-5 h-5' : 'w-3.5 h-3.5'} /> : <Play className={isFullscreen ? 'w-5 h-5' : 'w-3.5 h-3.5'} />}
             </button>
-            <button type="button" className="p-1 rounded hover:bg-accent" onClick={skipBack} aria-label="Skip back 10 seconds">
-              <SkipBack className="w-3 h-3" />
+            <button type="button" className={cn('rounded hover:bg-accent', isFullscreen ? 'p-2 hover:bg-white/10' : 'p-1')} onClick={skipBack} aria-label="Skip back 10 seconds">
+              <SkipBack className={isFullscreen ? 'w-4 h-4' : 'w-3 h-3'} />
             </button>
-            <span className="text-[10px] font-mono tabular-nums text-muted-foreground px-1 select-none">
+            <span className={cn(
+              'font-mono tabular-nums select-none px-1',
+              isFullscreen ? 'text-xs text-white/80' : 'text-[10px] text-muted-foreground',
+            )}>
               {formatTime(currentTime)} / {formatTime(duration)}
             </span>
-            <button type="button" className="p-1 rounded hover:bg-accent" onClick={skipForward} aria-label="Skip forward 10 seconds">
-              <SkipForward className="w-3 h-3" />
+            <button type="button" className={cn('rounded hover:bg-accent', isFullscreen ? 'p-2 hover:bg-white/10' : 'p-1')} onClick={skipForward} aria-label="Skip forward 10 seconds">
+              <SkipForward className={isFullscreen ? 'w-4 h-4' : 'w-3 h-3'} />
             </button>
             <div className="flex-1" />
-            <button type="button" className="p-1 rounded hover:bg-accent" onClick={toggleMute} aria-label={isMuted ? 'Unmute' : 'Mute'}>
-              {isMuted ? <VolumeX className="w-3 h-3" /> : <Volume2 className="w-3 h-3" />}
+            <button type="button" className={cn('rounded hover:bg-accent', isFullscreen ? 'p-2 hover:bg-white/10' : 'p-1')} onClick={toggleMute} aria-label={isMuted ? 'Unmute' : 'Mute'}>
+              {isMuted ? <VolumeX className={isFullscreen ? 'w-4 h-4' : 'w-3 h-3'} /> : <Volume2 className={isFullscreen ? 'w-4 h-4' : 'w-3 h-3'} />}
             </button>
-            {!isMini && (
+            {!isMini && !isFullscreen && (
               <button type="button" className="p-1 rounded hover:bg-accent" onClick={() => setState('MINI')} aria-label="Minimize">
                 <Minimize2 className="w-3 h-3" />
               </button>
             )}
-            <button type="button" className="p-1 rounded hover:bg-accent" onClick={handleExpand} aria-label={isMini ? 'Expand player' : 'Fullscreen'}>
-              <Maximize2 className="w-3 h-3" />
+            <button
+              type="button"
+              className={cn('rounded hover:bg-accent', isFullscreen ? 'p-2 hover:bg-white/10' : 'p-1')}
+              onClick={isFullscreen ? exitFullscreen : handleExpand}
+              aria-label={isFullscreen ? 'Exit fullscreen' : (isMini ? 'Expand player' : 'Fullscreen')}
+            >
+              {isFullscreen
+                ? <Minimize2 className="w-4 h-4" />
+                : <Maximize2 className={isFullscreen ? 'w-4 h-4' : 'w-3 h-3'} />
+              }
             </button>
           </div>
         </>

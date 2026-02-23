@@ -20,7 +20,7 @@ export function PersistentPlayerOverlay() {
     mediaRef,
     onCycleSize: () => {
       if (state === 'MINI') setState('EXPANDED');
-      else if (state === 'EXPANDED') mediaRef.current?.requestFullscreen?.();
+      else if (state === 'EXPANDED') setState('MINI');
     },
     onDismiss: endSession,
   });
