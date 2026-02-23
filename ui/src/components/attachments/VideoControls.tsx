@@ -26,6 +26,7 @@ import {
   Maximize,
   Minimize,
   Subtitles,
+  PictureInPicture2,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { SeekBar } from './SeekBar';
@@ -56,6 +57,8 @@ export interface VideoControlsProps {
   onHoverPosition?: (x: number | null) => void;
   /** Content rendered inside the seek bar (e.g. ThumbnailPreview) */
   seekBarChildren?: React.ReactNode;
+  /** Callback to pop out the player into the persistent mini player */
+  onPopOut?: () => void;
 }
 
 function formatTime(secs: number): string {
@@ -89,6 +92,7 @@ export function VideoControls({
   onHoverTime,
   onHoverPosition,
   seekBarChildren,
+  onPopOut,
 }: VideoControlsProps) {
   const [visible, setVisible] = useState(true);
   const [volumeExpanded, setVolumeExpanded] = useState(false);
@@ -290,6 +294,20 @@ export function VideoControls({
               data-testid="controls-captions"
             >
               <Subtitles className="w-4 h-4" />
+            </button>
+          )}
+
+          {/* Pop-out to persistent player */}
+          {onPopOut && (
+            <button
+              type="button"
+              className="p-1.5 rounded hover:bg-white/10 transition-colors"
+              onClick={onPopOut}
+              aria-label="Pop out player"
+              title="Pop out"
+              data-testid="controls-pop-out"
+            >
+              <PictureInPicture2 className="w-4 h-4" />
             </button>
           )}
 

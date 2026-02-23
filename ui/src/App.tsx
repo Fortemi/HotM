@@ -1,5 +1,6 @@
 import { HallOfMind } from './components/HallOfMind';
 import { MobileReadView } from './components/mobile/MobileReadView';
+import { MediaPlayerProvider, PersistentPlayerOverlay } from './components/player';
 // import { TestSidebar } from './components/TestSidebar';
 import './index.css';
 import './sidebar-layout.css';
@@ -14,7 +15,12 @@ function App() {
     return <MobileReadView />;
   }
 
-  return <HallOfMind />;
+  return (
+    <MediaPlayerProvider>
+      <HallOfMind />
+      <PersistentPlayerOverlay />
+    </MediaPlayerProvider>
+  );
 }
 
 export default App;

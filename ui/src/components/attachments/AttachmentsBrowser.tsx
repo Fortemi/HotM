@@ -71,6 +71,7 @@ import { StreamingVideoPlayer, StreamingAudioPlayer } from './StreamingMedia';
 import { getThumbnailUrl, getAttachmentDedupeKey } from './media-utils';
 import { LinkedNotesTab } from './LinkedNotesTab';
 import type { LinkedNote } from './LinkedNotesTab';
+import { useMediaPlayerOptional, type MediaSessionInfo } from '@/components/player';
 
 const ModelPreview = lazy(() => import('./ModelPreview').then((m) => ({ default: m.ModelPreview })));
 
@@ -371,6 +372,23 @@ function BrowserPreviewContent({
   onDownload: () => void;
 }) {
   const mode: PreviewMode = getPreviewMode(attachment.content_type, attachment.filename);
+  const player = useMediaPlayerOptional();
+
+  const makePopOut = (mediaType: 'video' | 'audio') => {
+    if (!player) return undefined;
+    return () => {
+      const info: MediaSessionInfo = {
+        attachmentId: attachment.id,
+        noteId: attachment.note_id,
+        mediaType,
+        filename: attachment.filename,
+        directUrl: api.attachments.getDownloadUrl(attachment.id),
+        posterUrl: getThumbnailUrl(attachment, api.attachments.getDownloadUrl, api.attachments.getThumbnailUrl),
+        sizeBytes: attachment.size_bytes,
+      };
+      player.startSession(info);
+    };
+  };
 
   switch (mode) {
     case 'image':
@@ -405,6 +423,7 @@ function BrowserPreviewContent({
           sizeBytes={attachment.size_bytes}
           transcriptSegments={segments}
           filename={attachment.filename}
+          onPopOut={makePopOut('video')}
         />
       );
     }
@@ -422,6 +441,7 @@ function BrowserPreviewContent({
           posterUrl={audioPosterUrl}
           transcriptSegments={audioSegments}
           filename={attachment.filename}
+          onPopOut={makePopOut('audio')}
         />
       );
     }

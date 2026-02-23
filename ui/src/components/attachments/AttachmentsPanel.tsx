@@ -61,6 +61,7 @@ import { StreamingVideoPlayer, StreamingAudioPlayer } from './StreamingMedia';
 import { getMediaType, extractMediaInfo, formatMediaDuration, getThumbnailUrl, getPreferredVariant, getAttachmentDedupeKey } from './media-utils';
 import { LinkedNotesTab } from './LinkedNotesTab';
 import type { LinkedNote } from './LinkedNotesTab';
+import { useMediaPlayerOptional, type MediaSessionInfo } from '@/components/player';
 
 const ModelPreview = lazy(() => import('./ModelPreview').then((m) => ({ default: m.ModelPreview })));
 
@@ -424,6 +425,25 @@ function AttachmentPreviewContent({
   onDownload: () => void;
 }) {
   const mode: PreviewMode = getPreviewMode(attachment.content_type, attachment.filename);
+  const player = useMediaPlayerOptional();
+
+  const makePopOut = (mediaType: 'video' | 'audio') => {
+    if (!player) return undefined;
+    return () => {
+      const variant = getPreferredVariant(attachment);
+      const info: MediaSessionInfo = {
+        attachmentId: attachment.id,
+        noteId: attachment.note_id,
+        mediaType,
+        filename: attachment.filename,
+        directUrl: api.attachments.getDownloadUrl(attachment.id, variant),
+        posterUrl: getThumbnailUrl(attachment, api.attachments.getDownloadUrl, api.attachments.getThumbnailUrl),
+        sizeBytes: attachment.size_bytes,
+        variant: variant ?? undefined,
+      };
+      player.startSession(info);
+    };
+  };
 
   switch (mode) {
     case 'image':
@@ -470,6 +490,7 @@ function AttachmentPreviewContent({
           mediaInfo={videoMediaInfo}
           contentType={attachment.content_type}
           extractionStrategy={attachment.extraction_strategy ?? undefined}
+          onPopOut={makePopOut('video')}
         />
       );
     }
@@ -493,6 +514,7 @@ function AttachmentPreviewContent({
           mediaInfo={audioMediaInfo}
           contentType={attachment.content_type}
           extractionStrategy={attachment.extraction_strategy ?? undefined}
+          onPopOut={makePopOut('audio')}
         />
       );
     }

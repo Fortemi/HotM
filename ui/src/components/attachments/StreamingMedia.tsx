@@ -19,7 +19,7 @@
  */
 
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import { Music, Loader2, AlertCircle, RefreshCw, Download, Video, Subtitles, Activity } from 'lucide-react';
+import { Music, Loader2, AlertCircle, RefreshCw, Download, Video, Subtitles, Activity, PictureInPicture2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { api } from '@/api';
@@ -123,6 +123,8 @@ interface StreamingVideoPlayerProps {
   contentType?: string;
   /** Extraction strategy label for expert mode overlay */
   extractionStrategy?: string;
+  /** Callback to pop out the player into the persistent mini player */
+  onPopOut?: () => void;
 }
 
 export function StreamingVideoPlayer({
@@ -136,6 +138,7 @@ export function StreamingVideoPlayer({
   mediaInfo,
   contentType,
   extractionStrategy,
+  onPopOut,
 }: StreamingVideoPlayerProps) {
   const [mode, setMode] = useState<PlaybackMode>('direct');
   const [blobUrl, setBlobUrl] = useState<string | null>(null);
@@ -706,6 +709,7 @@ export function StreamingVideoPlayer({
               seekBarWidth={seekBarWidth}
             />
           }
+          onPopOut={onPopOut}
         />
 
         {/* Expert mode toggle button (top-left, shown on hover) */}
@@ -778,6 +782,8 @@ interface StreamingAudioPlayerProps {
   contentType?: string;
   /** Extraction strategy label for expert mode overlay */
   extractionStrategy?: string;
+  /** Callback to pop out the player into the persistent mini player */
+  onPopOut?: () => void;
 }
 
 export function StreamingAudioPlayer({
@@ -791,6 +797,7 @@ export function StreamingAudioPlayer({
   mediaInfo,
   contentType,
   extractionStrategy,
+  onPopOut,
 }: StreamingAudioPlayerProps) {
   const [mode, setMode] = useState<PlaybackMode>('direct');
   const [blobUrl, setBlobUrl] = useState<string | null>(null);
@@ -1055,6 +1062,17 @@ export function StreamingAudioPlayer({
           >
             <Subtitles className="w-3.5 h-3.5" />
             CC
+          </button>
+        )}
+        {onPopOut && (
+          <button
+            type="button"
+            className="shrink-0 flex items-center gap-1 px-2 py-1.5 rounded text-xs font-medium transition-colors bg-muted text-muted-foreground hover:bg-muted/80"
+            onClick={onPopOut}
+            title="Pop out player"
+            data-testid="audio-pop-out"
+          >
+            <PictureInPicture2 className="w-3.5 h-3.5" />
           </button>
         )}
         <button
