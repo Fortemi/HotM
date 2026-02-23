@@ -358,6 +358,75 @@ Click "Use" to instantiate:
 
 ---
 
+## Feature 7: Persistent Pop-Out Media Player
+
+### Visual Layout — MINI Mode (Video)
+
+```
+┌──────────────────────────────────────┐
+│ ≡  lecture-recording.mp4         [×] │  ← drag handle + close
+├──────────────────────────────────────┤
+│                                      │
+│          [ Video Frame ]             │  ← 280×158px, click to play/pause
+│          [ object-contain ]          │    double-click for fullscreen
+│                                      │
+├──────────────────────────────────────┤
+│ ████████░░░░░░░░░░░░░░░░░░░░░░░░░░░ │  ← seek bar with thumbnail preview
+├──────────────────────────────────────┤
+│ [▶] [⏪]  3:42 / 48:15  [⏩]  [🔊] [⛶]│  ← controls always visible
+└──────────────────────────────────────┘
+  280 × 210 px — snaps to viewport corners
+```
+
+### Visual Layout — EXPANDED Mode (Video)
+
+```
+┌────────────────────────────────────────────────────┐
+│ ≡  lecture-recording.mp4                       [×] │
+├────────────────────────────────────────────────────┤
+│                                                    │
+│                                                    │
+│              [ Video Frame ]                       │
+│              [ 480 × 346 px ]                      │
+│                                                    │
+│                                                    │
+├────────────────────────────────────────────────────┤
+│ █████████████░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░ │
+├────────────────────────────────────────────────────┤
+│ [▶] [⏪]  3:42 / 48:15  [⏩]       [🔊] [⊟] [⛶]  │
+└────────────────────────────────────────────────────┘
+  480 × 398 px — [⊟] = minimize back to MINI
+```
+
+### Architecture
+
+```
+App.tsx
+├── MediaPlayerProvider          ← always mounted, holds session state
+│   ├── HallOfMind              ← view switching happens here
+│   │   └── (attachments use useMediaPlayerOptional to pop out)
+│   └── PersistentPlayerOverlay ← always mounted, fixed position
+│       └── MiniPlayer          ← floating, draggable, snaps to corners
+```
+
+### Key Interactions
+- **Pop out**: Click PiP icon in video controls or audio player
+- **Drag**: Pointer-drag on title bar; snap to nearest corner on release
+- **Fullscreen**: Click expand in EXPANDED mode, or double-click video
+- **Keyboard**: Alt+P play/pause, Alt+←/→ skip, Alt+M mute, Alt+Shift+E cycle size
+- **Close**: X button, Alt+Shift+P, or Escape
+- **Seek thumbnails**: Hover scrub bar for sprite sheet preview (all modes including fullscreen)
+
+### State Machine
+
+```
+INACTIVE → MINI ↔ EXPANDED → FULLSCREEN
+                               ↓
+                        (Esc exits to EXPANDED)
+```
+
+---
+
 ## Navigation Integration
 
 ```
@@ -369,19 +438,22 @@ Click "Use" to instantiate:
 │ 🏠 Dashboard   │                                                     │
 │ 📝 Notes       │                                                     │
 │ 🔍 Search      │           [Feature-specific content]               │
+│ ✏️  Capture    │                                                     │
 │               │                                                     │
-│ NEW FEATURES: │                                                     │
+│ FEATURES:     │                                                     │
 │ 🗺️  Memory     │                                                     │
-│     Search ⭐  │                                                     │
+│     Search    │                                                     │
 │ 🏷️  SKOS       │                                                     │
-│     Concepts⭐ │                                                     │
-│ 📋 Templates⭐ │                                                     │
+│     Concepts  │                                                     │
+│ 📋 Templates  │                                                     │
+│ 📎 Attachments│                                                     │
 │               │                                                     │
 │ 📁 Collections │                                                     │
 │ 📊 Knowledge   │                                                     │
-│     Health ⭐  │                                                     │
-│ ⚙️  Settings   │                                                     │
-│               │                                                     │
+│     Health    │   ┌──────────────────────────────┐                  │
+│ ⚙️  Settings   │   │  [Floating Mini Player]      │ ← persistent    │
+│               │   │  snapped to corner           │    overlay       │
+│               │   └──────────────────────────────┘                  │
 └───────────────┴─────────────────────────────────────────────────────┘
 ```
 

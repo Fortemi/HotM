@@ -1,11 +1,11 @@
 # UX Specification: Persistent Media Player (Pop-Out / Floating)
 
 **Document type**: UX Design Specification
-**Version**: 1.0
+**Version**: 1.1
 **Date**: 2026-02-22
-**Status**: Draft — pending implementation review
+**Status**: Implemented (MINI + EXPANDED + Fullscreen); DOCKED_BAR and Native PiP deferred
 **Author**: Product Designer
-**Target component path**: `ui/src/components/media-player/`
+**Target component path**: `ui/src/components/player/`
 
 ---
 

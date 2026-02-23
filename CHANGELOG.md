@@ -4,6 +4,58 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2026.2.4] - 2026-02-22
+
+### Added
+
+- **Persistent pop-out media player** — floating video/audio player that stays mounted across view navigation
+  - MINI mode (280×210 video, 280×68 audio) with always-visible controls
+  - EXPANDED mode (480×398 video, 400×80 audio) with minimize button
+  - Fullscreen mode with custom controls and seek bar thumbnail previews
+  - Drag-to-move with snap-to-corners (persists position to localStorage)
+  - Global keyboard shortcuts: Alt+P (play/pause), Alt+←/→ (skip ±10s), Alt+M (mute), Alt+Shift+P (dismiss), Alt+Shift+E (cycle size)
+  - Pop-out button on VideoControls and StreamingMedia (PictureInPicture2 icon)
+  - Blob URL lifecycle management with ownership transfer to context provider
+  - Double-click video to toggle fullscreen
+- **Rich media previews** — tabbed preview dialog with streaming video, 3D model viewer, audio player, and file info bar
+  - Native browser streaming via Fortemi download endpoints with Range request support
+  - Blob download fallback when direct URL playback fails (e.g. memory routing headers)
+  - 3D model preview using model-viewer for compressed GLB files
+  - Error boundary to prevent UI crashes from unsupported media
+- **Custom video controls** — scrubbar with seek-preview thumbnails, play/pause, volume, CC toggle, fullscreen
+- **Expert mode overlay** — real-time playback stats (bitrate, resolution, codec) for video and audio players
+- **SRT/subtitle support** — VTT/SRT transcript display with interactive seek-to-segment panel and default captions
+- **Embedding set management** — dedicated view for managing embedding configurations with criteria editor
+- **Job Queue view** — centralized job event store with pending queue, API-seeded recent activity, and note ID display
+- **Background upload queue** — global transfer status indicator with concurrent upload management
+- **TUS resumable uploads** — resumable uploads for files >= 50 MB via tus protocol
+- **Linked notes tab** — in attachments browser with dedup key for cross-note references
+- **Unified search** — concept, temporal, and location filter support with renamed search view
+- **Capture processing options** — version history UX and media optimize toggle during upload
+- **Attachment extraction status** — display extraction progress and AI-generated descriptions
+
+### Changed
+
+- SSE event system overhauled for Fortemi v2026.2.10 compatibility
+- Attachment API client updated for new Fortemi download/streaming endpoints
+- Replaced Three.js with model-viewer for compressed GLB support (smaller bundle, better compat)
+- Replaced Radix ScrollArea with native overflow for job activity list (jsdom compat)
+- Tauri reqwest bumped to 0.13 to resolve tauri-plugin-http conflicts
+
+### Fixed
+
+- Video controls overlay and fullscreen layout — controls now overlay video bottom edge instead of rendering below; fullscreen fills viewport without 500px cap
+- Mini player close button — drag handler no longer intercepts button clicks in title bar
+- Video CORS blocking with audio transcript support
+- Media preview bugs with transcript and scene display
+- GLB model preview uses direct download URL
+- Embeddings screen crash from API response format mismatch
+- Empty memory search results — API field mapping and title fetching corrected
+- Real error messages surfaced for failed attachment uploads
+- Recent activity card normalized to match pending queue design
+- Blob playback reliability with subtitle endpoint fallback
+- Missing graphology-types peer dependency
+
 ## [2026.2.3] - 2026-02-20
 
 ### Added
@@ -101,6 +153,7 @@ First formal release of HotM as a standalone React SPA.
 - Note refresh on background job completion
 - WebGL global stubs in test setup for Sigma compatibility
 
+[2026.2.4]: https://github.com/Fortemi/HotM/compare/v2026.2.3-alpha...v2026.2.4
 [2026.2.3]: https://github.com/Fortemi/HotM/releases/tag/v2026.2.3
 [2026.2.2]: https://github.com/Fortemi/HotM/releases/tag/v2026.2.2
 [2026.2.0]: https://github.com/Fortemi/HotM/releases/tag/v2026.2.0
