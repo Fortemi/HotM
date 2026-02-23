@@ -89,7 +89,7 @@ jobs:
   # ─── Build: Docker image → Gitea + GHCR ────────────────────────────
   build-docker:
     name: Build & Push Docker Image
-    runs-on: ubuntu-latest
+    runs-on: titan
     needs: quality-gate
     steps:
       - name: Checkout
