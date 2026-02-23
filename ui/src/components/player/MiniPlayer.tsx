@@ -8,7 +8,7 @@
  * Drag handle on the title bar. Snap to corners on release.
  */
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import {
   Play,
   Pause,
@@ -26,6 +26,9 @@ import { cn } from '@/lib/utils';
 import { useMediaPlayer, type MediaSessionInfo } from './PlayerContext';
 import { usePlayerPosition } from './usePlayerPosition';
 import { api } from '@/api';
+import { ThumbnailPreview } from '@/components/attachments/ThumbnailPreview';
+import { parseThumbnailVtt, getCueForTime, type ThumbnailCue } from '@/components/attachments/thumbnail-vtt';
+import { getActiveMemory, getMemoryRoutingHeaderName } from '@/api/memory-context';
 
 // ---------------------------------------------------------------------------
 // Dimensions
@@ -76,6 +79,13 @@ export function MiniPlayer({ session, mediaRef, variant = 'mini' }: MiniPlayerPr
   const [isMuted, setIsMuted] = useState(false);
   const [blobUrl, setBlobUrl] = useState<string | null>(session.blobUrl ?? null);
   const [mode, setMode] = useState<'direct' | 'blob'>(session.blobUrl ? 'blob' : 'direct');
+
+  // Thumbnail preview state
+  const seekBarRef = useRef<HTMLDivElement>(null);
+  const [thumbnailCues, setThumbnailCues] = useState<ThumbnailCue[] | null>(null);
+  const [hoverTime, setHoverTime] = useState<number | null>(null);
+  const [hoverPositionX, setHoverPositionX] = useState<number | null>(null);
+  const [seekBarWidth, setSeekBarWidth] = useState(0);
 
   const isVideo = session.mediaType === 'video';
   const isMini = variant === 'mini';
@@ -131,6 +141,41 @@ export function MiniPlayer({ session, mediaRef, variant = 'mini' }: MiniPlayerPr
       if (url) URL.revokeObjectURL(url);
     };
   }, [mode, blobUrl, session.attachmentId, session.variant, isVideo]);
+
+  // Fetch thumbnail VTT for seek preview (video only)
+  useEffect(() => {
+    if (!isVideo) return;
+    let cancelled = false;
+    const vttUrl = api.attachments.getThumbnailVttUrl(session.attachmentId);
+    const headers: HeadersInit = {};
+    const mem = getActiveMemory();
+    if (mem) headers[getMemoryRoutingHeaderName()] = mem;
+
+    fetch(vttUrl, { headers })
+      .then((res) => (res.ok ? res.text() : null))
+      .then((text) => {
+        if (cancelled || !text) return;
+        const cues = parseThumbnailVtt(text);
+        if (cues.length > 0) setThumbnailCues(cues);
+      })
+      .catch(() => {/* thumbnail VTT not available */});
+    return () => { cancelled = true; };
+  }, [session.attachmentId, isVideo]);
+
+  // Track seek bar width for thumbnail clamping
+  useEffect(() => {
+    const el = seekBarRef.current;
+    if (!el) return;
+    const observer = new ResizeObserver((entries) => {
+      for (const entry of entries) setSeekBarWidth(entry.contentRect.width);
+    });
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
+  const activeThumbnailCue = thumbnailCues && hoverTime !== null
+    ? getCueForTime(thumbnailCues, hoverTime) ?? null
+    : null;
 
   // Seek to initial time once metadata loads
   const handleLoadedMetadata = useCallback(() => {
@@ -191,6 +236,19 @@ export function MiniPlayer({ session, mediaRef, variant = 'mini' }: MiniPlayerPr
     const frac = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
     el.currentTime = frac * duration;
   }, [duration]);
+
+  const handleSeekHover = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    if (!duration) return;
+    const rect = e.currentTarget.getBoundingClientRect();
+    const frac = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+    setHoverTime(frac * duration);
+    setHoverPositionX(e.clientX - rect.left);
+  }, [duration]);
+
+  const handleSeekLeave = useCallback(() => {
+    setHoverTime(null);
+    setHoverPositionX(null);
+  }, []);
 
   const playedFrac = duration > 0 ? currentTime / duration : 0;
 
@@ -258,16 +316,27 @@ export function MiniPlayer({ session, mediaRef, variant = 'mini' }: MiniPlayerPr
             />
           </div>
 
-          {/* Seek bar */}
+          {/* Seek bar with thumbnail preview */}
           <div
-            className="h-1 bg-muted/30 cursor-pointer"
+            ref={seekBarRef}
+            className="relative h-1 bg-muted/30 cursor-pointer group/miniSeek"
             onClick={handleSeek}
+            onMouseMove={handleSeekHover}
+            onMouseLeave={handleSeekLeave}
             data-testid="mini-player-seek"
           >
             <div
               className="h-full bg-primary"
               style={{ width: `${playedFrac * 100}%` }}
             />
+            {isVideo && hoverTime !== null && (
+              <ThumbnailPreview
+                cue={activeThumbnailCue}
+                hoverTime={hoverTime}
+                hoverPositionX={hoverPositionX}
+                seekBarWidth={seekBarWidth}
+              />
+            )}
           </div>
 
           {/* Controls bar — 32px */}
@@ -350,8 +419,10 @@ export function MiniPlayer({ session, mediaRef, variant = 'mini' }: MiniPlayerPr
 
           {/* Seek bar */}
           <div
-            className="h-1 bg-muted/30 cursor-pointer"
+            className="relative h-1 bg-muted/30 cursor-pointer"
             onClick={handleSeek}
+            onMouseMove={handleSeekHover}
+            onMouseLeave={handleSeekLeave}
             data-testid="mini-player-seek"
           >
             <div className="h-full bg-primary" style={{ width: `${playedFrac * 100}%` }} />

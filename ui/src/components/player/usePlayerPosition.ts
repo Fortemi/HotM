@@ -155,6 +155,11 @@ export function usePlayerPosition({
   const handleDragStart = useCallback(
     (e: React.PointerEvent) => {
       if (!enabled) return;
+
+      // Don't start drag if the user clicked a button (close, expand, etc.)
+      const target = e.target as HTMLElement;
+      if (target.closest('button')) return;
+
       e.preventDefault();
       e.stopPropagation();
       setIsDragging(true);
@@ -165,8 +170,8 @@ export function usePlayerPosition({
         origY: position.y,
       };
 
-      const target = e.currentTarget as HTMLElement;
-      target.setPointerCapture(e.pointerId);
+      const handle = e.currentTarget as HTMLElement;
+      handle.setPointerCapture(e.pointerId);
     },
     [enabled, position],
   );
