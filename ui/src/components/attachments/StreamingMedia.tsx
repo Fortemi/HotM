@@ -608,124 +608,140 @@ export function StreamingVideoPlayer({
   }
 
   return (
-    <div
-      ref={containerRef}
-      className="relative group"
-      onKeyDown={handleKeyDown}
-      tabIndex={0}
-      data-testid="video-player-container"
-    >
-      {/* Buffering overlay */}
-      {playbackState === 'buffering' && (
-        <div className="absolute inset-0 flex items-center justify-center bg-black/30 z-10 pointer-events-none rounded">
-          <Loader2 className="h-10 w-10 animate-spin text-white" />
-        </div>
-      )}
-
-      {/* Loading skeleton before metadata loads */}
-      {playbackState === 'loading' && (
-        <div className="absolute inset-0 flex items-center justify-center bg-muted/30 z-10 pointer-events-none rounded">
-          <div className="flex flex-col items-center gap-2">
-            <Video className="h-8 w-8 text-muted-foreground animate-pulse" />
-            <p className="text-xs text-muted-foreground">Loading video...</p>
-          </div>
-        </div>
-      )}
-
-      <video
-        ref={videoRef}
-        src={mode === 'direct' ? directUrl : (blobUrl ?? undefined)}
-        preload="metadata"
-        poster={posterUrl}
-        className={className ?? 'w-full max-h-[500px] rounded border bg-black'}
-        data-testid="attachment-video-preview"
-        onClick={isPlaying ? handleControlPause : handleControlPlay}
-        onLoadedMetadata={handleLoadedMetadata}
-        onCanPlay={handleCanPlay}
-        onWaiting={handleWaiting}
-        onPlaying={handlePlaying}
-        onPause={handlePause}
-        onEnded={handleEnded}
-        onError={handleVideoError}
-        onTimeUpdate={handleTimeUpdate}
-      >
-        {vttBlobUrl && (
-          <track
-            kind="subtitles"
-            src={vttBlobUrl}
-            srcLang="en"
-            label="English"
-            default={showCaptions}
-            data-testid="subtitle-track"
-          />
-        )}
-        Your browser does not support video playback.
-      </video>
-
-      {/* Custom video controls overlay */}
-      <VideoControls
-        containerRef={containerRef}
-        duration={duration ?? 0}
-        currentTime={currentTime}
-        isPlaying={isPlaying}
-        volume={volume}
-        isMuted={isMuted}
-        isFullscreen={isFullscreen}
-        buffered={buffered}
-        showCaptions={showCaptions}
-        hasCaptions={hasTranscript}
-        onPlay={handleControlPlay}
-        onPause={handleControlPause}
-        onSeek={handleControlSeek}
-        onVolumeChange={handleControlVolumeChange}
-        onMuteToggle={handleControlMuteToggle}
-        onFullscreenToggle={handleControlFullscreenToggle}
-        onCaptionToggle={() => setShowCaptions((prev) => !prev)}
-        onHoverTime={setHoverTime}
-        onHoverPosition={setHoverPositionX}
-        seekBarChildren={
-          <ThumbnailPreview
-            cue={activeThumbnailCue}
-            hoverTime={hoverTime}
-            hoverPositionX={hoverPositionX}
-            seekBarWidth={seekBarWidth}
-          />
-        }
-      />
-
-      {/* Expert mode toggle button (top-left, shown on hover) */}
-      <button
-        type="button"
+    <>
+      <div
+        ref={containerRef}
         className={cn(
-          'absolute top-2 left-2 flex items-center gap-1 px-1.5 py-1 rounded text-xs transition-opacity z-10',
-          showExpertMode
-            ? 'bg-primary text-primary-foreground opacity-80 hover:opacity-100'
-            : 'bg-black/70 text-white opacity-0 group-hover:opacity-80 hover:!opacity-100',
+          'relative group overflow-hidden',
+          isFullscreen
+            ? 'fixed inset-0 z-50 bg-black flex items-center justify-center'
+            : 'rounded border bg-black'
         )}
-        onClick={() => setShowExpertMode((prev) => !prev)}
-        title={showExpertMode ? 'Hide stats (I)' : 'Show stats (I)'}
-        data-testid="expert-mode-toggle"
+        onKeyDown={handleKeyDown}
+        tabIndex={0}
+        data-testid="video-player-container"
       >
-        <Activity className="w-3.5 h-3.5" />
-      </button>
+        {/* Buffering overlay */}
+        {playbackState === 'buffering' && (
+          <div className={cn(
+            'absolute inset-0 flex items-center justify-center bg-black/30 z-10 pointer-events-none',
+            !isFullscreen && 'rounded'
+          )}>
+            <Loader2 className="h-10 w-10 animate-spin text-white" />
+          </div>
+        )}
 
-      {/* Expert mode overlay */}
-      {showExpertMode && expertStats && (
-        <ExpertModeOverlay
-          stats={expertStats}
-          mediaInfo={mediaInfo ?? null}
-          playbackMode={mode}
-          contentType={contentType}
-          sizeBytes={sizeBytes}
-          variant={variant}
-          filename={filename}
-          extractionStrategy={extractionStrategy}
-          mediaType="video"
-          onClose={() => setShowExpertMode(false)}
+        {/* Loading skeleton before metadata loads */}
+        {playbackState === 'loading' && (
+          <div className={cn(
+            'absolute inset-0 flex items-center justify-center bg-muted/30 z-10 pointer-events-none',
+            !isFullscreen && 'rounded'
+          )}>
+            <div className="flex flex-col items-center gap-2">
+              <Video className="h-8 w-8 text-muted-foreground animate-pulse" />
+              <p className="text-xs text-muted-foreground">Loading video...</p>
+            </div>
+          </div>
+        )}
+
+        <video
+          ref={videoRef}
+          src={mode === 'direct' ? directUrl : (blobUrl ?? undefined)}
+          preload="metadata"
+          poster={posterUrl}
+          className={className ?? cn(
+            'w-full bg-black',
+            isFullscreen ? 'max-h-full max-w-full object-contain' : 'max-h-[500px]'
+          )}
+          data-testid="attachment-video-preview"
+          onClick={isPlaying ? handleControlPause : handleControlPlay}
+          onLoadedMetadata={handleLoadedMetadata}
+          onCanPlay={handleCanPlay}
+          onWaiting={handleWaiting}
+          onPlaying={handlePlaying}
+          onPause={handlePause}
+          onEnded={handleEnded}
+          onError={handleVideoError}
+          onTimeUpdate={handleTimeUpdate}
+        >
+          {vttBlobUrl && (
+            <track
+              kind="subtitles"
+              src={vttBlobUrl}
+              srcLang="en"
+              label="English"
+              default={showCaptions}
+              data-testid="subtitle-track"
+            />
+          )}
+          Your browser does not support video playback.
+        </video>
+
+        {/* Custom video controls overlay */}
+        <VideoControls
+          containerRef={containerRef}
+          duration={duration ?? 0}
+          currentTime={currentTime}
+          isPlaying={isPlaying}
+          volume={volume}
+          isMuted={isMuted}
+          isFullscreen={isFullscreen}
+          buffered={buffered}
+          showCaptions={showCaptions}
+          hasCaptions={hasTranscript}
+          onPlay={handleControlPlay}
+          onPause={handleControlPause}
+          onSeek={handleControlSeek}
+          onVolumeChange={handleControlVolumeChange}
+          onMuteToggle={handleControlMuteToggle}
+          onFullscreenToggle={handleControlFullscreenToggle}
+          onCaptionToggle={() => setShowCaptions((prev) => !prev)}
+          onHoverTime={setHoverTime}
+          onHoverPosition={setHoverPositionX}
+          seekBarChildren={
+            <ThumbnailPreview
+              cue={activeThumbnailCue}
+              hoverTime={hoverTime}
+              hoverPositionX={hoverPositionX}
+              seekBarWidth={seekBarWidth}
+            />
+          }
         />
-      )}
 
-      {/* Interactive transcript panel */}
+        {/* Expert mode toggle button (top-left, shown on hover) */}
+        <button
+          type="button"
+          className={cn(
+            'absolute top-2 left-2 flex items-center gap-1 px-1.5 py-1 rounded text-xs transition-opacity z-10',
+            showExpertMode
+              ? 'bg-primary text-primary-foreground opacity-80 hover:opacity-100'
+              : 'bg-black/70 text-white opacity-0 group-hover:opacity-80 hover:!opacity-100',
+          )}
+          onClick={() => setShowExpertMode((prev) => !prev)}
+          title={showExpertMode ? 'Hide stats (I)' : 'Show stats (I)'}
+          data-testid="expert-mode-toggle"
+        >
+          <Activity className="w-3.5 h-3.5" />
+        </button>
+
+        {/* Expert mode overlay */}
+        {showExpertMode && expertStats && (
+          <ExpertModeOverlay
+            stats={expertStats}
+            mediaInfo={mediaInfo ?? null}
+            playbackMode={mode}
+            contentType={contentType}
+            sizeBytes={sizeBytes}
+            variant={variant}
+            filename={filename}
+            extractionStrategy={extractionStrategy}
+            mediaType="video"
+            onClose={() => setShowExpertMode(false)}
+          />
+        )}
+      </div>
+
+      {/* Interactive transcript panel — outside fullscreen container */}
       {hasTranscript && showCaptions && (
         <TranscriptPanel
           segments={effectiveSegments!}
@@ -735,7 +751,7 @@ export function StreamingVideoPlayer({
           className="mt-2"
         />
       )}
-    </div>
+    </>
   );
 }
 
