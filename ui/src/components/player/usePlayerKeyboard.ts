@@ -13,8 +13,8 @@ export interface UsePlayerKeyboardOptions {
   state: PlayerState;
   /** Reference to the active media element */
   mediaRef: React.RefObject<HTMLVideoElement | HTMLAudioElement | null>;
-  /** Toggle between MINI and EXPANDED */
-  onToggleSize: () => void;
+  /** Cycle through MINI → EXPANDED → fullscreen */
+  onCycleSize: () => void;
   /** Dismiss the player (INACTIVE) */
   onDismiss: () => void;
 }
@@ -22,7 +22,7 @@ export interface UsePlayerKeyboardOptions {
 export function usePlayerKeyboard({
   state,
   mediaRef,
-  onToggleSize,
+  onCycleSize,
   onDismiss,
 }: UsePlayerKeyboardOptions): void {
   useEffect(() => {
@@ -52,9 +52,9 @@ export function usePlayerKeyboard({
             break;
           case 'E':
           case 'e':
-            // Alt+Shift+E — Toggle MINI/EXPANDED
+            // Alt+Shift+E — Cycle: MINI → EXPANDED → fullscreen
             e.preventDefault();
-            onToggleSize();
+            onCycleSize();
             break;
         }
         return;
@@ -98,5 +98,5 @@ export function usePlayerKeyboard({
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [state, mediaRef, onToggleSize, onDismiss]);
+  }, [state, mediaRef, onCycleSize, onDismiss]);
 }

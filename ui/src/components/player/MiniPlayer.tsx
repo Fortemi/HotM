@@ -8,7 +8,7 @@
  * Drag handle on the title bar. Snap to corners on release.
  */
 
-import { useRef, useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import {
   Play,
   Pause,
@@ -17,6 +17,7 @@ import {
   Volume2,
   VolumeX,
   Maximize2,
+  Minimize2,
   X,
   GripHorizontal,
   Music,
@@ -34,6 +35,11 @@ const VIDEO_WIDTH = 280;
 const VIDEO_HEIGHT = 210;
 const AUDIO_WIDTH = 280;
 const AUDIO_HEIGHT = 68;
+
+const EXPANDED_VIDEO_WIDTH = 480;
+const EXPANDED_VIDEO_HEIGHT = 398;
+const EXPANDED_AUDIO_WIDTH = 400;
+const EXPANDED_AUDIO_HEIGHT = 80;
 
 // ---------------------------------------------------------------------------
 // Time formatter
@@ -53,13 +59,16 @@ function formatTime(secs: number): string {
 // Component
 // ---------------------------------------------------------------------------
 
+type PlayerVariant = 'mini' | 'expanded';
+
 interface MiniPlayerProps {
   session: MediaSessionInfo;
+  mediaRef: React.RefObject<HTMLVideoElement & HTMLAudioElement | null>;
+  variant?: PlayerVariant;
 }
 
-export function MiniPlayer({ session }: MiniPlayerProps) {
+export function MiniPlayer({ session, mediaRef, variant = 'mini' }: MiniPlayerProps) {
   const { endSession, setState, initialTime } = useMediaPlayer();
-  const mediaRef = useRef<HTMLVideoElement & HTMLAudioElement>(null);
 
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
@@ -69,8 +78,13 @@ export function MiniPlayer({ session }: MiniPlayerProps) {
   const [mode, setMode] = useState<'direct' | 'blob'>(session.blobUrl ? 'blob' : 'direct');
 
   const isVideo = session.mediaType === 'video';
-  const width = isVideo ? VIDEO_WIDTH : AUDIO_WIDTH;
-  const height = isVideo ? VIDEO_HEIGHT : AUDIO_HEIGHT;
+  const isMini = variant === 'mini';
+  const width = isVideo
+    ? (isMini ? VIDEO_WIDTH : EXPANDED_VIDEO_WIDTH)
+    : (isMini ? AUDIO_WIDTH : EXPANDED_AUDIO_WIDTH);
+  const height = isVideo
+    ? (isMini ? VIDEO_HEIGHT : EXPANDED_VIDEO_HEIGHT)
+    : (isMini ? AUDIO_HEIGHT : EXPANDED_AUDIO_HEIGHT);
 
   const { position, isDragging, isSnapping, handleDragStart } = usePlayerPosition({
     width,
@@ -160,6 +174,16 @@ export function MiniPlayer({ session }: MiniPlayerProps) {
     }
   }, []);
 
+  const goFullscreen = useCallback(() => {
+    const el = mediaRef.current;
+    if (el?.requestFullscreen) el.requestFullscreen();
+  }, []);
+
+  const handleExpand = useCallback(() => {
+    if (isMini) setState('EXPANDED');
+    else goFullscreen();
+  }, [isMini, setState, goFullscreen]);
+
   const handleSeek = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
     const el = mediaRef.current;
     if (!el || !duration) return;
@@ -216,7 +240,7 @@ export function MiniPlayer({ session }: MiniPlayerProps) {
           </div>
 
           {/* Video frame */}
-          <div className="relative bg-black" style={{ height: 158 }}>
+          <div className="relative bg-black" style={{ height: isMini ? 158 : 346 }}>
             <video
               ref={mediaRef}
               src={mediaSrc}
@@ -264,7 +288,12 @@ export function MiniPlayer({ session }: MiniPlayerProps) {
             <button type="button" className="p-1 rounded hover:bg-accent" onClick={toggleMute} aria-label={isMuted ? 'Unmute' : 'Mute'}>
               {isMuted ? <VolumeX className="w-3 h-3" /> : <Volume2 className="w-3 h-3" />}
             </button>
-            <button type="button" className="p-1 rounded hover:bg-accent" onClick={() => setState('EXPANDED')} aria-label="Expand player">
+            {!isMini && (
+              <button type="button" className="p-1 rounded hover:bg-accent" onClick={() => setState('MINI')} aria-label="Minimize">
+                <Minimize2 className="w-3 h-3" />
+              </button>
+            )}
+            <button type="button" className="p-1 rounded hover:bg-accent" onClick={handleExpand} aria-label={isMini ? 'Expand player' : 'Fullscreen'}>
               <Maximize2 className="w-3 h-3" />
             </button>
           </div>
@@ -281,7 +310,12 @@ export function MiniPlayer({ session }: MiniPlayerProps) {
             <span className="flex-1 text-xs font-medium truncate">
               {session.filename}
             </span>
-            <button type="button" className="p-0.5 rounded hover:bg-accent" onClick={() => setState('EXPANDED')} aria-label="Expand player">
+            {!isMini && (
+              <button type="button" className="p-0.5 rounded hover:bg-accent" onClick={() => setState('MINI')} aria-label="Minimize">
+                <Minimize2 className="w-3.5 h-3.5 text-muted-foreground" />
+              </button>
+            )}
+            <button type="button" className="p-0.5 rounded hover:bg-accent" onClick={handleExpand} aria-label={isMini ? 'Expand player' : 'Fullscreen'}>
               <Maximize2 className="w-3.5 h-3.5 text-muted-foreground" />
             </button>
             <button

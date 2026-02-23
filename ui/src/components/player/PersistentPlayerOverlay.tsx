@@ -13,31 +13,28 @@ import { MiniPlayer } from './MiniPlayer';
 
 export function PersistentPlayerOverlay() {
   const { state, session, setState, endSession } = useMediaPlayer();
-  const mediaRef = useRef<HTMLVideoElement | HTMLAudioElement>(null);
+  const mediaRef = useRef<HTMLVideoElement & HTMLAudioElement>(null);
 
   usePlayerKeyboard({
     state,
     mediaRef,
-    onToggleSize: () => {
+    onCycleSize: () => {
       if (state === 'MINI') setState('EXPANDED');
-      else if (state === 'EXPANDED') setState('MINI');
+      else if (state === 'EXPANDED') mediaRef.current?.requestFullscreen?.();
     },
     onDismiss: endSession,
   });
 
   if (state === 'INACTIVE' || !session) return null;
 
-  // For now, MINI is the primary implementation. EXPANDED and DOCKED_BAR
-  // will be added in future iterations.
   switch (state) {
     case 'MINI':
-      return <MiniPlayer session={session} />;
+      return <MiniPlayer session={session} mediaRef={mediaRef} variant="mini" />;
     case 'EXPANDED':
-      // Expanded player — fall back to mini for now, will be a separate component
-      return <MiniPlayer session={session} />;
+      return <MiniPlayer session={session} mediaRef={mediaRef} variant="expanded" />;
     case 'DOCKED_BAR':
       // Docked bar — fall back to mini for now
-      return <MiniPlayer session={session} />;
+      return <MiniPlayer session={session} mediaRef={mediaRef} variant="mini" />;
     default:
       return null;
   }
