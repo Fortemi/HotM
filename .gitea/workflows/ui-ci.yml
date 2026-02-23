@@ -291,16 +291,18 @@ jobs:
       - name: Create GitHub Release and upload assets
         run: |
           VERSION="${GITHUB_REF_NAME#v}"
+          GITEA_REG="${GITEA_REGISTRY}"
+          GHCR_REG="${GHCR_REGISTRY}"
+          IMG="${IMAGE_NAME}"
 
-          cat > /tmp/release_notes.md <<EOF
-          ## HotM ${VERSION}
+          RELEASE_BODY="## HotM ${VERSION}
 
           ### Docker Images
 
           | Registry | Pull Command |
           |----------|-------------|
-          | GHCR (public) | \`docker pull ghcr.io/${IMAGE_NAME}:${VERSION}\` |
-          | Gitea (internal) | \`docker pull git.integrolabs.net/${IMAGE_NAME}:${VERSION}\` |
+          | GHCR (public) | \`docker pull ${GHCR_REG}/${IMG}:${VERSION}\` |
+          | Gitea (internal) | \`docker pull ${GITEA_REG}/${IMG}:${VERSION}\` |
 
           ### Desktop Installer (Linux)
 
@@ -317,9 +319,14 @@ jobs:
 
           - **Web**: Modern browser + network access to Fortemi API
           - **Desktop**: Linux x86_64 (Ubuntu 22.04+, or any distro via AppImage)
-          - **Docker**: Any host running Docker Engine 20+
-          EOF
-          sed -i 's/^          //' /tmp/release_notes.md
+          - **Docker**: Any host running Docker Engine 20+"
+
+          # Build JSON body safely using jq --arg (handles all escaping)
+          JSON_BODY=$(jq -n \
+            --arg tag_name "${GITHUB_REF_NAME}" \
+            --arg name "HotM ${VERSION}" \
+            --arg body "${RELEASE_BODY}" \
+            '{tag_name: $tag_name, name: $name, body: $body, draft: false, prerelease: false, generate_release_notes: false}')
 
           # Create the release
           RESPONSE=$(curl -s -w "\n%{http_code}" -X POST \
@@ -327,14 +334,7 @@ jobs:
             -H "Accept: application/vnd.github+json" \
             -H "X-GitHub-Api-Version: 2022-11-28" \
             "https://api.github.com/repos/Fortemi/HotM/releases" \
-            -d "{
-              \"tag_name\": \"${GITHUB_REF_NAME}\",
-              \"name\": \"HotM ${VERSION}\",
-              \"body\": $(jq -Rs . /tmp/release_notes.md),
-              \"draft\": false,
-              \"prerelease\": false,
-              \"generate_release_notes\": false
-            }")
+            -d "${JSON_BODY}")
 
           HTTP_CODE=$(echo "$RESPONSE" | tail -n1)
           BODY=$(echo "$RESPONSE" | head -n -1)
