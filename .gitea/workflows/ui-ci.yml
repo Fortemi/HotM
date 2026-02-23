@@ -15,14 +15,14 @@ on:
     branches: [main, develop]
     paths:
       - 'ui/**'
-      - '.github/workflows/ui-ci.yml'
+      - '.gitea/workflows/ui-ci.yml'
   create:
     tags: ['v*']
   pull_request:
     branches: [main]
     paths:
       - 'ui/**'
-      - '.github/workflows/ui-ci.yml'
+      - '.gitea/workflows/ui-ci.yml'
   workflow_dispatch:
 
 env:

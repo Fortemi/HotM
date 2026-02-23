@@ -38,7 +38,7 @@ Comprehensive documentation is available in the `docs/` directory:
 **Gitea act_runner is the AUTHORITATIVE standard for all testing**
 
 Before pushing ANY changes:
-1. Run `act_runner exec -j ui-quality-checks -W .github/workflows/ui-ci.yml` from repo root and wait for completion
+1. Run `act_runner exec -j ui-quality-checks -W .gitea/workflows/ui-ci.yml` from repo root and wait for completion
 2. Verify exit code 0 and all tests passing
 3. Only push after confirming green local test runs
 4. If any tests fail, fix issues and repeat from step 1
@@ -46,7 +46,7 @@ Before pushing ANY changes:
 **No exceptions - even for "simple" fixes. act_runner tests are the single source of truth.**
 
 #### Standard Test Commands (Use These)
-- **Full frontend validation**: `act_runner exec -j ui-quality-checks -W .github/workflows/ui-ci.yml` (React tests, TypeScript build, coverage, security audit)
+- **Full frontend validation**: `act_runner exec -j ui-quality-checks -W .gitea/workflows/ui-ci.yml` (React tests, TypeScript build, coverage, security audit)
 - **Quick local iteration**: `cd ui && npm test -- --run`
 
 All shell-based test scripts have been removed - use `act_runner` for consistent CI/CD parity.
@@ -100,13 +100,13 @@ npm run typecheck
 npm run lint
 
 # Run tests (use act_runner for full CI validation)
-act_runner exec -j ui-quality-checks -W .github/workflows/ui-ci.yml
+act_runner exec -j ui-quality-checks -W .gitea/workflows/ui-ci.yml
 ```
 
 ### Testing (Use act_runner - Authoritative Standard)
 ```bash
 # STANDARD: Run full frontend test suite via Gitea act_runner (mirrors CI exactly)
-act_runner exec -j ui-quality-checks -W .github/workflows/ui-ci.yml
+act_runner exec -j ui-quality-checks -W .gitea/workflows/ui-ci.yml
 
 # Quick local iteration only (not comprehensive)
 cd ui && npm test -- --run     # Basic React unit tests only
@@ -215,7 +215,7 @@ VITE_APP_TITLE=HotM
 - `ui/vite.config.ts` - Vite build configuration
 - `ui/tailwind.config.js` - TailwindCSS styling
 - `ui/tsconfig.json` - TypeScript configuration
-- `.github/workflows/` - CI/CD pipelines
+- `.gitea/workflows/` - CI/CD pipelines
 - `release.json` - Release channel configuration
 
 ## Configuration Files
@@ -226,7 +226,7 @@ VITE_APP_TITLE=HotM
 | `ui/vite.config.ts` | Vite build configuration |
 | `ui/tailwind.config.js` | TailwindCSS styling |
 | `ui/tsconfig.json` | TypeScript configuration |
-| `.github/workflows/*.yml` | GitHub Actions CI/CD |
+| `.gitea/workflows/*.yml` | Gitea Actions CI/CD |
 | `.claude/settings.local.json` | Claude Code permissions |
 
 ---

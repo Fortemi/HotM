@@ -8,14 +8,14 @@ on:
       - 'ui/src/**'
       - 'ui/package.json'
       - 'ui/package-lock.json'
-      - '.github/workflows/tauri-build.yml'
+      - '.gitea/workflows/tauri-build.yml'
   pull_request:
     branches: [ main ]
     paths:
       - 'ui/src-tauri/**'
       - 'ui/src/**'
       - 'ui/package.json'
-      - '.github/workflows/tauri-build.yml'
+      - '.gitea/workflows/tauri-build.yml'
   workflow_dispatch:
 
 jobs:
