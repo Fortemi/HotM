@@ -29,7 +29,7 @@ jobs:
   # ─── Gate: typecheck, tests, coverage, audit ────────────────────────
   quality-gate:
     name: Quality Gate
-    runs-on: ubuntu-latest
+    runs-on: titan
     container:
       image: node:20-bookworm
     steps:
@@ -57,7 +57,7 @@ jobs:
   # ─── Build: SPA tarball ─────────────────────────────────────────────
   build-spa:
     name: Build SPA
-    runs-on: ubuntu-latest
+    runs-on: titan
     container:
       image: node:20-bookworm
     needs: quality-gate
@@ -185,7 +185,7 @@ jobs:
   # ─── Build: Tauri desktop installer (Linux) ──────────────────────────
   build-tauri:
     name: Build Tauri (Linux)
-    runs-on: ubuntu-latest
+    runs-on: titan
     needs: quality-gate
     container:
       image: node:20-bookworm
@@ -231,7 +231,7 @@ jobs:
   # ─── Release: Gitea Release ────────────────────────────────────────
   create-release:
     name: Create Gitea Release
-    runs-on: ubuntu-latest
+    runs-on: titan
     needs: [build-spa, build-docker]
     steps:
       - name: Checkout
@@ -285,7 +285,7 @@ jobs:
   # ─── GitHub: Create GitHub Release ─────────────────────────────────
   create-github-release:
     name: Create GitHub Release
-    runs-on: ubuntu-latest
+    runs-on: titan
     needs: [build-spa, build-docker]
     steps:
       - name: Checkout
