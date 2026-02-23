@@ -315,7 +315,7 @@ jobs:
 
       - name: Create GitHub Release
         run: |
-          RELEASE_BODY=$(cat <<'RELEASE_NOTES'
+          cat > /tmp/release_notes.md <<EOF
           ## HotM ${DISPLAY_VERSION}
 
           **Release Channel**: ${CHANNEL}
@@ -324,30 +324,28 @@ jobs:
 
           | Registry | Pull Command |
           |----------|-------------|
-          | GHCR (public) | `docker pull ghcr.io/${IMAGE_NAME}:${VERSION}` |
-          | Gitea (internal) | `docker pull git.integrolabs.net/${IMAGE_NAME}:${VERSION}` |
+          | GHCR (public) | \`docker pull ghcr.io/${IMAGE_NAME}:${VERSION}\` |
+          | Gitea (internal) | \`docker pull git.integrolabs.net/${IMAGE_NAME}:${VERSION}\` |
 
           ### Desktop Installer (Linux)
 
           | Format | Description |
           |--------|-------------|
-          | `.deb` | Debian/Ubuntu package |
-          | `.AppImage` | Portable Linux binary |
+          | \`.deb\` | Debian/Ubuntu package |
+          | \`.AppImage\` | Portable Linux binary |
 
           ### SPA Bundle
 
-          Download `hotm-spa.tar.gz` below - extract and serve with any static host.
+          Download \`hotm-spa.tar.gz\` below - extract and serve with any static host.
 
           ### System Requirements
 
           - **Web**: Modern browser + network access to Fortemi API
           - **Desktop**: Linux x86_64 (Ubuntu 22.04+, or any distro via AppImage)
           - **Docker**: Any host running Docker Engine 20+
-          RELEASE_NOTES
-          )
-          # Strip leading indentation and substitute variables
-          RELEASE_BODY=$(echo "$RELEASE_BODY" | sed 's/^          //')
-          RELEASE_BODY=$(echo "$RELEASE_BODY" | sed "s/\${DISPLAY_VERSION}/${DISPLAY_VERSION}/g; s/\${CHANNEL}/${CHANNEL}/g; s/\${IMAGE_NAME}/${IMAGE_NAME}/g; s/\${VERSION}/${VERSION}/g")
+          EOF
+          # Strip leading indentation
+          sed -i 's/^          //' /tmp/release_notes.md
 
           RESPONSE=$(curl -s -w "\n%{http_code}" -X POST \
             -H "Authorization: token ${{ secrets.GH_PUBLISH_TOKEN }}" \
@@ -357,7 +355,7 @@ jobs:
             -d "{
               \"tag_name\": \"${GITHUB_REF_NAME}\",
               \"name\": \"HotM ${DISPLAY_VERSION}\",
-              \"body\": $(echo "$RELEASE_BODY" | jq -Rs .),
+              \"body\": $(jq -Rs . /tmp/release_notes.md),
               \"draft\": false,
               \"prerelease\": $([ \"$CHANNEL\" != \"stable\" ] && echo true || echo false),
               \"generate_release_notes\": false
