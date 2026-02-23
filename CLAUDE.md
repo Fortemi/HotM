@@ -198,13 +198,13 @@ Channel configuration is stored in `release.json`.
 
 Create a `.env` file in the `ui/` directory:
 
-- `VITE_API_BASE_URL`: Fortemi API base URL (default: `http://localhost:3000/api/v1`)
+- `VITE_API_BASE_URL`: Fortemi API base URL (default: `http://localhost:3000`)
 - `VITE_API_TIMEOUT`: API request timeout in milliseconds (default: `30000`)
 - `VITE_APP_TITLE`: Application title (default: `HotM`)
 
 Example `.env`:
 ```
-VITE_API_BASE_URL=http://localhost:3000/api/v1
+VITE_API_BASE_URL=http://localhost:3000
 VITE_API_TIMEOUT=30000
 VITE_APP_TITLE=HotM
 ```

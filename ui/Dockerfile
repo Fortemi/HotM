@@ -14,7 +14,7 @@ RUN npm ci --ignore-scripts
 COPY . .
 
 # Build arguments for environment configuration
-ARG VITE_API_BASE_URL=http://localhost:3000/api/v1
+ARG VITE_API_BASE_URL=http://localhost:3000
 ARG VITE_APP_TITLE=HotM
 ARG VITE_DISABLE_WEBSOCKET=false
 ARG VITE_GIT_SHA=unknown
