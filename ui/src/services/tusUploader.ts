@@ -58,13 +58,13 @@ export function shouldUseTus(file: File): boolean {
 /**
  * Start a tus resumable upload and return a handle with a Promise + abort.
  *
- * The tus endpoint is `POST /api/v1/notes/{noteId}/attachments/tus`.
+ * The tus endpoint is `POST {baseUrl}/notes/{noteId}/attachments/tus`.
  * On completion, a `GET` to the tus Location URL retrieves the Attachment JSON.
  */
 export function startTusUpload(opts: TusUploadOptions): TusUploadHandle {
   const { noteId, file, mediaOptimize, onProgress } = opts;
   const baseUrl = api.client.baseUrl;
-  const endpoint = `${baseUrl}/api/v1/notes/${noteId}/attachments/tus`;
+  const endpoint = `${baseUrl}/notes/${noteId}/attachments/tus`;
 
   // Build routing headers
   const headers: Record<string, string> = {};

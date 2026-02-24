@@ -856,7 +856,7 @@ function PreviewDialogTabs({
       const response = await api.client.get<{
         attachments: (Attachment & { note_title?: string })[];
         total: number;
-      }>('/api/v1/attachments', { limit: '500' });
+      }>('/attachments', { limit: '500' });
 
       const key = getAttachmentDedupeKey(attachment);
       const matches = response.attachments

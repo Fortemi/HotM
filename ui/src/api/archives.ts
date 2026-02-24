@@ -23,36 +23,36 @@ type CreateArchiveResponse = {
 export function createArchivesApi(client: ApiClient) {
   return {
     async list(): Promise<MemoryArchive[]> {
-      return client.get<MemoryArchive[]>('/api/v1/archives');
+      return client.get<MemoryArchive[]>('/archives');
     },
 
     async get(name: string): Promise<MemoryArchive> {
-      return client.get<MemoryArchive>(`/api/v1/archives/${encodeURIComponent(name)}`);
+      return client.get<MemoryArchive>(`/archives/${encodeURIComponent(name)}`);
     },
 
     async create(request: CreateArchiveRequest): Promise<CreateArchiveResponse> {
-      return client.post<CreateArchiveResponse>('/api/v1/archives', request);
+      return client.post<CreateArchiveResponse>('/archives', request);
     },
 
     async update(name: string, request: UpdateArchiveRequest): Promise<void> {
-      await client.patch<void>(`/api/v1/archives/${encodeURIComponent(name)}`, request);
+      await client.patch<void>(`/archives/${encodeURIComponent(name)}`, request);
     },
 
     async delete(name: string): Promise<void> {
-      await client.delete<void>(`/api/v1/archives/${encodeURIComponent(name)}`);
+      await client.delete<void>(`/archives/${encodeURIComponent(name)}`);
     },
 
     async setDefault(name: string): Promise<void> {
-      await client.post<void>(`/api/v1/archives/${encodeURIComponent(name)}/set-default`);
+      await client.post<void>(`/archives/${encodeURIComponent(name)}/set-default`);
     },
 
     async stats(name: string): Promise<ArchiveStatsResponse> {
-      return client.get<ArchiveStatsResponse>(`/api/v1/archives/${encodeURIComponent(name)}/stats`);
+      return client.get<ArchiveStatsResponse>(`/archives/${encodeURIComponent(name)}/stats`);
     },
 
     async clone(name: string, request: CloneArchiveRequest): Promise<CreateArchiveResponse> {
       return client.post<CreateArchiveResponse>(
-        `/api/v1/archives/${encodeURIComponent(name)}/clone`,
+        `/archives/${encodeURIComponent(name)}/clone`,
         request
       );
     },

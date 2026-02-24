@@ -32,7 +32,7 @@ describe('Tags API', () => {
 
       const result = await tagsApi.list();
 
-      expect(mockClient.get).toHaveBeenCalledWith('/api/v1/tags', undefined);
+      expect(mockClient.get).toHaveBeenCalledWith('/tags', undefined);
       expect(result).toEqual(mockResponse.tags);
     });
 
@@ -43,7 +43,7 @@ describe('Tags API', () => {
       await tagsApi.list({ sortBy: 'name' });
 
       expect(mockClient.get).toHaveBeenCalledWith(
-        '/api/v1/tags',
+        '/tags',
         expect.objectContaining({
           sort_by: 'name'
         })
@@ -57,7 +57,7 @@ describe('Tags API', () => {
       await tagsApi.list({ sortBy: 'count' });
 
       expect(mockClient.get).toHaveBeenCalledWith(
-        '/api/v1/tags',
+        '/tags',
         expect.objectContaining({
           sort_by: 'count'
         })
@@ -71,7 +71,7 @@ describe('Tags API', () => {
       await tagsApi.list({ minCount: 5 });
 
       expect(mockClient.get).toHaveBeenCalledWith(
-        '/api/v1/tags',
+        '/tags',
         expect.objectContaining({
           min_count: '5'
         })
@@ -133,7 +133,7 @@ describe('Tags API', () => {
 
       const result = await tagsApi.create('newtag');
 
-      expect(mockClient.post).toHaveBeenCalledWith('/api/v1/tags', {
+      expect(mockClient.post).toHaveBeenCalledWith('/tags', {
         name: 'newtag'
       });
       expect(result).toEqual(mockResponse);
@@ -155,7 +155,7 @@ describe('Tags API', () => {
 
       await tagsApi.create('  trimmed  ');
 
-      expect(mockClient.post).toHaveBeenCalledWith('/api/v1/tags', {
+      expect(mockClient.post).toHaveBeenCalledWith('/tags', {
         name: 'trimmed'
       });
     });
@@ -168,7 +168,7 @@ describe('Tags API', () => {
 
       const result = await tagsApi.rename('oldname', 'renamed');
 
-      expect(mockClient.patch).toHaveBeenCalledWith('/api/v1/tags/oldname', {
+      expect(mockClient.patch).toHaveBeenCalledWith('/tags/oldname', {
         new_name: 'renamed'
       });
       expect(result).toEqual(mockResponse);
@@ -193,7 +193,7 @@ describe('Tags API', () => {
 
       await tagsApi.delete('obsolete');
 
-      expect(mockClient.delete).toHaveBeenCalledWith('/api/v1/tags/obsolete');
+      expect(mockClient.delete).toHaveBeenCalledWith('/tags/obsolete');
     });
 
     it('throws error for empty tag name', async () => {
@@ -217,7 +217,7 @@ describe('Tags API', () => {
 
       const result = await tagsApi.getStats();
 
-      expect(mockClient.get).toHaveBeenCalledWith('/api/v1/tags/stats');
+      expect(mockClient.get).toHaveBeenCalledWith('/tags/stats');
       expect(result).toEqual({
         ...mockResponse,
         stats_available: true
@@ -236,8 +236,8 @@ describe('Tags API', () => {
 
       const result = await tagsApi.getStats();
 
-      expect(mockClient.get).toHaveBeenNthCalledWith(1, '/api/v1/tags/stats');
-      expect(mockClient.get).toHaveBeenNthCalledWith(2, '/api/v1/tags');
+      expect(mockClient.get).toHaveBeenNthCalledWith(1, '/tags/stats');
+      expect(mockClient.get).toHaveBeenNthCalledWith(2, '/tags');
       expect(result).toEqual({
         total_tags: 2,
         total_tagged_notes: 8,

@@ -4,6 +4,7 @@
  */
 
 import type { ApiClient } from './client';
+import { getTauriFetch } from '@/lib/tauri';
 import type {
   TokenResponse,
   ClientRegistration,
@@ -13,7 +14,35 @@ import type {
   CreateApiKeyResponse,
 } from './types-extended';
 
+/**
+ * Helper to make JSON requests against the server root (non-API-versioned endpoints).
+ * Used for OAuth2 and well-known endpoints that live outside /api/v1/.
+ */
+async function serverRequest<T>(
+  serverUrl: string,
+  path: string,
+  options: { method?: string; body?: string; headers?: Record<string, string> } = {},
+): Promise<T> {
+  const { method = 'GET', body, headers = {} } = options;
+  const url = `${serverUrl}${path}`;
+  const defaultHeaders: Record<string, string> = { 'Content-Type': 'application/json' };
+  const response = await getTauriFetch()(url, {
+    method,
+    headers: { ...defaultHeaders, ...headers },
+    body,
+  });
+  if (!response.ok) {
+    throw new Error(`${path} returned ${response.status}`);
+  }
+  if (response.status === 204) {
+    return null as T;
+  }
+  return response.json() as Promise<T>;
+}
+
 export function createAuthApi(client: ApiClient) {
+  const serverUrl = client.serverUrl;
+
   return {
     // ===========================
     // OAuth2 Discovery
@@ -23,14 +52,14 @@ export function createAuthApi(client: ApiClient) {
      * Get OAuth2 authorization server metadata
      */
     async getAuthServerMetadata(): Promise<Record<string, unknown>> {
-      return client.get('/.well-known/oauth-authorization-server');
+      return serverRequest(serverUrl, '/.well-known/oauth-authorization-server');
     },
 
     /**
      * Get protected resource metadata
      */
     async getProtectedResourceMetadata(): Promise<Record<string, unknown>> {
-      return client.get('/.well-known/oauth-protected-resource');
+      return serverRequest(serverUrl, '/.well-known/oauth-protected-resource');
     },
 
     // ===========================
@@ -51,7 +80,10 @@ export function createAuthApi(client: ApiClient) {
         throw new Error('At least one grant type is required');
       }
 
-      return client.post<ClientRegistration>('/oauth/register', request);
+      return serverRequest<ClientRegistration>(serverUrl, '/oauth/register', {
+        method: 'POST',
+        body: JSON.stringify(request),
+      });
     },
 
     // ===========================
@@ -86,8 +118,10 @@ export function createAuthApi(client: ApiClient) {
       }
 
       // OAuth2 token endpoint expects form-urlencoded
-      return client.post<TokenResponse>('/oauth/token', body.toString(), {
-        'Content-Type': 'application/x-www-form-urlencoded',
+      return serverRequest<TokenResponse>(serverUrl, '/oauth/token', {
+        method: 'POST',
+        body: body.toString(),
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       });
     },
 
@@ -124,8 +158,10 @@ export function createAuthApi(client: ApiClient) {
         client_secret: clientSecret,
       });
 
-      return client.post('/oauth/introspect', body.toString(), {
-        'Content-Type': 'application/x-www-form-urlencoded',
+      return serverRequest(serverUrl, '/oauth/introspect', {
+        method: 'POST',
+        body: body.toString(),
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       });
     },
 
@@ -152,8 +188,10 @@ export function createAuthApi(client: ApiClient) {
         body.append('token_type_hint', tokenTypeHint);
       }
 
-      await client.post('/oauth/revoke', body.toString(), {
-        'Content-Type': 'application/x-www-form-urlencoded',
+      await serverRequest(serverUrl, '/oauth/revoke', {
+        method: 'POST',
+        body: body.toString(),
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       });
     },
 
@@ -166,7 +204,7 @@ export function createAuthApi(client: ApiClient) {
      */
     async listApiKeys(): Promise<ApiKey[]> {
       const response = await client.get<{ keys?: ApiKey[]; api_keys?: ApiKey[] } | ApiKey[]>(
-        '/api/v1/api-keys'
+        '/api-keys'
       );
       if (Array.isArray(response)) {
         return response;
@@ -184,7 +222,7 @@ export function createAuthApi(client: ApiClient) {
         throw new Error('API key name is required');
       }
 
-      return client.post<CreateApiKeyResponse>('/api/v1/api-keys', request);
+      return client.post<CreateApiKeyResponse>('/api-keys', request);
     },
 
     /**
@@ -195,7 +233,7 @@ export function createAuthApi(client: ApiClient) {
         throw new Error('API key ID is required');
       }
 
-      await client.delete(`/api/v1/api-keys/${keyId}`);
+      await client.delete(`/api-keys/${keyId}`);
     },
 
     /**

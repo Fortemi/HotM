@@ -51,7 +51,7 @@ export function createWebhooksApi(client: ApiClient) {
      */
     async list(): Promise<Webhook[]> {
       const response = await client.get<{ webhooks?: Webhook[] } | Webhook[]>(
-        '/api/v1/webhooks'
+        '/webhooks'
       );
       return Array.isArray(response) ? response : (response.webhooks ?? []);
     },
@@ -64,7 +64,7 @@ export function createWebhooksApi(client: ApiClient) {
         throw new Error('Webhook ID is required');
       }
 
-      return client.get<Webhook>(`/api/v1/webhooks/${webhookId}`);
+      return client.get<Webhook>(`/webhooks/${webhookId}`);
     },
 
     /**
@@ -79,7 +79,7 @@ export function createWebhooksApi(client: ApiClient) {
         throw new Error('At least one event type is required');
       }
 
-      const created = await client.post<{ id?: string } | Webhook>('/api/v1/webhooks', request);
+      const created = await client.post<{ id?: string } | Webhook>('/webhooks', request);
       if (typeof (created as Webhook).id === 'string' && 'url' in (created as Webhook)) {
         return created as Webhook;
       }
@@ -102,7 +102,7 @@ export function createWebhooksApi(client: ApiClient) {
       }
 
       return client.patch<Webhook>(
-        `/api/v1/webhooks/${webhookId}`,
+        `/webhooks/${webhookId}`,
         request
       );
     },
@@ -115,7 +115,7 @@ export function createWebhooksApi(client: ApiClient) {
         throw new Error('Webhook ID is required');
       }
 
-      await client.delete(`/api/v1/webhooks/${webhookId}`);
+      await client.delete(`/webhooks/${webhookId}`);
     },
 
     /**
@@ -127,7 +127,7 @@ export function createWebhooksApi(client: ApiClient) {
       }
 
       const response = await client.get<{ deliveries?: WebhookDelivery[] } | WebhookDelivery[]>(
-        `/api/v1/webhooks/${webhookId}/deliveries`
+        `/webhooks/${webhookId}/deliveries`
       );
       return Array.isArray(response) ? response : (response.deliveries ?? []);
     },
@@ -141,7 +141,7 @@ export function createWebhooksApi(client: ApiClient) {
       }
 
       return client.post<WebhookDelivery>(
-        `/api/v1/webhooks/${webhookId}/test`
+        `/webhooks/${webhookId}/test`
       );
     },
   };

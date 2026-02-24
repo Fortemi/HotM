@@ -4,7 +4,7 @@
  */
 
 import { getCachedConfig, getTauriFetch } from '@/lib/tauri';
-import { createApiClient } from './client';
+import { createApiClient, getServerRoot } from './client';
 import { createNotesApi } from './notes';
 import { createSearchApi } from './search';
 import { createTagsApi } from './tags';
@@ -248,8 +248,8 @@ function getApiBaseUrl(): string {
     return import.meta.env.VITE_API_BASE_URL as string;
   }
 
-  // Default to Fortemi server port
-  return 'http://localhost:3000';
+  // Default to Fortemi server port with API version prefix
+  return 'http://localhost:3000/api/v1';
 }
 
 /**
@@ -259,6 +259,7 @@ export function createApi(baseUrl?: string) {
   const url = baseUrl || getApiBaseUrl();
   const client = createApiClient(url);
   const normalizedBase = url.endsWith('/') ? url.slice(0, -1) : url;
+  const serverRoot = getServerRoot(normalizedBase);
 
   const normalizeHealthPayload = (raw: Record<string, unknown>) => {
     const statusValue = typeof raw.status === 'string'
@@ -312,15 +313,22 @@ export function createApi(baseUrl?: string) {
      * Quick health check endpoint (legacy)
      */
     async healthCheck() {
-      const endpoints = ['/health', '/health/live', '/api/v1/health', '/healthz'];
+      // Root-level health probes use the server root (not the API base URL).
+      // The API-level /health endpoint is accessed through the API base.
+      const probes = [
+        `${serverRoot}/health`,
+        `${serverRoot}/health/live`,
+        `${normalizedBase}/health`,
+        `${serverRoot}/healthz`,
+      ];
       let lastError: unknown;
 
       const httpFetch = getTauriFetch();
-      for (const endpoint of endpoints) {
+      for (const probeUrl of probes) {
         try {
-          const response = await httpFetch(`${normalizedBase}${endpoint}`);
+          const response = await httpFetch(probeUrl);
           if (!response.ok) {
-            throw new Error(`${endpoint} returned ${response.status}`);
+            throw new Error(`${probeUrl} returned ${response.status}`);
           }
 
           const rawBody = (await response.text()).trim();

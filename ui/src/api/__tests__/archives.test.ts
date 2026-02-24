@@ -34,7 +34,7 @@ describe('Archives API', () => {
 
     const result = await archivesApi.list();
 
-    expect(mockClient.get).toHaveBeenCalledWith('/api/v1/archives');
+    expect(mockClient.get).toHaveBeenCalledWith('/archives');
     expect(result).toEqual(mockResponse);
   });
 
@@ -43,7 +43,7 @@ describe('Archives API', () => {
 
     const result = await archivesApi.create({ name: 'projecte', description: 'test' });
 
-    expect(mockClient.post).toHaveBeenCalledWith('/api/v1/archives', {
+    expect(mockClient.post).toHaveBeenCalledWith('/archives', {
       name: 'projecte',
       description: 'test',
     });
@@ -55,7 +55,7 @@ describe('Archives API', () => {
 
     await archivesApi.clone('projecte', { new_name: 'projecte-copy' });
 
-    expect(mockClient.post).toHaveBeenCalledWith('/api/v1/archives/projecte/clone', {
+    expect(mockClient.post).toHaveBeenCalledWith('/archives/projecte/clone', {
       new_name: 'projecte-copy',
     });
   });
@@ -65,7 +65,7 @@ describe('Archives API', () => {
 
     await archivesApi.setDefault('projecte');
 
-    expect(mockClient.post).toHaveBeenCalledWith('/api/v1/archives/projecte/set-default');
+    expect(mockClient.post).toHaveBeenCalledWith('/archives/projecte/set-default');
   });
 
   it('updates selected active memory locally', () => {

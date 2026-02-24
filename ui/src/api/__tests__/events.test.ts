@@ -51,7 +51,7 @@ describe('events client replay handling', () => {
 
   it('reconnects with replay cursor query when event_id is known', () => {
     const handler = vi.fn();
-    const client = createEventsClient('http://localhost:3000');
+    const client = createEventsClient('http://localhost:3000/api/v1');
     client.subscribe(handler);
 
     const first = MockEventSource.instances[0];

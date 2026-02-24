@@ -47,7 +47,7 @@ export function createBackupApi(client: ApiClient) {
      * Export all notes and metadata as JSON
      */
     async exportBackup(): Promise<unknown> {
-      return client.get('/api/v1/backup/export');
+      return client.get('/backup/export');
     },
 
     /**
@@ -56,7 +56,7 @@ export function createBackupApi(client: ApiClient) {
      */
     async downloadBackup(): Promise<Blob> {
       const baseUrl = getBaseUrl();
-      const url = `${baseUrl}/api/v1/backup/download`;
+      const url = `${baseUrl}/backup/download`;
 
       const response = await getTauriFetch()(url, {
         headers: getMemoryHeaders(),
@@ -80,21 +80,21 @@ export function createBackupApi(client: ApiClient) {
       const text = await file.text();
       const parsed = JSON.parse(text);
       const backupPayload = parsed.backup ? parsed : { backup: parsed };
-      await client.post('/api/v1/backup/import', backupPayload);
+      await client.post('/backup/import', backupPayload);
     },
 
     /**
      * Manually trigger a backup job
      */
     async triggerBackup(): Promise<void> {
-      await client.post('/api/v1/backup/trigger');
+      await client.post('/backup/trigger');
     },
 
     /**
      * Get status of the most recent backup
      */
     async getBackupStatus(): Promise<BackupStatus> {
-      return client.get<BackupStatus>('/api/v1/backup/status');
+      return client.get<BackupStatus>('/backup/status');
     },
 
     // ===========================
@@ -120,7 +120,7 @@ export function createBackupApi(client: ApiClient) {
 
       const baseUrl = getBaseUrl();
       const queryString = new URLSearchParams(params).toString();
-      const url = `${baseUrl}/api/v1/backup/knowledge-shard${queryString ? `?${queryString}` : ''}`;
+      const url = `${baseUrl}/backup/knowledge-shard${queryString ? `?${queryString}` : ''}`;
 
       const response = await getTauriFetch()(url, {
         headers: getMemoryHeaders(),
@@ -142,7 +142,7 @@ export function createBackupApi(client: ApiClient) {
       }
 
       const shardBase64 = await fileToBase64(file);
-      await client.post('/api/v1/backup/knowledge-shard/import', {
+      await client.post('/backup/knowledge-shard/import', {
         shard_base64: shardBase64,
       });
     },
@@ -156,7 +156,7 @@ export function createBackupApi(client: ApiClient) {
      */
     async downloadDatabaseBackup(): Promise<Blob> {
       const baseUrl = getBaseUrl();
-      const url = `${baseUrl}/api/v1/backup/database`;
+      const url = `${baseUrl}/backup/database`;
 
       const response = await getTauriFetch()(url, {
         headers: getMemoryHeaders(),
@@ -177,7 +177,7 @@ export function createBackupApi(client: ApiClient) {
         throw new Error('Snapshot label is required');
       }
 
-      await client.post('/api/v1/backup/database/snapshot', request);
+      await client.post('/backup/database/snapshot', request);
     },
 
     /**
@@ -189,7 +189,7 @@ export function createBackupApi(client: ApiClient) {
       }
 
       const dataBase64 = await fileToBase64(file);
-      await client.post('/api/v1/backup/database/upload', {
+      await client.post('/backup/database/upload', {
         data_base64: dataBase64,
         original_filename: file.name,
       });
@@ -204,7 +204,7 @@ export function createBackupApi(client: ApiClient) {
         throw new Error('Backup filename is required');
       }
 
-      await client.post('/api/v1/backup/database/restore', request);
+      await client.post('/backup/database/restore', request);
     },
 
     /**
@@ -216,7 +216,7 @@ export function createBackupApi(client: ApiClient) {
       }
 
       const baseUrl = getBaseUrl();
-      const url = `${baseUrl}/api/v1/backup/memory/${encodeURIComponent(name)}`;
+      const url = `${baseUrl}/backup/memory/${encodeURIComponent(name)}`;
 
       const response = await getTauriFetch()(url, {
         headers: getMemoryHeaders(),
@@ -242,7 +242,7 @@ export function createBackupApi(client: ApiClient) {
       }
 
       const baseUrl = getBaseUrl();
-      const url = `${baseUrl}/api/v1/backup/knowledge-archive/${filename}`;
+      const url = `${baseUrl}/backup/knowledge-archive/${filename}`;
 
       const response = await getTauriFetch()(url);
 
@@ -265,7 +265,7 @@ export function createBackupApi(client: ApiClient) {
       formData.append('file', file);
 
       const baseUrl = getBaseUrl();
-      const url = `${baseUrl}/api/v1/backup/knowledge-archive`;
+      const url = `${baseUrl}/backup/knowledge-archive`;
 
       const response = await getTauriFetch()(url, {
         method: 'POST',
@@ -288,7 +288,7 @@ export function createBackupApi(client: ApiClient) {
      */
     async listBackups(): Promise<BackupInfo[]> {
       const response = await client.get<BackupListResponse | { shards?: BackupInfo[] }>(
-        '/api/v1/backup/list'
+        '/backup/list'
       );
 
       if ('backups' in response && Array.isArray(response.backups)) {
@@ -305,7 +305,7 @@ export function createBackupApi(client: ApiClient) {
         throw new Error('Backup filename is required');
       }
 
-      return client.get<BackupInfo>(`/api/v1/backup/list/${filename}`);
+      return client.get<BackupInfo>(`/backup/list/${filename}`);
     },
 
     /**
@@ -317,7 +317,7 @@ export function createBackupApi(client: ApiClient) {
         throw new Error('Backup filename is required');
       }
 
-      await client.post('/api/v1/backup/swap', request);
+      await client.post('/backup/swap', request);
     },
 
     // ===========================
@@ -333,7 +333,7 @@ export function createBackupApi(client: ApiClient) {
       }
 
       return client.get<BackupMetadata>(
-        `/api/v1/backup/metadata/${filename}`
+        `/backup/metadata/${filename}`
       );
     },
 
@@ -348,7 +348,7 @@ export function createBackupApi(client: ApiClient) {
         throw new Error('Backup filename is required');
       }
 
-      await client.put(`/api/v1/backup/metadata/${filename}`, metadata);
+      await client.put(`/backup/metadata/${filename}`, metadata);
     },
   };
 }

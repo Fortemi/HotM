@@ -23,7 +23,7 @@ vi.mock('tus-js-client', () => ({
 // Mock API singleton
 vi.mock('@/api', () => ({
   api: {
-    client: { baseUrl: 'https://api.example.com' },
+    client: { baseUrl: 'https://api.example.com/api/v1' },
     attachments: { uploadAttachment: vi.fn() },
   },
 }));

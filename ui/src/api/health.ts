@@ -26,7 +26,7 @@ export function createHealthApi(client: ApiClient) {
         archive && archive.trim().length > 0
           ? { [getMemoryRoutingHeaderName()]: archive, 'Cache-Control': 'no-cache' }
           : undefined;
-      const response = await client.get<Record<string, unknown>>('/api/v1/health/knowledge', undefined, headers);
+      const response = await client.get<Record<string, unknown>>('/health/knowledge', undefined, headers);
       const metrics =
         response.metrics && typeof response.metrics === 'object'
           ? (response.metrics as Record<string, unknown>)
@@ -89,7 +89,7 @@ export function createHealthApi(client: ApiClient) {
      */
     async getOrphanTags(): Promise<OrphanTag[]> {
       const response = await client.get<{ orphan_tags?: OrphanTag[] } | OrphanTag[]>(
-        '/api/v1/health/orphan-tags'
+        '/health/orphan-tags'
       );
       return Array.isArray(response) ? response : (response.orphan_tags ?? []);
     },
@@ -107,7 +107,7 @@ export function createHealthApi(client: ApiClient) {
       };
 
       const response = await client.get<{ stale_notes?: StaleNote[] } | StaleNote[]>(
-        '/api/v1/health/stale-notes',
+        '/health/stale-notes',
         params
       );
 
@@ -122,7 +122,7 @@ export function createHealthApi(client: ApiClient) {
         notes?: NoteSummary[];
         unlinked_notes?: NoteSummary[];
       }>(
-        '/api/v1/health/unlinked-notes'
+        '/health/unlinked-notes'
       );
 
       return response.unlinked_notes ?? response.notes ?? [];
@@ -145,7 +145,7 @@ export function createHealthApi(client: ApiClient) {
         pairs?: TagCooccurrenceResponse['pairs'];
         cooccurrence_pairs?: TagCooccurrenceResponse['pairs'];
       }>(
-        '/api/v1/health/tag-cooccurrence',
+        '/health/tag-cooccurrence',
         params
       );
       return {

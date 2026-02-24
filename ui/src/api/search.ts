@@ -85,7 +85,7 @@ export function createSearchApi(client: ApiClient) {
       }
 
       const response = await client.get<SearchResponse>(
-        '/api/v1/search',
+        '/search',
         params
       );
 
@@ -115,7 +115,7 @@ export function createSearchApi(client: ApiClient) {
 
       try {
         const response = await client.get<SearchResponse>(
-          `/api/v1/notes/${noteId}/similar`,
+          `/notes/${noteId}/similar`,
           params
         );
         return response.results;
@@ -124,7 +124,7 @@ export function createSearchApi(client: ApiClient) {
         const linksResp = await client.get<{
           outgoing?: Array<{ to_note_id: string; score?: number; snippet?: string }>;
           incoming?: Array<{ from_note_id: string; score?: number; snippet?: string }>;
-        }>(`/api/v1/notes/${noteId}/links`);
+        }>(`/notes/${noteId}/links`);
 
         const results: SearchResult[] = [];
         for (const edge of linksResp.outgoing ?? []) {
@@ -172,12 +172,12 @@ export function createSearchApi(client: ApiClient) {
 
       try {
         const response = await client.post<{ similar: SearchResult[] }>(
-          '/api/v1/semantic',
+          '/semantic',
           body
         );
         return response.similar;
       } catch {
-        const response = await client.get<SearchResponse>('/api/v1/search', {
+        const response = await client.get<SearchResponse>('/search', {
           q: text,
           mode: 'semantic',
           limit: String(limit),
@@ -202,7 +202,7 @@ export function createSearchApi(client: ApiClient) {
       };
 
       const response = await client.get<SearchResponse>(
-        '/api/v1/search',
+        '/search',
         params
       );
 
@@ -226,7 +226,7 @@ export function createSearchApi(client: ApiClient) {
       }
 
       const response = await client.post<FederatedSearchResponse>(
-        '/api/v1/search/federated',
+        '/search/federated',
         {
           q: query,
           memories,

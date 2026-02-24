@@ -26,7 +26,7 @@ export function createCollectionsApi(client: ApiClient) {
       }
 
       const response = await client.get<Collection[] | { collections: Collection[] }>(
-        '/api/v1/collections',
+        '/collections',
         params
       );
 
@@ -43,7 +43,7 @@ export function createCollectionsApi(client: ApiClient) {
         throw new Error('Collection name is required');
       }
 
-      return client.post<Collection>('/api/v1/collections', request);
+      return client.post<Collection>('/collections', request);
     },
 
     /**
@@ -55,7 +55,7 @@ export function createCollectionsApi(client: ApiClient) {
       }
 
       return client.get<CollectionWithNotes>(
-        `/api/v1/collections/${collectionId}`
+        `/collections/${collectionId}`
       );
     },
 
@@ -71,7 +71,7 @@ export function createCollectionsApi(client: ApiClient) {
       }
 
       return client.patch<Collection>(
-        `/api/v1/collections/${collectionId}`,
+        `/collections/${collectionId}`,
         updates
       );
     },
@@ -85,7 +85,7 @@ export function createCollectionsApi(client: ApiClient) {
         throw new Error('Collection ID is required');
       }
 
-      await client.delete(`/api/v1/collections/${collectionId}`);
+      await client.delete(`/collections/${collectionId}`);
     },
 
     /**
@@ -97,7 +97,7 @@ export function createCollectionsApi(client: ApiClient) {
       }
 
       const response = await client.get<NoteSummary[] | { notes: NoteSummary[] }>(
-        `/api/v1/collections/${collectionId}/notes`
+        `/collections/${collectionId}/notes`
       );
 
       return Array.isArray(response) ? response : (response?.notes ?? []);
@@ -115,7 +115,7 @@ export function createCollectionsApi(client: ApiClient) {
         throw new Error('Note ID is required');
       }
 
-      await client.post(`/api/v1/notes/${noteId}/move`, request);
+      await client.post(`/notes/${noteId}/move`, request);
     },
   };
 }

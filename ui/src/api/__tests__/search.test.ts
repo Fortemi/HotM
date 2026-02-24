@@ -36,7 +36,7 @@ describe('Search API', () => {
       const result = await searchApi.search('test query');
 
       expect(mockClient.get).toHaveBeenCalledWith(
-        '/api/v1/search',
+        '/search',
         expect.objectContaining({
           q: 'test query',
           mode: 'hybrid'
@@ -52,7 +52,7 @@ describe('Search API', () => {
       await searchApi.search('keywords', { mode: 'fts' });
 
       expect(mockClient.get).toHaveBeenCalledWith(
-        '/api/v1/search',
+        '/search',
         expect.objectContaining({
           q: 'keywords',
           mode: 'fts'
@@ -67,7 +67,7 @@ describe('Search API', () => {
       await searchApi.search('meaning of life', { mode: 'semantic' });
 
       expect(mockClient.get).toHaveBeenCalledWith(
-        '/api/v1/search',
+        '/search',
         expect.objectContaining({
           q: 'meaning of life',
           mode: 'semantic'
@@ -84,7 +84,7 @@ describe('Search API', () => {
       });
 
       expect(mockClient.get).toHaveBeenCalledWith(
-        '/api/v1/search',
+        '/search',
         expect.objectContaining({
           tags: 'work,important'
         })
@@ -101,7 +101,7 @@ describe('Search API', () => {
       });
 
       expect(mockClient.get).toHaveBeenCalledWith(
-        '/api/v1/search',
+        '/search',
         expect.objectContaining({
           starred: 'true',
           archived: 'false'
@@ -119,7 +119,7 @@ describe('Search API', () => {
       });
 
       expect(mockClient.get).toHaveBeenCalledWith(
-        '/api/v1/search',
+        '/search',
         expect.objectContaining({
           limit: '20',
           offset: '10'
@@ -158,7 +158,7 @@ describe('Search API', () => {
       const result = await searchApi.findSimilar('123');
 
       expect(mockClient.get).toHaveBeenCalledWith(
-        '/api/v1/notes/123/similar',
+        '/notes/123/similar',
         expect.objectContaining({
           limit: '10'
         })
@@ -173,7 +173,7 @@ describe('Search API', () => {
       await searchApi.findSimilar('123', { limit: 5 });
 
       expect(mockClient.get).toHaveBeenCalledWith(
-        '/api/v1/notes/123/similar',
+        '/notes/123/similar',
         expect.objectContaining({
           limit: '5'
         })
@@ -187,7 +187,7 @@ describe('Search API', () => {
       await searchApi.findSimilar('123', { threshold: 0.7 });
 
       expect(mockClient.get).toHaveBeenCalledWith(
-        '/api/v1/notes/123/similar',
+        '/notes/123/similar',
         expect.objectContaining({
           threshold: '0.7'
         })
@@ -219,7 +219,7 @@ describe('Search API', () => {
       const result = await searchApi.searchByTags(['work']);
 
       expect(mockClient.get).toHaveBeenCalledWith(
-        '/api/v1/search',
+        '/search',
         expect.objectContaining({
           q: '',
           mode: 'hybrid',
@@ -236,7 +236,7 @@ describe('Search API', () => {
       await searchApi.searchByTags(['work', 'important', 'urgent']);
 
       expect(mockClient.get).toHaveBeenCalledWith(
-        '/api/v1/search',
+        '/search',
         expect.objectContaining({
           tags: 'work,important,urgent'
         })
@@ -270,7 +270,7 @@ describe('Search API', () => {
 
       const result = await searchApi.federatedSearch('test', ['projecte'], 25);
 
-      expect(mockClient.post).toHaveBeenCalledWith('/api/v1/search/federated', {
+      expect(mockClient.post).toHaveBeenCalledWith('/search/federated', {
         q: 'test',
         memories: ['projecte'],
         limit: 25
@@ -288,7 +288,7 @@ describe('Search API', () => {
 
       await searchApi.federatedSearch('test', ['all']);
 
-      expect(mockClient.post).toHaveBeenCalledWith('/api/v1/search/federated', {
+      expect(mockClient.post).toHaveBeenCalledWith('/search/federated', {
         q: 'test',
         memories: ['all'],
         limit: 10

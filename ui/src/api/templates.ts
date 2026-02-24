@@ -18,7 +18,7 @@ export function createTemplatesApi(client: ApiClient) {
      */
     async list(): Promise<Template[]> {
       const response = await client.get<Template[] | { templates: Template[] }>(
-        '/api/v1/templates'
+        '/templates'
       );
       return Array.isArray(response) ? response : (response?.templates ?? []);
     },
@@ -35,7 +35,7 @@ export function createTemplatesApi(client: ApiClient) {
         throw new Error('Template content is required');
       }
 
-      return client.post<Template>('/api/v1/templates', request);
+      return client.post<Template>('/templates', request);
     },
 
     /**
@@ -46,7 +46,7 @@ export function createTemplatesApi(client: ApiClient) {
         throw new Error('Template ID is required');
       }
 
-      return client.get<Template>(`/api/v1/templates/${templateId}`);
+      return client.get<Template>(`/templates/${templateId}`);
     },
 
     /**
@@ -61,7 +61,7 @@ export function createTemplatesApi(client: ApiClient) {
       }
 
       return client.patch<Template>(
-        `/api/v1/templates/${templateId}`,
+        `/templates/${templateId}`,
         updates
       );
     },
@@ -74,7 +74,7 @@ export function createTemplatesApi(client: ApiClient) {
         throw new Error('Template ID is required');
       }
 
-      await client.delete(`/api/v1/templates/${templateId}`);
+      await client.delete(`/templates/${templateId}`);
     },
 
     /**
@@ -94,7 +94,7 @@ export function createTemplatesApi(client: ApiClient) {
       }
 
       return client.post<CreateNoteResponse>(
-        `/api/v1/templates/${templateId}/instantiate`,
+        `/templates/${templateId}/instantiate`,
         request
       );
     },

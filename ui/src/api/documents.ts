@@ -26,7 +26,7 @@ export function createDocumentsApi(client: ApiClient) {
       }
 
       const response = await client.get<DocumentTypeListResponse | DocumentType[]>(
-        '/api/v1/document-types',
+        '/document-types',
         params
       );
 
@@ -41,7 +41,7 @@ export function createDocumentsApi(client: ApiClient) {
         throw new Error('Document type name is required');
       }
 
-      return client.get<DocumentType>(`/api/v1/document-types/${name}`);
+      return client.get<DocumentType>(`/document-types/${name}`);
     },
 
     /**
@@ -66,7 +66,7 @@ export function createDocumentsApi(client: ApiClient) {
         throw new Error('Chunking strategy is required');
       }
 
-      return client.post<DocumentType>('/api/v1/document-types', request);
+      return client.post<DocumentType>('/document-types', request);
     },
 
     /**
@@ -82,7 +82,7 @@ export function createDocumentsApi(client: ApiClient) {
       }
 
       return client.patch<DocumentType>(
-        `/api/v1/document-types/${name}`,
+        `/document-types/${name}`,
         updates
       );
     },
@@ -96,7 +96,7 @@ export function createDocumentsApi(client: ApiClient) {
         throw new Error('Document type name is required');
       }
 
-      await client.delete(`/api/v1/document-types/${name}`);
+      await client.delete(`/document-types/${name}`);
     },
 
     /**
@@ -110,7 +110,7 @@ export function createDocumentsApi(client: ApiClient) {
       }
 
       return client.post<DetectionResult>(
-        '/api/v1/document-types/detect',
+        '/document-types/detect',
         request
       );
     },

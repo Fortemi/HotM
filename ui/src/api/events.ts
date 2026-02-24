@@ -1,6 +1,6 @@
 /**
  * SSE Events API client
- * Connects to Fortemi's /api/v1/events endpoint for real-time event streaming
+ * Connects to Fortemi's events endpoint for real-time event streaming
  * Complements the WebSocket connection with unidirectional server-sent events
  *
  * In Tauri desktop mode, uses fetch-based streaming via the HTTP plugin
@@ -96,14 +96,8 @@ export function createEventsClient(baseUrl: string, options: EventsClientOptions
   const typePrefixes = options.typePrefixes ?? [...DEFAULT_SSE_TYPE_PREFIXES];
 
   function getEventsUrl(): string {
-    const fallbackOrigin =
-      typeof window !== 'undefined' ? window.location.origin : 'http://localhost';
-    const parsedBase = new URL(baseUrl, fallbackOrigin);
-    const normalizedPath = parsedBase.pathname.replace(/\/+$/, '');
-    const eventsPath = normalizedPath.endsWith('/api/v1')
-      ? `${normalizedPath}/events`
-      : '/api/v1/events';
-    const url = new URL(`${parsedBase.origin}${eventsPath}`);
+    const normalizedBase = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl;
+    const url = new URL(`${normalizedBase}/events`);
     if (lastEventId) {
       url.searchParams.set('last_event_id', lastEventId);
     }

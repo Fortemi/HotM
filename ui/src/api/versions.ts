@@ -22,7 +22,7 @@ export function createVersionsApi(client: ApiClient) {
       }
 
       const response = await client.get<VersionListResponse>(
-        `/api/v1/notes/${noteId}/versions`
+        `/notes/${noteId}/versions`
       );
 
       return response.versions;
@@ -44,7 +44,7 @@ export function createVersionsApi(client: ApiClient) {
       }
 
       return client.get<VersionContentResponse>(
-        `/api/v1/notes/${noteId}/versions/${version}`
+        `/notes/${noteId}/versions/${version}`
       );
     },
 
@@ -62,7 +62,7 @@ export function createVersionsApi(client: ApiClient) {
       }
 
       await client.post(
-        `/api/v1/notes/${noteId}/versions/${version}/restore`
+        `/notes/${noteId}/versions/${version}/restore`
       );
     },
 
@@ -79,7 +79,7 @@ export function createVersionsApi(client: ApiClient) {
         throw new Error('Version must be greater than 0');
       }
 
-      await client.delete(`/api/v1/notes/${noteId}/versions/${version}`);
+      await client.delete(`/notes/${noteId}/versions/${version}`);
     },
 
     /**
@@ -108,7 +108,7 @@ export function createVersionsApi(client: ApiClient) {
       };
 
       return client.get<VersionDiff>(
-        `/api/v1/notes/${noteId}/versions/diff`,
+        `/notes/${noteId}/versions/diff`,
         params
       );
     },

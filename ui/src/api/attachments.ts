@@ -86,7 +86,7 @@ export function createAttachmentsApi(client: ApiClient) {
       }
 
       const baseUrl = getBaseUrl();
-      const url = `${baseUrl}/api/v1/notes/${noteId}/attachments/upload`;
+      const url = `${baseUrl}/notes/${noteId}/attachments/upload`;
 
       const response = await getTauriFetch()(url, {
         method: 'POST',
@@ -114,7 +114,7 @@ export function createAttachmentsApi(client: ApiClient) {
       }
 
       const response = await client.get<AttachmentListResponse | Attachment[]>(
-        `/api/v1/notes/${noteId}/attachments`
+        `/notes/${noteId}/attachments`
       );
 
       return Array.isArray(response) ? response : response.attachments;
@@ -139,7 +139,7 @@ export function createAttachmentsApi(client: ApiClient) {
       if (params?.sort) queryParams.sort = params.sort;
 
       const response = await client.get<{ attachments: Attachment[]; total: number } | Attachment[]>(
-        '/api/v1/attachments',
+        '/attachments',
         queryParams
       );
 
@@ -160,7 +160,7 @@ export function createAttachmentsApi(client: ApiClient) {
 
       // Use fetch directly to handle binary response
       const baseUrl = getBaseUrl();
-      let url = `${baseUrl}/api/v1/attachments/${attachmentId}/download`;
+      let url = `${baseUrl}/attachments/${attachmentId}/download`;
       if (variant) {
         url += `?variant=${encodeURIComponent(variant)}`;
       }
@@ -189,7 +189,7 @@ export function createAttachmentsApi(client: ApiClient) {
       }
 
       const baseUrl = getBaseUrl();
-      const base = `${baseUrl}/api/v1/attachments/${attachmentId}/download`;
+      const base = `${baseUrl}/attachments/${attachmentId}/download`;
       return variant ? `${base}?variant=${encodeURIComponent(variant)}` : base;
     },
 
@@ -202,7 +202,7 @@ export function createAttachmentsApi(client: ApiClient) {
         throw new Error('Attachment ID is required');
       }
 
-      const attachment = await client.get<Attachment>(`/api/v1/attachments/${attachmentId}`);
+      const attachment = await client.get<Attachment>(`/attachments/${attachmentId}`);
       return {
         id: attachment.id,
         filename: attachment.filename,
@@ -228,7 +228,7 @@ export function createAttachmentsApi(client: ApiClient) {
       }
 
       const baseUrl = getBaseUrl();
-      return `${baseUrl}/api/v1/attachments/${attachmentId}/thumbnail`;
+      return `${baseUrl}/attachments/${attachmentId}/thumbnail`;
     },
 
     /**
@@ -240,7 +240,7 @@ export function createAttachmentsApi(client: ApiClient) {
       }
 
       const baseUrl = getBaseUrl();
-      return `${baseUrl}/api/v1/attachments/${attachmentId}/subtitles?format=${format}`;
+      return `${baseUrl}/attachments/${attachmentId}/subtitles?format=${format}`;
     },
 
     /**
@@ -253,7 +253,7 @@ export function createAttachmentsApi(client: ApiClient) {
       }
 
       const baseUrl = getBaseUrl();
-      return `${baseUrl}/api/v1/attachments/${attachmentId}/thumbnails.vtt`;
+      return `${baseUrl}/attachments/${attachmentId}/thumbnails.vtt`;
     },
 
     /**
@@ -265,7 +265,7 @@ export function createAttachmentsApi(client: ApiClient) {
       }
 
       const baseUrl = getBaseUrl();
-      return `${baseUrl}/api/v1/attachments/${attachmentId}/sprites/${index}.jpg`;
+      return `${baseUrl}/attachments/${attachmentId}/sprites/${index}.jpg`;
     },
 
     /**
@@ -276,7 +276,7 @@ export function createAttachmentsApi(client: ApiClient) {
         throw new Error('Attachment ID is required');
       }
 
-      await client.delete(`/api/v1/attachments/${attachmentId}`);
+      await client.delete(`/attachments/${attachmentId}`);
     },
   };
 }

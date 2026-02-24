@@ -23,7 +23,7 @@ describe('Attachments API', () => {
   beforeEach(() => {
     mockFetch.mockClear();
     mockClient = {
-      baseUrl: 'http://localhost:3000',
+      baseUrl: 'http://localhost:3000/api/v1',
       get: vi.fn(),
       post: vi.fn(),
       patch: vi.fn(),

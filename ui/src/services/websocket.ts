@@ -147,11 +147,8 @@ class WebSocketService {
     const wsProtocol = parsed.protocol === 'https:' ? 'wss' : 'ws';
 
     const normalizedPath = parsed.pathname.replace(/\/+$/, '');
-    const wsPath = normalizedPath.endsWith('/api/v1')
-      ? `${normalizedPath}/ws`
-      : '/api/v1/ws';
 
-    return `${wsProtocol}://${parsed.host}${wsPath}`;
+    return `${wsProtocol}://${parsed.host}${normalizedPath}/ws`;
   }
 
   private broadcastMessage(message: WsMessage): void {

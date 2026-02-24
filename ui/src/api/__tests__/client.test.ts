@@ -68,7 +68,7 @@ describe('API Client', () => {
       );
     });
 
-    it('adds memory routing header for API v1 paths when memory is selected', async () => {
+    it('adds memory routing header when memory is selected', async () => {
       setActiveMemory('projecte');
       mockFetch.mockResolvedValueOnce({
         ok: true,
@@ -76,7 +76,8 @@ describe('API Client', () => {
         json: () => Promise.resolve({})
       });
 
-      await client.get('/api/v1/notes');
+      const clientWithApiV1 = createApiClient('http://localhost:3000/api/v1');
+      await clientWithApiV1.get('/notes');
 
       expect(mockFetch).toHaveBeenCalledWith(
         'http://localhost:3000/api/v1/notes',
@@ -88,7 +89,7 @@ describe('API Client', () => {
       );
     });
 
-    it('does not add memory routing header for non-API v1 paths', async () => {
+    it('adds memory routing header for all paths when memory is selected', async () => {
       setActiveMemory('projecte');
       mockFetch.mockResolvedValueOnce({
         ok: true,
@@ -101,8 +102,8 @@ describe('API Client', () => {
       expect(mockFetch).toHaveBeenCalledWith(
         'http://localhost:3000/health',
         expect.objectContaining({
-          headers: expect.not.objectContaining({
-            'X-Fortemi-Memory': expect.any(String)
+          headers: expect.objectContaining({
+            'X-Fortemi-Memory': 'projecte'
           })
         })
       );

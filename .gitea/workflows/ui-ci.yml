@@ -29,7 +29,7 @@ env:
   GITEA_REGISTRY: git.integrolabs.net
   GHCR_REGISTRY: ghcr.io
   IMAGE_NAME: fortemi/hotm-ui
-  FORTEMI_API_URL: http://localhost:3000
+  FORTEMI_API_URL: http://localhost:3000/api/v1
 
 jobs:
   # ─── Always: Quality Gate ──────────────────────────────────────────

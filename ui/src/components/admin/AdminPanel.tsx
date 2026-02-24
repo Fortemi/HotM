@@ -67,7 +67,7 @@ export function AdminPanel({ className }: AdminPanelProps) {
     setError(null);
     try {
       const [healthData, knowledgeData] = await Promise.all([
-        api.client.get<SystemHealth>('/api/v1/health'),
+        api.client.get<SystemHealth>('/health'),
         api.health.getKnowledgeHealth(),
       ]);
       setSystemHealth(healthData);

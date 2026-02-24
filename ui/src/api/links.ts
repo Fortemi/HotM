@@ -37,7 +37,7 @@ export function createLinksApi(client: ApiClient) {
         throw new Error('Note ID is required');
       }
 
-      return client.get<NoteLinksResponse>(`/api/v1/notes/${noteId}/links`);
+      return client.get<NoteLinksResponse>(`/notes/${noteId}/links`);
     },
 
     /**
@@ -56,7 +56,7 @@ export function createLinksApi(client: ApiClient) {
       }
 
       return client.post<CreateLinkResponse>(
-        `/api/v1/notes/${noteId}/links`,
+        `/notes/${noteId}/links`,
         request
       );
     },
@@ -73,7 +73,7 @@ export function createLinksApi(client: ApiClient) {
         throw new Error('Link ID is required');
       }
 
-      await client.delete(`/api/v1/notes/${noteId}/links/${linkId}`);
+      await client.delete(`/notes/${noteId}/links/${linkId}`);
     },
 
     /**
@@ -85,7 +85,7 @@ export function createLinksApi(client: ApiClient) {
       }
 
       const response = await client.get<{ backlinks: NoteLinksResponse['incoming'] }>(
-        `/api/v1/notes/${noteId}/backlinks`
+        `/notes/${noteId}/backlinks`
       );
 
       return response.backlinks;
@@ -149,7 +149,7 @@ export function createLinksApi(client: ApiClient) {
       }
 
       return client.get<GraphExploreResponse>(
-        `/api/v1/graph/${noteId}`,
+        `/graph/${noteId}`,
         params
       );
     },

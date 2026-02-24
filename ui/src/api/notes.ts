@@ -53,7 +53,7 @@ export function createNotesApi(client: ApiClient) {
       }
 
       const response = await client.get<{ notes: NoteSummary[]; total: number }>(
-        '/api/v1/notes',
+        '/notes',
         params
       );
 
@@ -68,7 +68,7 @@ export function createNotesApi(client: ApiClient) {
         throw new Error('Note ID is required');
       }
 
-      return client.get<NoteFull>(`/api/v1/notes/${noteId}`);
+      return client.get<NoteFull>(`/notes/${noteId}`);
     },
 
     /**
@@ -93,7 +93,7 @@ export function createNotesApi(client: ApiClient) {
 
       // Fortemi returns { id } but callers expect { note_id }
       const raw = await client.post<{ id?: string; note_id?: string; status?: string }>(
-        '/api/v1/notes',
+        '/notes',
         payload,
       );
       return {
@@ -113,7 +113,7 @@ export function createNotesApi(client: ApiClient) {
         throw new Error('Note ID is required');
       }
 
-      return client.patch(`/api/v1/notes/${noteId}`, request);
+      return client.patch(`/notes/${noteId}`, request);
     },
 
     /**
@@ -124,7 +124,7 @@ export function createNotesApi(client: ApiClient) {
         throw new Error('Note ID is required');
       }
 
-      await client.delete(`/api/v1/notes/${noteId}`);
+      await client.delete(`/notes/${noteId}`);
     },
 
     /**
@@ -136,7 +136,7 @@ export function createNotesApi(client: ApiClient) {
       }
 
       const response = await client.get<{ tags?: string[] } | string[]>(
-        `/api/v1/notes/${noteId}/tags`
+        `/notes/${noteId}/tags`
       );
 
       return Array.isArray(response) ? response : (response?.tags ?? []);
@@ -168,7 +168,7 @@ export function createNotesApi(client: ApiClient) {
       // Prefer legacy add/remove endpoint when available.
       try {
         const response = await client.patch<{ tags?: string[] } | string[]>(
-          `/api/v1/notes/${noteId}/tags`,
+          `/notes/${noteId}/tags`,
           payload
         );
         return Array.isArray(response) ? response : (response?.tags ?? []);
@@ -185,7 +185,7 @@ export function createNotesApi(client: ApiClient) {
 
         const updatedTags = Array.from(nextTags);
         const response = await client.put<{ tags?: string[] } | string[] | null>(
-          `/api/v1/notes/${noteId}/tags`,
+          `/notes/${noteId}/tags`,
           { tags: updatedTags }
         );
 

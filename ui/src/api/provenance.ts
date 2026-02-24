@@ -19,7 +19,7 @@ export function createProvenanceApi(client: ApiClient) {
       }
 
       return client.get<ProvenanceResponse>(
-        `/api/v1/notes/${noteId}/provenance`
+        `/notes/${noteId}/provenance`
       );
     },
   };

@@ -4,7 +4,7 @@
  * This bridges ui/src/services/api.ts with ui/src/api/
  */
 
-import { createApiClient } from './client';
+import { createApiClient, getServerRoot } from './client';
 import { getCachedConfig, getTauriFetch } from '@/lib/tauri';
 import { createNotesApi } from './notes';
 import { createSearchApi } from './search';
@@ -65,8 +65,8 @@ function getApiBaseUrl(): string {
   if (import.meta.env.VITE_API_BASE_URL) {
     return import.meta.env.VITE_API_BASE_URL as string;
   }
-  // Fortemi API default
-  return 'http://localhost:3000';
+  // Fortemi API default with API version prefix
+  return 'http://localhost:3000/api/v1';
 }
 
 /**
@@ -81,9 +81,12 @@ class CompatApiClient {
   private tags: ReturnType<typeof createTagsApi>;
   private extended: ReturnType<typeof createExtendedApi>;
 
+  private serverRoot: string;
+
   constructor() {
     const baseUrl = getApiBaseUrl();
     this.baseUrl = baseUrl;
+    this.serverRoot = getServerRoot(baseUrl);
     this.client = createApiClient(baseUrl);
     this.notes = createNotesApi(this.client);
     this.search = createSearchApi(this.client);
@@ -108,25 +111,27 @@ class CompatApiClient {
     return { ok, db, ollama, vector };
   }
 
-  private async fetchHealth(endpoint: string): Promise<Record<string, unknown>> {
-    const normalizedBase = this.baseUrl.endsWith('/')
-      ? this.baseUrl.slice(0, -1)
-      : this.baseUrl;
-    const normalizedPath = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
-    const response = await getTauriFetch()(`${normalizedBase}${normalizedPath}`);
+  private async fetchHealth(url: string): Promise<Record<string, unknown>> {
+    const response = await getTauriFetch()(url);
     if (!response.ok) {
-      throw new Error(`Health endpoint ${endpoint} returned ${response.status}`);
+      throw new Error(`Health endpoint ${url} returned ${response.status}`);
     }
     return response.json() as Promise<Record<string, unknown>>;
   }
 
   async checkHealth(): Promise<HealthResponse> {
     let lastError: unknown;
-    const endpoints = ['/health/live', '/health', '/api/v1/health'];
+    const normalizedBase = this.baseUrl.endsWith('/') ? this.baseUrl.slice(0, -1) : this.baseUrl;
+    // Root-level probes use server root; API-level probe uses API base URL.
+    const probeUrls = [
+      `${this.serverRoot}/health/live`,
+      `${this.serverRoot}/health`,
+      `${normalizedBase}/health`,
+    ];
 
-    for (const endpoint of endpoints) {
+    for (const url of probeUrls) {
       try {
-        const response = await this.fetchHealth(endpoint);
+        const response = await this.fetchHealth(url);
         return this.normalizeHealthResponse(response);
       } catch (error) {
         lastError = error;
@@ -135,7 +140,7 @@ class CompatApiClient {
 
     try {
       // Legacy final fallback
-      const response = await this.fetchHealth('/healthz');
+      const response = await this.fetchHealth(`${this.serverRoot}/healthz`);
       return this.normalizeHealthResponse(response);
     } catch (error) {
       console.error('Health check failed:', lastError || error);

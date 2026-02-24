@@ -59,23 +59,23 @@ export function createJobsApi(client: ApiClient) {
 
   return {
     async getPauseStatus(): Promise<JobPauseState> {
-      return client.get<JobPauseState>('/api/v1/jobs/status');
+      return client.get<JobPauseState>('/jobs/status');
     },
 
     async pauseGlobal(): Promise<JobPauseActionResponse> {
-      return client.post<JobPauseActionResponse>('/api/v1/jobs/pause');
+      return client.post<JobPauseActionResponse>('/jobs/pause');
     },
 
     async resumeGlobal(): Promise<JobPauseActionResponse> {
-      return client.post<JobPauseActionResponse>('/api/v1/jobs/resume');
+      return client.post<JobPauseActionResponse>('/jobs/resume');
     },
 
     async pauseArchive(archive: string): Promise<JobPauseActionResponse> {
-      return client.post<JobPauseActionResponse>(`/api/v1/jobs/pause/${encodeURIComponent(archive)}`);
+      return client.post<JobPauseActionResponse>(`/jobs/pause/${encodeURIComponent(archive)}`);
     },
 
     async resumeArchive(archive: string): Promise<JobPauseActionResponse> {
-      return client.post<JobPauseActionResponse>(`/api/v1/jobs/resume/${encodeURIComponent(archive)}`);
+      return client.post<JobPauseActionResponse>(`/jobs/resume/${encodeURIComponent(archive)}`);
     },
 
     async listJobs(params?: {
@@ -91,7 +91,7 @@ export function createJobsApi(client: ApiClient) {
       if (params?.archive) query.archive = params.archive;
       const headers: Record<string, string> = {};
       if (params?.archive) headers[memoryHeader] = params.archive;
-      const resp = await client.get<JobListResponse>('/api/v1/jobs', query, headers);
+      const resp = await client.get<JobListResponse>('/jobs', query, headers);
       return {
         jobs: Array.isArray(resp.jobs) ? resp.jobs as JobListItem[] : [],
         total: resp.total ?? 0,
@@ -99,12 +99,12 @@ export function createJobsApi(client: ApiClient) {
     },
 
     async getQueueStats(): Promise<JobQueueStats> {
-      return client.get<JobQueueStats>('/api/v1/jobs/stats');
+      return client.get<JobQueueStats>('/jobs/stats');
     },
 
     async getQueueStatsForArchive(archive: string): Promise<JobQueueStats> {
       return client.get<JobQueueStats>(
-        '/api/v1/jobs/stats',
+        '/jobs/stats',
         { archive },
         { [memoryHeader]: archive, 'Cache-Control': 'no-cache' }
       );
@@ -112,7 +112,7 @@ export function createJobsApi(client: ApiClient) {
 
     async getArchiveJobCounts(archive: string): Promise<JobQueueStats> {
       const response = await client.get<JobListResponse>(
-        '/api/v1/jobs',
+        '/jobs',
         {
           limit: '500',
           offset: '0',

@@ -38,7 +38,7 @@ export function createTagsApi(client: ApiClient) {
       notes?: Array<{ id: string; tags?: string[] }>;
       total?: number;
     }>(
-      '/api/v1/notes',
+      '/notes',
       { tags: tag, limit: '1000', sort_by: 'updated_at', sort_order: 'desc' }
     );
     return response.notes ?? [];
@@ -62,7 +62,7 @@ export function createTagsApi(client: ApiClient) {
       }
 
       const response = await client.get<Tag[] | TagListResponse>(
-        '/api/v1/tags',
+        '/tags',
         Object.keys(params).length > 0 ? params : undefined
       );
 
@@ -94,7 +94,7 @@ export function createTagsApi(client: ApiClient) {
       }
 
       try {
-        return await client.post<{ name: string }>('/api/v1/tags', {
+        return await client.post<{ name: string }>('/tags', {
           name: trimmedName,
         });
       } catch {
@@ -119,7 +119,7 @@ export function createTagsApi(client: ApiClient) {
       }
 
       try {
-        return await client.patch<{ name: string }>(`/api/v1/tags/${trimmedOldName}`, {
+        return await client.patch<{ name: string }>(`/tags/${trimmedOldName}`, {
           new_name: trimmedNewName,
         });
       } catch {
@@ -132,7 +132,7 @@ export function createTagsApi(client: ApiClient) {
           }
           existing.delete(trimmedOldName);
           existing.add(trimmedNewName);
-          await client.put(`/api/v1/notes/${note.id}/tags`, {
+          await client.put(`/notes/${note.id}/tags`, {
             tags: Array.from(existing),
           });
         }
@@ -151,13 +151,13 @@ export function createTagsApi(client: ApiClient) {
       }
 
       try {
-        await client.delete(`/api/v1/tags/${trimmedName}`);
+        await client.delete(`/tags/${trimmedName}`);
       } catch {
         // Fallback: remove tag from all notes.
         const notes = await listNotesByTag(trimmedName);
         for (const note of notes) {
           const nextTags = (note.tags ?? []).filter((tag) => tag !== trimmedName);
-          await client.put(`/api/v1/notes/${note.id}/tags`, {
+          await client.put(`/notes/${note.id}/tags`, {
             tags: nextTags,
           });
         }
@@ -169,7 +169,7 @@ export function createTagsApi(client: ApiClient) {
      */
     async getStats(): Promise<TagStats> {
       try {
-        const stats = await client.get<TagStats>('/api/v1/tags/stats');
+        const stats = await client.get<TagStats>('/tags/stats');
         return {
           ...stats,
           stats_available: true,
@@ -178,7 +178,7 @@ export function createTagsApi(client: ApiClient) {
         // Endpoint may not exist; return partial stats from tag list and
         // mark fields that cannot be computed from this payload.
         const response = await client.get<Tag[] | TagListResponse>(
-          '/api/v1/tags'
+          '/tags'
         );
         const tags = normalizeTagsResponse(response);
         const totalTaggedNotes = tags.reduce((sum, t) => sum + t.count, 0);

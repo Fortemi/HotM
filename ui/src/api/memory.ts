@@ -78,7 +78,7 @@ export function createMemoryApi(client: ApiClient) {
       }
 
       const response = await client.get<unknown>(
-        '/api/v1/memories/search',
+        '/memories/search',
         params
       );
 
@@ -108,7 +108,7 @@ export function createMemoryApi(client: ApiClient) {
       }
 
       const response = await client.get<unknown>(
-        '/api/v1/memories/search',
+        '/memories/search',
         params
       );
 
@@ -149,7 +149,7 @@ export function createMemoryApi(client: ApiClient) {
       }
 
       const response = await client.get<unknown>(
-        '/api/v1/memories/search',
+        '/memories/search',
         params
       );
 
@@ -166,7 +166,7 @@ export function createMemoryApi(client: ApiClient) {
       }
 
       return client.get<Record<string, unknown>>(
-        `/api/v1/notes/${noteId}/memory-provenance`
+        `/notes/${noteId}/memory-provenance`
       );
     },
   };

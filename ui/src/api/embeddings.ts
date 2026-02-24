@@ -102,15 +102,15 @@ function parseDefaultEmbeddingConfig(input: unknown): EmbeddingConfig | null {
 
 export function createEmbeddingsApi(client: ApiClient) {
   const listConfigPaths = [
-    '/api/v1/embedding-configs',
-    '/api/v1/inference/embedding-configs',
-    '/api/v1/inference/embeddings',
+    '/embedding-configs',
+    '/inference/embedding-configs',
+    '/inference/embeddings',
   ];
 
   const defaultConfigPaths = [
-    '/api/v1/embedding-configs/default',
-    '/api/v1/inference/embedding-configs/default',
-    '/api/v1/inference/embeddings/default',
+    '/embedding-configs/default',
+    '/inference/embedding-configs/default',
+    '/inference/embeddings/default',
   ];
 
   return {
@@ -122,7 +122,7 @@ export function createEmbeddingsApi(client: ApiClient) {
      * List all embedding sets
      */
     async listSets(): Promise<EmbeddingSet[]> {
-      const response = await client.get<unknown>('/api/v1/embedding-sets');
+      const response = await client.get<unknown>('/embedding-sets');
       const raw = Array.isArray(response)
         ? response
         : (response as Record<string, unknown>)?.embedding_sets ?? [];
@@ -160,7 +160,7 @@ export function createEmbeddingsApi(client: ApiClient) {
         throw new Error('Embedding config ID is required');
       }
 
-      return client.post<EmbeddingSet>('/api/v1/embedding-sets', request);
+      return client.post<EmbeddingSet>('/embedding-sets', request);
     },
 
     /**
@@ -171,7 +171,7 @@ export function createEmbeddingsApi(client: ApiClient) {
         throw new Error('Embedding set slug is required');
       }
 
-      return client.get<EmbeddingSet>(`/api/v1/embedding-sets/${slug}`);
+      return client.get<EmbeddingSet>(`/embedding-sets/${slug}`);
     },
 
     /**
@@ -186,7 +186,7 @@ export function createEmbeddingsApi(client: ApiClient) {
       }
 
       return client.patch<EmbeddingSet>(
-        `/api/v1/embedding-sets/${slug}`,
+        `/embedding-sets/${slug}`,
         updates
       );
     },
@@ -199,7 +199,7 @@ export function createEmbeddingsApi(client: ApiClient) {
         throw new Error('Embedding set slug is required');
       }
 
-      await client.delete(`/api/v1/embedding-sets/${slug}`);
+      await client.delete(`/embedding-sets/${slug}`);
     },
 
     /**
@@ -211,7 +211,7 @@ export function createEmbeddingsApi(client: ApiClient) {
       }
 
       const response = await client.get<{ notes: NoteSummary[] }>(
-        `/api/v1/embedding-sets/${slug}/members`
+        `/embedding-sets/${slug}/members`
       );
 
       return response.notes;
@@ -232,7 +232,7 @@ export function createEmbeddingsApi(client: ApiClient) {
         throw new Error('At least one note ID is required');
       }
 
-      await client.post(`/api/v1/embedding-sets/${slug}/members`, request);
+      await client.post(`/embedding-sets/${slug}/members`, request);
     },
 
     /**
@@ -247,7 +247,7 @@ export function createEmbeddingsApi(client: ApiClient) {
         throw new Error('Note ID is required');
       }
 
-      await client.delete(`/api/v1/embedding-sets/${slug}/members/${noteId}`);
+      await client.delete(`/embedding-sets/${slug}/members/${noteId}`);
     },
 
     /**
@@ -259,7 +259,7 @@ export function createEmbeddingsApi(client: ApiClient) {
         throw new Error('Embedding set slug is required');
       }
 
-      await client.post(`/api/v1/embedding-sets/${slug}/refresh`);
+      await client.post(`/embedding-sets/${slug}/refresh`);
     },
 
     // ===========================

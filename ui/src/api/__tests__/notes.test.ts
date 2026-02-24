@@ -43,7 +43,7 @@ describe('Notes API', () => {
       const result = await notesApi.list();
 
       expect(mockClient.get).toHaveBeenCalledWith(
-        '/api/v1/notes',
+        '/notes',
         expect.objectContaining({
           sort_by: 'created_at',
           sort_order: 'desc',
@@ -65,7 +65,7 @@ describe('Notes API', () => {
       });
 
       expect(mockClient.get).toHaveBeenCalledWith(
-        '/api/v1/notes',
+        '/notes',
         expect.objectContaining({
           sort_by: 'updated_at',
           sort_order: 'asc',
@@ -86,7 +86,7 @@ describe('Notes API', () => {
       });
 
       expect(mockClient.get).toHaveBeenCalledWith(
-        '/api/v1/notes',
+        '/notes',
         expect.objectContaining({
           tags: 'work,important',
           starred: 'true',
@@ -129,7 +129,7 @@ describe('Notes API', () => {
 
       const result = await notesApi.get('123');
 
-      expect(mockClient.get).toHaveBeenCalledWith('/api/v1/notes/123');
+      expect(mockClient.get).toHaveBeenCalledWith('/notes/123');
       expect(result).toEqual(mockNote);
     });
 
@@ -149,7 +149,7 @@ describe('Notes API', () => {
         source: 'user'
       });
 
-      expect(mockClient.post).toHaveBeenCalledWith('/api/v1/notes', {
+      expect(mockClient.post).toHaveBeenCalledWith('/notes', {
         content: 'Test content',
         format: 'markdown',
         source: 'user'
@@ -170,7 +170,7 @@ describe('Notes API', () => {
 
       await notesApi.create({ content: 'Test' });
 
-      expect(mockClient.post).toHaveBeenCalledWith('/api/v1/notes', {
+      expect(mockClient.post).toHaveBeenCalledWith('/notes', {
         content: 'Test',
         format: 'markdown',
         source: 'manual'
@@ -198,7 +198,7 @@ describe('Notes API', () => {
         archived: false
       });
 
-      expect(mockClient.patch).toHaveBeenCalledWith('/api/v1/notes/123', {
+      expect(mockClient.patch).toHaveBeenCalledWith('/notes/123', {
         starred: true,
         archived: false
       });
@@ -213,7 +213,7 @@ describe('Notes API', () => {
         content: 'Updated content'
       });
 
-      expect(mockClient.patch).toHaveBeenCalledWith('/api/v1/notes/123', {
+      expect(mockClient.patch).toHaveBeenCalledWith('/notes/123', {
         content: 'Updated content'
       });
     });
@@ -231,7 +231,7 @@ describe('Notes API', () => {
 
       await notesApi.delete('123');
 
-      expect(mockClient.delete).toHaveBeenCalledWith('/api/v1/notes/123');
+      expect(mockClient.delete).toHaveBeenCalledWith('/notes/123');
     });
 
     it('throws error for invalid note ID', async () => {
@@ -246,7 +246,7 @@ describe('Notes API', () => {
 
       const result = await notesApi.getTags('123');
 
-      expect(mockClient.get).toHaveBeenCalledWith('/api/v1/notes/123/tags');
+      expect(mockClient.get).toHaveBeenCalledWith('/notes/123/tags');
       expect(result).toEqual(['work', 'important']);
     });
   });
@@ -261,7 +261,7 @@ describe('Notes API', () => {
         remove: ['old']
       });
 
-      expect(mockClient.patch).toHaveBeenCalledWith('/api/v1/notes/123/tags', {
+      expect(mockClient.patch).toHaveBeenCalledWith('/notes/123/tags', {
         add: ['new'],
         remove: ['old']
       });
@@ -274,7 +274,7 @@ describe('Notes API', () => {
 
       await notesApi.updateTags('123', { add: ['new'] });
 
-      expect(mockClient.patch).toHaveBeenCalledWith('/api/v1/notes/123/tags', {
+      expect(mockClient.patch).toHaveBeenCalledWith('/notes/123/tags', {
         add: ['new']
       });
     });
@@ -285,7 +285,7 @@ describe('Notes API', () => {
 
       await notesApi.updateTags('123', { remove: ['old'] });
 
-      expect(mockClient.patch).toHaveBeenCalledWith('/api/v1/notes/123/tags', {
+      expect(mockClient.patch).toHaveBeenCalledWith('/notes/123/tags', {
         remove: ['old']
       });
     });

@@ -48,6 +48,15 @@ function buildUrl(baseUrl: string, path: string, params?: Record<string, string>
 }
 
 /**
+ * Derive server root URL by stripping the /api/vN suffix.
+ * e.g. "http://localhost:3000/api/v1" → "http://localhost:3000"
+ */
+export function getServerRoot(apiBaseUrl: string): string {
+  const normalized = apiBaseUrl.endsWith('/') ? apiBaseUrl.slice(0, -1) : apiBaseUrl;
+  return normalized.replace(/\/api\/v\d+$/, '') || normalized;
+}
+
+/**
  * Create API client instance
  */
 export function createApiClient(baseUrl: string) {
@@ -75,11 +84,7 @@ export function createApiClient(baseUrl: string) {
     const url = buildUrl(normalizedBaseUrl, path, params);
     const requestHeaders = { ...defaultHeaders, ...headers };
     const selectedMemory = getActiveMemory();
-    if (
-      selectedMemory &&
-      path.startsWith('/api/v1/') &&
-      !requestHeaders[getMemoryRoutingHeaderName()]
-    ) {
+    if (selectedMemory && !requestHeaders[getMemoryRoutingHeaderName()]) {
       requestHeaders[getMemoryRoutingHeaderName()] = selectedMemory;
     }
 
@@ -160,6 +165,7 @@ export function createApiClient(baseUrl: string) {
 
   return {
     baseUrl: normalizedBaseUrl,
+    serverUrl: getServerRoot(normalizedBaseUrl),
 
     async get<T>(
       path: string,

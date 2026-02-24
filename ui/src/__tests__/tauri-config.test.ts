@@ -54,7 +54,7 @@ describe('Tauri Config', () => {
       // Verify the priority chain exists in the source
       expect(apiIndex).toContain('getCachedConfig');
       expect(apiIndex).toContain('VITE_API_BASE_URL');
-      expect(apiIndex).toContain("'http://localhost:3000'");
+      expect(apiIndex).toContain("'http://localhost:3000/api/v1'");
     });
 
     it('reinitializeApi export exists', async () => {

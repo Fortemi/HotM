@@ -664,7 +664,7 @@ export function AttachmentsBrowser({ className }: AttachmentsBrowserProps) {
       const globalResponse = await api.client.get<{
         attachments: (Attachment & { note_title?: string })[];
         total: number;
-      }>('/api/v1/attachments', { limit: '500' });
+      }>('/attachments', { limit: '500' });
 
       const enriched: NoteAttachment[] = globalResponse.attachments.map((att) => ({
         ...att,

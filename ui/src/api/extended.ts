@@ -198,7 +198,7 @@ export function createExtendedApi(client: ApiClient) {
       content: string,
       rationale?: string
     ): Promise<unknown> {
-      return client.patch(`/api/v1/notes/${noteId}`, {
+      return client.patch(`/notes/${noteId}`, {
         content,
         ...(rationale ? { rationale } : {}),
       });
@@ -208,7 +208,7 @@ export function createExtendedApi(client: ApiClient) {
      * Update original note content
      */
     async updateOriginalContent(noteId: string, content: string): Promise<unknown> {
-      return client.patch(`/api/v1/notes/${noteId}`, {
+      return client.patch(`/notes/${noteId}`, {
         content,
       });
     },
@@ -221,7 +221,7 @@ export function createExtendedApi(client: ApiClient) {
       if (options?.revision_mode) body.revision_mode = options.revision_mode;
       if (options?.model) body.model = options.model;
       return client.post(
-        `/api/v1/notes/${noteId}/reprocess`,
+        `/notes/${noteId}/reprocess`,
         Object.keys(body).length > 0 ? body : undefined
       );
     },
@@ -246,7 +246,7 @@ export function createExtendedApi(client: ApiClient) {
         params.archived = 'true';
       }
 
-      return client.get<ListNotesResponse>('/api/v1/notes', params);
+      return client.get<ListNotesResponse>('/notes', params);
     },
 
     /**
@@ -272,7 +272,7 @@ export function createExtendedApi(client: ApiClient) {
       const notes: NoteFull[] = [];
       for (const summary of summaries) {
         try {
-          const note = await client.get<NoteFull>(`/api/v1/notes/${summary.id}`);
+          const note = await client.get<NoteFull>(`/notes/${summary.id}`);
           notes.push(note);
         } catch (e) {
           console.error(`Failed to load note ${summary.id}:`, e);
@@ -290,7 +290,7 @@ export function createExtendedApi(client: ApiClient) {
       starred?: boolean,
       archived?: boolean
     ): Promise<unknown> {
-      return client.patch(`/api/v1/notes/${noteId}/status`, {
+      return client.patch(`/notes/${noteId}/status`, {
         starred,
         archived,
       });
@@ -314,7 +314,7 @@ export function createExtendedApi(client: ApiClient) {
     async getRelatedNotes(noteId: string): Promise<RelatedNotesResponse> {
       // 1. Try the full /related endpoint (includes LLM context_summary)
       try {
-        const raw = await client.get<unknown>(`/api/v1/notes/${noteId}/related`);
+        const raw = await client.get<unknown>(`/notes/${noteId}/related`);
         const obj = raw as { related?: unknown[]; context_summary?: string } | null;
         const related = normalizeSearchResults(obj?.related ?? obj);
         if (related.length > 0) {
@@ -331,7 +331,7 @@ export function createExtendedApi(client: ApiClient) {
 
       // 2. Try /similar (semantic vector search, includes snippets)
       try {
-        const similar = await client.get<unknown>(`/api/v1/notes/${noteId}/similar`);
+        const similar = await client.get<unknown>(`/notes/${noteId}/similar`);
         const related = normalizeSearchResults(similar);
         if (related.length > 0) {
           return {
@@ -344,7 +344,7 @@ export function createExtendedApi(client: ApiClient) {
       }
 
       // 3. Fall back to graph links (single endpoint returns outgoing + incoming)
-      const linksRaw = await client.get<unknown>(`/api/v1/notes/${noteId}/links`).catch(() => null);
+      const linksRaw = await client.get<unknown>(`/notes/${noteId}/links`).catch(() => null);
 
       type LinkEdge = { to_note_id?: string; from_note_id?: string; score?: number; snippet?: string; kind?: string };
       const linksObj = (linksRaw ?? {}) as { outgoing?: LinkEdge[]; incoming?: LinkEdge[] };
@@ -386,7 +386,7 @@ export function createExtendedApi(client: ApiClient) {
       hits: SearchResult[]
     ): Promise<{ context: string }> {
       try {
-        return await client.post<{ context: string }>('/api/v1/search/context', {
+        return await client.post<{ context: string }>('/search/context', {
           query,
           hits,
         });
@@ -411,7 +411,7 @@ export function createExtendedApi(client: ApiClient) {
      * Get all unique labels in the system
      */
     async getAllLabels(): Promise<string[]> {
-      const response = await client.get<unknown>('/api/v1/tags');
+      const response = await client.get<unknown>('/tags');
       const tags = Array.isArray(response)
         ? response
         : ((response as { tags?: unknown[] })?.tags ?? []);
@@ -424,7 +424,7 @@ export function createExtendedApi(client: ApiClient) {
      * Get metadata labels for a note
      */
     async getMetadataLabels(noteId: string): Promise<UserMetadataLabel[]> {
-      const response = await client.get<unknown>(`/api/v1/notes/${noteId}/tags`);
+      const response = await client.get<unknown>(`/notes/${noteId}/tags`);
       const tags = Array.isArray(response)
         ? response
         : ((response as { tags?: string[] })?.tags ?? []);
@@ -449,7 +449,7 @@ export function createExtendedApi(client: ApiClient) {
       const tags = new Set(existing.map((item) => item.label));
       tags.add(label);
 
-      await client.put(`/api/v1/notes/${noteId}/tags`, {
+      await client.put(`/notes/${noteId}/tags`, {
         tags: Array.from(tags),
       });
 
@@ -471,7 +471,7 @@ export function createExtendedApi(client: ApiClient) {
         .map((item) => item.label)
         .filter((tag) => tag !== labelId);
 
-      await client.put(`/api/v1/notes/${noteId}/tags`, {
+      await client.put(`/notes/${noteId}/tags`, {
         tags,
       });
     },
@@ -488,7 +488,7 @@ export function createExtendedApi(client: ApiClient) {
       jobType: JobType,
       priority?: number
     ): Promise<QueueJobResponse> {
-      const response = await client.post<Record<string, unknown>>('/api/v1/jobs', {
+      const response = await client.post<Record<string, unknown>>('/jobs', {
         note_id: noteId,
         job_type: jobType,
         priority: priority || 5,
@@ -511,7 +511,7 @@ export function createExtendedApi(client: ApiClient) {
      * Get job queue status
      */
     async getJobQueueStatus(): Promise<JobQueueStatus[]> {
-      const response = await client.get<unknown>('/api/v1/jobs/pending');
+      const response = await client.get<unknown>('/jobs/pending');
       if (response && typeof response === 'object' && !Array.isArray(response)) {
         const pending = (response as { pending?: number }).pending;
         if (typeof pending === 'number') {
@@ -552,7 +552,7 @@ export function createExtendedApi(client: ApiClient) {
      * Get specific job status
      */
     async getJobStatus(jobId: string): Promise<Job> {
-      const response = await client.get<Record<string, unknown>>(`/api/v1/jobs/${jobId}`);
+      const response = await client.get<Record<string, unknown>>(`/jobs/${jobId}`);
       return normalizeJob(response);
     },
 
@@ -561,9 +561,9 @@ export function createExtendedApi(client: ApiClient) {
      */
     async cancelJob(jobId: string): Promise<void> {
       try {
-        await client.post(`/api/v1/jobs/${jobId}/cancel`);
+        await client.post(`/jobs/${jobId}/cancel`);
       } catch {
-        await client.delete(`/api/v1/jobs/${jobId}`);
+        await client.delete(`/jobs/${jobId}`);
       }
     },
 
@@ -571,7 +571,7 @@ export function createExtendedApi(client: ApiClient) {
      * Get jobs for a specific note
      */
     async getNoteJobs(noteId: string): Promise<Job[]> {
-      const response = await client.get<unknown>('/api/v1/jobs');
+      const response = await client.get<unknown>('/jobs');
       const jobs = Array.isArray(response)
         ? response
         : ((response as { jobs?: unknown[] })?.jobs ?? []);

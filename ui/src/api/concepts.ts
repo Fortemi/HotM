@@ -184,7 +184,7 @@ export function createConceptsApi(client: ApiClient) {
      */
     async listSchemes(): Promise<ConceptScheme[]> {
       const response = await client.get<{ schemes: ConceptScheme[] } | ConceptScheme[]>(
-        '/api/v1/concepts/schemes'
+        '/concepts/schemes'
       );
       return normalizeSchemeListResponse(response);
     },
@@ -199,7 +199,7 @@ export function createConceptsApi(client: ApiClient) {
         throw new Error('Scheme title is required');
       }
 
-      return client.post<ConceptScheme>('/api/v1/concepts/schemes', request);
+      return client.post<ConceptScheme>('/concepts/schemes', request);
     },
 
     /**
@@ -210,7 +210,7 @@ export function createConceptsApi(client: ApiClient) {
         throw new Error('Scheme ID is required');
       }
 
-      return client.get<ConceptScheme>(`/api/v1/concepts/schemes/${schemeId}`);
+      return client.get<ConceptScheme>(`/concepts/schemes/${schemeId}`);
     },
 
     /**
@@ -225,7 +225,7 @@ export function createConceptsApi(client: ApiClient) {
       }
 
       return client.patch<ConceptScheme>(
-        `/api/v1/concepts/schemes/${schemeId}`,
+        `/concepts/schemes/${schemeId}`,
         updates
       );
     },
@@ -239,7 +239,7 @@ export function createConceptsApi(client: ApiClient) {
       }
 
       const response = await client.get<ConceptListResponse>(
-        `/api/v1/concepts/schemes/${schemeId}/top-concepts`
+        `/concepts/schemes/${schemeId}/top-concepts`
       );
 
       return normalizeConceptListResponse(response);
@@ -272,7 +272,7 @@ export function createConceptsApi(client: ApiClient) {
       }
 
       const response = await client.get<ConceptListResponse>(
-        '/api/v1/concepts',
+        '/concepts',
         params
       );
 
@@ -297,7 +297,7 @@ export function createConceptsApi(client: ApiClient) {
       }
 
       return client.get<ConceptAutocompleteResponse>(
-        '/api/v1/concepts/autocomplete',
+        '/concepts/autocomplete',
         params
       );
     },
@@ -314,7 +314,7 @@ export function createConceptsApi(client: ApiClient) {
         throw new Error('Preferred label is required');
       }
 
-      return client.post<Concept>('/api/v1/concepts', request);
+      return client.post<Concept>('/concepts', request);
     },
 
     /**
@@ -325,7 +325,7 @@ export function createConceptsApi(client: ApiClient) {
         throw new Error('Concept ID is required');
       }
 
-      const response = await client.get<Concept>(`/api/v1/concepts/${conceptId}`);
+      const response = await client.get<Concept>(`/concepts/${conceptId}`);
       const normalized = normalizeConcept(response);
       if (!normalized) {
         throw new Error('Invalid concept payload');
@@ -341,7 +341,7 @@ export function createConceptsApi(client: ApiClient) {
         throw new Error('Concept ID is required');
       }
 
-      const response = await client.get<ConceptFull>(`/api/v1/concepts/${conceptId}/full`);
+      const response = await client.get<ConceptFull>(`/concepts/${conceptId}/full`);
       return normalizeConceptFull(response);
     },
 
@@ -356,7 +356,7 @@ export function createConceptsApi(client: ApiClient) {
         throw new Error('Concept ID is required');
       }
 
-      return client.patch<Concept>(`/api/v1/concepts/${conceptId}`, updates);
+      return client.patch<Concept>(`/concepts/${conceptId}`, updates);
     },
 
     /**
@@ -368,7 +368,7 @@ export function createConceptsApi(client: ApiClient) {
         throw new Error('Concept ID is required');
       }
 
-      await client.delete(`/api/v1/concepts/${conceptId}`);
+      await client.delete(`/concepts/${conceptId}`);
     },
 
     // ===========================
@@ -384,7 +384,7 @@ export function createConceptsApi(client: ApiClient) {
       }
 
       const response = await client.get<ConceptListResponse>(
-        `/api/v1/concepts/${conceptId}/ancestors`
+        `/concepts/${conceptId}/ancestors`
       );
 
       return normalizeConceptListResponse(response);
@@ -407,7 +407,7 @@ export function createConceptsApi(client: ApiClient) {
       }
 
       const response = await client.get<ConceptListResponse>(
-        `/api/v1/concepts/${conceptId}/descendants`,
+        `/concepts/${conceptId}/descendants`,
         params
       );
 
@@ -423,7 +423,7 @@ export function createConceptsApi(client: ApiClient) {
       }
 
       const response = await client.get<ConceptListResponse>(
-        `/api/v1/concepts/${conceptId}/broader`
+        `/concepts/${conceptId}/broader`
       );
 
       return normalizeConceptListResponse(response);
@@ -441,7 +441,7 @@ export function createConceptsApi(client: ApiClient) {
         throw new Error('Broader concept ID is required');
       }
 
-      await client.post(`/api/v1/concepts/${conceptId}/broader`, {
+      await client.post(`/concepts/${conceptId}/broader`, {
         broader_id: broaderId,
       });
     },
@@ -458,7 +458,7 @@ export function createConceptsApi(client: ApiClient) {
         throw new Error('Broader concept ID is required');
       }
 
-      await client.delete(`/api/v1/concepts/${conceptId}/broader/${broaderId}`);
+      await client.delete(`/concepts/${conceptId}/broader/${broaderId}`);
     },
 
     /**
@@ -470,7 +470,7 @@ export function createConceptsApi(client: ApiClient) {
       }
 
       const response = await client.get<ConceptListResponse>(
-        `/api/v1/concepts/${conceptId}/narrower`
+        `/concepts/${conceptId}/narrower`
       );
 
       return normalizeConceptListResponse(response);
@@ -488,7 +488,7 @@ export function createConceptsApi(client: ApiClient) {
         throw new Error('Narrower concept ID is required');
       }
 
-      await client.post(`/api/v1/concepts/${conceptId}/narrower`, {
+      await client.post(`/concepts/${conceptId}/narrower`, {
         narrower_id: narrowerId,
       });
     },
@@ -509,7 +509,7 @@ export function createConceptsApi(client: ApiClient) {
       }
 
       await client.delete(
-        `/api/v1/concepts/${conceptId}/narrower/${narrowerId}`
+        `/concepts/${conceptId}/narrower/${narrowerId}`
       );
     },
 
@@ -522,7 +522,7 @@ export function createConceptsApi(client: ApiClient) {
       }
 
       const response = await client.get<ConceptListResponse>(
-        `/api/v1/concepts/${conceptId}/related`
+        `/concepts/${conceptId}/related`
       );
 
       return normalizeConceptListResponse(response);
@@ -540,7 +540,7 @@ export function createConceptsApi(client: ApiClient) {
         throw new Error('Related concept ID is required');
       }
 
-      await client.post(`/api/v1/concepts/${conceptId}/related`, {
+      await client.post(`/concepts/${conceptId}/related`, {
         related_id: relatedId,
       });
     },
@@ -557,7 +557,7 @@ export function createConceptsApi(client: ApiClient) {
         throw new Error('Related concept ID is required');
       }
 
-      await client.delete(`/api/v1/concepts/${conceptId}/related/${relatedId}`);
+      await client.delete(`/concepts/${conceptId}/related/${relatedId}`);
     },
 
     // ===========================
@@ -573,7 +573,7 @@ export function createConceptsApi(client: ApiClient) {
       }
 
       const response = await client.get<ConceptListResponse>(
-        `/api/v1/notes/${noteId}/concepts`
+        `/notes/${noteId}/concepts`
       );
 
       return normalizeConceptListResponse(response);
@@ -591,7 +591,7 @@ export function createConceptsApi(client: ApiClient) {
         throw new Error('Concept ID is required');
       }
 
-      await client.post(`/api/v1/notes/${noteId}/concepts`, {
+      await client.post(`/notes/${noteId}/concepts`, {
         concept_id: conceptId,
       });
     },
@@ -608,7 +608,7 @@ export function createConceptsApi(client: ApiClient) {
         throw new Error('Concept ID is required');
       }
 
-      await client.delete(`/api/v1/notes/${noteId}/concepts/${conceptId}`);
+      await client.delete(`/notes/${noteId}/concepts/${conceptId}`);
     },
 
     // ===========================
@@ -619,7 +619,7 @@ export function createConceptsApi(client: ApiClient) {
      * Get governance statistics for concepts
      */
     async getGovernanceStats(): Promise<ConceptGovernanceStats> {
-      return client.get<ConceptGovernanceStats>('/api/v1/concepts/governance');
+      return client.get<ConceptGovernanceStats>('/concepts/governance');
     },
 
     /**
@@ -631,8 +631,9 @@ export function createConceptsApi(client: ApiClient) {
       }
 
       // Returns text/turtle
+      const baseUrl = client.baseUrl;
       const response = await getTauriFetch()(
-        `/api/v1/concepts/schemes/${schemeId}/export/turtle`
+        `${baseUrl}/concepts/schemes/${schemeId}/export/turtle`
       );
 
       if (!response.ok) {
@@ -657,7 +658,7 @@ export function createConceptsApi(client: ApiClient) {
       }
 
       const response = await client.get<{ collections: SkosCollection[] }>(
-        '/api/v1/concepts/collections',
+        '/concepts/collections',
         params
       );
 
@@ -681,7 +682,7 @@ export function createConceptsApi(client: ApiClient) {
       }
 
       return client.post<SkosCollection>(
-        '/api/v1/concepts/collections',
+        '/concepts/collections',
         request
       );
     },
@@ -695,7 +696,7 @@ export function createConceptsApi(client: ApiClient) {
       }
 
       return client.get<SkosCollectionWithMembers>(
-        `/api/v1/concepts/collections/${collectionId}`
+        `/concepts/collections/${collectionId}`
       );
     },
 
@@ -711,7 +712,7 @@ export function createConceptsApi(client: ApiClient) {
       }
 
       return client.patch<SkosCollection>(
-        `/api/v1/concepts/collections/${collectionId}`,
+        `/concepts/collections/${collectionId}`,
         updates
       );
     },
@@ -724,7 +725,7 @@ export function createConceptsApi(client: ApiClient) {
         throw new Error('Collection ID is required');
       }
 
-      await client.delete(`/api/v1/concepts/collections/${collectionId}`);
+      await client.delete(`/concepts/collections/${collectionId}`);
     },
 
     /**
@@ -743,7 +744,7 @@ export function createConceptsApi(client: ApiClient) {
       }
 
       await client.put(
-        `/api/v1/concepts/collections/${collectionId}/members`,
+        `/concepts/collections/${collectionId}/members`,
         request
       );
     },
@@ -764,7 +765,7 @@ export function createConceptsApi(client: ApiClient) {
       }
 
       await client.post(
-        `/api/v1/concepts/collections/${collectionId}/members/${conceptId}`
+        `/concepts/collections/${collectionId}/members/${conceptId}`
       );
     },
 
@@ -784,7 +785,7 @@ export function createConceptsApi(client: ApiClient) {
       }
 
       await client.delete(
-        `/api/v1/concepts/collections/${collectionId}/members/${conceptId}`
+        `/concepts/collections/${collectionId}/members/${conceptId}`
       );
     },
   };
