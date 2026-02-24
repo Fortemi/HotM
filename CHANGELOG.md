@@ -4,6 +4,15 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2026.2.18] - 2026-02-24
+
+### Changed
+
+- **API base URL refactor** — moved hardcoded `/api/v1/` prefix from 196 occurrences across 24 API modules into `VITE_API_BASE_URL` configuration. The default is now `http://localhost:3000/api/v1`. Deployments behind reverse proxies or future API versions can change the path at config time without code changes. Added `getServerRoot()` utility for OAuth/health endpoints at the server root. (Closes #114)
+- CI/CD pipeline migrated from GitHub Actions to Gitea Actions workflows
+- Release pipeline hardened with file-based response parsing and jq-based JSON body generation
+- Internal domain references removed from all defaults and examples
+
 ## [2026.2.4] - 2026-02-22
 
 ### Added
