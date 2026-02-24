@@ -8,7 +8,7 @@ This repository is client-only (HotM UI). Backend services are provided by Forte
 
 ```env
 # ui/.env.local
-VITE_API_BASE_URL=https://memory.integrolabs.net
+VITE_API_BASE_URL=http://localhost:3000
 ```
 
 2. Start UI:

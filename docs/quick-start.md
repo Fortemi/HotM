@@ -11,7 +11,7 @@ HotM is a React SPA that connects to Fortemi.
 Create `ui/.env.local`:
 
 ```env
-VITE_API_BASE_URL=https://memory.integrolabs.net
+VITE_API_BASE_URL=http://localhost:3000
 ```
 
 ## Run

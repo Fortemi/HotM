@@ -69,7 +69,7 @@ describe('events client replay handling', () => {
 
   it('normalizes base URLs that already include /api/v1', () => {
     const handler = vi.fn();
-    const client = createEventsClient('https://memory.integrolabs.net/api/v1');
+    const client = createEventsClient('http://localhost:3000/api/v1');
     client.subscribe(handler);
 
     const first = MockEventSource.instances[0];
