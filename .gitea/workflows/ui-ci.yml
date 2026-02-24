@@ -295,7 +295,9 @@ jobs:
           GHCR_REG="${GHCR_REGISTRY}"
           IMG="${IMAGE_NAME}"
 
-          RELEASE_BODY="## HotM ${VERSION}
+          # Write release body to file (avoids control-char issues with jq --arg)
+          cat > /tmp/release_body.md <<EOF
+          ## HotM ${VERSION}
 
           ### Docker Images
 
@@ -319,13 +321,14 @@ jobs:
 
           - **Web**: Modern browser + network access to Fortemi API
           - **Desktop**: Linux x86_64 (Ubuntu 22.04+, or any distro via AppImage)
-          - **Docker**: Any host running Docker Engine 20+"
+          - **Docker**: Any host running Docker Engine 20+
+          EOF
 
-          # Build JSON body safely using jq --arg (handles all escaping)
+          # Build JSON body using jq --rawfile (reads file content directly)
           JSON_BODY=$(jq -n \
             --arg tag_name "${GITHUB_REF_NAME}" \
             --arg name "HotM ${VERSION}" \
-            --arg body "${RELEASE_BODY}" \
+            --rawfile body /tmp/release_body.md \
             '{tag_name: $tag_name, name: $name, body: $body, draft: false, prerelease: false, generate_release_notes: false}')
 
           # Create the release
