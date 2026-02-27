@@ -3,11 +3,25 @@ import { renderHook, act } from '@testing-library/react';
 import { useAgentChat } from '../useAgentChat';
 import type { ProviderConfig } from '../providers';
 
+// Mock the tools module
+const mockSearchExecute = vi.fn().mockResolvedValue([{ note_id: 'n1', snippet: 'result', score: 0.9 }]);
+vi.mock('../tools', () => ({
+  agentTools: {
+    search_notes: {
+      execute: (...args: unknown[]) => mockSearchExecute(...args),
+    },
+    create_note: {
+      execute: vi.fn(),
+    },
+  },
+}));
+
 // Mock the AI SDK modules
 const mockSendMessage = vi.fn();
 const mockSetMessages = vi.fn();
 const mockStop = vi.fn();
 const mockClearError = vi.fn();
+const mockAddToolOutput = vi.fn();
 
 vi.mock('@ai-sdk/react', () => ({
   useChat: vi.fn(() => ({
@@ -18,6 +32,7 @@ vi.mock('@ai-sdk/react', () => ({
     setMessages: mockSetMessages,
     stop: mockStop,
     clearError: mockClearError,
+    addToolOutput: mockAddToolOutput,
   })),
 }));
 
@@ -166,6 +181,7 @@ describe('useAgentChat', () => {
       setMessages: mockSetMessages,
       stop: mockStop,
       clearError: mockClearError,
+      addToolOutput: mockAddToolOutput,
     } as unknown as ReturnType<typeof useChat>);
 
     const { result } = renderHook(() =>
@@ -186,6 +202,7 @@ describe('useAgentChat', () => {
       setMessages: mockSetMessages,
       stop: mockStop,
       clearError: mockClearError,
+      addToolOutput: mockAddToolOutput,
     } as unknown as ReturnType<typeof useChat>);
 
     const { result } = renderHook(() =>
@@ -193,5 +210,157 @@ describe('useAgentChat', () => {
     );
 
     expect(result.current.isLoading).toBe(true);
+  });
+
+  it('passes onToolCall and sendAutomaticallyWhen to useChat options', async () => {
+    let opts: Record<string, unknown> = {};
+    const { useChat } = await import('@ai-sdk/react');
+    vi.mocked(useChat).mockImplementation((o: unknown) => {
+      opts = o as Record<string, unknown>;
+      return {
+        messages: [],
+        sendMessage: mockSendMessage,
+        status: 'ready',
+        error: undefined,
+        setMessages: mockSetMessages,
+        stop: mockStop,
+        clearError: mockClearError,
+        addToolOutput: mockAddToolOutput,
+      } as unknown as ReturnType<typeof useChat>;
+    });
+
+    renderHook(() =>
+      useAgentChat({ config: { ...defaultConfig, maxSteps: 8 } }),
+    );
+
+    expect(opts).toHaveProperty('onToolCall');
+    expect(typeof opts.onToolCall).toBe('function');
+    expect(opts).toHaveProperty('sendAutomaticallyWhen');
+    expect(typeof opts.sendAutomaticallyWhen).toBe('function');
+  });
+
+  it('dispatches tool calls to agentTools execute functions', async () => {
+    let opts: Record<string, unknown> = {};
+    const { useChat } = await import('@ai-sdk/react');
+    vi.mocked(useChat).mockImplementation((o: unknown) => {
+      opts = o as Record<string, unknown>;
+      return {
+        messages: [],
+        sendMessage: mockSendMessage,
+        status: 'ready',
+        error: undefined,
+        setMessages: mockSetMessages,
+        stop: mockStop,
+        clearError: mockClearError,
+        addToolOutput: mockAddToolOutput,
+      } as unknown as ReturnType<typeof useChat>;
+    });
+
+    renderHook(() =>
+      useAgentChat({ config: defaultConfig }),
+    );
+
+    const onToolCall = opts.onToolCall as (args: {
+      toolCall: { toolCallId: string; toolName: string; input: unknown };
+    }) => Promise<void>;
+
+    await onToolCall({
+      toolCall: {
+        toolCallId: 'tc1',
+        toolName: 'search_notes',
+        input: { query: 'test', limit: 10, mode: 'hybrid' },
+      },
+    });
+
+    expect(mockSearchExecute).toHaveBeenCalledWith(
+      { query: 'test', limit: 10, mode: 'hybrid' },
+      { toolCallId: 'tc1', messages: [] },
+    );
+    expect(mockAddToolOutput).toHaveBeenCalledWith({
+      tool: 'search_notes',
+      toolCallId: 'tc1',
+      output: [{ note_id: 'n1', snippet: 'result', score: 0.9 }],
+    });
+  });
+
+  it('submits error output when tool execution fails', async () => {
+    let opts: Record<string, unknown> = {};
+    const { useChat } = await import('@ai-sdk/react');
+    vi.mocked(useChat).mockImplementation((o: unknown) => {
+      opts = o as Record<string, unknown>;
+      return {
+        messages: [],
+        sendMessage: mockSendMessage,
+        status: 'ready',
+        error: undefined,
+        setMessages: mockSetMessages,
+        stop: mockStop,
+        clearError: mockClearError,
+        addToolOutput: mockAddToolOutput,
+      } as unknown as ReturnType<typeof useChat>;
+    });
+
+    mockSearchExecute.mockRejectedValueOnce(new Error('API down'));
+
+    renderHook(() =>
+      useAgentChat({ config: defaultConfig }),
+    );
+
+    const onToolCall = opts.onToolCall as (args: {
+      toolCall: { toolCallId: string; toolName: string; input: unknown };
+    }) => Promise<void>;
+
+    await onToolCall({
+      toolCall: {
+        toolCallId: 'tc1',
+        toolName: 'search_notes',
+        input: { query: 'test' },
+      },
+    });
+
+    expect(mockAddToolOutput).toHaveBeenCalledWith({
+      state: 'output-error',
+      tool: 'search_notes',
+      toolCallId: 'tc1',
+      errorText: 'API down',
+    });
+  });
+
+  it('ignores unknown tool names', async () => {
+    let opts: Record<string, unknown> = {};
+    const { useChat } = await import('@ai-sdk/react');
+    vi.mocked(useChat).mockImplementation((o: unknown) => {
+      opts = o as Record<string, unknown>;
+      return {
+        messages: [],
+        sendMessage: mockSendMessage,
+        status: 'ready',
+        error: undefined,
+        setMessages: mockSetMessages,
+        stop: mockStop,
+        clearError: mockClearError,
+        addToolOutput: mockAddToolOutput,
+      } as unknown as ReturnType<typeof useChat>;
+    });
+
+    renderHook(() =>
+      useAgentChat({ config: defaultConfig }),
+    );
+
+    const onToolCall = opts.onToolCall as (args: {
+      toolCall: { toolCallId: string; toolName: string; input: unknown };
+    }) => Promise<void>;
+
+    await onToolCall({
+      toolCall: {
+        toolCallId: 'tc2',
+        toolName: 'nonexistent_tool',
+        input: {},
+      },
+    });
+
+    // Should not call execute or addToolOutput for unknown tools
+    expect(mockSearchExecute).not.toHaveBeenCalled();
+    expect(mockAddToolOutput).not.toHaveBeenCalled();
   });
 });

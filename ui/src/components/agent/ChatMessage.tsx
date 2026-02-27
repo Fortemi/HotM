@@ -1,13 +1,16 @@
 /**
- * ChatMessage — renders a single chat message bubble (user or assistant).
+ * ChatMessage — renders a single chat message with support for
+ * text content and tool invocation/result parts (UIMessage format).
  */
 
+import { isToolUIPart, getToolName } from "ai";
 import { cn } from "@/lib/utils";
-import { Bot, User } from "lucide-react";
-import type { AgentMessage } from "./useAgent";
+import { Bot, User, Loader2 } from "lucide-react";
+import { ToolResultCard } from "./ToolResultCard";
+import type { UIMessage } from "@ai-sdk/react";
 
 interface ChatMessageProps {
-  message: AgentMessage;
+  message: UIMessage;
 }
 
 export function ChatMessage({ message }: ChatMessageProps) {
@@ -32,25 +35,61 @@ export function ChatMessage({ message }: ChatMessageProps) {
       </div>
       <div
         className={cn(
-          "max-w-[80%] rounded-lg px-3 py-2 text-sm leading-relaxed",
-          isUser
-            ? "bg-primary text-primary-foreground"
-            : "bg-muted text-foreground",
+          "max-w-[80%] space-y-2",
+          isUser && "flex flex-col items-end",
         )}
       >
-        <p className="whitespace-pre-wrap break-words">{message.content}</p>
-        {message.actions && message.actions.length > 0 && (
-          <div className="mt-2 flex flex-wrap gap-1">
-            {message.actions.map((action, i) => (
-              <span
+        {message.parts.map((part, i) => {
+          if (part.type === "text") {
+            return part.text ? (
+              <div
                 key={i}
-                className="inline-flex items-center rounded bg-background/50 px-1.5 py-0.5 text-xs font-medium"
+                className={cn(
+                  "rounded-lg px-3 py-2 text-sm leading-relaxed",
+                  isUser
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-muted text-foreground",
+                )}
               >
-                {action.type}
-              </span>
-            ))}
-          </div>
-        )}
+                <p className="whitespace-pre-wrap break-words">{part.text}</p>
+              </div>
+            ) : null;
+          }
+
+          if (isToolUIPart(part)) {
+            const toolName = getToolName(part);
+            if (part.state === "output-available") {
+              return (
+                <ToolResultCard
+                  key={i}
+                  toolName={toolName}
+                  result={part.output}
+                />
+              );
+            }
+            if (part.state === "output-error") {
+              return (
+                <div
+                  key={i}
+                  className="rounded-lg border border-destructive/50 bg-destructive/10 px-3 py-2 text-xs text-destructive"
+                >
+                  {toolName} failed: {part.errorText}
+                </div>
+              );
+            }
+            return (
+              <div
+                key={i}
+                className="flex items-center gap-2 rounded-lg border bg-muted/50 px-3 py-2 text-xs text-muted-foreground"
+              >
+                <Loader2 className="h-3 w-3 animate-spin" />
+                Calling {toolName}...
+              </div>
+            );
+          }
+
+          return null;
+        })}
       </div>
     </div>
   );

@@ -2,11 +2,9 @@
  * AgentPanel — main agent chat interface.
  *
  * Renders as a full-width view within HallOfMind's content area.
- * Supports two chat backends:
- * - 'fortemi': Native Fortemi /chat endpoint (default, no external deps)
- * - AI SDK mode: Ollama/Anthropic/OpenAI via agent-proxy (streaming + tools)
- *
- * The active backend is selected via the provider configuration.
+ * All providers route through useAgentChat (AI SDK streaming + client-side tools).
+ * The agent-proxy handles LLM streaming; tool execution happens in-browser
+ * against the Fortemi API.
  */
 
 import { useEffect, useRef, useState } from "react";
@@ -14,13 +12,14 @@ import { Bot, Trash2, Shield, ShieldCheck, ShieldOff, Settings2 } from "lucide-r
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { useAgent, type AgentContext } from "./useAgent";
+import { useAgentChat } from "./useAgentChat";
 import { useAgentConfig } from "./useAgentConfig";
 import { useAgentPrivileges } from "./useAgentPrivileges";
 import { ChatMessage } from "./ChatMessage";
 import { ChatInput } from "./ChatInput";
 import { ConfirmationCard } from "./ConfirmationCard";
 import { AgentSettings } from "./AgentSettings";
+import type { AgentContext } from "./useAgent";
 import type { PrivilegeMode } from "./privileges";
 
 interface AgentPanelProps {
@@ -46,10 +45,8 @@ export function AgentPanel({ context }: AgentPanelProps) {
   const { mode, setMode, pending, resolveConfirmation } = useAgentPrivileges();
   const [showSettings, setShowSettings] = useState(false);
 
-  // Phase 1: All providers route through the Fortemi-native useAgent hook.
-  // Phase 2 (after #121): AI SDK providers will use useAgentChat instead.
   const { messages, isLoading, error, sendMessage, clearMessages, clearError } =
-    useAgent({ context });
+    useAgentChat({ config, context });
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const cycleMode = () => {
@@ -155,7 +152,7 @@ export function AgentPanel({ context }: AgentPanelProps) {
           {/* Error banner */}
           {error && (
             <div className="flex items-center justify-between border-t bg-destructive/10 px-4 py-2 text-sm text-destructive">
-              <span>{error}</span>
+              <span>{error.message}</span>
               <Button variant="ghost" size="sm" onClick={clearError} className="h-6 px-2 text-xs">
                 Dismiss
               </Button>

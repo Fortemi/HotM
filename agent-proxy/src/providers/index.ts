@@ -8,9 +8,10 @@ import { createOpenAI } from '@ai-sdk/openai';
 import { createAnthropic } from '@ai-sdk/anthropic';
 import type { LanguageModel } from 'ai';
 
-export type ProviderName = 'ollama' | 'anthropic' | 'openai';
+export type ProviderName = 'fortemi' | 'ollama' | 'anthropic' | 'openai';
 
 const DEFAULT_MODELS: Record<ProviderName, string> = {
+  fortemi: process.env.FORTEMI_MODEL ?? 'llama3.2',
   ollama: 'llama3.2',
   anthropic: 'claude-sonnet-4-6',
   openai: 'gpt-4o',
@@ -24,8 +25,10 @@ export function getModel(provider: ProviderName, model?: string): LanguageModel 
   const modelId = model ?? DEFAULT_MODELS[provider];
 
   switch (provider) {
+    case 'fortemi':
     case 'ollama': {
-      // Ollama exposes an OpenAI-compatible API
+      // Ollama exposes an OpenAI-compatible API.
+      // Fortemi embeds/proxies Ollama on the same URL.
       const ollamaUrl = process.env.OLLAMA_URL ?? 'http://localhost:11434';
       const ollama = createOpenAI({
         baseURL: `${ollamaUrl}/v1`,

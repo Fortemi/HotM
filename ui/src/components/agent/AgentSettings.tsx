@@ -32,6 +32,7 @@ import {
   requiresProxy,
 } from './providers';
 import { useAgentConfig } from './useAgentConfig';
+import { api } from '@/api';
 
 interface AgentSettingsProps {
   onClose: () => void;
@@ -95,16 +96,23 @@ export function AgentSettings({ onClose }: AgentSettingsProps) {
   const handleTestConnection = async () => {
     setTestStatus('testing');
     try {
-      const res = await fetch('/api/agent/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          messages: [{ role: 'user', content: 'ping' }],
-          provider: config.provider,
-          model: config.model,
-        }),
-      });
-      setTestStatus(res.ok ? 'ok' : 'error');
+      if (config.provider === 'fortemi') {
+        // Fortemi-native talks directly to the Fortemi API
+        await api.chat.sendMessage('ping');
+        setTestStatus('ok');
+      } else {
+        // Ollama/Anthropic/OpenAI route through the agent-proxy
+        const res = await fetch('/api/agent/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            messages: [{ role: 'user', content: 'ping' }],
+            provider: config.provider,
+            model: config.model,
+          }),
+        });
+        setTestStatus(res.ok ? 'ok' : 'error');
+      }
     } catch {
       setTestStatus('error');
     }

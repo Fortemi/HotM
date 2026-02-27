@@ -1,6 +1,16 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { AgentSettings } from '../AgentSettings';
+
+// Mock the api module
+const mockSendMessage = vi.fn();
+vi.mock('@/api', () => ({
+  api: {
+    chat: {
+      sendMessage: (...args: unknown[]) => mockSendMessage(...args),
+    },
+  },
+}));
 
 // Mock the Select component (Radix portals crash in jsdom)
 vi.mock('@/components/ui/select', () => ({
@@ -53,6 +63,8 @@ describe('AgentSettings', () => {
   beforeEach(() => {
     localStorage.clear();
     onClose.mockClear();
+    mockSendMessage.mockClear();
+    vi.restoreAllMocks();
   });
 
   it('renders the settings header', () => {
@@ -119,5 +131,41 @@ describe('AgentSettings', () => {
     fireEvent.change(maxStepsInput, { target: { value: '10' } });
     const stored = JSON.parse(localStorage.getItem('hotm:agent-provider') ?? '{}');
     expect(stored.maxSteps).toBe(10);
+  });
+
+  it('tests fortemi connection via api.chat.sendMessage', async () => {
+    mockSendMessage.mockResolvedValueOnce({ messages: [], actions: [] });
+    render(<AgentSettings onClose={onClose} />);
+    fireEvent.click(screen.getByText('Test Connection'));
+    await waitFor(() => {
+      expect(mockSendMessage).toHaveBeenCalledWith('ping');
+    });
+    expect(screen.getByText('Connected')).toBeInTheDocument();
+  });
+
+  it('shows error when fortemi connection test fails', async () => {
+    mockSendMessage.mockRejectedValueOnce(new Error('network error'));
+    render(<AgentSettings onClose={onClose} />);
+    fireEvent.click(screen.getByText('Test Connection'));
+    await waitFor(() => {
+      expect(screen.getByText('Failed')).toBeInTheDocument();
+    });
+  });
+
+  it('tests non-fortemi provider via agent-proxy fetch', async () => {
+    vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(
+      new Response(null, { status: 200 }),
+    );
+    // Switch to ollama
+    localStorage.setItem('hotm:agent-provider', JSON.stringify({ provider: 'ollama' }));
+    render(<AgentSettings onClose={onClose} />);
+    fireEvent.click(screen.getByText('Test Connection'));
+    await waitFor(() => {
+      expect(globalThis.fetch).toHaveBeenCalledWith(
+        '/api/agent/chat',
+        expect.objectContaining({ method: 'POST' }),
+      );
+    });
+    expect(screen.getByText('Connected')).toBeInTheDocument();
   });
 });
