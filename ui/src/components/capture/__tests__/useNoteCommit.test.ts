@@ -64,7 +64,7 @@ const defaultSettings: StickySettings = {
   conceptId: null,
   conceptLabel: '',
   format: 'markdown',
-  revisionMode: 'default',
+  revisionMode: 'standard',
   documentType: null,
   documentTypeName: '',
   contextFilter: {},
