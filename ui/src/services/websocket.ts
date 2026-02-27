@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { createEventsClient, type ServerEvent, DEFAULT_SSE_EVENT_TYPES } from '@/api/events';
 import { realtimeEventBus, type RealtimeEvent } from '@/services/realtimeEventBus';
 import { getCachedConfig } from '@/lib/tauri';
+import { getRuntimeConfig } from '@/lib/runtime-config';
 
 export interface WsActiveJob {
   job_id: string;
@@ -122,6 +123,12 @@ class WebSocketService {
     const tauriConfig = getCachedConfig();
     if (tauriConfig?.api_base_url) {
       return tauriConfig.api_base_url;
+    }
+
+    // Docker runtime config (injected by docker-entrypoint.sh)
+    const runtimeUrl = getRuntimeConfig('VITE_API_BASE_URL');
+    if (runtimeUrl) {
+      return runtimeUrl;
     }
 
     const envUrl = (import.meta.env.VITE_API_BASE_URL as string | undefined)?.trim();

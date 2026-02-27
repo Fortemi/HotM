@@ -4,6 +4,7 @@
  */
 
 import { getCachedConfig, getTauriFetch } from '@/lib/tauri';
+import { getRuntimeConfig } from '@/lib/runtime-config';
 import { createApiClient, getServerRoot } from './client';
 import { createNotesApi } from './notes';
 import { createSearchApi } from './search';
@@ -233,14 +234,21 @@ export { api as compatApi } from './compat';
  *
  * Priority:
  * 1. Tauri runtime config (~/.config/com.hotm.app/config.json) — desktop only
- * 2. VITE_API_BASE_URL env var — set at build time
- * 3. http://localhost:3000 — development default
+ * 2. Docker runtime config (window.__RUNTIME_CONFIG__) — set at container start
+ * 3. VITE_API_BASE_URL env var — set at build time
+ * 4. http://localhost:3000 — development default
  */
 function getApiBaseUrl(): string {
   // Tauri desktop config (loaded at startup, cached synchronously)
   const tauriConfig = getCachedConfig();
   if (tauriConfig?.api_base_url) {
     return tauriConfig.api_base_url;
+  }
+
+  // Docker runtime config (injected by docker-entrypoint.sh)
+  const runtimeUrl = getRuntimeConfig('VITE_API_BASE_URL');
+  if (runtimeUrl) {
+    return runtimeUrl;
   }
 
   // Vite environment variables

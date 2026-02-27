@@ -23,6 +23,9 @@ services:
         VITE_API_BASE_URL: ${FORTEMI_API_URL:-http://localhost:3000/api/v1}
         VITE_APP_TITLE: ${APP_TITLE:-HotM}
         VITE_DISABLE_WEBSOCKET: ${VITE_DISABLE_WEBSOCKET:-false}
+    environment:
+      - VITE_API_BASE_URL=${FORTEMI_API_URL:-}
+      - VITE_APP_TITLE=${APP_TITLE:-}
     container_name: hotm-ui
     restart: unless-stopped
     ports:

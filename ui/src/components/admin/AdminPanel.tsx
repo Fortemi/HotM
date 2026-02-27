@@ -17,6 +17,7 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
 import { getCachedConfig } from '@/lib/tauri';
+import { getRuntimeConfig } from '@/lib/runtime-config';
 import { api } from '@/api';
 import type { EmbeddingConfig, KnowledgeHealth } from '@/api';
 
@@ -379,9 +380,11 @@ export function AdminPanel({ className }: AdminPanelProps) {
                   <span className="text-sm text-muted-foreground">
                     {getCachedConfig()?.api_base_url
                       ? 'Desktop config file'
-                      : import.meta.env.VITE_API_BASE_URL
-                        ? 'Environment variable'
-                        : 'Default'}
+                      : getRuntimeConfig('VITE_API_BASE_URL')
+                        ? 'Runtime config'
+                        : import.meta.env.VITE_API_BASE_URL
+                          ? 'Environment variable'
+                          : 'Default'}
                   </span>
                 </div>
                 <Separator />

@@ -40,6 +40,10 @@ COPY docker/nginx.conf /etc/nginx/conf.d/default.conf
 # Copy built assets from builder stage
 COPY --from=builder /app/dist /usr/share/nginx/html
 
+# Copy runtime entrypoint that generates env-config.js at startup
+COPY docker/docker-entrypoint.sh /docker-entrypoint.sh
+RUN chmod +x /docker-entrypoint.sh
+
 # Add non-root user for security
 RUN addgroup -g 1001 -S hotm && \
     adduser -u 1001 -S hotm -G hotm && \
@@ -56,5 +60,5 @@ EXPOSE 80
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
     CMD wget --no-verbose --tries=1 --spider http://127.0.0.1:80/health || exit 1
 
-# Run nginx in foreground
-CMD ["nginx", "-g", "daemon off;"]
+# Generate env-config.js from env vars, then start nginx
+ENTRYPOINT ["/docker-entrypoint.sh"]
