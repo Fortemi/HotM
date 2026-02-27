@@ -27,6 +27,7 @@ import { createEventsClient } from './events';
 import { createWebhooksApi } from './webhooks';
 import { createArchivesApi } from './archives';
 import { createJobsApi } from './jobs';
+import { createChatApi } from './chat';
 
 // Export core types
 export type {
@@ -159,6 +160,11 @@ export type {
   FederatedSearchHit,
   FederatedSearchResponse,
   ExtractionStatus,
+  ChatRole,
+  ChatMessage,
+  ChatAction,
+  ChatRequest,
+  ChatResponse,
 } from './types-extended';
 
 // Export error classes
@@ -195,6 +201,7 @@ export type { ServerEvent, EventsClient } from './events';
 export { createWebhooksApi } from './webhooks';
 export { createArchivesApi } from './archives';
 export { createJobsApi } from './jobs';
+export { createChatApi } from './chat';
 export type {
   Webhook,
   CreateWebhookRequest,
@@ -225,6 +232,7 @@ export type { LinksApi } from './links';
 export type { ProvenanceApi } from './provenance';
 export type { ArchivesApi } from './archives';
 export type { JobsApi, JobPauseState, JobPauseActionResponse, JobQueueStats, JobListItem } from './jobs';
+export type { ChatApi } from './chat';
 
 // Export compatibility layer
 export { api as compatApi } from './compat';
@@ -316,6 +324,7 @@ export function createApi(baseUrl?: string) {
     webhooks: createWebhooksApi(client),
     archives: createArchivesApi(client),
     jobs: createJobsApi(client),
+    chat: createChatApi(client),
 
     /**
      * Quick health check endpoint (legacy)

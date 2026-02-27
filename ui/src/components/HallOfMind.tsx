@@ -68,6 +68,7 @@ import {
   PenLine,
   FileText,
   ListChecks,
+  Bot,
 } from "lucide-react";
 import { api, NoteFull, NoteSummary } from "@/services/api";
 import { realtimeEventBus, type RealtimeEvent } from "@/services/realtimeEventBus";
@@ -113,6 +114,7 @@ import { useWebSocket } from "@/services/websocket";
 import { JobManagementPanel } from "./JobManagementPanel";
 import { JobQueueView } from "./jobs";
 import { QuickCapturePage } from "./capture";
+import { AgentPanel } from "./agent";
 
 type AppView =
   | "dashboard"
@@ -134,6 +136,7 @@ type AppView =
   | "tags"
   | "search"
   | "jobs"
+  | "agent"
   | "realtime-debug";
 
 export interface Note {
@@ -2070,6 +2073,15 @@ export function HallOfMind() {
                   </SidebarMenuItem>
                   <SidebarMenuItem>
                     <SidebarMenuButton
+                      onClick={() => setCurrentView("agent")}
+                      className={currentView === "agent" ? "bg-primary/10" : ""}
+                    >
+                      <Bot className="h-4 w-4" />
+                      <span>Agent</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton
                       onClick={() => setCurrentView("jobs")}
                       className={currentView === "jobs" ? "bg-primary/10" : ""}
                     >
@@ -2399,6 +2411,12 @@ export function HallOfMind() {
                     setSelectedNote(note);
                     setCurrentView("notes");
                   }
+                }}
+              />
+            ) : currentView === "agent" ? (
+              <AgentPanel
+                context={{
+                  noteId: selectedNote?.id,
                 }}
               />
             ) : currentView === "jobs" ? (

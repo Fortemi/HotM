@@ -1090,3 +1090,50 @@ export interface RateLimitStatus {
   reset_at: string;
   retry_after_seconds?: number;
 }
+
+// ===========================
+// Chat / Agent
+// ===========================
+
+/**
+ * Chat message role
+ */
+export type ChatRole = 'user' | 'assistant' | 'system';
+
+/**
+ * Chat message
+ */
+export interface ChatMessage {
+  role: ChatRole;
+  content: string;
+  timestamp?: string;
+}
+
+/**
+ * Action returned by the chat agent (tool execution, navigation, etc.)
+ */
+export interface ChatAction {
+  type: string;
+  payload: Record<string, unknown>;
+}
+
+/**
+ * Chat request body for POST /chat
+ */
+export interface ChatRequest {
+  input: string;
+  context?: {
+    note_id?: string;
+    collection_id?: string;
+    search_query?: string;
+    conversation_history?: ChatMessage[];
+  };
+}
+
+/**
+ * Chat response from POST /chat
+ */
+export interface ChatResponse {
+  messages: ChatMessage[];
+  actions: ChatAction[];
+}

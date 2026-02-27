@@ -12,6 +12,9 @@
 #   - VERSION: Image version tag (default: latest)
 #   - FORTEMI_API_URL: Fortemi API endpoint (default: http://localhost:3000/api/v1)
 #   - APP_TITLE: Application title (default: HotM)
+#   - ANTHROPIC_API_KEY: Anthropic API key (optional, for agent)
+#   - OPENAI_API_KEY: OpenAI API key (optional, for agent)
+#   - OLLAMA_URL: Ollama API URL (default: http://localhost:11434)
 
 services:
   hotm-ui:
@@ -41,6 +44,34 @@ services:
     labels:
       - "com.hotm.service=ui"
       - "com.hotm.description=HotM React SPA"
+
+  agent-proxy:
+    image: ${HOTM_REGISTRY:-ghcr.io}/fortemi/hotm-agent-proxy:${VERSION:-latest}
+    build:
+      context: ./agent-proxy
+      dockerfile: Dockerfile
+    container_name: hotm-agent-proxy
+    restart: unless-stopped
+    environment:
+      - FORTEMI_API_URL=${FORTEMI_API_URL:-http://fortemi:3000/api/v1}
+      - OLLAMA_URL=${OLLAMA_URL:-http://ollama:11434}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - CORS_ORIGIN=*
+      - PORT=3001
+    ports:
+      - "3001:3001"
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://127.0.0.1:3001/health"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
+    networks:
+      - hotm-network
+    labels:
+      - "com.hotm.service=agent-proxy"
+      - "com.hotm.description=AI agent proxy for provider routing"
 
 networks:
   hotm-network:
