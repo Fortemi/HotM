@@ -1,7 +1,7 @@
 import { useState, useCallback, useRef } from "react";
 import { api } from "@/api";
 import { setActiveMemory, getActiveMemory } from "@/api/memory-context";
-import { shouldUseTus, startTusUpload } from "@/services/tusUploader";
+import { uploadStore } from "@/services/uploadStore";
 import type { StickySettings } from "./useStickySettings";
 
 export interface CommitResult {
@@ -97,30 +97,13 @@ export function useNoteCommit() {
             }
           }
 
-          // Step 5: Upload attachments (if any)
-          // Large files (>= 50 MB) route through TUS resumable protocol;
-          // smaller files use the regular multipart endpoint.
+          // Step 5: Queue attachments for background upload (if any)
+          // Files are processed via uploadStore which provides progress
+          // tracking visible in JobQueueMonitor.
           let attachmentCount = 0;
           if (files && files.length > 0) {
-            for (const file of files) {
-              try {
-                if (shouldUseTus(file)) {
-                  const handle = startTusUpload({
-                    noteId: note_id,
-                    file,
-                    mediaOptimize: false,
-                  });
-                  await handle.promise;
-                } else {
-                  await api.attachments.uploadAttachment(note_id, file);
-                }
-                attachmentCount++;
-              } catch (err) {
-                const reason = err instanceof Error ? err.message : String(err);
-                console.error(`[Capture] attachment upload failed for ${file.name}:`, reason);
-                warnings.push(`Could not upload: ${file.name} — ${reason}`);
-              }
-            }
+            uploadStore.enqueueFiles(note_id, files);
+            attachmentCount = files.length;
           }
 
           return {
