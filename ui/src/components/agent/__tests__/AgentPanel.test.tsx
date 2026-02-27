@@ -54,6 +54,25 @@ vi.mock('../ChatInput', () => ({
   ),
 }));
 
+vi.mock('../useChatModels', () => ({
+  useChatModels: () => ({
+    models: [],
+    defaultModel: undefined,
+    isLoading: false,
+    error: undefined,
+    refresh: vi.fn(),
+  }),
+}));
+
+// Mock Select (Radix portals crash in jsdom)
+vi.mock('@/components/ui/select', () => ({
+  Select: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  SelectTrigger: ({ children }: { children: React.ReactNode }) => <span>{children}</span>,
+  SelectContent: ({ children }: { children: React.ReactNode }) => <span>{children}</span>,
+  SelectItem: ({ children }: { children: React.ReactNode }) => <span>{children}</span>,
+  SelectValue: () => null,
+}));
+
 vi.mock('../AgentSettings', () => ({
   AgentSettings: ({ onClose }: { onClose: () => void }) => (
     <div data-testid="agent-settings">
@@ -71,10 +90,10 @@ describe('AgentPanel', () => {
     vi.clearAllMocks();
   });
 
-  it('renders the header with agent title and provider badge', () => {
+  it('renders the header with agent title and model badge', () => {
     render(<AgentPanel />);
     expect(screen.getByText('Agent')).toBeInTheDocument();
-    expect(screen.getByText('ollama')).toBeInTheDocument();
+    expect(screen.getByText('llama3.2')).toBeInTheDocument();
   });
 
   it('shows empty state when no messages', () => {

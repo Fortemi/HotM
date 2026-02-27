@@ -22,7 +22,7 @@ describe('providers', () => {
 
   describe('DEFAULT_MODELS', () => {
     it('has a model for each provider', () => {
-      expect(DEFAULT_MODELS.fortemi).toBe('default');
+      expect(DEFAULT_MODELS.fortemi).toBeUndefined();
       expect(DEFAULT_MODELS.ollama).toBe('llama3.2');
       expect(DEFAULT_MODELS.anthropic).toBe('claude-sonnet-4-6');
       expect(DEFAULT_MODELS.openai).toBe('gpt-4o');

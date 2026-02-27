@@ -12,9 +12,17 @@ import { Bot, Trash2, Shield, ShieldCheck, ShieldOff, Settings2 } from "lucide-r
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useAgentChat } from "./useAgentChat";
 import { useAgentConfig } from "./useAgentConfig";
 import { useAgentPrivileges } from "./useAgentPrivileges";
+import { useChatModels } from "./useChatModels";
 import { ChatMessage } from "./ChatMessage";
 import { ChatInput } from "./ChatInput";
 import { ConfirmationCard } from "./ConfirmationCard";
@@ -41,9 +49,10 @@ const PRIVILEGE_COLORS: Record<PrivilegeMode, string> = {
 };
 
 export function AgentPanel({ context }: AgentPanelProps) {
-  const { config } = useAgentConfig();
+  const { config, setConfig } = useAgentConfig();
   const { mode, setMode, pending, resolveConfirmation } = useAgentPrivileges();
   const [showSettings, setShowSettings] = useState(false);
+  const { models, defaultModel } = useChatModels(config.provider);
 
   const { messages, isLoading, error, sendMessage, clearMessages, clearError } =
     useAgentChat({ config, context });
@@ -72,9 +81,30 @@ export function AgentPanel({ context }: AgentPanelProps) {
         <div className="flex items-center gap-2">
           <Bot className="h-5 w-5 text-primary" />
           <h2 className="text-lg font-semibold">Agent</h2>
-          <Badge variant="secondary" className="text-xs font-normal">
-            {config.provider}
-          </Badge>
+          {models.length > 0 ? (
+            <Select
+              value={config.model ?? ''}
+              onValueChange={(v) => setConfig({ model: v || undefined })}
+            >
+              <SelectTrigger className="h-7 w-auto max-w-[180px] gap-1 border-0 bg-secondary px-2 text-xs font-normal">
+                <SelectValue placeholder={defaultModel ?? config.provider} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">
+                  <span className="text-muted-foreground">{defaultModel} (default)</span>
+                </SelectItem>
+                {models.map((m) => (
+                  <SelectItem key={m.model} value={m.model}>
+                    {m.model}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          ) : (
+            <Badge variant="secondary" className="text-xs font-normal">
+              {config.model ?? config.provider}
+            </Badge>
+          )}
           <Button
             variant="ghost"
             size="sm"

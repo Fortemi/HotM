@@ -3,7 +3,7 @@
  *
  * Allows users to:
  * - Select provider (Fortemi, Ollama, Anthropic, OpenAI)
- * - Choose model per provider
+ * - Choose model per provider (dynamic list for Fortemi, text input for others)
  * - Adjust temperature and max tool steps
  * - View connection status
  * - Reset to defaults
@@ -13,7 +13,7 @@
  */
 
 import { useState } from 'react';
-import { Settings2, X, RotateCcw, Wifi, WifiOff } from 'lucide-react';
+import { Settings2, X, RotateCcw, Wifi, WifiOff, Brain, RefreshCw, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
@@ -32,6 +32,7 @@ import {
   requiresProxy,
 } from './providers';
 import { useAgentConfig } from './useAgentConfig';
+import { useChatModels } from './useChatModels';
 import { api } from '@/api';
 
 interface AgentSettingsProps {
@@ -65,21 +66,34 @@ const PROVIDER_OPTIONS: Array<{
   },
 ];
 
+/** Format parameter size for display (e.g., "8B", "14.8B") */
+function formatSize(size: string): string {
+  return size;
+}
+
+/** Format context window for display (e.g., "32K") */
+function formatContext(tokens: number): string {
+  if (tokens >= 1024) return `${Math.round(tokens / 1024)}K`;
+  return `${tokens}`;
+}
+
 export function AgentSettings({ onClose }: AgentSettingsProps) {
   const { config, setConfig, resetConfig } = useAgentConfig();
   const [testStatus, setTestStatus] = useState<'idle' | 'testing' | 'ok' | 'error'>('idle');
+  const { models, defaultModel, isLoading: modelsLoading, error: modelsError, refresh: refreshModels } = useChatModels(config.provider);
 
   const handleProviderChange = (provider: string) => {
     const p = provider as AgentProvider;
     setConfig({
       provider: p,
-      model: DEFAULT_MODELS[p],
+      // Clear model so provider default is used
+      model: undefined,
     });
     setTestStatus('idle');
   };
 
   const handleModelChange = (model: string) => {
-    setConfig({ model });
+    setConfig({ model: model || undefined });
   };
 
   const handleTemperatureChange = (values: number[]) => {
@@ -122,6 +136,10 @@ export function AgentSettings({ onClose }: AgentSettingsProps) {
     resetConfig();
     setTestStatus('idle');
   };
+
+  // Resolve the effective model for display
+  const effectiveModel = config.model ?? defaultModel ?? DEFAULT_MODELS[config.provider];
+  const isFortemi = config.provider === 'fortemi';
 
   return (
     <div className="flex h-full flex-col">
@@ -168,15 +186,100 @@ export function AgentSettings({ onClose }: AgentSettingsProps) {
 
         {/* Model Selection */}
         <section className="space-y-3">
-          <h3 className="text-sm font-medium">Model</h3>
-          <Input
-            value={config.model ?? DEFAULT_MODELS[config.provider]}
-            onChange={(e) => handleModelChange(e.target.value)}
-            placeholder={DEFAULT_MODELS[config.provider]}
-          />
-          <p className="text-xs text-muted-foreground">
-            Default: {DEFAULT_MODELS[config.provider]}
-          </p>
+          <div className="flex items-center justify-between">
+            <h3 className="text-sm font-medium">Model</h3>
+            {isFortemi && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={refreshModels}
+                disabled={modelsLoading}
+                className="h-6 px-2"
+                title="Refresh models"
+              >
+                {modelsLoading ? (
+                  <Loader2 className="h-3 w-3 animate-spin" />
+                ) : (
+                  <RefreshCw className="h-3 w-3" />
+                )}
+              </Button>
+            )}
+          </div>
+
+          {isFortemi && models.length > 0 ? (
+            <>
+              <Select
+                value={config.model ?? ''}
+                onValueChange={handleModelChange}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder={`${defaultModel ?? 'Select model'} (default)`} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">
+                    <span className="text-muted-foreground">Use server default ({defaultModel})</span>
+                  </SelectItem>
+                  {models.map((m) => (
+                    <SelectItem key={m.model} value={m.model}>
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium">{m.model}</span>
+                        <span className="text-xs text-muted-foreground">
+                          {formatSize(m.parameter_size)}
+                        </span>
+                        {m.supports_thinking && (
+                          <Brain className="h-3 w-3 text-purple-500" />
+                        )}
+                        {m.context_window > 0 && (
+                          <span className="text-xs text-muted-foreground">
+                            {formatContext(m.context_window)} ctx
+                          </span>
+                        )}
+                        {m.speed_tok_s > 0 && (
+                          <span className="text-xs text-muted-foreground">
+                            ~{Math.round(m.speed_tok_s)} tok/s
+                          </span>
+                        )}
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {modelsError && (
+                <p className="text-xs text-destructive">{modelsError}</p>
+              )}
+            </>
+          ) : isFortemi && modelsLoading ? (
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              Loading models...
+            </div>
+          ) : isFortemi && modelsError ? (
+            <div className="space-y-2">
+              <p className="text-xs text-destructive">{modelsError}</p>
+              <Input
+                value={config.model ?? ''}
+                onChange={(e) => handleModelChange(e.target.value)}
+                placeholder={DEFAULT_MODELS[config.provider]}
+              />
+            </div>
+          ) : (
+            <>
+              <Input
+                value={config.model ?? ''}
+                onChange={(e) => handleModelChange(e.target.value)}
+                placeholder={DEFAULT_MODELS[config.provider]}
+              />
+              <p className="text-xs text-muted-foreground">
+                Default: {DEFAULT_MODELS[config.provider]}
+              </p>
+            </>
+          )}
+
+          {isFortemi && config.model && (
+            <p className="text-xs text-muted-foreground">
+              Using: {effectiveModel}
+            </p>
+          )}
         </section>
 
         <Separator className="my-4" />

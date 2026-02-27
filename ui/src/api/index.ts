@@ -165,6 +165,8 @@ export type {
   ChatAction,
   ChatRequest,
   ChatResponse,
+  ChatModelInfo,
+  ChatModelsResponse,
 } from './types-extended';
 
 // Export error classes

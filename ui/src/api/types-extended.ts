@@ -1137,3 +1137,26 @@ export interface ChatResponse {
   messages: ChatMessage[];
   actions: ChatAction[];
 }
+
+/**
+ * Model metadata returned by GET /chat/models
+ */
+export interface ChatModelInfo {
+  model: string;
+  context_window: number;
+  max_output_tokens: number;
+  supports_thinking: boolean;
+  thinking_type: string;
+  speed_tok_s: number;
+  parameter_size: string;
+  family: string;
+  size_bytes?: number;
+}
+
+/**
+ * Response from GET /chat/models
+ */
+export interface ChatModelsResponse {
+  models: ChatModelInfo[];
+  default_model: string;
+}

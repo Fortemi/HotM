@@ -31,9 +31,9 @@ export const DEFAULT_PROVIDER_CONFIG: ProviderConfig = {
   temperature: 0.7,
 };
 
-/** Default model per provider */
-export const DEFAULT_MODELS: Record<AgentProvider, string> = {
-  fortemi: 'default',
+/** Default model per provider (undefined = let server decide) */
+export const DEFAULT_MODELS: Record<AgentProvider, string | undefined> = {
+  fortemi: undefined,
   ollama: 'llama3.2',
   anthropic: 'claude-sonnet-4-6',
   openai: 'gpt-4o',

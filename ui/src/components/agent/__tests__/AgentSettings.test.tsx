@@ -4,12 +4,25 @@ import { AgentSettings } from '../AgentSettings';
 
 // Mock the api module
 const mockSendMessage = vi.fn();
+const mockGetModels = vi.fn();
 vi.mock('@/api', () => ({
   api: {
     chat: {
       sendMessage: (...args: unknown[]) => mockSendMessage(...args),
+      getModels: (...args: unknown[]) => mockGetModels(...args),
     },
   },
+}));
+
+// Mock useChatModels hook
+vi.mock('../useChatModels', () => ({
+  useChatModels: () => ({
+    models: [],
+    defaultModel: undefined,
+    isLoading: false,
+    error: undefined,
+    refresh: vi.fn(),
+  }),
 }));
 
 // Mock the Select component (Radix portals crash in jsdom)

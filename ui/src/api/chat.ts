@@ -4,7 +4,7 @@
  */
 
 import type { ApiClient } from './client';
-import type { ChatRequest, ChatResponse } from './types-extended';
+import type { ChatRequest, ChatResponse, ChatModelsResponse } from './types-extended';
 
 export function createChatApi(client: ApiClient) {
   return {
@@ -28,6 +28,14 @@ export function createChatApi(client: ApiClient) {
       context?: ChatRequest['context'],
     ): Promise<ChatResponse> {
       return this.send({ input, context });
+    },
+
+    /**
+     * Fetch available chat models from Fortemi.
+     * Returns model list with metadata and the server's default model.
+     */
+    async getModels(): Promise<ChatModelsResponse> {
+      return client.get<ChatModelsResponse>('/chat/models');
     },
   };
 }
