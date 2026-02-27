@@ -1,6 +1,7 @@
 import { useState, useCallback, useRef } from "react";
 import { api } from "@/api";
 import { setActiveMemory, getActiveMemory } from "@/api/memory-context";
+import { shouldUseTus, startTusUpload } from "@/services/tusUploader";
 import type { StickySettings } from "./useStickySettings";
 
 export interface CommitResult {
@@ -97,11 +98,22 @@ export function useNoteCommit() {
           }
 
           // Step 5: Upload attachments (if any)
+          // Large files (>= 50 MB) route through TUS resumable protocol;
+          // smaller files use the regular multipart endpoint.
           let attachmentCount = 0;
           if (files && files.length > 0) {
             for (const file of files) {
               try {
-                await api.attachments.uploadAttachment(note_id, file);
+                if (shouldUseTus(file)) {
+                  const handle = startTusUpload({
+                    noteId: note_id,
+                    file,
+                    mediaOptimize: false,
+                  });
+                  await handle.promise;
+                } else {
+                  await api.attachments.uploadAttachment(note_id, file);
+                }
                 attachmentCount++;
               } catch (err) {
                 const reason = err instanceof Error ? err.message : String(err);
