@@ -10,7 +10,7 @@
  */
 
 import { Router } from 'express';
-import { streamText, stepCountIs } from 'ai';
+import { streamText, stepCountIs, convertToModelMessages } from 'ai';
 import { getModel, type ProviderName, DEFAULT_MODELS } from '../providers/index.js';
 import { agentTools } from '../tools.js';
 
@@ -76,10 +76,14 @@ chatRouter.post('/', async (req, res) => {
 
     const languageModel = getModel(provider as ProviderName, model);
 
+    // Convert UI messages (parts-based) to model messages (content-based)
+    // The client sends UIMessage[] via DefaultChatTransport; streamText expects ModelMessage[]
+    const modelMessages = await convertToModelMessages(messages);
+
     const result = streamText({
       model: languageModel,
       system: systemPrompt,
-      messages,
+      messages: modelMessages,
       tools: agentTools,
       stopWhen: stepCountIs(maxSteps),
       temperature,
