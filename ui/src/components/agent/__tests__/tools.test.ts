@@ -36,7 +36,7 @@ vi.mock('@/api', () => ({
     },
     concepts: {
       listConcepts: vi.fn().mockResolvedValue([
-        { id: 'con1', pref_label: 'AI', definition: 'Artificial Intelligence' },
+        { id: 'con1', pref_label: 'AI', notation: 'technology/ai', status: 'candidate', note_count: 3 },
       ]),
     },
   },
@@ -214,7 +214,7 @@ describe('agentTools', () => {
         limit: 10,
       });
       expect(result).toMatchObject({
-        concepts: [{ id: 'con1', label: 'AI', definition: 'Artificial Intelligence' }],
+        concepts: [{ id: 'con1', label: 'AI', notation: 'technology/ai', status: 'candidate', note_count: 3 }],
       });
     });
   });

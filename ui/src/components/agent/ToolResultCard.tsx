@@ -103,7 +103,14 @@ interface ListCollectionsData {
 }
 
 interface SearchConceptsData {
-  concepts: Array<{ id: string; label: string; definition?: string }>;
+  concepts: Array<{
+    id: string;
+    label: string;
+    notation?: string;
+    status?: string;
+    note_count?: number;
+    definition?: string; // legacy compat
+  }>;
 }
 
 interface GetRelatedData {
@@ -288,10 +295,15 @@ function SearchConceptsCard({ result }: { result: SearchConceptsData }) {
         {result.concepts.map((c) => (
           <div key={c.id} className="text-sm">
             <span className="font-medium">{c.label}</span>
-            {c.definition && (
-              <p className="line-clamp-1 text-xs text-muted-foreground">
-                {c.definition}
-              </p>
+            {c.notation && (
+              <span className="ml-1.5 text-xs text-muted-foreground">
+                {c.notation}
+              </span>
+            )}
+            {c.note_count != null && c.note_count > 0 && (
+              <span className="ml-1.5 text-xs text-muted-foreground">
+                ({c.note_count} note{c.note_count === 1 ? "" : "s"})
+              </span>
             )}
           </div>
         ))}

@@ -61,7 +61,13 @@ export interface CollectionListResult {
 }
 
 export interface ConceptSearchResult {
-  concepts: Array<{ id: string; label: string; definition?: string }>;
+  concepts: Array<{
+    id: string;
+    label: string;
+    notation?: string;
+    status?: string;
+    note_count?: number;
+  }>;
 }
 
 export interface RelatedNotesResult {
@@ -277,11 +283,17 @@ export const searchConceptsTool = tool({
       limit,
     });
     return {
-      concepts: concepts.map((c) => ({
-        id: c.id,
-        label: c.pref_label,
-        definition: c.definition,
-      })),
+      concepts: concepts.map((c) => {
+        // The API returns status and note_count but the Concept type doesn't include them
+        const raw = c as unknown as Record<string, unknown>;
+        return {
+          id: c.id,
+          label: c.pref_label,
+          notation: c.notation,
+          status: raw.status as string | undefined,
+          note_count: raw.note_count as number | undefined,
+        };
+      }),
     };
   },
 });

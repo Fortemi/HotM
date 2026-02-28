@@ -257,12 +257,17 @@ export const searchConceptsTool = tool({
   execute: async ({ query, limit }) => {
     const params = new URLSearchParams({ search: query, limit: String(limit) });
     const results = await fortemi<unknown>(`/concepts?${params}`);
-    const items = Array.isArray(results) ? results : [];
+    // Fortemi wraps results in { concepts: [...], total, limit, offset }
+    const items = Array.isArray(results)
+      ? results
+      : ((results as Record<string, unknown>).concepts ?? []) as Array<Record<string, unknown>>;
     return {
       concepts: (items as Array<Record<string, unknown>>).map((c) => ({
         id: c.id,
         label: c.pref_label,
-        definition: c.definition,
+        notation: c.notation,
+        status: c.status,
+        note_count: c.note_count,
       })),
     };
   },
