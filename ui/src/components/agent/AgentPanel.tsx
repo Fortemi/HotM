@@ -120,14 +120,14 @@ export function AgentPanel({ context }: AgentPanelProps) {
           <h2 className="text-lg font-semibold">Agent</h2>
           {models.length > 0 ? (
             <Select
-              value={config.model ?? ''}
-              onValueChange={(v) => setConfig({ model: v || undefined })}
+              value={config.model ?? '__default__'}
+              onValueChange={(v) => setConfig({ model: v === '__default__' ? undefined : v })}
             >
               <SelectTrigger className="h-7 w-auto max-w-[180px] gap-1 border-0 bg-secondary px-2 text-xs font-normal">
                 <SelectValue placeholder={defaultModel ?? config.provider} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">
+                <SelectItem value="__default__">
                   <span className="text-muted-foreground">{defaultModel} (default)</span>
                 </SelectItem>
                 {models.map((m) => (
