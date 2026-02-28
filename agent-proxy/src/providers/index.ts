@@ -27,14 +27,17 @@ export function getModel(provider: ProviderName, model?: string): LanguageModel 
   switch (provider) {
     case 'fortemi':
     case 'ollama': {
-      // Ollama exposes an OpenAI-compatible API.
+      // Ollama exposes an OpenAI-compatible Chat Completions API.
       // Fortemi embeds/proxies Ollama on the same URL.
+      // IMPORTANT: Use .chat() — the default provider() uses the OpenAI
+      // Responses API which generates `item_reference` parts that Ollama
+      // doesn't understand (causes "unknown input item type" errors).
       const ollamaUrl = process.env.OLLAMA_URL ?? 'http://localhost:11434';
       const ollama = createOpenAI({
         baseURL: `${ollamaUrl}/v1`,
         apiKey: 'ollama', // Ollama doesn't require a real key
       });
-      return ollama(modelId);
+      return ollama.chat(modelId);
     }
 
     case 'anthropic': {
@@ -51,8 +54,10 @@ export function getModel(provider: ProviderName, model?: string): LanguageModel 
       if (!apiKey) {
         throw new Error('OPENAI_API_KEY environment variable is required');
       }
+      // Use .chat() for Chat Completions API — the default uses the
+      // Responses API which may not work with all OpenAI-compatible providers.
       const openai = createOpenAI({ apiKey });
-      return openai(modelId);
+      return openai.chat(modelId);
     }
 
     default:
