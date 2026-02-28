@@ -7,12 +7,22 @@
  * The GET handler exists because the AI SDK's DefaultChatTransport or the
  * browser may probe the endpoint on initial load. Without it, the first
  * request returns 404 and logs an error in the console.
+ *
+ * Tool availability is controlled by an XState flow machine that classifies
+ * user intent and configures activeTools per step via AI SDK's prepareStep.
  */
 
 import { Router } from 'express';
-import { streamText, stepCountIs, convertToModelMessages } from 'ai';
+import { streamText, convertToModelMessages } from 'ai';
 import { getModel, type ProviderName, DEFAULT_MODELS } from '../providers/index.js';
 import { agentTools } from '../tools.js';
+import {
+  createFlowActor,
+  getFlowState,
+  getFlowContext,
+  type FlowActor,
+} from '../agent/flow-machine.js';
+import type { AgentToolName, StepSummary } from '../agent/types.js';
 
 const SYSTEM_PROMPT = `You are a knowledge assistant embedded in HotM (Hall of the Mind), \
 a note-taking and analysis application backed by Fortemi.
@@ -144,24 +154,104 @@ chatRouter.post('/', async (req, res) => {
     const languageModel = getModel(provider as ProviderName, model);
 
     // Convert UI messages (parts-based) to model messages (content-based)
-    // The client sends UIMessage[] via DefaultChatTransport; streamText expects ModelMessage[]
     const modelMessages = await convertToModelMessages(messages);
 
-    // Order of operations: only provide tools after the first exchange.
-    // On the first turn (single user message), force a conversational response
-    // so the LLM establishes intent before calling tools. This prevents
-    // smaller models from eagerly calling tools on greetings/questions.
+    // Determine if this is the first user turn
     const userMessageCount = messages.filter(
       (m: { role: string }) => m.role === 'user',
     ).length;
-    const enableTools = userMessageCount > 1;
+    const isFirstTurn = userMessageCount <= 1;
+
+    // Extract latest user message text for classification
+    const latestUserMsg = [...messages]
+      .reverse()
+      .find((m: { role: string }) => m.role === 'user');
+    const userMessageText = extractMessageText(latestUserMsg);
+
+    // --- Flow machine setup ---
+    const actor = createFlowActor();
+    actor.start();
+    actor.send({
+      type: 'CLASSIFY',
+      userMessage: userMessageText,
+      isFirstTurn,
+      maxSteps,
+    });
+
+    // After CLASSIFY, the machine auto-transitions through classify→configure→ready.
+    // At this point we can read the configured state.
+    const flowCtx = getFlowContext(actor);
+    const flowState = getFlowState(actor);
+
+    console.log(
+      `[agent-flow] intent=${flowCtx.intent} state=${flowState} ` +
+        `tools=[${flowCtx.activeTools.join(',')}] firstTurn=${isFirstTurn}`,
+    );
+
+    // Determine if we need tools at all
+    const hasTools = flowCtx.activeTools.length > 0;
 
     const result = streamText({
       model: languageModel,
-      system: systemPrompt,
+      system: systemPrompt + flowCtx.promptSuffix,
       messages: modelMessages,
-      ...(enableTools ? { tools: agentTools, stopWhen: stepCountIs(maxSteps) } : {}),
+      // Only pass tools if the intent requires them
+      ...(hasTools
+        ? {
+            tools: agentTools,
+            activeTools: flowCtx.activeTools as (keyof typeof agentTools)[],
+          }
+        : {}),
       temperature,
+
+      // Per-step hook: read the flow machine's current activeTools + system prompt
+      prepareStep: hasTools
+        ? ({ stepNumber }) => {
+            const ctx = getFlowContext(actor);
+            const state = getFlowState(actor);
+
+            console.log(
+              `[agent-flow] prepareStep #${stepNumber} state=${state} ` +
+                `intent=${ctx.intent} tools=[${ctx.activeTools.join(',')}]`,
+            );
+
+            return {
+              activeTools: ctx.activeTools as (keyof typeof agentTools)[],
+              system: systemPrompt + ctx.promptSuffix,
+            };
+          }
+        : undefined,
+
+      // Post-step hook: feed results back to the machine
+      onStepFinish: (event) => {
+        const step: StepSummary = {
+          stepNumber: event.stepNumber,
+          finishReason: event.finishReason,
+          hasToolCalls: event.toolCalls.length > 0,
+          toolNames: event.toolCalls.map(
+            (tc: { toolName: string }) => tc.toolName,
+          ),
+          textLength: event.text.length,
+        };
+
+        actor.send({ type: 'STEP_COMPLETE', step });
+
+        const state = getFlowState(actor);
+        console.log(
+          `[agent-flow] onStepFinish #${event.stepNumber} ` +
+            `reason=${event.finishReason} tools=[${step.toolNames.join(',')}] ` +
+            `→ state=${state}`,
+        );
+      },
+
+      onFinish: () => {
+        // Signal the machine that streaming is complete
+        const state = getFlowState(actor);
+        if (state !== 'done') {
+          actor.send({ type: 'DONE' });
+        }
+        actor.stop();
+      },
     });
 
     // Stream the response using AI SDK UI message stream protocol
@@ -175,3 +265,33 @@ chatRouter.post('/', async (req, res) => {
     }
   }
 });
+
+/**
+ * Extract plain text from a UI message object.
+ * Handles both string content and parts-based content.
+ */
+function extractMessageText(msg: unknown): string {
+  if (!msg || typeof msg !== 'object') return '';
+  const m = msg as Record<string, unknown>;
+
+  // String content (simple format)
+  if (typeof m.content === 'string') return m.content;
+
+  // Parts-based content (AI SDK UIMessage format)
+  if (Array.isArray(m.parts)) {
+    return (m.parts as Array<Record<string, unknown>>)
+      .filter((p) => p.type === 'text')
+      .map((p) => String(p.text ?? ''))
+      .join(' ');
+  }
+
+  // Content array format
+  if (Array.isArray(m.content)) {
+    return (m.content as Array<Record<string, unknown>>)
+      .filter((c) => c.type === 'text')
+      .map((c) => String(c.text ?? ''))
+      .join(' ');
+  }
+
+  return '';
+}
