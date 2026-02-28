@@ -4,13 +4,16 @@
  * Formats the conversation as Markdown and creates a note via the API.
  * Fortemi's NLP pipeline auto-generates an AI revision that summarizes
  * the conversation content.
+ *
+ * Additionally attaches a lossless JSON file containing the full session
+ * data (including UIMessage parts) so the session can be restored later.
  */
 
 import { useState, useCallback } from 'react';
 import { BookmarkPlus, Check, Loader2, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { api } from '@/api';
-import { formatSessionAsMarkdown } from './session-export';
+import { formatSessionAsMarkdown, formatSessionAsJSON } from './session-export';
 import type { UIMessage } from '@ai-sdk/react';
 
 interface SaveAsNoteButtonProps {
@@ -42,7 +45,27 @@ export function SaveAsNoteButton({
         format: 'markdown',
         source: 'agent-session',
       });
-      setNoteId(response.note_id);
+      const savedNoteId = response.note_id;
+
+      // Tag the note so it's discoverable via "Load from Note"
+      try {
+        await api.notes.updateTags(savedNoteId, { add: ['agent-session'] });
+      } catch {
+        // Tag failure is non-fatal
+      }
+
+      // Attach lossless JSON so the session can be restored later
+      try {
+        const json = formatSessionAsJSON(messages, { sessionName });
+        const blob = new Blob([json], { type: 'application/json' });
+        const filename = `session-${sessionName.replace(/[^a-zA-Z0-9-_ ]/g, '').replace(/\s+/g, '-').toLowerCase()}.json`;
+        const file = new File([blob], filename, { type: 'application/json' });
+        await api.attachments.uploadAttachment(savedNoteId, file);
+      } catch {
+        // Attachment failure is non-fatal — the note was already created
+      }
+
+      setNoteId(savedNoteId);
       setState('success');
       setTimeout(() => setState('idle'), 5000);
     } catch (err) {

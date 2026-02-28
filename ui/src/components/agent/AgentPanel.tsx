@@ -37,6 +37,7 @@ import { useSessionManager } from "./useSessionManager";
 import { SessionPanel } from "./SessionPanel";
 import { ExportMenu } from "./ExportMenu";
 import { SaveAsNoteButton } from "./SaveAsNoteButton";
+import { LoadFromNoteButton } from "./LoadFromNoteButton";
 import "./print-styles.css";
 import type { AgentContext } from "./useAgent";
 import type { SubAgentProgress } from "./sub-agent";
@@ -178,6 +179,15 @@ export function AgentPanel({ context }: AgentPanelProps) {
     [messages, setMessages, sendMessage, sessionManager],
   );
 
+  const handleLoadFromNote = useCallback(
+    (restoredMessages: import('@ai-sdk/react').UIMessage[], sessionName: string) => {
+      // Create a new named session and populate it with restored messages
+      sessionManager.createSession(sessionName);
+      setMessages(restoredMessages);
+    },
+    [sessionManager, setMessages],
+  );
+
   // Resolve active model's context window for token tracking
   const activeModel = config.model ?? defaultModel;
   const activeModelInfo = models.find(m => m.model === activeModel);
@@ -299,6 +309,10 @@ export function AgentPanel({ context }: AgentPanelProps) {
           <ExportMenu
             messages={messages}
             sessionName={sessionManager.activeSession?.name}
+          />
+          <LoadFromNoteButton
+            onLoad={handleLoadFromNote}
+            disabled={isLoading}
           />
           <Button
             variant="ghost"
