@@ -31,6 +31,7 @@ env:
   GITEA_REGISTRY: git.integrolabs.net
   GHCR_REGISTRY: ghcr.io
   IMAGE_NAME: fortemi/hotm-ui
+  AGENT_PROXY_IMAGE_NAME: fortemi/hotm-agent-proxy
   FORTEMI_API_URL: http://localhost:3000/api/v1
 
 jobs:
@@ -147,6 +148,38 @@ jobs:
           push_with_retry "${IMAGE}:latest"
           push_with_retry "${IMAGE}:sha-${SHORT_SHA}"
 
+      - name: Build and push agent-proxy dev image
+        run: |
+          PROXY_IMAGE="${GITEA_REGISTRY}/${AGENT_PROXY_IMAGE_NAME}"
+          SHORT_SHA="${GITHUB_SHA:0:7}"
+
+          push_with_retry() {
+            local image=$1
+            local max_attempts=3
+            local attempt=1
+            while [ $attempt -le $max_attempts ]; do
+              echo "Pushing ${image} (attempt ${attempt}/${max_attempts})"
+              if docker push "${image}"; then
+                return 0
+              fi
+              sleep $((attempt * 5))
+              attempt=$((attempt + 1))
+            done
+            echo "Failed to push ${image} after ${max_attempts} attempts"
+            return 1
+          }
+
+          docker build \
+            -f agent-proxy/Dockerfile \
+            -t "${PROXY_IMAGE}:main" \
+            -t "${PROXY_IMAGE}:latest" \
+            -t "${PROXY_IMAGE}:sha-${SHORT_SHA}" \
+            agent-proxy
+
+          push_with_retry "${PROXY_IMAGE}:main"
+          push_with_retry "${PROXY_IMAGE}:latest"
+          push_with_retry "${PROXY_IMAGE}:sha-${SHORT_SHA}"
+
   # =============================================================================
   # Release Jobs (tag push only)
   # =============================================================================
@@ -218,9 +251,61 @@ jobs:
           push_with_retry "${GHCR_IMAGE}:latest"
           push_with_retry "${GHCR_IMAGE}:sha-${SHORT_SHA}"
 
-          echo "Published release images:"
+          echo "Published UI release images:"
           echo "  Gitea:  ${GITEA_IMAGE}:${VERSION}, :latest, :sha-${SHORT_SHA}"
           echo "  GitHub: ${GHCR_IMAGE}:${VERSION}, :latest, :sha-${SHORT_SHA}"
+
+      - name: Build and push agent-proxy release images
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          SHORT_SHA="${GITHUB_SHA:0:7}"
+
+          push_with_retry() {
+            local image=$1
+            local max_attempts=3
+            local attempt=1
+            while [ $attempt -le $max_attempts ]; do
+              echo "Pushing ${image} (attempt ${attempt}/${max_attempts})"
+              if docker push "${image}"; then
+                return 0
+              fi
+              sleep $((attempt * 5))
+              attempt=$((attempt + 1))
+            done
+            echo "Failed to push ${image} after ${max_attempts} attempts"
+            return 1
+          }
+
+          echo "Building agent-proxy release images for version: ${VERSION}"
+
+          docker build \
+            -f agent-proxy/Dockerfile \
+            -t "hotm-agent-proxy:build" \
+            agent-proxy
+
+          # Tag and push to Gitea
+          GITEA_PROXY="${GITEA_REGISTRY}/${AGENT_PROXY_IMAGE_NAME}"
+          docker tag "hotm-agent-proxy:build" "${GITEA_PROXY}:${VERSION}"
+          docker tag "hotm-agent-proxy:build" "${GITEA_PROXY}:latest"
+          docker tag "hotm-agent-proxy:build" "${GITEA_PROXY}:sha-${SHORT_SHA}"
+
+          push_with_retry "${GITEA_PROXY}:${VERSION}"
+          push_with_retry "${GITEA_PROXY}:latest"
+          push_with_retry "${GITEA_PROXY}:sha-${SHORT_SHA}"
+
+          # Tag and push to GHCR
+          GHCR_PROXY="${GHCR_REGISTRY}/${AGENT_PROXY_IMAGE_NAME}"
+          docker tag "hotm-agent-proxy:build" "${GHCR_PROXY}:${VERSION}"
+          docker tag "hotm-agent-proxy:build" "${GHCR_PROXY}:latest"
+          docker tag "hotm-agent-proxy:build" "${GHCR_PROXY}:sha-${SHORT_SHA}"
+
+          push_with_retry "${GHCR_PROXY}:${VERSION}"
+          push_with_retry "${GHCR_PROXY}:latest"
+          push_with_retry "${GHCR_PROXY}:sha-${SHORT_SHA}"
+
+          echo "Published agent-proxy release images:"
+          echo "  Gitea:  ${GITEA_PROXY}:${VERSION}, :latest, :sha-${SHORT_SHA}"
+          echo "  GitHub: ${GHCR_PROXY}:${VERSION}, :latest, :sha-${SHORT_SHA}"
 
   # ─── Create Gitea Release ──────────────────────────────────────────
   create-release:
@@ -324,6 +409,7 @@ jobs:
           GITEA_REG="${GITEA_REGISTRY}"
           GHCR_REG="${GHCR_REGISTRY}"
           IMG="${IMAGE_NAME}"
+          PROXY_IMG="${AGENT_PROXY_IMAGE_NAME}"
 
           # Write release body to file (avoids control-char issues with jq --arg)
           cat > /tmp/release_body.md <<EOF
@@ -331,10 +417,12 @@ jobs:
 
           ### Docker Images
 
-          | Registry | Pull Command |
-          |----------|-------------|
-          | GHCR (public) | \`docker pull ${GHCR_REG}/${IMG}:${VERSION}\` |
-          | Gitea (internal) | \`docker pull ${GITEA_REG}/${IMG}:${VERSION}\` |
+          | Service | Registry | Pull Command |
+          |---------|----------|-------------|
+          | UI | GHCR (public) | \`docker pull ${GHCR_REG}/${IMG}:${VERSION}\` |
+          | UI | Gitea (internal) | \`docker pull ${GITEA_REG}/${IMG}:${VERSION}\` |
+          | Agent Proxy | GHCR (public) | \`docker pull ${GHCR_REG}/${PROXY_IMG}:${VERSION}\` |
+          | Agent Proxy | Gitea (internal) | \`docker pull ${GITEA_REG}/${PROXY_IMG}:${VERSION}\` |
 
           ### Desktop Installer (Linux)
 
