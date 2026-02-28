@@ -1,14 +1,17 @@
 /**
- * POST /api/agent/chat — streaming chat completion route.
+ * Chat route — streaming chat completion endpoint.
  *
- * Receives messages + provider config from the SPA, resolves the
- * language model, attaches Fortemi tools, and streams the response
- * using the AI SDK data stream protocol (consumed by DefaultChatTransport).
+ * GET  /api/agent/chat — readiness probe / endpoint metadata.
+ * POST /api/agent/chat — streaming chat completion via AI SDK data stream protocol.
+ *
+ * The GET handler exists because the AI SDK's DefaultChatTransport or the
+ * browser may probe the endpoint on initial load. Without it, the first
+ * request returns 404 and logs an error in the console.
  */
 
 import { Router } from 'express';
 import { streamText, stepCountIs } from 'ai';
-import { getModel, type ProviderName } from '../providers/index.js';
+import { getModel, type ProviderName, DEFAULT_MODELS } from '../providers/index.js';
 import { agentTools } from '../tools.js';
 
 const SYSTEM_PROMPT = `You are a knowledge assistant embedded in HotM (Hall of the Mind), \
@@ -26,6 +29,24 @@ Guidelines:
 - Be concise and summarise tool outputs clearly.`;
 
 export const chatRouter = Router();
+
+// Readiness probe — returns endpoint metadata so initial GET doesn't 404.
+chatRouter.get('/', (_req, res) => {
+  res.json({
+    status: 'ok',
+    endpoint: '/api/agent/chat',
+    method: 'POST',
+    protocol: 'ai-sdk-ui-message-stream',
+    providers: {
+      ollama: true,
+      anthropic: !!process.env.ANTHROPIC_API_KEY,
+      openai: !!process.env.OPENAI_API_KEY,
+    },
+    defaultProvider: 'ollama',
+    defaultModel: DEFAULT_MODELS.ollama,
+    tools: Object.keys(agentTools),
+  });
+});
 
 chatRouter.post('/', async (req, res) => {
   try {

@@ -10,7 +10,7 @@ import type { LanguageModel } from 'ai';
 
 export type ProviderName = 'fortemi' | 'ollama' | 'anthropic' | 'openai';
 
-const DEFAULT_MODELS: Record<ProviderName, string> = {
+export const DEFAULT_MODELS: Record<ProviderName, string> = {
   fortemi: process.env.FORTEMI_MODEL ?? 'llama3.2',
   ollama: 'llama3.2',
   anthropic: 'claude-sonnet-4-6',
