@@ -39,7 +39,9 @@ describe('CopyButton', () => {
     render(<CopyButton text="test" />);
 
     await user.click(screen.getByRole('button'));
-    expect(screen.getByRole('button', { name: 'Copied' })).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: 'Copied' })).toBeInTheDocument();
+    });
 
     act(() => {
       vi.advanceTimersByTime(2000);
