@@ -50,19 +50,20 @@ export function SaveAsNoteButton({
       // Tag the note so it's discoverable via "Load from Note"
       try {
         await api.notes.updateTags(savedNoteId, { add: ['agent-session'] });
-      } catch {
+      } catch (tagErr) {
         // Tag failure is non-fatal
+        console.warn('[SaveAsNote] Failed to tag note:', tagErr);
       }
 
       // Attach lossless JSON so the session can be restored later
       try {
         const json = formatSessionAsJSON(messages, { sessionName });
-        const blob = new Blob([json], { type: 'application/json' });
         const filename = `session-${sessionName.replace(/[^a-zA-Z0-9-_ ]/g, '').replace(/\s+/g, '-').toLowerCase()}.json`;
-        const file = new File([blob], filename, { type: 'application/json' });
+        const file = new File([json], filename, { type: 'application/json' });
         await api.attachments.uploadAttachment(savedNoteId, file);
-      } catch {
+      } catch (attachErr) {
         // Attachment failure is non-fatal — the note was already created
+        console.warn('[SaveAsNote] Failed to attach session JSON:', attachErr);
       }
 
       setNoteId(savedNoteId);

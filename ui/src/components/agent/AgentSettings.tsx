@@ -209,14 +209,14 @@ export function AgentSettings({ onClose }: AgentSettingsProps) {
           {isFortemi && models.length > 0 ? (
             <>
               <Select
-                value={config.model ?? ''}
-                onValueChange={handleModelChange}
+                value={config.model ?? '__default__'}
+                onValueChange={(v) => handleModelChange(v === '__default__' ? '' : v)}
               >
                 <SelectTrigger>
                   <SelectValue placeholder={`${defaultModel ?? 'Select model'} (default)`} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">
+                  <SelectItem value="__default__">
                     <span className="text-muted-foreground">Use server default ({defaultModel})</span>
                   </SelectItem>
                   {models.map((m) => (

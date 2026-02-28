@@ -80,6 +80,12 @@ export function formatSessionAsMarkdown(
   return lines.join('\n');
 }
 
+/** JSON replacer that handles BigInt and other non-serializable values */
+function safeReplacer(_key: string, value: unknown): unknown {
+  if (typeof value === 'bigint') return value.toString();
+  return value;
+}
+
 export function formatSessionAsJSON(
   messages: UIMessage[],
   options: ExportOptions = {},
@@ -95,7 +101,7 @@ export function formatSessionAsJSON(
       parts: msg.parts,
     })),
   };
-  return JSON.stringify(data, null, 2);
+  return JSON.stringify(data, safeReplacer, 2);
 }
 
 export function formatSessionAsPlainText(

@@ -162,8 +162,8 @@ describe('AgentPanel', () => {
     });
 
     render(<AgentPanel />);
-    const clearBtn = screen.getByText('Clear');
-    fireEvent.click(clearBtn);
+    const newBtn = screen.getByText('New');
+    fireEvent.click(newBtn);
     expect(mockClearMessages).toHaveBeenCalled();
   });
 

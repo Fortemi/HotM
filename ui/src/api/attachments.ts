@@ -88,11 +88,18 @@ export function createAttachmentsApi(client: ApiClient) {
       const baseUrl = getBaseUrl();
       const url = `${baseUrl}/notes/${noteId}/attachments/upload`;
 
+      // Build headers as plain object — do NOT set Content-Type so the
+      // browser auto-generates the multipart boundary for FormData.
+      const headers: Record<string, string> = {};
+      const selectedMemory = getActiveMemory();
+      if (selectedMemory) {
+        headers[getMemoryRoutingHeaderName()] = selectedMemory;
+      }
+
       const response = await getTauriFetch()(url, {
         method: 'POST',
         body: formData,
-        headers: buildRoutingHeaders(),
-        // Let browser set Content-Type with boundary
+        ...(Object.keys(headers).length > 0 ? { headers } : {}),
       });
 
       if (!response.ok) {

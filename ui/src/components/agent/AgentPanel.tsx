@@ -8,7 +8,7 @@
  */
 
 import { useEffect, useRef, useState, useCallback } from "react";
-import { Bot, Trash2, Shield, ShieldCheck, ShieldOff, Settings2, Shrink, History } from "lucide-react";
+import { Bot, Plus, Shield, ShieldCheck, ShieldOff, Settings2, Shrink, History } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -295,11 +295,16 @@ export function AgentPanel({ context }: AgentPanelProps) {
             <Button
               variant="ghost"
               size="sm"
-              onClick={clearMessages}
+              onClick={() => {
+                // Start a new session (preserving the old one in storage)
+                sessionManager.newSession();
+                clearMessages();
+              }}
               className="text-muted-foreground"
+              title="Start a new session (current session is saved)"
             >
-              <Trash2 className="mr-1 h-3.5 w-3.5" />
-              Clear
+              <Plus className="mr-1 h-3.5 w-3.5" />
+              New
             </Button>
           )}
           <SaveAsNoteButton
@@ -318,10 +323,15 @@ export function AgentPanel({ context }: AgentPanelProps) {
             variant="ghost"
             size="sm"
             onClick={() => sessionManager.setShowPanel(true)}
-            className="text-muted-foreground"
+            className="relative text-muted-foreground"
             title="Session history"
           >
             <History className="h-4 w-4" />
+            {sessionManager.sessions.length > 1 && (
+              <span className="absolute -right-0.5 -top-0.5 flex h-3.5 min-w-3.5 items-center justify-center rounded-full bg-primary px-0.5 text-[9px] font-medium text-primary-foreground">
+                {sessionManager.sessions.length}
+              </span>
+            )}
           </Button>
           <Button
             variant="ghost"
