@@ -7,19 +7,27 @@ import { isToolUIPart, getToolName } from "ai";
 import { cn } from "@/lib/utils";
 import { Bot, User, Loader2 } from "lucide-react";
 import { ToolResultCard } from "./ToolResultCard";
+import { CopyButton } from "./CopyButton";
+import { MarkdownRenderer } from "./MarkdownRenderer";
+import { MessageActions } from "./MessageActions";
+import { extractMessageText } from "./context-compaction";
 import type { UIMessage } from "@ai-sdk/react";
 
 interface ChatMessageProps {
   message: UIMessage;
+  onDelete?: (messageId: string) => void;
+  onRegenerate?: (messageId: string) => void;
 }
 
-export function ChatMessage({ message }: ChatMessageProps) {
+export function ChatMessage({ message, onDelete, onRegenerate }: ChatMessageProps) {
   const isUser = message.role === "user";
+
+  const messageText = extractMessageText(message);
 
   return (
     <div
       className={cn(
-        "flex gap-3 px-4 py-3",
+        "group/message relative flex gap-3 px-4 py-3",
         isUser ? "flex-row-reverse" : "flex-row",
       )}
     >
@@ -35,25 +43,47 @@ export function ChatMessage({ message }: ChatMessageProps) {
       </div>
       <div
         className={cn(
+          "absolute top-2 flex items-center gap-0.5",
+          isUser ? "left-2" : "right-2",
+        )}
+      >
+        {messageText && <CopyButton text={messageText} />}
+        {onDelete && (
+          <MessageActions
+            messageId={message.id}
+            isAssistant={!isUser}
+            onDelete={onDelete}
+            onRegenerate={onRegenerate}
+          />
+        )}
+      </div>
+      <div
+        className={cn(
           "max-w-[80%] space-y-2",
           isUser && "flex flex-col items-end",
         )}
       >
         {message.parts.map((part, i) => {
           if (part.type === "text") {
-            return part.text ? (
+            if (!part.text) return null;
+            if (isUser) {
+              return (
+                <div
+                  key={i}
+                  className="rounded-lg bg-primary px-3 py-2 text-sm leading-relaxed text-primary-foreground"
+                >
+                  <p className="whitespace-pre-wrap break-words">{part.text}</p>
+                </div>
+              );
+            }
+            return (
               <div
                 key={i}
-                className={cn(
-                  "rounded-lg px-3 py-2 text-sm leading-relaxed",
-                  isUser
-                    ? "bg-primary text-primary-foreground"
-                    : "bg-muted text-foreground",
-                )}
+                className="rounded-lg bg-muted px-3 py-2 text-sm leading-relaxed text-foreground"
               >
-                <p className="whitespace-pre-wrap break-words">{part.text}</p>
+                <MarkdownRenderer content={part.text} />
               </div>
-            ) : null;
+            );
           }
 
           if (isToolUIPart(part)) {

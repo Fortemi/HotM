@@ -7,8 +7,8 @@
  * against the Fortemi API.
  */
 
-import { useEffect, useRef, useState } from "react";
-import { Bot, Trash2, Shield, ShieldCheck, ShieldOff, Settings2, Shrink } from "lucide-react";
+import { useEffect, useRef, useState, useCallback } from "react";
+import { Bot, Trash2, Shield, ShieldCheck, ShieldOff, Settings2, Shrink, History } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -33,6 +33,11 @@ import { useContextCompaction } from "./useContextCompaction";
 import { deriveAgentPhase, PHASE_LABELS, PHASE_INDICATOR_CLASSES } from "./agent-state";
 import { SubAgentProgressPanel } from "./SubAgentProgressPanel";
 import { AgentSettings } from "./AgentSettings";
+import { useSessionManager } from "./useSessionManager";
+import { SessionPanel } from "./SessionPanel";
+import { ExportMenu } from "./ExportMenu";
+import { SaveAsNoteButton } from "./SaveAsNoteButton";
+import "./print-styles.css";
 import type { AgentContext } from "./useAgent";
 import type { SubAgentProgress } from "./sub-agent";
 import type { PrivilegeMode } from "./privileges";
@@ -59,11 +64,119 @@ export function AgentPanel({ context }: AgentPanelProps) {
   const { config, setConfig } = useAgentConfig();
   const { mode, setMode, pending, resolveConfirmation } = useAgentPrivileges();
   const [showSettings, setShowSettings] = useState(false);
+  const [autoFocusKey, setAutoFocusKey] = useState(0);
+
+  const handleResolveConfirmation = useCallback(
+    (decision: 'allow' | 'allow-remember' | 'deny') => {
+      resolveConfirmation(decision);
+      setAutoFocusKey((k) => k + 1);
+    },
+    [resolveConfirmation],
+  );
   const { models, defaultModel } = useChatModels(config.provider);
+
+  const sessionManager = useSessionManager({
+    provider: config.provider,
+    model: config.model,
+  });
 
   const { messages, isLoading, error, sendMessage, clearMessages, clearError, setMessages } =
     useAgentChat({ config, context });
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  // Restore last active session messages on mount
+  const mountedRef = useRef(false);
+  useEffect(() => {
+    if (!mountedRef.current) {
+      mountedRef.current = true;
+      const restored = sessionManager.restoreMessages();
+      if (restored.length > 0) {
+        setMessages(restored);
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Auto-save messages to active session (debounced inside hook)
+  useEffect(() => {
+    if (messages.length > 0) {
+      sessionManager.saveMessages(messages);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [messages]);
+
+  const handleSwitchSession = useCallback(
+    (id: string) => {
+      const msgs = sessionManager.switchSession(id);
+      setMessages(msgs);
+      sessionManager.setShowPanel(false);
+    },
+    [sessionManager, setMessages],
+  );
+
+  const handleNewSession = useCallback(() => {
+    sessionManager.newSession();
+    clearMessages();
+    sessionManager.setShowPanel(false);
+  }, [sessionManager, clearMessages]);
+
+  const handleDeleteSession = useCallback(
+    (id: string) => {
+      const nextMsgs = sessionManager.deleteSession(id);
+      setMessages(nextMsgs);
+    },
+    [sessionManager, setMessages],
+  );
+
+  const handleDeleteMessage = useCallback(
+    (messageId: string) => {
+      const idx = messages.findIndex((m) => m.id === messageId);
+      if (idx < 0) return;
+      const msg = messages[idx];
+      let filtered: typeof messages;
+      if (msg.role === 'user') {
+        // Delete user message and its paired assistant response (next message)
+        const nextIsAssistant =
+          idx + 1 < messages.length && messages[idx + 1].role === 'assistant';
+        filtered = messages.filter(
+          (_, i) => i !== idx && !(nextIsAssistant && i === idx + 1),
+        );
+      } else {
+        filtered = messages.filter((_, i) => i !== idx);
+      }
+      setMessages(filtered);
+    },
+    [messages, setMessages],
+  );
+
+  const handleRegenerateMessage = useCallback(
+    async (assistantMessageId: string) => {
+      const idx = messages.findIndex((m) => m.id === assistantMessageId);
+      if (idx < 0) return;
+      // Find the preceding user message
+      let userIdx = idx - 1;
+      while (userIdx >= 0 && messages[userIdx].role !== 'user') {
+        userIdx--;
+      }
+      if (userIdx < 0) return;
+      const userText = messages[userIdx].parts
+        .filter((p) => p.type === 'text')
+        .map((p) => (p as { type: 'text'; text: string }).text)
+        .join('\n');
+      if (!userText) return;
+
+      // Fork the current session (preserves all messages)
+      sessionManager.forkSession(messages);
+
+      // Truncate messages to everything before the assistant message
+      const truncated = messages.slice(0, idx);
+      setMessages(truncated);
+
+      // Re-send the user message
+      await sendMessage(userText);
+    },
+    [messages, setMessages, sendMessage, sessionManager],
+  );
 
   // Resolve active model's context window for token tracking
   const activeModel = config.model ?? defaultModel;
@@ -179,6 +292,23 @@ export function AgentPanel({ context }: AgentPanelProps) {
               Clear
             </Button>
           )}
+          <SaveAsNoteButton
+            messages={messages}
+            sessionName={sessionManager.activeSession?.name}
+          />
+          <ExportMenu
+            messages={messages}
+            sessionName={sessionManager.activeSession?.name}
+          />
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => sessionManager.setShowPanel(true)}
+            className="text-muted-foreground"
+            title="Session history"
+          >
+            <History className="h-4 w-4" />
+          </Button>
           <Button
             variant="ghost"
             size="sm"
@@ -210,7 +340,14 @@ export function AgentPanel({ context }: AgentPanelProps) {
                   </p>
                 </div>
               ) : (
-                messages.map((msg) => <ChatMessage key={msg.id} message={msg} />)
+                messages.map((msg) => (
+                  <ChatMessage
+                    key={msg.id}
+                    message={msg}
+                    onDelete={handleDeleteMessage}
+                    onRegenerate={handleRegenerateMessage}
+                  />
+                ))
               )}
 
               {subAgentProgress.length > 0 && (
@@ -265,14 +402,26 @@ export function AgentPanel({ context }: AgentPanelProps) {
           {pending && (
             <ConfirmationCard
               confirmation={pending}
-              onResolve={resolveConfirmation}
+              onResolve={handleResolveConfirmation}
             />
           )}
 
           {/* Input */}
-          <ChatInput onSend={sendMessage} isLoading={isLoading} />
+          <ChatInput onSend={sendMessage} isLoading={isLoading} autoFocusKey={autoFocusKey} />
         </>
       )}
+
+      {/* Session history panel */}
+      <SessionPanel
+        sessions={sessionManager.sessions}
+        activeSessionId={sessionManager.activeSession?.id ?? null}
+        onSwitchSession={handleSwitchSession}
+        onNewSession={handleNewSession}
+        onRenameSession={sessionManager.renameSession}
+        onDeleteSession={handleDeleteSession}
+        onClose={() => sessionManager.setShowPanel(false)}
+        open={sessionManager.showPanel}
+      />
     </div>
   );
 }

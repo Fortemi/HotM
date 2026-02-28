@@ -66,6 +66,37 @@ export { SubAgentProgressPanel } from './SubAgentProgressPanel';
 export { ToolResultCard } from './ToolResultCard';
 export { ConfirmationCard } from './ConfirmationCard';
 export { AgentSettings } from './AgentSettings';
+export { CopyButton } from './CopyButton';
+export { MarkdownRenderer } from './MarkdownRenderer';
+export { useInputHistory, isCursorOnFirstLine, isCursorOnLastLine } from './useInputHistory';
+export type { UseInputHistoryReturn } from './useInputHistory';
+export { SessionPanel } from './SessionPanel';
+export { useSessionManager } from './useSessionManager';
+export type { UseSessionManagerReturn } from './useSessionManager';
+export {
+  loadSessions,
+  saveSessions,
+  createSession,
+  deleteSessionById,
+  renameSessionById,
+  serializeMessage,
+  deserializeMessage,
+  SESSION_STORAGE_KEY,
+  ACTIVE_SESSION_KEY,
+  MAX_SESSIONS,
+} from './session-storage';
+export type { ChatSession, SerializedUIMessage } from './session-storage';
+export { ExportMenu } from './ExportMenu';
+export {
+  formatSessionAsMarkdown,
+  formatSessionAsJSON,
+  formatSessionAsPlainText,
+  downloadExport,
+  triggerPrint,
+} from './session-export';
+export type { ExportFormat, ExportOptions } from './session-export';
+export { SaveAsNoteButton } from './SaveAsNoteButton';
+export { MessageActions } from './MessageActions';
 export { useAgentPrivileges } from './useAgentPrivileges';
 export type { PendingConfirmation, UseAgentPrivilegesReturn } from './useAgentPrivileges';
 export {

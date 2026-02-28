@@ -1,0 +1,82 @@
+/* Print-friendly styles for agent chat sessions */
+@media print {
+  /* Hide UI chrome */
+  header,
+  nav,
+  footer,
+  [data-print-hide],
+  .no-print,
+  button,
+  input,
+  textarea,
+  [role="dialog"],
+  [aria-hidden="true"] {
+    display: none !important;
+  }
+
+  /* Show the chat content cleanly */
+  body {
+    font-family: 'Georgia', 'Times New Roman', serif;
+    font-size: 11pt;
+    line-height: 1.5;
+    color: #000;
+    background: #fff;
+    margin: 0;
+    padding: 1cm;
+  }
+
+  /* Message container */
+  .group\/message {
+    page-break-inside: avoid;
+    margin-bottom: 1em;
+    padding: 0.5em 0;
+    border-bottom: 1px solid #ccc;
+    display: block !important;
+  }
+
+  /* Role indicators */
+  .group\/message .rounded-full {
+    display: inline-block;
+    width: auto;
+    height: auto;
+    background: none !important;
+    border-radius: 0;
+    font-weight: bold;
+    font-size: 10pt;
+  }
+
+  /* Message text */
+  .prose {
+    max-width: none;
+    font-size: 11pt;
+    color: #000;
+  }
+
+  /* Code blocks */
+  pre {
+    background: #f5f5f5 !important;
+    border: 1px solid #ddd;
+    padding: 0.5em;
+    font-size: 9pt;
+    page-break-inside: avoid;
+    overflow-wrap: break-word;
+    white-space: pre-wrap;
+  }
+
+  code {
+    font-size: 9pt;
+  }
+
+  /* Links show URL */
+  a[href]:after {
+    content: " (" attr(href) ")";
+    font-size: 9pt;
+    color: #666;
+  }
+
+  /* Tool results */
+  .border-destructive\/50,
+  .animate-spin {
+    display: none !important;
+  }
+}
