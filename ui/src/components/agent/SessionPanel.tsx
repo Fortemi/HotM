@@ -6,8 +6,8 @@
  * recently updated and support rename/delete inline.
  */
 
-import { useState } from 'react';
-import { X, Plus, MessageSquare, Trash2, Pencil, Check } from 'lucide-react';
+import { useState, useMemo } from 'react';
+import { X, Plus, MessageSquare, Trash2, Pencil, Check, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import type { ChatSession } from './session-storage';
@@ -171,10 +171,21 @@ export function SessionPanel({
   onClose,
   open,
 }: SessionPanelProps) {
-  const sortedSessions = [...sessions].sort(
-    (a, b) =>
-      new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(),
-  );
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const sortedSessions = useMemo(() => {
+    const sorted = [...sessions].sort(
+      (a, b) =>
+        new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(),
+    );
+    if (!searchQuery.trim()) return sorted;
+    const q = searchQuery.toLowerCase();
+    return sorted.filter(
+      (s) =>
+        s.name.toLowerCase().includes(q) ||
+        s.provider.toLowerCase().includes(q),
+    );
+  }, [sessions, searchQuery]);
 
   return (
     <>
@@ -222,11 +233,35 @@ export function SessionPanel({
           </div>
         </div>
 
+        {/* Search — shown when there are enough sessions to filter */}
+        {sessions.length > 3 && (
+          <div className="border-b px-3 py-1.5">
+            <div className="flex items-center gap-1.5 rounded-md border bg-muted/30 px-2 py-1">
+              <Search className="h-3 w-3 text-muted-foreground" />
+              <input
+                type="text"
+                placeholder="Filter sessions..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="flex-1 bg-transparent text-xs outline-none placeholder:text-muted-foreground/60"
+              />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery('')}
+                  className="text-muted-foreground hover:text-foreground"
+                >
+                  <X className="h-2.5 w-2.5" />
+                </button>
+              )}
+            </div>
+          </div>
+        )}
+
         {/* Session list */}
         <div className="flex-1 overflow-y-auto p-2 space-y-1">
           {sortedSessions.length === 0 ? (
             <div className="py-8 text-center text-xs text-muted-foreground">
-              No sessions yet
+              {searchQuery ? 'No matching sessions' : 'No sessions yet'}
             </div>
           ) : (
             sortedSessions.map((session) => (
@@ -240,6 +275,12 @@ export function SessionPanel({
               />
             ))
           )}
+        </div>
+
+        {/* Footer — session count and storage info */}
+        <div className="border-t px-3 py-1.5 text-[10px] text-muted-foreground/60">
+          {sessions.length} session{sessions.length === 1 ? '' : 's'}
+          {searchQuery && ` (${sortedSessions.length} shown)`}
         </div>
       </div>
     </>
