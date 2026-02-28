@@ -13,7 +13,7 @@
  */
 
 import { Router } from 'express';
-import { streamText, convertToModelMessages } from 'ai';
+import { streamText, convertToModelMessages, stepCountIs } from 'ai';
 import { getModel, type ProviderName, DEFAULT_MODELS } from '../providers/index.js';
 import { agentTools } from '../tools.js';
 import {
@@ -200,6 +200,7 @@ chatRouter.post('/', async (req, res) => {
         ? {
             tools: agentTools,
             activeTools: flowCtx.activeTools as (keyof typeof agentTools)[],
+            stopWhen: stepCountIs(maxSteps),
           }
         : {}),
       temperature,
@@ -251,6 +252,10 @@ chatRouter.post('/', async (req, res) => {
           actor.send({ type: 'DONE' });
         }
         actor.stop();
+      },
+
+      onError: (event) => {
+        console.error(`[agent-flow] onError:`, event.error);
       },
     });
 

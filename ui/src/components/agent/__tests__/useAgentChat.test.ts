@@ -212,7 +212,7 @@ describe('useAgentChat', () => {
     expect(result.current.isLoading).toBe(true);
   });
 
-  it('passes onToolCall and sendAutomaticallyWhen to useChat options', async () => {
+  it('does not pass onToolCall to useChat (tools execute server-side)', async () => {
     let opts: Record<string, unknown> = {};
     const { useChat } = await import('@ai-sdk/react');
     vi.mocked(useChat).mockImplementation((o: unknown) => {
@@ -233,13 +233,12 @@ describe('useAgentChat', () => {
       useAgentChat({ config: { ...defaultConfig, maxSteps: 8 } }),
     );
 
-    expect(opts).toHaveProperty('onToolCall');
-    expect(typeof opts.onToolCall).toBe('function');
-    expect(opts).toHaveProperty('sendAutomaticallyWhen');
-    expect(typeof opts.sendAutomaticallyWhen).toBe('function');
+    // Server handles tool execution — client should NOT intercept tool calls
+    expect(opts).not.toHaveProperty('onToolCall');
+    expect(opts).not.toHaveProperty('sendAutomaticallyWhen');
   });
 
-  it('dispatches tool calls to agentTools execute functions', async () => {
+  it('passes transport with id to useChat', async () => {
     let opts: Record<string, unknown> = {};
     const { useChat } = await import('@ai-sdk/react');
     vi.mocked(useChat).mockImplementation((o: unknown) => {
@@ -260,106 +259,7 @@ describe('useAgentChat', () => {
       useAgentChat({ config: defaultConfig }),
     );
 
-    const onToolCall = opts.onToolCall as (args: {
-      toolCall: { toolCallId: string; toolName: string; input: unknown };
-    }) => Promise<void>;
-
-    await onToolCall({
-      toolCall: {
-        toolCallId: 'tc1',
-        toolName: 'search_notes',
-        input: { query: 'test', limit: 10, mode: 'hybrid' },
-      },
-    });
-
-    expect(mockSearchExecute).toHaveBeenCalledWith(
-      { query: 'test', limit: 10, mode: 'hybrid' },
-      { toolCallId: 'tc1', messages: [] },
-    );
-    expect(mockAddToolOutput).toHaveBeenCalledWith({
-      tool: 'search_notes',
-      toolCallId: 'tc1',
-      output: [{ note_id: 'n1', snippet: 'result', score: 0.9 }],
-    });
-  });
-
-  it('submits error output when tool execution fails', async () => {
-    let opts: Record<string, unknown> = {};
-    const { useChat } = await import('@ai-sdk/react');
-    vi.mocked(useChat).mockImplementation((o: unknown) => {
-      opts = o as Record<string, unknown>;
-      return {
-        messages: [],
-        sendMessage: mockSendMessage,
-        status: 'ready',
-        error: undefined,
-        setMessages: mockSetMessages,
-        stop: mockStop,
-        clearError: mockClearError,
-        addToolOutput: mockAddToolOutput,
-      } as unknown as ReturnType<typeof useChat>;
-    });
-
-    mockSearchExecute.mockRejectedValueOnce(new Error('API down'));
-
-    renderHook(() =>
-      useAgentChat({ config: defaultConfig }),
-    );
-
-    const onToolCall = opts.onToolCall as (args: {
-      toolCall: { toolCallId: string; toolName: string; input: unknown };
-    }) => Promise<void>;
-
-    await onToolCall({
-      toolCall: {
-        toolCallId: 'tc1',
-        toolName: 'search_notes',
-        input: { query: 'test' },
-      },
-    });
-
-    expect(mockAddToolOutput).toHaveBeenCalledWith({
-      tool: 'search_notes',
-      toolCallId: 'tc1',
-      output: { error: true, message: 'Tool "search_notes" failed: API down' },
-    });
-  });
-
-  it('ignores unknown tool names', async () => {
-    let opts: Record<string, unknown> = {};
-    const { useChat } = await import('@ai-sdk/react');
-    vi.mocked(useChat).mockImplementation((o: unknown) => {
-      opts = o as Record<string, unknown>;
-      return {
-        messages: [],
-        sendMessage: mockSendMessage,
-        status: 'ready',
-        error: undefined,
-        setMessages: mockSetMessages,
-        stop: mockStop,
-        clearError: mockClearError,
-        addToolOutput: mockAddToolOutput,
-      } as unknown as ReturnType<typeof useChat>;
-    });
-
-    renderHook(() =>
-      useAgentChat({ config: defaultConfig }),
-    );
-
-    const onToolCall = opts.onToolCall as (args: {
-      toolCall: { toolCallId: string; toolName: string; input: unknown };
-    }) => Promise<void>;
-
-    await onToolCall({
-      toolCall: {
-        toolCallId: 'tc2',
-        toolName: 'nonexistent_tool',
-        input: {},
-      },
-    });
-
-    // Should not call execute or addToolOutput for unknown tools
-    expect(mockSearchExecute).not.toHaveBeenCalled();
-    expect(mockAddToolOutput).not.toHaveBeenCalled();
+    expect(opts).toHaveProperty('id');
+    expect(opts).toHaveProperty('transport');
   });
 });
