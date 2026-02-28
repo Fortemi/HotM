@@ -319,10 +319,9 @@ describe('useAgentChat', () => {
     });
 
     expect(mockAddToolOutput).toHaveBeenCalledWith({
-      state: 'output-error',
       tool: 'search_notes',
       toolCallId: 'tc1',
-      errorText: 'API down',
+      output: { error: true, message: 'Tool "search_notes" failed: API down' },
     });
   });
 

@@ -91,7 +91,7 @@ export const searchNotesTool = tool({
   inputSchema: z.object({
     query: z.string().describe('The search query'),
     limit: z
-      .number()
+      .coerce.number()
       .int()
       .min(1)
       .max(50)
@@ -263,7 +263,7 @@ export const searchConceptsTool = tool({
   inputSchema: z.object({
     query: z.string().describe('Search query for concepts'),
     limit: z
-      .number()
+      .coerce.number()
       .int()
       .min(1)
       .max(50)
@@ -293,7 +293,7 @@ export const getRelatedTool = tool({
   inputSchema: z.object({
     note_id: z.string().describe('The note ID to find related notes for'),
     limit: z
-      .number()
+      .coerce.number()
       .int()
       .min(1)
       .max(20)

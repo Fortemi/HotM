@@ -92,28 +92,28 @@ export function useAgentChat(options: UseAgentChatOptions): UseAgentChatReturn {
       const name = toolCall.toolName as AgentToolName;
       const toolDef = agentTools[name];
       if (toolDef && 'execute' in toolDef && typeof toolDef.execute === 'function') {
+        let result: unknown;
         try {
           const executeFn = toolDef.execute as (
             input: unknown,
             options: { toolCallId: string; messages: unknown[] },
           ) => Promise<unknown>;
-          const result = await executeFn(toolCall.input, {
+          result = await executeFn(toolCall.input, {
             toolCallId: toolCall.toolCallId,
             messages: [],
           });
-          await addToolOutputRef.current?.({
-            tool: name,
-            toolCallId: toolCall.toolCallId,
-            output: result,
-          });
         } catch (err) {
-          await addToolOutputRef.current?.({
-            state: 'output-error',
-            tool: name,
-            toolCallId: toolCall.toolCallId,
-            errorText: err instanceof Error ? err.message : String(err),
-          });
+          // Return the error as a normal tool output so the LLM can
+          // interpret it and respond conversationally rather than leaving
+          // the user with a silent error.
+          const errorMsg = err instanceof Error ? err.message : String(err);
+          result = { error: true, message: `Tool "${name}" failed: ${errorMsg}` };
         }
+        await addToolOutputRef.current?.({
+          tool: name,
+          toolCallId: toolCall.toolCallId,
+          output: result,
+        });
       }
     },
     // Auto-resubmit messages after tool results are added, enabling multi-step

@@ -19,7 +19,7 @@ export const searchNotesTool = tool({
     'Use this when the user asks to find, look up, or search for notes.',
   inputSchema: z.object({
     query: z.string().describe('The search query'),
-    limit: z.number().int().min(1).max(50).optional().default(10),
+    limit: z.coerce.number().int().min(1).max(50).optional().default(10),
     mode: z.enum(['hybrid', 'fts', 'semantic']).optional().default('hybrid'),
   }),
 });
@@ -77,7 +77,7 @@ export const searchConceptsTool = tool({
   description: 'Search the SKOS concept taxonomy.',
   inputSchema: z.object({
     query: z.string().describe('Search query for concepts'),
-    limit: z.number().int().min(1).max(50).optional().default(10),
+    limit: z.coerce.number().int().min(1).max(50).optional().default(10),
   }),
 });
 
@@ -85,7 +85,7 @@ export const getRelatedTool = tool({
   description: 'Find notes semantically related to a given note.',
   inputSchema: z.object({
     note_id: z.string().describe('The note ID to find related notes for'),
-    limit: z.number().int().min(1).max(20).optional().default(5),
+    limit: z.coerce.number().int().min(1).max(20).optional().default(5),
   }),
 });
 
