@@ -1,8 +1,8 @@
-# CI/CD Pipeline for HotM React SPA
+# CI/CD Pipeline for HotM
 #
-# Single workflow handles both CI and release, following Fortemi ci-builder pattern.
+# Single workflow handles CI for both ui/ and agent-proxy/, plus release.
 # Conditional jobs based on trigger type:
-#   - Always: quality checks
+#   - Always: quality checks (ui + agent-proxy, parallel)
 #   - On push to main: publish dev image to Gitea registry
 #   - On tag v*: build SPA + Docker + Tauri, publish to Gitea + GHCR, create releases
 #
@@ -15,6 +15,7 @@ on:
     branches: [main, develop]
     paths:
       - 'ui/**'
+      - 'agent-proxy/**'
       - '.gitea/workflows/ui-ci.yml'
   create:
     tags: ['v*']
@@ -22,6 +23,7 @@ on:
     branches: [main]
     paths:
       - 'ui/**'
+      - 'agent-proxy/**'
       - '.gitea/workflows/ui-ci.yml'
   workflow_dispatch:
 
@@ -32,9 +34,9 @@ env:
   FORTEMI_API_URL: http://localhost:3000/api/v1
 
 jobs:
-  # ─── Always: Quality Gate ──────────────────────────────────────────
+  # ─── Always: UI Quality Gate ─────────────────────────────────────
   quality-gate:
-    name: Quality Gate
+    name: UI Quality Gate
     runs-on: ubuntu-latest
     container:
       image: node:20-bookworm
@@ -68,11 +70,39 @@ jobs:
         working-directory: ui
         run: npx @cyclonedx/cyclonedx-npm --output-file sbom.json
 
+  # ─── Always: Agent Proxy Quality Gate ──────────────────────────────
+  agent-proxy-quality-gate:
+    name: Agent Proxy Quality Gate
+    runs-on: ubuntu-latest
+    container:
+      image: node:20-bookworm
+    steps:
+      - name: Checkout
+        run: |
+          git clone --depth 1 --branch "${GITHUB_REF_NAME:-main}" https://token:${{ github.token }}@git.integrolabs.net/${GITHUB_REPOSITORY}.git .
+          git checkout ${GITHUB_SHA:-HEAD}
+
+      - name: Install dependencies
+        working-directory: agent-proxy
+        run: npm ci
+
+      - name: Type check
+        working-directory: agent-proxy
+        run: npm run typecheck
+
+      - name: Run tests
+        working-directory: agent-proxy
+        run: npm test
+
+      - name: Security audit (non-blocking)
+        working-directory: agent-proxy
+        run: npm audit --audit-level high || true
+
   # ─── On push: Publish dev image to Gitea internal registry ─────────
   publish-dev:
     name: Publish Dev Image (Gitea)
     runs-on: titan
-    needs: quality-gate
+    needs: [quality-gate, agent-proxy-quality-gate]
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     steps:
       - name: Checkout
@@ -125,7 +155,7 @@ jobs:
   publish-release:
     name: Publish Release Image
     runs-on: titan
-    needs: quality-gate
+    needs: [quality-gate, agent-proxy-quality-gate]
     if: startsWith(github.ref, 'refs/tags/v')
     steps:
       - name: Checkout
