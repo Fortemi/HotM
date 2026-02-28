@@ -31,6 +31,8 @@ export interface UseAgentChatReturn {
   clearMessages: () => void;
   clearError: () => void;
   stop: () => void;
+  /** Replace the message array (used by context compaction). */
+  setMessages: (messages: UIMessage[]) => void;
 }
 
 const DEFAULT_PROXY_URL = '/api/agent/chat';
@@ -160,5 +162,6 @@ export function useAgentChat(options: UseAgentChatOptions): UseAgentChatReturn {
     clearMessages,
     clearError,
     stop,
+    setMessages,
   };
 }

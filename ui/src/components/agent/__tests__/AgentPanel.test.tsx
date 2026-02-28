@@ -8,6 +8,7 @@ const mockSendMessage = vi.fn();
 const mockClearMessages = vi.fn();
 const mockClearError = vi.fn();
 const mockStop = vi.fn();
+const mockSetMessages = vi.fn();
 
 vi.mock('../useAgentChat', () => ({
   useAgentChat: vi.fn(() => ({
@@ -18,6 +19,7 @@ vi.mock('../useAgentChat', () => ({
     clearMessages: mockClearMessages,
     clearError: mockClearError,
     stop: mockStop,
+    setMessages: mockSetMessages,
   })),
 }));
 
@@ -129,6 +131,7 @@ describe('AgentPanel', () => {
       clearMessages: mockClearMessages,
       clearError: mockClearError,
       stop: mockStop,
+      setMessages: mockSetMessages,
     });
 
     render(<AgentPanel />);
@@ -155,6 +158,7 @@ describe('AgentPanel', () => {
       clearMessages: mockClearMessages,
       clearError: mockClearError,
       stop: mockStop,
+      setMessages: mockSetMessages,
     });
 
     render(<AgentPanel />);
@@ -173,6 +177,7 @@ describe('AgentPanel', () => {
       clearMessages: mockClearMessages,
       clearError: mockClearError,
       stop: mockStop,
+      setMessages: mockSetMessages,
     });
 
     render(<AgentPanel />);

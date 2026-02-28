@@ -17,6 +17,52 @@ export {
 } from './providers';
 export { agentTools, type AgentToolName, type ToolResult } from './tools';
 export { SYSTEM_PROMPT, buildSystemPrompt } from './system-prompt';
+export {
+  ApproximateTokenizer,
+  countTokens,
+  countMessageTokens,
+  formatTokenCount,
+} from './token-counter';
+export type { TokenCounter } from './token-counter';
+export { useContextTracking } from './useContextTracking';
+export type { ContextBreakdown, ContextSeverity, UseContextTrackingOptions } from './useContextTracking';
+export { ContextBar } from './ContextBar';
+export {
+  splitMessages,
+  buildCompactionInput,
+  createSummaryMessage,
+  shouldAutoCompact,
+  shouldShowCompactWarning,
+  KEEP_RECENT_PAIRS,
+  AUTO_COMPACT_THRESHOLD,
+  COMPACT_WARNING_THRESHOLD,
+} from './context-compaction';
+export { useContextCompaction } from './useContextCompaction';
+export type { UseContextCompactionOptions, UseContextCompactionReturn } from './useContextCompaction';
+export {
+  deriveAgentPhase,
+  PHASE_LABELS,
+  PHASE_INDICATOR_CLASSES,
+} from './agent-state';
+export type { AgentPhase } from './agent-state';
+export {
+  selectModelForTask,
+  buildModelTierMap,
+} from './model-tiering';
+export type { AgentTaskType } from './model-tiering';
+export {
+  runSubAgent,
+  fanOut,
+  chain,
+  aggregateResults,
+} from './sub-agent';
+export type {
+  SubAgentTask,
+  SubAgentResult,
+  SubAgentStatus,
+  SubAgentProgress,
+} from './sub-agent';
+export { SubAgentProgressPanel } from './SubAgentProgressPanel';
 export { ToolResultCard } from './ToolResultCard';
 export { ConfirmationCard } from './ConfirmationCard';
 export { AgentSettings } from './AgentSettings';

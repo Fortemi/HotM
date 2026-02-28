@@ -8,7 +8,7 @@
  */
 
 import { useEffect, useRef, useState } from "react";
-import { Bot, Trash2, Shield, ShieldCheck, ShieldOff, Settings2 } from "lucide-react";
+import { Bot, Trash2, Shield, ShieldCheck, ShieldOff, Settings2, Shrink } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -23,11 +23,18 @@ import { useAgentChat } from "./useAgentChat";
 import { useAgentConfig } from "./useAgentConfig";
 import { useAgentPrivileges } from "./useAgentPrivileges";
 import { useChatModels } from "./useChatModels";
+import { useContextTracking } from "./useContextTracking";
+import { buildSystemPrompt } from "./system-prompt";
 import { ChatMessage } from "./ChatMessage";
 import { ChatInput } from "./ChatInput";
 import { ConfirmationCard } from "./ConfirmationCard";
+import { ContextBar } from "./ContextBar";
+import { useContextCompaction } from "./useContextCompaction";
+import { deriveAgentPhase, PHASE_LABELS, PHASE_INDICATOR_CLASSES } from "./agent-state";
+import { SubAgentProgressPanel } from "./SubAgentProgressPanel";
 import { AgentSettings } from "./AgentSettings";
 import type { AgentContext } from "./useAgent";
+import type { SubAgentProgress } from "./sub-agent";
 import type { PrivilegeMode } from "./privileges";
 
 interface AgentPanelProps {
@@ -54,9 +61,39 @@ export function AgentPanel({ context }: AgentPanelProps) {
   const [showSettings, setShowSettings] = useState(false);
   const { models, defaultModel } = useChatModels(config.provider);
 
-  const { messages, isLoading, error, sendMessage, clearMessages, clearError } =
+  const { messages, isLoading, error, sendMessage, clearMessages, clearError, setMessages } =
     useAgentChat({ config, context });
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  // Resolve active model's context window for token tracking
+  const activeModel = config.model ?? defaultModel;
+  const activeModelInfo = models.find(m => m.model === activeModel);
+  const contextWindow = activeModelInfo?.context_window;
+
+  const contextBreakdown = useContextTracking({
+    systemPrompt: buildSystemPrompt(context),
+    messages,
+    contextWindow,
+  });
+
+  const {
+    compact,
+    isCompacting,
+    showWarning: showCompactWarning,
+    wasAutoCompacted,
+    dismissAutoCompacted,
+    canCompact,
+  } = useContextCompaction({
+    messages,
+    setMessages,
+    utilizationPercent: contextBreakdown?.utilizationPercent,
+    isLoading,
+  });
+
+  const agentPhase = deriveAgentPhase(isLoading, messages);
+  // Sub-agent progress state — populated when sub-agents are dispatched
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [subAgentProgress, _setSubAgentProgress] = useState<SubAgentProgress[]>([]);
 
   const cycleMode = () => {
     const idx = PRIVILEGE_MODE_CYCLE.indexOf(mode);
@@ -115,8 +152,22 @@ export function AgentPanel({ context }: AgentPanelProps) {
             <ModeIcon className="h-3.5 w-3.5" />
             {mode}
           </Button>
+          {contextBreakdown && <ContextBar breakdown={contextBreakdown} />}
         </div>
         <div className="flex items-center gap-1">
+          {canCompact && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={compact}
+              disabled={isCompacting}
+              className="text-muted-foreground"
+              title="Compact conversation history"
+            >
+              <Shrink className="mr-1 h-3.5 w-3.5" />
+              {isCompacting ? 'Compacting...' : 'Compact'}
+            </Button>
+          )}
           {messages.length > 0 && (
             <Button
               variant="ghost"
@@ -162,22 +213,43 @@ export function AgentPanel({ context }: AgentPanelProps) {
                 messages.map((msg) => <ChatMessage key={msg.id} message={msg} />)
               )}
 
+              {subAgentProgress.length > 0 && (
+                <SubAgentProgressPanel items={subAgentProgress} />
+              )}
+
               {isLoading && (
                 <div className="flex gap-3 px-4 py-3">
                   <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-muted text-muted-foreground">
                     <Bot className="h-4 w-4" />
                   </div>
-                  <div className="rounded-lg bg-muted px-3 py-2">
-                    <div className="flex gap-1">
-                      <span className="h-2 w-2 animate-bounce rounded-full bg-muted-foreground/40 [animation-delay:0ms]" />
-                      <span className="h-2 w-2 animate-bounce rounded-full bg-muted-foreground/40 [animation-delay:150ms]" />
-                      <span className="h-2 w-2 animate-bounce rounded-full bg-muted-foreground/40 [animation-delay:300ms]" />
-                    </div>
+                  <div className="flex items-center gap-2 rounded-lg bg-muted px-3 py-2">
+                    <span className={`h-2 w-2 rounded-full ${PHASE_INDICATOR_CLASSES[agentPhase]}`} />
+                    <span className="text-xs text-muted-foreground">
+                      {PHASE_LABELS[agentPhase]}...
+                    </span>
                   </div>
                 </div>
               )}
             </div>
           </ScrollArea>
+
+          {/* Context compaction banners */}
+          {showCompactWarning && (
+            <div className="flex items-center justify-between border-t bg-yellow-500/10 px-4 py-2 text-sm text-yellow-700 dark:text-yellow-400">
+              <span>Context window filling up. Consider compacting the conversation.</span>
+              <Button variant="ghost" size="sm" onClick={compact} disabled={isCompacting} className="h-6 px-2 text-xs">
+                Compact now
+              </Button>
+            </div>
+          )}
+          {wasAutoCompacted && (
+            <div className="flex items-center justify-between border-t bg-blue-500/10 px-4 py-2 text-sm text-blue-700 dark:text-blue-400">
+              <span>Conversation was automatically compacted to free context space.</span>
+              <Button variant="ghost" size="sm" onClick={dismissAutoCompacted} className="h-6 px-2 text-xs">
+                Dismiss
+              </Button>
+            </div>
+          )}
 
           {/* Error banner */}
           {error && (
