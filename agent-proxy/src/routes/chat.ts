@@ -147,12 +147,20 @@ chatRouter.post('/', async (req, res) => {
     // The client sends UIMessage[] via DefaultChatTransport; streamText expects ModelMessage[]
     const modelMessages = await convertToModelMessages(messages);
 
+    // Order of operations: only provide tools after the first exchange.
+    // On the first turn (single user message), force a conversational response
+    // so the LLM establishes intent before calling tools. This prevents
+    // smaller models from eagerly calling tools on greetings/questions.
+    const userMessageCount = messages.filter(
+      (m: { role: string }) => m.role === 'user',
+    ).length;
+    const enableTools = userMessageCount > 1;
+
     const result = streamText({
       model: languageModel,
       system: systemPrompt,
       messages: modelMessages,
-      tools: agentTools,
-      stopWhen: stepCountIs(maxSteps),
+      ...(enableTools ? { tools: agentTools, stopWhen: stepCountIs(maxSteps) } : {}),
       temperature,
     });
 
