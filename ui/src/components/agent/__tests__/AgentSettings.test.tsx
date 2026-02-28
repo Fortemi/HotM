@@ -153,7 +153,9 @@ describe('AgentSettings', () => {
     await waitFor(() => {
       expect(mockSendMessage).toHaveBeenCalledWith('ping');
     });
-    expect(screen.getByText('Connected')).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText('Connected')).toBeInTheDocument();
+    });
   });
 
   it('shows error when fortemi connection test fails', async () => {
@@ -179,6 +181,8 @@ describe('AgentSettings', () => {
         expect.objectContaining({ method: 'POST' }),
       );
     });
-    expect(screen.getByText('Connected')).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText('Connected')).toBeInTheDocument();
+    });
   });
 });
