@@ -72,7 +72,10 @@ function getApiBaseUrl(): string {
   if (import.meta.env.VITE_API_BASE_URL) {
     return import.meta.env.VITE_API_BASE_URL as string;
   }
-  // Fortemi API default with API version prefix
+  // Fallback: same origin with /api/v1 path, or localhost for dev
+  if (typeof window !== 'undefined' && window.location?.origin) {
+    return `${window.location.origin}/api/v1`;
+  }
   return 'http://localhost:3000/api/v1';
 }
 

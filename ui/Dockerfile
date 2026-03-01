@@ -13,14 +13,12 @@ RUN npm ci --ignore-scripts
 # Copy source code
 COPY . .
 
-# Build arguments for environment configuration
-ARG VITE_API_BASE_URL=http://localhost:3000/api/v1
+# Build arguments — cosmetic only; API URL is set at runtime via env-config.js
 ARG VITE_APP_TITLE=HotM
 ARG VITE_DISABLE_WEBSOCKET=false
 ARG VITE_GIT_SHA=unknown
 
-# Set environment variables for build
-ENV VITE_API_BASE_URL=$VITE_API_BASE_URL
+# Set build-time env vars (NO VITE_API_BASE_URL — that is runtime-only)
 ENV VITE_APP_TITLE=$VITE_APP_TITLE
 ENV VITE_DISABLE_WEBSOCKET=$VITE_DISABLE_WEBSOCKET
 ENV VITE_GIT_SHA=$VITE_GIT_SHA

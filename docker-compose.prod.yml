@@ -23,7 +23,6 @@ services:
       context: ./ui
       dockerfile: Dockerfile
       args:
-        VITE_API_BASE_URL: ${FORTEMI_API_URL:-http://localhost:3000/api/v1}
         VITE_APP_TITLE: ${APP_TITLE:-HotM}
         VITE_DISABLE_WEBSOCKET: ${VITE_DISABLE_WEBSOCKET:-false}
     environment:

@@ -261,12 +261,16 @@ function getApiBaseUrl(): string {
     return runtimeUrl;
   }
 
-  // Vite environment variables
+  // Vite environment variables (dev server only — not set in production builds)
   if (import.meta.env.VITE_API_BASE_URL) {
     return import.meta.env.VITE_API_BASE_URL as string;
   }
 
-  // Default to Fortemi server port with API version prefix
+  // Fallback: same origin with /api/v1 path (works in deployed environments
+  // where nginx proxies /api to Fortemi), or localhost for dev
+  if (typeof window !== 'undefined' && window.location?.origin) {
+    return `${window.location.origin}/api/v1`;
+  }
   return 'http://localhost:3000/api/v1';
 }
 
