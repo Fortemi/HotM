@@ -16,6 +16,7 @@
 import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { api } from "@/api";
+import { StreamingVideoPlayer, StreamingAudioPlayer } from "@/components/attachments/StreamingMedia";
 import {
   FileText,
   Search,
@@ -558,11 +559,57 @@ function AttachmentThumbnail({ attachment }: { attachment: AttachmentItem }) {
 }
 
 function AttachmentRow({ attachment }: { attachment: AttachmentItem }) {
-  const isMedia = attachment.content_type.startsWith("image/") ||
-    attachment.content_type.startsWith("video/") ||
-    attachment.content_type.startsWith("audio/");
+  const isVideo = attachment.content_type.startsWith("video/");
+  const isAudio = attachment.content_type.startsWith("audio/");
+  const isImage = attachment.content_type.startsWith("image/");
+  const isMedia = isVideo || isAudio || isImage;
   const downloadUrl = attachment.id ? api.attachments.getDownloadUrl(attachment.id) : undefined;
 
+  // Inline video player
+  if (isVideo && attachment.id) {
+    return (
+      <div className="space-y-1 rounded-md border p-1.5">
+        <StreamingVideoPlayer
+          attachmentId={attachment.id}
+          filename={attachment.filename}
+          sizeBytes={attachment.size_bytes}
+          className="max-h-64"
+        />
+        <AttachmentMeta attachment={attachment} downloadUrl={downloadUrl} />
+      </div>
+    );
+  }
+
+  // Inline audio player
+  if (isAudio && attachment.id) {
+    return (
+      <div className="space-y-1 rounded-md border p-1.5">
+        <StreamingAudioPlayer
+          attachmentId={attachment.id}
+          filename={attachment.filename}
+          sizeBytes={attachment.size_bytes}
+        />
+        <AttachmentMeta attachment={attachment} downloadUrl={downloadUrl} />
+      </div>
+    );
+  }
+
+  // Inline image preview
+  if (isImage && attachment.id) {
+    return (
+      <div className="space-y-1 rounded-md border p-1.5">
+        <img
+          src={api.attachments.getDownloadUrl(attachment.id)}
+          alt={attachment.filename}
+          loading="lazy"
+          className="max-h-64 w-full rounded object-contain"
+        />
+        <AttachmentMeta attachment={attachment} downloadUrl={downloadUrl} />
+      </div>
+    );
+  }
+
+  // Non-media fallback — compact row with icon and download
   return (
     <div className="flex items-center gap-2 rounded-md border px-2 py-1.5">
       <AttachmentThumbnail attachment={attachment} />
@@ -587,6 +634,37 @@ function AttachmentRow({ attachment }: { attachment: AttachmentItem }) {
           title={isMedia ? "Open media" : "Download file"}
         >
           {isMedia ? <ExternalLink className="h-3.5 w-3.5" /> : <Download className="h-3.5 w-3.5" />}
+        </a>
+      )}
+    </div>
+  );
+}
+
+/** Compact metadata + download link shown below inline media previews. */
+function AttachmentMeta({ attachment, downloadUrl }: { attachment: AttachmentItem; downloadUrl?: string }) {
+  return (
+    <div className="flex items-center gap-2 px-1">
+      <div className="min-w-0 flex-1">
+        <p className="truncate text-xs font-medium">{attachment.filename}</p>
+        <p className="text-[10px] text-muted-foreground">
+          {attachment.content_type.split("/")[1]?.toUpperCase() ?? attachment.content_type}
+          {attachment.size_bytes > 0 && ` · ${formatBytes(attachment.size_bytes)}`}
+        </p>
+        {attachment.ai_description && (
+          <p className="mt-0.5 line-clamp-1 text-[10px] text-muted-foreground/70 italic">
+            {attachment.ai_description}
+          </p>
+        )}
+      </div>
+      {downloadUrl && (
+        <a
+          href={downloadUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="shrink-0 rounded p-1 text-muted-foreground hover:bg-accent hover:text-foreground"
+          title="Download"
+        >
+          <Download className="h-3.5 w-3.5" />
         </a>
       )}
     </div>
