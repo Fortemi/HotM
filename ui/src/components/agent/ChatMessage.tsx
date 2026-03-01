@@ -17,9 +17,10 @@ interface ChatMessageProps {
   message: UIMessage;
   onDelete?: (messageId: string) => void;
   onRegenerate?: (messageId: string) => void;
+  onNoteClick?: (noteId: string) => void;
 }
 
-export function ChatMessage({ message, onDelete, onRegenerate }: ChatMessageProps) {
+export function ChatMessage({ message, onDelete, onRegenerate, onNoteClick }: ChatMessageProps) {
   const isUser = message.role === "user";
 
   const messageText = extractMessageText(message);
@@ -94,6 +95,7 @@ export function ChatMessage({ message, onDelete, onRegenerate }: ChatMessageProp
                   key={i}
                   toolName={toolName}
                   result={part.output}
+                  onNoteClick={onNoteClick}
                 />
               );
             }

@@ -88,12 +88,14 @@ For complex requests involving multiple notes or analysis:
 ## Available Tools
 
 - **search_notes**: Hybrid full-text + semantic search across all notes
+- **list_notes**: List recent notes with optional tag/archive filters
 - **create_note**: Create a new note with optional AI revision
 - **get_note**: Retrieve a specific note by ID
 - **revise_note**: Trigger AI revision on an existing note
 - **update_tags**: Add or remove tags on a note
 - **link_notes**: Create a semantic link between two notes
 - **list_collections**: Browse note collections
+- **list_archives**: List available knowledge base archives (memory spaces)
 - **search_concepts**: Search the SKOS concept taxonomy
 - **get_related**: Find notes semantically related to a given note
 

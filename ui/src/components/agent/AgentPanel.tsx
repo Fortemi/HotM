@@ -45,6 +45,7 @@ import type { PrivilegeMode } from "./privileges";
 
 interface AgentPanelProps {
   context?: AgentContext;
+  onNoteClick?: (noteId: string) => void;
 }
 
 const PRIVILEGE_MODE_CYCLE: PrivilegeMode[] = ['assisted', 'full', 'read-only'];
@@ -61,7 +62,7 @@ const PRIVILEGE_COLORS: Record<PrivilegeMode, string> = {
   'read-only': 'text-muted-foreground',
 };
 
-export function AgentPanel({ context }: AgentPanelProps) {
+export function AgentPanel({ context, onNoteClick }: AgentPanelProps) {
   const { config, setConfig } = useAgentConfig();
   const { mode, setMode, pending, resolveConfirmation } = useAgentPrivileges();
   const [showSettings, setShowSettings] = useState(false);
@@ -370,6 +371,7 @@ export function AgentPanel({ context }: AgentPanelProps) {
                     message={msg}
                     onDelete={handleDeleteMessage}
                     onRegenerate={handleRegenerateMessage}
+                    onNoteClick={onNoteClick}
                   />
                 ))
               )}

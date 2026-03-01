@@ -310,6 +310,72 @@ export const getRelatedTool = tool({
   },
 });
 
+export const listArchivesTool = tool({
+  description:
+    'List all knowledge base archives (memory spaces). ' +
+    'Use this when the user asks about their archives, memories, or knowledge spaces.',
+  inputSchema: z.object({}),
+  execute: async () => {
+    const results = await fortemi<unknown>('/archives');
+    const items = Array.isArray(results) ? results : [];
+    return {
+      archives: (items as Array<Record<string, unknown>>).map((a) => ({
+        name: a.name,
+        description: a.description,
+        is_default: a.is_default,
+        note_count: a.note_count,
+        size_bytes: a.size_bytes,
+        created_at: a.created_at,
+      })),
+    };
+  },
+});
+
+export const listNotesTool = tool({
+  description:
+    'List recent notes in the knowledge base. ' +
+    'Use this when the user asks to see their notes, recent entries, or wants an overview.',
+  inputSchema: z.object({
+    limit: optionalInt(20, 1, 100, 'Max notes to return (default 20)'),
+    sort_by: optionalEnum(
+      ['created_at', 'updated_at'],
+      'created_at',
+      'Sort field (default created_at)',
+    ),
+    sort_order: optionalEnum(['desc', 'asc'], 'desc', 'Sort order (default desc)'),
+    tags: optionalStringArray('Filter by tags'),
+    archived: z.preprocess(
+      (val) => (val === null || val === undefined ? undefined : val),
+      z.boolean().optional(),
+    ).describe('Filter by archived status'),
+  }),
+  execute: async ({ limit, sort_by, sort_order, tags, archived }) => {
+    const params = new URLSearchParams({
+      limit: String(limit),
+      sort_by,
+      sort_order,
+    });
+    if (tags && tags.length > 0) params.set('tags', tags.join(','));
+    if (archived !== undefined) params.set('archived', String(archived));
+
+    const results = await fortemi<unknown>(`/notes?${params}`);
+    const items = Array.isArray(results)
+      ? results
+      : ((results as Record<string, unknown>).notes ?? []) as Array<Record<string, unknown>>;
+    return {
+      notes: (items as Array<Record<string, unknown>>).map((n) => ({
+        note_id: n.id ?? n.note_id,
+        title: n.title,
+        snippet: typeof n.content === 'string' ? (n.content as string).slice(0, 150) : '',
+        tags: n.tags ?? [],
+        created_at: n.created_at_utc ?? n.created_at,
+        has_attachments: Array.isArray(n.attachments) && (n.attachments as unknown[]).length > 0,
+      })),
+      total: items.length,
+    };
+  },
+});
+
 // ---------------------------------------------------------------------------
 // Tool registry
 // ---------------------------------------------------------------------------
@@ -328,4 +394,6 @@ export const agentTools = {
   list_collections: listCollectionsTool,
   search_concepts: searchConceptsTool,
   get_related: getRelatedTool,
+  list_archives: listArchivesTool,
+  list_notes: listNotesTool,
 } as const;

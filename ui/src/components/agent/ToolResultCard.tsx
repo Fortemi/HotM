@@ -24,21 +24,24 @@ import {
   FolderOpen,
   BookOpen,
   GitBranch,
+  Archive,
+  List,
 } from "lucide-react";
 
 interface ToolResultCardProps {
   toolName: string;
   result: unknown;
+  onNoteClick?: (noteId: string) => void;
 }
 
-export function ToolResultCard({ toolName, result }: ToolResultCardProps) {
+export function ToolResultCard({ toolName, result, onNoteClick }: ToolResultCardProps) {
   switch (toolName) {
     case "search_notes":
-      return <SearchNotesCard result={result as SearchNotesData} />;
+      return <SearchNotesCard result={result as SearchNotesData} onNoteClick={onNoteClick} />;
     case "create_note":
-      return <CreateNoteCard result={result as CreateNoteData} />;
+      return <CreateNoteCard result={result as CreateNoteData} onNoteClick={onNoteClick} />;
     case "get_note":
-      return <GetNoteCard result={result as GetNoteData} />;
+      return <GetNoteCard result={result as GetNoteData} onNoteClick={onNoteClick} />;
     case "revise_note":
       return <ReviseNoteCard result={result as ReviseNoteData} />;
     case "update_tags":
@@ -50,7 +53,11 @@ export function ToolResultCard({ toolName, result }: ToolResultCardProps) {
     case "search_concepts":
       return <SearchConceptsCard result={result as SearchConceptsData} />;
     case "get_related":
-      return <GetRelatedCard result={result as GetRelatedData} />;
+      return <GetRelatedCard result={result as GetRelatedData} onNoteClick={onNoteClick} />;
+    case "list_archives":
+      return <ListArchivesCard result={result as ListArchivesData} />;
+    case "list_notes":
+      return <ListNotesCard result={result as ListNotesData} onNoteClick={onNoteClick} />;
     default:
       return <GenericCard toolName={toolName} result={result} />;
   }
@@ -117,6 +124,29 @@ interface GetRelatedData {
   notes: SearchNotesData[];
 }
 
+interface ListArchivesData {
+  archives: Array<{
+    name: string;
+    description?: string;
+    is_default: boolean;
+    note_count?: number;
+    size_bytes?: number;
+    created_at: string;
+  }>;
+}
+
+interface ListNotesData {
+  notes: Array<{
+    note_id: string;
+    title?: string;
+    snippet: string;
+    tags: string[];
+    created_at: string;
+    has_attachments?: boolean;
+  }>;
+  total: number;
+}
+
 // ---------------------------------------------------------------------------
 // Individual card components
 // ---------------------------------------------------------------------------
@@ -144,14 +174,24 @@ function CardShell({
 function NotePreview({
   item,
   showScore,
+  onClick,
 }: {
   item: SearchNotesData;
   showScore?: boolean;
+  onClick?: (noteId: string) => void;
 }) {
+  const Wrapper = onClick ? "button" : "div";
   return (
-    <div className="flex items-start justify-between gap-2 rounded-md border-b py-2 last:border-0">
+    <Wrapper
+      className={`flex w-full items-start justify-between gap-2 rounded-md border-b py-2 text-left last:border-0 ${
+        onClick
+          ? "cursor-pointer transition-colors hover:bg-accent/50 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+          : ""
+      }`}
+      {...(onClick ? { onClick: () => onClick(item.note_id), type: "button" as const } : {})}
+    >
       <div className="min-w-0 flex-1">
-        <p className="truncate text-sm font-medium">
+        <p className={`truncate text-sm font-medium ${onClick ? "text-primary underline-offset-2 group-hover:underline" : ""}`}>
           {item.title ?? item.note_id}
         </p>
         <p className="line-clamp-2 text-xs text-muted-foreground">
@@ -172,42 +212,63 @@ function NotePreview({
           </div>
         )}
       </div>
-      {showScore && (
+      {showScore && item.score != null && (
         <span className="shrink-0 text-xs text-muted-foreground">
           {(item.score * 100).toFixed(0)}%
         </span>
       )}
-    </div>
+    </Wrapper>
   );
 }
 
-function SearchNotesCard({ result }: { result: SearchNotesData | SearchNotesData[] }) {
+function SearchNotesCard({ result, onNoteClick }: { result: SearchNotesData | SearchNotesData[]; onNoteClick?: (noteId: string) => void }) {
   const items = Array.isArray(result) ? result : [result];
   return (
     <CardShell icon={Search} title={`${items.length} result${items.length === 1 ? "" : "s"}`}>
       <div className="max-h-60 space-y-0 overflow-y-auto">
         {items.map((item) => (
-          <NotePreview key={item.note_id} item={item} showScore />
+          <NotePreview key={item.note_id} item={item} showScore onClick={onNoteClick} />
         ))}
       </div>
     </CardShell>
   );
 }
 
-function CreateNoteCard({ result }: { result: CreateNoteData }) {
+function CreateNoteCard({ result, onNoteClick }: { result: CreateNoteData; onNoteClick?: (noteId: string) => void }) {
   return (
     <CardShell icon={Plus} title="Note created">
       <p className="text-sm">{result.title ?? "New note"}</p>
       <p className="text-xs text-muted-foreground">
-        ID: {result.note_id} &middot; Mode: {result.revision_mode}
+        ID:{" "}
+        {onNoteClick ? (
+          <button
+            type="button"
+            className="text-primary underline underline-offset-2 hover:text-primary/80"
+            onClick={() => onNoteClick(result.note_id)}
+          >
+            {result.note_id}
+          </button>
+        ) : (
+          result.note_id
+        )}{" "}
+        &middot; Mode: {result.revision_mode}
       </p>
     </CardShell>
   );
 }
 
-function GetNoteCard({ result }: { result: GetNoteData }) {
+function GetNoteCard({ result, onNoteClick }: { result: GetNoteData; onNoteClick?: (noteId: string) => void }) {
   return (
     <CardShell icon={FileText} title={result.title ?? result.note_id}>
+      {onNoteClick && (
+        <button
+          type="button"
+          className="mb-1 text-xs text-primary underline underline-offset-2 hover:text-primary/80"
+          onClick={() => onNoteClick(result.note_id)}
+        >
+          Open note
+        </button>
+      )}
       <p className="line-clamp-4 text-sm text-muted-foreground">
         {result.content}
       </p>
@@ -312,7 +373,7 @@ function SearchConceptsCard({ result }: { result: SearchConceptsData }) {
   );
 }
 
-function GetRelatedCard({ result }: { result: GetRelatedData }) {
+function GetRelatedCard({ result, onNoteClick }: { result: GetRelatedData; onNoteClick?: (noteId: string) => void }) {
   return (
     <CardShell
       icon={GitBranch}
@@ -320,7 +381,64 @@ function GetRelatedCard({ result }: { result: GetRelatedData }) {
     >
       <div className="max-h-48 space-y-0 overflow-y-auto">
         {result.notes.map((item) => (
-          <NotePreview key={item.note_id} item={item} showScore />
+          <NotePreview key={item.note_id} item={item} showScore onClick={onNoteClick} />
+        ))}
+      </div>
+    </CardShell>
+  );
+}
+
+function formatBytes(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  if (bytes < 1024 * 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  return `${(bytes / (1024 * 1024 * 1024)).toFixed(1)} GB`;
+}
+
+function ListArchivesCard({ result }: { result: ListArchivesData }) {
+  return (
+    <CardShell
+      icon={Archive}
+      title={`${result.archives.length} archive${result.archives.length === 1 ? "" : "s"}`}
+    >
+      <div className="space-y-2">
+        {result.archives.map((a) => (
+          <div key={a.name} className="rounded-md border p-2">
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-medium">{a.name}</span>
+              {a.is_default && (
+                <Badge variant="outline" className="text-[10px]">
+                  default
+                </Badge>
+              )}
+            </div>
+            {a.description && (
+              <p className="text-xs text-muted-foreground">{a.description}</p>
+            )}
+            <div className="mt-1 flex gap-3 text-[10px] text-muted-foreground">
+              {a.note_count != null && <span>{a.note_count} notes</span>}
+              {a.size_bytes != null && <span>{formatBytes(a.size_bytes)}</span>}
+            </div>
+          </div>
+        ))}
+      </div>
+    </CardShell>
+  );
+}
+
+function ListNotesCard({ result, onNoteClick }: { result: ListNotesData; onNoteClick?: (noteId: string) => void }) {
+  return (
+    <CardShell
+      icon={List}
+      title={`${result.notes.length} note${result.notes.length === 1 ? "" : "s"}`}
+    >
+      <div className="max-h-60 space-y-0 overflow-y-auto">
+        {result.notes.map((n) => (
+          <NotePreview
+            key={n.note_id}
+            item={{ note_id: n.note_id, title: n.title, snippet: n.snippet, score: 0, tags: n.tags }}
+            onClick={onNoteClick}
+          />
         ))}
       </div>
     </CardShell>
