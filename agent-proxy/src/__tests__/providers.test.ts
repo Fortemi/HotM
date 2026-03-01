@@ -46,7 +46,7 @@ afterEach(() => {
 describe('DEFAULT_MODELS', () => {
   it('has defaults for all 4 providers', () => {
     expect(DEFAULT_MODELS.fortemi).toBeDefined();
-    expect(DEFAULT_MODELS.ollama).toBe('qwen3:8b');
+    expect(DEFAULT_MODELS.ollama).toBe('qwen3:14b');
     expect(DEFAULT_MODELS.anthropic).toBe('claude-sonnet-4-6');
     expect(DEFAULT_MODELS.openai).toBe('gpt-4o');
   });
@@ -83,11 +83,11 @@ describe('getModel', () => {
       expect(provider.chat).toHaveBeenCalledWith('llama3:latest');
     });
 
-    it('defaults to qwen3:8b model', () => {
+    it('defaults to qwen3:14b model', () => {
       getModel('ollama');
 
       const provider = vi.mocked(createOpenAI).mock.results[0].value;
-      expect(provider.chat).toHaveBeenCalledWith('qwen3:8b');
+      expect(provider.chat).toHaveBeenCalledWith('qwen3:14b');
     });
   });
 
