@@ -209,7 +209,7 @@ function NotePreview({
   const Wrapper = onClick ? "button" : "div";
   return (
     <Wrapper
-      className={`flex w-full items-start justify-between gap-2 rounded-md border-b py-2 text-left last:border-0 ${
+      className={`group flex w-full items-start justify-between gap-2 rounded-md border-b py-2 text-left last:border-0 ${
         onClick
           ? "cursor-pointer transition-colors hover:bg-accent/50 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
           : ""
