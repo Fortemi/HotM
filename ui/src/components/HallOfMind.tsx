@@ -2440,7 +2440,25 @@ export function HallOfMind() {
                     setRevisedContent(simpleNote.revised_content || simpleNote.content);
                     setCurrentView("notes");
                   } catch (err) {
-                    console.error("Failed to navigate to note from agent:", err);
+                    console.error(`[AgentPanel] Failed to fetch note ${noteId}:`, err);
+                    // Navigate anyway with minimal data so the click isn't silent.
+                    // The note view will show the ID; the user can retry manually.
+                    setSelectedNote({
+                      id: noteId,
+                      title: noteId.slice(0, 8) + "…",
+                      content: "",
+                      revised_content: null,
+                      createdAt: new Date().toISOString(),
+                      updatedAt: new Date().toISOString(),
+                      tags: [],
+                      starred: false,
+                      archived: false,
+                      ai_generated_title: null,
+                      revised_model: null,
+                    });
+                    setNoteContent("");
+                    setRevisedContent("");
+                    setCurrentView("notes");
                   }
                 }}
               />
