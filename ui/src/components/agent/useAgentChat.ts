@@ -95,9 +95,12 @@ export function useAgentChat(options: UseAgentChatOptions): UseAgentChatReturn {
     async (input: string) => {
       if (!input.trim()) return;
       stepCountRef.current = 0;
+      // Clear any previous error so stale error banners don't persist
+      // alongside a new (potentially successful) response.
+      if (error) clearError();
       await sdkSendMessage({ text: input.trim() });
     },
-    [sdkSendMessage],
+    [sdkSendMessage, error, clearError],
   );
 
   const clearMessages = useCallback(() => {

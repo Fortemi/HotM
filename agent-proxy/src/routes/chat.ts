@@ -263,6 +263,15 @@ chatRouter.post('/', async (req, res) => {
 
       onError: (event) => {
         console.error(`[agent-flow] onError:`, event.error);
+        // Attempt to signal the error to the client. If the response stream
+        // is still open, writing a data-stream error annotation gives the
+        // UI a chance to display a meaningful message instead of a silent cutoff.
+        if (!res.writableEnded) {
+          try {
+            const msg = event.error instanceof Error ? event.error.message : 'Stream error';
+            res.write(`8:${JSON.stringify([{ type: 'error', value: msg }])}\n`);
+          } catch { /* response already closed — nothing more to do */ }
+        }
       },
     });
 

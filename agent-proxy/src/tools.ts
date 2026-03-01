@@ -23,6 +23,10 @@ function fortemiUrl(): string {
   return process.env.FORTEMI_API_URL ?? 'http://localhost:3000/api/v1';
 }
 
+// Default timeout for Fortemi API calls — prevents tool chains from hanging
+// indefinitely when the API is slow or unresponsive.
+const FORTEMI_TIMEOUT_MS = 120_000; // 2 minutes
+
 async function fortemi<T = unknown>(
   path: string,
   init?: RequestInit,
@@ -30,6 +34,7 @@ async function fortemi<T = unknown>(
   const url = `${fortemiUrl()}${path}`;
   const res = await fetch(url, {
     ...init,
+    signal: init?.signal ?? AbortSignal.timeout(FORTEMI_TIMEOUT_MS),
     headers: {
       'Content-Type': 'application/json',
       ...init?.headers,

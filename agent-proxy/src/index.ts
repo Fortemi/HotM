@@ -46,9 +46,14 @@ app.get('/health', (_req, res) => {
   });
 });
 
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   console.log(`[agent-proxy] Listening on port ${PORT}`);
   console.log(`[agent-proxy] CORS origin: ${CORS_ORIGIN}`);
   console.log(`[agent-proxy] Fortemi API: ${process.env.FORTEMI_API_URL ?? 'http://localhost:3000/api/v1'}`);
   console.log(`[agent-proxy] Providers: ollama${process.env.ANTHROPIC_API_KEY ? ', anthropic' : ''}${process.env.OPENAI_API_KEY ? ', openai' : ''}`);
 });
+
+// Agent tool chains can run for several minutes (multi-step LLM + Fortemi API calls).
+// Express defaults to 120s which is far too short — align with nginx proxy_read_timeout.
+server.timeout = 600_000;        // 10 minutes — upper bound for complex tool chains
+server.keepAliveTimeout = 65_000; // 65s — safely above common proxy keepalive (60s)
