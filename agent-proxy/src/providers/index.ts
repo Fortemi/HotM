@@ -11,8 +11,8 @@ import type { LanguageModel } from 'ai';
 export type ProviderName = 'fortemi' | 'ollama' | 'anthropic' | 'openai';
 
 export const DEFAULT_MODELS: Record<ProviderName, string> = {
-  fortemi: process.env.FORTEMI_MODEL ?? 'llama3.2',
-  ollama: 'llama3.2',
+  fortemi: process.env.FORTEMI_MODEL ?? 'qwen3:8b',
+  ollama: 'qwen3:8b',
   anthropic: 'claude-sonnet-4-6',
   openai: 'gpt-4o',
 };

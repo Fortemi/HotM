@@ -51,9 +51,10 @@ export const INTENT_PROMPT_SUFFIXES: Record<Intent, string> = {
     'confirm their intent before proceeding.',
 
   exploratory:
-    '\n\nYou are in exploration mode. You have access to read-only tools: ' +
-    'search_notes, get_note, list_collections, search_concepts, get_related. ' +
-    'Use them to help the user find and browse their knowledge. ' +
+    '\n\nYou are in exploration mode. You MUST use the available read-only tools ' +
+    'to answer — do NOT answer from memory or make up results. ' +
+    'Available tools: search_notes, get_note, list_collections, search_concepts, get_related. ' +
+    'Always call at least one tool before responding to the user. ' +
     'Do NOT create, modify, or delete anything.',
 
   'knowledge-action':

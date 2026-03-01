@@ -156,11 +156,15 @@ chatRouter.post('/', async (req, res) => {
     // Convert UI messages (parts-based) to model messages (content-based)
     const modelMessages = await convertToModelMessages(messages);
 
-    // Determine if this is the first user turn
+    // Determine if this is the first user turn.
+    // A count of 0 means the array arrived empty (shouldn't happen in practice).
+    // A count of 1 is the user's real first message — treat it as actionable,
+    // not as a greeting-only warmup. The classifier's CONVERSATIONAL_PATTERNS
+    // already handle actual greetings like "Hello" / "What can you do?"
     const userMessageCount = messages.filter(
       (m: { role: string }) => m.role === 'user',
     ).length;
-    const isFirstTurn = userMessageCount <= 1;
+    const isFirstTurn = userMessageCount < 1;
 
     // Extract latest user message text for classification
     const latestUserMsg = [...messages]

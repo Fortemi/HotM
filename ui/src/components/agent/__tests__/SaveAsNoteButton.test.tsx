@@ -4,11 +4,18 @@ import userEvent from '@testing-library/user-event';
 import { SaveAsNoteButton } from '../SaveAsNoteButton';
 import type { UIMessage } from '@ai-sdk/react';
 
-// Mock the API module
+// Mock the API module — must include all three operations called by handleSave:
+// notes.create, notes.updateTags (tag), and attachments.uploadAttachment.
+// Missing mocks cause silent TypeError failures in the non-fatal catch blocks,
+// masking bugs and giving false confidence that the full save path works.
 vi.mock('@/api', () => ({
   api: {
     notes: {
       create: vi.fn(),
+      updateTags: vi.fn().mockResolvedValue(['agent-session']),
+    },
+    attachments: {
+      uploadAttachment: vi.fn().mockResolvedValue({ id: 'att-1', filename: 'session.json' }),
     },
   },
 }));
@@ -82,6 +89,63 @@ describe('SaveAsNoteButton', () => {
     await waitFor(() => {
       expect(screen.getByText('Failed')).toBeInTheDocument();
       expect(screen.getByText('Network error')).toBeInTheDocument();
+    });
+  });
+
+  it('calls updateTags and uploadAttachment after note creation', async () => {
+    const user = userEvent.setup();
+    vi.mocked(api.notes.create).mockResolvedValue({ note_id: 'note-abc' });
+
+    render(<SaveAsNoteButton messages={messages} sessionName="My Session" />);
+    await user.click(screen.getByTitle('Save as Fortemi note'));
+
+    await waitFor(() => {
+      expect(screen.getByText('Saved (note-abc)')).toBeInTheDocument();
+    });
+
+    // Tag must be applied
+    expect(vi.mocked(api.notes.updateTags)).toHaveBeenCalledWith('note-abc', {
+      add: ['agent-session'],
+    });
+
+    // Attachment upload must fire with a File named after the session
+    expect(vi.mocked(api.attachments.uploadAttachment)).toHaveBeenCalledWith(
+      'note-abc',
+      expect.objectContaining({
+        name: expect.stringMatching(/session-my-session\.json/),
+        type: 'application/json',
+      }),
+    );
+  });
+
+  it('shows success even when attachment upload fails (non-fatal)', async () => {
+    const user = userEvent.setup();
+    vi.mocked(api.notes.create).mockResolvedValue({ note_id: 'note-resilient' });
+    vi.mocked(api.attachments.uploadAttachment).mockRejectedValue(
+      new Error('Upload failed: HTTP 422'),
+    );
+
+    render(<SaveAsNoteButton messages={messages} />);
+    await user.click(screen.getByTitle('Save as Fortemi note'));
+
+    // Note save succeeds despite attachment failure
+    await waitFor(() => {
+      expect(screen.getByText('Saved (note-resilient)')).toBeInTheDocument();
+    });
+  });
+
+  it('shows success even when tagging fails (non-fatal)', async () => {
+    const user = userEvent.setup();
+    vi.mocked(api.notes.create).mockResolvedValue({ note_id: 'note-tag-fail' });
+    vi.mocked(api.notes.updateTags).mockRejectedValue(
+      new Error('Tag endpoint unavailable'),
+    );
+
+    render(<SaveAsNoteButton messages={messages} />);
+    await user.click(screen.getByTitle('Save as Fortemi note'));
+
+    await waitFor(() => {
+      expect(screen.getByText('Saved (note-tag-fail)')).toBeInTheDocument();
     });
   });
 

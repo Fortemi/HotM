@@ -24,12 +24,14 @@ const ACTION_PATTERNS: RegExp[] = [
 /** Patterns that indicate the user wants to read/search the knowledge base. */
 const EXPLORE_PATTERNS: RegExp[] = [
   /\b(find|search|look\s+up|look\s+for|show\s+me|list|browse|query)\b/i,
+  /\b(tell\s+me\s+(about|more)|describe|explain|summarize|overview|what('s| is| are))\b/i,
   /\b(related|similar|connections?|linked)\b.*\b(note|notes)\b/i,
-  /\b(what|which)\b.*\b(note|notes|collection|collections)\b/i,
+  /\b(what|which)\b.*\b(note|notes|collection|collections|archive|archives)\b/i,
   /\bnote[_\s-]?[a-f0-9]{8}/i, // note ID reference
   /\b[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}\b/i, // UUID
   /\bconcept|concepts|taxonomy\b/i,
-  /\bcollection|collections\b/i,
+  /\bcollection|collections|archive|archives\b/i,
+  /\b(my\s+)?(notes?|knowledge\s+base|content|entries|documents?)\b/i,
 ];
 
 /** Patterns that strongly signal a conversational message (no tools). */

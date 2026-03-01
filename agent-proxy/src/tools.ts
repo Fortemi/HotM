@@ -135,11 +135,11 @@ export const createNoteTool = tool({
       body: JSON.stringify({ content, revision_mode }),
     });
     const noteId = (note.note_id ?? note.id ?? (note.note as Record<string, unknown>)?.id) as string;
-    // Apply tags if provided
+    // Apply tags if provided — use PUT (Fortemi returns 405 for PATCH)
     if (tags && tags.length > 0 && noteId) {
       await fortemi(`/notes/${noteId}/tags`, {
-        method: 'PATCH',
-        body: JSON.stringify({ add: tags }),
+        method: 'PUT',
+        body: JSON.stringify({ tags }),
       });
     }
     return { note_id: noteId, revision_mode };
@@ -194,12 +194,23 @@ export const updateTagsTool = tool({
     remove: optionalStringArray('Tags to remove'),
   }),
   execute: async ({ note_id, add, remove }) => {
-    const result = await fortemi<string[] | Record<string, unknown>>(
+    // Fortemi only supports GET+PUT on /tags (PATCH → 405).
+    // Fetch current tags, apply changes, then PUT the full set.
+    const currentRaw = await fortemi<string[] | Record<string, unknown>>(
       `/notes/${note_id}/tags`,
-      { method: 'PATCH', body: JSON.stringify({ add, remove }) },
     );
-    const tags = Array.isArray(result) ? result : (result as Record<string, unknown>).tags ?? [];
-    return { note_id, tags };
+    const currentTags = new Set(
+      Array.isArray(currentRaw) ? currentRaw as string[] : (currentRaw as Record<string, unknown>).tags as string[] ?? [],
+    );
+    for (const t of add ?? []) currentTags.add(t);
+    for (const t of remove ?? []) currentTags.delete(t);
+
+    const updatedTags = Array.from(currentTags);
+    await fortemi(`/notes/${note_id}/tags`, {
+      method: 'PUT',
+      body: JSON.stringify({ tags: updatedTags }),
+    });
+    return { note_id, tags: updatedTags };
   },
 });
 

@@ -47,12 +47,16 @@ export function SaveAsNoteButton({
       });
       const savedNoteId = response.note_id;
 
+      if (!savedNoteId) {
+        console.error('[SaveAsNote] Note created but no ID returned:', response);
+      }
+
       // Tag the note so it's discoverable via "Load from Note"
       try {
         await api.notes.updateTags(savedNoteId, { add: ['agent-session'] });
       } catch (tagErr) {
         // Tag failure is non-fatal
-        console.warn('[SaveAsNote] Failed to tag note:', tagErr);
+        console.warn('[SaveAsNote] Failed to tag note %s:', savedNoteId, tagErr);
       }
 
       // Attach lossless JSON so the session can be restored later
@@ -63,7 +67,7 @@ export function SaveAsNoteButton({
         await api.attachments.uploadAttachment(savedNoteId, file);
       } catch (attachErr) {
         // Attachment failure is non-fatal — the note was already created
-        console.warn('[SaveAsNote] Failed to attach session JSON:', attachErr);
+        console.warn('[SaveAsNote] Failed to attach session JSON to %s:', savedNoteId, attachErr);
       }
 
       setNoteId(savedNoteId);
