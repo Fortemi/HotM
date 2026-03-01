@@ -13,7 +13,9 @@
  * - get_related → related notes with similarity scores
  */
 
+import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
+import { api } from "@/api";
 import {
   FileText,
   Search,
@@ -31,6 +33,8 @@ import {
   Film,
   Music,
   FileIcon,
+  Download,
+  ExternalLink,
 } from "lucide-react";
 
 interface ToolResultCardProps {
@@ -283,18 +287,38 @@ function CreateNoteCard({ result, onNoteClick }: { result: CreateNoteData; onNot
   );
 }
 
+function ActionBar({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="mt-2 flex items-center gap-1 border-t pt-2">
+      {children}
+    </div>
+  );
+}
+
+function ActionButton({
+  onClick,
+  icon: Icon,
+  label,
+}: {
+  onClick: () => void;
+  icon: React.ComponentType<{ className?: string }>;
+  label: string;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="flex items-center gap-1 rounded-md px-2 py-1 text-[10px] font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+    >
+      <Icon className="h-3 w-3" />
+      {label}
+    </button>
+  );
+}
+
 function GetNoteCard({ result, onNoteClick }: { result: GetNoteData; onNoteClick?: (noteId: string) => void }) {
   return (
     <CardShell icon={FileText} title={result.title ?? result.note_id}>
-      {onNoteClick && (
-        <button
-          type="button"
-          className="mb-1 text-xs text-primary underline underline-offset-2 hover:text-primary/80"
-          onClick={() => onNoteClick(result.note_id)}
-        >
-          Open note
-        </button>
-      )}
       <p className="line-clamp-4 text-sm text-muted-foreground">
         {result.content}
       </p>
@@ -327,6 +351,20 @@ function GetNoteCard({ result, onNoteClick }: { result: GetNoteData; onNoteClick
           )}
         </div>
       )}
+      <ActionBar>
+        {onNoteClick && (
+          <ActionButton
+            onClick={() => onNoteClick(result.note_id)}
+            icon={ExternalLink}
+            label="Open note"
+          />
+        )}
+        <ActionButton
+          onClick={() => navigator.clipboard.writeText(result.content)}
+          icon={FileText}
+          label="Copy content"
+        />
+      </ActionBar>
     </CardShell>
   );
 }
@@ -498,21 +536,58 @@ function AttachmentIcon({ contentType }: { contentType: string }) {
   return <FileIcon className="h-3.5 w-3.5 text-muted-foreground" />;
 }
 
+function AttachmentThumbnail({ attachment }: { attachment: AttachmentItem }) {
+  const [error, setError] = useState(false);
+  const isImage = attachment.content_type.startsWith("image/");
+
+  if (!isImage || !attachment.id || error) {
+    return <AttachmentIcon contentType={attachment.content_type} />;
+  }
+
+  const thumbnailUrl = api.attachments.getThumbnailUrl(attachment.id);
+
+  return (
+    <img
+      src={thumbnailUrl}
+      alt={attachment.filename}
+      loading="lazy"
+      onError={() => setError(true)}
+      className="h-10 w-10 shrink-0 rounded object-cover"
+    />
+  );
+}
+
 function AttachmentRow({ attachment }: { attachment: AttachmentItem }) {
+  const isMedia = attachment.content_type.startsWith("image/") ||
+    attachment.content_type.startsWith("video/") ||
+    attachment.content_type.startsWith("audio/");
+  const downloadUrl = attachment.id ? api.attachments.getDownloadUrl(attachment.id) : undefined;
+
   return (
     <div className="flex items-center gap-2 rounded-md border px-2 py-1.5">
-      <AttachmentIcon contentType={attachment.content_type} />
+      <AttachmentThumbnail attachment={attachment} />
       <div className="min-w-0 flex-1">
         <p className="truncate text-xs font-medium">{attachment.filename}</p>
         <p className="text-[10px] text-muted-foreground">
           {attachment.content_type.split("/")[1]?.toUpperCase() ?? attachment.content_type}
           {attachment.size_bytes > 0 && ` · ${formatBytes(attachment.size_bytes)}`}
         </p>
+        {attachment.ai_description && (
+          <p className="mt-0.5 line-clamp-1 text-[10px] text-muted-foreground/70 italic">
+            {attachment.ai_description}
+          </p>
+        )}
       </div>
-      {attachment.ai_description && (
-        <p className="hidden text-[10px] text-muted-foreground sm:block sm:max-w-[120px] sm:truncate">
-          {attachment.ai_description}
-        </p>
+      {downloadUrl && (
+        <a
+          href={downloadUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="shrink-0 rounded p-1 text-muted-foreground hover:bg-accent hover:text-foreground"
+          title={isMedia ? "Open media" : "Download file"}
+        >
+          {isMedia ? <ExternalLink className="h-3.5 w-3.5" /> : <Download className="h-3.5 w-3.5" />}
+        </a>
       )}
     </div>
   );
