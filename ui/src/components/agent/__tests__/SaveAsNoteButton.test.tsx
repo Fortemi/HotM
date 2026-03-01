@@ -118,7 +118,7 @@ describe('SaveAsNoteButton', () => {
     );
   });
 
-  it('shows success even when attachment upload fails (non-fatal)', async () => {
+  it('shows partial state when attachment upload fails', async () => {
     const user = userEvent.setup();
     vi.mocked(api.notes.create).mockResolvedValue({ note_id: 'note-resilient' });
     vi.mocked(api.attachments.uploadAttachment).mockRejectedValue(
@@ -128,10 +128,11 @@ describe('SaveAsNoteButton', () => {
     render(<SaveAsNoteButton messages={messages} />);
     await user.click(screen.getByTitle('Save as Fortemi note'));
 
-    // Note save succeeds despite attachment failure
+    // Note save succeeded but attachment failed — shows partial state
     await waitFor(() => {
-      expect(screen.getByText('Saved (note-resilient)')).toBeInTheDocument();
+      expect(screen.getByText('Saved (no JSON)')).toBeInTheDocument();
     });
+    expect(screen.getByText(/session JSON attachment failed/)).toBeInTheDocument();
   });
 
   it('shows success even when tagging fails (non-fatal)', async () => {
@@ -140,6 +141,8 @@ describe('SaveAsNoteButton', () => {
     vi.mocked(api.notes.updateTags).mockRejectedValue(
       new Error('Tag endpoint unavailable'),
     );
+    // Ensure uploadAttachment resolves (previous test may have set mockRejectedValue)
+    vi.mocked(api.attachments.uploadAttachment).mockResolvedValue({ id: 'att-1', filename: 'session.json' } as never);
 
     render(<SaveAsNoteButton messages={messages} />);
     await user.click(screen.getByTitle('Save as Fortemi note'));

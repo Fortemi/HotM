@@ -10,7 +10,7 @@
  */
 
 import { useState, useCallback } from 'react';
-import { BookmarkPlus, Check, Loader2, AlertCircle } from 'lucide-react';
+import { BookmarkPlus, Check, Loader2, AlertCircle, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { api } from '@/api';
 import { formatSessionAsMarkdown, formatSessionAsJSON } from './session-export';
@@ -22,7 +22,7 @@ interface SaveAsNoteButtonProps {
   disabled?: boolean;
 }
 
-type SaveState = 'idle' | 'saving' | 'success' | 'error';
+type SaveState = 'idle' | 'saving' | 'success' | 'partial' | 'error';
 
 export function SaveAsNoteButton({
   messages,
@@ -48,7 +48,7 @@ export function SaveAsNoteButton({
       const savedNoteId = response.note_id;
 
       if (!savedNoteId) {
-        console.error('[SaveAsNote] Note created but no ID returned:', response);
+        throw new Error('Note created but no ID returned — cannot attach session data');
       }
 
       // Tag the note so it's discoverable via "Load from Note"
@@ -60,19 +60,27 @@ export function SaveAsNoteButton({
       }
 
       // Attach lossless JSON so the session can be restored later
+      let attachmentFailed = false;
       try {
         const json = formatSessionAsJSON(messages, { sessionName });
         const filename = `session-${sessionName.replace(/[^a-zA-Z0-9-_ ]/g, '').replace(/\s+/g, '-').toLowerCase()}.json`;
         const file = new File([json], filename, { type: 'application/json' });
         await api.attachments.uploadAttachment(savedNoteId, file);
       } catch (attachErr) {
-        // Attachment failure is non-fatal — the note was already created
-        console.warn('[SaveAsNote] Failed to attach session JSON to %s:', savedNoteId, attachErr);
+        attachmentFailed = true;
+        const detail = attachErr instanceof Error ? attachErr.message : String(attachErr);
+        console.error('[SaveAsNote] Failed to attach session JSON to %s:', savedNoteId, attachErr);
+        setErrorMsg(`Note saved but session JSON attachment failed: ${detail}`);
       }
 
       setNoteId(savedNoteId);
-      setState('success');
-      setTimeout(() => setState('idle'), 5000);
+      if (attachmentFailed) {
+        setState('partial');
+        setTimeout(() => setState('idle'), 8000);
+      } else {
+        setState('success');
+        setTimeout(() => setState('idle'), 5000);
+      }
     } catch (err) {
       const message =
         err instanceof Error ? err.message : 'Failed to save note';
@@ -96,6 +104,8 @@ export function SaveAsNoteButton({
           <Loader2 className="mr-1 h-3.5 w-3.5 animate-spin" />
         ) : state === 'success' ? (
           <Check className="mr-1 h-3.5 w-3.5 text-green-500" />
+        ) : state === 'partial' ? (
+          <AlertTriangle className="mr-1 h-3.5 w-3.5 text-yellow-500" />
         ) : state === 'error' ? (
           <AlertCircle className="mr-1 h-3.5 w-3.5 text-destructive" />
         ) : (
@@ -105,12 +115,16 @@ export function SaveAsNoteButton({
           ? 'Saving...'
           : state === 'success'
             ? `Saved (${noteId})`
-            : state === 'error'
-              ? 'Failed'
-              : 'Save as Note'}
+            : state === 'partial'
+              ? 'Saved (no JSON)'
+              : state === 'error'
+                ? 'Failed'
+                : 'Save as Note'}
       </Button>
-      {state === 'error' && errorMsg && (
-        <span className="text-xs text-destructive">{errorMsg}</span>
+      {(state === 'error' || state === 'partial') && errorMsg && (
+        <span className={`text-xs ${state === 'partial' ? 'text-yellow-600 dark:text-yellow-400' : 'text-destructive'}`}>
+          {errorMsg}
+        </span>
       )}
     </div>
   );
