@@ -43,9 +43,14 @@ jobs:
       image: node:20-bookworm
     steps:
       - name: Checkout
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
         run: |
-          git clone --depth 1 --branch "${GITHUB_REF_NAME:-main}" https://token:${{ github.token }}@git.integrolabs.net/${GITHUB_REPOSITORY}.git .
-          git checkout ${GITHUB_SHA:-HEAD}
+          set -euo pipefail
+          REPO_URL="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}.git"
+          AUTH_URL="${REPO_URL/https:\/\//https:\/\/x-access-token:${GITHUB_TOKEN}@}"
+          git init . && git remote add origin "${AUTH_URL}"
+          git fetch --depth=1 origin "${GITHUB_SHA}" && git checkout --force FETCH_HEAD
 
       - name: Install dependencies
         working-directory: ui
@@ -79,9 +84,14 @@ jobs:
       image: node:20-bookworm
     steps:
       - name: Checkout
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
         run: |
-          git clone --depth 1 --branch "${GITHUB_REF_NAME:-main}" https://token:${{ github.token }}@git.integrolabs.net/${GITHUB_REPOSITORY}.git .
-          git checkout ${GITHUB_SHA:-HEAD}
+          set -euo pipefail
+          REPO_URL="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}.git"
+          AUTH_URL="${REPO_URL/https:\/\//https:\/\/x-access-token:${GITHUB_TOKEN}@}"
+          git init . && git remote add origin "${AUTH_URL}"
+          git fetch --depth=1 origin "${GITHUB_SHA}" && git checkout --force FETCH_HEAD
 
       - name: Install dependencies
         working-directory: agent-proxy
@@ -107,9 +117,14 @@ jobs:
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     steps:
       - name: Checkout
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
         run: |
-          git clone --depth 1 --branch "${GITHUB_REF_NAME:-main}" https://token:${{ github.token }}@git.integrolabs.net/${GITHUB_REPOSITORY}.git .
-          git checkout ${GITHUB_SHA:-HEAD}
+          set -euo pipefail
+          REPO_URL="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}.git"
+          AUTH_URL="${REPO_URL/https:\/\//https:\/\/x-access-token:${GITHUB_TOKEN}@}"
+          git init . && git remote add origin "${AUTH_URL}"
+          git fetch --depth=1 origin "${GITHUB_SHA}" && git checkout --force FETCH_HEAD
 
       - name: Log in to Gitea registry
         run: echo "${{ secrets.BUILD_REPO_TOKEN }}" | docker login ${GITEA_REGISTRY} -u ${{ gitea.actor }} --password-stdin
@@ -192,9 +207,14 @@ jobs:
     if: startsWith(github.ref, 'refs/tags/v')
     steps:
       - name: Checkout
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
         run: |
-          git clone --depth 1 --branch "${GITHUB_REF_NAME:-main}" https://token:${{ github.token }}@git.integrolabs.net/${GITHUB_REPOSITORY}.git .
-          git checkout ${GITHUB_SHA:-HEAD}
+          set -euo pipefail
+          REPO_URL="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}.git"
+          AUTH_URL="${REPO_URL/https:\/\//https:\/\/x-access-token:${GITHUB_TOKEN}@}"
+          git init . && git remote add origin "${AUTH_URL}"
+          git fetch --depth=1 origin "${GITHUB_SHA}" && git checkout --force FETCH_HEAD
 
       - name: Log in to registries
         run: |
@@ -354,9 +374,14 @@ jobs:
       image: node:20-bookworm
     steps:
       - name: Checkout
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
         run: |
-          git clone --depth 1 --branch "${GITHUB_REF_NAME:-main}" https://token:${{ github.token }}@git.integrolabs.net/${GITHUB_REPOSITORY}.git .
-          git checkout ${GITHUB_SHA:-HEAD}
+          set -euo pipefail
+          REPO_URL="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}.git"
+          AUTH_URL="${REPO_URL/https:\/\//https:\/\/x-access-token:${GITHUB_TOKEN}@}"
+          git init . && git remote add origin "${AUTH_URL}"
+          git fetch --depth=1 origin "${GITHUB_SHA}" && git checkout --force FETCH_HEAD
 
       - name: Install Rust stable
         run: |
