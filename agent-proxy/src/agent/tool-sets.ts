@@ -20,6 +20,7 @@ const EXPLORE_TOOLS: AgentToolName[] = [
   'get_related',
   'list_archives',
   'list_notes',
+  'get_attachments',
 ];
 
 /** All tools for knowledge mutations. */
@@ -35,6 +36,7 @@ const ALL_TOOLS: AgentToolName[] = [
   'get_related',
   'list_archives',
   'list_notes',
+  'get_attachments',
 ];
 
 /** Tool availability by intent. Empty array = no tools. */
@@ -58,7 +60,7 @@ export const INTENT_PROMPT_SUFFIXES: Record<Intent, string> = {
     '\n\nYou are in exploration mode. You MUST use the available read-only tools ' +
     'to answer — do NOT answer from memory or make up results. ' +
     'Available tools: search_notes, get_note, list_collections, search_concepts, ' +
-    'get_related, list_archives, list_notes. ' +
+    'get_related, list_archives, list_notes, get_attachments. ' +
     'Always call at least one tool before responding to the user. ' +
     'Do NOT create, modify, or delete anything.',
 

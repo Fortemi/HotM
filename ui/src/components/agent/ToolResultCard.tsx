@@ -26,6 +26,11 @@ import {
   GitBranch,
   Archive,
   List,
+  Paperclip,
+  Image,
+  Film,
+  Music,
+  FileIcon,
 } from "lucide-react";
 
 interface ToolResultCardProps {
@@ -58,6 +63,8 @@ export function ToolResultCard({ toolName, result, onNoteClick }: ToolResultCard
       return <ListArchivesCard result={result as ListArchivesData} />;
     case "list_notes":
       return <ListNotesCard result={result as ListNotesData} onNoteClick={onNoteClick} />;
+    case "get_attachments":
+      return <GetAttachmentsCard result={result as GetAttachmentsData} />;
     default:
       return <GenericCard toolName={toolName} result={result} />;
   }
@@ -81,12 +88,31 @@ interface CreateNoteData {
   revision_mode: string;
 }
 
+interface AttachmentItem {
+  id: string;
+  filename: string;
+  content_type: string;
+  size_bytes: number;
+  status?: string;
+  ai_description?: string | null;
+  extracted_text?: string | null;
+  has_preview?: boolean;
+}
+
 interface GetNoteData {
   note_id: string;
   title?: string | null;
   content: string;
   tags: string[];
   created_at: string;
+  attachment_count?: number;
+  attachments?: AttachmentItem[];
+}
+
+interface GetAttachmentsData {
+  note_id: string;
+  attachments: AttachmentItem[];
+  total: number;
 }
 
 interface ReviseNoteData {
@@ -281,6 +307,26 @@ function GetNoteCard({ result, onNoteClick }: { result: GetNoteData; onNoteClick
           ))}
         </div>
       )}
+      {result.attachment_count != null && result.attachment_count > 0 && (
+        <div className="mt-2 border-t pt-2">
+          <div className="flex items-center gap-1 text-xs text-muted-foreground">
+            <Paperclip className="h-3 w-3" />
+            {result.attachment_count} attachment{result.attachment_count === 1 ? "" : "s"}
+          </div>
+          {result.attachments && result.attachments.length > 0 && (
+            <div className="mt-1 space-y-1">
+              {result.attachments.slice(0, 4).map((att) => (
+                <AttachmentRow key={att.id} attachment={att} />
+              ))}
+              {result.attachments.length > 4 && (
+                <p className="text-[10px] text-muted-foreground">
+                  +{result.attachments.length - 4} more
+                </p>
+              )}
+            </div>
+          )}
+        </div>
+      )}
     </CardShell>
   );
 }
@@ -441,6 +487,52 @@ function ListNotesCard({ result, onNoteClick }: { result: ListNotesData; onNoteC
           />
         ))}
       </div>
+    </CardShell>
+  );
+}
+
+function AttachmentIcon({ contentType }: { contentType: string }) {
+  if (contentType.startsWith("image/")) return <Image className="h-3.5 w-3.5 text-blue-500" />;
+  if (contentType.startsWith("video/")) return <Film className="h-3.5 w-3.5 text-purple-500" />;
+  if (contentType.startsWith("audio/")) return <Music className="h-3.5 w-3.5 text-green-500" />;
+  return <FileIcon className="h-3.5 w-3.5 text-muted-foreground" />;
+}
+
+function AttachmentRow({ attachment }: { attachment: AttachmentItem }) {
+  return (
+    <div className="flex items-center gap-2 rounded-md border px-2 py-1.5">
+      <AttachmentIcon contentType={attachment.content_type} />
+      <div className="min-w-0 flex-1">
+        <p className="truncate text-xs font-medium">{attachment.filename}</p>
+        <p className="text-[10px] text-muted-foreground">
+          {attachment.content_type.split("/")[1]?.toUpperCase() ?? attachment.content_type}
+          {attachment.size_bytes > 0 && ` · ${formatBytes(attachment.size_bytes)}`}
+        </p>
+      </div>
+      {attachment.ai_description && (
+        <p className="hidden text-[10px] text-muted-foreground sm:block sm:max-w-[120px] sm:truncate">
+          {attachment.ai_description}
+        </p>
+      )}
+    </div>
+  );
+}
+
+function GetAttachmentsCard({ result }: { result: GetAttachmentsData }) {
+  return (
+    <CardShell
+      icon={Paperclip}
+      title={`${result.total} attachment${result.total === 1 ? "" : "s"}`}
+    >
+      {result.attachments.length === 0 ? (
+        <p className="text-xs text-muted-foreground">No attachments found.</p>
+      ) : (
+        <div className="max-h-60 space-y-1 overflow-y-auto">
+          {result.attachments.map((att) => (
+            <AttachmentRow key={att.id} attachment={att} />
+          ))}
+        </div>
+      )}
     </CardShell>
   );
 }

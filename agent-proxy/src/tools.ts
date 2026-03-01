@@ -158,12 +158,32 @@ export const getNoteTool = tool({
     const note = (data.note ?? data) as Record<string, unknown>;
     const revised = data.revised as Record<string, unknown> | undefined;
     const original = data.original as Record<string, unknown> | undefined;
+
+    // Fetch attachment summary (non-blocking — don't fail if endpoint unavailable)
+    let attachments: Array<{ id: string; filename: string; content_type: string; size_bytes: number }> = [];
+    try {
+      const attData = await fortemi<unknown>(`/notes/${note_id}/attachments`);
+      const attItems = Array.isArray(attData)
+        ? attData
+        : ((attData as Record<string, unknown>).attachments ?? []) as Array<Record<string, unknown>>;
+      attachments = (attItems as Array<Record<string, unknown>>).map((a) => ({
+        id: a.id as string,
+        filename: a.filename as string ?? a.original_filename as string ?? 'unknown',
+        content_type: a.content_type as string ?? 'application/octet-stream',
+        size_bytes: (a.size_bytes as number) ?? 0,
+      }));
+    } catch {
+      // Attachments endpoint may not be available — continue without
+    }
+
     return {
       note_id: note.id ?? note_id,
       title: note.title,
       content: revised?.content ?? original?.content ?? note.content ?? '',
       tags: data.tags ?? note.tags ?? [],
       created_at: note.created_at_utc ?? note.created_at,
+      attachment_count: attachments.length,
+      attachments: attachments.length > 0 ? attachments : undefined,
     };
   },
 });
@@ -376,6 +396,38 @@ export const listNotesTool = tool({
   },
 });
 
+export const getAttachmentsTool = tool({
+  description:
+    'List file attachments for a note. ' +
+    'Use this when the user asks about files, images, audio, video, or documents attached to a note.',
+  inputSchema: z.object({
+    note_id: z.string().describe('The note ID to list attachments for'),
+  }),
+  execute: async ({ note_id }) => {
+    const results = await fortemi<unknown>(`/notes/${note_id}/attachments`);
+    const items = Array.isArray(results)
+      ? results
+      : ((results as Record<string, unknown>).attachments ?? []) as Array<Record<string, unknown>>;
+
+    return {
+      note_id,
+      attachments: (items as Array<Record<string, unknown>>).map((a) => ({
+        id: a.id,
+        filename: a.filename ?? a.original_filename ?? 'unknown',
+        content_type: a.content_type ?? 'application/octet-stream',
+        size_bytes: a.size_bytes ?? 0,
+        status: a.status ?? 'completed',
+        ai_description: a.ai_description ?? null,
+        extracted_text: a.extracted_text
+          ? (a.extracted_text as string).slice(0, 500)
+          : null,
+        has_preview: a.has_preview ?? false,
+      })),
+      total: items.length,
+    };
+  },
+});
+
 // ---------------------------------------------------------------------------
 // Tool registry
 // ---------------------------------------------------------------------------
@@ -396,4 +448,5 @@ export const agentTools = {
   get_related: getRelatedTool,
   list_archives: listArchivesTool,
   list_notes: listNotesTool,
+  get_attachments: getAttachmentsTool,
 } as const;

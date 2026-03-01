@@ -21,6 +21,7 @@ import {
   getRelatedTool,
   listArchivesTool,
   listNotesTool,
+  getAttachmentsTool,
   agentTools,
 } from '../tools.js';
 
@@ -78,8 +79,8 @@ function errorResponse(status: number, body = ''): Response {
 // ---------------------------------------------------------------------------
 
 describe('agentTools registry', () => {
-  it('exports all 11 tools', () => {
-    expect(Object.keys(agentTools)).toHaveLength(11);
+  it('exports all 12 tools', () => {
+    expect(Object.keys(agentTools)).toHaveLength(12);
   });
 
   it('contains expected tool names', () => {
@@ -95,6 +96,7 @@ describe('agentTools registry', () => {
     expect(names).toContain('get_related');
     expect(names).toContain('list_archives');
     expect(names).toContain('list_notes');
+    expect(names).toContain('get_attachments');
   });
 
   it('every tool has a description and execute function', () => {
@@ -222,7 +224,8 @@ describe('createNoteTool', () => {
 // ---------------------------------------------------------------------------
 
 describe('getNoteTool', () => {
-  it('retrieves note by ID', async () => {
+  it('retrieves note by ID with attachment summary', async () => {
+    // First call: GET /notes/:id
     mockFetch.mockResolvedValueOnce(
       jsonResponse({
         note: { id: 'abc', title: 'My Note', created_at_utc: '2026-01-01T00:00:00Z' },
@@ -231,21 +234,29 @@ describe('getNoteTool', () => {
         tags: ['test'],
       }),
     );
+    // Second call: GET /notes/:id/attachments
+    mockFetch.mockResolvedValueOnce(
+      jsonResponse([
+        { id: 'att1', filename: 'photo.jpg', content_type: 'image/jpeg', size_bytes: 1024 },
+      ]),
+    );
 
     const result = await callTool<Record<string, unknown>>(
       getNoteTool, { note_id: 'abc' },
     );
 
-    expect(mockFetch).toHaveBeenCalledOnce();
+    expect(mockFetch).toHaveBeenCalledTimes(2);
     expect(String(mockFetch.mock.calls[0][0])).toContain('/notes/abc');
+    expect(String(mockFetch.mock.calls[1][0])).toContain('/notes/abc/attachments');
 
-    expect(result).toEqual({
-      note_id: 'abc',
-      title: 'My Note',
-      content: 'Revised text',
-      tags: ['test'],
-      created_at: '2026-01-01T00:00:00Z',
-    });
+    expect(result.note_id).toBe('abc');
+    expect(result.title).toBe('My Note');
+    expect(result.content).toBe('Revised text');
+    expect(result.tags).toEqual(['test']);
+    expect(result.attachment_count).toBe(1);
+    expect(result.attachments).toEqual([
+      { id: 'att1', filename: 'photo.jpg', content_type: 'image/jpeg', size_bytes: 1024 },
+    ]);
   });
 
   it('falls back to original content when revised is missing', async () => {
@@ -256,12 +267,14 @@ describe('getNoteTool', () => {
         tags: [],
       }),
     );
+    mockFetch.mockResolvedValueOnce(jsonResponse([])); // no attachments
 
     const result = await callTool<Record<string, unknown>>(
       getNoteTool, { note_id: 'abc' },
     );
 
     expect(result.content).toBe('Original text');
+    expect(result.attachment_count).toBe(0);
   });
 
   it('handles flat response format', async () => {
@@ -274,6 +287,7 @@ describe('getNoteTool', () => {
         created_at: '2026-01-01',
       }),
     );
+    mockFetch.mockResolvedValueOnce(jsonResponse([])); // no attachments
 
     const result = await callTool<Record<string, unknown>>(
       getNoteTool, { note_id: 'flat-1' },
@@ -281,6 +295,25 @@ describe('getNoteTool', () => {
 
     expect(result.note_id).toBe('flat-1');
     expect(result.content).toBe('Direct content');
+  });
+
+  it('continues gracefully when attachments endpoint fails', async () => {
+    mockFetch.mockResolvedValueOnce(
+      jsonResponse({
+        note: { id: 'abc', title: 'Test' },
+        original: { content: 'Content' },
+        tags: [],
+      }),
+    );
+    mockFetch.mockResolvedValueOnce(errorResponse(404, 'Not found')); // attachments fail
+
+    const result = await callTool<Record<string, unknown>>(
+      getNoteTool, { note_id: 'abc' },
+    );
+
+    expect(result.note_id).toBe('abc');
+    expect(result.attachment_count).toBe(0);
+    expect(result.attachments).toBeUndefined();
   });
 });
 
@@ -615,6 +648,105 @@ describe('listNotesTool', () => {
     );
 
     expect(result.notes[0].has_attachments).toBe(true);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// get_attachments
+// ---------------------------------------------------------------------------
+
+describe('getAttachmentsTool', () => {
+  it('lists attachments for a note', async () => {
+    mockFetch.mockResolvedValueOnce(
+      jsonResponse({
+        attachments: [
+          {
+            id: 'att-1',
+            filename: 'photo.jpg',
+            content_type: 'image/jpeg',
+            size_bytes: 1024,
+            status: 'completed',
+            ai_description: 'A photo of a cat',
+            extracted_text: null,
+            has_preview: true,
+          },
+          {
+            id: 'att-2',
+            original_filename: 'report.pdf',
+            content_type: 'application/pdf',
+            size_bytes: 50000,
+            status: 'completed',
+            ai_description: null,
+            extracted_text: 'Quarterly report summary...',
+            has_preview: false,
+          },
+        ],
+      }),
+    );
+
+    const result = await callTool<{ note_id: string; attachments: Array<Record<string, unknown>>; total: number }>(
+      getAttachmentsTool, { note_id: 'n1' },
+    );
+
+    expect(mockFetch).toHaveBeenCalledOnce();
+    const [url] = mockFetch.mock.calls[0];
+    expect(String(url)).toContain('/notes/n1/attachments');
+
+    expect(result.note_id).toBe('n1');
+    expect(result.total).toBe(2);
+    expect(result.attachments).toHaveLength(2);
+    expect(result.attachments[0]).toMatchObject({
+      id: 'att-1',
+      filename: 'photo.jpg',
+      content_type: 'image/jpeg',
+      size_bytes: 1024,
+      has_preview: true,
+    });
+    // Falls back to original_filename
+    expect(result.attachments[1].filename).toBe('report.pdf');
+  });
+
+  it('normalizes array response format', async () => {
+    mockFetch.mockResolvedValueOnce(
+      jsonResponse([
+        { id: 'att-3', filename: 'audio.mp3', content_type: 'audio/mpeg', size_bytes: 999 },
+      ]),
+    );
+
+    const result = await callTool<{ attachments: Array<Record<string, unknown>>; total: number }>(
+      getAttachmentsTool, { note_id: 'n2' },
+    );
+
+    expect(result.total).toBe(1);
+    expect(result.attachments[0].id).toBe('att-3');
+    expect(result.attachments[0].status).toBe('completed'); // default
+    expect(result.attachments[0].ai_description).toBeNull(); // default
+  });
+
+  it('truncates extracted_text to 500 chars', async () => {
+    const longText = 'X'.repeat(1000);
+    mockFetch.mockResolvedValueOnce(
+      jsonResponse([
+        { id: 'att-4', filename: 'doc.txt', content_type: 'text/plain', extracted_text: longText },
+      ]),
+    );
+
+    const result = await callTool<{ attachments: Array<{ extracted_text: string | null }> }>(
+      getAttachmentsTool, { note_id: 'n3' },
+    );
+
+    expect(result.attachments[0].extracted_text).toHaveLength(500);
+  });
+
+  it('returns empty array for note with no attachments', async () => {
+    mockFetch.mockResolvedValueOnce(jsonResponse([]));
+
+    const result = await callTool<{ attachments: Array<unknown>; total: number }>(
+      getAttachmentsTool, { note_id: 'n4' },
+    );
+
+    expect(result.attachments).toHaveLength(0);
+    expect(result.total).toBe(0);
   });
 });
 

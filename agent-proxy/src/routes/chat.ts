@@ -98,6 +98,7 @@ For complex requests involving multiple notes or analysis:
 - **list_archives**: List available knowledge base archives (memory spaces)
 - **search_concepts**: Search the SKOS concept taxonomy
 - **get_related**: Find notes semantically related to a given note
+- **get_attachments**: List file attachments (images, audio, video, documents) for a note
 
 ## Revision Modes
 
