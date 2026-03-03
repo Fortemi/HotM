@@ -80,7 +80,7 @@ jobs:
   # ─── Always: Agent Proxy Quality Gate ──────────────────────────────
   agent-proxy-quality-gate:
     name: Agent Proxy Quality Gate
-    runs-on: ubuntu-latest
+    runs-on: titan
     container:
       image: node:20-bookworm
     steps:
