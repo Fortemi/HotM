@@ -38,9 +38,7 @@ jobs:
   # ─── Always: UI Quality Gate ─────────────────────────────────────
   quality-gate:
     name: UI Quality Gate
-    runs-on: ubuntu-latest
-    container:
-      image: node:20-bookworm
+    runs-on: node-20
     steps:
       - name: Checkout
         shell: bash
@@ -80,9 +78,7 @@ jobs:
   # ─── Always: Agent Proxy Quality Gate ──────────────────────────────
   agent-proxy-quality-gate:
     name: Agent Proxy Quality Gate
-    runs-on: titan
-    container:
-      image: node:20-bookworm
+    runs-on: node-20
     steps:
       - name: Checkout
         shell: bash
@@ -371,11 +367,9 @@ jobs:
   # Rebuilds SPA and Tauri independently (Fortemi pattern: each job builds its own)
   create-github-release:
     name: Create GitHub Release
-    runs-on: titan
+    runs-on: node-20
     needs: publish-release
     if: startsWith(github.ref, 'refs/tags/v')
-    container:
-      image: node:20-bookworm
     steps:
       - name: Checkout
         shell: bash
