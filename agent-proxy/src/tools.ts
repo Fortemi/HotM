@@ -98,15 +98,48 @@ export const searchNotesTool = tool({
   description:
     'Search notes using hybrid full-text and semantic search. ' +
     'Use this when the user asks to find, look up, or search for notes. ' +
-    'Just pass the query — limit and mode have sensible defaults.',
+    'Supports filtering by tags, concepts, dates, collections, starred/archived status, ' +
+    'and searching across different memory archives. ' +
+    'Just pass the query — all other parameters have sensible defaults.',
   inputSchema: z.object({
     query: z.string().describe('The search query'),
     limit: optionalInt(10, 1, 50, 'Max results (default 10)'),
     mode: optionalEnum(['hybrid', 'fts', 'semantic'], 'hybrid', 'Search mode (default hybrid)'),
+    tags: optionalStringArray('Filter by tags (e.g. ["work", "urgent"])'),
+    concepts: optionalStringArray('Filter by extracted concepts'),
+    starred: z.preprocess(
+      (val) => (val === null || val === undefined ? undefined : val),
+      z.boolean().optional(),
+    ).describe('Filter to starred notes only'),
+    archived: z.preprocess(
+      (val) => (val === null || val === undefined ? undefined : val),
+      z.boolean().optional(),
+    ).describe('Include/exclude archived notes (default: exclude)'),
+    collection: optionalString('Filter by collection ID'),
+    before: optionalString('Notes created before this date (ISO 8601)'),
+    after: optionalString('Notes created after this date (ISO 8601)'),
+    source: optionalString('Filter by note source (e.g. "agent-session")'),
+    sort: optionalString('Sort order (e.g. "relevance", "created_at", "updated_at")'),
+    archive: optionalString('Memory/archive name to search in (routes via X-Fortemi-Memory header)'),
   }),
-  execute: async ({ query, limit, mode }) => {
+  execute: async ({ query, limit, mode, tags, concepts, starred, archived, collection, before, after, source, sort, archive }) => {
     const params = new URLSearchParams({ q: query, limit: String(limit), mode });
-    const results = await fortemi<unknown>(`/search?${params}`);
+    if (tags && tags.length > 0) params.set('tags', tags.join(','));
+    if (concepts && concepts.length > 0) params.set('concepts', concepts.join(','));
+    if (starred !== undefined) params.set('starred', String(starred));
+    if (archived !== undefined) params.set('archived', String(archived));
+    if (collection) params.set('collection', collection);
+    if (before) params.set('before', before);
+    if (after) params.set('after', after);
+    if (source) params.set('source', source);
+    if (sort) params.set('sort', sort);
+
+    const headers: Record<string, string> = {};
+    if (archive) headers['X-Fortemi-Memory'] = archive;
+
+    const results = await fortemi<unknown>(`/search?${params}`, {
+      headers: Object.keys(headers).length > 0 ? headers : undefined,
+    });
     // Normalize — Fortemi may return array or { results: [...] }
     const items = Array.isArray(results)
       ? results

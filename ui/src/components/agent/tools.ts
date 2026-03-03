@@ -93,7 +93,9 @@ export type ToolResult =
 export const searchNotesTool = tool({
   description:
     'Search notes using hybrid full-text and semantic search. ' +
-    'Use this when the user asks to find, look up, or search for notes.',
+    'Use this when the user asks to find, look up, or search for notes. ' +
+    'Supports filtering by tags, concepts, dates, collections, starred/archived status, ' +
+    'and searching across different memory archives.',
   inputSchema: z.object({
     query: z.string().describe('The search query'),
     limit: z
@@ -109,9 +111,30 @@ export const searchNotesTool = tool({
       .optional()
       .default('hybrid')
       .describe('Search mode: hybrid (default), fts (full-text only), or semantic (vector only)'),
+    tags: z.array(z.string()).optional().describe('Filter by tags (e.g. ["work", "urgent"])'),
+    concepts: z.array(z.string()).optional().describe('Filter by extracted concepts'),
+    starred: z.boolean().optional().describe('Filter to starred notes only'),
+    archived: z.boolean().optional().describe('Include/exclude archived notes (default: exclude)'),
+    collection: z.string().optional().describe('Filter by collection ID'),
+    before: z.string().optional().describe('Notes created before this date (ISO 8601)'),
+    after: z.string().optional().describe('Notes created after this date (ISO 8601)'),
+    source: z.string().optional().describe('Filter by note source (e.g. "agent-session")'),
+    sort: z.string().optional().describe('Sort order (e.g. "relevance", "created_at", "updated_at")'),
   }),
-  execute: async ({ query, limit, mode }) => {
-    const results = await api.search.search(query, { limit, mode });
+  execute: async ({ query, limit, mode, tags, concepts, starred, archived, collection, before, after, source }) => {
+    const filters = source ? `source:${source}` : undefined;
+    const results = await api.search.search(query, {
+      limit,
+      mode,
+      tags,
+      concepts,
+      starred,
+      archived,
+      collection,
+      before,
+      after,
+      filters,
+    });
     return results.map((r) => ({
       note_id: r.note_id,
       title: r.title,

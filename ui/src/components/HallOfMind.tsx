@@ -2421,18 +2421,20 @@ export function HallOfMind() {
                 onNoteClick={async (noteId) => {
                   try {
                     const fullNote = await api.getNote(noteId);
+                    const originalContent = fullNote.original?.content ?? "";
+                    const revisedContent = fullNote.revised?.content ?? null;
                     const simpleNote: Note = {
                       id: fullNote.note.id,
-                      title: fullNote.note.title || fullNote.original.content.split('\n')[0].substring(0, 50) || "Untitled",
-                      content: fullNote.original.content,
-                      revised_content: fullNote.revised ? fullNote.revised.content : null,
+                      title: fullNote.note.title || originalContent.split('\n')[0]?.substring(0, 50) || "Untitled",
+                      content: originalContent,
+                      revised_content: revisedContent,
                       createdAt: fullNote.note.created_at_utc,
                       updatedAt: fullNote.note.updated_at_utc,
-                      tags: fullNote.tags,
+                      tags: fullNote.tags ?? [],
                       starred: fullNote.note.starred || false,
                       archived: fullNote.note.archived || false,
                       ai_generated_title: fullNote.note.title,
-                      revised_model: fullNote.revised ? fullNote.revised.model : null,
+                      revised_model: fullNote.revised?.model ?? null,
                     };
                     savedNotes.current.set(fullNote.note.id, fullNote);
                     setSelectedNote(simpleNote);
