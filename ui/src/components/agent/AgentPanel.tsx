@@ -369,7 +369,7 @@ export function AgentPanel({ context, onNoteClick }: AgentPanelProps) {
                     Processing {queueStatus.running} job{queueStatus.running !== 1 ? 's' : ''}{queueStatus.pending > 0 ? `, ${queueStatus.pending} waiting` : ''}
                   </p>
                   <p className="mt-3 text-xs text-muted-foreground/50">
-                    I'll be ready to chat when the queue clears
+                    Chat is disabled while threads are in use
                   </p>
                 </div>
               ) : messages.length === 0 ? (

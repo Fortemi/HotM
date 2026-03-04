@@ -30,15 +30,17 @@ export function ChatInput({
   const prevLoadingRef = useRef(isLoading);
   const history = useInputHistory();
 
+  const inputDisabled = isLoading || isSystemBusy;
+
   const handleSend = useCallback(() => {
     const trimmed = input.trim();
-    if (!trimmed || isLoading) return;
+    if (!trimmed || inputDisabled) return;
     history.push(trimmed);
     onSend(trimmed);
     setInput("");
     // Re-focus after clearing input
     textareaRef.current?.focus();
-  }, [input, isLoading, onSend, history]);
+  }, [input, inputDisabled, onSend, history]);
 
   const handleInputChange = useCallback(
     (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -106,8 +108,8 @@ export function ChatInput({
         value={input}
         onChange={handleInputChange}
         onKeyDown={handleKeyDown}
-        placeholder={isSystemBusy ? "System is processing notes... responses may be slow" : placeholder}
-        disabled={isLoading}
+        placeholder={isSystemBusy ? "Agent unavailable — processing notes..." : placeholder}
+        disabled={inputDisabled}
         className="min-h-[40px] max-h-[120px] resize-none text-sm"
         rows={1}
       />
@@ -115,7 +117,7 @@ export function ChatInput({
         <Button
           size="icon"
           onClick={handleSend}
-          disabled={!input.trim() || isLoading}
+          disabled={!input.trim() || inputDisabled}
         >
           {isLoading ? (
             <Loader2 className="h-4 w-4 animate-spin" />
