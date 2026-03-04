@@ -38,7 +38,9 @@ import { SessionPanel } from "./SessionPanel";
 import { ExportMenu } from "./ExportMenu";
 import { SaveAsNoteButton } from "./SaveAsNoteButton";
 import { LoadFromNoteButton } from "./LoadFromNoteButton";
+import { useJobStore } from "@/hooks/useJobStore";
 import "./print-styles.css";
+import "./agent-busy.css";
 import type { AgentContext } from "./useAgent";
 import type { SubAgentProgress } from "./sub-agent";
 import type { PrivilegeMode } from "./privileges";
@@ -64,6 +66,8 @@ const PRIVILEGE_COLORS: Record<PrivilegeMode, string> = {
 
 export function AgentPanel({ context, onNoteClick }: AgentPanelProps) {
   const { config, setConfig } = useAgentConfig();
+  const { queueStatus } = useJobStore();
+  const isSystemBusy = queueStatus.pending > 0;
   const { mode, setMode, pending, resolveConfirmation } = useAgentPrivileges();
   const [showSettings, setShowSettings] = useState(false);
   const [autoFocusKey, setAutoFocusKey] = useState(0);
@@ -353,7 +357,22 @@ export function AgentPanel({ context, onNoteClick }: AgentPanelProps) {
           {/* Messages */}
           <ScrollArea className="flex-1">
             <div ref={scrollRef} className="flex flex-col">
-              {messages.length === 0 ? (
+              {messages.length === 0 && isSystemBusy ? (
+                <div className="flex flex-1 flex-col items-center justify-center px-6 py-16 text-center">
+                  <div className="agent-busy-icon mb-4">
+                    <Bot className="h-12 w-12 text-amber-500/70" />
+                  </div>
+                  <h3 className="text-base font-medium text-muted-foreground">
+                    Working on your notes...
+                  </h3>
+                  <p className="mt-1 max-w-sm text-sm text-muted-foreground/70">
+                    Processing {queueStatus.running} job{queueStatus.running !== 1 ? 's' : ''}{queueStatus.pending > 0 ? `, ${queueStatus.pending} waiting` : ''}
+                  </p>
+                  <p className="mt-3 text-xs text-muted-foreground/50">
+                    I'll be ready to chat when the queue clears
+                  </p>
+                </div>
+              ) : messages.length === 0 ? (
                 <div className="flex flex-1 flex-col items-center justify-center px-6 py-16 text-center">
                   <Bot className="mb-4 h-12 w-12 text-muted-foreground/40" />
                   <h3 className="text-base font-medium text-muted-foreground">
@@ -433,7 +452,7 @@ export function AgentPanel({ context, onNoteClick }: AgentPanelProps) {
           )}
 
           {/* Input */}
-          <ChatInput onSend={sendMessage} isLoading={isLoading} autoFocusKey={autoFocusKey} />
+          <ChatInput onSend={sendMessage} isLoading={isLoading} autoFocusKey={autoFocusKey} isSystemBusy={isSystemBusy} />
         </>
       )}
 

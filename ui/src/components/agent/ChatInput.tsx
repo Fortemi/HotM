@@ -14,6 +14,8 @@ interface ChatInputProps {
   placeholder?: string;
   /** Increment to trigger re-focus (e.g. after ConfirmationCard resolves). */
   autoFocusKey?: number;
+  /** When true, shows a warning that ML threads are saturated. */
+  isSystemBusy?: boolean;
 }
 
 export function ChatInput({
@@ -21,6 +23,7 @@ export function ChatInput({
   isLoading = false,
   placeholder = "Ask the agent...",
   autoFocusKey = 0,
+  isSystemBusy = false,
 }: ChatInputProps) {
   const [input, setInput] = useState("");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -103,23 +106,27 @@ export function ChatInput({
         value={input}
         onChange={handleInputChange}
         onKeyDown={handleKeyDown}
-        placeholder={placeholder}
+        placeholder={isSystemBusy ? "System is processing notes... responses may be slow" : placeholder}
         disabled={isLoading}
         className="min-h-[40px] max-h-[120px] resize-none text-sm"
         rows={1}
       />
-      <Button
-        size="icon"
-        onClick={handleSend}
-        disabled={!input.trim() || isLoading}
-        className="shrink-0"
-      >
-        {isLoading ? (
-          <Loader2 className="h-4 w-4 animate-spin" />
-        ) : (
-          <Send className="h-4 w-4" />
+      <div className="relative shrink-0">
+        <Button
+          size="icon"
+          onClick={handleSend}
+          disabled={!input.trim() || isLoading}
+        >
+          {isLoading ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <Send className="h-4 w-4" />
+          )}
+        </Button>
+        {isSystemBusy && (
+          <span className="absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full bg-amber-500" />
         )}
-      </Button>
+      </div>
     </div>
   );
 }
