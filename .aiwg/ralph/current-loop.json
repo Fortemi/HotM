@@ -1,55 +1,33 @@
 {
-  "task": "Re-add Tauri wrapper/launcher with dual build modes and cross-platform installers",
-  "completion_criteria": "Tauri app builds, runs, launches on Ubuntu; CI configs ready for Windows/Mac platform builds; new tests covering Tauri code at ~70% coverage",
+  "task": "Agent chat UX enhancements — 8 features for session management, input UX, export, markdown rendering, and message actions",
+  "completion_criteria": "All 8 issues (#133-#140) implemented: TypeScript compiles (npx tsc --noEmit), all tests pass (npx vitest --run), new code has tests at ≥70% coverage",
   "max_iterations": 50,
   "current_iteration": 5,
   "status": "complete",
-  "started_at": "2026-02-19T06:30:00Z",
-  "completed_at": "2026-02-19T06:52:00Z",
-  "current_phase": "construction",
-  "current_task": "All Tauri integration complete",
+  "started_at": "2026-02-28T07:10:00Z",
+  "completed_at": "2026-03-01T01:00:00Z",
+  "current_phase": "complete",
+  "current_task": "All issues resolved, post-deployment fixes committed",
   "phases": {
     "research": "complete",
     "planning": "complete",
     "issues": "complete",
     "construction": "complete"
   },
-  "gitea_issues_created": [54, 55, 56, 57, 58, 59, 60, 61],
-  "verification": {
-    "typescript": "npx tsc --noEmit exits 0",
-    "tests": "514 pass (37 files), 0 failures",
-    "tauri_coverage": "100% on lib/tauri.ts and hooks/use-tauri.ts",
-    "spa_build": "npm run build succeeds (standalone SPA)",
-    "tauri_build": "npm run tauri build succeeds",
-    "bundles_produced": [
-      "HotM_2026.2.0_amd64.deb (6.0MB)",
-      "HotM-2026.2.0-1.x86_64.rpm (6.0MB)",
-      "HotM_2026.2.0_amd64.AppImage (82MB)"
-    ],
-    "binary": "ELF 64-bit LSB, x86-64, stripped"
-  },
-  "files_created": [
-    "ui/src-tauri/tauri.conf.json",
-    "ui/src-tauri/Cargo.toml",
-    "ui/src-tauri/build.rs",
-    "ui/src-tauri/capabilities/default.json",
-    "ui/src-tauri/src/lib.rs",
-    "ui/src-tauri/src/main.rs",
-    "ui/src-tauri/src/plantuml.rs",
-    "ui/src-tauri/icons/ (19 files recovered)",
-    "ui/src/lib/tauri.ts",
-    "ui/src/hooks/use-tauri.ts",
-    "ui/src/lib/__tests__/tauri.test.ts",
-    "ui/src/hooks/__tests__/use-tauri.test.ts",
-    ".github/workflows/tauri-build.yml",
-    ".aiwg/planning/tauri-integration-plan.md"
+  "gitea_issues_created": [133, 134, 135, 136, 137, 138, 139, 140],
+  "implementation_order": [
+    { "issue": 133, "title": "Auto-focus input after send", "status": "complete", "tier": 1 },
+    { "issue": 134, "title": "Input history (up/down arrow)", "status": "complete", "tier": 1 },
+    { "issue": 135, "title": "Copy-to-clipboard on bubbles", "status": "complete", "tier": 1 },
+    { "issue": 136, "title": "Markdown rendering for messages", "status": "complete", "tier": 1 },
+    { "issue": 137, "title": "Session persistence + slide-out panel", "status": "complete", "tier": 2 },
+    { "issue": 138, "title": "Print & export sessions", "status": "complete", "tier": 3 },
+    { "issue": 139, "title": "Save session as Fortemi note", "status": "complete", "tier": 3 },
+    { "issue": 140, "title": "Message deletion & regeneration", "status": "complete", "tier": 3 }
   ],
-  "files_modified": [
-    "ui/vite.config.ts",
-    "ui/package.json",
-    "ui/.gitignore",
-    "ui/index.html",
-    "ui/src/vite-env.d.ts",
-    "ui/src/__tests__/migration-validation.test.ts"
+  "post_deployment_fixes": [
+    { "commit": "789d2db", "fixes": ["Settings crash (Radix SelectItem empty value)", "Multi-session UX (Clear→New)", "Attachment upload diagnostics"] },
+    { "commit": "bfe9da4", "fixes": ["isFirstTurn off-by-one (tools disabled on first message)", "PATCH→PUT for tag API", "Intent classifier pattern expansion", "Default model llama3.2→qwen3:8b"] },
+    { "commit": "162bc81", "fixes": ["Clickable search results in chat", "list_archives and list_notes tools", "onNoteClick wiring through HallOfMind"] }
   ]
 }
