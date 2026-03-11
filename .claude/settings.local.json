@@ -59,7 +59,8 @@
       "mcp__gitea__get_dir_content",
       "mcp__gitea__list_repo_commits",
       "Bash(HOTM_REGISTRY=git.integrolabs.net VERSION=main docker compose:*)",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "Bash(# Check robot3 repo structure\ncurl -s \"https://api.github.com/repos/matthewp/robot/contents/packages/robot3\" 2>/dev/null | python3 -c \"\nimport json,sys\nd=json.load\\(sys.stdin\\)\nfor item in d:\n    print\\(item['name'], '-', item['type'], '-', item.get\\('size',0\\), 'bytes'\\)\n\" 2>/dev/null)"
     ],
     "deny": [],
     "ask": []
