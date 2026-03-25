@@ -138,8 +138,8 @@ class WebSocketService {
 
     const fallbackBase =
       typeof window !== 'undefined' && window.location?.origin
-        ? window.location.origin
-        : 'http://localhost:3000';
+        ? `${window.location.origin}/api/v1`
+        : 'http://localhost:3000/api/v1';
     return fallbackBase;
   }
 
