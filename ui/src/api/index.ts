@@ -28,6 +28,7 @@ import { createWebhooksApi } from './webhooks';
 import { createArchivesApi } from './archives';
 import { createJobsApi } from './jobs';
 import { createChatApi } from './chat';
+import { createInferenceApi } from './inference';
 
 // Export core types
 export type {
@@ -204,6 +205,21 @@ export { createWebhooksApi } from './webhooks';
 export { createArchivesApi } from './archives';
 export { createJobsApi } from './jobs';
 export { createChatApi } from './chat';
+export { createInferenceApi } from './inference';
+export type {
+  InferenceConfig,
+  InferenceConfigUpdate,
+  ConfigSource,
+  AttributedValue,
+  OllamaConfig,
+  OpenAIConfig,
+  ConnectionTestResult,
+  ConnectionTestSuccess,
+  ConnectionTestFailure,
+  ConnectionTestRequest,
+  ConnectionCapabilities,
+  InferenceApi,
+} from './inference';
 export type {
   Webhook,
   CreateWebhookRequest,
@@ -331,6 +347,7 @@ export function createApi(baseUrl?: string) {
     archives: createArchivesApi(client),
     jobs: createJobsApi(client),
     chat: createChatApi(client),
+    inference: createInferenceApi(client),
 
     /**
      * Quick health check endpoint (legacy)

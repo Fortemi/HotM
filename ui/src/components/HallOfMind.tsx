@@ -92,6 +92,7 @@ import { DeleteNoteDialog } from "./DeleteNoteDialog";
 import { SearchDropdown } from "./SearchDropdown";
 import JobQueueMonitor from "./JobQueueMonitor";
 import { JobQueueIndicator } from "./JobQueueIndicator";
+import { InferenceStatusIndicator } from "./InferenceStatusIndicator";
 import { TypingAnimation } from "./TypingAnimation";
 import { CollectionsManager } from "./collections";
 import { KnowledgeHealthDashboard } from "./health/KnowledgeHealthDashboard";
@@ -2292,6 +2293,7 @@ export function HallOfMind() {
                     {isLoading ? 'Saving...' : 'Save'}
                   </Button>
                 )}
+                <InferenceStatusIndicator onNavigateToSettings={() => setCurrentView("admin")} />
                 <JobQueueIndicator />
               </div>
             </div>

@@ -10,7 +10,7 @@
  */
 
 import * as React from 'react';
-import { Settings, Shield, Database, Cpu, Lock, Info } from 'lucide-react';
+import { Settings, Shield, Database, Cpu, Lock, Info, Sparkles } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -20,6 +20,7 @@ import { getCachedConfig } from '@/lib/tauri';
 import { getRuntimeConfig } from '@/lib/runtime-config';
 import { api } from '@/api';
 import type { EmbeddingConfig, KnowledgeHealth } from '@/api';
+import { InferenceSettings } from './InferenceSettings';
 
 export interface AdminPanelProps {
   className?: string;
@@ -116,6 +117,10 @@ export function AdminPanel({ className }: AdminPanelProps) {
           <TabsTrigger value="system">
             <Database className="size-4" />
             System Info
+          </TabsTrigger>
+          <TabsTrigger value="inference">
+            <Sparkles className="size-4" />
+            Inference
           </TabsTrigger>
           <TabsTrigger value="embedding">
             <Cpu className="size-4" />
@@ -260,6 +265,11 @@ export function AdminPanel({ className }: AdminPanelProps) {
               </Card>
             </div>
           )}
+        </TabsContent>
+
+        {/* Inference Tab */}
+        <TabsContent value="inference">
+          <InferenceSettings />
         </TabsContent>
 
         {/* Embedding Config Tab */}
