@@ -42,12 +42,16 @@ COPY --from=builder /app/dist /usr/share/nginx/html
 COPY docker/docker-entrypoint.sh /docker-entrypoint.sh
 RUN chmod +x /docker-entrypoint.sh
 
+# Create includes dir and empty API proxy file (populated at startup by entrypoint)
+RUN mkdir -p /etc/nginx/includes && touch /etc/nginx/includes/api-proxy.conf
+
 # Add non-root user for security
 RUN addgroup -g 1001 -S hotm && \
     adduser -u 1001 -S hotm -G hotm && \
     chown -R hotm:hotm /usr/share/nginx/html && \
     chown -R hotm:hotm /var/cache/nginx && \
     chown -R hotm:hotm /var/log/nginx && \
+    chown -R hotm:hotm /etc/nginx/includes && \
     touch /var/run/nginx.pid && \
     chown -R hotm:hotm /var/run/nginx.pid
 

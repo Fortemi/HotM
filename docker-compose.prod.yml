@@ -25,9 +25,12 @@ services:
       args:
         VITE_APP_TITLE: ${APP_TITLE:-HotM}
         VITE_DISABLE_WEBSOCKET: ${VITE_DISABLE_WEBSOCKET:-false}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     environment:
       - VITE_API_BASE_URL=${FORTEMI_API_URL:-}
       - VITE_APP_TITLE=${APP_TITLE:-}
+      - FORTEMI_API_URL=${FORTEMI_API_URL:-http://host.docker.internal:3000/api/v1}
     container_name: hotm-ui
     restart: unless-stopped
     ports:
