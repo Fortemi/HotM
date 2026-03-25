@@ -124,6 +124,9 @@ ui/src-tauri/WixTools/
 # Local development tools
 bin/act
 
+# Claude Code (local-only agent config)
+.claude/
+
 # Keep important files
 !.gitkeep
 !.github/
