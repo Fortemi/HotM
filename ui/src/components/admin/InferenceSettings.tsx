@@ -26,6 +26,13 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { cn } from '@/lib/utils';
 import { api } from '@/api';
 import type {
@@ -66,12 +73,38 @@ interface ConfigFieldProps {
   onChange: (value: string) => void;
   type?: 'text' | 'password';
   placeholder?: string;
-  /** Discovered models to show as datalist suggestions */
+  /** Discovered models to show as Select dropdown options */
   suggestions?: string[];
 }
 
 function ConfigField({ label, attributed, value, onChange, type = 'text', placeholder, suggestions }: ConfigFieldProps) {
-  const listId = suggestions?.length ? `${label.replace(/\s/g, '-').toLowerCase()}-models` : undefined;
+  // Use a proper Select dropdown when models are available
+  if (suggestions && suggestions.length > 0 && type !== 'password') {
+    // Ensure current value is in the list (it may be a custom model not discovered)
+    const options = suggestions.includes(value) ? suggestions : (value ? [value, ...suggestions] : suggestions);
+    return (
+      <div className="flex flex-col gap-1.5">
+        <div className="flex items-center justify-between">
+          <label className="text-sm font-medium">{label}</label>
+          {attributed && <SourceBadge source={attributed.source} />}
+        </div>
+        <Select value={value} onValueChange={onChange}>
+          <SelectTrigger>
+            <SelectValue placeholder={placeholder || 'Select a model...'} />
+          </SelectTrigger>
+          <SelectContent>
+            {options.map((m) => (
+              <SelectItem key={m} value={m}>
+                <span className="font-mono text-sm">{m}</span>
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+    );
+  }
+
+  // Fallback to text input when no models discovered
   return (
     <div className="flex flex-col gap-1.5">
       <div className="flex items-center justify-between">
@@ -84,13 +117,7 @@ function ConfigField({ label, attributed, value, onChange, type = 'text', placeh
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        list={listId}
       />
-      {listId && suggestions && (
-        <datalist id={listId}>
-          {suggestions.map((m) => <option key={m} value={m} />)}
-        </datalist>
-      )}
     </div>
   );
 }
@@ -230,6 +257,26 @@ export function InferenceSettings() {
   }, []);
 
   React.useEffect(() => { void fetchConfig(); }, [fetchConfig]);
+
+  // Auto-discover models when config loads with an Ollama URL
+  React.useEffect(() => {
+    if (!config?.ollama?.base_url?.value || discoveredModels.length > 0) return;
+    const discoverModels = async () => {
+      try {
+        const result = await api.inference.testConnection({
+          base_url: config.ollama!.base_url.value,
+          provider: 'auto',
+          timeout_secs: 5,
+        });
+        if (result.reachable && result.available_models.length > 0) {
+          setDiscoveredModels(result.available_models);
+        }
+      } catch {
+        // Silent — models just won't be auto-populated
+      }
+    };
+    void discoverModels();
+  }, [config, discoveredModels.length]);
 
   // Detect if any fields have been changed from their server values
   const hasChanges = React.useMemo(() => {
