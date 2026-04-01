@@ -49,7 +49,7 @@ function deriveState(config: InferenceConfig | null, reachable: boolean | null):
     return { health: 'loading', providerName: '...', tooltipText: 'Loading inference status...' };
   }
 
-  if (config.providers.length === 0) {
+  if (!config.providers || config.providers.length === 0) {
     return {
       health: 'unconfigured',
       providerName: 'No LLM',
@@ -100,7 +100,7 @@ export function InferenceStatusIndicator({ onNavigateToSettings }: InferenceStat
       setConfig(cfg);
 
       // Quick connection probe if a provider is configured
-      if (cfg.providers.length > 0) {
+      if (cfg.providers?.length > 0) {
         const provider = cfg.providers[0];
         const providerConfig = provider === 'ollama' ? cfg.ollama : cfg.openai;
         if (providerConfig?.base_url?.value) {
