@@ -5,7 +5,7 @@
  */
 
 import type { ApiClient } from './client';
-import type { NoteFull, SearchResult } from './types';
+import type { NoteFull, SearchResult, RegenerateAIRequest, RegenerateAIResponse } from './types';
 
 /**
  * Job Queue Types
@@ -214,16 +214,26 @@ export function createExtendedApi(client: ApiClient) {
     },
 
     /**
-     * Trigger AI regeneration for a note
+     * Trigger AI regeneration for a note.
+     * Accepts a full RegenerateAIRequest with revision mode, context filters,
+     * processing options, and selective job types.
      */
-    async regenerateAI(noteId: string, options?: { revision_mode?: string; model?: string }): Promise<unknown> {
-      const body: Record<string, string> = {};
+    async regenerateAI(noteId: string, options?: RegenerateAIRequest): Promise<RegenerateAIResponse> {
+      const body: Record<string, unknown> = {};
       if (options?.revision_mode) body.revision_mode = options.revision_mode;
       if (options?.model) body.model = options.model;
-      return client.post(
+      if (options?.context_filter) body.context_filter = options.context_filter;
+      if (options?.processing) body.processing = options.processing;
+      if (options?.job_types) body.job_types = options.job_types;
+      const response = await client.post<Record<string, unknown>>(
         `/notes/${noteId}/reprocess`,
         Object.keys(body).length > 0 ? body : undefined
       );
+      return {
+        status: String(response?.status ?? 'ok'),
+        note_id: String(response?.note_id ?? noteId),
+        job_ids: Array.isArray(response?.job_ids) ? response.job_ids.map(String) : [],
+      };
     },
 
     async getNotesPage(

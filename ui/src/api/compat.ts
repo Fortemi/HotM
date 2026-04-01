@@ -11,7 +11,7 @@ import { createNotesApi } from './notes';
 import { createSearchApi } from './search';
 import { createTagsApi } from './tags';
 import { createExtendedApi } from './extended';
-import type { NoteFull, CreateNoteResponse, SearchResult } from './types';
+import type { NoteFull, CreateNoteResponse, SearchResult, RegenerateAIRequest, RegenerateAIResponse } from './types';
 import type {
   Job,
   JobQueueStatus,
@@ -194,9 +194,9 @@ class CompatApiClient {
     return this.extended.updateOriginalContent(id, content);
   }
 
-  async regenerateAI(id: string, revisionModeOrOptions?: string | { revision_mode?: string; model?: string }): Promise<any> {
-    const options = typeof revisionModeOrOptions === 'string'
-      ? { revision_mode: revisionModeOrOptions }
+  async regenerateAI(id: string, revisionModeOrOptions?: string | RegenerateAIRequest): Promise<RegenerateAIResponse> {
+    const options: RegenerateAIRequest | undefined = typeof revisionModeOrOptions === 'string'
+      ? { revision_mode: revisionModeOrOptions as RegenerateAIRequest['revision_mode'] }
       : revisionModeOrOptions;
     return this.extended.regenerateAI(id, options);
   }

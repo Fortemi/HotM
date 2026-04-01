@@ -163,6 +163,28 @@ export interface CreateNoteResponse {
 }
 
 /**
+ * Request to trigger AI regeneration for a note.
+ * Supports revision mode selection, context filtering, processing options,
+ * and selective job type execution.
+ */
+export interface RegenerateAIRequest {
+  revision_mode?: RevisionMode;
+  context_filter?: ContextFilter;
+  processing?: Partial<ProcessingOptions>;
+  job_types?: string[];
+  model?: string;
+}
+
+/**
+ * Response from triggering AI regeneration.
+ */
+export interface RegenerateAIResponse {
+  status: string;
+  note_id: string;
+  job_ids: string[];
+}
+
+/**
  * Request to update a note
  */
 export interface UpdateNoteRequest {

@@ -61,12 +61,9 @@ import {
   Paperclip,
   HardDrive,
   BookMarked,
-  SlidersHorizontal,
   Database,
   Bug,
   Zap,
-  PenLine,
-  FileText,
   ListChecks,
   Bot,
 } from "lucide-react";
@@ -110,6 +107,10 @@ import { BackupManager } from "./backup/BackupManager";
 import { ArchiveManager } from "./archives/ArchiveManager";
 import { EmbeddingSetManager } from "./embeddings";
 import { TagManager } from "./tags";
+import { RegeneratePanel } from "./RegeneratePanel";
+import { NoteJobProgress } from "./NoteJobProgress";
+import type { RegenerateAIRequest } from "@/api/types";
+import type { JobType } from "@/api/extended";
 import { SearchPage } from "./search";
 import { useWebSocket } from "@/services/websocket";
 import { JobManagementPanel } from "./JobManagementPanel";
@@ -1175,7 +1176,7 @@ export function HallOfMind() {
     }
   };
 
-  const regenerateAI = async (revisionMode?: string) => {
+  const regenerateAI = async (requestOrMode?: string | RegenerateAIRequest) => {
     if (!selectedNote) return;
 
     if (!serverStatus?.ok) {
@@ -1183,15 +1184,20 @@ export function HallOfMind() {
       return;
     }
 
+    const request: RegenerateAIRequest | undefined =
+      typeof requestOrMode === 'string'
+        ? { revision_mode: requestOrMode as RegenerateAIRequest['revision_mode'] }
+        : requestOrMode;
+
     try {
       setIsLoading(true);
       // Mark as processing - WebSocket events will clear this when jobs complete
       setProcessingNotes(prev => new Set(prev).add(selectedNote.id));
 
       // Trigger AI regeneration using the dedicated endpoint
-      await api.regenerateAI(selectedNote.id, revisionMode);
+      await api.regenerateAI(selectedNote.id, request);
 
-      console.log("AI regeneration triggered for note:", selectedNote.id, "mode:", revisionMode ?? "default");
+      console.log("AI regeneration triggered for note:", selectedNote.id, "request:", request ?? "default");
       // The realtime NoteUpdated event will handle updating the UI when jobs complete
     } catch (error) {
       console.error("Failed to regenerate AI enhancement:", error);
@@ -2823,60 +2829,16 @@ export function HallOfMind() {
                                     )}
                                     <span className="ml-2">Copy MD</span>
                                   </Button>
-                                  <DropdownMenu>
-                                    <DropdownMenuTrigger asChild>
-                                      <Button
-                                        disabled={isLoading || processingNotes.has(selectedNote.id)}
-                                        size="sm"
-                                        variant="outline"
-                                      >
-                                        {processingNotes.has(selectedNote.id) ? (
-                                          <Loader2 className="h-4 w-4 animate-spin" />
-                                        ) : (
-                                          <RefreshCw className="h-4 w-4" />
-                                        )}
-                                        <span className="ml-2">Regenerate AI</span>
-                                        <ChevronDown className="h-3 w-3 ml-1 opacity-50" />
-                                      </Button>
-                                    </DropdownMenuTrigger>
-                                    <DropdownMenuContent align="end">
-                                      <DropdownMenuItem onClick={() => regenerateAI("standard")}>
-                                        <Sparkles className="h-4 w-4 mr-2" />
-                                        <div>
-                                          <div className="font-medium">Standard</div>
-                                          <div className="text-xs text-muted-foreground">Default NLP revision</div>
-                                        </div>
-                                      </DropdownMenuItem>
-                                      <DropdownMenuItem onClick={() => regenerateAI("light")}>
-                                        <PenLine className="h-4 w-4 mr-2" />
-                                        <div>
-                                          <div className="font-medium">Light</div>
-                                          <div className="text-xs text-muted-foreground">Formatting only</div>
-                                        </div>
-                                      </DropdownMenuItem>
-                                      <DropdownMenuItem onClick={() => regenerateAI("contextual")}>
-                                        <Brain className="h-4 w-4 mr-2" />
-                                        <div>
-                                          <div className="font-medium">Contextual</div>
-                                          <div className="text-xs text-muted-foreground">Full contextual expansion</div>
-                                        </div>
-                                      </DropdownMenuItem>
-                                      <DropdownMenuItem onClick={() => regenerateAI("contextual_filtered")}>
-                                        <SlidersHorizontal className="h-4 w-4 mr-2" />
-                                        <div>
-                                          <div className="font-medium">Contextual (Filtered)</div>
-                                          <div className="text-xs text-muted-foreground">Focused contextual enhancement</div>
-                                        </div>
-                                      </DropdownMenuItem>
-                                      <DropdownMenuItem onClick={() => regenerateAI("none")}>
-                                        <FileText className="h-4 w-4 mr-2" />
-                                        <div>
-                                          <div className="font-medium">None</div>
-                                          <div className="text-xs text-muted-foreground">Revert to original</div>
-                                        </div>
-                                      </DropdownMenuItem>
-                                    </DropdownMenuContent>
-                                  </DropdownMenu>
+                                  <RegeneratePanel
+                                    noteId={selectedNote.id}
+                                    isProcessing={processingNotes.has(selectedNote.id)}
+                                    onRegenerate={async (request) => { await regenerateAI(request); }}
+                                    onQueueJob={async (jobType: JobType) => {
+                                      setProcessingNotes(prev => new Set(prev).add(selectedNote.id));
+                                      await coreApi.extended.queueJob(selectedNote.id, jobType, 8);
+                                    }}
+                                    disabled={isLoading}
+                                  />
                                 </div>
                               </div>
                             </CardHeader>
@@ -2884,13 +2846,18 @@ export function HallOfMind() {
                               <ScrollArea className="h-[500px]">
                                 <div className="p-6">
                                   {processingNotes.has(selectedNote.id) && !selectedNote.revised_content ? (
-                                    <div className="flex flex-col items-center justify-center h-[400px] space-y-4">
-                                      <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                                      <div className="text-center">
-                                        <p className="text-sm font-medium">AI is enhancing your note...</p>
-                                        <p className="text-xs text-muted-foreground mt-1">This usually takes 5-10 seconds</p>
-                                      </div>
-                                    </div>
+                                    <NoteJobProgress
+                                      noteId={selectedNote.id}
+                                      fallbackContent={
+                                        <div className="flex flex-col items-center justify-center h-[400px] space-y-4">
+                                          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                                          <div className="text-center">
+                                            <p className="text-sm font-medium">AI is enhancing your note...</p>
+                                            <p className="text-xs text-muted-foreground mt-1">This usually takes 5-10 seconds</p>
+                                          </div>
+                                        </div>
+                                      }
+                                    />
                                   ) : (
                                     <MarkdownPreview
                                       content={selectedNote.revised_content || noteContent}

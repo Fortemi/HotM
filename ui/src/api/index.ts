@@ -55,6 +55,8 @@ export type {
   SimilarNotesOptions,
   TagUpdateRequest,
   RevisionMode,
+  RegenerateAIRequest,
+  RegenerateAIResponse,
 } from './types';
 
 // Export extended types
