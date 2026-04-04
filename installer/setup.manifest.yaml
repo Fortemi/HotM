@@ -1,0 +1,154 @@
+apiVersion: setup.aiwg.io/v1
+kind: SetupManifest
+metadata:
+  name: hotm
+  version: 2026.2.18
+  description: >
+    Install Hall of the Mind — a React SPA for note-taking and knowledge exploration,
+    powered by the Fortemi API with Docker Compose production deployment.
+
+platform:
+  os: [linux, macos]
+  distros: [ubuntu, debian, fedora, arch]
+  arch: [x86_64, arm64]
+  shell: [bash, zsh]
+
+params:
+  - name: INSTALL_DIR
+    type: path
+    required: true
+    description: Installation directory for HotM
+
+  - name: BRANCH
+    type: string
+    default: main
+    description: Git branch to clone
+
+  - name: DOMAIN
+    type: string
+    default: localhost
+    description: Domain for accessing HotM (e.g., hotm.example.com or localhost)
+
+  - name: PROTOCOL
+    type: choice
+    choices: [http, https]
+    default: "$(echo ${DOMAIN} | grep -qE '^(localhost|127\\.0\\.0\\.1)' && echo http || echo https)"
+    description: "Protocol for URLs. Defaults to http for localhost."
+
+  - name: FORTEMI_API_URL
+    type: string
+    default: "http://localhost:3000/api/v1"
+    description: Fortemi API endpoint URL (must be running separately)
+
+  - name: UI_PORT
+    type: string
+    default: "4180"
+    description: Host port for HotM UI
+
+  - name: ANTHROPIC_API_KEY
+    type: string
+    default: ""
+    description: "Anthropic API key for AI agent proxy (optional)"
+
+  - name: OPENAI_API_KEY
+    type: string
+    default: ""
+    description: "OpenAI API key for AI agent proxy (optional)"
+
+  - name: DATA_DIR
+    type: path
+    default: "${INSTALL_DIR}/data"
+    description: Data directory for persistent volumes
+
+prerequisites:
+  - name: git
+    detect: "command -v git"
+    version_min: "2.30"
+    install_hint: "Install git: https://git-scm.com/downloads"
+
+  - name: docker
+    detect: "docker version --format '{{.Server.Version}}' 2>/dev/null"
+    version_min: "24.0"
+    install_hint: >
+      Install Docker Engine: https://docs.docker.com/engine/install/
+      macOS: https://docs.docker.com/desktop/install/mac-install/
+      After install on Linux: sudo usermod -aG docker $USER && newgrp docker
+
+  - name: docker-compose
+    detect: "docker compose version --short 2>/dev/null"
+    version_min: "2.20"
+    install_hint: >
+      Docker Compose v2 is included with Docker Engine 24+.
+      Verify with: docker compose version
+
+  - name: node
+    detect: "command -v node && node --version | sed 's/v//'"
+    version_min: "20.0"
+    install_hint: >
+      Install Node.js 20+: https://nodejs.org/
+      Or via nvm: nvm install 20
+
+  - name: npm
+    detect: "command -v npm && npm --version"
+    version_min: "10.0"
+    install_hint: "npm 10+ ships with Node.js 20+. Update with: npm install -g npm@latest"
+
+  - name: disk-space
+    detect: "df --output=avail -BG / | tail -1 | tr -d ' G'"
+    version_min: "10"
+    install_hint: "At least 10GB free disk space required for Docker images and node_modules."
+
+steps:
+  - id: clone
+    type: script
+    description: Clone HotM repository
+    script: installer/scripts/clone.sh
+    verify: "test -d ${INSTALL_DIR}/.git"
+
+  - id: install-deps
+    type: platform-route
+    description: Install system-level dependencies
+    routes:
+      ubuntu: installer/scripts/install-deps-ubuntu.sh
+      debian: installer/scripts/install-deps-ubuntu.sh
+      fedora: installer/scripts/install-deps-fedora.sh
+      macos: installer/scripts/install-deps-macos.sh
+    depends_on: [clone]
+
+  - id: install-ui-deps
+    type: script
+    description: Install UI npm dependencies
+    script: installer/scripts/install-ui-deps.sh
+    depends_on: [clone]
+    verify: "test -d ${INSTALL_DIR}/ui/node_modules"
+
+  - id: configure
+    type: script
+    description: Generate .env files from templates
+    script: installer/scripts/configure.sh
+    depends_on: [install-ui-deps]
+
+  - id: check-ports
+    type: script
+    description: Verify required ports are available
+    script: installer/scripts/check-ports.sh
+    depends_on: [configure]
+
+  - id: deploy
+    type: script
+    description: Build and start Docker Compose services
+    script: installer/scripts/deploy.sh
+    depends_on: [check-ports]
+    verify: "docker compose -f ${INSTALL_DIR}/docker-compose.prod.yml ps --status running | grep -q hotm-ui"
+
+  - id: verify
+    type: script
+    description: Verify installation is healthy
+    script: installer/scripts/verify.sh
+    depends_on: [deploy]
+
+recovery_procedures:
+  - id: full-reset
+    description: Stop containers, remove volumes, and re-clone
+    triggers: [clone, configure, deploy]
+    script: installer/scripts/reset.sh
