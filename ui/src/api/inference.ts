@@ -34,11 +34,20 @@ export interface OpenAIConfig {
   embedding_model: AttributedValue;
 }
 
+/** llama.cpp provider configuration (GET response shape) */
+export interface LlamaCppConfig {
+  base_url: AttributedValue;
+  api_key: AttributedValue;
+  generation_model: AttributedValue;
+  embedding_model: AttributedValue;
+}
+
 /** Full inference config response from GET /inference/config */
 export interface InferenceConfig {
   default_backend: string;
   ollama: OllamaConfig | null;
   openai: OpenAIConfig | null;
+  llamacpp: LlamaCppConfig | null;
   providers: string[];
 }
 
@@ -50,6 +59,12 @@ export interface InferenceConfigUpdate {
     embedding_model?: string;
   };
   openai?: {
+    base_url?: string;
+    api_key?: string;
+    generation_model?: string;
+    embedding_model?: string;
+  };
+  llamacpp?: {
     base_url?: string;
     api_key?: string;
     generation_model?: string;

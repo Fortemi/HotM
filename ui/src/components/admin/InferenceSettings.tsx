@@ -216,6 +216,11 @@ export function InferenceSettings() {
   const [openaiKey, setOpenaiKey] = React.useState('');
   const [openaiGenModel, setOpenaiGenModel] = React.useState('');
   const [openaiEmbedModel, setOpenaiEmbedModel] = React.useState('');
+  const [llamacppExpanded, setLlamacppExpanded] = React.useState(false);
+  const [llamacppUrl, setLlamacppUrl] = React.useState('');
+  const [llamacppKey, setLlamacppKey] = React.useState('');
+  const [llamacppGenModel, setLlamacppGenModel] = React.useState('');
+  const [llamacppEmbedModel, setLlamacppEmbedModel] = React.useState('');
 
   // Save/reset state
   const [saving, setSaving] = React.useState(false);
@@ -223,10 +228,13 @@ export function InferenceSettings() {
   const [resetting, setResetting] = React.useState(false);
   const [showResetConfirm, setShowResetConfirm] = React.useState(false);
 
-  // Connection test state
+  // Connection test state (per provider)
   const [testing, setTesting] = React.useState(false);
   const [testResult, setTestResult] = React.useState<ConnectionTestResult | null>(null);
   const [discoveredModels, setDiscoveredModels] = React.useState<string[]>([]);
+  const [llamacppTesting, setLlamacppTesting] = React.useState(false);
+  const [llamacppTestResult, setLlamacppTestResult] = React.useState<ConnectionTestResult | null>(null);
+  const [llamacppDiscoveredModels, setLlamacppDiscoveredModels] = React.useState<string[]>([]);
 
   // Load config
   const fetchConfig = React.useCallback(async () => {
@@ -247,6 +255,13 @@ export function InferenceSettings() {
         setOpenaiKey(cfg.openai.api_key.value);
         setOpenaiGenModel(cfg.openai.generation_model.value);
         setOpenaiEmbedModel(cfg.openai.embedding_model.value);
+      }
+      if (cfg.llamacpp) {
+        setLlamacppExpanded(true);
+        setLlamacppUrl(cfg.llamacpp.base_url.value);
+        setLlamacppKey(cfg.llamacpp.api_key.value);
+        setLlamacppGenModel(cfg.llamacpp.generation_model.value);
+        setLlamacppEmbedModel(cfg.llamacpp.embedding_model.value);
       }
     } catch (err) {
       setError('Failed to load inference configuration');
@@ -296,8 +311,17 @@ export function InferenceSettings() {
     if (!config.openai && openaiExpanded) {
       if (openaiUrl || openaiKey || openaiGenModel || openaiEmbedModel) return true;
     }
+    if (config.llamacpp) {
+      if (llamacppUrl !== config.llamacpp.base_url.value) return true;
+      if (llamacppKey !== config.llamacpp.api_key.value) return true;
+      if (llamacppGenModel !== config.llamacpp.generation_model.value) return true;
+      if (llamacppEmbedModel !== config.llamacpp.embedding_model.value) return true;
+    }
+    if (!config.llamacpp && llamacppExpanded) {
+      if (llamacppUrl || llamacppKey || llamacppGenModel || llamacppEmbedModel) return true;
+    }
     return false;
-  }, [config, ollamaUrl, ollamaGenModel, ollamaEmbedModel, openaiUrl, openaiKey, openaiGenModel, openaiEmbedModel, openaiExpanded]);
+  }, [config, ollamaUrl, ollamaGenModel, ollamaEmbedModel, openaiUrl, openaiKey, openaiGenModel, openaiEmbedModel, openaiExpanded, llamacppUrl, llamacppKey, llamacppGenModel, llamacppEmbedModel, llamacppExpanded]);
 
   // Build update payload with only changed fields
   const buildUpdate = (): InferenceConfigUpdate => {
@@ -319,6 +343,16 @@ export function InferenceSettings() {
       if (openaiGenModel !== (serverOpenai?.generation_model.value ?? '')) openai.generation_model = openaiGenModel;
       if (openaiEmbedModel !== (serverOpenai?.embedding_model.value ?? '')) openai.embedding_model = openaiEmbedModel;
       if (Object.keys(openai).length > 0) update.openai = openai;
+    }
+
+    if (config?.llamacpp || llamacppExpanded) {
+      const llamacpp: Record<string, string> = {};
+      const serverLlamacpp = config?.llamacpp;
+      if (llamacppUrl !== (serverLlamacpp?.base_url.value ?? '')) llamacpp.base_url = llamacppUrl;
+      if (llamacppKey !== (serverLlamacpp?.api_key.value ?? '')) llamacpp.api_key = llamacppKey;
+      if (llamacppGenModel !== (serverLlamacpp?.generation_model.value ?? '')) llamacpp.generation_model = llamacppGenModel;
+      if (llamacppEmbedModel !== (serverLlamacpp?.embedding_model.value ?? '')) llamacpp.embedding_model = llamacppEmbedModel;
+      if (Object.keys(llamacpp).length > 0) update.llamacpp = llamacpp;
     }
 
     return update;
@@ -344,6 +378,12 @@ export function InferenceSettings() {
         setOpenaiGenModel(newConfig.openai.generation_model.value);
         setOpenaiEmbedModel(newConfig.openai.embedding_model.value);
       }
+      if (newConfig.llamacpp) {
+        setLlamacppUrl(newConfig.llamacpp.base_url.value);
+        setLlamacppKey(newConfig.llamacpp.api_key.value);
+        setLlamacppGenModel(newConfig.llamacpp.generation_model.value);
+        setLlamacppEmbedModel(newConfig.llamacpp.embedding_model.value);
+      }
       setSaveMessage({ type: 'success', text: 'Configuration updated' });
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Failed to save configuration';
@@ -364,6 +404,8 @@ export function InferenceSettings() {
       await fetchConfig();
       setTestResult(null);
       setDiscoveredModels([]);
+      setLlamacppTestResult(null);
+      setLlamacppDiscoveredModels([]);
       setSaveMessage({ type: 'success', text: 'Configuration reset to defaults' });
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Failed to reset configuration';
@@ -396,6 +438,33 @@ export function InferenceSettings() {
       });
     } finally {
       setTesting(false);
+    }
+  };
+
+  // Test connection handler for llama.cpp
+  const handleTestLlamacpp = async () => {
+    setLlamacppTesting(true);
+    setLlamacppTestResult(null);
+    try {
+      const result = await api.inference.testConnection({
+        base_url: llamacppUrl,
+        provider: 'auto',
+        api_key: llamacppKey || null,
+        timeout_secs: 10,
+      });
+      setLlamacppTestResult(result);
+      if (result.reachable && result.available_models.length > 0) {
+        setLlamacppDiscoveredModels(result.available_models);
+      }
+    } catch (err) {
+      setLlamacppTestResult({
+        reachable: false,
+        detected_provider: null,
+        error: err instanceof Error ? err.message : 'Connection test failed',
+        suggestions: ['Check that llama.cpp server is running', 'Verify the base URL and port'],
+      });
+    } finally {
+      setLlamacppTesting(false);
     }
   };
 
@@ -535,6 +604,83 @@ export function InferenceSettings() {
               value={openaiEmbedModel}
               onChange={setOpenaiEmbedModel}
               placeholder="text-embedding-3-small"
+            />
+          </CardContent>
+        )}
+      </Card>
+
+      {/* llama.cpp Section (collapsible) */}
+      <Card>
+        <CardHeader
+          className="cursor-pointer select-none"
+          onClick={() => setLlamacppExpanded(!llamacppExpanded)}
+        >
+          <CardTitle className="flex items-center gap-2">
+            {llamacppExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+            llama.cpp
+            {config?.providers.includes('llamacpp') && (
+              <Badge variant="outline" className="text-xs font-normal">active</Badge>
+            )}
+          </CardTitle>
+          <CardDescription>
+            {llamacppExpanded ? 'Configure llama.cpp HTTP server' : 'Click to expand'}
+          </CardDescription>
+        </CardHeader>
+        {llamacppExpanded && (
+          <CardContent className="flex flex-col gap-4">
+            <ConfigField
+              label="Base URL"
+              attributed={config?.llamacpp?.base_url}
+              value={llamacppUrl}
+              onChange={setLlamacppUrl}
+              placeholder="http://127.0.0.1:8080"
+            />
+            <ConfigField
+              label="API Key"
+              attributed={config?.llamacpp?.api_key}
+              value={llamacppKey}
+              onChange={setLlamacppKey}
+              type="password"
+              placeholder="Optional"
+            />
+
+            {/* Test Connection Button */}
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleTestLlamacpp}
+                disabled={llamacppTesting || !llamacppUrl}
+                className="gap-2"
+              >
+                {llamacppTesting ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Wifi className="h-4 w-4" />
+                )}
+                {llamacppTesting ? 'Testing...' : 'Test Connection'}
+              </Button>
+            </div>
+
+            {llamacppTestResult && <ConnectionTestDisplay result={llamacppTestResult} />}
+
+            <Separator />
+
+            <ConfigField
+              label="Generation Model"
+              attributed={config?.llamacpp?.generation_model}
+              value={llamacppGenModel}
+              onChange={setLlamacppGenModel}
+              placeholder="default"
+              suggestions={llamacppDiscoveredModels}
+            />
+            <ConfigField
+              label="Embedding Model"
+              attributed={config?.llamacpp?.embedding_model}
+              value={llamacppEmbedModel}
+              onChange={setLlamacppEmbedModel}
+              placeholder="default"
+              suggestions={llamacppDiscoveredModels}
             />
           </CardContent>
         )}
