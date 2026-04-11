@@ -69,10 +69,10 @@ export function AdminPanel({ className }: AdminPanelProps) {
     setError(null);
     try {
       const [healthData, knowledgeData] = await Promise.all([
-        api.client.get<SystemHealth>('/health'),
+        api.healthCheck(),
         api.health.getKnowledgeHealth(),
       ]);
-      setSystemHealth(healthData);
+      setSystemHealth(healthData as unknown as SystemHealth);
       setKnowledgeHealth(knowledgeData);
     } catch (err) {
       setError('Error loading system info');
