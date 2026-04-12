@@ -155,9 +155,94 @@ export function createEventsClient(baseUrl: string, options: EventsClientOptions
   }
 
   /**
-   * Fetch-based SSE for Tauri desktop mode.
-   * Uses getTauriFetch() which routes through the Rust HTTP plugin,
-   * bypassing WebKit2GTK cross-origin restrictions.
+   * Host proxy SSE for BT6 Arsenal iframe mode (BT6-ARSENAL#58).
+   * Uses __BT6_HOST__.network.sse.connect which opens a streaming
+   * connection from the Rust host process and forwards events via
+   * postMessage. No CORS issues since the HTTP call runs in the host.
+   */
+  async function connectHostProxy(): Promise<void> {
+    if (isClosing || fetchAbort) return;
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const host = (globalThis as any).__BT6_HOST__;
+    if (!host?.network?.sse?.connect) {
+      console.error('SSE host proxy not available, falling back to fetch');
+      return connectFetch();
+    }
+
+    try {
+      notifyStatus('connecting');
+      fetchAbort = new AbortController();
+      const url = getEventsUrl();
+      console.log('SSE host proxy connecting to:', url);
+
+      const result = await host.network.sse.connect({ url });
+      const handle = result.handle;
+      console.info('SSE host proxy connected, handle:', handle);
+
+      isFetchConnected = true;
+      fetchReconnectAttempts = 0;
+      notifyStatus('connected');
+
+      // Listen for forwarded SSE events via postMessage
+      await new Promise<void>((resolve) => {
+        function onMsg(ev: MessageEvent) {
+          const d = ev.data;
+          if (!d || !d.__bt6_host_event || d.event !== 'network.sse' || d.handle !== handle) return;
+          const p = d.payload;
+          if (!p) return;
+
+          if (p.type === '__close' || p.type === '__error') {
+            window.removeEventListener('message', onMsg);
+            resolve();
+            return;
+          }
+
+          // SSE event from host proxy: { type, data, id }
+          if (p.data) {
+            try {
+              const parsed: ServerEvent = JSON.parse(p.data);
+              if (p.type && p.type !== 'message') {
+                parsed.type = p.type;
+              }
+              dispatchEvent(parsed, p.id);
+            } catch {
+              // Non-JSON event data — ignore
+            }
+          }
+        }
+        window.addEventListener('message', onMsg);
+
+        // Clean up on abort
+        fetchAbort!.signal.addEventListener('abort', () => {
+          window.removeEventListener('message', onMsg);
+          host.network.sse.close({ handle }).catch(() => {});
+          resolve();
+        });
+      });
+    } catch (err) {
+      if (fetchAbort?.signal.aborted) return;
+      console.error('SSE host proxy error:', err);
+    } finally {
+      isFetchConnected = false;
+      fetchAbort = null;
+    }
+
+    if (!isClosing && handlers.size > 0) {
+      notifyStatus('reconnecting');
+      const delay = Math.min(1000 * Math.pow(2, fetchReconnectAttempts), 15000);
+      fetchReconnectAttempts++;
+      reconnectTimeout = setTimeout(() => {
+        connectHostProxy();
+      }, delay);
+    } else {
+      notifyStatus('closed');
+    }
+  }
+
+  /**
+   * Fetch-based SSE for Tauri desktop mode (non-iframe).
+   * Uses getTauriFetch() which routes through the Rust HTTP plugin.
    */
   async function connectFetch(): Promise<void> {
     if (isClosing || fetchAbort) return;
@@ -183,7 +268,7 @@ export function createEventsClient(baseUrl: string, options: EventsClientOptions
       }
 
       isFetchConnected = true;
-      fetchReconnectAttempts = 0; // Reset backoff on successful connect
+      fetchReconnectAttempts = 0;
       notifyStatus('connected');
 
       const reader = response.body.getReader();
@@ -199,12 +284,10 @@ export function createEventsClient(baseUrl: string, options: EventsClientOptions
 
         buffer += decoder.decode(value, { stream: true });
         const lines = buffer.split('\n');
-        // Keep incomplete last line in buffer
         buffer = lines.pop() || '';
 
         for (const line of lines) {
           if (line === '') {
-            // Empty line = end of event
             if (currentData) {
               try {
                 const parsed: ServerEvent = JSON.parse(currentData);
@@ -213,7 +296,7 @@ export function createEventsClient(baseUrl: string, options: EventsClientOptions
                 }
                 dispatchEvent(parsed, currentId);
               } catch {
-                // Ignore non-JSON (keepalive etc.)
+                // Ignore non-JSON
               }
             }
             currentEventType = '';
@@ -227,21 +310,16 @@ export function createEventsClient(baseUrl: string, options: EventsClientOptions
           } else if (line.startsWith('id:')) {
             currentId = line.startsWith('id: ') ? line.slice(4) : line.slice(3);
           }
-          // Ignore retry: and comment lines (starting with :)
         }
       }
     } catch (err) {
-      if (fetchAbort?.signal.aborted) {
-        // Intentional abort
-        return;
-      }
+      if (fetchAbort?.signal.aborted) return;
       console.error('SSE fetch error:', err);
     } finally {
       isFetchConnected = false;
       fetchAbort = null;
     }
 
-    // Reconnect if not intentionally closing (exponential backoff: 1s, 2s, 4s, 8s, max 15s)
     if (!isClosing && handlers.size > 0) {
       notifyStatus('reconnecting');
       const delay = Math.min(1000 * Math.pow(2, fetchReconnectAttempts), 15000);
@@ -317,7 +395,11 @@ export function createEventsClient(baseUrl: string, options: EventsClientOptions
   }
 
   function connect(): void {
-    if (isTauri()) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const inBt6Iframe = typeof (globalThis as any).__BT6_HOST__?.network?.sse?.connect === 'function';
+    if (inBt6Iframe) {
+      connectHostProxy();
+    } else if (isTauri()) {
       connectFetch();
     } else {
       connectNative();

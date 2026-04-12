@@ -73,6 +73,91 @@ let _tauriFetch: typeof globalThis.fetch | null = null;
  */
 export async function initTauriFetch(): Promise<void> {
   if (!isTauri()) return;
+
+  // In BT6 Arsenal iframe context, the __TAURI_INTERNALS__ shim routes
+  // plugin:http|fetch through __BT6_HOST__.network.fetch which returns
+  // proper Response objects. Skip the Tauri HTTP plugin entirely —
+  // its internal invoke/response format doesn't match our shim.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  if ((globalThis as any).__BT6_HOST__) {
+    // Use a fetch wrapper that routes through the host proxy
+    _tauriFetch = async (input: RequestInfo | URL, init?: RequestInit) => {
+      const url = typeof input === 'string' ? input : input instanceof URL ? input.toString() : input.url;
+      const method = init?.method || 'GET';
+      const headers: Record<string, string> = {};
+      if (init?.headers) {
+        if (init.headers instanceof Headers) {
+          init.headers.forEach((v, k) => { headers[k] = v; });
+        } else if (Array.isArray(init.headers)) {
+          for (const [k, v] of init.headers) headers[k] = v;
+        } else {
+          Object.assign(headers, init.headers);
+        }
+      }
+
+      // Check for SSE
+      const isSSE = (headers['accept'] || headers['Accept'] || '').includes('text/event-stream');
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const host = (globalThis as any).__BT6_HOST__;
+
+      if (isSSE && host?.network?.sse?.connect) {
+        const result = await host.network.sse.connect({ url });
+        const handle = result.handle;
+        const stream = new ReadableStream({
+          start(controller) {
+            const encoder = new TextEncoder();
+            function onMsg(ev: MessageEvent) {
+              const d = ev.data;
+              if (!d?.__bt6_host_event || d.event !== 'network.sse' || d.handle !== handle) return;
+              const p = d.payload;
+              if (!p) return;
+              if (p.type === '__close' || p.type === '__error') {
+                window.removeEventListener('message', onMsg);
+                try { controller.close(); } catch { /* already closed */ }
+                return;
+              }
+              let lines = '';
+              if (p.type && p.type !== 'message') lines += `event: ${p.type}\n`;
+              if (p.id) lines += `id: ${p.id}\n`;
+              if (p.data) {
+                for (const dl of p.data.split('\n')) lines += `data: ${dl}\n`;
+              }
+              lines += '\n';
+              try { controller.enqueue(encoder.encode(lines)); } catch { /* closed */ }
+            }
+            window.addEventListener('message', onMsg);
+          },
+        });
+        return new Response(stream, { status: 200, headers: { 'Content-Type': 'text/event-stream' } });
+      }
+
+      // Regular fetch via host proxy
+      let bodyB64 = '';
+      if (init?.body) {
+        const bodyStr = typeof init.body === 'string' ? init.body : new TextDecoder().decode(init.body as ArrayBuffer);
+        bodyB64 = btoa(unescape(encodeURIComponent(bodyStr)));
+      }
+
+      const r = await host.network.fetch({
+        url,
+        method,
+        headers,
+        ...(bodyB64 ? { body_b64: bodyB64 } : {}),
+      });
+
+      const bodyBytes = r.body_b64
+        ? Uint8Array.from(atob(r.body_b64), (c: string) => c.charCodeAt(0))
+        : new Uint8Array(0);
+
+      return new Response(bodyBytes, {
+        status: r.status,
+        statusText: r.status_text || '',
+        headers: r.headers || {},
+      });
+    };
+    return;
+  }
+
   try {
     const mod = await import("@tauri-apps/plugin-http");
     _tauriFetch = mod.fetch;
