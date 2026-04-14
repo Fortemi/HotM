@@ -1,0 +1,217 @@
+# Publish HotM UI dist as a downloadable Gitea release tarball.
+#
+# - On push to main touching ui/: upsert rolling "hotm-latest" release
+# - On v* tag: attach tarball to the versioned release
+# - Manual trigger: upsert "hotm-latest"
+#
+# Downstream consumer: BT6-ARSENAL CI downloads hotm-ui-dist.tar.gz
+# and extracts to tools/HotM/ui/dist/.
+#
+# Tracking: Fortemi/HotM#178, roctinam/devops#28
+
+name: Publish UI Dist
+
+on:
+  push:
+    branches: [main]
+    paths: ['ui/**']
+  create:
+    tags: ['v*']
+  workflow_dispatch:
+
+jobs:
+  publish-dist:
+    name: Build & Publish UI Dist
+    runs-on: node-20
+    steps:
+      - name: Checkout
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          REPO_URL="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}.git"
+          AUTH_URL="${REPO_URL/https:\/\//https:\/\/x-access-token:${GITHUB_TOKEN}@}"
+          git init . && git remote add origin "${AUTH_URL}"
+          git fetch --depth=1 origin "${GITHUB_SHA}" && git checkout --force FETCH_HEAD
+
+      - name: Install dependencies
+        working-directory: ui
+        run: npm ci
+
+      - name: Build
+        working-directory: ui
+        run: npm run build
+
+      - name: Package dist
+        run: |
+          tar -czf hotm-ui-dist.tar.gz -C ui dist
+          echo "Tarball contents:"
+          tar -tzf hotm-ui-dist.tar.gz | head -20
+          echo "Size: $(du -h hotm-ui-dist.tar.gz | cut -f1)"
+
+      - name: Verify tarball structure
+        run: |
+          mkdir -p /tmp/verify-dist
+          tar -xzf hotm-ui-dist.tar.gz -C /tmp/verify-dist
+          if [ ! -d /tmp/verify-dist/dist ]; then
+            echo "ERROR: tarball does not extract to dist/ directory"
+            exit 1
+          fi
+          if [ ! -f /tmp/verify-dist/dist/index.html ]; then
+            echo "ERROR: dist/index.html missing from tarball"
+            exit 1
+          fi
+          if [ ! -f /tmp/verify-dist/dist/env-config.js ]; then
+            echo "WARNING: env-config.js not found in dist/ — consumer must inject post-extract"
+          fi
+          echo "Tarball structure verified"
+          rm -rf /tmp/verify-dist
+
+      - name: Publish to rolling release (hotm-latest)
+        if: github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
+        env:
+          API_TOKEN: ${{ secrets.BUILD_REPO_TOKEN }}
+          API_BASE: https://git.integrolabs.net/api/v1/repos/${{ github.repository }}
+        run: |
+          set -euo pipefail
+          TAG="hotm-latest"
+          ASSET="hotm-ui-dist.tar.gz"
+
+          # --- Delete existing release + tag if present ---
+          EXISTING=$(curl -s -o /dev/null -w '%{http_code}' \
+            -H "Authorization: token ${API_TOKEN}" \
+            "${API_BASE}/releases/tags/${TAG}")
+
+          if [ "$EXISTING" = "200" ]; then
+            # Get release ID and delete its assets first
+            RELEASE_JSON=$(curl -s \
+              -H "Authorization: token ${API_TOKEN}" \
+              "${API_BASE}/releases/tags/${TAG}")
+            RELEASE_ID=$(echo "$RELEASE_JSON" | jq -r '.id')
+
+            # Delete all existing assets
+            ASSET_IDS=$(echo "$RELEASE_JSON" | jq -r '.assets[]?.id // empty')
+            for AID in $ASSET_IDS; do
+              curl -s -X DELETE \
+                -H "Authorization: token ${API_TOKEN}" \
+                "${API_BASE}/releases/${RELEASE_ID}/assets/${AID}"
+            done
+
+            # Delete the release
+            curl -s -X DELETE \
+              -H "Authorization: token ${API_TOKEN}" \
+              "${API_BASE}/releases/${RELEASE_ID}"
+            echo "Deleted existing release ${TAG} (id=${RELEASE_ID})"
+          fi
+
+          # Delete existing tag so we can recreate at HEAD
+          curl -s -X DELETE \
+            -H "Authorization: token ${API_TOKEN}" \
+            "${API_BASE}/tags/${TAG}" || true
+
+          # --- Create new release ---
+          SHORT_SHA="${GITHUB_SHA:0:7}"
+          RELEASE_BODY="Rolling build from main (${SHORT_SHA})\n\nExtract with: \`tar -xzf ${ASSET}\`\n\nProduces a \`dist/\` directory ready to serve."
+
+          RESPONSE=$(curl -s -o /tmp/release_response.json -w '%{http_code}' -X POST \
+            -H "Authorization: token ${API_TOKEN}" \
+            -H "Content-Type: application/json" \
+            "${API_BASE}/releases" \
+            -d "$(jq -n \
+              --arg tag "${TAG}" \
+              --arg target "${GITHUB_SHA}" \
+              --arg name "HotM UI Dist (latest)" \
+              --arg body "Rolling build from main (${SHORT_SHA})\n\nExtract with: \`tar -xzf ${ASSET}\`\n\nProduces a \`dist/\` directory ready to serve." \
+              '{tag_name: $tag, target_commitish: $target, name: $name, body: $body, draft: false, prerelease: false}')")
+
+          if [ "$RESPONSE" != "201" ]; then
+            echo "Failed to create release (HTTP ${RESPONSE})"
+            cat /tmp/release_response.json
+            exit 1
+          fi
+
+          RELEASE_ID=$(jq -r '.id' /tmp/release_response.json)
+          echo "Created release ${TAG} (id=${RELEASE_ID})"
+
+          # --- Upload tarball asset ---
+          UPLOAD_CODE=$(curl -s -o /dev/null -w '%{http_code}' -X POST \
+            -H "Authorization: token ${API_TOKEN}" \
+            -H "Content-Type: application/gzip" \
+            --data-binary "@${ASSET}" \
+            "${API_BASE}/releases/${RELEASE_ID}/assets?name=${ASSET}")
+
+          if [ "$UPLOAD_CODE" = "201" ]; then
+            echo "Uploaded ${ASSET} to release ${TAG}"
+          else
+            echo "Failed to upload asset (HTTP ${UPLOAD_CODE})"
+            exit 1
+          fi
+
+      - name: Attach to versioned release
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          API_TOKEN: ${{ secrets.BUILD_REPO_TOKEN }}
+          API_BASE: https://git.integrolabs.net/api/v1/repos/${{ github.repository }}
+        run: |
+          set -euo pipefail
+          TAG="${GITHUB_REF_NAME}"
+          ASSET="hotm-ui-dist.tar.gz"
+
+          # Wait briefly for the release to be created by ui-ci.yml
+          RELEASE_ID=""
+          for i in 1 2 3 4 5; do
+            RESPONSE=$(curl -s \
+              -H "Authorization: token ${API_TOKEN}" \
+              "${API_BASE}/releases/tags/${TAG}")
+            RELEASE_ID=$(echo "$RESPONSE" | jq -r '.id // empty')
+            if [ -n "$RELEASE_ID" ] && [ "$RELEASE_ID" != "null" ]; then
+              break
+            fi
+            echo "Release for ${TAG} not found yet, waiting... (attempt ${i}/5)"
+            sleep 5
+          done
+
+          # If release doesn't exist yet, create it
+          if [ -z "$RELEASE_ID" ] || [ "$RELEASE_ID" = "null" ]; then
+            VERSION="${TAG#v}"
+            CREATE_CODE=$(curl -s -o /tmp/release_response.json -w '%{http_code}' -X POST \
+              -H "Authorization: token ${API_TOKEN}" \
+              -H "Content-Type: application/json" \
+              "${API_BASE}/releases" \
+              -d "$(jq -n \
+                --arg tag "${TAG}" \
+                --arg name "HotM ${VERSION}" \
+                --arg body "Release ${VERSION}" \
+                '{tag_name: $tag, name: $name, body: $body, draft: false, prerelease: false}')")
+
+            if [ "$CREATE_CODE" = "201" ]; then
+              RELEASE_ID=$(jq -r '.id' /tmp/release_response.json)
+              echo "Created release ${TAG} (id=${RELEASE_ID})"
+            elif [ "$CREATE_CODE" = "409" ] || [ "$CREATE_CODE" = "422" ]; then
+              # Race condition: try fetching again
+              RESPONSE=$(curl -s \
+                -H "Authorization: token ${API_TOKEN}" \
+                "${API_BASE}/releases/tags/${TAG}")
+              RELEASE_ID=$(echo "$RESPONSE" | jq -r '.id')
+            else
+              echo "Failed to create release (HTTP ${CREATE_CODE})"
+              cat /tmp/release_response.json
+              exit 1
+            fi
+          fi
+
+          echo "Attaching ${ASSET} to release ${TAG} (id=${RELEASE_ID})"
+
+          UPLOAD_CODE=$(curl -s -o /dev/null -w '%{http_code}' -X POST \
+            -H "Authorization: token ${API_TOKEN}" \
+            -H "Content-Type: application/gzip" \
+            --data-binary "@${ASSET}" \
+            "${API_BASE}/releases/${RELEASE_ID}/assets?name=${ASSET}")
+
+          if [ "$UPLOAD_CODE" = "201" ]; then
+            echo "Uploaded ${ASSET} to release ${TAG}"
+          else
+            echo "Failed to upload asset (HTTP ${UPLOAD_CODE})"
+            exit 1
+          fi
