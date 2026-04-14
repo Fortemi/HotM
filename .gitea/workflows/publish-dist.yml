@@ -46,8 +46,8 @@ jobs:
       - name: Package dist
         run: |
           tar -czf hotm-ui-dist.tar.gz -C ui dist
-          echo "Tarball contents:"
-          tar -tzf hotm-ui-dist.tar.gz | head -20
+          echo "Tarball contents (first 20):"
+          { tar -tzf hotm-ui-dist.tar.gz || true; } | head -20 || true
           echo "Size: $(du -h hotm-ui-dist.tar.gz | cut -f1)"
 
       - name: Verify tarball structure
@@ -71,7 +71,7 @@ jobs:
       - name: Publish to rolling release (hotm-latest)
         if: github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
         env:
-          API_TOKEN: ${{ secrets.BUILD_REPO_TOKEN }}
+          API_TOKEN: ${{ github.token }}
           API_BASE: https://git.integrolabs.net/api/v1/repos/${{ github.repository }}
         run: |
           set -euo pipefail
@@ -151,7 +151,7 @@ jobs:
       - name: Attach to versioned release
         if: startsWith(github.ref, 'refs/tags/v')
         env:
-          API_TOKEN: ${{ secrets.BUILD_REPO_TOKEN }}
+          API_TOKEN: ${{ github.token }}
           API_BASE: https://git.integrolabs.net/api/v1/repos/${{ github.repository }}
         run: |
           set -euo pipefail
