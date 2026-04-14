@@ -8,7 +8,7 @@
  * the tauri:// scheme in WebKit2GTK.
  */
 
-import { isTauri, getTauriFetch } from '@/lib/tauri';
+import { isTauri, getTauriFetch, getHostAdapter } from '@/lib/tauri';
 
 export interface ServerEvent {
   type: string;
@@ -310,8 +310,106 @@ export function createEventsClient(baseUrl: string, options: EventsClientOptions
     }
   }
 
+  /**
+   * Host-adapter SSE for embedding shells that publish a __HOTM_HOST__
+   * adapter (see lib/tauri.ts → HotmHostAdapter, docs/host-adapter.md).
+   *
+   * Listens for forwarded SSE events via postMessage rather than reading
+   * a synthetic ReadableStream response. Some webviews (Linux WebKit2GTK
+   * in particular) cannot reliably read from synthetic streams produced
+   * by the plugin-http SSE shim, so this direct path is preferred when
+   * an adapter is available.
+   */
+  async function connectHostProxy(): Promise<void> {
+    if (isClosing || fetchAbort) return;
+
+    const adapter = getHostAdapter();
+    if (!adapter) {
+      console.error('SSE host adapter missing, falling back to fetch');
+      return connectFetch();
+    }
+
+    try {
+      notifyStatus('connecting');
+      fetchAbort = new AbortController();
+      const url = getEventsUrl();
+      console.log('SSE host adapter connecting to:', url);
+
+      const result = await adapter.network.sse.connect({ url });
+      const handle = result.handle;
+
+      isFetchConnected = true;
+      fetchReconnectAttempts = 0;
+      notifyStatus('connected');
+
+      // Await forwarded SSE events via postMessage.
+      await new Promise<void>((resolve) => {
+        function onMsg(ev: MessageEvent) {
+          const d = ev.data as
+            | {
+                __hotm_host_event?: boolean;
+                __bt6_host_event?: boolean;
+                event?: string;
+                handle?: string;
+                payload?: { type?: string; id?: string; data?: string };
+              }
+            | undefined;
+          if (!d) return;
+          const isEvent = d.__hotm_host_event || d.__bt6_host_event;
+          if (!isEvent || d.event !== 'network.sse' || d.handle !== handle) return;
+          const p = d.payload;
+          if (!p) return;
+          if (p.type === '__close' || p.type === '__error') {
+            window.removeEventListener('message', onMsg);
+            resolve();
+            return;
+          }
+          if (p.data) {
+            try {
+              const parsed: ServerEvent = JSON.parse(p.data);
+              if (p.type && p.type !== 'message') {
+                parsed.type = p.type;
+              }
+              dispatchEvent(parsed, p.id);
+            } catch {
+              // Non-JSON — ignore (keepalive etc.)
+            }
+          }
+        }
+        window.addEventListener('message', onMsg);
+
+        fetchAbort!.signal.addEventListener('abort', () => {
+          window.removeEventListener('message', onMsg);
+          adapter.network.sse.close?.({ handle }).catch(() => { /* best effort */ });
+          resolve();
+        });
+      });
+    } catch (err) {
+      if (fetchAbort?.signal.aborted) return;
+      console.error('SSE host adapter error:', err);
+    } finally {
+      isFetchConnected = false;
+      fetchAbort = null;
+    }
+
+    if (!isClosing && handlers.size > 0) {
+      notifyStatus('reconnecting');
+      const delay = Math.min(1000 * Math.pow(2, fetchReconnectAttempts), 15000);
+      fetchReconnectAttempts++;
+      reconnectTimeout = setTimeout(() => {
+        connectHostProxy();
+      }, delay);
+    } else {
+      notifyStatus('closed');
+    }
+  }
+
   function connect(): void {
-    if (isTauri()) {
+    // Prefer the direct host-adapter path when an embedding shell provides
+    // one — avoids the synthetic-ReadableStream pitfall on Linux WebKit2GTK.
+    if (getHostAdapter()) {
+      connectHostProxy();
+    } else if (isTauri()) {
       connectFetch();
     } else {
       connectNative();
