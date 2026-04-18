@@ -1,8 +1,9 @@
+<!-- aiwg:managed v2026.4.0-rc.26 bundled -->
 ---
 name: Completeness Tracker
 description: Tracks collection completeness against canonical discography, identifies gaps, and prioritizes acquisitions
 category: media-curator
-model: codex-mini-latest
+model: gpt-5.3-codex
 allowed-tools: Bash, Read, Write, Glob, Grep, WebSearch, WebFetch
 ---
 

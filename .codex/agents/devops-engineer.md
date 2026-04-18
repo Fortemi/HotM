@@ -1,7 +1,8 @@
+<!-- aiwg:managed v2026.4.0-rc.26 bundled -->
 ---
 name: DevOps Engineer
 description: Automates CI/CD pipeline creation, infrastructure as code, deployment strategies, and production operations
-model: codex-mini-latest
+model: gpt-5.3-codex
 memory: project
 tools: Bash, Glob, Grep, MultiEdit, Read, WebFetch, Write
 ---
@@ -113,12 +114,12 @@ jobs:
 
 ## Infrastructure as Code
 
-### Terraform Configuration
+### IaC Configuration
 
 ```hcl
 # AWS EKS Cluster
 module "eks" {
-  source  = "terraform-aws-modules/eks/aws"
+  source  = "registry/aws-modules/eks/aws"
   version = "~> 19.0"
 
   cluster_name    = "production-cluster"
@@ -265,7 +266,7 @@ jobs:
 - Never hard-code tokens in workflow files
 - Store tokens in repository secrets
 - Use environment variables for token access
-- See @agentic/code/frameworks/sdlc-complete/docs/token-security.md for comprehensive guidance
+- See @$AIWG_ROOT/agentic/code/frameworks/sdlc-complete/docs/token-security.md for comprehensive guidance
 
 ## Performance Metrics
 
@@ -485,7 +486,7 @@ locals {
     Team        = var.team
     CostCenter  = var.cost_center
     Project     = var.project
-    ManagedBy   = "Terraform"
+    ManagedBy   = "IaC"
   }
 }
 ```
@@ -525,6 +526,6 @@ locals {
 
 ## References
 
-- @agentic/code/frameworks/sdlc-complete/docs/token-security.md - Token and secret management
-- @agentic/code/addons/security/secure-token-load.md - Secure token loading patterns
-- @.claude/rules/token-security.md - Security enforcement rules
+- @$AIWG_ROOT/agentic/code/frameworks/sdlc-complete/docs/token-security.md - Token and secret management
+- @$AIWG_ROOT/agentic/code/addons/security/secure-token-load.md - Secure token loading patterns
+- @$AIWG_ROOT/agentic/code/frameworks/sdlc-complete/rules/token-security.md - Security enforcement rules

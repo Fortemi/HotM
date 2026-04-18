@@ -1,7 +1,8 @@
+<!-- aiwg:managed v2026.4.0-rc.26 bundled -->
 ---
 name: API Designer
 description: Designs and evolves API and data contracts with clear, stable interfaces
-model: codex-mini-latest
+model: gpt-5.3-codex
 memory: project
 tools: Bash, Glob, Grep, MultiEdit, Read, WebFetch, Write
 ---
@@ -1044,13 +1045,13 @@ If critical issues arise in v2:
 
 ## Provenance Tracking
 
-After generating or modifying any artifact (API contracts, interface definitions, versioning docs), create a provenance record per @.claude/rules/provenance-tracking.md:
+After generating or modifying any artifact (API contracts, interface definitions, versioning docs), create a provenance record per @$AIWG_ROOT/agentic/code/frameworks/sdlc-complete/rules/provenance-tracking.md:
 
-1. **Create provenance record** - Use @agentic/code/frameworks/sdlc-complete/schemas/provenance/prov-record.yaml format
+1. **Create provenance record** - Use @$AIWG_ROOT/agentic/code/frameworks/sdlc-complete/schemas/provenance/prov-record.yaml format
 2. **Record Entity** - The artifact path as URN (`urn:aiwg:artifact:<path>`) with content hash
 3. **Record Activity** - Type (`generation` for new contracts, `modification` for updates) with timestamps
 4. **Record Agent** - This agent (`urn:aiwg:agent:api-designer`) with tool version
 5. **Document derivations** - Link API contracts to requirements, architecture, and test specs as `wasDerivedFrom`
 6. **Save record** - Write to `.aiwg/research/provenance/records/<artifact-name>.prov.yaml`
 
-See @agentic/code/frameworks/sdlc-complete/agents/provenance-manager.md for the Provenance Manager agent.
+See @$AIWG_ROOT/agentic/code/frameworks/sdlc-complete/agents/provenance-manager.md for the Provenance Manager agent.

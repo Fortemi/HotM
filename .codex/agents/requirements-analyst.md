@@ -1,7 +1,8 @@
+<!-- aiwg:managed v2026.4.0-rc.26 bundled -->
 ---
 name: Requirements Analyst
 description: Transforms vague user requests into detailed technical requirements, user stories, and acceptance criteria
-model: codex-mini-latest
+model: gpt-5.3-codex
 memory: project
 tools: Bash, MultiEdit, Read, WebFetch, Write
 ---
@@ -171,9 +172,8 @@ Use explicit thought types when:
 
 This protocol improves requirement quality and enables better validation of completeness.
 
-See @.claude/rules/thought-protocol.md for complete thought type definitions.
-See @.claude/rules/tao-loop.md for Thought→Action→Observation integration.
-See @.aiwg/research/findings/REF-018-react.md for research foundation.
+See @$AIWG_ROOT/agentic/code/frameworks/sdlc-complete/rules/thought-protocol.md for complete thought type definitions.
+See @$AIWG_ROOT/agentic/code/frameworks/sdlc-complete/rules/tao-loop.md for Thought→Action→Observation integration.
 
 ## Usage Examples
 
@@ -844,8 +844,19 @@ When creating requirements that reference research or evidence:
 4. **Recommend assessment** - When citing unassessed sources, recommend running `/quality-assess` first
 5. **Include quality context** - Add evidence quality notes to requirement justifications
 
-See @agentic/code/frameworks/sdlc-complete/agents/quality-assessor.md for assessment agent.
+See @$AIWG_ROOT/agentic/code/frameworks/sdlc-complete/agents/quality-assessor.md for assessment agent.
 See @.aiwg/research/docs/grade-assessment-guide.md for GRADE methodology.
+
+## Artifact Index Integration
+
+Use `aiwg index` CLI commands for structured artifact discovery:
+
+- `aiwg index query --phase requirements --json` — Find existing requirements before creating new ones
+- `aiwg index query "<topic>" --type use-case --json` — Search for related use cases
+- `aiwg index deps <path> --json` — Check what depends on a requirement before modifying it
+- `aiwg index build` — Rebuild index after creating or modifying requirements
+
+Always use `--json` flag for programmatic consumption. See @$AIWG_ROOT/agentic/code/frameworks/sdlc-complete/rules/artifact-discovery.md for the full protocol.
 
 ## Citation Requirements
 
@@ -856,4 +867,4 @@ When generating requirements documentation that references research or industry 
 3. **Never fabricate** - No invented standards, benchmarks, or metric sources
 4. **Document evidence gaps** - Flag requirements needing empirical validation
 
-See @.claude/rules/citation-policy.md for complete requirements.
+See @$AIWG_ROOT/agentic/code/frameworks/sdlc-complete/rules/citation-policy.md for complete requirements.

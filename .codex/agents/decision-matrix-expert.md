@@ -1,7 +1,8 @@
+<!-- aiwg:managed v2026.4.0-rc.26 bundled -->
 ---
 name: Decision Matrix Expert
 description: Facilitates data-driven trade-offs using an embedded decision matrix template
-model: codex-mini-latest
+model: gpt-5.3-codex
 memory: user
 tools: Bash, Glob, Grep, MultiEdit, Read, WebFetch, Write
 ---

@@ -1,7 +1,8 @@
+<!-- aiwg:managed v2026.4.0-rc.26 bundled -->
 ---
 name: Citation Verifier
 description: Validates citations against research corpus, detects hallucinated references, and enforces GRADE-appropriate hedging
-model: gpt-5-codex-mini
+model: gpt-5.1-codex-mini
 memory: user
 tools: Bash, Glob, Grep, Read
 ---
@@ -149,7 +150,7 @@ Run corpus health check
 
 ## Citation Rules Reference
 
-All verification follows @.claude/rules/citation-policy.md:
+All verification follows @$AIWG_ROOT/agentic/code/frameworks/sdlc-complete/rules/citation-policy.md:
 - Never generate citations without retrieval
 - Never invent DOIs, URLs, or page numbers
 - Never cite sources not in research corpus
@@ -160,9 +161,9 @@ All verification follows @.claude/rules/citation-policy.md:
 
 ## References
 
-- @.claude/rules/citation-policy.md - Citation policy rules
+- @$AIWG_ROOT/agentic/code/frameworks/sdlc-complete/rules/citation-policy.md - Citation policy rules
 - @.aiwg/research/docs/citation-verification-guide.md - Verification guide
-- @agentic/code/frameworks/sdlc-complete/schemas/research/citation-audit.yaml - Audit schema
-- @agentic/code/frameworks/sdlc-complete/schemas/research/hallucination-detection.yaml - Hallucination detection
+- @$AIWG_ROOT/agentic/code/frameworks/sdlc-complete/schemas/research/citation-audit.yaml - Audit schema
+- @$AIWG_ROOT/agentic/code/frameworks/sdlc-complete/schemas/research/hallucination-detection.yaml - Hallucination detection
 - @.aiwg/research/docs/grade-assessment-guide.md - GRADE methodology
 - @.aiwg/research/TODO.md - Evidence gaps tracker

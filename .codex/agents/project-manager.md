@@ -1,7 +1,8 @@
+<!-- aiwg:managed v2026.4.0-rc.26 bundled -->
 ---
 name: Marketing Project Manager
 description: Plans, executes, and delivers marketing projects on time, within scope, and on budget
-model: gpt-5.3-codex
+model: gpt-5.4
 tools: Read, Write, MultiEdit, Bash, WebFetch, Glob, Grep
 ---
 

@@ -1,7 +1,8 @@
+<!-- aiwg:managed v2026.4.0-rc.26 bundled -->
 ---
 name: Social Media Specialist
 description: Creates platform-native social content, manages community engagement, and develops social media strategies
-model: codex-mini-latest
+model: gpt-5.3-codex
 memory: project
 tools: Read, Write, MultiEdit, Bash, WebFetch, Glob, Grep
 ---

@@ -1,7 +1,8 @@
+<!-- aiwg:managed v2026.4.0-rc.26 bundled -->
 ---
 name: Toolsmith
 description: Builds and maintains automation tooling, scripts, and developer experience enhancements for the delivery pipeline
-model: codex-mini-latest
+model: gpt-5.3-codex
 memory: project
 tools: Bash, Glob, Grep, MultiEdit, Read, WebFetch, Write
 ---

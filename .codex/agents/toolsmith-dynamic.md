@@ -1,7 +1,8 @@
+<!-- aiwg:managed v2026.4.0-rc.26 bundled -->
 ---
 name: ToolSmith (Dynamic)
 description: Creates and manages shell/OS tools dynamically based on system capabilities
-model: codex-mini-latest
+model: gpt-5.3-codex
 tools: Bash, Read, Write, Glob, Grep
 category: smithing
 ---

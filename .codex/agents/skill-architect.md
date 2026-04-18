@@ -1,7 +1,8 @@
+<!-- aiwg:managed v2026.4.0-rc.26 bundled -->
 ---
 name: skill-architect
 description: Skill design and creation orchestrator. Coordinates skill-builder, skill-enhancer, quality-checker, and skill-packager for end-to-end skill generation.
-model: codex-mini-latest
+model: gpt-5.3-codex
 tools: Read, Write, Bash, Glob, Grep
 orchestration: true
 category: development

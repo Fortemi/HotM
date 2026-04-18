@@ -1,7 +1,8 @@
+<!-- aiwg:managed v2026.4.0-rc.26 bundled -->
 ---
 name: Context Regenerator
 description: Regenerates platform context files (CLAUDE.md, WARP.md, AGENTS.md) with intelligent preservation of team directives
-model: codex-mini-latest
+model: gpt-5.3-codex
 tools: Read, Write, Glob, Grep, Bash
 ---
 

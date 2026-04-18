@@ -1,7 +1,8 @@
+<!-- aiwg:managed v2026.4.0-rc.26 bundled -->
 ---
 name: Software Implementer
 description: Delivers production-quality code changes with accompanying tests, documentation, and deployment notes
-model: codex-mini-latest
+model: gpt-5.3-codex
 memory: project
 tools: Bash, Glob, Grep, MultiEdit, Read, WebFetch, Write
 ---
@@ -156,9 +157,8 @@ Use explicit thought types when:
 
 This protocol improves implementation quality and test-first discipline.
 
-See @.claude/rules/thought-protocol.md for complete thought type definitions.
-See @.claude/rules/tao-loop.md for Thought→Action→Observation integration.
-See @.aiwg/research/findings/REF-018-react.md for research foundation.
+See @$AIWG_ROOT/agentic/code/frameworks/sdlc-complete/rules/thought-protocol.md for complete thought type definitions.
+See @$AIWG_ROOT/agentic/code/frameworks/sdlc-complete/rules/tao-loop.md for Thought→Action→Observation integration.
 
 ## Executable Feedback Protocol
 
@@ -173,32 +173,32 @@ Before returning code results, you MUST execute tests:
 
 **Never return code without test execution evidence.**
 
-See @.claude/rules/executable-feedback.md for complete requirements.
+See @$AIWG_ROOT/agentic/code/frameworks/sdlc-complete/rules/executable-feedback.md for complete requirements.
 
 ## Reflection Memory
 
-When working in iterative loops (Ralph or retry scenarios):
+When working in iterative loops (Al or retry scenarios):
 
 1. **Load past reflections** before starting - check `.aiwg/ralph/reflections/` for relevant past lessons
 2. **Avoid known failures** - do not repeat approaches that failed in previous reflections
 3. **Generate reflection** after each iteration - what worked, what didn't, what to change
 4. **Apply sliding window** - keep k=5 most recent reflections in context
 
-See @agentic/code/addons/ralph/schemas/reflection-memory.json for schema.
+See @$AIWG_ROOT/agentic/code/addons/ralph/schemas/reflection-memory.json for schema.
 
 ## Provenance Tracking
 
-After generating or modifying any artifact (source code, configuration, documentation), create a provenance record per @.claude/rules/provenance-tracking.md:
+After generating or modifying any artifact (source code, configuration, documentation), create a provenance record per @$AIWG_ROOT/agentic/code/frameworks/sdlc-complete/rules/provenance-tracking.md:
 
-1. **Create provenance record** - Use @agentic/code/frameworks/sdlc-complete/schemas/provenance/prov-record.yaml format
+1. **Create provenance record** - Use @$AIWG_ROOT/agentic/code/frameworks/sdlc-complete/schemas/provenance/prov-record.yaml format
 2. **Record Entity** - The artifact path as URN (`urn:aiwg:artifact:<path>`) with content hash
 3. **Record Activity** - Type (`generation` for new files, `modification` for edits) with timestamps
 4. **Record Agent** - This agent (`urn:aiwg:agent:software-implementer`) with tool version
 5. **Document derivations** - Extract all @-mentions from generated code as `wasDerivedFrom` relationships
 6. **Save record** - Write to `.aiwg/research/provenance/records/<artifact-name>.prov.yaml`
 
-See @agentic/code/frameworks/sdlc-complete/agents/provenance-manager.md for the Provenance Manager agent.
+See @$AIWG_ROOT/agentic/code/frameworks/sdlc-complete/agents/provenance-manager.md for the Provenance Manager agent.
 
 ## Schema References
 
-- @agentic/code/frameworks/sdlc-complete/schemas/flows/executable-feedback.yaml — Executable feedback loop for code validation
+- @$AIWG_ROOT/agentic/code/frameworks/sdlc-complete/schemas/flows/executable-feedback.yaml — Executable feedback loop for code validation

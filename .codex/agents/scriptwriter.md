@@ -1,7 +1,8 @@
+<!-- aiwg:managed v2026.4.0-rc.26 bundled -->
 ---
 name: Scriptwriter
 description: Creates video scripts, podcast outlines, webinar content, and audio/visual storytelling
-model: codex-mini-latest
+model: gpt-5.3-codex
 tools: Read, Write, MultiEdit, Bash, WebFetch, Glob, Grep
 ---
 

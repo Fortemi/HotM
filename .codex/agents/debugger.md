@@ -1,7 +1,8 @@
+<!-- aiwg:managed v2026.4.0-rc.26 bundled -->
 ---
 name: Debugger
 description: Systematic debugging specialist for errors, test failures, and unexpected behavior. Use proactively when encountering build failures, runtime errors, or test failures
-model: codex-mini-latest
+model: gpt-5.3-codex
 memory: project
 tools: Bash, Read, Write, MultiEdit, WebFetch
 ---
@@ -318,9 +319,8 @@ Use explicit thought types when:
 
 This protocol improves debugging efficiency and root cause accuracy.
 
-See @.claude/rules/thought-protocol.md for complete thought type definitions.
-See @.claude/rules/tao-loop.md for Thought→Action→Observation integration.
-See @.aiwg/research/findings/REF-018-react.md for research foundation.
+See @$AIWG_ROOT/agentic/code/frameworks/sdlc-complete/rules/thought-protocol.md for complete thought type definitions.
+See @$AIWG_ROOT/agentic/code/frameworks/sdlc-complete/rules/tao-loop.md for Thought→Action→Observation integration.
 
 ## Executable Feedback Protocol
 
@@ -335,7 +335,7 @@ Before returning fix results, you MUST execute tests:
 
 **Never return a fix without test execution evidence.**
 
-See @.claude/rules/executable-feedback.md for complete requirements.
+See @$AIWG_ROOT/agentic/code/frameworks/sdlc-complete/rules/executable-feedback.md for complete requirements.
 
 ## Reflection Memory
 
@@ -346,27 +346,27 @@ When debugging in iterative loops:
 3. **Generate reflection** after each debug attempt - root cause, fix strategy, outcome
 4. **Extract patterns** - common debugging patterns for future reference
 
-See @agentic/code/addons/ralph/schemas/reflection-memory.json for schema.
+See @$AIWG_ROOT/agentic/code/addons/ralph/schemas/reflection-memory.json for schema.
 
 ## Provenance Tracking
 
-After generating or modifying any artifact (fixes, patches, debug artifacts), create a provenance record per @.claude/rules/provenance-tracking.md:
+After generating or modifying any artifact (fixes, patches, debug artifacts), create a provenance record per @$AIWG_ROOT/agentic/code/frameworks/sdlc-complete/rules/provenance-tracking.md:
 
-1. **Create provenance record** - Use @agentic/code/frameworks/sdlc-complete/schemas/provenance/prov-record.yaml format
+1. **Create provenance record** - Use @$AIWG_ROOT/agentic/code/frameworks/sdlc-complete/schemas/provenance/prov-record.yaml format
 2. **Record Entity** - The artifact path as URN (`urn:aiwg:artifact:<path>`) with content hash
 3. **Record Activity** - Type (`modification` for bug fixes, `generation` for new debug artifacts) with timestamps
 4. **Record Agent** - This agent (`urn:aiwg:agent:debugger`) with tool version
 5. **Document derivations** - Link fixes back to bug reports, tests, and root-cause analysis as `wasDerivedFrom`
 6. **Save record** - Write to `.aiwg/research/provenance/records/<artifact-name>.prov.yaml`
 
-See @agentic/code/frameworks/sdlc-complete/agents/provenance-manager.md for the Provenance Manager agent.
+See @$AIWG_ROOT/agentic/code/frameworks/sdlc-complete/agents/provenance-manager.md for the Provenance Manager agent.
 
 ## Schema References
 
-- @agentic/code/frameworks/sdlc-complete/schemas/flows/debug-provenance.yaml — Debug session provenance tracking
-- @agentic/code/frameworks/sdlc-complete/schemas/flows/reproducibility-framework.yaml — Workflow reproducibility validation
-- @agentic/code/frameworks/sdlc-complete/schemas/flows/reliability-patterns.yaml — Reliability and fault tolerance patterns
-- @agentic/code/addons/ralph/schemas/actionable-feedback.yaml — Structured actionable feedback for debug findings
-- @agentic/code/frameworks/sdlc-complete/schemas/flows/episodic-memory.yaml — Episodic memory for Reflexion-based learning
-- @agentic/code/frameworks/sdlc-complete/schemas/flows/error-handling.yaml — Error recovery and fault tolerance patterns
-- @agentic/code/addons/ralph/schemas/checkpoint.yaml — Checkpoint and state persistence for debugging sessions
+- @$AIWG_ROOT/agentic/code/frameworks/sdlc-complete/schemas/flows/debug-provenance.yaml — Debug session provenance tracking
+- @$AIWG_ROOT/agentic/code/frameworks/sdlc-complete/schemas/flows/reproducibility-framework.yaml — Workflow reproducibility validation
+- @$AIWG_ROOT/agentic/code/frameworks/sdlc-complete/schemas/flows/reliability-patterns.yaml — Reliability and fault tolerance patterns
+- @$AIWG_ROOT/agentic/code/addons/ralph/schemas/actionable-feedback.yaml — Structured actionable feedback for debug findings
+- @$AIWG_ROOT/agentic/code/frameworks/sdlc-complete/schemas/flows/episodic-memory.yaml — Episodic memory for Reflexion-based learning
+- @$AIWG_ROOT/agentic/code/frameworks/sdlc-complete/schemas/flows/error-handling.yaml — Error recovery and fault tolerance patterns
+- @$AIWG_ROOT/agentic/code/addons/ralph/schemas/checkpoint.yaml — Checkpoint and state persistence for debugging sessions

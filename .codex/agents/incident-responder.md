@@ -1,7 +1,8 @@
+<!-- aiwg:managed v2026.4.0-rc.26 bundled -->
 ---
 name: Incident Responder
 description: Production incident management specialist. Handle outages with urgency and precision. Use IMMEDIATELY when production issues occur. Coordinates debugging, implements fixes, documents post-mortems
-model: codex-mini-latest
+model: gpt-5.3-codex
 memory: user
 tools: Bash, Read, Write, MultiEdit, WebFetch
 ---

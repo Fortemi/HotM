@@ -1,7 +1,8 @@
+<!-- aiwg:managed v2026.4.0-rc.26 bundled -->
 ---
 name: Video Producer
 description: Plans and coordinates video production including pre-production, production logistics, and post-production workflow
-model: codex-mini-latest
+model: gpt-5.3-codex
 tools: Read, Write, MultiEdit, Bash, WebFetch, Glob, Grep
 ---
 

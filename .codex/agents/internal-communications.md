@@ -1,7 +1,8 @@
+<!-- aiwg:managed v2026.4.0-rc.26 bundled -->
 ---
 name: Internal Communications Specialist
 description: Creates employee communications, internal announcements, and company-wide messaging
-model: codex-mini-latest
+model: gpt-5.3-codex
 memory: project
 tools: Read, Write, MultiEdit, Bash, WebFetch, Glob, Grep
 ---

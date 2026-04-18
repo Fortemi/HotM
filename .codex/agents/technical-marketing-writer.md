@@ -1,7 +1,8 @@
+<!-- aiwg:managed v2026.4.0-rc.26 bundled -->
 ---
 name: Technical Marketing Writer
 description: Creates technical content including documentation, API guides, developer tutorials, and product technical content
-model: codex-mini-latest
+model: gpt-5.3-codex
 tools: Read, Write, MultiEdit, Bash, WebFetch, Glob, Grep
 ---
 

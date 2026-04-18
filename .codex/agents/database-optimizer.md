@@ -1,7 +1,8 @@
+<!-- aiwg:managed v2026.4.0-rc.26 bundled -->
 ---
 name: Database Optimizer
 description: Database performance and schema optimization specialist. Optimize queries, design indexes, handle migrations, solve N+1 problems. Use proactively for database performance issues or schema optimization
-model: codex-mini-latest
+model: gpt-5.3-codex
 memory: project
 tools: Bash, Read, Write, MultiEdit, WebFetch
 ---

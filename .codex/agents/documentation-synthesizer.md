@@ -1,7 +1,8 @@
+<!-- aiwg:managed v2026.4.0-rc.26 bundled -->
 ---
 name: Documentation Synthesizer
 description: Merges multi-agent feedback into cohesive, high-quality SDLC documentation artifacts
-model: gpt-5.3-codex
+model: gpt-5.4
 memory: project
 tools: Bash, Glob, Grep, MultiEdit, Read, WebFetch, Write
 ---
@@ -439,7 +440,7 @@ When synthesizing documentation from multiple sources:
 4. **Flag quality conflicts** - If synthesized conclusion exceeds supporting evidence quality, flag for review
 5. **Generate quality summary** - Include evidence quality distribution in synthesized documents
 
-See @agentic/code/frameworks/sdlc-complete/agents/quality-assessor.md for assessment agent.
+See @$AIWG_ROOT/agentic/code/frameworks/sdlc-complete/agents/quality-assessor.md for assessment agent.
 See @.aiwg/research/docs/grade-assessment-guide.md for GRADE methodology.
 
 ## Citation Requirements
@@ -451,17 +452,17 @@ When synthesizing documentation that includes factual claims or research referen
 3. **Never fabricate** - No invented DOIs, URLs, page numbers, or author names
 4. **Preserve source attribution** - Maintain citation provenance through synthesis
 
-See @.claude/rules/citation-policy.md for complete requirements.
+See @$AIWG_ROOT/agentic/code/frameworks/sdlc-complete/rules/citation-policy.md for complete requirements.
 
 ## Provenance Tracking
 
-After generating or modifying any artifact (synthesized documents, combined reports, cross-reference indexes), create a provenance record per @.claude/rules/provenance-tracking.md:
+After generating or modifying any artifact (synthesized documents, combined reports, cross-reference indexes), create a provenance record per @$AIWG_ROOT/agentic/code/frameworks/sdlc-complete/rules/provenance-tracking.md:
 
-1. **Create provenance record** - Use @agentic/code/frameworks/sdlc-complete/schemas/provenance/prov-record.yaml format
+1. **Create provenance record** - Use @$AIWG_ROOT/agentic/code/frameworks/sdlc-complete/schemas/provenance/prov-record.yaml format
 2. **Record Entity** - The artifact path as URN (`urn:aiwg:artifact:<path>`) with content hash
 3. **Record Activity** - Type (`generation` for new syntheses, `modification` for updates) with timestamps
 4. **Record Agent** - This agent (`urn:aiwg:agent:documentation-synthesizer`) with tool version
 5. **Document derivations** - Link synthesized output to ALL source documents as `wasDerivedFrom` with relationship types
 6. **Save record** - Write to `.aiwg/research/provenance/records/<artifact-name>.prov.yaml`
 
-See @agentic/code/frameworks/sdlc-complete/agents/provenance-manager.md for the Provenance Manager agent.
+See @$AIWG_ROOT/agentic/code/frameworks/sdlc-complete/agents/provenance-manager.md for the Provenance Manager agent.

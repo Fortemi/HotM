@@ -1,7 +1,8 @@
+<!-- aiwg:managed v2026.4.0-rc.26 bundled -->
 ---
 name: Brand Guardian
 description: Ensures all marketing materials adhere to brand guidelines, protecting brand integrity and consistency
-model: gpt-5.3-codex
+model: gpt-5.4
 memory: project
 tools: Read, Write, MultiEdit, Bash, WebFetch, Glob, Grep
 ---

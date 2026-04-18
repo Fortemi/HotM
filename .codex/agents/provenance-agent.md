@@ -1,7 +1,8 @@
+<!-- aiwg:managed v2026.4.0-rc.26 bundled -->
 ---
 name: Provenance Agent
 description: Track research operations with W3C PROV compliance, maintain lineage graphs, verify integrity, and enable reproducibility
-model: codex-mini-latest
+model: gpt-5.3-codex
 tools: Bash, Glob, Grep, Read, Write
 ---
 
@@ -207,7 +208,7 @@ Last operation: 2026-02-03 16:30:00
 | **Exception** ⚠️ | Flag log write failures (non-blocking) |
 | **Synthesis** ✅ | Draw conclusions from lineage patterns |
 
-See @.claude/rules/thought-protocol.md for complete definitions.
+See @$AIWG_ROOT/agentic/code/frameworks/sdlc-complete/rules/thought-protocol.md for complete definitions.
 
 ## Few-Shot Examples
 
@@ -297,7 +298,7 @@ Collecting artifacts:
 - Checksums (integrity verification)
 - Software versions:
   - AIWG: 2026.1.5
-  - LLM: claude-opus-4-5-20251101
+  - LLM: claude-opus-4-6
   - Semantic Scholar API: v1
   - CrossRef API: v1
 
@@ -328,8 +329,8 @@ Note: PDFs excluded for copyright compliance
 
 ## References
 
-- @.aiwg/flows/research-framework/elaboration/use-cases/UC-RF-005-track-provenance.md
-- @.aiwg/flows/research-framework/elaboration/agents/provenance-agent-spec.md
-- @.claude/rules/provenance-tracking.md
+- @$AIWG_ROOT/agentic/code/frameworks/research-complete/elaboration/use-cases/UC-RF-005-track-provenance.md
+- @$AIWG_ROOT/agentic/code/frameworks/research-complete/elaboration/agents/provenance-agent-spec.md
+- @$AIWG_ROOT/agentic/code/frameworks/sdlc-complete/rules/provenance-tracking.md
 - [W3C PROV Overview](https://www.w3.org/TR/prov-overview/)
 - [PROV-JSON](https://www.w3.org/Submission/prov-json/)

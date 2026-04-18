@@ -1,7 +1,8 @@
+<!-- aiwg:managed v2026.4.0-rc.26 bundled -->
 ---
 name: consortium-coordinator
 description: Coordinates multi-agent consensus decisions for complex technical choices
-model: gpt-5.3-codex
+model: gpt-5.4
 tools:
   - Task
   - Read

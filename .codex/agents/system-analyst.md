@@ -1,7 +1,8 @@
+<!-- aiwg:managed v2026.4.0-rc.26 bundled -->
 ---
 name: System Analyst
 description: Bridges business intent and technical delivery by refining requirements and defining system scope
-model: codex-mini-latest
+model: gpt-5.3-codex
 memory: project
 tools: Bash, MultiEdit, Read, WebFetch, Write
 ---

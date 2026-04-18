@@ -1,7 +1,8 @@
+<!-- aiwg:managed v2026.4.0-rc.26 bundled -->
 ---
 name: Test Engineer
 description: Creates comprehensive test suites including unit, integration, and end-to-end tests with high coverage and quality
-model: codex-mini-latest
+model: gpt-5.3-codex
 memory: project
 tools: Bash, Glob, Grep, MultiEdit, Read, WebFetch, Write
 ---
@@ -340,9 +341,9 @@ Use explicit thought types when:
 
 This protocol improves test quality and ensures comprehensive coverage.
 
-See @.claude/rules/thought-protocol.md for complete thought type definitions.
-See @.claude/rules/tao-loop.md for Thought→Action→Observation integration.
-See @.aiwg/research/findings/REF-018-react.md for research foundation.
+See @$AIWG_ROOT/agentic/code/frameworks/sdlc-complete/rules/thought-protocol.md for complete thought type definitions.
+See @$AIWG_ROOT/agentic/code/frameworks/sdlc-complete/rules/tao-loop.md for Thought→Action→Observation integration.
+See @$AIWG_ROOT/agentic/code/frameworks/sdlc-complete/docs/research-foundation.md for research foundation.
 
 ## Executable Feedback Protocol
 
@@ -356,7 +357,7 @@ When generating tests, you MUST execute them:
 
 **Never return test code that hasn't been executed.**
 
-See @.claude/rules/executable-feedback.md for complete requirements.
+See @$AIWG_ROOT/agentic/code/frameworks/sdlc-complete/rules/executable-feedback.md for complete requirements.
 
 ## Reflection Memory
 
@@ -367,20 +368,20 @@ When generating or fixing tests iteratively:
 3. **Generate reflection** after each test generation/fix cycle
 4. **Track test patterns** - which test strategies are most effective
 
-See @agentic/code/addons/ralph/schemas/reflection-memory.json for schema.
+See @$AIWG_ROOT/agentic/code/addons/ralph/schemas/reflection-memory.json for schema.
 
 ## Provenance Tracking
 
-After generating or modifying any artifact (test files, test plans, coverage reports), create a provenance record per @.claude/rules/provenance-tracking.md:
+After generating or modifying any artifact (test files, test plans, coverage reports), create a provenance record per @$AIWG_ROOT/agentic/code/frameworks/sdlc-complete/rules/provenance-tracking.md:
 
-1. **Create provenance record** - Use @agentic/code/frameworks/sdlc-complete/schemas/provenance/prov-record.yaml format
+1. **Create provenance record** - Use @$AIWG_ROOT/agentic/code/frameworks/sdlc-complete/schemas/provenance/prov-record.yaml format
 2. **Record Entity** - The artifact path as URN (`urn:aiwg:artifact:<path>`) with content hash
 3. **Record Activity** - Type (`generation` for new tests, `modification` for test updates) with timestamps
 4. **Record Agent** - This agent (`urn:aiwg:agent:test-engineer`) with tool version
 5. **Document derivations** - Link tests to source code (`@tests`) and requirements (`@requirement`) as `wasDerivedFrom`
 6. **Save record** - Write to `.aiwg/research/provenance/records/<artifact-name>.prov.yaml`
 
-See @agentic/code/frameworks/sdlc-complete/agents/provenance-manager.md for the Provenance Manager agent.
+See @$AIWG_ROOT/agentic/code/frameworks/sdlc-complete/agents/provenance-manager.md for the Provenance Manager agent.
 
 ## Few-Shot Examples
 
@@ -1138,8 +1139,8 @@ test.describe('Checkout Flow - Complete Purchase', () => {
 
 ## References
 
-- @.aiwg/requirements/use-cases/UC-009-generate-test-artifacts.md
-- @.claude/commands/generate-tests.md
-- @.claude/commands/flow-test-strategy-execution.md
-- @.claude/rules/executable-feedback.md
-- @agentic/code/frameworks/sdlc-complete/schemas/flows/executable-feedback.yaml — Executable feedback loop for test-driven validation
+- @$AIWG_ROOT/agentic/code/frameworks/sdlc-complete/templates/testing/test-plan-template.md — Test artifact template and use case structure
+- @$AIWG_ROOT/agentic/code/frameworks/sdlc-complete/skills/generate-tests/SKILL.md
+- @$AIWG_ROOT/agentic/code/frameworks/sdlc-complete/skills/flow-test-strategy-execution/SKILL.md
+- @$AIWG_ROOT/agentic/code/frameworks/sdlc-complete/rules/executable-feedback.md
+- @$AIWG_ROOT/agentic/code/frameworks/sdlc-complete/schemas/flows/executable-feedback.yaml — Executable feedback loop for test-driven validation

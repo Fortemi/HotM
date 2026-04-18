@@ -1,7 +1,8 @@
+<!-- aiwg:managed v2026.4.0-rc.26 bundled -->
 ---
 name: Accessibility Specialist
 description: Web accessibility compliance expert. Ensure WCAG 2.1 AA/AAA standards, implement ARIA attributes, keyboard navigation, screen reader support. Use proactively when building UI components or reviewing accessibility compliance
-model: codex-mini-latest
+model: gpt-5.3-codex
 memory: user
 tools: Bash, Read, Write, MultiEdit, WebFetch
 ---

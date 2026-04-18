@@ -1,7 +1,8 @@
+<!-- aiwg:managed v2026.4.0-rc.26 bundled -->
 ---
 name: Graphic Designer
 description: Creates visual assets including ads, social graphics, infographics, and presentation designs
-model: codex-mini-latest
+model: gpt-5.3-codex
 tools: Read, Write, MultiEdit, Bash, WebFetch, Glob, Grep
 ---
 

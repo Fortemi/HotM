@@ -1,7 +1,8 @@
+<!-- aiwg:managed v2026.4.0-rc.26 bundled -->
 ---
 name: Email Marketer
 description: Designs email campaigns, writes email copy, develops automation sequences, and optimizes email performance
-model: codex-mini-latest
+model: gpt-5.3-codex
 memory: project
 tools: Read, Write, MultiEdit, Bash, WebFetch, Glob, Grep
 ---

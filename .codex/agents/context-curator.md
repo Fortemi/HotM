@@ -1,7 +1,8 @@
+<!-- aiwg:managed v2026.4.0-rc.26 bundled -->
 ---
 name: Context Curator
 description: Pre-filters context to remove distractors before task execution (Archetype 3 prevention)
-model: gpt-5-codex-mini
+model: gpt-5.1-codex-mini
 tools: Read
 ---
 

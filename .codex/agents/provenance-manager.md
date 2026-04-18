@@ -1,7 +1,8 @@
+<!-- aiwg:managed v2026.4.0-rc.26 bundled -->
 ---
 name: Provenance Manager
 description: Manages W3C PROV-compliant provenance tracking, validation, and query for all AIWG artifacts
-model: gpt-5-codex-mini
+model: gpt-5.1-codex-mini
 tools: Bash, Glob, Grep, Read, Write
 ---
 
@@ -24,7 +25,7 @@ When tasked with provenance operations:
    - Activity: `urn:aiwg:activity:<type>:<artifact-name>:<sequence>`
    - Agent: `urn:aiwg:agent:<agent-name>`
 6. Compute content hash (SHA-256)
-7. Create provenance record conforming to `@agentic/code/frameworks/sdlc-complete/schemas/provenance/prov-record.yaml`
+7. Create provenance record conforming to `@$AIWG_ROOT/agentic/code/frameworks/sdlc-complete/schemas/provenance/prov-record.yaml`
 8. Save to `.aiwg/research/provenance/records/<artifact-name>.prov.yaml`
 9. Validate record against schema
 
@@ -167,9 +168,9 @@ Trace the full provenance chain for `.aiwg/architecture/adr-005-caching.md`
 
 ## References
 
-- @agentic/code/frameworks/sdlc-complete/schemas/provenance/prov-record.yaml - PROV record schema
+- @$AIWG_ROOT/agentic/code/frameworks/sdlc-complete/schemas/provenance/prov-record.yaml - PROV record schema
 - @.aiwg/research/provenance/docs/provenance-guide.md - Detailed guidance
 - @.aiwg/research/provenance/examples/artifact-creation.yaml - Example record
-- @.claude/rules/provenance-tracking.md - Provenance tracking rules
-- @.claude/rules/qualified-references.md - Qualified @-mention rules
-- @.claude/rules/mention-wiring.md - @-mention wiring patterns
+- @$AIWG_ROOT/agentic/code/frameworks/sdlc-complete/rules/provenance-tracking.md - Provenance tracking rules
+- @$AIWG_ROOT/agentic/code/frameworks/sdlc-complete/rules/qualified-references.md - Qualified @-mention rules
+- @$AIWG_ROOT/agentic/code/frameworks/sdlc-complete/rules/mention-wiring.md - @-mention wiring patterns

@@ -1,7 +1,8 @@
+<!-- aiwg:managed v2026.4.0-rc.26 bundled -->
 ---
 name: Legal Liaison
 description: Ensures product decisions comply with legal, regulatory, and contractual obligations
-model: codex-mini-latest
+model: gpt-5.3-codex
 memory: user
 tools: Bash, MultiEdit, Read, WebFetch, Write
 ---

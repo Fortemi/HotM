@@ -1,0 +1,929 @@
+{
+  "managed": {
+    "acquisition-agent.md": {
+      "hash": "sha256:de0ebcfe7d08784f93efbffb98b44c0a56eb39ffd81e0157d16a9650278a7e6d",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "cloud-analyst.md": {
+      "hash": "sha256:df6d01955ba7efd60b80305f2b0a98bda32e0d77aa2ee557de86be60101891a1",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "container-analyst.md": {
+      "hash": "sha256:9e08859ff085ffff86d932915955dda5b58f0dd4dabc8ff8efa47272c95934a4",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "forensics-orchestrator.md": {
+      "hash": "sha256:5538f62d3ac47bfb75beb13c502219768bec39cc989d0b3e9ce13e3153a5d3f4",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "ioc-analyst.md": {
+      "hash": "sha256:34d1a7af9800c5f9a7e6ba1da58aa6240509799ec5502837fc228cbb4f028973",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "log-analyst.md": {
+      "hash": "sha256:c3737019f31d30ae318faf841d83954b295b1908f1c970d9e28a6e1d4a5c989a",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "memory-analyst.md": {
+      "hash": "sha256:ff9f5c68714294781b65a98aeb1b0c0857863aeaac1aecfe1af77665fe4906fc",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "network-analyst.md": {
+      "hash": "sha256:48c273eec880753cbb9ef6436f272be31d5138847d3b2f10dc133f074f9ae467",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "persistence-hunter.md": {
+      "hash": "sha256:1c55fd95c26318a8e9ecdf324e1d04c9fe5544d498b45c14a0ed9237858c21c8",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "recon-agent.md": {
+      "hash": "sha256:c369414017c001ccddf93112ae8a5072769534588aafa92a80341b5dfd6aa10e",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "reporting-agent.md": {
+      "hash": "sha256:2ef671c83582dc8ea893b40863b134f343ea61370aea089f279e7451912ed287",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "timeline-builder.md": {
+      "hash": "sha256:3afd4c6ffa5c9bcd7c148f03396ced66e67f714d029dbdd89c8a35bbac499d32",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "triage-agent.md": {
+      "hash": "sha256:cb605ef83221d8379ca8bd64c8dfc75a882d73b12d4b845f03b0aca5aabcb602",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "acquisition-manager.md": {
+      "hash": "sha256:1422f58a54de45f171c7140201563f7fc0b90cd90bd1eef5c2ac3a0c95e81482",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "completeness-tracker.md": {
+      "hash": "sha256:9358f532bfd700489dc5163d7f836aee78350d71a9dcb3ede9f4fda12cf79fd2",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "discography-analyst.md": {
+      "hash": "sha256:e6d8a05dd78ffcfd54f2eed0d0a80adbcb51114dbe2ddf166c3384614dcbeb40",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "metadata-curator.md": {
+      "hash": "sha256:5adabb2e099e9b9f9c5c363d1e4d635b2fa266dfee6b0ef6971fe657616ab881",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "quality-assessor.md": {
+      "hash": "sha256:13f91320903acacf7052d4a56f9c5f76dbbdbda7df82306724f13437088a1401",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "source-discoverer.md": {
+      "hash": "sha256:24c0b5d87c1eb1bb77c658dfa81fb41838a955bf8c929e177537d09243f99f91",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "accessibility-checker.md": {
+      "hash": "sha256:dbd78efa93200ecc83f0f324f26852c416bc2bff7ad596f38ab6839fba28801b",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "art-director.md": {
+      "hash": "sha256:f5a4c66668e0fa0f19624c98451a6e7124aff7703dcfbec1c4fec0ba3e7d67c8",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "asset-manager.md": {
+      "hash": "sha256:7910bb80d4dd140e7776550536bc7636b6c1f8389cfb0aa95ea80abd69b6cb36",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "attribution-specialist.md": {
+      "hash": "sha256:408a1952e172151ebeb3cf8d0a9feeea8f1896aabc7beb255878221081c9fd90",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "brand-guardian.md": {
+      "hash": "sha256:5536404c153fd7b911cbb026a71038bb0146f384aba5e86413d539e686a65266",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "budget-planner.md": {
+      "hash": "sha256:8581a423a5739d7169117b59a09c64eb890ed882f63faaf63c7769bab083daae",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "campaign-orchestrator.md": {
+      "hash": "sha256:485f8bad3b2645203cd251966bfa0ee3ca53049af28a0f14952a8aef814344d3",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "campaign-strategist.md": {
+      "hash": "sha256:7ff7e3da479a81d54bbbe3f1733e0180da3ee39cfad8d73cb2b9ac58d894644c",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "channel-strategist.md": {
+      "hash": "sha256:2c490f7474f9658bfdb2bb7c4a972a70fff83c71a014e525570723c954254f12",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "content-strategist.md": {
+      "hash": "sha256:21d0442c42addfddd01b7590ddfb16a585b1e8ab63a5fa10a9c1ed5892a90f3e",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "content-writer.md": {
+      "hash": "sha256:787581374dfe061fe9dbeaf6edae5b4945340199cb66cc807c450eba1960ffc5",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "copywriter.md": {
+      "hash": "sha256:0f43018a4485636aa2332459c7660b6edd90ee3c57ddaa467e8eda3e8e96ea92",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "corporate-communications.md": {
+      "hash": "sha256:a5f920d0b01510878b9bd577cd73f424f4e30f41dda3f0fcf03ee04f6f59e0ec",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "creative-director.md": {
+      "hash": "sha256:50af8dd1c414bdc7db7cc657dbd1e2f5f95cc467897cf5443a30aec876c94aca",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "crisis-communications.md": {
+      "hash": "sha256:56b5cbcf10a1a40da288a4fbc7fddf1502b402383d7f42745c8498a3169cdcdd",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "data-analyst.md": {
+      "hash": "sha256:4315725b951a0aa3709b6bd94f4b1f87edee32792c8fdcdf1e3ab6781c0314b5",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "editor.md": {
+      "hash": "sha256:de0f2c867c22790102048eafe28c0ac4708cab05749f5dc75764fea4156aaabb",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "email-marketer.md": {
+      "hash": "sha256:2d20d93b411420ef285b6dd22716bd035d2916c376791a08461ddb1b0389963b",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "graphic-designer.md": {
+      "hash": "sha256:4c06aecfa1a7be96415ad6606796d7a85313829f302c3734e54d618b3952ee46",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "internal-communications.md": {
+      "hash": "sha256:285561ca6d86461cea68e7022100d1db4c23442bf1ecd35b1a90420b9da8310e",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "legal-reviewer.md": {
+      "hash": "sha256:eceeadc9ee60218ee50c46d4b3e7393a94f5a1cd04703e828da85a9891372059",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "market-researcher.md": {
+      "hash": "sha256:493961387b986e104bb1f49e87987bf110e2a7d29e901da06ca964af96693c1e",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "marketing-analyst.md": {
+      "hash": "sha256:840e7f58f3d61898e1afe1bfe2c5cff182e021fcd2740e92c4758b76bd9f191f",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "media-relations.md": {
+      "hash": "sha256:a070912448c671751c2b2b023e4740c7e7ce20585d0fe53411ad4042a11f66a7",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "positioning-specialist.md": {
+      "hash": "sha256:2c244d2ea2bfb568334a17febdd0ef470a043b012ef463ae9b8cb23d84515227",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "pr-specialist.md": {
+      "hash": "sha256:9f90abe035e452f073cf6a0d92f62d39534dbd54ea72ae1f320cd7d29bd45a0e",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "production-coordinator.md": {
+      "hash": "sha256:1a04d450df31550849335f2b468da466b2611b476da29501e134220f06205401",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "project-manager.md": {
+      "hash": "sha256:c5b3f18ae09c45442d35ded45cf9fada0023351b155954d3e27b02e4a2fc094d",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "quality-controller.md": {
+      "hash": "sha256:0f24bcdc302c075298281111162274764d47bd1fa9e2a1521c3a5522798e66e4",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "reporting-specialist.md": {
+      "hash": "sha256:59b7edb1f92edcb97ae3b112d86c431883493327ef38b6c32f27261185c38678",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "scriptwriter.md": {
+      "hash": "sha256:fc30466d146116d07322620bdc8f267e6159e0f67aed12fad6c43af6f6b3ffa0",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "seo-specialist.md": {
+      "hash": "sha256:20d176bcb34d26ffd8bc7104e3c7728f90f17178df575f9419de0ff96d78f139",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "social-media-specialist.md": {
+      "hash": "sha256:6f2e2bf868b1bf025fa8b8089cf397e52293982692a9a31e1c8201c684640b9d",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "technical-marketing-writer.md": {
+      "hash": "sha256:5403fd0b99c11f45e5cd30969aa1828284cca293df45f6abf51b6fee9ced98a0",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "traffic-manager.md": {
+      "hash": "sha256:73eadf4101f696b2348b0df4c31f6ecbffc9bcaaf3ba8861a924a9fbddd076f4",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "video-producer.md": {
+      "hash": "sha256:cd8ea73065485ae0a9243c8fc8ec6f828b71a7a2f7aa0d9e6b6e4465b579624b",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "workflow-coordinator.md": {
+      "hash": "sha256:b11ae4d2cf1e6260e2779d2aa2bca132c2618359b21ddfd1ea6b4ec0e4c52fd1",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "backup-verifier.md": {
+      "hash": "sha256:fcbd3ec4294caea8c67e71fe6d86c3ed0891f739c3619eaf3b0f885127f11a83",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "cert-lifecycle-monitor.md": {
+      "hash": "sha256:ef699b1d88953ef9490006dceb3265be6801b6ed5b809395dec02151f08d218d",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "deployment-manager.md": {
+      "hash": "sha256:8dcb2fe9989b0718d9965a7741e6697c9780a1d3e23c4a1ff313f34587f1b4f1",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "dr-planner.md": {
+      "hash": "sha256:600dc78db531828b94c267aede34e51ac7b0b9c9d422b599dc68422217815c98",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "identity-auditor.md": {
+      "hash": "sha256:f17c43c68100e14f8bdee09a8efa54c96f2632ab8baaebfba1798b7bc16e80d4",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "network-auditor.md": {
+      "hash": "sha256:50c77826030e3b76d9875bd62bf19b0e5820f3b289cfe610554cbe18b5526f09",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "ops-inventory.md": {
+      "hash": "sha256:d30b61be226842886fc6fb8926736bb16bde97d42c93983b2a4c00f6b0e0f591",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "ops-runbook-executor.md": {
+      "hash": "sha256:faffaa611a531d16c71d2bd02b121ec2104ac7d4368110d0c2dc96321f663174",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "pki-operator.md": {
+      "hash": "sha256:d0002896199307024772de3582ef18f243623dec9c832f5401f479f1dae4ef87",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "secret-operator.md": {
+      "hash": "sha256:36d7bea95d6ebdf396813b40eaa24e74df792c13b5a8e38829485d4f40454538",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "stream-health-monitor.md": {
+      "hash": "sha256:85fc3fb2882d97e74f91d4655e8bcc5f7fc39ea0dcee41104aef2c53c9b3c7c3",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "sys-host-profiler.md": {
+      "hash": "sha256:b17e927377bc80fa515f710457f49231ff300096aee21f0af1c9f0bef532cbd0",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "archival-agent.md": {
+      "hash": "sha256:c3d3e775253606bdcae9df0e418a9f960a9fd37213197074ba5a2facaf665b4c",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "citation-agent.md": {
+      "hash": "sha256:e18c41263f70a7ce67a3d021586fc1591648d4122ad1b9935121d4a4ffc79546",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "discovery-agent.md": {
+      "hash": "sha256:2be1ce47b7a3446baff8ddf46fbe1c916ca9ef7ecb9c3de1a549356379820390",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "documentation-agent.md": {
+      "hash": "sha256:a7883ab2a1631ca6437e14493c7e1be1092294826e2f82667e18d88294e3c1fd",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "provenance-agent.md": {
+      "hash": "sha256:84f997c66e169a0a3e5530fcc0a394c8a3765caa8677c2d642e7f0dcd2f96522",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "quality-agent.md": {
+      "hash": "sha256:b23f0b00b8ce7d0d30bf8a799c48a7f11deb7f723716bb7ffa2e9a74ecbbf2be",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "workflow-agent.md": {
+      "hash": "sha256:2a4cb008026ea81da5046fc4e9c459d11c079f163ddaaf8c3acad85d79659994",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "accessibility-specialist.md": {
+      "hash": "sha256:66452ac7a71a0895f49c83acbd746456024b80f630f4b6b608dbabd40c9afe19",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "agentsmith.md": {
+      "hash": "sha256:452ecac2f08e5e6bfa59883eaeb32f1ebb85c8aa484da6c38da21019807ccd9b",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "ai-ml-engineer.md": {
+      "hash": "sha256:2819c2c41397a82180e98d073877f7947bab3c00d2c8d1245d37f356cd475ff2",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "api-designer.md": {
+      "hash": "sha256:4b84966b8cb19dbb2120dfaa4aab05ed58d72e4a927011defe89afcc211666df",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "api-documenter.md": {
+      "hash": "sha256:a62cbd1093ab9f5fabf5f415d3c9f21a83b2876f68e101cfa13639102c1cb77a",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "architecture-designer.md": {
+      "hash": "sha256:98892db9a7568b6953b84438c8a27c66dcc57bd3ab336e8e1dafcb28e945e697",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "architecture-documenter.md": {
+      "hash": "sha256:1240edbf38787cdf5368b4d9709197d568f3ad5358e0a4b33aa385071bedf817",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "aws-specialist.md": {
+      "hash": "sha256:96ccbd07c1b37a444be5de8f70c0c5b21f5f1a631d4892be7856e7ed7f4e46fd",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "azure-specialist.md": {
+      "hash": "sha256:447e318f172b212802e67c5a2799145524b3a9c288fde266a09b212386ed9d30",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "blockchain-developer.md": {
+      "hash": "sha256:798cb90771d927b3059e63c78a9a22efa1f2953c6967bc150c7afe68c1848325",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "build-engineer.md": {
+      "hash": "sha256:43f65b1c03d7855ef561466adadef4ead113c69bebed9a0e1effae4c44bb3127",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "business-process-analyst.md": {
+      "hash": "sha256:e1880e711eed5ae9abb85ca970a94368649c94d54d0e759949fa8ac842499415",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "citation-verifier.md": {
+      "hash": "sha256:c2b2c4477f294fbecac9a4d35eb7135d19fd5d07c7b6f0d1e24065c5202981e4",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "cloud-architect.md": {
+      "hash": "sha256:228e40963568e60de30ea5aca644730d2d15c67200cf782bc76d0af292257e18",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "code-reviewer.md": {
+      "hash": "sha256:2f8bcd0b3338f9e8aa6abd2eadceb6f478c3764fcec97fe7ed1831b299f3bc7d",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "commandsmith.md": {
+      "hash": "sha256:578fb9b93e36141c3564313c8382448571755c62f4618ad81af7ff238f81da2e",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "compliance-checker.md": {
+      "hash": "sha256:4029d4a361551496bb8f864ffecc7044c39b21fcd02d6afc82f94cc23b6eec27",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "compliance-grounding-agent.md": {
+      "hash": "sha256:8511763d0585bafee7ea75c84144ce165eddc3358be141c16837920df3e42448",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "component-owner.md": {
+      "hash": "sha256:4855fc83ab1e4dec92de9fcc951e5231b8c243420d08335ef90896e08eb18b86",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "configuration-manager.md": {
+      "hash": "sha256:c8deb913f34b8059f3f2a0377c6bee8e2982340aa5331a16729d6c8a85e75b87",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "context-librarian.md": {
+      "hash": "sha256:7057ff65a4674129d6d663661ed0292f700b2aaac46587cec48a217ccc59a5e0",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "cost-optimizer.md": {
+      "hash": "sha256:511a6f8acd6755bcd22a8b28b0ffaa087e5bd49bdc063216ac054ea96d4fbed1",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "data-engineer.md": {
+      "hash": "sha256:12672dc6b4c3777a6a4a8ae29f63fb35e7e9363e7e41786d6fafb9525598380b",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "database-optimizer.md": {
+      "hash": "sha256:4ada1f908fbe08d7a18a4b8f9fea6596caf76612d24c95b1fbbfacd66626e7c8",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "dead-code-analyzer.md": {
+      "hash": "sha256:6d6b54eaa3759ad0ee8608272e10d16d76a14db24dc3a2e19ed3378ee8b66c1a",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "debugger.md": {
+      "hash": "sha256:618affa707c5f1fbf1c312063874c2c37e388be29b85a7aa49ba0630772afd54",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "decision-matrix-expert.md": {
+      "hash": "sha256:928bbc4fa91bc845cdcdc07d7588cf627fe24ebdf7838ce8244dc6a28b988ac8",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "devops-engineer.md": {
+      "hash": "sha256:b8dca8378d59781a651d67d679aae24e17c3e8cd50516abcee17f8182c256c23",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "django-expert.md": {
+      "hash": "sha256:ea1e1a9ad70bf09d228468352a5774aa252d14c05e5d1498e61fb2e1845b2a62",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "documentation-archivist.md": {
+      "hash": "sha256:de4f69dbef0e97b5375b4b3c8b667363ecb54485ecc4acdb7403fbbc778feac1",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "documentation-synthesizer.md": {
+      "hash": "sha256:d0b16802bd0c23f1ab5077c8eb474299a62df5bd4ad77b15424c5178b6119229",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "domain-expert.md": {
+      "hash": "sha256:cd7c799bcd1f20c18c1ca92c30ba094b56511947e1f3e0ca9a36b41b435e7574",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "environment-engineer.md": {
+      "hash": "sha256:2a3536f5fc443658322d524fb069c212d96baacbaef91c0746e40eef7ccbad77",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "executive-orchestrator.md": {
+      "hash": "sha256:3772c6e1a077e9641d6edc93d32656149f67d930df14ab949de5a9831ab86483",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "frontend-specialist.md": {
+      "hash": "sha256:196d999dd0de9f4746d8a9ebfb49a638e81192d21b2e1efad41c1231656ebcd7",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "gcp-specialist.md": {
+      "hash": "sha256:e6f6b0e97e7dddd8b61f0b238b9ee830bbc103188a763394f223086d5efb93ef",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "incident-responder.md": {
+      "hash": "sha256:8ead2ca446b7ebe5c52f5ef4b9e17b3211c6f47758de7ad67b4b87ef5bb0c3d4",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "intake-coordinator.md": {
+      "hash": "sha256:02852d36af71a7ffb5f4b97e1778df8cb4a7e4cece750d3002ee50f594024e61",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "integration-engineer.md": {
+      "hash": "sha256:29e62c6c8add7ab0892e11eab593adee19896f7148fd52813fdd020b229568a3",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "kubernetes-expert.md": {
+      "hash": "sha256:9b15754ebdbcec4b101c6eb013af0fb46f989188f01e29045ad9426d922ef289",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "laziness-detector.md": {
+      "hash": "sha256:f1f99912ba296fbdca581cc4f955425fc5de60161ed73ea11e59e7051a0deaf0",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "legacy-modernizer.md": {
+      "hash": "sha256:aad454b4ea5cef328db7bd74555c2c4564afb71ccadafabe12007ffb4da80576",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "legal-liaison.md": {
+      "hash": "sha256:2df75b741b957c470ce9de100f80b577ba3ffe0078274113ba1d5a00ba71e63e",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "mcpsmith.md": {
+      "hash": "sha256:ee743071a3d8b33147dd30de2db1522e3846ccf25b6f77a2a156ac8dbe9ae4bb",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "metrics-analyst.md": {
+      "hash": "sha256:dbbf4b344e04c87beda7ace4fc1013cd6891d269e595ec4844107be440ca1515",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "migration-planner.md": {
+      "hash": "sha256:be4173f4aa2be2a0f7de89d4a89eff674490beea854ba9b8939449ca59a0416b",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "mobile-developer.md": {
+      "hash": "sha256:a5d4116f44ca7d242e2d2deb8ccf6bb870ce67a932c0910565fda051bf1845b5",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "multi-cloud-strategist.md": {
+      "hash": "sha256:d0a4e0caab66a8a14b93cb86b4c7ed55e0888561d38f7511f78f767c4358c758",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "mutation-analyst.md": {
+      "hash": "sha256:c9639fb24ce87195a896c3796e26e44f561f475d7bbec3a128832d01692c64ff",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "performance-engineer.md": {
+      "hash": "sha256:0f6d1f73f1cf17f041b41ee2f5910e4ccd941dd12b5e54d69ddb352c59d739d0",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "performance-grounding-agent.md": {
+      "hash": "sha256:6b02c642626dfcacf5ffd9bad8869d33ea1d9253ae7572b01349d1dc759d9147",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "privacy-officer.md": {
+      "hash": "sha256:054dbe40d8e719c888162d4e22e4fb5921e0648922eff69acfdcfbe6e650f1f5",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "product-designer.md": {
+      "hash": "sha256:81520b5c00c31b7cfc8a42a79ac655339a387097ee5018707c4314ba03364364",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "product-strategist.md": {
+      "hash": "sha256:e833a28d9ff7f513acee4a8469d889d57907730c97499d8d1b30fcaeae425b3d",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "progress-tracker.md": {
+      "hash": "sha256:fcd18e1e4c076615d53e9b138933f07c0d8adf7c409aecbd6203e0f1a82952de",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "prompt-reinforcement.md": {
+      "hash": "sha256:8f5b06b78c836087b57a1dabef099be628184a32170c23813534fb0ea98c200e",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "provenance-manager.md": {
+      "hash": "sha256:41176c734fa41af6327d775f543f4cb3ca8752a7681b411f03c7cd8b91444fd7",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "raci-expert.md": {
+      "hash": "sha256:840c27e96be7863e18f8b41c66c9d5e6dce7dbc6b8e4a9595ebea6940ef0e00d",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "react-expert.md": {
+      "hash": "sha256:68f9b30d5b5e05fc1ace1d4c43f9f6b82365fdb27144ff380ac2804e5b195ce6",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "recovery-orchestrator.md": {
+      "hash": "sha256:97fd4563c39bcf4a6a4ad1152b80e6089222cd739d00675195344d6c31fdeed2",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "regression-analyst.md": {
+      "hash": "sha256:cc00d1310f2e427453428b178fa42d85c8cca778128224e8a8bb5d9a8daea03e",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "reliability-engineer.md": {
+      "hash": "sha256:0915df52adbf7b6dcd206ac7953376d2c6195598bf75b318faf309fd7cf3946c",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "requirements-analyst.md": {
+      "hash": "sha256:8bc82ec9f7f81f3c2ea7d36065b05012e7e889e1199e8d9145125e262158819e",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "requirements-documenter.md": {
+      "hash": "sha256:78f11cb5379644a4830e4abd31e7cf72ac313164d3d952b59b30466ba2d3e2bc",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "requirements-reviewer.md": {
+      "hash": "sha256:ec3e358304f479fe3b63743d4678261f1e02e1640031ed5e3c34e7fe59a15a7d",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "security-architect.md": {
+      "hash": "sha256:eae581f03ed0e23f53275c37fdf4c92759bfb265d408b96b1d5e1589d73b4d26",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "security-auditor.md": {
+      "hash": "sha256:97c5eacd3a71e5b079b62e947e6e00910ca3127d79db64b85c93d10393216c82",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "security-gatekeeper.md": {
+      "hash": "sha256:8dad3e22ee5521686f8cddf551aad838814a567acd614cadd7297d01addcf44a",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "security-grounding-agent.md": {
+      "hash": "sha256:60f3f5f91b78c220eadee1b7b7c62d2ef26445e995dd5f111544c2f731622526",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "skillsmith.md": {
+      "hash": "sha256:ea5e3b146ba0cc90672638a95412fe7e27742e2b806d31c9c38f4421725bcf90",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "software-implementer.md": {
+      "hash": "sha256:ba45be3b6018a28d0ba7f0d1f586c4eccb09519ca1eb6692e099b9f3608d6906",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "spring-boot-expert.md": {
+      "hash": "sha256:2050a15e639eb01a02413123b7cb241332a38209ebb20a177ea56c00f8e3084f",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "support-lead.md": {
+      "hash": "sha256:8c17375129d0f357fc5693d753623353c21084ae81c3ca4b4b56c31250d7867b",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "system-analyst.md": {
+      "hash": "sha256:7f46955a2dafc176178011a2cb4f94db600d5f824c443bf0d298e420f607f98a",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "technical-debt-analyst.md": {
+      "hash": "sha256:f8291478f4863236ce929a7da629d934870e32c7f5866381d59acdb7e0e95ebc",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "technical-researcher.md": {
+      "hash": "sha256:510f66200518a1763c73c88e691d78a353ed37551e1ea0de51737c62c26c0d15",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "technical-writer.md": {
+      "hash": "sha256:2d72db443678145991fc297f61620d73d959e4bd76d442c060a7101e3430523b",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "technology-grounding-agent.md": {
+      "hash": "sha256:7ad22082babdc5076373f3afec02c57c11304f4f11cda4c7370ecd5a13fd0256",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "test-architect.md": {
+      "hash": "sha256:e6acc2fb0994846e7f2e276bcb456ce71380effd9bdf4e8f46e41d5f8a1d7df9",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "test-documenter.md": {
+      "hash": "sha256:ed3b9486a6c6703470c6520c3599050802af4248414182984e37c858748a1cc8",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "test-engineer.md": {
+      "hash": "sha256:d2a0d7dda473060f118342f01923befab57ffa768523fe60e092baaa7b59dbac",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "toolsmith-dynamic.md": {
+      "hash": "sha256:e36f1e51bb40c6668ead2e1fc8195d6ea5c286b941018ae99775ea68d4d69a22",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "toolsmith-provider.md": {
+      "hash": "sha256:b0ea2667603298ca4e1798db20bc1162bd98bb08bb4cf9387cdf1720bc03feff",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "toolsmith.md": {
+      "hash": "sha256:694d7b287eca2d20c94809c39ac5fff851f274c7799136ffb72a1ad169c09ba8",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "traceability-manager.md": {
+      "hash": "sha256:a19038c823cfa661601b37f18d23a526037aff6d5ad81f7228578ba83c5633b2",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "ux-lead.md": {
+      "hash": "sha256:e0bc15a1ee050dac9db64b5a7be4a8e0b07e20a4546d05a2b3abb77c1ee2ab98",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "vision-owner.md": {
+      "hash": "sha256:26a88630bb9547f20cdd9eab97846db70a0f689f23640a3d9eebc09ccf81e35f",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "mc-conductor.md": {
+      "hash": "sha256:7422663bdf19330441318a903d94fe28368f1ef8342b28b783c943fdcf58e38e",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "ralph-loop.md": {
+      "hash": "sha256:bec3e40e231d93b05a1d1ba21faaec3aa256a96d5ccdd55b32fa00cf76d4318c",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "ralph-verifier.md": {
+      "hash": "sha256:87297f5bd9bf5666cca06e57faf187715de915229091bbd90bb4a86930d4ebbf",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "installer-agent.md": {
+      "hash": "sha256:a9b6d6b2a8a35adc4fe55c05755de0fc220f08a5cc81b84f467543dbe6d7b5ae",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "aiwg-developer.md": {
+      "hash": "sha256:630a2ec5232dc609c40f9e797070b01695d61b3eea0a7cd0dd49eb35b292b018",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "aiwg-steward.md": {
+      "hash": "sha256:da00e5b205512cdb162867e5dab773b92304d391913737f777b776ed2d97efe5",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "consortium-coordinator.md": {
+      "hash": "sha256:701b50d54cab77525bc6375c9f7e5a1bf779e645f775caec4aecf21fc38fbbd0",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "context-regenerator.md": {
+      "hash": "sha256:1a681324d009134b42d919e6122c76bf99c88d346151073c891998616b68d44d",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "self-debug.md": {
+      "hash": "sha256:079dfadb01457b46184539805bbbd7d3300904268d3c7f89b31cbdf484c6ab64",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "context-curator.md": {
+      "hash": "sha256:e5a72f9b57954f6b72f74aa93c88c0666187f31e66ec2ea3f4f55c8fbe1596cc",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "concierge.md": {
+      "hash": "sha256:b48401c5e663e3faca8b34df9dc4640b578f1c3efa4ad7617da390521a4268e8",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "doc-analyst.md": {
+      "hash": "sha256:be06a0317d78f4f41b15198d6b468f3087005c6f3ec6205ba003397be48791ca",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "cost-analyst.md": {
+      "hash": "sha256:e903c2a6f996508d06d2b956a6be19100022bbeea061998ff5bdd5ceb86f0e82",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "eval-reviewer.md": {
+      "hash": "sha256:3eeeba9d23f143a01b7475343c6ed517408851873b1eb617671f3f14ae144587",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "pipeline-architect.md": {
+      "hash": "sha256:59b96fc2738f46b9e9636358deba2a9743925965970cad47096e296b56f27f1d",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "prompt-engineer.md": {
+      "hash": "sha256:a14995583cc17d9c442fb5dcc8faba5bce387425b338943061492d0058b70fe8",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "rlm-agent.md": {
+      "hash": "sha256:76647aa917c46cce73238a615137917896aceb49adb93358c2a6ad96599e7c56",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "skill-architect.md": {
+      "hash": "sha256:c6a775dab66ba87e1688cae8b585578d122520941e50dc7294fa21eaa3a07cc0",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "uat-executor.md": {
+      "hash": "sha256:d619e80c0e70c2e2ac8bf4c5e60d611af861cc3f41b7cbf4ad6cf6c4baf2ecbd",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "uat-planner.md": {
+      "hash": "sha256:39b74fbd749f20d8e2dbcaa93bef11f4e3fa915f498d9c4b25bfa162b1f657c7",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "content-diversifier.md": {
+      "hash": "sha256:61ab176f42121fef37bcd2b1a33a68d01d1a07613f27cb224dd05320a23a6350",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "prompt-optimizer.md": {
+      "hash": "sha256:eac1679daab2e3b28c6aa8ef5fcf54f9d1d038429bf9102e04d532aa93f9591b",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "writing-validator.md": {
+      "hash": "sha256:3ed8dfef3445d0985dae818c0cde7a0c6ef901dfa6185b3cd7cd229ae458d6d0",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    }
+  }
+}

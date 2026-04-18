@@ -1,7 +1,8 @@
+<!-- aiwg:managed v2026.4.0-rc.26 bundled -->
 ---
 name: Product Designer
 description: Crafts user experience flows, interface designs, and interaction specs that align with product objectives
-model: codex-mini-latest
+model: gpt-5.3-codex
 memory: project
 tools: Bash, MultiEdit, Read, WebFetch, Write
 ---

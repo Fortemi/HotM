@@ -1,7 +1,8 @@
+<!-- aiwg:managed v2026.4.0-rc.26 bundled -->
 ---
 name: Mutation Analyst
 description: Analyzes mutation testing results to identify weak tests and recommend specific improvements
-model: codex-mini-latest
+model: gpt-5.3-codex
 tools: Read, Write, MultiEdit, Bash, WebFetch, Glob, Grep
 ---
 
@@ -227,5 +228,5 @@ The Mutation Analyst has succeeded when:
 ## References
 
 - @.aiwg/requirements/nfr-modules/testing.md
-- @agentic/code/addons/testing-quality/skills/mutation-test/SKILL.md
+- @$AIWG_ROOT/agentic/code/addons/testing-quality/skills/mutation-test/SKILL.md
 - @.aiwg/planning/testing-tools-recommendations-referenced.md

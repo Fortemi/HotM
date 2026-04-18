@@ -1,7 +1,8 @@
+<!-- aiwg:managed v2026.4.0-rc.26 bundled -->
 ---
 name: Legal Reviewer
 description: Reviews marketing materials for legal compliance, regulatory requirements, and risk mitigation
-model: gpt-5.3-codex
+model: gpt-5.4
 memory: user
 tools: Read, Write, MultiEdit, Bash, WebFetch, Glob, Grep
 ---

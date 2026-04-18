@@ -1,7 +1,8 @@
+<!-- aiwg:managed v2026.4.0-rc.26 bundled -->
 ---
 name: Regression Analyst
 description: Detects, analyzes, and prevents regressions by comparing versions, identifying behavioral changes, and recommending guardrails
-model: codex-mini-latest
+model: gpt-5.3-codex
 tools: Bash, Glob, Grep, Read, Write, MultiEdit
 ---
 
@@ -431,9 +432,8 @@ Use explicit thought types when:
 - Tracing dependency impacts
 - Formulating prevention recommendations
 
-See @.claude/rules/thought-protocol.md for complete thought type definitions.
-See @.claude/rules/tao-loop.md for Thought-Action-Observation integration.
-See @.aiwg/research/findings/REF-018-react.md for research foundation.
+See @$AIWG_ROOT/agentic/code/frameworks/sdlc-complete/rules/thought-protocol.md for complete thought type definitions.
+See @$AIWG_ROOT/agentic/code/frameworks/sdlc-complete/rules/tao-loop.md for Thought-Action-Observation integration.
 
 ## Executable Feedback Protocol
 
@@ -447,7 +447,7 @@ When analyzing regressions, validate findings through execution:
 
 **Never report a regression without reproducing it first.**
 
-See @.claude/rules/executable-feedback.md for complete requirements.
+See @$AIWG_ROOT/agentic/code/frameworks/sdlc-complete/rules/executable-feedback.md for complete requirements.
 
 ## Few-Shot Examples
 
@@ -1172,9 +1172,9 @@ The Regression Analyst has succeeded when:
 ## References
 
 - @.aiwg/research/findings/REF-013-metagpt.md - Debug memory and executable feedback patterns
-- @agentic/code/frameworks/sdlc-complete/templates/test/regression-test-set-card.md - Regression test documentation
-- @agentic/code/frameworks/sdlc-complete/agents/test-engineer.md - Test implementation collaboration
-- @agentic/code/frameworks/sdlc-complete/agents/mutation-analyst.md - Mutation testing for test quality
-- @agentic/code/frameworks/sdlc-complete/agents/debugger.md - Root cause analysis techniques
-- @.claude/rules/executable-feedback.md - Execution validation requirements
-- @.claude/rules/thought-protocol.md - Structured reasoning approach
+- @$AIWG_ROOT/agentic/code/frameworks/sdlc-complete/templates/test/regression-test-set-card.md - Regression test documentation
+- @$AIWG_ROOT/agentic/code/frameworks/sdlc-complete/agents/test-engineer.md - Test implementation collaboration
+- @$AIWG_ROOT/agentic/code/frameworks/sdlc-complete/agents/mutation-analyst.md - Mutation testing for test quality
+- @$AIWG_ROOT/agentic/code/frameworks/sdlc-complete/agents/debugger.md - Root cause analysis techniques
+- @$AIWG_ROOT/agentic/code/frameworks/sdlc-complete/rules/executable-feedback.md - Execution validation requirements
+- @$AIWG_ROOT/agentic/code/frameworks/sdlc-complete/rules/thought-protocol.md - Structured reasoning approach

@@ -1,7 +1,8 @@
+<!-- aiwg:managed v2026.4.0-rc.26 bundled -->
 ---
 name: CommandSmith
 description: Creates slash command definitions on-demand and deploys them to platform directories for immediate use
-model: codex-mini-latest
+model: gpt-5.3-codex
 memory: project
 tools: Read, Write, Glob, Grep
 category: smithing
@@ -293,7 +294,5 @@ Registered in catalog with tags: [lint, eslint, code-quality]
 
 ## References
 
-- @.aiwg/smiths/agentic-definition.yaml - Platform capabilities
-- @.aiwg/smiths/commandsmith/catalog.yaml - Command registry
-- @docs/smithing/agentic-smiths.md - Full documentation
-- @agentic/code/frameworks/sdlc-complete/commands/ - Example commands
+- @$AIWG_ROOT/docs/smithing/agentic-smiths.md - Full documentation
+- @$AIWG_ROOT/agentic/code/frameworks/sdlc-complete/commands/ - Example commands

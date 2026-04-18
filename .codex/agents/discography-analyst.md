@@ -1,8 +1,9 @@
+<!-- aiwg:managed v2026.4.0-rc.26 bundled -->
 ---
 name: Discography Analyst
 description: Researches artist discographies, identifies creative eras, and recommends catalog structure
 category: media-curator
-model: codex-mini-latest
+model: gpt-5.3-codex
 allowed-tools: WebSearch, WebFetch, Read, Write, Bash
 ---
 
@@ -416,4 +417,4 @@ The Discography Analyst feeds structured YAML to downstream agents:
 ---
 
 *Part of the AIWG Media Curator Framework*
-*See @agentic/code/frameworks/media-curator/README.md for complete framework documentation*
+*See @$AIWG_ROOT/agentic/code/frameworks/media-curator/README.md for complete framework documentation*

@@ -1,7 +1,8 @@
+<!-- aiwg:managed v2026.4.0-rc.26 bundled -->
 ---
 name: Quality Agent
 description: Assess source quality using GRADE framework, validate FAIR compliance, generate quality reports, and enforce quality gates
-model: codex-mini-latest
+model: gpt-5.3-codex
 tools: Bash, Glob, Grep, Read, WebFetch, Write
 ---
 
@@ -406,22 +407,22 @@ Use explicit thought types when:
 
 This protocol improves assessment rigor and transparency.
 
-See @.claude/rules/thought-protocol.md for complete thought type definitions.
-See @.claude/rules/tao-loop.md for Thought→Action→Observation integration.
+See @$AIWG_ROOT/agentic/code/frameworks/sdlc-complete/rules/thought-protocol.md for complete thought type definitions.
+See @$AIWG_ROOT/agentic/code/frameworks/sdlc-complete/rules/tao-loop.md for Thought→Action→Observation integration.
 See @.aiwg/research/findings/REF-018-react.md for research foundation.
 
 ## Provenance Tracking
 
-After generating or modifying any artifact (quality reports, aggregate summaries), create a provenance record per @.claude/rules/provenance-tracking.md:
+After generating or modifying any artifact (quality reports, aggregate summaries), create a provenance record per @$AIWG_ROOT/agentic/code/frameworks/sdlc-complete/rules/provenance-tracking.md:
 
-1. **Create provenance record** - Use @agentic/code/frameworks/sdlc-complete/schemas/provenance/prov-record.yaml format
+1. **Create provenance record** - Use @$AIWG_ROOT/agentic/code/frameworks/sdlc-complete/schemas/provenance/prov-record.yaml format
 2. **Record Entity** - The artifact path as URN (`urn:aiwg:artifact:<path>`) with content hash
 3. **Record Activity** - Type (`quality_assessment`, `fair_validation`) with timestamps
 4. **Record Agent** - This agent (`urn:aiwg:agent:quality-agent`) with tool version
 5. **Document derivations** - Link report to source metadata (`@source`) as `wasDerivedFrom`
 6. **Save record** - Write to `.aiwg/research/provenance/records/<artifact-name>.prov.yaml`
 
-See @agentic/code/frameworks/research-complete/agents/provenance-agent.md for the Provenance Agent.
+See @$AIWG_ROOT/agentic/code/frameworks/research-complete/agents/provenance-agent.md for the Provenance Agent.
 
 ## Few-Shot Examples
 
@@ -802,9 +803,9 @@ Q1 (25th): 68
 
 ## References
 
-- @.aiwg/flows/research-framework/elaboration/use-cases/UC-RF-006-assess-source-quality.md
-- @.aiwg/flows/research-framework/elaboration/agents/quality-agent-spec.md
-- @.claude/rules/provenance-tracking.md
-- @.claude/rules/thought-protocol.md
+- @$AIWG_ROOT/agentic/code/frameworks/research-complete/elaboration/use-cases/UC-RF-006-assess-source-quality.md
+- @$AIWG_ROOT/agentic/code/frameworks/research-complete/elaboration/agents/quality-agent-spec.md
+- @$AIWG_ROOT/agentic/code/frameworks/sdlc-complete/rules/provenance-tracking.md
+- @$AIWG_ROOT/agentic/code/frameworks/sdlc-complete/rules/thought-protocol.md
 - [GRADE Framework](https://www.gradeworkinggroup.org/)
 - [FAIR Principles](https://www.go-fair.org/fair-principles/)

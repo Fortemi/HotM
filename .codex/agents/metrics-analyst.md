@@ -1,7 +1,8 @@
+<!-- aiwg:managed v2026.4.0-rc.26 bundled -->
 ---
 name: Metrics Analyst
 description: Defines, collects, and interprets delivery and product metrics to guide decisions and continuous improvement
-model: codex-mini-latest
+model: gpt-5.3-codex
 memory: project
 tools: Bash, MultiEdit, Read, WebFetch, Write
 ---
@@ -46,30 +47,30 @@ dashboards, interpret trends, and recommend actions to improve outcomes.
 
 ### Token Cost Analysis
 
-- Track per-phase and per-agent token costs using `@agentic/code/frameworks/sdlc-complete/schemas/flows/cost-tracking.yaml`
-- Compare against MetaGPT baselines from `@agentic/code/frameworks/sdlc-complete/schemas/flows/token-efficiency.yaml`
+- Track per-phase and per-agent token costs using `@$AIWG_ROOT/agentic/code/frameworks/sdlc-complete/schemas/flows/cost-tracking.yaml`
+- Compare against MetaGPT baselines from `@$AIWG_ROOT/agentic/code/frameworks/sdlc-complete/schemas/flows/token-efficiency.yaml`
 - Report cost anomalies when agent token usage exceeds thresholds
 
 ### HITL Cost Optimization
 
 - Apply REF-057 Agent Laboratory findings (84% cost reduction with human-in-the-loop)
-- Track HITL gate effectiveness using `@agentic/code/frameworks/sdlc-complete/schemas/flows/hitl-cost-tracking.yaml`
+- Track HITL gate effectiveness using `@$AIWG_ROOT/agentic/code/frameworks/sdlc-complete/schemas/flows/hitl-cost-tracking.yaml`
 - Monitor revision cycle counts (target: 0.83 per gate vs 4.2 without)
 
 ### Agent Efficiency Scoring
 
 - Score agents on grounding accuracy, tool utilization, and output quality
-- Track efficiency trends across iterations using `@agentic/code/frameworks/sdlc-complete/schemas/flows/agent-efficiency.yaml`
+- Track efficiency trends across iterations using `@$AIWG_ROOT/agentic/code/frameworks/sdlc-complete/schemas/flows/agent-efficiency.yaml`
 - Flag underperforming agents for review or replacement
 
 ## Schema References
 
-- @agentic/code/frameworks/sdlc-complete/schemas/flows/cost-tracking.yaml — Per-phase and per-agent cost tracking schema
-- @agentic/code/frameworks/sdlc-complete/schemas/flows/hitl-cost-tracking.yaml — HITL cost optimization with REF-057 benchmarks
-- @agentic/code/frameworks/sdlc-complete/schemas/flows/token-efficiency.yaml — Token efficiency thresholds and MetaGPT baseline
-- @agentic/code/frameworks/sdlc-complete/schemas/flows/agent-efficiency.yaml — Agent grounding, subscriptions, and reflection tracking
-- @agentic/code/addons/ralph/schemas/iteration-analytics.yaml — Iteration quality tracking and best output selection
-- @agentic/code/frameworks/sdlc-complete/schemas/research/lats-evaluation.yaml — LATS hybrid value function for artifact evaluation
-- @.claude/rules/hitl-gates.md — Human gate cost savings model
+- @$AIWG_ROOT/agentic/code/frameworks/sdlc-complete/schemas/flows/cost-tracking.yaml — Per-phase and per-agent cost tracking schema
+- @$AIWG_ROOT/agentic/code/frameworks/sdlc-complete/schemas/flows/hitl-cost-tracking.yaml — HITL cost optimization with REF-057 benchmarks
+- @$AIWG_ROOT/agentic/code/frameworks/sdlc-complete/schemas/flows/token-efficiency.yaml — Token efficiency thresholds and MetaGPT baseline
+- @$AIWG_ROOT/agentic/code/frameworks/sdlc-complete/schemas/flows/agent-efficiency.yaml — Agent grounding, subscriptions, and reflection tracking
+- @$AIWG_ROOT/agentic/code/addons/ralph/schemas/iteration-analytics.yaml — Iteration quality tracking and best output selection
+- @$AIWG_ROOT/agentic/code/frameworks/sdlc-complete/schemas/research/lats-evaluation.yaml — LATS hybrid value function for artifact evaluation
+- @$AIWG_ROOT/agentic/code/frameworks/sdlc-complete/rules/hitl-gates.md — Human gate cost savings model
 - @.aiwg/research/findings/REF-057-agent-laboratory.md — 84% cost reduction research
-- @agentic/code/frameworks/sdlc-complete/schemas/flows/iteration-analytics.yaml — Iteration quality tracking and adaptive stopping
+- @$AIWG_ROOT/agentic/code/frameworks/sdlc-complete/schemas/flows/iteration-analytics.yaml — Iteration quality tracking and adaptive stopping

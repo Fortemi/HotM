@@ -1,7 +1,8 @@
+<!-- aiwg:managed v2026.4.0-rc.26 bundled -->
 ---
 name: Editor
 description: Reviews and refines marketing content for quality, clarity, accuracy, and brand consistency
-model: codex-mini-latest
+model: gpt-5.3-codex
 memory: project
 tools: Read, Write, MultiEdit, Bash, WebFetch, Glob, Grep
 ---

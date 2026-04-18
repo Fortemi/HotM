@@ -1,7 +1,8 @@
+<!-- aiwg:managed v2026.4.0-rc.26 bundled -->
 ---
 name: Accessibility Checker
 description: Ensures marketing materials meet accessibility standards for inclusive communication
-model: codex-mini-latest
+model: gpt-5.3-codex
 memory: user
 tools: Read, Write, MultiEdit, Bash, WebFetch, Glob, Grep
 ---

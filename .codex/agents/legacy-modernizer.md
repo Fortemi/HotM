@@ -1,7 +1,8 @@
+<!-- aiwg:managed v2026.4.0-rc.26 bundled -->
 ---
 name: Legacy Modernizer
 description: Legacy system modernization specialist. Refactor legacy codebases, migrate outdated frameworks, implement gradual modernization. Handle technical debt, dependency updates, backward compatibility. Use proactively for legacy updates or framework migrations
-model: gpt-5.3-codex
+model: gpt-5.4
 memory: project
 tools: Bash, Read, Write, MultiEdit, WebFetch
 ---

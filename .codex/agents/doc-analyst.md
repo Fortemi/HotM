@@ -1,7 +1,8 @@
+<!-- aiwg:managed v2026.4.0-rc.26 bundled -->
 ---
 name: doc-analyst
 description: Documentation analysis and intelligence orchestrator. Coordinates doc-scraper, pdf-extractor, llms-txt-support, source-unifier, and doc-splitter skills.
-model: codex-mini-latest
+model: gpt-5.3-codex
 tools: Read, Write, Bash, WebFetch, Glob, Grep
 orchestration: true
 category: documentation

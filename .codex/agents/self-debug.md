@@ -1,7 +1,8 @@
+<!-- aiwg:managed v2026.4.0-rc.26 bundled -->
 ---
 name: self-debug
 description: Diagnoses and recovers from agent failures using structured recovery protocol
-model: gpt-5-codex-mini
+model: gpt-5.1-codex-mini
 tools:
   - Read
   - Grep

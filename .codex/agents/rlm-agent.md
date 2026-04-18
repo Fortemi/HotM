@@ -1,9 +1,10 @@
+<!-- aiwg:managed v2026.4.0-rc.26 bundled -->
 ---
 id: rlm-agent
 name: Recursive Language Model Agent
 role: orchestrator
 tier: reasoning
-model: gpt-5.3-codex
+model: gpt-5.4
 description: Handles long-context tasks through recursive decomposition and programmatic environment interaction
 allowed-tools: Read, Grep, Glob, Bash, Task, Write, Edit
 ---
@@ -565,7 +566,7 @@ ACTION: Write
 
     ## Recommendations for AIWG
 
-    1. **Ralph loops**: Episodic memory (Reflexion pattern) - already implemented
+    1. **Agent loops**: Episodic memory (Reflexion pattern) - already implemented
     2. **Long sessions**: Working memory (MemGPT-style paging) - planned
     3. **Cross-session**: Semantic memory (embeddings) - future work
     4. **Large corpora**: Hybrid (RLM pattern) - this agent!
@@ -642,12 +643,12 @@ advanced_rlm_config:
 
 ## Integration with AIWG Components
 
-### With Ralph Loops
+### With Agent Loops
 
-RLM agents can operate within Ralph iterations:
-- Ralph loop calls RLM agent for complex sub-tasks
+RLM agents can operate within Al iterations:
+- Agent loop calls RLM agent for complex sub-tasks
 - RLM agent maintains state in `.aiwg/rlm/tasks/{task-id}/`
-- Ralph verifies completion via existence of `final-result.md`
+- Al verifies completion via existence of `final-result.md`
 
 ### With Agent Supervisor
 
@@ -770,7 +771,7 @@ AIWG mitigations:
 ## Collaboration
 
 Works with:
-- **ralph-loop**: RLM agent can execute within Ralph iterations
+- **ralph-loop**: RLM agent can execute within Al iterations
 - **agent-supervisor**: Routes long-context tasks to RLM agent
 - **software-implementer**: RLM discovers files, implementer makes changes
 - **test-engineer**: RLM finds test gaps, test-engineer writes tests
@@ -835,19 +836,19 @@ Artifacts:
 
 ## Schema References
 
-- @agentic/code/addons/rlm/schemas/rlm-task-state.yaml - Task state tracking
-- @agentic/code/addons/rlm/schemas/rlm-config.yaml - Configuration options
-- @agentic/code/addons/rlm/schemas/rlm-trajectory.yaml - Execution trajectory format
-- @agentic/code/addons/rlm/schemas/cost-tracking.yaml - Sub-call cost tracking
+- @$AIWG_ROOT/agentic/code/addons/rlm/schemas/rlm-task-state.yaml - Task state tracking
+- @$AIWG_ROOT/agentic/code/addons/rlm/schemas/rlm-config.yaml - Configuration options
+- @$AIWG_ROOT/agentic/code/addons/rlm/schemas/rlm-trajectory.yaml - Execution trajectory format
+- @$AIWG_ROOT/agentic/code/addons/rlm/schemas/cost-tracking.yaml - Sub-call cost tracking
 
 ## References
 
 - @.aiwg/research/findings/REF-089-recursive-language-models.md - Research foundation
-- @.claude/rules/research-before-decision.md - Environment-first pattern validation
-- @.claude/rules/subagent-scoping.md - Delegation depth limits
-- @.claude/rules/tao-loop.md - Structurally equivalent to RLM REPL loop
-- @agentic/code/addons/ralph/agents/ralph-loop.md - Iterative execution framework
-- @tools/daemon/agent-supervisor.mjs - Task routing to RLM agent
-- @tools/daemon/task-store.mjs - Persistent state management
+- @$AIWG_ROOT/agentic/code/addons/aiwg-utils/rules/research-before-decision.md - Environment-first pattern validation
+- @$AIWG_ROOT/agentic/code/addons/aiwg-utils/rules/subagent-scoping.md - Delegation depth limits
+- @$AIWG_ROOT/agentic/code/frameworks/sdlc-complete/rules/tao-loop.md - Structurally equivalent to RLM REPL loop
+- @$AIWG_ROOT/agentic/code/addons/ralph/agents/ralph-loop.md - Iterative execution framework
+- @$AIWG_ROOT/tools/daemon/agent-supervisor.mjs - Task routing to RLM agent
+- @$AIWG_ROOT/tools/daemon/task-store.mjs - Persistent state management
 - Issue #321 - AIWG RLM Addon Epic
 - Issue #322 - Core RLM addon implementation

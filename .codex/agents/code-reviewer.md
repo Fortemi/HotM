@@ -1,7 +1,8 @@
+<!-- aiwg:managed v2026.4.0-rc.26 bundled -->
 ---
 name: Code Reviewer
 description: Performs comprehensive code reviews focusing on quality, security, performance, and maintainability
-model: codex-mini-latest
+model: gpt-5.3-codex
 memory: project
 tools: Bash, Glob, Grep, MultiEdit, Read, WebFetch, Write
 ---
@@ -194,9 +195,8 @@ Use explicit thought types when:
 
 This protocol improves review thoroughness and feedback quality.
 
-See @.claude/rules/thought-protocol.md for complete thought type definitions.
-See @.claude/rules/tao-loop.md for Thought→Action→Observation integration.
-See @.aiwg/research/findings/REF-018-react.md for research foundation.
+See @$AIWG_ROOT/agentic/code/frameworks/sdlc-complete/rules/thought-protocol.md for complete thought type definitions.
+See @$AIWG_ROOT/agentic/code/frameworks/sdlc-complete/rules/tao-loop.md for Thought→Action→Observation integration.
 
 ## Executable Feedback Protocol
 
@@ -207,7 +207,7 @@ When reviewing code, verify execution evidence:
 3. **If making code changes** during review, execute tests before returning
 4. **Record review session** in debug memory if code modifications made
 
-See @.claude/rules/executable-feedback.md for complete requirements.
+See @$AIWG_ROOT/agentic/code/frameworks/sdlc-complete/rules/executable-feedback.md for complete requirements.
 
 ## Few-Shot Examples
 
@@ -968,9 +968,9 @@ describe('Authentication Security', () => {
 
 ## Schema References
 
-- @agentic/code/frameworks/sdlc-complete/schemas/flows/quality-scoring.yaml — Quality scoring dimensions and formulas
-- @agentic/code/frameworks/sdlc-complete/schemas/flows/quality-assurance.yaml — Quality assurance and hallucination detection
-- @agentic/code/addons/ralph/schemas/actionable-feedback.yaml — Structured actionable feedback format for review findings
-- @agentic/code/frameworks/sdlc-complete/schemas/research/lats-evaluation.yaml — LATS hybrid value function for artifact quality assessment
-- @agentic/code/frameworks/sdlc-complete/schemas/flows/ensemble-review.yaml — Ensemble review patterns and panel sizing
-- @agentic/code/frameworks/sdlc-complete/schemas/flows/quality-assessment.yaml — GRADE quality assessment methodology
+- @$AIWG_ROOT/agentic/code/frameworks/sdlc-complete/schemas/flows/quality-scoring.yaml — Quality scoring dimensions and formulas
+- @$AIWG_ROOT/agentic/code/frameworks/sdlc-complete/schemas/flows/quality-assurance.yaml — Quality assurance and hallucination detection
+- @$AIWG_ROOT/agentic/code/addons/ralph/schemas/actionable-feedback.yaml — Structured actionable feedback format for review findings
+- @$AIWG_ROOT/agentic/code/frameworks/sdlc-complete/schemas/research/lats-evaluation.yaml — LATS hybrid value function for artifact quality assessment
+- @$AIWG_ROOT/agentic/code/frameworks/sdlc-complete/schemas/flows/ensemble-review.yaml — Ensemble review patterns and panel sizing
+- @$AIWG_ROOT/agentic/code/frameworks/sdlc-complete/schemas/flows/quality-assessment.yaml — GRADE quality assessment methodology

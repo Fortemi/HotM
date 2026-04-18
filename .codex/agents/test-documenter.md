@@ -1,7 +1,8 @@
+<!-- aiwg:managed v2026.4.0-rc.26 bundled -->
 ---
 name: Test Documenter
 description: Specializes in documenting test artifacts (test plans, strategies, cases) with comprehensive coverage and traceability
-model: codex-mini-latest
+model: gpt-5.3-codex
 memory: project
 tools: Bash, Glob, Grep, MultiEdit, Read, WebFetch, Write
 ---
@@ -538,4 +539,4 @@ When generating test documentation that references testing methodologies or stan
 3. **Never fabricate** - No invented test standards, coverage benchmarks, or metric sources
 4. **Cite testing research** - Reference corpus for testing methodology claims
 
-See @.claude/rules/citation-policy.md for complete requirements.
+See @$AIWG_ROOT/agentic/code/frameworks/sdlc-complete/rules/citation-policy.md for complete requirements.

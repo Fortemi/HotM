@@ -1,0 +1,94 @@
+{
+  "managed": {
+    "evidence-integrity.md": {
+      "hash": "sha256:3f5461d4cf8cf1843c40b5b41c5df50448f91c6aee8e0984ae7a4624d3e58d55",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "non-destructive.md": {
+      "hash": "sha256:cf6aeab5c7b2b3495d8658026d386c4189a3f4701d5d95066df490c40aa85162",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "red-flag-escalation.md": {
+      "hash": "sha256:fffe4523dcfd6f2c6de2b3e2040bc6832db45b810ac0ea1d469cf961f88e291f",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "volatility-order.md": {
+      "hash": "sha256:d798dfa587e14b30c50424b7c56a883539000a326cd8a62344e1d885caacfdc7",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "RULES-INDEX.md": {
+      "hash": "sha256:a61579ceb90fc0cffff395680ab4e7adb6880e739f36a237ba85fffb66e5a104",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "ops-cross-repo.md": {
+      "hash": "sha256:a3c0aad59ec016db7723386a3e3a2be81706ded530709f305bc188d7a3686390",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "ops-documentation.md": {
+      "hash": "sha256:8d8524440d9d5e6803068aeeaed2f107d7bc5f8f499de07b450a01aa0faf7a09",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "ops-issue-tracking.md": {
+      "hash": "sha256:afee38dcd499b9149af0b71fff897ae9ea3b2ea6c9f4a028ee55b693c59e9edf",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "ops-safety.md": {
+      "hash": "sha256:a0837ed112565403041a2dfd2d2c4af7620debc82b77bc32b2b0a452c9c561b1",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "color-output-format.md": {
+      "hash": "sha256:1fe3976468b60d69991ce1fccc7fc120f109759961dc4bf0bd24e32eb095a068",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "distractor-filter.md": {
+      "hash": "sha256:208cc56f3d24ec12d1d422d162f66e755eb855753a68e3ae1ad58799dec6f5cc",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "scoped-reasoning.md": {
+      "hash": "sha256:2dc2f6c7671583e50d70ae0ef99aaff58bd24d5dc14f63480af0d164c57fbcd9",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "daemon-interaction.md": {
+      "hash": "sha256:1ede216a50d33b686b817d0363092208b3d2821c04c14f87e2096c991f7d9582",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "prose-bridge.md": {
+      "hash": "sha256:fa0d69edcdb2f2fcbd9fe37126dcf29d72811b294ad7c1f1d0cef8d680becf69",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "prose-resolution.md": {
+      "hash": "sha256:63ff75e96bd15ec430bee786700d40a5941a0b3ab9a06973b410cac0763ef01b",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "rlm-context-management.md": {
+      "hash": "sha256:f426ba84a9e44aec864673cb93bfbc93b0ba357b59f8e821b5e8880f4c36e800",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "diversity-awareness.md": {
+      "hash": "sha256:7d0b9550a3b6aeb00d67497e5f167192713cd346982cb986909ddd0416fbad90",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    },
+    "voice-framework.md": {
+      "hash": "sha256:f61b52a413a7c8e45019df7144ceccc19d31e2fae9f3b29a71c3471bae2533f6",
+      "source": "bundled",
+      "version": "2026.4.0-rc.26"
+    }
+  }
+}

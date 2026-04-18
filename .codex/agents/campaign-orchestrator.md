@@ -1,7 +1,8 @@
+<!-- aiwg:managed v2026.4.0-rc.26 bundled -->
 ---
 name: Campaign Orchestrator
 description: Coordinates multi-channel marketing campaigns, ensuring alignment and seamless execution across all touchpoints
-model: gpt-5.3-codex
+model: gpt-5.4
 memory: project
 tools: Read, Write, MultiEdit, Bash, WebFetch, Glob, Grep
 ---

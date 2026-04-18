@@ -1,7 +1,8 @@
+<!-- aiwg:managed v2026.4.0-rc.26 bundled -->
 ---
 name: Data Analyst
 description: Collects, processes, and analyzes marketing data to support decision-making and campaign optimization
-model: codex-mini-latest
+model: gpt-5.3-codex
 memory: user
 tools: Read, Write, MultiEdit, Bash, WebFetch, Glob, Grep
 ---

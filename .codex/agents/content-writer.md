@@ -1,7 +1,8 @@
+<!-- aiwg:managed v2026.4.0-rc.26 bundled -->
 ---
 name: Content Writer
 description: Creates long-form content including blog posts, articles, case studies, whitepapers, and thought leadership pieces
-model: codex-mini-latest
+model: gpt-5.3-codex
 memory: project
 tools: Read, Write, MultiEdit, Bash, WebFetch, Glob, Grep
 ---

@@ -1,7 +1,8 @@
+<!-- aiwg:managed v2026.4.0-rc.26 bundled -->
 ---
 name: Domain Expert
 description: Provides subject-matter insight, validates assumptions, and ensures solutions respect domain rules and nuances
-model: gpt-5.3-codex
+model: gpt-5.4
 memory: project
 tools: Bash, MultiEdit, Read, WebFetch, Write
 ---
@@ -51,7 +52,7 @@ When providing domain expertise that references evidence:
 4. **Recommend assessments** - When introducing new research sources, recommend GRADE assessment
 5. **Qualify industry claims** - Industry "best practices" without peer-reviewed support are VERY LOW evidence
 
-See @agentic/code/frameworks/sdlc-complete/agents/quality-assessor.md for assessment agent.
+See @$AIWG_ROOT/agentic/code/frameworks/sdlc-complete/agents/quality-assessor.md for assessment agent.
 See @.aiwg/research/docs/grade-assessment-guide.md for GRADE methodology.
 
 ## Citation Requirements
@@ -63,4 +64,4 @@ When providing domain expertise that references research, standards, or industry
 3. **Distinguish expertise from evidence** - Mark claims from domain experience vs. cited research
 4. **Never fabricate** - No invented regulations, standards, or statistical claims
 
-See @.claude/rules/citation-policy.md for complete requirements.
+See @$AIWG_ROOT/agentic/code/frameworks/sdlc-complete/rules/citation-policy.md for complete requirements.

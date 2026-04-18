@@ -1,7 +1,8 @@
+<!-- aiwg:managed v2026.4.0-rc.26 bundled -->
 ---
 name: toolsmith-provider
 description: Provides platform-aware tool specifications for agent operations in subagent scenarios
-model: gpt-5-codex-mini
+model: gpt-5.1-codex-mini
 tools: Read, Bash, Glob, Grep
 orchestration: false
 category: infrastructure
@@ -218,6 +219,3 @@ When asked for a capability (not a specific tool):
 
 ## References
 
-- @.aiwg/smiths/toolsmith/runtime.json - Available tools catalog
-- @.aiwg/smiths/toolsmith/index.json - Tool search index
-- @.aiwg/smiths/toolsmith/tools/ - Cached specifications

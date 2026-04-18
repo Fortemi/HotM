@@ -1,7 +1,8 @@
+<!-- aiwg:managed v2026.4.0-rc.26 bundled -->
 ---
 name: Discovery Agent
 description: Search academic databases, rank results by relevance and quality, detect research gaps, and create reproducible search strategies
-model: codex-mini-latest
+model: gpt-5.3-codex
 tools: Bash, Read, Write, Grep, Glob
 ---
 
@@ -149,8 +150,8 @@ Use explicit thought types when:
 
 This protocol improves search quality and enables reproducibility.
 
-See @.claude/rules/thought-protocol.md for complete thought type definitions.
-See @.claude/rules/tao-loop.md for Thought→Action→Observation integration.
+See @$AIWG_ROOT/agentic/code/frameworks/sdlc-complete/rules/thought-protocol.md for complete thought type definitions.
+See @$AIWG_ROOT/agentic/code/frameworks/sdlc-complete/rules/tao-loop.md for Thought→Action→Observation integration.
 See @.aiwg/research/findings/REF-018-react.md for research foundation.
 
 ## Few-Shot Examples
@@ -564,23 +565,23 @@ discovery_agent:
 
 ## Provenance Tracking
 
-After generating search results or gap reports, create provenance records per @.claude/rules/provenance-tracking.md:
+After generating search results or gap reports, create provenance records per @$AIWG_ROOT/agentic/code/frameworks/sdlc-complete/rules/provenance-tracking.md:
 
-1. **Create provenance record** using @agentic/code/frameworks/sdlc-complete/schemas/provenance/prov-record.yaml format
+1. **Create provenance record** using @$AIWG_ROOT/agentic/code/frameworks/sdlc-complete/schemas/provenance/prov-record.yaml format
 2. **Record Entity** - Search results as URN with query hash
 3. **Record Activity** - Search execution with API version and parameters
 4. **Record Agent** - This agent with semantic scholar API version
 5. **Save record** to `.aiwg/research/provenance/records/`
 
-See @agentic/code/frameworks/sdlc-complete/agents/provenance-manager.md for Provenance Manager agent.
+See @$AIWG_ROOT/agentic/code/frameworks/sdlc-complete/agents/provenance-manager.md for Provenance Manager agent.
 
 ## References
 
-- @.aiwg/flows/research-framework/elaboration/agents/discovery-agent-spec.md - Agent specification
-- @.aiwg/flows/research-framework/elaboration/use-cases/UC-RF-001-discover-research-papers.md - Primary use case
-- @.aiwg/flows/research-framework/elaboration/use-cases/UC-RF-009-perform-gap-analysis.md - Gap analysis use case
-- @.claude/rules/thought-protocol.md - Thought type definitions
-- @.claude/rules/tao-loop.md - TAO loop integration
+- @$AIWG_ROOT/agentic/code/frameworks/research-complete/elaboration/agents/discovery-agent-spec.md - Agent specification
+- @$AIWG_ROOT/agentic/code/frameworks/research-complete/elaboration/use-cases/UC-RF-001-discover-research-papers.md - Primary use case
+- @$AIWG_ROOT/agentic/code/frameworks/research-complete/elaboration/use-cases/UC-RF-009-perform-gap-analysis.md - Gap analysis use case
+- @$AIWG_ROOT/agentic/code/frameworks/sdlc-complete/rules/thought-protocol.md - Thought type definitions
+- @$AIWG_ROOT/agentic/code/frameworks/sdlc-complete/rules/tao-loop.md - TAO loop integration
 - @.aiwg/research/findings/REF-018-react.md - ReAct methodology research
 - [Semantic Scholar API Documentation](https://www.semanticscholar.org/product/api)
 - [PRISMA Statement](https://www.prisma-statement.org/)

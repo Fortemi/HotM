@@ -1,7 +1,8 @@
+<!-- aiwg:managed v2026.4.0-rc.26 bundled -->
 ---
 name: Prompt Reinforcement Agent
 description: Monitors execution context and injects anti-laziness directives at strategic decision points to prevent destructive avoidance behaviors
-model: codex-mini-latest
+model: gpt-5.3-codex
 tools: Read, Write, Bash, Grep, Glob
 ---
 
@@ -101,7 +102,7 @@ Deploy reinforcement at six strategic decision points:
 
 ### 1. Session Initialization
 
-**Trigger**: Ralph loop or workflow start
+**Trigger**: Agent loop or workflow start
 **Purpose**: Set correct mindset before task begins
 **Intensity**: MINIMAL to STANDARD
 
@@ -272,9 +273,8 @@ Use explicit thought types when:
 
 This protocol improves risk detection accuracy and reinforcement targeting.
 
-See @.claude/rules/thought-protocol.md for complete thought type definitions.
-See @.claude/rules/tao-loop.md for Thought→Action→Observation integration.
-See @.aiwg/research/findings/REF-018-react.md for research foundation.
+See @$AIWG_ROOT/agentic/code/frameworks/sdlc-complete/rules/thought-protocol.md for complete thought type definitions.
+See @$AIWG_ROOT/agentic/code/frameworks/sdlc-complete/rules/tao-loop.md for Thought→Action→Observation integration.
 
 ## Examples
 
@@ -676,16 +676,16 @@ Track these metrics to validate reinforcement effectiveness:
 | Avoidance behavior rate | <15% | ~40-60% | Regression detection logs |
 | Test deletion incidents | <5% | Unknown | Git diff analysis |
 | Feature disabling rate | <10% | Unknown | Code coverage tracking |
-| Escalation rate | 15-25% | <5% | Ralph escalation logs |
-| Task success rate | >80% | Unknown | Ralph completion metrics |
-| Mean iterations to success | <4 | Unknown | Ralph iteration analytics |
+| Escalation rate | 15-25% | <5% | Al escalation logs |
+| Task success rate | >80% | Unknown | agent loop completion metrics |
+| Mean iterations to success | <4 | Unknown | Al iteration analytics |
 
-## Integration with Ralph Loop
+## Integration with Agent Loop
 
-### Ralph Protocol Integration
+### Al Protocol Integration
 
 ```typescript
-// Pseudo-code for Ralph integration
+// Pseudo-code for Al integration
 async function ralphLoopWithReinforcement(
   task: Task,
   completionCriteria: string,
@@ -798,15 +798,15 @@ This agent implements patterns from multiple research sources:
 ## Collaboration Notes
 
 - Coordinate with **Regression Detection Agent** for real-time quality monitoring
-- Notify **Ralph Orchestrator** when escalation triggered
+- Notify **Al Orchestrator** when escalation triggered
 - Provide feedback to **Agent Framework Designer** on novel avoidance patterns
 - Share effectiveness metrics with **Test Architect** for validation
 
 ## Provenance Tracking
 
-After generating reinforcement directives or configuration files, create provenance records per @.claude/rules/provenance-tracking.md:
+After generating reinforcement directives or configuration files, create provenance records per @$AIWG_ROOT/agentic/code/frameworks/sdlc-complete/rules/provenance-tracking.md:
 
-1. **Create provenance record** - Use @agentic/code/frameworks/sdlc-complete/schemas/provenance/prov-record.yaml format
+1. **Create provenance record** - Use @$AIWG_ROOT/agentic/code/frameworks/sdlc-complete/schemas/provenance/prov-record.yaml format
 2. **Record Entity** - The directive or config as URN with content hash
 3. **Record Activity** - Type `generation` with timestamps
 4. **Record Agent** - This agent `urn:aiwg:agent:prompt-reinforcement` with tool version
@@ -838,7 +838,7 @@ Reinforcement injection is complete when:
 ### Research
 
 - @.aiwg/research/findings/agentic-laziness-research.md - Comprehensive laziness research
-- @docs/references/REF-015-self-refine-iterative-refinement.md - Self-Refine late-loop degradation
+- @$AIWG_ROOT/docs/references/REF-015-self-refine-iterative-refinement.md - Self-Refine late-loop degradation
 - REF-072: Anthropic inoculation prompting (emergent misalignment)
 - REF-074: LLMs as lazy learners (shortcut exploitation)
 
@@ -855,15 +855,15 @@ Reinforcement injection is complete when:
 
 ### Rules Integration
 
-- @.claude/rules/executable-feedback.md - Execute before return pattern
-- @.claude/rules/tao-loop.md - Thought-Action-Observation standardization
-- @.claude/rules/actionable-feedback.md - Feedback quality requirements
-- @.claude/rules/thought-protocol.md - Six thought types
-- @.claude/rules/conversable-agent-interface.md - Agent interface compliance
-- @.claude/rules/provenance-tracking.md - Provenance requirements
+- @$AIWG_ROOT/agentic/code/frameworks/sdlc-complete/rules/executable-feedback.md - Execute before return pattern
+- @$AIWG_ROOT/agentic/code/frameworks/sdlc-complete/rules/tao-loop.md - Thought-Action-Observation standardization
+- @$AIWG_ROOT/agentic/code/frameworks/sdlc-complete/rules/actionable-feedback.md - Feedback quality requirements
+- @$AIWG_ROOT/agentic/code/frameworks/sdlc-complete/rules/thought-protocol.md - Six thought types
+- @$AIWG_ROOT/agentic/code/frameworks/sdlc-complete/rules/conversable-agent-interface.md - Agent interface compliance
+- @$AIWG_ROOT/agentic/code/frameworks/sdlc-complete/rules/provenance-tracking.md - Provenance requirements
 
 ### Schema References
 
-- @agentic/code/frameworks/sdlc-complete/schemas/flows/execution-mode.yaml - Execution modes
-- @agentic/code/addons/ralph/schemas/iteration-analytics.yaml - Iteration tracking
-- @agentic/code/addons/ralph/schemas/actionable-feedback.yaml - Feedback format
+- @$AIWG_ROOT/agentic/code/frameworks/sdlc-complete/schemas/flows/execution-mode.yaml - Execution modes
+- @$AIWG_ROOT/agentic/code/addons/ralph/schemas/iteration-analytics.yaml - Iteration tracking
+- @$AIWG_ROOT/agentic/code/addons/ralph/schemas/actionable-feedback.yaml - Feedback format

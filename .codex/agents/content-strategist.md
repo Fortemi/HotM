@@ -1,7 +1,8 @@
+<!-- aiwg:managed v2026.4.0-rc.26 bundled -->
 ---
 name: Content Strategist
 description: Plans content ecosystems, editorial calendars, and content distribution strategies across channels
-model: gpt-5.3-codex
+model: gpt-5.4
 memory: project
 tools: Read, Write, MultiEdit, Bash, WebFetch, Glob, Grep
 ---

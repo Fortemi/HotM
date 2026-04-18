@@ -1,7 +1,8 @@
+<!-- aiwg:managed v2026.4.0-rc.26 bundled -->
 ---
 name: Documentation Agent
 description: Summarize papers using LLM with RAG pattern, extract structured data, grade source quality, and create Zettelkasten-style literature notes
-model: gpt-5.3-codex
+model: gpt-5.4
 tools: Bash, Read, Write, Grep, Glob
 ---
 
@@ -263,8 +264,8 @@ Use explicit thought types when:
 
 This protocol improves documentation quality and prevents hallucinations.
 
-See @.claude/rules/thought-protocol.md for complete thought type definitions.
-See @.claude/rules/tao-loop.md for Thought→Action→Observation integration.
+See @$AIWG_ROOT/agentic/code/frameworks/sdlc-complete/rules/thought-protocol.md for complete thought type definitions.
+See @$AIWG_ROOT/agentic/code/frameworks/sdlc-complete/rules/tao-loop.md for Thought→Action→Observation integration.
 See @.aiwg/research/findings/REF-018-react.md for research foundation.
 
 ## Few-Shot Examples
@@ -695,24 +696,24 @@ grade_assessment:
 
 ## Provenance Tracking
 
-After generating summaries and extractions, create provenance records per @.claude/rules/provenance-tracking.md:
+After generating summaries and extractions, create provenance records per @$AIWG_ROOT/agentic/code/frameworks/sdlc-complete/rules/provenance-tracking.md:
 
-1. **Create provenance record** using @agentic/code/frameworks/sdlc-complete/schemas/provenance/prov-record.yaml format
+1. **Create provenance record** using @$AIWG_ROOT/agentic/code/frameworks/sdlc-complete/schemas/provenance/prov-record.yaml format
 2. **Record Entity** - Summary/extraction as URN
 3. **Record Activity** - Summarization with LLM model and version
 4. **Record Agent** - This agent with LLM provider details
 5. **Document derivations** - Link to source PDF (wasDerivedFrom)
 6. **Save record** to `.aiwg/research/provenance/records/`
 
-See @agentic/code/frameworks/sdlc-complete/agents/provenance-manager.md for Provenance Manager agent.
+See @$AIWG_ROOT/agentic/code/frameworks/sdlc-complete/agents/provenance-manager.md for Provenance Manager agent.
 
 ## References
 
-- @.aiwg/flows/research-framework/elaboration/agents/documentation-agent-spec.md - Agent specification
-- @.aiwg/flows/research-framework/elaboration/use-cases/UC-RF-003-document-research-paper.md - Primary use case
-- @.aiwg/flows/research-framework/elaboration/use-cases/UC-RF-006-assess-source-quality.md - GRADE assessment
-- @.claude/rules/thought-protocol.md - Thought type definitions
-- @.claude/rules/tao-loop.md - TAO loop integration
+- @$AIWG_ROOT/agentic/code/frameworks/research-complete/elaboration/agents/documentation-agent-spec.md - Agent specification
+- @$AIWG_ROOT/agentic/code/frameworks/research-complete/elaboration/use-cases/UC-RF-003-document-research-paper.md - Primary use case
+- @$AIWG_ROOT/agentic/code/frameworks/research-complete/elaboration/use-cases/UC-RF-006-assess-source-quality.md - GRADE assessment
+- @$AIWG_ROOT/agentic/code/frameworks/sdlc-complete/rules/thought-protocol.md - Thought type definitions
+- @$AIWG_ROOT/agentic/code/frameworks/sdlc-complete/rules/tao-loop.md - TAO loop integration
 - @.aiwg/research/findings/REF-018-react.md - ReAct methodology research
 - [GRADE Framework](https://www.gradeworkinggroup.org/)
 - [Zettelkasten Method](https://zettelkasten.de/introduction/)

@@ -1,7 +1,8 @@
+<!-- aiwg:managed v2026.4.0-rc.26 bundled -->
 ---
 name: Test Architect
 description: Designs holistic test strategies, coverage models, and quality governance for the delivery lifecycle
-model: codex-mini-latest
+model: gpt-5.3-codex
 memory: project
 tools: Bash, MultiEdit, Read, WebFetch, Write
 ---
@@ -164,9 +165,21 @@ The Test Architect has succeeded when:
 4. Test execution time enables rapid feedback
 5. Developers write tests naturally as part of development
 
+## Artifact Index Integration
+
+Use `aiwg index` CLI commands for structured artifact discovery:
+
+- `aiwg index query --phase testing --json` — Find existing test plans and strategies
+- `aiwg index query "<feature>" --type test-plan --json` — Search for test plans by feature
+- `aiwg index deps <path> --direction upstream --json` — Find requirements a test plan covers
+- `aiwg index stats --json` — Assess testing coverage across the project
+- `aiwg index build` — Rebuild index after creating test artifacts
+
+Always use `--json` flag for programmatic consumption. See @$AIWG_ROOT/agentic/code/frameworks/sdlc-complete/rules/artifact-discovery.md for the full protocol.
+
 ## Schema References
 
-- @agentic/code/frameworks/sdlc-complete/schemas/flows/sdlc-output-schemas.yaml — Standardized SDLC output formats
-- @agentic/code/frameworks/sdlc-complete/schemas/flows/quality-scoring.yaml — Quality scoring dimensions and formulas
-- @agentic/code/addons/ralph/schemas/actionable-feedback.yaml — Structured actionable feedback for test result reporting
-- @agentic/code/frameworks/sdlc-complete/schemas/research/lats-evaluation.yaml — LATS hybrid value function for test coverage evaluation
+- @$AIWG_ROOT/agentic/code/frameworks/sdlc-complete/schemas/flows/sdlc-output-schemas.yaml — Standardized SDLC output formats
+- @$AIWG_ROOT/agentic/code/frameworks/sdlc-complete/schemas/flows/quality-scoring.yaml — Quality scoring dimensions and formulas
+- @$AIWG_ROOT/agentic/code/addons/ralph/schemas/actionable-feedback.yaml — Structured actionable feedback for test result reporting
+- @$AIWG_ROOT/agentic/code/frameworks/sdlc-complete/schemas/research/lats-evaluation.yaml — LATS hybrid value function for test coverage evaluation

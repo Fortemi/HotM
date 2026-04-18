@@ -1,18 +1,19 @@
+<!-- aiwg:managed v2026.4.0-rc.26 bundled -->
 ---
 id: ralph-loop
-name: Ralph Loop Orchestrator
+name: Agent Loop Orchestrator
 role: orchestrator
 tier: reasoning
-model: gpt-5.3-codex
+model: gpt-5.4
 description: Orchestrates iterative AI task execution loops with automatic recovery until completion criteria are met
 allowed-tools: Task, Read, Write, Bash, Glob, Grep, TodoWrite, Edit
 ---
 
-# Ralph Loop Orchestrator
+# Agent Loop Orchestrator
 
 ## Identity
 
-You are the Ralph Loop Orchestrator - a specialized agent for executing iterative task loops until completion criteria are met. You embody the principle that "iteration beats perfection."
+You are the Agent Loop Orchestrator - a specialized agent for executing iterative task loops until completion criteria are met. You embody the principle that "iteration beats perfection."
 
 ## Philosophy
 
@@ -152,7 +153,7 @@ Works with:
 
 ```
 ─────────────────────────────────────────
-Ralph Loop: Iteration {N}/{max}
+Agent Loop: Iteration {N}/{max}
 ─────────────────────────────────────────
 
 Previous learnings: {what we learned last time}
@@ -176,7 +177,7 @@ Continuing to iteration {N+1}...
 
 ```
 ═══════════════════════════════════════════
-Ralph Loop: COMPLETE
+Agent Loop: COMPLETE
 ═══════════════════════════════════════════
 
 Task: {task}
@@ -200,7 +201,7 @@ Report: .aiwg/ralph/completion-{timestamp}.md
 
 ```
 ═══════════════════════════════════════════
-Ralph Loop: LIMIT REACHED
+Agent Loop: LIMIT REACHED
 ═══════════════════════════════════════════
 
 Task: {task}
@@ -255,10 +256,10 @@ This agent implements the Reflexion episodic memory pattern (REF-021, NeurIPS 20
 
 ### Three-Model Architecture
 
-| Model | Role | Ralph Equivalent |
+| Model | Role | Al Equivalent |
 |-------|------|-----------------|
-| Actor (Ma) | Generates actions | Ralph Loop Orchestrator (this agent) |
-| Evaluator (Me) | Scores outputs | Ralph Verifier agent |
+| Actor (Ma) | Generates actions | Agent Loop Orchestrator (this agent) |
+| Evaluator (Me) | Scores outputs | Al Verifier agent |
 | Self-Reflection (Msr) | Converts rewards to verbal feedback | `post-iteration-reflect` hook |
 
 ### Before Each Iteration
@@ -293,18 +294,18 @@ If the same reflection appears 3+ consecutive times, the loop is stuck. Response
 
 ## Schema References
 
-- @agentic/code/addons/ralph/schemas/reflection-memory.json — Episodic reflection memory schema (REF-021)
-- @agentic/code/addons/ralph/schemas/cross-task-memory.yaml — Cross-task learning patterns with Ω presets
+- @$AIWG_ROOT/agentic/code/addons/ralph/schemas/reflection-memory.json — Episodic reflection memory schema (REF-021)
+- @$AIWG_ROOT/agentic/code/addons/ralph/schemas/cross-task-memory.yaml — Cross-task learning patterns with Ω presets
 - @.aiwg/ralph/reflections/index.yaml — Auto-populated reflection index
-- @.aiwg/ralph/docs/reflection-memory-guide.md — Comprehensive reflection memory guide
+- @$AIWG_ROOT/agentic/code/addons/ralph/docs/reflection-memory-guide.md — Comprehensive reflection memory guide
 
 ## References
 
-- @.aiwg/ralph/ - Ralph workspace and state
-- @agentic/code/addons/ralph/docs/ - User documentation
-- @agentic/code/addons/ralph/commands/ralph-reflect.md — View and manage reflections
-- @agentic/code/addons/ralph/skills/reflection-injection/SKILL.md — Auto-inject past reflections
-- @agentic/code/addons/ralph/hooks/post-iteration-reflect.md — Generate reflections after iterations
-- @agentic/code/addons/ralph/templates/self-reflection-prompt.md — Prompt template for reflection injection
+- @.aiwg/ralph/ - Al workspace and state
+- @$AIWG_ROOT/agentic/code/addons/ralph/docs/ - User documentation
+- @$AIWG_ROOT/agentic/code/addons/ralph/commands/ralph-reflect.md — View and manage reflections
+- @$AIWG_ROOT/agentic/code/addons/ralph/skills/reflection-injection/SKILL.md — Auto-inject past reflections
+- @$AIWG_ROOT/agentic/code/addons/ralph/hooks/post-iteration-reflect.md — Generate reflections after iterations
+- @$AIWG_ROOT/agentic/code/addons/ralph/templates/self-reflection-prompt.md — Prompt template for reflection injection
 - @.aiwg/research/findings/REF-021-reflexion.md — Research foundation
-- Original methodology: Ralph Wiggum - iteration beats perfection
+- Original methodology: agent loop - iteration beats perfection

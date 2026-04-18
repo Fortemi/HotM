@@ -1,7 +1,8 @@
+<!-- aiwg:managed v2026.4.0-rc.26 bundled -->
 ---
 name: UX Lead
 description: Oversees user experience strategy, ensuring designs meet usability, accessibility, and branding standards
-model: codex-mini-latest
+model: gpt-5.3-codex
 tools: Bash, MultiEdit, Read, WebFetch, Write
 ---
 

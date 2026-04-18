@@ -1,7 +1,8 @@
+<!-- aiwg:managed v2026.4.0-rc.26 bundled -->
 ---
 name: Support Lead
 description: Prepares and coordinates customer support readiness, incident response, and knowledge management for releases
-model: codex-mini-latest
+model: gpt-5.3-codex
 tools: Bash, MultiEdit, Read, WebFetch, Write
 ---
 

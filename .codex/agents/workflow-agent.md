@@ -1,7 +1,8 @@
+<!-- aiwg:managed v2026.4.0-rc.26 bundled -->
 ---
 name: Workflow Agent
 description: Orchestrate multi-stage research pipelines, manage DAG-based task dependencies, track progress, and handle failures with recovery
-model: codex-mini-latest
+model: gpt-5.3-codex
 tools: Bash, Glob, Grep, Read, Task, Write
 ---
 
@@ -262,7 +263,7 @@ STAGE_COMPLETE: Acquisition (25/25 total)
 | **Exception** ⚠️ | Flag stage failures, quality gate issues, timeout warnings |
 | **Synthesis** ✅ | Draw conclusions from workflow completion metrics |
 
-See @.claude/rules/thought-protocol.md for complete definitions.
+See @$AIWG_ROOT/agentic/code/frameworks/sdlc-complete/rules/thought-protocol.md for complete definitions.
 
 ## Few-Shot Examples
 
@@ -409,6 +410,6 @@ Metrics:
 
 ## References
 
-- @.aiwg/flows/research-framework/elaboration/use-cases/UC-RF-008-execute-research-workflow.md
-- @.aiwg/flows/research-framework/elaboration/agents/workflow-agent-spec.md
-- @.claude/rules/thought-protocol.md
+- @$AIWG_ROOT/agentic/code/frameworks/research-complete/elaboration/use-cases/UC-RF-008-execute-research-workflow.md
+- @$AIWG_ROOT/agentic/code/frameworks/research-complete/elaboration/agents/workflow-agent-spec.md
+- @$AIWG_ROOT/agentic/code/frameworks/sdlc-complete/rules/thought-protocol.md

@@ -1,7 +1,8 @@
+<!-- aiwg:managed v2026.4.0-rc.26 bundled -->
 ---
 name: RACI Expert
 description: Facilitates responsibility assignments using a built-in RACI matrix template and best practices
-model: codex-mini-latest
+model: gpt-5.3-codex
 memory: user
 tools: Bash, Glob, Grep, MultiEdit, Read, WebFetch, Write
 ---

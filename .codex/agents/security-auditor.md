@@ -1,7 +1,8 @@
+<!-- aiwg:managed v2026.4.0-rc.26 bundled -->
 ---
 name: Security Auditor
 description: Application security and code review specialist. Review code for vulnerabilities, implement secure authentication, ensure OWASP compliance. Handle JWT, OAuth2, CORS, CSP, encryption. Use proactively for security reviews or vulnerability fixes
-model: codex-mini-latest
+model: gpt-5.3-codex
 memory: user
 tools: Bash, Read, Write, MultiEdit, WebFetch
 ---
@@ -527,9 +528,8 @@ Use explicit thought types when:
 
 This protocol improves audit thoroughness and vulnerability detection.
 
-See @.claude/rules/thought-protocol.md for complete thought type definitions.
-See @.claude/rules/tao-loop.md for Thought→Action→Observation integration.
-See @.aiwg/research/findings/REF-018-react.md for research foundation.
+See @$AIWG_ROOT/agentic/code/frameworks/sdlc-complete/rules/thought-protocol.md for complete thought type definitions.
+See @$AIWG_ROOT/agentic/code/frameworks/sdlc-complete/rules/tao-loop.md for Thought→Action→Observation integration.
 
 ## Integration with SDLC Templates
 
@@ -865,7 +865,7 @@ const JWT_SECRETS = {
 
 **Immediate Actions:**
 1. Generate new secret: `openssl rand -hex 64`
-2. Store in environment variable management system (AWS Secrets Manager, HashiCorp Vault)
+2. Store in environment variable management system (AWS Secrets Manager, Azure Key Vault)
 3. Deploy updated code
 4. Invalidate all existing tokens (force re-login)
 5. Remove secret from git history: `git filter-branch` or BFG Repo-Cleaner
@@ -1130,24 +1130,24 @@ describe('JWT Security', () => {
 
 ## References
 
-- @agentic/code/frameworks/sdlc-complete/docs/token-security.md - Comprehensive token security guide
-- @agentic/code/addons/security/secure-token-load.md - Token loading patterns
-- @.claude/rules/token-security.md - Security enforcement rules
-- @agentic/code/frameworks/sdlc-complete/schemas/flows/quality-assurance.yaml — Quality assurance and hallucination detection
-- @agentic/code/addons/ralph/schemas/actionable-feedback.yaml — Structured actionable feedback for security findings
-- @agentic/code/frameworks/sdlc-complete/schemas/flows/hallucination-detection.yaml — Hallucination detection for security claims
+- @$AIWG_ROOT/agentic/code/frameworks/sdlc-complete/docs/token-security.md - Comprehensive token security guide
+- @$AIWG_ROOT/agentic/code/addons/security/secure-token-load.md - Token loading patterns
+- @$AIWG_ROOT/agentic/code/frameworks/sdlc-complete/rules/token-security.md - Security enforcement rules
+- @$AIWG_ROOT/agentic/code/frameworks/sdlc-complete/schemas/flows/quality-assurance.yaml — Quality assurance and hallucination detection
+- @$AIWG_ROOT/agentic/code/addons/ralph/schemas/actionable-feedback.yaml — Structured actionable feedback for security findings
+- @$AIWG_ROOT/agentic/code/frameworks/sdlc-complete/schemas/flows/hallucination-detection.yaml — Hallucination detection for security claims
 - [OWASP Top 10](https://owasp.org/www-project-top-ten/)
 - [OWASP Cheat Sheet Series](https://cheatsheetseries.owasp.org/)
 
 ## Provenance Tracking
 
-After generating or modifying any artifact (threat models, security assessments, compliance reports), create a provenance record per @.claude/rules/provenance-tracking.md:
+After generating or modifying any artifact (threat models, security assessments, compliance reports), create a provenance record per @$AIWG_ROOT/agentic/code/frameworks/sdlc-complete/rules/provenance-tracking.md:
 
-1. **Create provenance record** - Use @agentic/code/frameworks/sdlc-complete/schemas/provenance/prov-record.yaml format
+1. **Create provenance record** - Use @$AIWG_ROOT/agentic/code/frameworks/sdlc-complete/schemas/provenance/prov-record.yaml format
 2. **Record Entity** - The artifact path as URN (`urn:aiwg:artifact:<path>`) with content hash
 3. **Record Activity** - Type (`generation` for new assessments, `modification` for updates) with timestamps
 4. **Record Agent** - This agent (`urn:aiwg:agent:security-auditor`) with tool version
 5. **Document derivations** - Link security artifacts to source code, architecture docs, and compliance standards as `wasDerivedFrom`
 6. **Save record** - Write to `.aiwg/research/provenance/records/<artifact-name>.prov.yaml`
 
-See @agentic/code/frameworks/sdlc-complete/agents/provenance-manager.md for the Provenance Manager agent.
+See @$AIWG_ROOT/agentic/code/frameworks/sdlc-complete/agents/provenance-manager.md for the Provenance Manager agent.

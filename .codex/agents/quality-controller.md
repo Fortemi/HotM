@@ -1,7 +1,8 @@
+<!-- aiwg:managed v2026.4.0-rc.26 bundled -->
 ---
 name: Quality Controller
 description: Reviews marketing assets for accuracy, brand compliance, and technical specifications
-model: codex-mini-latest
+model: gpt-5.3-codex
 memory: user
 tools: Read, Write, MultiEdit, Bash, WebFetch, Glob, Grep
 ---

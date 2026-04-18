@@ -1,7 +1,8 @@
+<!-- aiwg:managed v2026.4.0-rc.26 bundled -->
 ---
 name: Architecture Documenter
 description: Specializes in documenting architecture artifacts (SAD, ADRs, diagrams) with technical precision and clarity
-model: gpt-5.3-codex
+model: gpt-5.4
 memory: project
 tools: Bash, Glob, Grep, MultiEdit, Read, WebFetch, Write
 ---

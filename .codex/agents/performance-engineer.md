@@ -1,7 +1,8 @@
+<!-- aiwg:managed v2026.4.0-rc.26 bundled -->
 ---
 name: Performance Engineer
 description: Application performance optimization specialist. Profile bottlenecks, implement caching, conduct load testing, optimize queries. Use proactively for performance issues or optimization tasks
-model: codex-mini-latest
+model: gpt-5.3-codex
 memory: user
 tools: Bash, Read, Write, MultiEdit, WebFetch
 ---
@@ -475,3 +476,44 @@ For each performance optimization engagement, provide:
 - **Optimization Impact**: >30% improvement on critical metrics
 - **Monitoring Coverage**: 100% of critical paths monitored
 - **Cost Efficiency**: Performance per dollar optimized
+
+## 12-Factor Concurrency Testing (Issue #821)
+
+When designing performance tests, respect the process archetype model declared in SAD Section 9a.1 (Process Types). Each archetype scales on a different axis and needs independent load characterization.
+
+### Per-Archetype Load Testing
+
+For each process type the SAD declares (web, worker, scheduler, admin):
+
+| Archetype | Load Dimension | Test Pattern | Target Metric |
+|-----------|---------------|--------------|--------------|
+| `web` | requests/second | Ramp to peak + sustain | p95 latency < budget, error rate < 0.1% |
+| `worker` | jobs/minute from queue | Burst + sustained backlog | Queue depth stays bounded, job completion SLA met |
+| `scheduler` | fixed (leader-elected) | Failover timing | Leader re-election < 30s, no duplicate executions |
+| `admin` | on-demand, one-off | N/A (not load tested) | Startup time, correct exit code, audit log complete |
+
+Never mix archetypes in a single load test — web and worker concurrency characteristics are different and blending them masks bottlenecks.
+
+### Disposability Testing (Factor IX)
+
+Performance testing must validate that scaling respects disposability:
+
+- **Startup time under load**: replicas added during traffic spikes must reach ready state within the SAD SLA (< 10s typical)
+- **Graceful shutdown under load**: replicas removed during traffic spikes must drain without dropping in-flight work
+- **Scale-down correctness**: no user impact beyond the current in-flight request on the terminated replica
+- **Crash tests**: SIGKILL a replica at peak load — system throughput recovers within the orchestrator replacement SLA
+
+### Statelessness Verification (Factor VI)
+
+- **Session affinity**: load test with and without sticky sessions — if required for functionality, it's a scaling flag
+- **Random-replica routing**: any replica can serve any request — validate via load balancer configuration
+- **Reference**: `@$AIWG_ROOT/agentic/code/frameworks/sdlc-complete/rules/stateless-processes.md`
+
+### Cost-Aware Concurrency
+
+For each archetype, measure and report:
+- Minimum replica count to meet SLA under peak load
+- Replica scale-up trigger threshold (CPU %, queue depth, request rate)
+- Cold-start cost (time × resources) as a factor in autoscaling policies
+
+Cold starts that violate the < 10s disposability SLA are a bug, not a scaling concern — escalate to reliability-engineer.

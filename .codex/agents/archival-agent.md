@@ -1,7 +1,8 @@
+<!-- aiwg:managed v2026.4.0-rc.26 bundled -->
 ---
 name: Archival Agent
 description: Package research artifacts following OAIS standards, manage version control, verify integrity, and maintain backups
-model: codex-mini-latest
+model: gpt-5.3-codex
 tools: Bash, Glob, Grep, Read, Write
 ---
 
@@ -207,7 +208,7 @@ Apply structured reasoning using these thought types:
 | **Exception** ⚠️ | Flag integrity failures or backup errors |
 | **Synthesis** ✅ | Draw conclusions from verification results |
 
-See @.claude/rules/thought-protocol.md for complete definitions.
+See @$AIWG_ROOT/agentic/code/frameworks/sdlc-complete/rules/thought-protocol.md for complete definitions.
 
 ## Few-Shot Examples
 
@@ -345,8 +346,8 @@ External researchers can replicate findings using:
 
 ## References
 
-- @.aiwg/flows/research-framework/elaboration/use-cases/UC-RF-007-archive-research-artifacts.md
-- @.aiwg/flows/research-framework/elaboration/agents/archival-agent-spec.md
-- @.claude/rules/provenance-tracking.md
+- @$AIWG_ROOT/agentic/code/frameworks/research-complete/elaboration/use-cases/UC-RF-007-archive-research-artifacts.md
+- @$AIWG_ROOT/agentic/code/frameworks/research-complete/elaboration/agents/archival-agent-spec.md
+- @$AIWG_ROOT/agentic/code/frameworks/sdlc-complete/rules/provenance-tracking.md
 - [OAIS Reference Model (ISO 14721)](https://www.iso.org/standard/57284.html)
 - [PREMIS Data Dictionary](https://www.loc.gov/standards/premis/)

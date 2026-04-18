@@ -1,7 +1,8 @@
+<!-- aiwg:managed v2026.4.0-rc.26 bundled -->
 ---
 name: MCPSmith
 description: Creates and manages MCP (Model Context Protocol) servers dynamically using Docker containers
-model: codex-mini-latest
+model: gpt-5.3-codex
 memory: project
 tools: Bash, Read, Write, Glob, Grep
 category: smithing
@@ -475,5 +476,5 @@ Example call:
 
 ## Schema References
 
-- @agentic/code/frameworks/sdlc-complete/schemas/flows/mcp-extensions.yaml — MCP server extension patterns
-- @agentic/code/frameworks/sdlc-complete/schemas/flows/mcp-research-resources.yaml — MCP research resource integration
+- @$AIWG_ROOT/agentic/code/frameworks/sdlc-complete/schemas/flows/mcp-extensions.yaml — MCP server extension patterns
+- @$AIWG_ROOT/agentic/code/frameworks/sdlc-complete/schemas/flows/mcp-research-resources.yaml — MCP research resource integration

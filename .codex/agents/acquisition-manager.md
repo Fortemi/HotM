@@ -1,8 +1,9 @@
+<!-- aiwg:managed v2026.4.0-rc.26 bundled -->
 ---
 name: Acquisition Manager
 description: Orchestrates media downloads with format selection, parallel execution, progress tracking, and error recovery
 category: media-curator
-model: codex-mini-latest
+model: gpt-5.3-codex
 allowed-tools: Bash, Read, Write, Glob, Grep
 ---
 

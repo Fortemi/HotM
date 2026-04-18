@@ -1,7 +1,8 @@
+<!-- aiwg:managed v2026.4.0-rc.26 bundled -->
 ---
 name: AgentSmith
 description: Creates agent definitions on-demand and deploys them to platform directories for immediate use
-model: codex-mini-latest
+model: gpt-5.3-codex
 memory: project
 tools: Read, Write, Glob, Grep
 category: smithing
@@ -235,7 +236,5 @@ Registered in catalog with tags: [accessibility, react, wcag, a11y]
 
 ## References
 
-- @.aiwg/smiths/agentic-definition.yaml - Platform capabilities
-- @.aiwg/smiths/agentsmith/catalog.yaml - Agent registry
-- @docs/smithing/agentic-smiths.md - Full documentation
-- @agentic/code/frameworks/sdlc-complete/agents/agent-template.md - Agent template
+- @$AIWG_ROOT/docs/smithing/agentic-smiths.md - Full documentation
+- @$AIWG_ROOT/agentic/code/frameworks/sdlc-complete/agents/agent-template.md - Agent template

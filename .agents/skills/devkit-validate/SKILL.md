@@ -1,0 +1,161 @@
+---
+name: "devkit-validate"
+description: "Validate addon, framework, or extension structure and manifest"
+platforms: [codex]
+---
+
+# Validate AIWG Package
+
+Validate the structure and manifest of an addon, framework, or extension.
+
+## Usage
+
+```
+/devkit-validate <path> [options]
+```
+
+## Arguments
+
+| Argument | Required | Description |
+|----------|----------|-------------|
+| path | Yes | Path to addon, framework, or extension |
+
+## Options
+
+| Option | Description |
+|--------|-------------|
+| --fix | Attempt to auto-fix common issues |
+| --verbose | Show detailed validation output |
+
+## What It Validates
+
+### Manifest Validation
+
+- [ ] `manifest.json` exists
+- [ ] Required fields present: id, type, name, version, description
+- [ ] Type is valid: addon, framework, or extension
+- [ ] For extensions: `requires` field specifies valid parent framework
+- [ ] All referenced agents exist in agents/ directory
+- [ ] All referenced commands exist in commands/ directory
+- [ ] All referenced skills exist in skills/ directory
+- [ ] All referenced templates exist in templates/ directory
+
+### Structure Validation
+
+- [ ] Directory structure matches type expectations
+- [ ] README.md exists
+- [ ] Entry directories exist if specified
+- [ ] No orphaned files (files not in manifest)
+
+### Content Validation
+
+- [ ] Agent files have valid frontmatter (name, description, model, tools)
+- [ ] Command files have valid frontmatter (name, description, args)
+- [ ] Skill directories have SKILL.md with required fields
+
+### Extension-Specific Validation
+
+- [ ] Parent framework exists
+- [ ] Extension is in parent's extensions/ directory
+- [ ] `requires` field matches parent location
+
+## Examples
+
+```bash
+# Validate addon
+/devkit-validate agentic/code/addons/aiwg-utils
+
+# Validate framework
+/devkit-validate agentic/code/frameworks/sdlc-complete
+
+# Validate extension
+/devkit-validate agentic/code/frameworks/sdlc-complete/extensions/gdpr
+
+# Validate with auto-fix
+/devkit-validate agentic/code/addons/my-addon --fix
+
+# Verbose output
+/devkit-validate . --verbose
+```
+
+## Output Format
+
+### Success
+
+```
+✓ Validating: agentic/code/addons/aiwg-utils
+  Type: addon
+  Version: 1.1.0
+
+✓ Manifest: Valid
+  - id: aiwg-utils
+  - agents: 1 (1 found)
+  - commands: 10 (10 found)
+  - skills: 2 (2 found)
+
+✓ Structure: Valid
+  - agents/: OK
+  - commands/: OK
+  - skills/: OK
+
+✓ Content: Valid
+  - Agent frontmatter: OK
+  - Command frontmatter: OK
+  - Skill definitions: OK
+
+═══════════════════════════════
+VALIDATION PASSED
+═══════════════════════════════
+```
+
+### Failure
+
+```
+✓ Validating: agentic/code/addons/my-addon
+  Type: addon
+  Version: 1.0.0
+
+✓ Manifest: Valid
+  - id: my-addon
+
+✗ Structure: Issues Found
+  - agents/: Missing (manifest references 2 agents)
+  - commands/: OK
+
+✗ Content: Issues Found
+  - Missing: agents/code-reviewer.md
+  - Missing: agents/security-auditor.md
+
+═══════════════════════════════
+VALIDATION FAILED (2 errors)
+═══════════════════════════════
+
+Errors:
+1. Directory 'agents/' does not exist
+2. Referenced agent 'code-reviewer' not found
+
+To fix, run: /devkit-validate <path> --fix
+```
+
+## Auto-Fix Capabilities
+
+When `--fix` is specified:
+
+1. **Create missing directories**: agents/, commands/, skills/
+2. **Update manifest**: Remove references to non-existent files
+3. **Add missing entries**: Add files found in directories but not in manifest
+4. **Fix frontmatter**: Add required fields with defaults
+
+## Related Commands
+
+- `/devkit-create-addon` - Create new addon
+- `/devkit-create-extension` - Create new extension
+- `aiwg validate` - CLI validation tool
+
+## References
+
+- @$AIWG_ROOT/agentic/code/addons/aiwg-dev/README.md — aiwg-dev addon overview
+- @$AIWG_ROOT/docs/extensions/overview.md — Extension system architecture and manifest spec
+- @$AIWG_ROOT/docs/extensions/extension-types.md — Full extension type reference
+- @$AIWG_ROOT/docs/cli-reference.md — CLI reference including validate-metadata command
+- @$AIWG_ROOT/agentic/code/addons/aiwg-utils/rules/research-before-decision.md — Verify before acting pattern

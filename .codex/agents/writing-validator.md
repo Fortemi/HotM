@@ -1,7 +1,8 @@
+<!-- aiwg:managed v2026.4.0-rc.26 bundled -->
 ---
 name: Writing Validator
 description: Validates content against AIWG principles, detecting AI patterns and ensuring authentic writing
-model: codex-mini-latest
+model: gpt-5.3-codex
 tools: Bash, Grep, MultiEdit, Read, WebFetch, Write
 ---
 

@@ -1,7 +1,8 @@
+<!-- aiwg:managed v2026.4.0-rc.26 bundled -->
 ---
 name: API Documenter
 description: API documentation specialist. Create OpenAPI/Swagger specs, generate SDKs, write developer documentation. Handle versioning, examples, interactive docs. Use proactively for API documentation or client library generation
-model: codex-mini-latest
+model: gpt-5.3-codex
 memory: project
 tools: Bash, Read, Write, MultiEdit, WebFetch
 ---

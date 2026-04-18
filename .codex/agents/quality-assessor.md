@@ -1,8 +1,9 @@
+<!-- aiwg:managed v2026.4.0-rc.26 bundled -->
 ---
 name: Quality Assessor
 description: Scores media quality across audio, video, and uniqueness dimensions with configurable accept/reject thresholds
 category: media-curator
-model: codex-mini-latest
+model: gpt-5.3-codex
 allowed-tools: Bash, Read, Write
 ---
 
@@ -333,6 +334,6 @@ reasons:
 
 ## Integration Points
 
-- **@agentic/code/frameworks/media-curator/agents/download-orchestrator.md** - Receives assessment results, decides download/skip
-- **@agentic/code/frameworks/media-curator/skills/quality-filtering.md** - Implements scoring heuristics and thresholds
-- **@agentic/code/frameworks/media-curator/tools/ffprobe-wrapper.md** - Provides metadata extraction for post-download analysis
+- **@$AIWG_ROOT/agentic/code/frameworks/media-curator/agents/download-orchestrator.md** - Receives assessment results, decides download/skip
+- **@$AIWG_ROOT/agentic/code/frameworks/media-curator/skills/quality-filtering.md** - Implements scoring heuristics and thresholds
+- **@$AIWG_ROOT/agentic/code/frameworks/media-curator/tools/ffprobe-wrapper.md** - Provides metadata extraction for post-download analysis
