@@ -1,0 +1,194 @@
+# Mutsu Mac Runner Verification — HotM
+#
+# workflow_dispatch only. SSHes to mutsu, creates the HotM build directory,
+# installs the aarch64-apple-darwin Rust target if missing, verifies Node/npm,
+# drops a health-check script, and reports full environment status.
+#
+# Run this after completing the manual steps in issue #183:
+#   - MUTSU_SSH_KEY secret added to this repo
+#   - SSD "Ignore permissions" turned OFF in Disk Utility
+#
+# Tracking: Fortemi/HotM#183
+
+name: Verify Mutsu Mac Runner
+
+on:
+  workflow_dispatch:
+
+jobs:
+  verify-mutsu:
+    name: Verify mutsu environment for HotM
+    runs-on: ubuntu-22.04
+    timeout-minutes: 15
+
+    steps:
+      - name: Set up SSH to mutsu
+        shell: bash
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.MUTSU_SSH_KEY }}" > ~/.ssh/mutsu_key
+          chmod 600 ~/.ssh/mutsu_key
+          ssh-keyscan -t ed25519 10.0.42.41 >> ~/.ssh/known_hosts 2>/dev/null
+          echo "Host mutsu
+            HostName 10.0.42.41
+            User manitcor
+            IdentityFile ~/.ssh/mutsu_key
+            StrictHostKeyChecking no" >> ~/.ssh/config
+
+      - name: Test SSH connectivity
+        shell: bash
+        run: |
+          echo "=== SSH connectivity test ==="
+          ssh mutsu 'echo "SSH OK — $(uname -m) $(sw_vers -productVersion 2>/dev/null || true)"'
+
+      - name: Create HotM build directory
+        shell: bash
+        run: |
+          ssh mutsu bash -s << 'REMOTE'
+          set -euo pipefail
+          echo "=== Creating HotM build directory ==="
+          sudo mkdir -p /Volumes/build/hotm/builds
+          sudo chown manitcor:staff /Volumes/build/hotm
+          sudo chown manitcor:staff /Volumes/build/hotm/builds
+          ls -la /Volumes/build/hotm/
+          echo "Build directory ready"
+          REMOTE
+
+      - name: Verify and install Rust aarch64-apple-darwin target
+        shell: bash
+        run: |
+          ssh mutsu bash -s << 'REMOTE'
+          set -euo pipefail
+          export PATH="/Volumes/build/bt6/cargo/bin:/opt/homebrew/bin:/opt/homebrew/sbin:$PATH"
+          export CARGO_HOME="/Volumes/build/bt6/cargo"
+          export RUSTUP_HOME="/Volumes/build/bt6/cargo/rustup"
+          . /Volumes/build/bt6/cargo/env 2>/dev/null || true
+
+          echo "=== Rust toolchain ==="
+          cargo --version
+          rustup --version
+          rustup show
+
+          echo "=== Checking aarch64-apple-darwin target ==="
+          if rustup target list --installed | grep -q "aarch64-apple-darwin"; then
+            echo "✓ aarch64-apple-darwin already installed"
+          else
+            echo "Installing aarch64-apple-darwin target..."
+            rustup target add aarch64-apple-darwin
+            echo "✓ aarch64-apple-darwin installed"
+          fi
+          REMOTE
+
+      - name: Verify Node.js and npm
+        shell: bash
+        run: |
+          ssh mutsu bash -s << 'REMOTE'
+          set -euo pipefail
+          export PATH="/opt/homebrew/bin:/opt/homebrew/sbin:$PATH"
+
+          echo "=== Node.js / npm ==="
+          if command -v node >/dev/null 2>&1; then
+            echo "✓ node: $(node --version)"
+          else
+            echo "✗ node not found — installing via brew"
+            brew install node
+            echo "✓ node: $(node --version)"
+          fi
+
+          if command -v npm >/dev/null 2>&1; then
+            echo "✓ npm:  $(npm --version)"
+          else
+            echo "✗ npm not found (should come with node)"
+            exit 1
+          fi
+
+          echo "✓ git:  $(git --version)"
+          REMOTE
+
+      - name: Check SSD permissions
+        shell: bash
+        run: |
+          ssh mutsu bash -s << 'REMOTE'
+          set -euo pipefail
+          echo "=== SSD permissions check ==="
+          # Create a test file, chmod it, verify the mode stuck.
+          # If "Ignore permissions on this volume" is ON, chmod is a no-op.
+          TEST_FILE=$(mktemp /Volumes/build/hotm/perm-test-XXXXXX)
+          chmod 700 "$TEST_FILE"
+          ACTUAL=$(stat -f "%Mp%Lp" "$TEST_FILE")
+          rm -f "$TEST_FILE"
+          if [ "$ACTUAL" = "0700" ]; then
+            echo "✓ SSD permissions are enforced (chmod works)"
+          else
+            echo "✗ WARNING: SSD permissions NOT enforced (got ${ACTUAL}, expected 0700)"
+            echo "  Fix: Disk Utility → select build volume → uncheck 'Ignore permissions on this volume'"
+            exit 1
+          fi
+          REMOTE
+
+      - name: Check power management (keep-alive)
+        shell: bash
+        run: |
+          ssh mutsu bash -s << 'REMOTE'
+          echo "=== Power management ==="
+          SLEEP_SETTING=$(pmset -g | awk '/^[ \t]+sleep/{print $2}')
+          if [ "$SLEEP_SETTING" = "0" ]; then
+            echo "✓ sleep=0 (machine will not sleep)"
+          else
+            echo "⚠ sleep=${SLEEP_SETTING} — recommend: sudo pmset -a sleep 0 disksleep 0 displaysleep 30"
+          fi
+          REMOTE
+
+      - name: Install health check script on mutsu
+        shell: bash
+        run: |
+          # Write the health check script then scp it to mutsu
+          cat > /tmp/hotm-health.sh << 'HEALTHSCRIPT'
+          #!/usr/bin/env bash
+          # HotM mac runner health check — /Volumes/build/hotm/health.sh
+          set -e
+          export PATH="/Volumes/build/bt6/cargo/bin:/opt/homebrew/bin:/opt/homebrew/sbin:$PATH"
+          export CARGO_HOME="/Volumes/build/bt6/cargo"
+          export RUSTUP_HOME="/Volumes/build/bt6/cargo/rustup"
+          . /Volumes/build/bt6/cargo/env 2>/dev/null || true
+
+          echo "=== $(date) ==="
+          echo "uptime: $(uptime)"
+          echo "disk:   $(df -h /Volumes/build | tail -1)"
+          echo "rust:   $(cargo --version 2>&1 || echo MISSING)"
+          echo "node:   $(node --version 2>&1 || echo MISSING)"
+          echo "npm:    $(npm --version 2>&1 || echo MISSING)"
+          echo "git:    $(git --version 2>&1 || echo MISSING)"
+          echo "target: $(rustup target list --installed 2>/dev/null | grep aarch64-apple-darwin || echo 'aarch64-apple-darwin NOT INSTALLED')"
+          echo "sleep:  $(pmset -g | awk '/^[ \t]+sleep/{print "sleep="$2}')"
+          echo "hotm build dir: $(ls -la /Volumes/build/hotm/builds 2>/dev/null || echo MISSING)"
+          HEALTHSCRIPT
+
+          scp /tmp/hotm-health.sh mutsu:/Volumes/build/hotm/health.sh
+          ssh mutsu chmod +x /Volumes/build/hotm/health.sh
+          echo "Health script installed at /Volumes/build/hotm/health.sh"
+
+      - name: Run full health check
+        shell: bash
+        run: |
+          echo "=== Full health check ==="
+          ssh mutsu /Volumes/build/hotm/health.sh
+
+      - name: Summary
+        shell: bash
+        run: |
+          echo ""
+          echo "============================================"
+          echo "  mutsu verification complete for HotM"
+          echo "============================================"
+          echo ""
+          echo "All automated checks passed."
+          echo ""
+          echo "Remaining manual steps (if not done):"
+          echo "  1. Add MUTSU_SSH_KEY to Fortemi/HotM repo secrets in Gitea"
+          echo "     (Settings → Secrets → Actions → New Secret)"
+          echo "  2. Verify keepalive launchd agent is loaded (for reboots)"
+          echo "     ssh mutsu 'launchctl list | grep keepalive'"
+          echo ""
+          echo "Run health check anytime:"
+          echo "  ssh mutsu /Volumes/build/hotm/health.sh"
