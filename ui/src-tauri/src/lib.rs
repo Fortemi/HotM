@@ -1,10 +1,25 @@
+use std::net::TcpListener;
+use std::sync::{Arc, Mutex};
 use tauri::menu::{MenuBuilder, MenuItemBuilder};
 use tauri::tray::TrayIconBuilder;
 use tauri::{Manager, WindowEvent};
 use tauri_plugin_global_shortcut::GlobalShortcutExt;
+use tauri_plugin_shell::process::CommandChild;
+use tauri_plugin_shell::ShellExt;
 
 mod config;
 mod plantuml;
+
+/// Find a free TCP port by binding to port 0.
+fn find_free_port() -> u16 {
+    TcpListener::bind("127.0.0.1:0")
+        .expect("failed to bind ephemeral port")
+        .local_addr()
+        .unwrap()
+        .port()
+}
+
+type SidecarHandle = Arc<Mutex<Option<CommandChild>>>;
 
 #[tauri::command]
 async fn render_plantuml(app: tauri::AppHandle, code: String) -> Result<String, String> {
@@ -97,6 +112,10 @@ pub fn run() {
         })
         .build();
 
+    let sidecar_handle: SidecarHandle = Arc::new(Mutex::new(None));
+    let sidecar_handle_setup = sidecar_handle.clone();
+    let sidecar_handle_exit = sidecar_handle.clone();
+
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_shell::init())
@@ -111,6 +130,72 @@ pub fn run() {
                 .unwrap_or_else(|e| {
                     eprintln!("HotM: Failed to register global shortcut: {}", e);
                 });
+
+            // ── Fortemi sidecar ───────────────────────────────────────────
+            {
+                let cfg = config::load_config(app.handle());
+                if !cfg.database_url.is_empty() {
+                    let port = find_free_port();
+                    let api_url = format!("http://127.0.0.1:{}", port);
+
+                    // Resolve file storage path: config value OR <app_data>/fortemi-files
+                    let file_storage = if cfg.file_storage_path.is_empty() {
+                        app.handle()
+                            .path()
+                            .app_data_dir()
+                            .map(|p| p.join("fortemi-files").to_string_lossy().to_string())
+                            .unwrap_or_else(|_| "/tmp/hotm-fortemi-files".to_string())
+                    } else {
+                        cfg.file_storage_path.clone()
+                    };
+
+                    eprintln!("HotM: launching Fortemi sidecar on {} (storage: {})", api_url, file_storage);
+
+                    let (rx, child) = app
+                        .shell()
+                        .sidecar("matric-api")
+                        .map_err(|e| format!("sidecar not found: {e}"))?
+                        .env("DATABASE_URL", &cfg.database_url)
+                        .env("HOST", "127.0.0.1")
+                        .env("PORT", port.to_string())
+                        .env("FILE_STORAGE_PATH", &file_storage)
+                        .spawn()
+                        .map_err(|e| format!("failed to spawn sidecar: {e}"))?;
+
+                    *sidecar_handle_setup.lock().unwrap() = Some(child);
+
+                    // Forward sidecar stdout/stderr to host stderr for debugging
+                    let handle = app.handle().clone();
+                    tauri::async_runtime::spawn(async move {
+                        use tauri_plugin_shell::process::CommandEvent;
+                        let mut rx = rx;
+                        while let Some(event) = rx.recv().await {
+                            match event {
+                                CommandEvent::Stdout(line) => {
+                                    eprintln!("[fortemi] {}", String::from_utf8_lossy(&line));
+                                }
+                                CommandEvent::Stderr(line) => {
+                                    eprintln!("[fortemi:err] {}", String::from_utf8_lossy(&line));
+                                }
+                                CommandEvent::Error(e) => {
+                                    eprintln!("[fortemi:exit-error] {}", e);
+                                }
+                                CommandEvent::Terminated(status) => {
+                                    eprintln!("[fortemi] process exited: {:?}", status);
+                                    let _ = handle; // keep handle alive
+                                    break;
+                                }
+                                _ => {}
+                            }
+                        }
+                    });
+
+                    // Persist the resolved URL into config so the frontend reads it
+                    let mut updated_cfg = cfg.clone();
+                    updated_cfg.api_base_url = api_url;
+                    let _ = config::save_config(app.handle(), &updated_cfg);
+                }
+            }
 
             // Build tray menu
             let show = MenuItemBuilder::with_id("show", "Show").build(app)?;
@@ -180,6 +265,16 @@ pub fn run() {
             if let WindowEvent::CloseRequested { api, .. } = event {
                 let _ = window.hide();
                 api.prevent_close();
+            }
+        })
+        .on_menu_event(move |_app, event| {
+            if event.id().as_ref() == "quit" {
+                // Kill sidecar before exit
+                if let Ok(mut guard) = sidecar_handle_exit.lock() {
+                    if let Some(child) = guard.take() {
+                        let _ = child.kill();
+                    }
+                }
             }
         })
         .run(tauri::generate_context!())

@@ -6,12 +6,26 @@ use tauri::{AppHandle, Manager};
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AppConfig {
     pub api_base_url: String,
+    /// Postgres connection string for the bundled Fortemi sidecar.
+    /// If empty, the sidecar is not launched (external Fortemi assumed).
+    #[serde(default = "default_database_url")]
+    pub database_url: String,
+    /// Directory where the Fortemi sidecar stores attachment files.
+    /// Defaults to <app_data>/fortemi-files.
+    #[serde(default)]
+    pub file_storage_path: String,
+}
+
+fn default_database_url() -> String {
+    "postgres://matric:matric@localhost/matric".to_string()
 }
 
 impl Default for AppConfig {
     fn default() -> Self {
         Self {
-            api_base_url: "http://localhost:3000".to_string(),
+            api_base_url: "http://127.0.0.1:3000".to_string(),
+            database_url: default_database_url(),
+            file_storage_path: String::new(),
         }
     }
 }
