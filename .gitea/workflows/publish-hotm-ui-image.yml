@@ -1,0 +1,141 @@
+# Publish HotM UI Docker image
+#
+# Builds a multi-stage Docker image (React SPA → nginx:alpine) and pushes to:
+#   - ghcr.io/fortemi/hotm-ui
+#   - git.integrolabs.net/fortemi/hotm-ui
+#
+# Tags:
+#   main push → :latest + :sha-<7char>
+#   v* tag    → :latest + :<version>  (e.g. :2026.2.0)
+#
+# Secrets required:
+#   GH_PUBLISH_TOKEN  — GitHub PAT with write:packages scope
+#   PUBLISH_TOKEN     — Gitea PAT with write:package scope
+#
+# Downstream: docker run -e VITE_API_BASE_URL=http://fortemi:3000 -p 8080:80 hotm-ui
+#
+# Tracking: Fortemi/HotM#179
+
+name: Publish HotM UI Image
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'ui/**'
+      - 'docker/ui/**'
+      - '.gitea/workflows/publish-hotm-ui-image.yml'
+  create:
+    tags: ['v*']
+  workflow_dispatch:
+
+jobs:
+  build-and-push:
+    name: Build & Push Docker image
+    runs-on: ubuntu-22.04
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          REPO_URL="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}.git"
+          AUTH_URL="${REPO_URL/https:\/\//https:\/\/x-access-token:${GITHUB_TOKEN}@}"
+          git init . && git remote add origin "${AUTH_URL}"
+          git fetch --depth=1 origin "${GITHUB_SHA}" && git checkout --force FETCH_HEAD
+
+      - name: Install dependencies
+        shell: bash
+        run: |
+          apt-get update -qq
+          apt-get install -y --no-install-recommends curl jq
+
+      - name: Resolve image tags
+        id: tags
+        shell: bash
+        run: |
+          set -euo pipefail
+          SHORT_SHA="${GITHUB_SHA:0:7}"
+          GHCR_BASE="ghcr.io/fortemi/hotm-ui"
+          GITEA_BASE="git.integrolabs.net/fortemi/hotm-ui"
+
+          if [[ "${GITHUB_REF}" == refs/tags/v* ]]; then
+            VERSION="${GITHUB_REF_NAME#v}"
+            TAGS="${GHCR_BASE}:latest,${GHCR_BASE}:${VERSION},${GITEA_BASE}:latest,${GITEA_BASE}:${VERSION}"
+            echo "mode=release  version=${VERSION}"
+          else
+            TAGS="${GHCR_BASE}:latest,${GHCR_BASE}:sha-${SHORT_SHA},${GITEA_BASE}:latest,${GITEA_BASE}:sha-${SHORT_SHA}"
+            VERSION="${SHORT_SHA}"
+            echo "mode=rolling  sha=${SHORT_SHA}"
+          fi
+
+          echo "tags=${TAGS}" >> $GITHUB_OUTPUT
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          echo "short_sha=${SHORT_SHA}" >> $GITHUB_OUTPUT
+          echo "build_date=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> $GITHUB_OUTPUT
+
+      - name: Set up Docker buildx
+        shell: bash
+        run: |
+          docker buildx create --use --name hotm-builder 2>/dev/null || true
+
+      - name: Log in to GHCR
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GH_PUBLISH_TOKEN }}
+        run: |
+          echo "${GH_TOKEN}" | docker login ghcr.io -u Fortemi --password-stdin
+
+      - name: Log in to Gitea registry
+        shell: bash
+        env:
+          GITEA_TOKEN: ${{ secrets.PUBLISH_TOKEN }}
+        run: |
+          echo "${GITEA_TOKEN}" | docker login git.integrolabs.net -u fortemi --password-stdin
+
+      - name: Build and push
+        shell: bash
+        run: |
+          set -euo pipefail
+          TAGS="${{ steps.tags.outputs.tags }}"
+          VERSION="${{ steps.tags.outputs.version }}"
+          SHORT_SHA="${{ steps.tags.outputs.short_sha }}"
+          BUILD_DATE="${{ steps.tags.outputs.build_date }}"
+
+          # Build --tag args from comma-separated list
+          TAG_ARGS=""
+          IFS=',' read -ra TAG_LIST <<< "$TAGS"
+          for t in "${TAG_LIST[@]}"; do
+            TAG_ARGS="$TAG_ARGS --tag $t"
+          done
+
+          docker buildx build \
+            --platform linux/amd64 \
+            --file docker/ui/Dockerfile \
+            --build-arg "GIT_SHA=${GITHUB_SHA}" \
+            --build-arg "BUILD_DATE=${BUILD_DATE}" \
+            --build-arg "VERSION=${VERSION}" \
+            ${TAG_ARGS} \
+            --push \
+            .
+
+          echo "=== Pushed images ==="
+          IFS=',' read -ra TAG_LIST <<< "$TAGS"
+          for t in "${TAG_LIST[@]}"; do echo "  ${t}"; done
+
+      - name: Summary
+        shell: bash
+        run: |
+          echo ""
+          echo "============================================"
+          echo "  HotM UI image published"
+          echo "============================================"
+          echo "  SHA:     ${GITHUB_SHA:0:7}"
+          echo "  Version: ${{ steps.tags.outputs.version }}"
+          echo ""
+          echo "Run with:"
+          echo "  docker run -e VITE_API_BASE_URL=http://fortemi:3000 \\"
+          echo "    -p 8080:80 ghcr.io/fortemi/hotm-ui:latest"

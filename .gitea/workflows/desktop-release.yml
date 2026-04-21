@@ -1,0 +1,470 @@
+# Desktop Release — HotM
+#
+# Tag-triggered versioned release. Builds Linux and macOS in parallel,
+# publishes artifacts + SHA256SUMS to a versioned Gitea release, then
+# mirrors everything to GitHub (Fortemi/HotM).
+#
+# Trigger: push a v* tag  (e.g. git tag v2026.2.1 && git push origin v2026.2.1)
+#
+# Secrets required:
+#   MUTSU_SSH_KEY     — SSH private key for manitcor@10.0.42.41
+#   GH_PUBLISH_TOKEN  — GitHub PAT with repo + write:releases scope
+#
+# Tracking: Fortemi/HotM#182
+
+name: Desktop Release
+
+on:
+  create:
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Release tag to build (e.g. v2026.2.1)'
+        required: true
+
+env:
+  GITEA_API: https://git.integrolabs.net/api/v1/repos/${{ github.repository }}
+
+# ---------------------------------------------------------------------------
+# Linux — AppImage + deb
+# ---------------------------------------------------------------------------
+jobs:
+  build-linux:
+    name: Release Linux (AppImage + deb)
+    runs-on: ubuntu-22.04
+    timeout-minutes: 60
+
+    steps:
+      - name: Resolve tag and version
+        shell: bash
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            TAG="${{ inputs.tag }}"
+          else
+            TAG="${GITHUB_REF_NAME}"
+          fi
+          VERSION="${TAG#v}"
+          echo "RELEASE_TAG=${TAG}" >> $GITHUB_ENV
+          echo "RELEASE_VERSION=${VERSION}" >> $GITHUB_ENV
+          echo "Tag=${TAG}  Version=${VERSION}"
+
+      - name: Checkout at tag
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          REPO_URL="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}.git"
+          AUTH_URL="${REPO_URL/https:\/\//https:\/\/x-access-token:${GITHUB_TOKEN}@}"
+          git init . && git remote add origin "${AUTH_URL}"
+          git fetch --depth=1 origin "refs/tags/${RELEASE_TAG}"
+          git checkout --force FETCH_HEAD
+
+      - name: Install system dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          apt_update_strict() {
+            local tries=0
+            until apt-get update -qq; do
+              tries=$((tries + 1))
+              [ $tries -ge 3 ] && {
+                sed -i 's|http://azure.archive.ubuntu.com|http://archive.ubuntu.com|g' /etc/apt/sources.list || true
+                sed -i 's|http://us-east-1.ec2.archive.ubuntu.com|http://archive.ubuntu.com|g' /etc/apt/sources.list || true
+                apt-get update -qq || true; return
+              }
+              echo "apt update failed (${tries}/3) — retrying in 5s"; sleep 5
+            done
+          }
+          apt_update_strict
+          apt-get install -y --no-install-recommends \
+            curl jq \
+            libwebkit2gtk-4.1-dev libgtk-3-dev \
+            libsoup-3.0-dev libjavascriptcoregtk-4.1-dev \
+            librsvg2-dev patchelf \
+            libayatana-appindicator3-dev \
+            build-essential pkg-config libssl-dev
+
+      - name: Install Node.js 20
+        shell: bash
+        run: |
+          curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
+          apt-get install -y nodejs
+
+      - name: Install Rust stable
+        shell: bash
+        run: |
+          curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs \
+            | sh -s -- -y --default-toolchain stable --target x86_64-unknown-linux-gnu
+          echo "$HOME/.cargo/bin" >> $GITHUB_PATH
+
+      - name: Install frontend dependencies
+        working-directory: ui
+        run: npm ci
+
+      - name: Build Tauri app (Linux)
+        working-directory: ui
+        shell: bash
+        run: |
+          export PATH="$HOME/.cargo/bin:$PATH"
+          npx tauri build
+
+      - name: Collect artifacts and generate checksums
+        id: artifacts
+        shell: bash
+        run: |
+          set -euo pipefail
+          APPIMAGE=$(find ui/src-tauri/target/release/bundle/appimage -name "*.AppImage" | head -1)
+          DEB=$(find ui/src-tauri/target/release/bundle/deb -name "*.deb" | head -1)
+          echo "appimage=${APPIMAGE}" >> $GITHUB_OUTPUT
+          echo "appimage_name=$(basename $APPIMAGE)" >> $GITHUB_OUTPUT
+          echo "deb=${DEB}" >> $GITHUB_OUTPUT
+          echo "deb_name=$(basename $DEB)" >> $GITHUB_OUTPUT
+          sha256sum "$APPIMAGE" "$DEB" > SHA256SUMS.txt
+          echo "=== SHA256SUMS.txt ==="
+          cat SHA256SUMS.txt
+
+      - name: Create or get versioned Gitea release
+        id: release
+        shell: bash
+        env:
+          API_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          TAG="${RELEASE_TAG}"
+          VERSION="${RELEASE_VERSION}"
+
+          # Try to create release; tolerate 409/422 (already exists)
+          CREATE_CODE=$(curl -s -o /tmp/rel.json -w '%{http_code}' -X POST \
+            -H "Authorization: token ${API_TOKEN}" \
+            -H "Content-Type: application/json" \
+            "${GITEA_API}/releases" \
+            -d "$(jq -n \
+              --arg tag "${TAG}" \
+              --arg sha "${GITHUB_SHA}" \
+              --arg name "HotM ${VERSION}" \
+              --arg body "Release ${VERSION}" \
+              '{tag_name: $tag, target_commitish: $sha, name: $name, body: $body, draft: false, prerelease: false}')")
+
+          if [ "$CREATE_CODE" = "201" ]; then
+            RELEASE_ID=$(jq -r '.id' /tmp/rel.json)
+            echo "Created release ${TAG} (id=${RELEASE_ID})"
+          elif [ "$CREATE_CODE" = "409" ] || [ "$CREATE_CODE" = "422" ]; then
+            RELEASE_ID=$(curl -s \
+              -H "Authorization: token ${API_TOKEN}" \
+              "${GITEA_API}/releases/tags/${TAG}" | jq -r '.id')
+            echo "Release ${TAG} already exists (id=${RELEASE_ID})"
+          else
+            echo "Failed to create release (HTTP ${CREATE_CODE})"; cat /tmp/rel.json; exit 1
+          fi
+          echo "release_id=${RELEASE_ID}" >> $GITHUB_OUTPUT
+
+      - name: Upload AppImage + deb + SHA256SUMS to Gitea release
+        shell: bash
+        env:
+          API_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          RELEASE_ID="${{ steps.release.outputs.release_id }}"
+
+          upload_asset() {
+            local FILE="$1"
+            local CTYPE="$2"
+            local NAME=$(basename "$FILE")
+
+            # Delete stale if present
+            STALE=$(curl -s \
+              -H "Authorization: token ${API_TOKEN}" \
+              "${GITEA_API}/releases/${RELEASE_ID}/assets" \
+              | jq -r ".[] | select(.name == \"${NAME}\") | .id // empty")
+            [ -n "$STALE" ] && curl -s -X DELETE \
+              -H "Authorization: token ${API_TOKEN}" \
+              "${GITEA_API}/releases/${RELEASE_ID}/assets/${STALE}"
+
+            HTTP=$(curl -s -o /dev/null -w '%{http_code}' -X POST \
+              -H "Authorization: token ${API_TOKEN}" \
+              -H "Content-Type: ${CTYPE}" \
+              --data-binary "@${FILE}" \
+              "${GITEA_API}/releases/${RELEASE_ID}/assets?name=${NAME}")
+            [ "$HTTP" = "201" ] && echo "Uploaded ${NAME}" \
+              || { echo "Upload failed for ${NAME} (HTTP ${HTTP})"; exit 1; }
+          }
+
+          upload_asset "${{ steps.artifacts.outputs.appimage }}" "application/octet-stream"
+          upload_asset "${{ steps.artifacts.outputs.deb }}"      "application/vnd.debian.binary-package"
+          upload_asset "SHA256SUMS.txt"                           "text/plain"
+
+# ---------------------------------------------------------------------------
+# macOS — DMG via SSH to mutsu
+# ---------------------------------------------------------------------------
+  build-macos:
+    name: Release macOS DMG (via mutsu)
+    runs-on: ubuntu-22.04
+    timeout-minutes: 60
+
+    steps:
+      - name: Resolve tag and version
+        shell: bash
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            TAG="${{ inputs.tag }}"
+          else
+            TAG="${GITHUB_REF_NAME}"
+          fi
+          VERSION="${TAG#v}"
+          echo "RELEASE_TAG=${TAG}" >> $GITHUB_ENV
+          echo "RELEASE_VERSION=${VERSION}" >> $GITHUB_ENV
+
+      - name: Install tools
+        shell: bash
+        run: |
+          apt-get update -qq
+          apt-get install -y --no-install-recommends curl jq openssh-client
+
+      - name: Set up SSH to mutsu
+        shell: bash
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.MUTSU_SSH_KEY }}" > ~/.ssh/mutsu_key
+          chmod 600 ~/.ssh/mutsu_key
+          ssh-keyscan -t ed25519 10.0.42.41 >> ~/.ssh/known_hosts 2>/dev/null || true
+          cat >> ~/.ssh/config << 'EOF'
+          Host mutsu
+            HostName 10.0.42.41
+            User manitcor
+            IdentityFile ~/.ssh/mutsu_key
+            StrictHostKeyChecking no
+            ServerAliveInterval 60
+            ServerAliveCountMax 10
+          EOF
+
+      - name: Clone repo on mutsu at tag
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          BUILD_DIR="/Volumes/build/hotm/builds/run-${GITHUB_RUN_ID}"
+          REPO_URL="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}.git"
+          AUTH_URL="${REPO_URL/https:\/\//https:\/\/x-access-token:${GITHUB_TOKEN}@}"
+          TAG="${RELEASE_TAG}"
+
+          ssh mutsu bash -s -- "$BUILD_DIR" "$AUTH_URL" "refs/tags/$TAG" << 'REMOTE'
+          set -euo pipefail
+          BUILD_DIR="$1"; AUTH_URL="$2"; REF="$3"
+          mkdir -p "$BUILD_DIR"
+          git init "$BUILD_DIR" && cd "$BUILD_DIR"
+          git remote add origin "$AUTH_URL"
+          git fetch --depth=1 origin "$REF"
+          git checkout --force FETCH_HEAD
+          echo "Cloned tag ${REF} → ${BUILD_DIR}"
+          REMOTE
+
+      - name: Build Tauri app on mutsu
+        shell: bash
+        run: |
+          BUILD_DIR="/Volumes/build/hotm/builds/run-${GITHUB_RUN_ID}"
+          ssh mutsu bash -s -- "$BUILD_DIR" << 'REMOTE'
+          set -euo pipefail
+          BUILD_DIR="$1"
+          export PATH="/Volumes/build/bt6/cargo/bin:/opt/homebrew/bin:/opt/homebrew/sbin:$PATH"
+          export CARGO_HOME="/Volumes/build/bt6/cargo"
+          export RUSTUP_HOME="/Volumes/build/bt6/cargo/rustup"
+          . /Volumes/build/bt6/cargo/env 2>/dev/null || true
+          echo "Rust: $(cargo --version)  Node: $(node --version)"
+          cd "${BUILD_DIR}/ui"
+          npm ci
+          npx tauri build
+          find "${BUILD_DIR}/ui/src-tauri/target/release/bundle" \
+            \( -name "*.dmg" -o -name "*.app" \) | head -5
+          REMOTE
+
+      - name: Codesign and repack DMG on mutsu
+        shell: bash
+        run: |
+          BUILD_DIR="/Volumes/build/hotm/builds/run-${GITHUB_RUN_ID}"
+          VERSION="${RELEASE_VERSION}"
+          ssh mutsu bash -s -- "$BUILD_DIR" "$VERSION" << 'REMOTE'
+          set -euo pipefail
+          BUILD_DIR="$1"; VERSION="$2"
+          BUNDLE="${BUILD_DIR}/ui/src-tauri/target/release/bundle"
+          APP="${BUNDLE}/macos/HotM.app"
+          DMG_OUT="${BUILD_DIR}/HotM_${VERSION}_aarch64.dmg"
+          codesign --force --deep --sign - "$APP"
+          codesign --verify --verbose=2 "$APP"
+          hdiutil create -volname "HotM" -srcfolder "$APP" -ov -format UDZO "$DMG_OUT"
+          echo "DMG: ${DMG_OUT} ($(du -h ${DMG_OUT} | cut -f1))"
+          REMOTE
+
+      - name: Collect DMG and generate checksum
+        shell: bash
+        run: |
+          set -euo pipefail
+          BUILD_DIR="/Volumes/build/hotm/builds/run-${GITHUB_RUN_ID}"
+          VERSION="${RELEASE_VERSION}"
+          DMG_NAME="HotM_${VERSION}_aarch64.dmg"
+          scp "mutsu:${BUILD_DIR}/${DMG_NAME}" "./${DMG_NAME}"
+          sha256sum "$DMG_NAME" > SHA256SUMS-macos.txt
+          echo "DMG_NAME=${DMG_NAME}" >> $GITHUB_ENV
+          echo "=== SHA256SUMS-macos.txt ==="; cat SHA256SUMS-macos.txt
+
+      - name: Create or get versioned Gitea release
+        id: release
+        shell: bash
+        env:
+          API_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          TAG="${RELEASE_TAG}"; VERSION="${RELEASE_VERSION}"
+          CREATE_CODE=$(curl -s -o /tmp/rel.json -w '%{http_code}' -X POST \
+            -H "Authorization: token ${API_TOKEN}" \
+            -H "Content-Type: application/json" \
+            "${GITEA_API}/releases" \
+            -d "$(jq -n \
+              --arg tag "${TAG}" --arg sha "${GITHUB_SHA}" \
+              --arg name "HotM ${VERSION}" --arg body "Release ${VERSION}" \
+              '{tag_name: $tag, target_commitish: $sha, name: $name, body: $body, draft: false, prerelease: false}')")
+          if [ "$CREATE_CODE" = "201" ]; then
+            RELEASE_ID=$(jq -r '.id' /tmp/rel.json)
+          elif [ "$CREATE_CODE" = "409" ] || [ "$CREATE_CODE" = "422" ]; then
+            RELEASE_ID=$(curl -s \
+              -H "Authorization: token ${API_TOKEN}" \
+              "${GITEA_API}/releases/tags/${TAG}" | jq -r '.id')
+          else
+            echo "Failed (HTTP ${CREATE_CODE})"; cat /tmp/rel.json; exit 1
+          fi
+          echo "release_id=${RELEASE_ID}" >> $GITHUB_OUTPUT
+
+      - name: Upload DMG + SHA256SUMS-macos to Gitea release
+        shell: bash
+        env:
+          API_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          RELEASE_ID="${{ steps.release.outputs.release_id }}"
+
+          upload_asset() {
+            local FILE="$1"; local CTYPE="$2"; local NAME=$(basename "$FILE")
+            STALE=$(curl -s \
+              -H "Authorization: token ${API_TOKEN}" \
+              "${GITEA_API}/releases/${RELEASE_ID}/assets" \
+              | jq -r ".[] | select(.name == \"${NAME}\") | .id // empty")
+            [ -n "$STALE" ] && curl -s -X DELETE \
+              -H "Authorization: token ${API_TOKEN}" \
+              "${GITEA_API}/releases/${RELEASE_ID}/assets/${STALE}"
+            HTTP=$(curl -s -o /dev/null -w '%{http_code}' -X POST \
+              -H "Authorization: token ${API_TOKEN}" \
+              -H "Content-Type: ${CTYPE}" \
+              --data-binary "@${FILE}" \
+              "${GITEA_API}/releases/${RELEASE_ID}/assets?name=${NAME}")
+            [ "$HTTP" = "201" ] && echo "Uploaded ${NAME}" \
+              || { echo "Upload failed for ${NAME} (HTTP ${HTTP})"; exit 1; }
+          }
+
+          upload_asset "${DMG_NAME}"          "application/octet-stream"
+          upload_asset "SHA256SUMS-macos.txt" "text/plain"
+
+      - name: Cleanup build dir on mutsu
+        if: always()
+        shell: bash
+        run: |
+          ssh mutsu "rm -rf '/Volumes/build/hotm/builds/run-${GITHUB_RUN_ID}'" || true
+
+# ---------------------------------------------------------------------------
+# Mirror release to GitHub
+# ---------------------------------------------------------------------------
+  publish-github:
+    name: Mirror to GitHub
+    needs: [build-linux, build-macos]
+    if: always() && (needs.build-linux.result == 'success' || needs.build-macos.result == 'success')
+    runs-on: ubuntu-22.04
+    timeout-minutes: 20
+
+    steps:
+      - name: Resolve tag and version
+        shell: bash
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            TAG="${{ inputs.tag }}"
+          else
+            TAG="${GITHUB_REF_NAME}"
+          fi
+          VERSION="${TAG#v}"
+          echo "RELEASE_TAG=${TAG}" >> $GITHUB_ENV
+          echo "RELEASE_VERSION=${VERSION}" >> $GITHUB_ENV
+
+      - name: Install tools
+        shell: bash
+        run: |
+          apt-get update -qq
+          apt-get install -y --no-install-recommends curl jq
+          # Install gh CLI
+          curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg \
+            | dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg
+          echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] \
+            https://cli.github.com/packages stable main" \
+            > /etc/apt/sources.list.d/github-cli.list
+          apt-get update -qq && apt-get install -y gh
+
+      - name: Download all assets from Gitea release
+        shell: bash
+        env:
+          API_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          TAG="${RELEASE_TAG}"
+          mkdir -p /tmp/release-assets
+
+          # Get release JSON
+          RELEASE_JSON=$(curl -s \
+            -H "Authorization: token ${API_TOKEN}" \
+            "${GITEA_API}/releases/tags/${TAG}")
+          echo "$RELEASE_JSON" > /tmp/release.json
+
+          RELEASE_BODY=$(echo "$RELEASE_JSON" | jq -r '.body // "Release '"${TAG}"'"')
+          echo "RELEASE_BODY<<__EOF__" >> $GITHUB_ENV
+          echo "${RELEASE_BODY}" >> $GITHUB_ENV
+          echo "__EOF__" >> $GITHUB_ENV
+
+          # Download each asset
+          echo "$RELEASE_JSON" | jq -r '.assets[]? | .browser_download_url + "\t" + .name' \
+          | while IFS=$'\t' read -r URL NAME; do
+              curl -sL \
+                -H "Authorization: token ${API_TOKEN}" \
+                "$URL" -o "/tmp/release-assets/${NAME}"
+              echo "Downloaded: ${NAME} ($(du -h /tmp/release-assets/${NAME} | cut -f1))"
+            done
+
+          # Rename any files with spaces (gh CLI compatibility)
+          for f in /tmp/release-assets/*; do
+            safe=$(basename "$f" | tr ' ' '.')
+            [ "$(basename $f)" != "$safe" ] && mv "$f" "/tmp/release-assets/${safe}"
+          done
+
+          echo "Assets ready:"; ls -lh /tmp/release-assets/
+
+      - name: Create GitHub release and upload assets
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GH_PUBLISH_TOKEN }}
+        run: |
+          set -euo pipefail
+          TAG="${RELEASE_TAG}"
+          VERSION="${RELEASE_VERSION}"
+          ASSETS=$(ls /tmp/release-assets/)
+
+          cd /tmp/release-assets
+
+          if gh release view "${TAG}" --repo "Fortemi/HotM" > /dev/null 2>&1; then
+            echo "GitHub release ${TAG} already exists — uploading assets"
+            gh release upload "${TAG}" --repo "Fortemi/HotM" ${ASSETS} --clobber
+          else
+            echo "Creating GitHub release ${TAG}"
+            gh release create "${TAG}" \
+              --repo "Fortemi/HotM" \
+              --title "HotM ${VERSION}" \
+              --notes "${RELEASE_BODY}" \
+              ${ASSETS}
+          fi
+          echo "GitHub release ${TAG} published"
