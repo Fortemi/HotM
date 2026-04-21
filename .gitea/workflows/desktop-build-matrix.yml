@@ -1,0 +1,410 @@
+# Desktop Build Matrix — HotM
+#
+# Rolling dev builds for macOS (DMG) and Linux (AppImage + deb).
+# Triggers on push to main touching ui/** or this workflow file.
+# Artifacts published to the "dev-latest" rolling prerelease on Gitea.
+#
+# macOS build: ubuntu-22.04 runner SSHes to mutsu (M4 Mac mini, 10.0.42.41)
+# to produce a native aarch64 DMG. No act_runner on mac — SSH hybrid pattern.
+#
+# Prerequisite: MUTSU_SSH_KEY repo secret set (Settings → Secrets → Actions).
+# Runner setup: .gitea/workflows/mutsu-verify.yml
+#
+# Tracking: Fortemi/HotM#181 (macOS), Fortemi/HotM#180 (Linux)
+
+name: Desktop Build Matrix
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'ui/**'
+      - '.gitea/workflows/desktop-build-matrix.yml'
+  workflow_dispatch:
+
+env:
+  GITEA_API: https://git.integrolabs.net/api/v1/repos/${{ github.repository }}
+  DEV_TAG: dev-latest
+
+# ---------------------------------------------------------------------------
+# Linux — AppImage + deb
+# ---------------------------------------------------------------------------
+jobs:
+  build-linux:
+    name: Build Linux (AppImage + deb)
+    runs-on: ubuntu-22.04
+    timeout-minutes: 60
+
+    steps:
+      - name: Checkout
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          REPO_URL="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}.git"
+          AUTH_URL="${REPO_URL/https:\/\//https:\/\/x-access-token:${GITHUB_TOKEN}@}"
+          git init . && git remote add origin "${AUTH_URL}"
+          git fetch --depth=1 origin "${GITHUB_SHA}" && git checkout --force FETCH_HEAD
+
+      - name: Install system dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          # Mirror resilience: retry up to 3 times; on failure swap to a known-good archive
+          apt_update_strict() {
+            local tries=0
+            until apt-get update -qq; do
+              tries=$((tries + 1))
+              if [ $tries -ge 3 ]; then
+                echo "apt-get update failed after 3 tries — switching to archive.ubuntu.com"
+                sed -i 's|http://azure.archive.ubuntu.com|http://archive.ubuntu.com|g' /etc/apt/sources.list || true
+                sed -i 's|http://us-east-1.ec2.archive.ubuntu.com|http://archive.ubuntu.com|g' /etc/apt/sources.list || true
+                apt-get update -qq || true
+                return
+              fi
+              echo "apt-get update failed (attempt ${tries}/3) — retrying in 5s"
+              sleep 5
+            done
+          }
+
+          apt_update_strict
+          apt-get install -y --no-install-recommends \
+            curl jq \
+            libwebkit2gtk-4.1-dev libgtk-3-dev \
+            libsoup-3.0-dev libjavascriptcoregtk-4.1-dev \
+            librsvg2-dev patchelf \
+            libayatana-appindicator3-dev \
+            build-essential pkg-config libssl-dev
+
+      - name: Install Node.js 20
+        shell: bash
+        run: |
+          curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
+          apt-get install -y nodejs
+
+      - name: Install Rust stable
+        shell: bash
+        run: |
+          curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs \
+            | sh -s -- -y --default-toolchain stable --target x86_64-unknown-linux-gnu
+          echo "$HOME/.cargo/bin" >> $GITHUB_PATH
+
+      - name: Install frontend dependencies
+        working-directory: ui
+        run: npm ci
+
+      - name: Build Tauri app (Linux)
+        working-directory: ui
+        shell: bash
+        run: |
+          export PATH="$HOME/.cargo/bin:$PATH"
+          npx tauri build
+
+      - name: Collect artifacts
+        id: artifacts
+        shell: bash
+        run: |
+          set -euo pipefail
+          VERSION=$(jq -r '.version' ui/src-tauri/tauri.conf.json)
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+
+          # Locate bundles (Tauri names vary slightly)
+          APPIMAGE=$(find ui/src-tauri/target/release/bundle/appimage -name "*.AppImage" | head -1)
+          DEB=$(find ui/src-tauri/target/release/bundle/deb -name "*.deb" | head -1)
+          echo "appimage=${APPIMAGE}" >> $GITHUB_OUTPUT
+          echo "deb=${DEB}" >> $GITHUB_OUTPUT
+          echo "AppImage: ${APPIMAGE}"
+          echo "deb:      ${DEB}"
+
+      - name: Publish AppImage to dev-latest
+        shell: bash
+        env:
+          API_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          ASSET_PATH="${{ steps.artifacts.outputs.appimage }}"
+          ASSET_NAME=$(basename "$ASSET_PATH")
+          VERSION="${{ steps.artifacts.outputs.version }}"
+          SHORT_SHA="${GITHUB_SHA:0:7}"
+
+          # Get or create dev-latest prerelease
+          RESPONSE=$(curl -s -H "Authorization: token ${API_TOKEN}" \
+            "${GITEA_API}/releases/tags/${DEV_TAG}")
+          RELEASE_ID=$(echo "$RESPONSE" | jq -r '.id // empty')
+
+          if [ -z "$RELEASE_ID" ]; then
+            RELEASE_ID=$(curl -s -X POST \
+              -H "Authorization: token ${API_TOKEN}" \
+              -H "Content-Type: application/json" \
+              "${GITEA_API}/releases" \
+              -d "$(jq -n \
+                --arg tag "${DEV_TAG}" \
+                --arg sha "${GITHUB_SHA}" \
+                --arg body "Rolling dev build from main (${SHORT_SHA})" \
+                '{tag_name: $tag, target_commitish: $sha,
+                  name: "HotM Desktop (dev-latest)", body: $body,
+                  draft: false, prerelease: true}')" \
+              | jq -r '.id')
+            echo "Created dev-latest release (id=${RELEASE_ID})"
+          fi
+
+          # Delete stale asset of same name
+          STALE_ID=$(curl -s \
+            -H "Authorization: token ${API_TOKEN}" \
+            "${GITEA_API}/releases/${RELEASE_ID}/assets" \
+            | jq -r ".[] | select(.name == \"${ASSET_NAME}\") | .id // empty")
+          if [ -n "$STALE_ID" ]; then
+            curl -s -X DELETE \
+              -H "Authorization: token ${API_TOKEN}" \
+              "${GITEA_API}/releases/${RELEASE_ID}/assets/${STALE_ID}"
+            echo "Deleted stale asset: ${ASSET_NAME}"
+          fi
+
+          # Upload
+          HTTP=$(curl -s -o /dev/null -w '%{http_code}' -X POST \
+            -H "Authorization: token ${API_TOKEN}" \
+            -H "Content-Type: application/octet-stream" \
+            --data-binary "@${ASSET_PATH}" \
+            "${GITEA_API}/releases/${RELEASE_ID}/assets?name=${ASSET_NAME}")
+          [ "$HTTP" = "201" ] && echo "Uploaded ${ASSET_NAME}" \
+            || { echo "Upload failed (HTTP ${HTTP})"; exit 1; }
+
+      - name: Publish deb to dev-latest
+        shell: bash
+        env:
+          API_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          ASSET_PATH="${{ steps.artifacts.outputs.deb }}"
+          ASSET_NAME=$(basename "$ASSET_PATH")
+
+          RELEASE_ID=$(curl -s -H "Authorization: token ${API_TOKEN}" \
+            "${GITEA_API}/releases/tags/${DEV_TAG}" | jq -r '.id')
+
+          STALE_ID=$(curl -s \
+            -H "Authorization: token ${API_TOKEN}" \
+            "${GITEA_API}/releases/${RELEASE_ID}/assets" \
+            | jq -r ".[] | select(.name == \"${ASSET_NAME}\") | .id // empty")
+          if [ -n "$STALE_ID" ]; then
+            curl -s -X DELETE \
+              -H "Authorization: token ${API_TOKEN}" \
+              "${GITEA_API}/releases/${RELEASE_ID}/assets/${STALE_ID}"
+          fi
+
+          HTTP=$(curl -s -o /dev/null -w '%{http_code}' -X POST \
+            -H "Authorization: token ${API_TOKEN}" \
+            -H "Content-Type: application/vnd.debian.binary-package" \
+            --data-binary "@${ASSET_PATH}" \
+            "${GITEA_API}/releases/${RELEASE_ID}/assets?name=${ASSET_NAME}")
+          [ "$HTTP" = "201" ] && echo "Uploaded ${ASSET_NAME}" \
+            || { echo "Upload failed (HTTP ${HTTP})"; exit 1; }
+
+# ---------------------------------------------------------------------------
+# macOS — DMG via SSH to mutsu
+# ---------------------------------------------------------------------------
+  build-macos:
+    name: Build macOS DMG (via mutsu)
+    runs-on: ubuntu-22.04
+    timeout-minutes: 60
+
+    steps:
+      - name: Install tools (curl, jq, openssh-client)
+        shell: bash
+        run: |
+          apt-get update -qq
+          apt-get install -y --no-install-recommends curl jq openssh-client
+
+      - name: Set up SSH to mutsu
+        shell: bash
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.MUTSU_SSH_KEY }}" > ~/.ssh/mutsu_key
+          chmod 600 ~/.ssh/mutsu_key
+          ssh-keyscan -t ed25519 10.0.42.41 >> ~/.ssh/known_hosts 2>/dev/null || true
+          cat >> ~/.ssh/config << 'EOF'
+          Host mutsu
+            HostName 10.0.42.41
+            User manitcor
+            IdentityFile ~/.ssh/mutsu_key
+            StrictHostKeyChecking no
+            ServerAliveInterval 60
+            ServerAliveCountMax 10
+          EOF
+
+      - name: Test SSH connectivity
+        shell: bash
+        run: |
+          ssh mutsu 'echo "SSH OK — $(uname -m) $(sw_vers -productVersion 2>/dev/null)"'
+
+      - name: Clone repo on mutsu at current SHA
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          BUILD_DIR="/Volumes/build/hotm/builds/run-${GITHUB_RUN_ID}"
+          REPO_URL="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}.git"
+          AUTH_URL="${REPO_URL/https:\/\//https:\/\/x-access-token:${GITHUB_TOKEN}@}"
+          SHA="${GITHUB_SHA}"
+
+          ssh mutsu bash -s -- "$BUILD_DIR" "$AUTH_URL" "$SHA" << 'REMOTE'
+          set -euo pipefail
+          BUILD_DIR="$1"
+          AUTH_URL="$2"
+          SHA="$3"
+          mkdir -p "$BUILD_DIR"
+          git init "$BUILD_DIR"
+          cd "$BUILD_DIR"
+          git remote add origin "$AUTH_URL"
+          git fetch --depth=1 origin "$SHA"
+          git checkout --force FETCH_HEAD
+          echo "Cloned at ${SHA:0:7} → ${BUILD_DIR}"
+          REMOTE
+
+      - name: Build Tauri app on mutsu
+        shell: bash
+        run: |
+          set -euo pipefail
+          BUILD_DIR="/Volumes/build/hotm/builds/run-${GITHUB_RUN_ID}"
+
+          ssh mutsu bash -s -- "$BUILD_DIR" << 'REMOTE'
+          set -euo pipefail
+          BUILD_DIR="$1"
+
+          export PATH="/Volumes/build/bt6/cargo/bin:/opt/homebrew/bin:/opt/homebrew/sbin:$PATH"
+          export CARGO_HOME="/Volumes/build/bt6/cargo"
+          export RUSTUP_HOME="/Volumes/build/bt6/cargo/rustup"
+          . /Volumes/build/bt6/cargo/env 2>/dev/null || true
+
+          echo "=== Rust: $(cargo --version) ==="
+          echo "=== Node: $(node --version) ==="
+          echo "=== npm:  $(npm --version) ==="
+
+          cd "${BUILD_DIR}/ui"
+          npm ci
+          npx tauri build
+
+          echo "=== Build complete ==="
+          find "${BUILD_DIR}/ui/src-tauri/target/release/bundle" \
+            -name "*.dmg" -o -name "*.app" 2>/dev/null | head -10
+          REMOTE
+
+      - name: Codesign .app and repack DMG on mutsu
+        shell: bash
+        run: |
+          set -euo pipefail
+          BUILD_DIR="/Volumes/build/hotm/builds/run-${GITHUB_RUN_ID}"
+
+          ssh mutsu bash -s -- "$BUILD_DIR" << 'REMOTE'
+          set -euo pipefail
+          BUILD_DIR="$1"
+          BUNDLE_DIR="${BUILD_DIR}/ui/src-tauri/target/release/bundle"
+
+          APP="${BUNDLE_DIR}/macos/HotM.app"
+          DMG_SRC=$(find "${BUNDLE_DIR}/dmg" -name "*.dmg" | head -1)
+          VERSION=$(python3 -c "import json,sys; d=json.load(open('${BUILD_DIR}/ui/src-tauri/tauri.conf.json')); print(d['version'])")
+          DMG_OUT="${BUILD_DIR}/HotM_${VERSION}_aarch64.dmg"
+
+          if [ ! -d "$APP" ]; then
+            echo "ERROR: .app not found at ${APP}"
+            exit 1
+          fi
+          if [ -z "$DMG_SRC" ]; then
+            echo "ERROR: no .dmg found in ${BUNDLE_DIR}/dmg"
+            exit 1
+          fi
+
+          echo "=== Codesigning ${APP} ==="
+          codesign --force --deep --sign - "$APP"
+          codesign --verify --verbose=2 "$APP" && echo "Signature OK"
+
+          echo "=== Repacking DMG ==="
+          # Create new DMG from signed .app (simpler than mount/replace approach)
+          hdiutil create \
+            -volname "HotM" \
+            -srcfolder "$APP" \
+            -ov \
+            -format UDZO \
+            "$DMG_OUT"
+
+          echo "DMG ready: ${DMG_OUT} ($(du -h ${DMG_OUT} | cut -f1))"
+          REMOTE
+
+      - name: Collect DMG from mutsu
+        shell: bash
+        run: |
+          set -euo pipefail
+          BUILD_DIR="/Volumes/build/hotm/builds/run-${GITHUB_RUN_ID}"
+          VERSION=$(curl -s \
+            -H "Authorization: token ${{ github.token }}" \
+            "${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/raw/${GITHUB_SHA}/ui/src-tauri/tauri.conf.json" \
+            2>/dev/null | jq -r '.version' 2>/dev/null || echo "")
+          # Fallback: get version from remote file path
+          if [ -z "$VERSION" ]; then
+            VERSION=$(ssh mutsu "python3 -c \"import json; print(json.load(open('/Volumes/build/hotm/builds/run-${GITHUB_RUN_ID}/ui/src-tauri/tauri.conf.json'))['version'])\"")
+          fi
+          echo "VERSION=${VERSION}" >> $GITHUB_ENV
+
+          DMG_NAME="HotM_${VERSION}_aarch64.dmg"
+          scp "mutsu:${BUILD_DIR}/${DMG_NAME}" "./${DMG_NAME}"
+          echo "Collected: ${DMG_NAME} ($(du -h ${DMG_NAME} | cut -f1))"
+          echo "DMG_NAME=${DMG_NAME}" >> $GITHUB_ENV
+
+      - name: Publish DMG to dev-latest
+        shell: bash
+        env:
+          API_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          ASSET_NAME="${DMG_NAME}"
+          SHORT_SHA="${GITHUB_SHA:0:7}"
+
+          # Get or create dev-latest prerelease
+          RESPONSE=$(curl -s -H "Authorization: token ${API_TOKEN}" \
+            "${GITEA_API}/releases/tags/${DEV_TAG}")
+          RELEASE_ID=$(echo "$RESPONSE" | jq -r '.id // empty')
+
+          if [ -z "$RELEASE_ID" ]; then
+            RELEASE_ID=$(curl -s -X POST \
+              -H "Authorization: token ${API_TOKEN}" \
+              -H "Content-Type: application/json" \
+              "${GITEA_API}/releases" \
+              -d "$(jq -n \
+                --arg tag "${DEV_TAG}" \
+                --arg sha "${GITHUB_SHA}" \
+                --arg body "Rolling dev build from main (${SHORT_SHA})" \
+                '{tag_name: $tag, target_commitish: $sha,
+                  name: "HotM Desktop (dev-latest)", body: $body,
+                  draft: false, prerelease: true}')" \
+              | jq -r '.id')
+            echo "Created dev-latest release (id=${RELEASE_ID})"
+          fi
+
+          # Delete stale asset of same name
+          STALE_ID=$(curl -s \
+            -H "Authorization: token ${API_TOKEN}" \
+            "${GITEA_API}/releases/${RELEASE_ID}/assets" \
+            | jq -r ".[] | select(.name == \"${ASSET_NAME}\") | .id // empty")
+          if [ -n "$STALE_ID" ]; then
+            curl -s -X DELETE \
+              -H "Authorization: token ${API_TOKEN}" \
+              "${GITEA_API}/releases/${RELEASE_ID}/assets/${STALE_ID}"
+            echo "Deleted stale asset: ${ASSET_NAME}"
+          fi
+
+          HTTP=$(curl -s -o /dev/null -w '%{http_code}' -X POST \
+            -H "Authorization: token ${API_TOKEN}" \
+            -H "Content-Type: application/octet-stream" \
+            --data-binary "@${ASSET_NAME}" \
+            "${GITEA_API}/releases/${RELEASE_ID}/assets?name=${ASSET_NAME}")
+          [ "$HTTP" = "201" ] && echo "Uploaded ${ASSET_NAME} to dev-latest" \
+            || { echo "Upload failed (HTTP ${HTTP})"; exit 1; }
+
+      - name: Cleanup build dir on mutsu
+        if: always()
+        shell: bash
+        run: |
+          BUILD_DIR="/Volumes/build/hotm/builds/run-${GITHUB_RUN_ID}"
+          ssh mutsu "rm -rf '${BUILD_DIR}'" && echo "Cleaned ${BUILD_DIR}" || true
