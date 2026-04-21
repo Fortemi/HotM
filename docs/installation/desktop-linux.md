@@ -33,12 +33,19 @@ If you prefer to set up manually:
 
 **PostgreSQL:**
 ```bash
-sudo apt-get install postgresql postgresql-contrib postgresql-*-pgvector
+sudo apt-get install postgresql postgresql-contrib
+# Install extensions matching the active cluster version (e.g. 18)
+PG_VER=$(pg_lsclusters --no-header | awk 'NR==1{print $1}')
+sudo apt-get install postgresql-${PG_VER}-pgvector postgresql-${PG_VER}-postgis-3
 sudo -u postgres psql <<SQL
 CREATE ROLE matric WITH LOGIN PASSWORD 'matric' SUPERUSER;
 CREATE DATABASE matric OWNER matric;
 SQL
-sudo -u postgres psql -d matric -c "CREATE EXTENSION IF NOT EXISTS vector;"
+sudo -u postgres psql -d matric <<SQL
+CREATE EXTENSION IF NOT EXISTS vector;
+CREATE EXTENSION IF NOT EXISTS postgis;
+CREATE EXTENSION IF NOT EXISTS pg_trgm;
+SQL
 ```
 
 **Ollama** (optional):

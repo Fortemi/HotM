@@ -166,9 +166,38 @@ pub fn run() {
 
                     // Forward sidecar stdout/stderr to host stderr for debugging
                     let handle = app.handle().clone();
+                    let health_url = format!("http://127.0.0.1:{}/health", port);
                     tauri::async_runtime::spawn(async move {
                         use tauri_plugin_shell::process::CommandEvent;
                         let mut rx = rx;
+
+                        // Drain stdout/stderr while concurrently polling the health endpoint.
+                        // We poll in a separate spawned task so log forwarding never blocks.
+                        let probe_handle = handle.clone();
+                        let probe_url = health_url.clone();
+                        tauri::async_runtime::spawn(async move {
+                            let client = reqwest::Client::builder()
+                                .timeout(std::time::Duration::from_secs(2))
+                                .build()
+                                .unwrap_or_default();
+                            let deadline = std::time::Instant::now()
+                                + std::time::Duration::from_secs(30);
+                            loop {
+                                if std::time::Instant::now() > deadline {
+                                    eprintln!("HotM: sidecar did not become healthy within 30s");
+                                    break;
+                                }
+                                tokio::time::sleep(std::time::Duration::from_millis(500)).await;
+                                if let Ok(resp) = client.get(&probe_url).send().await {
+                                    if resp.status().is_success() {
+                                        eprintln!("HotM: sidecar ready");
+                                        let _ = probe_handle.emit("sidecar:ready", ());
+                                        break;
+                                    }
+                                }
+                            }
+                        });
+
                         while let Some(event) = rx.recv().await {
                             match event {
                                 CommandEvent::Stdout(line) => {
@@ -182,7 +211,7 @@ pub fn run() {
                                 }
                                 CommandEvent::Terminated(status) => {
                                     eprintln!("[fortemi] process exited: {:?}", status);
-                                    let _ = handle; // keep handle alive
+                                    let _ = handle;
                                     break;
                                 }
                                 _ => {}

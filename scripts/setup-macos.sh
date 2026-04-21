@@ -49,16 +49,15 @@ brew update --quiet
 
 # ── PostgreSQL ───────────────────────────────────────────────────────────────
 PG_VERSION="17"
-info "Installing PostgreSQL ${PG_VERSION}..."
-brew install "postgresql@${PG_VERSION}" pgvector 2>/dev/null || \
-  brew install "postgresql@${PG_VERSION}"
+info "Installing PostgreSQL ${PG_VERSION} + extensions..."
+brew install "postgresql@${PG_VERSION}" pgvector postgis
 
 PG_BIN="$(brew --prefix postgresql@${PG_VERSION})/bin"
 export PATH="${PG_BIN}:${PATH}"
 
 # Start PostgreSQL service
 brew services start "postgresql@${PG_VERSION}"
-sleep 2
+sleep 3
 
 # Create role and database
 info "Creating PostgreSQL role '${DB_USER}' and database '${DB_NAME}'..."
@@ -80,9 +79,13 @@ SELECT 'CREATE DATABASE ${DB_NAME} OWNER ${DB_USER}'
 \gexec
 SQL
 
-# Enable pgvector
-psql -d "${DB_NAME}" -c "CREATE EXTENSION IF NOT EXISTS vector;" 2>/dev/null || \
-  warn "pgvector not available — semantic search will be limited. Install via: brew install pgvector"
+# Enable required extensions (vector, postgis, pg_trgm)
+psql -d "${DB_NAME}" -v ON_ERROR_STOP=0 <<SQL
+CREATE EXTENSION IF NOT EXISTS vector;
+CREATE EXTENSION IF NOT EXISTS postgis;
+CREATE EXTENSION IF NOT EXISTS pg_trgm;
+SQL
+info "PostgreSQL extensions enabled: vector, postgis, pg_trgm"
 
 info "PostgreSQL ready: postgres://${DB_USER}:${DB_PASSWORD}@localhost/${DB_NAME}"
 

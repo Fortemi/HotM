@@ -52,12 +52,19 @@ $SUDO apt-get update -qq
 
 # ── PostgreSQL ───────────────────────────────────────────────────────────────
 info "Installing PostgreSQL..."
-$SUDO apt-get install -y --no-install-recommends \
-  postgresql postgresql-contrib \
-  postgresql-$(pg_lsclusters --no-header 2>/dev/null | awk 'NR==1{print $1}' || echo "16")-pgvector \
-  2>/dev/null || \
-$SUDO apt-get install -y --no-install-recommends \
-  postgresql postgresql-contrib
+$SUDO apt-get install -y --no-install-recommends postgresql postgresql-contrib
+
+# Detect the installed version and install matching extensions
+PG_VER=$(pg_lsclusters --no-header 2>/dev/null | awk 'NR==1{print $1}')
+if [ -n "$PG_VER" ]; then
+  $SUDO apt-get install -y --no-install-recommends \
+    "postgresql-${PG_VER}-pgvector" \
+    "postgresql-${PG_VER}-postgis-3" 2>/dev/null \
+    && info "pgvector + PostGIS installed for PostgreSQL ${PG_VER}" \
+    || warn "Extension packages not found for PostgreSQL ${PG_VER} — some features may be unavailable"
+else
+  warn "Could not detect PostgreSQL version — skipping extension install"
+fi
 
 # Ensure cluster is running
 $SUDO systemctl enable --now postgresql
@@ -82,9 +89,13 @@ SELECT 'CREATE DATABASE ${DB_NAME} OWNER ${DB_USER}'
 \gexec
 SQL
 
-# Enable pgvector extension
-$SUDO -u postgres psql -d "${DB_NAME}" -c "CREATE EXTENSION IF NOT EXISTS vector;" 2>/dev/null || \
-  warn "pgvector extension not available — embedding search will be disabled. Install postgresql-*-pgvector."
+# Enable required extensions (vector, postgis, pg_trgm)
+$SUDO -u postgres psql -d "${DB_NAME}" -v ON_ERROR_STOP=0 <<SQL
+CREATE EXTENSION IF NOT EXISTS vector;
+CREATE EXTENSION IF NOT EXISTS postgis;
+CREATE EXTENSION IF NOT EXISTS pg_trgm;
+SQL
+info "PostgreSQL extensions enabled: vector, postgis, pg_trgm"
 
 info "PostgreSQL ready: postgres://${DB_USER}:${DB_PASSWORD}@localhost/${DB_NAME}"
 

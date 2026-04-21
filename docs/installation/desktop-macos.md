@@ -31,7 +31,7 @@ Pass `--no-ollama` to skip Ollama — HotM will start in [Degraded mode](#degrad
 
 **PostgreSQL:**
 ```bash
-brew install postgresql@17 pgvector
+brew install postgresql@17 pgvector postgis
 brew services start postgresql@17
 export PATH="/opt/homebrew/opt/postgresql@17/bin:$PATH"
 
@@ -39,12 +39,16 @@ psql postgres <<SQL
 CREATE ROLE matric WITH LOGIN PASSWORD 'matric' SUPERUSER;
 CREATE DATABASE matric OWNER matric;
 SQL
-psql -d matric -c "CREATE EXTENSION IF NOT EXISTS vector;"
+psql -d matric <<SQL
+CREATE EXTENSION IF NOT EXISTS vector;
+CREATE EXTENSION IF NOT EXISTS postgis;
+CREATE EXTENSION IF NOT EXISTS pg_trgm;
+SQL
 ```
 
 **Ollama** (optional):
 ```bash
-brew install ollama
+brew install ollama  
 brew services start ollama
 ollama pull nomic-embed-text
 ollama pull qwen3.5:9b

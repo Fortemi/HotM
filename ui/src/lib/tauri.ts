@@ -281,6 +281,24 @@ function makeAdapterFetch(adapter: HotmHostAdapter): typeof globalThis.fetch {
   };
 }
 
+/**
+ * Listen for a Tauri event emitted from the Rust backend.
+ * Returns an unsubscribe function; call it on component unmount.
+ * No-ops when not running in Tauri (returns a no-op unsubscribe).
+ */
+export async function listenTauriEvent(
+  event: string,
+  handler: () => void,
+): Promise<() => void> {
+  if (!isTauri()) return () => {};
+  try {
+    const { listen } = await import("@tauri-apps/api/event");
+    return listen(event, handler);
+  } catch {
+    return () => {};
+  }
+}
+
 /** Render PlantUML to SVG via Tauri command. Returns undefined in web mode. */
 export async function renderPlantUML(
   code: string,

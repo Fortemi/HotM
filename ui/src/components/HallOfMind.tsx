@@ -83,6 +83,7 @@ import {
 import type { MemoryArchive } from "@/api";
 import { MarkdownPreview } from "./MarkdownPreview";
 import { MarkdownEditor } from "./MarkdownEditor";
+import { listenTauriEvent } from "@/lib/tauri";
 import { RelatedNotes } from "./RelatedNotes";
 import { NoteMetadata } from "./NoteMetadata";
 import { NoteContextMenu, useGlobalContextMenuPrevention } from "./NoteContextMenu";
@@ -305,6 +306,17 @@ export function HallOfMind() {
     loadExistingNotes();
     void loadMemoryRoutingState();
     void refreshSystemSnapshot();
+
+    // When the Fortemi sidecar signals it is ready (desktop only), re-run
+    // health check so the sidebar flips from Offline to Connected without
+    // requiring a manual retry.
+    let unlisten: (() => void) | undefined;
+    listenTauriEvent("sidecar:ready", () => {
+      checkServerHealth();
+      loadExistingNotes();
+    }).then((fn) => { unlisten = fn; });
+
+    return () => { unlisten?.(); };
   }, []);
 
   useEffect(() => {
