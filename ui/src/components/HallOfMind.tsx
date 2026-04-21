@@ -42,6 +42,7 @@ import {
   BookOpen,
   CheckCircle,
   AlertCircle,
+  AlertTriangle,
   XCircle,
   RefreshCw,
   Loader2,
@@ -245,6 +246,7 @@ export function HallOfMind() {
   const [isLoading, setIsLoading] = useState(false);
   const [serverStatus, setServerStatus] = useState<{
     ok: boolean;
+    degraded?: boolean;
     message?: string;
   } | null>(null);
   const [newNoteContent, setNewNoteContent] = useState("");
@@ -876,13 +878,13 @@ export function HallOfMind() {
   const checkServerHealth = async () => {
     try {
       const health = await api.checkHealth();
-      setServerStatus({ ok: health.ok });
+      setServerStatus({ ok: health.ok, degraded: health.degraded });
       console.log("Server health:", health);
     } catch (error) {
       console.error("Server health check failed:", error);
-      setServerStatus({ 
-        ok: false, 
-        message: "Cannot connect to HotM server" 
+      setServerStatus({
+        ok: false,
+        message: "Cannot connect to HotM server"
       });
     }
   };
@@ -1853,10 +1855,15 @@ export function HallOfMind() {
             {/* Server Status */}
             <div className="mt-2 flex items-center justify-between">
               <div className="flex items-center gap-2 text-xs">
-                {serverStatus?.ok ? (
+                {serverStatus?.ok && !serverStatus.degraded ? (
                   <>
                     <CheckCircle className="h-3 w-3 text-green-500" />
                     <span className="text-green-600 dark:text-green-400">API Connected</span>
+                  </>
+                ) : serverStatus?.ok && serverStatus.degraded ? (
+                  <>
+                    <AlertTriangle className="h-3 w-3 text-yellow-500" />
+                    <span className="text-yellow-600 dark:text-yellow-400">Degraded</span>
                   </>
                 ) : serverStatus === null ? (
                   <>
@@ -2510,8 +2517,8 @@ export function HallOfMind() {
                         </CardTitle>
                       </CardHeader>
                       <CardContent className="space-y-1 text-sm">
-                        <Badge variant={serverStatus?.ok ? "secondary" : "destructive"}>
-                          {serverStatus?.ok ? "online" : "offline"}
+                        <Badge variant={serverStatus?.ok ? (serverStatus.degraded ? "outline" : "secondary") : "destructive"}>
+                          {serverStatus?.ok ? (serverStatus.degraded ? "degraded" : "online") : "offline"}
                         </Badge>
                         {serverStatus?.message && (
                           <p className="text-xs text-muted-foreground">{serverStatus.message}</p>

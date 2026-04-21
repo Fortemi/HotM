@@ -51,6 +51,8 @@ export interface HealthResponse {
   ollama: boolean;
   db: boolean;
   vector: boolean;
+  /** Server reachable but inference capabilities unavailable (e.g. Ollama not yet connected) */
+  degraded?: boolean;
 }
 
 /**
@@ -109,16 +111,33 @@ class CompatApiClient {
   // ============================================================
 
   private normalizeHealthResponse(raw: Record<string, unknown>): HealthResponse {
+    // Treat explicit status field as authoritative over the ok boolean.
+    // Since fetchHealth only returns on HTTP 2xx, any recognised non-error status
+    // means the server is reachable. "live" / "up" / "running" are common liveness
+    // probe values that are NOT synonyms for unhealthy.
+    const explicitStatus = raw.status as string | undefined;
     const ok =
-      Boolean(raw.ok) ||
-      raw.status === 'ok' ||
-      raw.status === 'healthy';
+      explicitStatus === 'healthy' ||
+      explicitStatus === 'ok' ||
+      explicitStatus === 'live' ||
+      explicitStatus === 'up' ||
+      explicitStatus === 'running' ||
+      // Fall back to ok boolean only when no status field is present
+      (explicitStatus == null && Boolean(raw.ok));
 
     const db = Boolean(raw.db ?? raw.database ?? raw.postgres);
     const ollama = Boolean(raw.ollama);
     const vector = Boolean(raw.vector ?? raw.pgvector);
 
-    return { ok, db, ollama, vector };
+    // Degraded: server is reachable but inference is unavailable.
+    // Fortemi sets capabilities.chat.available=false when its one-shot Ollama
+    // probe at startup failed. This is NOT an offline condition.
+    const caps = raw.capabilities as Record<string, unknown> | undefined;
+    const chatAvailable = (caps?.chat as Record<string, unknown> | undefined)?.available;
+    const inferenceConfigured = (caps?.inference as Record<string, unknown> | undefined)?.configured;
+    const degraded = ok && (chatAvailable === false || inferenceConfigured === false);
+
+    return { ok, db, ollama, vector, degraded };
   }
 
   private async fetchHealth(url: string): Promise<Record<string, unknown>> {

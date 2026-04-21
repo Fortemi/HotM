@@ -34,6 +34,7 @@ describe('API Compatibility Layer', () => {
         db: true,
         ollama: true,
         vector: true,
+        degraded: false,
       });
     });
 

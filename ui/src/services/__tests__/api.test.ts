@@ -42,6 +42,7 @@ describe('Legacy API Service (Compatibility Layer)', () => {
         db: true,
         vector: true,
         ollama: true,
+        degraded: false,
       });
     });
 
