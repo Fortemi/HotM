@@ -85,17 +85,17 @@ fn encode6bit(b: u8) -> char {
 }
 
 /// Render PlantUML code to SVG using PlantUML server
-pub fn render_plantuml(_app: &AppHandle, code: &str) -> Result<String, PlantUMLError> {
+pub async fn render_plantuml(_app: &AppHandle, code: &str) -> Result<String, PlantUMLError> {
     let server_url = "http://localhost:8080";
     let encoded = encode_plantuml(code);
     let url = format!("{}/svg/{}", server_url, encoded);
 
-    let client = reqwest::blocking::Client::builder()
+    let client = reqwest::Client::builder()
         .timeout(std::time::Duration::from_secs(10))
         .build()
-        .map_err(|e| PlantUMLError::NetworkError(e.to_string()))?;
+        .map_err(|e: reqwest::Error| PlantUMLError::NetworkError(e.to_string()))?;
 
-    let response = client.get(&url).send().map_err(|e| {
+    let response = client.get(&url).send().await.map_err(|e: reqwest::Error| {
         if e.is_connect() {
             PlantUMLError::ServerNotAvailable
         } else {
@@ -112,6 +112,7 @@ pub fn render_plantuml(_app: &AppHandle, code: &str) -> Result<String, PlantUMLE
 
     response
         .text()
+        .await
         .map_err(|e| PlantUMLError::RenderFailed(format!("Failed to read SVG response: {}", e)))
 }
 

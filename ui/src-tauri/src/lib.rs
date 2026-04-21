@@ -1,4 +1,6 @@
+use std::collections::HashMap;
 use std::net::TcpListener;
+use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::{Arc, Mutex};
 use tauri::menu::{MenuBuilder, MenuItemBuilder};
 use tauri::tray::TrayIconBuilder;
@@ -7,8 +9,215 @@ use tauri_plugin_global_shortcut::GlobalShortcutExt;
 use tauri_plugin_shell::process::CommandChild;
 use tauri_plugin_shell::ShellExt;
 
+use base64::{engine::general_purpose::STANDARD as B64, Engine};
+
 mod config;
 mod plantuml;
+
+static SSE_COUNTER: AtomicU64 = AtomicU64::new(1);
+
+/// Initialization script injected into every webview before any page JS runs.
+///
+/// Installs window.__HOTM_HOST__ with Rust-backed fetch and SSE so all API
+/// calls route through reqwest in the host process rather than WebKit2GTK's
+/// network stack (which blocks loopback HTTP on Linux).
+///
+/// The guard `if(!window.__HOTM_HOST__)` means embedding hosts (bt6-arsenal)
+/// that inject their own adapter first keep theirs — HotM never overwrites it.
+/// This script is a no-op in Docker/web mode because Tauri never injects it.
+const HOTM_HOST_INIT: &str = concat!(
+    "if(!window.__HOTM_HOST__){",
+    "window.__HOTM_HOST__={network:{",
+    "fetch:function(a){return window.__TAURI_INTERNALS__.invoke('hotm_fetch',a);},",
+    "sse:{",
+    "connect:function(a){return window.__TAURI_INTERNALS__.invoke('hotm_sse_connect',a);},",
+    "close:function(a){return window.__TAURI_INTERNALS__.invoke('hotm_sse_close',a);}",
+    "}}};",
+    "}"
+);
+
+/// Proxy an HTTP request through reqwest in the host process.
+///
+/// This bypasses WebKit2GTK's network stack entirely, which on Linux
+/// blocks requests to loopback addresses made via @tauri-apps/plugin-http.
+/// All four deployment modes converge here:
+///   - Standalone Tauri (Linux/macOS): initializationScript installs
+///     window.__HOTM_HOST__ pointing at this command.
+///   - bt6-arsenal embed: arsenal injects its own window.__HOTM_HOST__
+///     before HotM loads; initializationScript's guard skips this command.
+///   - Docker/web: no Tauri, no initializationScript; native fetch is used.
+///   - Dev browser: same as Docker/web.
+#[tauri::command]
+async fn hotm_fetch(
+    url: String,
+    method: Option<String>,
+    headers: Option<HashMap<String, String>>,
+    body_b64: Option<String>,
+) -> Result<serde_json::Value, String> {
+    let client = reqwest::Client::builder()
+        .timeout(std::time::Duration::from_secs(30))
+        .build()
+        .map_err(|e| e.to_string())?;
+
+    let method_str = method.as_deref().unwrap_or("GET");
+    let method = reqwest::Method::from_bytes(method_str.as_bytes())
+        .map_err(|e| e.to_string())?;
+
+    let mut req = client.request(method, &url);
+
+    if let Some(hdrs) = headers {
+        for (k, v) in hdrs {
+            req = req.header(k, v);
+        }
+    }
+
+    if let Some(b64) = body_b64 {
+        if !b64.is_empty() {
+            let body = B64.decode(&b64).map_err(|e| e.to_string())?;
+            req = req.body(body);
+        }
+    }
+
+    let resp = req.send().await.map_err(|e| e.to_string())?;
+    let status = resp.status().as_u16();
+    let status_text = resp
+        .status()
+        .canonical_reason()
+        .unwrap_or("")
+        .to_string();
+
+    let mut resp_headers = serde_json::Map::new();
+    for (k, v) in resp.headers() {
+        if let Ok(vs) = v.to_str() {
+            resp_headers.insert(k.as_str().to_string(), serde_json::Value::String(vs.to_string()));
+        }
+    }
+
+    let body = resp.bytes().await.map_err(|e| e.to_string())?;
+    let body_b64 = B64.encode(&body);
+
+    Ok(serde_json::json!({
+        "status": status,
+        "status_text": status_text,
+        "headers": resp_headers,
+        "body_b64": body_b64
+    }))
+}
+
+/// Open an SSE connection through reqwest and forward events to the webview
+/// via window.postMessage, matching the __HOTM_HOST__ contract expected by
+/// tauri.ts / events.ts.
+#[tauri::command]
+async fn hotm_sse_connect(app: tauri::AppHandle, url: String) -> Result<serde_json::Value, String> {
+    let handle = format!("sse-{}", SSE_COUNTER.fetch_add(1, Ordering::SeqCst));
+    let handle_clone = handle.clone();
+
+    tauri::async_runtime::spawn(async move {
+        let client = reqwest::Client::builder()
+            .timeout(std::time::Duration::from_secs(3600))
+            .build()
+            .unwrap_or_default();
+
+        let result = client
+            .get(&url)
+            .header("Accept", "text/event-stream")
+            .header("Cache-Control", "no-cache")
+            .send()
+            .await;
+
+        match result {
+            Err(e) => {
+                let _ = post_sse_event(&app, &handle_clone, "__error", Some(&e.to_string()), None);
+            }
+            Ok(resp) => {
+                use futures_util::StreamExt;
+                let mut stream = resp.bytes_stream();
+                let mut buf = String::new();
+                let mut ev_type = String::new();
+                let mut ev_data = String::new();
+                let mut ev_id = String::new();
+
+                while let Some(chunk) = stream.next().await {
+                    let bytes = match chunk {
+                        Ok(b) => b,
+                        Err(_) => break,
+                    };
+                    buf.push_str(&String::from_utf8_lossy(&bytes));
+
+                    while let Some(pos) = buf.find('\n') {
+                        let line = buf[..pos].trim_end_matches('\r').to_string();
+                        buf.drain(..=pos);
+
+                        if line.is_empty() {
+                            if !ev_data.is_empty() {
+                                let t = if ev_type.is_empty() { "message" } else { &ev_type };
+                                let id = if ev_id.is_empty() { None } else { Some(ev_id.as_str()) };
+                                let _ = post_sse_event(&app, &handle_clone, t, Some(&ev_data), id);
+                            }
+                            ev_type.clear();
+                            ev_data.clear();
+                            ev_id.clear();
+                        } else if let Some(v) = line.strip_prefix("event:") {
+                            ev_type = v.trim_start().to_string();
+                        } else if let Some(v) = line.strip_prefix("data:") {
+                            if !ev_data.is_empty() {
+                                ev_data.push('\n');
+                            }
+                            ev_data.push_str(v.trim_start());
+                        } else if let Some(v) = line.strip_prefix("id:") {
+                            ev_id = v.trim_start().to_string();
+                        }
+                    }
+                }
+                let _ = post_sse_event(&app, &handle_clone, "__close", None, None);
+            }
+        }
+    });
+
+    Ok(serde_json::json!({ "handle": handle, "event": "network.sse" }))
+}
+
+/// No-op for now; the SSE stream closes naturally when the server disconnects
+/// or when the app exits. Full cancellation can be added later via a handle map.
+#[tauri::command]
+async fn hotm_sse_close(_handle: String) -> Result<(), String> {
+    Ok(())
+}
+
+/// Deliver an SSE event to the webview by executing window.postMessage.
+/// The payload shape matches what tauri.ts / events.ts expect from the
+/// __HOTM_HOST__ adapter contract.
+fn post_sse_event(
+    app: &tauri::AppHandle,
+    handle: &str,
+    event_type: &str,
+    data: Option<&str>,
+    id: Option<&str>,
+) -> Result<(), String> {
+    let window = app
+        .get_webview_window("main")
+        .ok_or_else(|| "main window not found".to_string())?;
+
+    let payload = serde_json::json!({
+        "type": event_type,
+        "data": data,
+        "id": id
+    });
+
+    let msg = serde_json::json!({
+        "__hotm_host_event": true,
+        "event": "network.sse",
+        "handle": handle,
+        "payload": payload
+    });
+
+    let js = format!(
+        "window.postMessage({}, '*')",
+        serde_json::to_string(&msg).map_err(|e| e.to_string())?
+    );
+
+    window.eval(&js).map_err(|e| e.to_string())
+}
 
 /// Find a free TCP port by binding to port 0.
 fn find_free_port() -> u16 {
@@ -23,7 +232,7 @@ type SidecarHandle = Arc<Mutex<Option<CommandChild>>>;
 
 #[tauri::command]
 async fn render_plantuml(app: tauri::AppHandle, code: String) -> Result<String, String> {
-    plantuml::render_plantuml(&app, &code).map_err(|e| e.to_string())
+    plantuml::render_plantuml(&app, &code).await.map_err(|e| e.to_string())
 }
 
 #[tauri::command]
@@ -122,8 +331,31 @@ pub fn run() {
         .plugin(tauri_plugin_notification::init())
         .plugin(tauri_plugin_http::init())
         .plugin(shortcut_plugin)
-        .invoke_handler(tauri::generate_handler![render_plantuml, ensure_plantuml, get_app_config, save_app_config])
+        .invoke_handler(tauri::generate_handler![
+            render_plantuml,
+            ensure_plantuml,
+            get_app_config,
+            save_app_config,
+            hotm_fetch,
+            hotm_sse_connect,
+            hotm_sse_close,
+        ])
         .setup(move |app| {
+            // ── Main window (created programmatically so we can inject the
+            //    host-proxy init script before any page JS executes) ────────
+            tauri::WebviewWindowBuilder::new(
+                app,
+                "main",
+                tauri::WebviewUrl::App("index.html".into()),
+            )
+            .title("Hall of the Mind")
+            .inner_size(1200.0, 800.0)
+            .center()
+            .decorations(true)
+            .resizable(true)
+            .initialization_script(HOTM_HOST_INIT)
+            .build()?;
+
             // Register global shortcut: Ctrl+Alt+H
             app.global_shortcut()
                 .register("CmdOrCtrl+Alt+H")
@@ -136,7 +368,7 @@ pub fn run() {
                 let cfg = config::load_config(app.handle());
                 if !cfg.database_url.is_empty() {
                     let port = find_free_port();
-                    let api_url = format!("http://127.0.0.1:{}", port);
+                    let api_url = format!("http://127.0.0.1:{}/api/v1", port);
 
                     // Resolve file storage path: config value OR <app_data>/fortemi-files
                     let file_storage = if cfg.file_storage_path.is_empty() {

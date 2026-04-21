@@ -10,16 +10,7 @@
     "beforeDevCommand": "npm run dev"
   },
   "app": {
-    "windows": [
-      {
-        "title": "Hall of the Mind",
-        "width": 1200,
-        "height": 800,
-        "center": true,
-        "decorations": true,
-        "resizable": true
-      }
-    ],
+    "windows": [],
     "trayIcon": {
       "iconPath": "icons/icon.png",
       "tooltip": "HotM - Hall of the Mind"
