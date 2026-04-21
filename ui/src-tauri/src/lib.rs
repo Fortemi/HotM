@@ -2,7 +2,7 @@ use std::net::TcpListener;
 use std::sync::{Arc, Mutex};
 use tauri::menu::{MenuBuilder, MenuItemBuilder};
 use tauri::tray::TrayIconBuilder;
-use tauri::{Manager, WindowEvent};
+use tauri::{Emitter, Manager, WindowEvent};
 use tauri_plugin_global_shortcut::GlobalShortcutExt;
 use tauri_plugin_shell::process::CommandChild;
 use tauri_plugin_shell::ShellExt;
