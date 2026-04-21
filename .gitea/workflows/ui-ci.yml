@@ -1,10 +1,14 @@
 # CI/CD Pipeline for HotM
 #
-# Single workflow handles CI for both ui/ and agent-proxy/, plus release.
-# Conditional jobs based on trigger type:
-#   - Always: quality checks (ui + agent-proxy, parallel)
-#   - On push to main: publish dev image to Gitea registry
-#   - On tag v*: build SPA + Docker + Tauri, publish to Gitea + GHCR, create releases
+# Responsibilities:
+#   - Always: quality gates for ui/ and agent-proxy/ (parallel)
+#   - On push to main: publish agent-proxy dev image to Gitea registry
+#   - On tag v*: publish agent-proxy release image to Gitea + GHCR
+#
+# Out of scope (handled by dedicated workflows):
+#   - HotM UI Docker image   → publish-hotm-ui-image.yml
+#   - Desktop builds (Tauri) → desktop-build-matrix.yml (rolling), desktop-release.yml (tags)
+#   - Gitea/GitHub releases  → desktop-release.yml
 #
 # NOTE: Gitea Actions requires 'create' block for tag triggers
 
@@ -32,7 +36,6 @@ env:
   GHCR_REGISTRY: ghcr.io
   IMAGE_NAME: fortemi/hotm-ui
   AGENT_PROXY_IMAGE_NAME: fortemi/hotm-agent-proxy
-  FORTEMI_API_URL: http://localhost:3000/api/v1
 
 jobs:
   # ─── Always: UI Quality Gate ─────────────────────────────────────
@@ -128,40 +131,6 @@ jobs:
       - name: Log in to Gitea registry
         run: echo "${{ secrets.BUILD_REPO_TOKEN }}" | docker login ${GITEA_REGISTRY} -u ${{ gitea.actor }} --password-stdin
 
-      - name: Build and push dev image
-        run: |
-          IMAGE="${GITEA_REGISTRY}/${IMAGE_NAME}"
-          SHORT_SHA="${GITHUB_SHA:0:7}"
-
-          push_with_retry() {
-            local image=$1
-            local max_attempts=3
-            local attempt=1
-            while [ $attempt -le $max_attempts ]; do
-              echo "Pushing ${image} (attempt ${attempt}/${max_attempts})"
-              if docker push "${image}"; then
-                return 0
-              fi
-              sleep $((attempt * 5))
-              attempt=$((attempt + 1))
-            done
-            echo "Failed to push ${image} after ${max_attempts} attempts"
-            return 1
-          }
-
-          docker build \
-            -f ui/Dockerfile \
-            --build-arg VITE_API_BASE_URL="${FORTEMI_API_URL}" \
-            --build-arg VITE_GIT_SHA="${SHORT_SHA}" \
-            -t "${IMAGE}:main" \
-            -t "${IMAGE}:latest" \
-            -t "${IMAGE}:sha-${SHORT_SHA}" \
-            ui
-
-          push_with_retry "${IMAGE}:main"
-          push_with_retry "${IMAGE}:latest"
-          push_with_retry "${IMAGE}:sha-${SHORT_SHA}"
-
       - name: Build and push agent-proxy dev image
         run: |
           PROXY_IMAGE="${GITEA_REGISTRY}/${AGENT_PROXY_IMAGE_NAME}"
@@ -198,9 +167,10 @@ jobs:
   # Release Jobs (tag push only)
   # =============================================================================
 
-  # ─── Publish Release Docker Images → Gitea + GHCR ──────────────────
+  # ─── Publish agent-proxy release image → Gitea + GHCR ─────────────
+  # HotM UI Docker is handled by publish-hotm-ui-image.yml
   publish-release:
-    name: Publish Release Image
+    name: Publish Agent-Proxy Release Image
     runs-on: titan
     needs: [quality-gate, agent-proxy-quality-gate]
     if: startsWith(github.ref, 'refs/tags/v')
@@ -220,60 +190,6 @@ jobs:
         run: |
           echo "${{ secrets.BUILD_REPO_TOKEN }}" | docker login ${GITEA_REGISTRY} -u ${{ gitea.actor }} --password-stdin
           echo "${{ secrets.GH_PUBLISH_TOKEN }}" | docker login ${GHCR_REGISTRY} -u fortemi --password-stdin
-
-      - name: Build and push release images
-        run: |
-          VERSION="${GITHUB_REF_NAME#v}"
-          SHORT_SHA="${GITHUB_SHA:0:7}"
-
-          push_with_retry() {
-            local image=$1
-            local max_attempts=3
-            local attempt=1
-            while [ $attempt -le $max_attempts ]; do
-              echo "Pushing ${image} (attempt ${attempt}/${max_attempts})"
-              if docker push "${image}"; then
-                return 0
-              fi
-              sleep $((attempt * 5))
-              attempt=$((attempt + 1))
-            done
-            echo "Failed to push ${image} after ${max_attempts} attempts"
-            return 1
-          }
-
-          echo "Building release images for version: ${VERSION}"
-
-          docker build \
-            -f ui/Dockerfile \
-            --build-arg VITE_API_BASE_URL="${FORTEMI_API_URL}" \
-            --build-arg VITE_GIT_SHA="${SHORT_SHA}" \
-            -t "hotm-ui:build" \
-            ui
-
-          # Tag and push to Gitea
-          GITEA_IMAGE="${GITEA_REGISTRY}/${IMAGE_NAME}"
-          docker tag "hotm-ui:build" "${GITEA_IMAGE}:${VERSION}"
-          docker tag "hotm-ui:build" "${GITEA_IMAGE}:latest"
-          docker tag "hotm-ui:build" "${GITEA_IMAGE}:sha-${SHORT_SHA}"
-
-          push_with_retry "${GITEA_IMAGE}:${VERSION}"
-          push_with_retry "${GITEA_IMAGE}:latest"
-          push_with_retry "${GITEA_IMAGE}:sha-${SHORT_SHA}"
-
-          # Tag and push to GHCR
-          GHCR_IMAGE="${GHCR_REGISTRY}/${IMAGE_NAME}"
-          docker tag "hotm-ui:build" "${GHCR_IMAGE}:${VERSION}"
-          docker tag "hotm-ui:build" "${GHCR_IMAGE}:latest"
-          docker tag "hotm-ui:build" "${GHCR_IMAGE}:sha-${SHORT_SHA}"
-
-          push_with_retry "${GHCR_IMAGE}:${VERSION}"
-          push_with_retry "${GHCR_IMAGE}:latest"
-          push_with_retry "${GHCR_IMAGE}:sha-${SHORT_SHA}"
-
-          echo "Published UI release images:"
-          echo "  Gitea:  ${GITEA_IMAGE}:${VERSION}, :latest, :sha-${SHORT_SHA}"
-          echo "  GitHub: ${GHCR_IMAGE}:${VERSION}, :latest, :sha-${SHORT_SHA}"
 
       - name: Build and push agent-proxy release images
         run: |
@@ -327,201 +243,3 @@ jobs:
           echo "  Gitea:  ${GITEA_PROXY}:${VERSION}, :latest, :sha-${SHORT_SHA}"
           echo "  GitHub: ${GHCR_PROXY}:${VERSION}, :latest, :sha-${SHORT_SHA}"
 
-  # ─── Create Gitea Release ──────────────────────────────────────────
-  create-release:
-    name: Create Gitea Release
-    runs-on: titan
-    needs: publish-release
-    if: startsWith(github.ref, 'refs/tags/v')
-    steps:
-      - name: Create release
-        run: |
-          VERSION="${GITHUB_REF_NAME}"
-
-          RESPONSE=$(curl -s -w "\n%{http_code}" -X POST \
-            -H "Authorization: token ${{ secrets.BUILD_REPO_TOKEN }}" \
-            -H "Content-Type: application/json" \
-            "https://git.integrolabs.net/api/v1/repos/${GITHUB_REPOSITORY}/releases" \
-            -d "{
-              \"tag_name\": \"${VERSION}\",
-              \"name\": \"HotM ${VERSION}\",
-              \"body\": \"Release ${VERSION}\",
-              \"draft\": false,
-              \"prerelease\": false
-            }")
-
-          HTTP_CODE=$(echo "$RESPONSE" | tail -n1)
-          BODY=$(echo "$RESPONSE" | head -n -1)
-
-          if [ "$HTTP_CODE" = "201" ]; then
-            echo "Gitea Release created"
-          elif [ "$HTTP_CODE" = "409" ] || [ "$HTTP_CODE" = "422" ]; then
-            echo "Release may already exist"
-          else
-            echo "Failed to create Gitea release (HTTP ${HTTP_CODE})"
-            echo "$BODY"
-            exit 1
-          fi
-
-  # ─── Create GitHub Release with SPA + Tauri assets ─────────────────
-  # Rebuilds SPA and Tauri independently (Fortemi pattern: each job builds its own)
-  create-github-release:
-    name: Create GitHub Release
-    runs-on: node-20
-    needs: publish-release
-    if: startsWith(github.ref, 'refs/tags/v')
-    steps:
-      - name: Checkout
-        shell: bash
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-        run: |
-          set -euo pipefail
-          REPO_URL="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}.git"
-          AUTH_URL="${REPO_URL/https:\/\//https:\/\/x-access-token:${GITHUB_TOKEN}@}"
-          git init . && git remote add origin "${AUTH_URL}"
-          git fetch --depth=1 origin "${GITHUB_SHA}" && git checkout --force FETCH_HEAD
-
-      - name: Install Rust stable
-        run: |
-          curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain stable --target x86_64-unknown-linux-gnu
-          echo "$HOME/.cargo/bin" >> $GITHUB_PATH
-
-      - name: Install Linux dependencies
-        run: |
-          apt-get update
-          apt-get install -y --no-install-recommends \
-            libwebkit2gtk-4.1-dev libgtk-3-dev \
-            libsoup-3.0-dev libjavascriptcoregtk-4.1-dev librsvg2-dev patchelf \
-            libayatana-appindicator3-dev xdg-utils \
-            build-essential pkg-config libssl-dev jq
-
-      - name: Install frontend dependencies
-        working-directory: ui
-        run: npm ci
-
-      - name: Build SPA tarball
-        run: |
-          cd ui && npm run build && cd ..
-          tar -czf /tmp/hotm-spa.tar.gz -C ui/dist .
-          echo "SPA tarball: $(ls -lh /tmp/hotm-spa.tar.gz)"
-
-      - name: Build Tauri installers
-        env:
-          CARGO_BUILD_JOBS: "8"
-        run: |
-          export PATH="$HOME/.cargo/bin:$PATH"
-          cd ui
-          npx tauri build
-
-      - name: Collect release assets
-        run: |
-          mkdir -p /tmp/release-assets
-          cp /tmp/hotm-spa.tar.gz /tmp/release-assets/
-          find ui/src-tauri/target/release/bundle -type f \( -name '*.deb' -o -name '*.AppImage' \) -exec cp {} /tmp/release-assets/ \; 2>/dev/null || true
-          echo "Release assets:"
-          ls -lh /tmp/release-assets/
-
-      - name: Push tag to GitHub
-        run: |
-          git remote add github https://x-access-token:${{ secrets.GH_PUBLISH_TOKEN }}@github.com/Fortemi/HotM.git || true
-          git push github "${GITHUB_REF_NAME}" --force 2>/dev/null || echo "Tag may already exist on GitHub"
-
-      - name: Create GitHub Release and upload assets
-        run: |
-          VERSION="${GITHUB_REF_NAME#v}"
-          GITEA_REG="${GITEA_REGISTRY}"
-          GHCR_REG="${GHCR_REGISTRY}"
-          IMG="${IMAGE_NAME}"
-          PROXY_IMG="${AGENT_PROXY_IMAGE_NAME}"
-
-          # Write release body to file (avoids control-char issues with jq --arg)
-          cat > /tmp/release_body.md <<EOF
-          ## HotM ${VERSION}
-
-          ### Docker Images
-
-          | Service | Registry | Pull Command |
-          |---------|----------|-------------|
-          | UI | GHCR (public) | \`docker pull ${GHCR_REG}/${IMG}:${VERSION}\` |
-          | UI | Gitea (internal) | \`docker pull ${GITEA_REG}/${IMG}:${VERSION}\` |
-          | Agent Proxy | GHCR (public) | \`docker pull ${GHCR_REG}/${PROXY_IMG}:${VERSION}\` |
-          | Agent Proxy | Gitea (internal) | \`docker pull ${GITEA_REG}/${PROXY_IMG}:${VERSION}\` |
-
-          ### Desktop Installer (Linux)
-
-          | Format | Description |
-          |--------|-------------|
-          | \`.deb\` | Debian/Ubuntu package |
-          | \`.AppImage\` | Portable Linux binary |
-
-          ### SPA Bundle
-
-          Download \`hotm-spa.tar.gz\` below - extract and serve with any static host.
-
-          ### System Requirements
-
-          - **Web**: Modern browser + network access to Fortemi API
-          - **Desktop**: Linux x86_64 (Ubuntu 22.04+, or any distro via AppImage)
-          - **Docker**: Any host running Docker Engine 20+
-          EOF
-
-          # Build JSON body to file (avoids shell variable expansion issues)
-          jq -n \
-            --arg tag_name "${GITHUB_REF_NAME}" \
-            --arg name "HotM ${VERSION}" \
-            --rawfile body /tmp/release_body.md \
-            '{tag_name: $tag_name, name: $name, body: $body, draft: false, prerelease: false, generate_release_notes: false}' \
-            > /tmp/release_request.json
-
-          # Create the release — write response to file, capture only HTTP code
-          HTTP_CODE=$(curl -s -o /tmp/gh_response.json -w '%{http_code}' -X POST \
-            -H "Authorization: token ${{ secrets.GH_PUBLISH_TOKEN }}" \
-            -H "Accept: application/vnd.github+json" \
-            -H "X-GitHub-Api-Version: 2022-11-28" \
-            "https://api.github.com/repos/Fortemi/HotM/releases" \
-            -d @/tmp/release_request.json)
-
-          if [ "$HTTP_CODE" = "201" ]; then
-            RELEASE_ID=$(jq -r '.id' /tmp/gh_response.json)
-            RELEASE_URL=$(jq -r '.html_url' /tmp/gh_response.json)
-            echo "GitHub Release created: ${RELEASE_URL}"
-          elif [ "$HTTP_CODE" = "422" ]; then
-            echo "Release may already exist, fetching existing..."
-            curl -s -o /tmp/gh_response.json \
-              -H "Authorization: token ${{ secrets.GH_PUBLISH_TOKEN }}" \
-              -H "Accept: application/vnd.github+json" \
-              "https://api.github.com/repos/Fortemi/HotM/releases/tags/${GITHUB_REF_NAME}"
-            RELEASE_ID=$(jq -r '.id' /tmp/gh_response.json)
-          else
-            echo "Failed to create GitHub release (HTTP ${HTTP_CODE})"
-            cat /tmp/gh_response.json
-            exit 1
-          fi
-
-          # Upload release assets
-          if [ -n "$RELEASE_ID" ] && [ "$RELEASE_ID" != "null" ]; then
-            for asset in /tmp/release-assets/*; do
-              FILENAME=$(basename "$asset")
-              CONTENT_TYPE="application/octet-stream"
-              case "$FILENAME" in
-                *.tar.gz) CONTENT_TYPE="application/gzip" ;;
-                *.deb)    CONTENT_TYPE="application/vnd.debian.binary-package" ;;
-              esac
-
-              echo "Uploading ${FILENAME}..."
-              UPLOAD_RESPONSE=$(curl -s -w "\n%{http_code}" -X POST \
-                -H "Authorization: token ${{ secrets.GH_PUBLISH_TOKEN }}" \
-                -H "Accept: application/vnd.github+json" \
-                -H "Content-Type: ${CONTENT_TYPE}" \
-                --data-binary "@${asset}" \
-                "https://uploads.github.com/repos/Fortemi/HotM/releases/${RELEASE_ID}/assets?name=${FILENAME}")
-
-              UPLOAD_CODE=$(echo "$UPLOAD_RESPONSE" | tail -n1)
-              if [ "$UPLOAD_CODE" = "201" ]; then
-                echo "  Uploaded ${FILENAME}"
-              else
-                echo "  Failed to upload ${FILENAME} (HTTP ${UPLOAD_CODE})"
-              fi
-            done
-          fi
