@@ -10,9 +10,20 @@ HotM (Hall of the Mind) is a React SPA that consumes the Fortemi API for note-ta
 
 ## Getting Started
 
-- [Quick Start](quick-start.md) — prerequisites, setup, first run
+- [Quick Start](quick-start.md) — install and launch in under 10 minutes
 - [Development Guide](implementation/development-guide.md) — client development workflow
 - [Testing Strategy](implementation/testing-strategy.md) — test approach and tooling
+
+## Installation
+
+- [Linux Desktop](installation/desktop-linux.md) — .deb / AppImage install, prereqs, troubleshooting
+- [macOS Desktop](installation/desktop-macos.md) — DMG install, Homebrew prereqs
+- [Docker](installation/docker.md) — nginx image, docker-compose with Fortemi
+
+## Operations
+
+- [Operator Guide](operations/operator-guide.md) — configuration, sidecar lifecycle, logs, backup, remote Fortemi
+- [Agent Guide](operations/agent-guide.md) — MCP server, REST API, note lifecycle, search patterns
 
 ## Architecture & Design
 
@@ -41,7 +52,7 @@ HotM (Hall of the Mind) is a React SPA that consumes the Fortemi API for note-ta
 - [Non-Functional Requirements](requirements/non-functional-requirements.md) — performance, security, usability
 - [Constraints](requirements/constraints.md) — technical and operational constraints
 
-## Operations
+## Development Operations
 
 - [Operating Policies](OPERATING_POLICIES.md) — branching, review, release policies
 - [SDLC Process](SDLC.md) — development lifecycle phases

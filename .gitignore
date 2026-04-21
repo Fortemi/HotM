@@ -130,3 +130,4 @@ bin/act
 # Keep important files
 !.gitkeep
 !.github/
+ui/src-tauri/binaries/
