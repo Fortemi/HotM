@@ -13,6 +13,7 @@ import type { EmbeddingConfig, KnowledgeHealth } from '@/api';
 vi.mock('@/api', () => ({
   api: {
     client: { baseUrl: 'http://localhost:3000', get: vi.fn() },
+    healthCheck: vi.fn(),
     embeddings: {
       listConfigs: vi.fn(),
       getDefaultConfig: vi.fn(),
@@ -75,6 +76,7 @@ describe('AdminPanel', () => {
     (api.embeddings.listConfigs as any).mockResolvedValue(mockEmbeddingConfigs);
     (api.embeddings.getDefaultConfig as any).mockResolvedValue(mockEmbeddingConfigs[0]);
     (api.health.getKnowledgeHealth as any).mockResolvedValue(mockHealthData);
+    (api.healthCheck as any).mockResolvedValue(mockSystemHealth);
     (api.client.get as any).mockResolvedValue(mockSystemHealth);
   });
 
@@ -124,7 +126,7 @@ describe('AdminPanel', () => {
     });
 
     it('should show loading state while fetching data', async () => {
-      (api.client.get as any).mockImplementation(() => new Promise(() => {}));
+      (api.healthCheck as any).mockImplementation(() => new Promise(() => {}));
       render(<AdminPanel />);
 
       await waitFor(() => {
@@ -134,7 +136,7 @@ describe('AdminPanel', () => {
 
     it('should handle API errors gracefully', async () => {
       const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-      (api.client.get as any).mockRejectedValue(new Error('API Error'));
+      (api.healthCheck as any).mockRejectedValue(new Error('API Error'));
       render(<AdminPanel />);
 
       await waitFor(() => {
