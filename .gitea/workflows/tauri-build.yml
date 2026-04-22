@@ -63,30 +63,14 @@ jobs:
 
       - name: Download Fortemi sidecar (Linux x86_64)
         shell: bash
-        env:
-          API_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          SIDECAR_REPO="Fortemi/matric-api"
-          SIDECAR_TAG="sidecar-latest"
-          ASSET_NAME="matric-api-x86_64-unknown-linux-gnu"
-          DEST="ui/src-tauri/binaries/${ASSET_NAME}"
+          BIN="matric-api-x86_64-unknown-linux-gnu"
+          DEST="ui/src-tauri/binaries/${BIN}"
           mkdir -p ui/src-tauri/binaries
-
-          ASSET_URL=$(curl -s \
-            -H "Authorization: token ${API_TOKEN}" \
-            "https://git.integrolabs.net/api/v1/repos/${SIDECAR_REPO}/releases/tags/${SIDECAR_TAG}" \
-            | jq -r "(.assets // [])[] | select(.name == \"${ASSET_NAME}\") | .browser_download_url // empty")
-
-          if [ -n "$ASSET_URL" ]; then
-            curl -fsSL -H "Authorization: token ${API_TOKEN}" "$ASSET_URL" -o "$DEST"
-            chmod +x "$DEST"
-            echo "Sidecar ready: $DEST ($(du -h $DEST | cut -f1))"
-          else
-            echo "WARNING: ${ASSET_NAME} not found in ${SIDECAR_REPO}@${SIDECAR_TAG} — using stub for CI verification"
-            printf '#!/bin/sh\necho "matric-api stub (CI only)"\n' > "$DEST"
-            chmod +x "$DEST"
-          fi
+          curl -sfL "https://git.integrolabs.net/Fortemi/fortemi/releases/download/sidecar-latest/${BIN}" -o "${DEST}"
+          chmod +x "${DEST}"
+          echo "Sidecar ready: ${DEST} ($(du -h ${DEST} | cut -f1))"
 
       - name: Build Tauri app
         env:

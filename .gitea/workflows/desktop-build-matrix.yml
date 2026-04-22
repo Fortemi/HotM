@@ -97,30 +97,14 @@ jobs:
 
       - name: Download Fortemi sidecar (Linux x86_64)
         shell: bash
-        env:
-          API_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          SIDECAR_REPO="Fortemi/matric-api"
-          SIDECAR_TAG="sidecar-latest"
-          ASSET_NAME="matric-api-x86_64-unknown-linux-gnu"
-          DEST="ui/src-tauri/binaries/${ASSET_NAME}"
+          BIN="matric-api-x86_64-unknown-linux-gnu"
+          DEST="ui/src-tauri/binaries/${BIN}"
           mkdir -p ui/src-tauri/binaries
-
-          ASSET_URL=$(curl -s \
-            -H "Authorization: token ${API_TOKEN}" \
-            "https://git.integrolabs.net/api/v1/repos/${SIDECAR_REPO}/releases/tags/${SIDECAR_TAG}" \
-            | jq -r "(.assets // [])[] | select(.name == \"${ASSET_NAME}\") | .browser_download_url // empty")
-
-          if [ -z "$ASSET_URL" ]; then
-            echo "ERROR: ${ASSET_NAME} not found in ${SIDECAR_REPO}@${SIDECAR_TAG}"
-            echo "Ensure the sidecar binary has been published to that release before running this workflow."
-            exit 1
-          fi
-
-          curl -fsSL -H "Authorization: token ${API_TOKEN}" "$ASSET_URL" -o "$DEST"
-          chmod +x "$DEST"
-          echo "Sidecar ready: $DEST ($(du -h $DEST | cut -f1))"
+          curl -sfL "https://git.integrolabs.net/Fortemi/fortemi/releases/download/sidecar-latest/${BIN}" -o "${DEST}"
+          chmod +x "${DEST}"
+          echo "Sidecar ready: ${DEST} ($(du -h ${DEST} | cut -f1))"
 
       - name: Build Tauri app (Linux)
         working-directory: ui
@@ -313,24 +297,12 @@ jobs:
           echo "=== npm:  $(npm --version) ==="
 
           # Download Fortemi sidecar (macOS aarch64)
-          SIDECAR_REPO="Fortemi/matric-api"
-          SIDECAR_TAG="sidecar-latest"
-          ASSET_NAME="matric-api-aarch64-apple-darwin"
-          DEST="${BUILD_DIR}/ui/src-tauri/binaries/${ASSET_NAME}"
+          BIN="matric-api-aarch64-apple-darwin"
+          DEST="${BUILD_DIR}/ui/src-tauri/binaries/${BIN}"
           mkdir -p "${BUILD_DIR}/ui/src-tauri/binaries"
-          ASSET_URL=$(curl -s \
-            -H "Authorization: token ${GITEA_TOKEN}" \
-            "https://git.integrolabs.net/api/v1/repos/${SIDECAR_REPO}/releases/tags/${SIDECAR_TAG}" \
-            | python3 -c "import sys,json; assets=json.load(sys.stdin).get('assets',[]); \
-              match=[a['browser_download_url'] for a in assets if a['name']=='${ASSET_NAME}']; \
-              print(match[0] if match else '')")
-          if [ -z "$ASSET_URL" ]; then
-            echo "ERROR: ${ASSET_NAME} not found in ${SIDECAR_REPO}@${SIDECAR_TAG}"
-            exit 1
-          fi
-          curl -fsSL -H "Authorization: token ${GITEA_TOKEN}" "$ASSET_URL" -o "$DEST"
-          chmod +x "$DEST"
-          echo "Sidecar ready: $DEST ($(du -h $DEST | cut -f1))"
+          curl -sfL "https://git.integrolabs.net/Fortemi/fortemi/releases/download/sidecar-latest/${BIN}" -o "${DEST}"
+          chmod +x "${DEST}"
+          echo "Sidecar ready: ${DEST} ($(du -h ${DEST} | cut -f1))"
 
           cd "${BUILD_DIR}/ui"
           npm ci
