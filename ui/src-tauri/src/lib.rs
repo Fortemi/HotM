@@ -334,8 +334,7 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             render_plantuml,
             ensure_plantuml,
-            get_app_config,
-            save_app_config,
+            get_app_config, save_app_config,
             hotm_fetch,
             hotm_sse_connect,
             hotm_sse_close,

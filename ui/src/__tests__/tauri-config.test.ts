@@ -112,7 +112,7 @@ describe('Tauri Config', () => {
       expect(config).toContain('api_base_url');
       expect(config).toContain('fn load_config');
       expect(config).toContain('fn save_config');
-      expect(config).toContain('"http://localhost:3000"');
+      expect(config).toContain('"http://127.0.0.1:3000"');
     });
 
     it('lib.rs registers config commands', () => {

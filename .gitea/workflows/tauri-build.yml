@@ -54,11 +54,38 @@ jobs:
             libwebkit2gtk-4.1-dev libgtk-3-dev \
             libsoup-3.0-dev libjavascriptcoregtk-4.1-dev librsvg2-dev patchelf \
             libayatana-appindicator3-dev xdg-utils \
-            build-essential pkg-config libssl-dev
+            build-essential pkg-config libssl-dev \
+            curl jq
 
       - name: Install frontend dependencies
         working-directory: ui
         run: npm ci
+
+      - name: Download Fortemi sidecar (Linux x86_64)
+        shell: bash
+        env:
+          API_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          SIDECAR_REPO="Fortemi/matric-api"
+          SIDECAR_TAG="sidecar-latest"
+          ASSET_NAME="matric-api-x86_64-unknown-linux-gnu"
+          DEST="ui/src-tauri/binaries/${ASSET_NAME}"
+          mkdir -p ui/src-tauri/binaries
+
+          ASSET_URL=$(curl -s \
+            -H "Authorization: token ${API_TOKEN}" \
+            "https://git.integrolabs.net/api/v1/repos/${SIDECAR_REPO}/releases/tags/${SIDECAR_TAG}" \
+            | jq -r ".assets[] | select(.name == \"${ASSET_NAME}\") | .browser_download_url // empty")
+
+          if [ -z "$ASSET_URL" ]; then
+            echo "ERROR: ${ASSET_NAME} not found in ${SIDECAR_REPO}@${SIDECAR_TAG}"
+            exit 1
+          fi
+
+          curl -fsSL -H "Authorization: token ${API_TOKEN}" "$ASSET_URL" -o "$DEST"
+          chmod +x "$DEST"
+          echo "Sidecar ready: $DEST ($(du -h $DEST | cut -f1))"
 
       - name: Build Tauri app
         env:
