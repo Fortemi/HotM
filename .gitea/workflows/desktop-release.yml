@@ -118,10 +118,11 @@ jobs:
           ASSET_URL=$(curl -s \
             -H "Authorization: token ${API_TOKEN}" \
             "https://git.integrolabs.net/api/v1/repos/${SIDECAR_REPO}/releases/tags/${SIDECAR_TAG}" \
-            | jq -r ".assets[] | select(.name == \"${ASSET_NAME}\") | .browser_download_url // empty")
+            | jq -r "(.assets // [])[] | select(.name == \"${ASSET_NAME}\") | .browser_download_url // empty")
 
           if [ -z "$ASSET_URL" ]; then
             echo "ERROR: ${ASSET_NAME} not found in ${SIDECAR_REPO}@${SIDECAR_TAG}"
+            echo "Ensure the sidecar binary has been published to that release before running this workflow."
             exit 1
           fi
 
