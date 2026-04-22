@@ -4,6 +4,61 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2026.4.0] - 2026-04-22
+
+### Added
+
+- **Embedded AI agent** — conversational AI assistant powered by Fortemi's local LLM stack, with tool execution, session management, and full note integration
+  - XState v5 intent-driven flow machine with conversational-first behavior (tools withheld on first turn to encourage natural dialogue)
+  - Dynamic model selection from Fortemi API with default model `qwen3:14b`
+  - Server-side tool execution via Vercel AI SDK — archive/notes search, concept lookup, attachment access
+  - Attachment-aware tools with inline preview cards (thumbnails, action buttons, media players)
+  - Session management: create, export, restore; save session JSON as a note attachment
+  - Multi-session UX with clean handoff between conversations
+  - Agent proxy service bundled as a Docker image, published alongside the UI image
+- **Native desktop app** — HotM now ships as a standalone Tauri application bundling the Fortemi sidecar
+  - Fortemi `matric-api` sidecar bundled as an `externalBin`; spawned on a free loopback port at launch
+  - `sidecar:ready` event signals the React SPA when the backend is accepting connections
+  - Host-proxy pattern: `hotm_fetch` and `hotm_sse_connect` Tauri commands proxy HTTP/SSE through the Rust reqwest backend, bypassing WebKit2GTK network restrictions
+  - `CmdOrCtrl+Alt+H` global shortcut to toggle window visibility from anywhere on the desktop
+  - `--minimized` / `/minimized` launch flag for autostart-on-login scenarios
+  - System tray with Show/Hide/Quit menu items; close-to-tray behaviour (sidecar stays alive)
+  - `get_app_config` / `save_app_config` Tauri commands for persistent configuration
+  - macOS `.dmg` and Linux `.AppImage` + `.deb` packages built on every push to `main`
+- **`__HOTM_HOST__` adapter** — embedding shell protocol for third-party integration
+  - Shells inject `window.__HOTM_HOST__` with `network.fetch` and `network.sse` overrides
+  - Standalone Tauri mode injects its own adapter automatically at startup
+  - Web/Docker mode falls through to native `fetch`/`EventSource`
+- **Inference settings panel** — configure local and cloud LLM providers from the Admin panel
+  - Connection test button with live provider health check
+  - Provider status indicator in the main nav
+  - llama.cpp provider support alongside Ollama
+  - Granular regeneration controls: model, revision mode, context filter, processing steps, job types
+- **Overhauled Regenerate AI panel** — fine-grained control over NLP reprocessing with real-time job progress (#165)
+- **Runtime API URL configuration for Docker** — `window.__RUNTIME_CONFIG__` injected by the nginx entrypoint; API base URL is never baked into the bundle at build time
+- **Automated installer** — setup manifest and shell scripts for unattended Fortemi+HotM deployment
+- **CI: `publish-dist` workflow** — packages `ui/dist` as `hotm-ui-dist.tar.gz` and publishes to the `hotm-latest` rolling Gitea release on every push to `main`; consumed by downstream CI (BT6-ARSENAL)
+
+### Changed
+
+- API base URL resolution is now purely runtime: Tauri config → Docker runtime config → `VITE_API_BASE_URL` → `http://localhost:3000/api/v1`. Build-time baking removed.
+- Large file uploads (≥ 50 MB) in Capture panel now route through TUS automatically
+- Attachment uploads queued through `uploadStore` for consistent background-transfer behaviour
+- Agent proxy: upgraded from direct OpenAI Responses API to Chat Completions API for broader provider compatibility
+- Admin system info tab uses `healthCheck()` endpoint (resolves 404 regression from `/api/v1` base URL change)
+- Offline detector decoupled from Fortemi inference capabilities — inference unavailability no longer incorrectly marks the app as offline
+- Default Ollama generation model updated from `qwen3.5:9b` to `qwen3:14b`
+
+### Fixed
+
+- WebSocket fallback URL now includes the `/api/v1` prefix
+- `InferenceStatusIndicator` guards against undefined providers
+- Agent: tool execution pipeline, session serialization, search result navigation, and response cutoffs
+- Agent: `useRef` strict initialization for React 19 compatibility
+- Capture: `save-as-note` surfaces attachment failures as partial state rather than a hard error
+- CI: Gitea registry publishing uses `BUILD_REPO_TOKEN` for authentication
+- CI: sidecar download corrected to `Fortemi/fortemi@sidecar-latest` (previous workflows referenced a non-existent `Fortemi/matric-api` repository)
+
 ## [2026.2.18] - 2026-02-24
 
 ### Changed
@@ -162,6 +217,8 @@ First formal release of HotM as a standalone React SPA.
 - Note refresh on background job completion
 - WebGL global stubs in test setup for Sigma compatibility
 
+[2026.4.0]: https://github.com/Fortemi/HotM/compare/v2026.2.18...v2026.4.0
+[2026.2.18]: https://github.com/Fortemi/HotM/compare/v2026.2.4...v2026.2.18
 [2026.2.4]: https://github.com/Fortemi/HotM/compare/v2026.2.3-alpha...v2026.2.4
 [2026.2.3]: https://github.com/Fortemi/HotM/releases/tag/v2026.2.3
 [2026.2.2]: https://github.com/Fortemi/HotM/releases/tag/v2026.2.2
