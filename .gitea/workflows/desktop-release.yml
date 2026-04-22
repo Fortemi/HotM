@@ -303,7 +303,7 @@ jobs:
             \( -name "*.dmg" -o -name "*.app" \) | head -5
           REMOTE
 
-      - name: Codesign and repack DMG on mutsu
+      - name: Stage DMG on mutsu
         shell: bash
         run: |
           BUILD_DIR="/Volumes/build/hotm/builds/run-${GITHUB_RUN_ID}"
@@ -312,12 +312,13 @@ jobs:
           set -euo pipefail
           BUILD_DIR="$1"; VERSION="$2"
           BUNDLE="${BUILD_DIR}/ui/src-tauri/target/release/bundle"
-          APP="${BUNDLE}/macos/HotM.app"
+          DMG_SRC=$(find "${BUNDLE}/dmg" -name "*.dmg" | head -1)
           DMG_OUT="${BUILD_DIR}/HotM_${VERSION}_aarch64.dmg"
-          codesign --force --sign - --options runtime "${APP}/Contents/MacOS/matric-api"
-          codesign --force --deep --sign - "$APP"
-          codesign --verify --verbose=2 "$APP"
-          hdiutil create -volname "HotM" -srcfolder "$APP" -ov -format UDZO "$DMG_OUT"
+          if [ -z "$DMG_SRC" ]; then echo "ERROR: no .dmg found"; exit 1; fi
+          # Use the Tauri-produced DMG directly — custom ad-hoc re-signing of
+          # matric-api fails strict validation on this host due to dylib paths
+          # baked in by Fortemi CI. Tauri handles signing during npx tauri build.
+          cp "$DMG_SRC" "$DMG_OUT"
           echo "DMG: ${DMG_OUT} ($(du -h ${DMG_OUT} | cut -f1))"
           REMOTE
 

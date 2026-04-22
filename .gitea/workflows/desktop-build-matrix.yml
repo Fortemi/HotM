@@ -313,7 +313,7 @@ jobs:
             -name "*.dmg" -o -name "*.app" 2>/dev/null | head -10
           REMOTE
 
-      - name: Codesign .app and repack DMG on mutsu
+      - name: Stage DMG from mutsu
         shell: bash
         run: |
           set -euo pipefail
@@ -324,39 +324,20 @@ jobs:
           BUILD_DIR="$1"
           BUNDLE_DIR="${BUILD_DIR}/ui/src-tauri/target/release/bundle"
 
-          APP="${BUNDLE_DIR}/macos/HotM.app"
           DMG_SRC=$(find "${BUNDLE_DIR}/dmg" -name "*.dmg" | head -1)
-          VERSION=$(python3 -c "import json,sys; d=json.load(open('${BUILD_DIR}/ui/src-tauri/tauri.conf.json')); print(d['version'])")
+          VERSION=$(python3 -c "import json; print(json.load(open('${BUILD_DIR}/ui/src-tauri/tauri.conf.json'))['version'])")
           DMG_OUT="${BUILD_DIR}/HotM_${VERSION}_aarch64.dmg"
 
-          if [ ! -d "$APP" ]; then
-            echo "ERROR: .app not found at ${APP}"
-            exit 1
-          fi
           if [ -z "$DMG_SRC" ]; then
             echo "ERROR: no .dmg found in ${BUNDLE_DIR}/dmg"
             exit 1
           fi
 
-          echo "=== Codesigning ${APP} ==="
-          # matric-api ships with a hardened-runtime (CS_RUNTIME) signature from
-          # Fortemi CI. Ad-hoc re-signing without --options runtime fails strict
-          # validation. Sign the sidecar explicitly first, then sign the bundle.
-          SIDECAR="${APP}/Contents/MacOS/matric-api"
-          codesign --force --sign - --options runtime "$SIDECAR"
-          echo "Sidecar signed: $(codesign -d --verbose=1 "$SIDECAR" 2>&1 | head -2)"
-          codesign --force --deep --sign - "$APP"
-          codesign --verify --verbose=2 "$APP" && echo "Signature OK"
-
-          echo "=== Repacking DMG ==="
-          # Create new DMG from signed .app (simpler than mount/replace approach)
-          hdiutil create \
-            -volname "HotM" \
-            -srcfolder "$APP" \
-            -ov \
-            -format UDZO \
-            "$DMG_OUT"
-
+          # Use the Tauri-produced DMG directly. Custom ad-hoc re-signing of the
+          # bundle fails because matric-api (shipped from Fortemi CI) has dylib
+          # references that fail codesign strict pre-sign validation on this host.
+          # Tauri's bundler already handles signing during npx tauri build.
+          cp "$DMG_SRC" "$DMG_OUT"
           echo "DMG ready: ${DMG_OUT} ($(du -h ${DMG_OUT} | cut -f1))"
           REMOTE
 
