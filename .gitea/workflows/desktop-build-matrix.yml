@@ -339,11 +339,12 @@ jobs:
           fi
 
           echo "=== Codesigning ${APP} ==="
-          # Strip the sidecar's existing signature before re-signing. matric-api is
-          # shipped with a hardened-runtime signature from Fortemi CI; codesign
-          # --force --deep rejects replacing it with an ad-hoc identity unless the
-          # existing signature is removed first.
-          codesign --remove-signature "${APP}/Contents/MacOS/matric-api" 2>/dev/null || true
+          # matric-api ships with a hardened-runtime (CS_RUNTIME) signature from
+          # Fortemi CI. Ad-hoc re-signing without --options runtime fails strict
+          # validation. Sign the sidecar explicitly first, then sign the bundle.
+          SIDECAR="${APP}/Contents/MacOS/matric-api"
+          codesign --force --sign - --options runtime "$SIDECAR"
+          echo "Sidecar signed: $(codesign -d --verbose=1 "$SIDECAR" 2>&1 | head -2)"
           codesign --force --deep --sign - "$APP"
           codesign --verify --verbose=2 "$APP" && echo "Signature OK"
 

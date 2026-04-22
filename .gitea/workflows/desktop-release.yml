@@ -314,7 +314,7 @@ jobs:
           BUNDLE="${BUILD_DIR}/ui/src-tauri/target/release/bundle"
           APP="${BUNDLE}/macos/HotM.app"
           DMG_OUT="${BUILD_DIR}/HotM_${VERSION}_aarch64.dmg"
-          codesign --remove-signature "${APP}/Contents/MacOS/matric-api" 2>/dev/null || true
+          codesign --force --sign - --options runtime "${APP}/Contents/MacOS/matric-api"
           codesign --force --deep --sign - "$APP"
           codesign --verify --verbose=2 "$APP"
           hdiutil create -volname "HotM" -srcfolder "$APP" -ov -format UDZO "$DMG_OUT"
