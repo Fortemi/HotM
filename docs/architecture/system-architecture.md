@@ -99,7 +99,7 @@ It provides two methods: `network.fetch` (HTTP) and `network.sse.connect` (Serve
 - **Standalone Tauri** — `lib.rs` injects an `initializationScript` that sets `window.__HOTM_HOST__`
   pointing at the `hotm_fetch` and `hotm_sse_connect` Tauri commands (backed by `reqwest`).
   This bypasses WebKit2GTK's network stack, which blocks loopback connections on Linux.
-- **External shell (bt6-arsenal, iframes)** — the shell injects its own adapter before HotM loads.
+- **External shell (iframes, custom desktop wrappers)** — the shell injects its own adapter before HotM loads.
   The guard `if(!window.__HOTM_HOST__)` in the init script means an existing adapter is never
   overwritten by the Tauri injection.
 - **Web / Docker / dev browser** — no `__HOTM_HOST__` is set; `getHostAdapter()` returns `null`

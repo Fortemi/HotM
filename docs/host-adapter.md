@@ -100,9 +100,7 @@ Two terminal payloads tell HotM to stop listening:
 
 Either triggers cleanup on HotM's side.
 
-HotM also recognises `__bt6_host_event: true` for backward compatibility
-with the BT6 Arsenal shell that predates this contract. New hosts
-should use `__hotm_host_event`.
+New hosts must use `__hotm_host_event: true`.
 
 ## Minimal host example
 
@@ -123,10 +121,9 @@ rather than reaching into HotM source.
 
 ## Why not just use native fetch + EventSource?
 
-- **Custom URI scheme origins.** `bt6organ://hotm` or `myshell://hotm`
-  origins cannot make `EventSource` connections to `http://localhost:*`
-  on Linux WebKit2GTK. CORS is respected for `fetch` but `EventSource`
-  lifecycle differs.
+- **Custom URI scheme origins.** `myshell://hotm` origins cannot make
+  `EventSource` connections to `http://localhost:*` on Linux WebKit2GTK.
+  CORS is respected for `fetch` but `EventSource` lifecycle differs.
 - **Synthetic ReadableStream.** The standalone Tauri build's SSE path
   wraps `plugin-http` in a synthetic `ReadableStream<Response>` to
   replay events. WebKit2GTK 2.50+ cannot reliably read from those

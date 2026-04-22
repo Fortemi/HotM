@@ -348,14 +348,13 @@ export function createEventsClient(baseUrl: string, options: EventsClientOptions
           const d = ev.data as
             | {
                 __hotm_host_event?: boolean;
-                __bt6_host_event?: boolean;
                 event?: string;
                 handle?: string;
                 payload?: { type?: string; id?: string; data?: string };
               }
             | undefined;
           if (!d) return;
-          const isEvent = d.__hotm_host_event || d.__bt6_host_event;
+          const isEvent = d.__hotm_host_event;
           if (!isEvent || d.event !== 'network.sse' || d.handle !== handle) return;
           const p = d.payload;
           if (!p) return;

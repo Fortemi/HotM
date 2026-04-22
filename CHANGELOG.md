@@ -37,7 +37,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - **Overhauled Regenerate AI panel** — fine-grained control over NLP reprocessing with real-time job progress (#165)
 - **Runtime API URL configuration for Docker** — `window.__RUNTIME_CONFIG__` injected by the nginx entrypoint; API base URL is never baked into the bundle at build time
 - **Automated installer** — setup manifest and shell scripts for unattended Fortemi+HotM deployment
-- **CI: `publish-dist` workflow** — packages `ui/dist` as `hotm-ui-dist.tar.gz` and publishes to the `hotm-latest` rolling Gitea release on every push to `main`; consumed by downstream CI (BT6-ARSENAL)
+- **CI: `publish-dist` workflow** — packages `ui/dist` as `hotm-ui-dist.tar.gz` and publishes to the `hotm-latest` rolling Gitea release on every push to `main`; consumed by downstream CI
 
 ### Changed
 

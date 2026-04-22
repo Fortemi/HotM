@@ -22,7 +22,7 @@ static SSE_COUNTER: AtomicU64 = AtomicU64::new(1);
 /// calls route through reqwest in the host process rather than WebKit2GTK's
 /// network stack (which blocks loopback HTTP on Linux).
 ///
-/// The guard `if(!window.__HOTM_HOST__)` means embedding hosts (bt6-arsenal)
+/// The guard `if(!window.__HOTM_HOST__)` means embedding hosts
 /// that inject their own adapter first keep theirs — HotM never overwrites it.
 /// This script is a no-op in Docker/web mode because Tauri never injects it.
 const HOTM_HOST_INIT: &str = concat!(
@@ -43,7 +43,7 @@ const HOTM_HOST_INIT: &str = concat!(
 /// All four deployment modes converge here:
 ///   - Standalone Tauri (Linux/macOS): initializationScript installs
 ///     window.__HOTM_HOST__ pointing at this command.
-///   - bt6-arsenal embed: arsenal injects its own window.__HOTM_HOST__
+///   - Embedding shell: the host injects its own window.__HOTM_HOST__
 ///     before HotM loads; initializationScript's guard skips this command.
 ///   - Docker/web: no Tauri, no initializationScript; native fetch is used.
 ///   - Dev browser: same as Docker/web.

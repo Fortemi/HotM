@@ -209,7 +209,6 @@ function makeAdapterFetch(adapter: HotmHostAdapter): typeof globalThis.fetch {
           function onMsg(ev: MessageEvent) {
             const d = ev.data as
               | {
-                  __bt6_host_event?: boolean;
                   __hotm_host_event?: boolean;
                   event?: string;
                   handle?: string;
@@ -217,7 +216,7 @@ function makeAdapterFetch(adapter: HotmHostAdapter): typeof globalThis.fetch {
                 }
               | undefined;
             if (!d) return;
-            const isEvent = d.__hotm_host_event || d.__bt6_host_event;
+            const isEvent = d.__hotm_host_event;
             if (!isEvent || d.event !== "network.sse" || d.handle !== handle)
               return;
             const p = d.payload;

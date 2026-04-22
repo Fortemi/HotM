@@ -4,8 +4,8 @@
 # - On v* tag: attach tarball to the versioned release
 # - Manual trigger: upsert "hotm-latest"
 #
-# Downstream consumer: BT6-ARSENAL CI downloads hotm-ui-dist.tar.gz
-# and extracts to tools/HotM/ui/dist/.
+# Downstream consumers download hotm-ui-dist.tar.gz from hotm-latest
+# and extract it; env-config.js is injected post-extract by the consumer.
 #
 # Tracking: Fortemi/HotM#178, roctinam/devops#28
 

@@ -100,7 +100,7 @@ Triggers on every push to `main` touching `ui/**`. Provides the built React SPA 
 
 **Versioned release** (tag push): Waits up to 25 seconds for the versioned release to exist (created by `ui-ci.yml`), then attaches the tarball to it.
 
-**Downstream consumer**: BT6-ARSENAL CI downloads `hotm-ui-dist.tar.gz` from `hotm-latest` and extracts to `tools/HotM/ui/dist/`. The `env-config.js` file is injected post-extract by the consumer; it is not included in the tarball.
+**Downstream consumer**: A downstream CI pipeline downloads `hotm-ui-dist.tar.gz` from `hotm-latest` and extracts it. The `env-config.js` file is injected post-extract by the consumer; it is not included in the tarball.
 
 ---
 
@@ -174,7 +174,7 @@ mutsu is an Apple M4 Mac mini used as the macOS build machine for all Tauri desk
 | Architecture | `aarch64` (Apple Silicon) |
 | Build volume | `/Volumes/build/` |
 | HotM build path | `/Volumes/build/hotm/builds/run-<GITHUB_RUN_ID>/` |
-| Cargo home | `/Volumes/build/bt6/cargo` |
+| Cargo home | `/Volumes/build/hotm/cargo` |
 | Rust target | `aarch64-apple-darwin` |
 
 **How it works**: There is no act_runner agent on mutsu. Instead, a Linux runner (`ubuntu-22.04`) establishes an SSH connection using the `MUTSU_SSH_KEY` secret and drives the build remotely via heredoc scripts. The build directory is always cleaned up after the run (including on failure).
