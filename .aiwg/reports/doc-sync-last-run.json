@@ -1,0 +1,11 @@
+{
+  "timestamp": "2026-04-22T03:42:28Z",
+  "direction": "code-to-docs",
+  "scope": "full repo",
+  "findings_total": 70,
+  "fixes_applied": 10,
+  "files_modified": [
+    "CLAUDE.md",
+    "ui/src-tauri/tauri.conf.json"
+  ]
+}

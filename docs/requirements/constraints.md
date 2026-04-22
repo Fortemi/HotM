@@ -27,7 +27,7 @@ HotM is a **client-only React SPA**. Constraints are labeled:
 ### Development Constraints (CLIENT)
 
 - **TypeScript**: Strict mode enabled, no implicit `any`
-- **Testing**: Vitest + React Testing Library, `gh act` as authoritative CI
+- **Testing**: Vitest + React Testing Library, `act_runner` as authoritative CI
 - **Linting**: ESLint enforced
 - **Build**: Must produce static assets servable by any HTTP server
 
@@ -86,7 +86,7 @@ HotM is a **client-only React SPA**. Constraints are labeled:
 
 ### Configuration (CLIENT)
 
-- **Environment Variables**: `VITE_API_BASE_URL`, `VITE_API_TIMEOUT`, `VITE_APP_TITLE`
+- **Environment Variables**: `VITE_API_BASE_URL`, `VITE_DISABLE_WEBSOCKET`, `VITE_SENTRY_DSN`
 - **No Build-Time Secrets**: All config via environment variables
 - **Sticky Settings**: User preferences persisted in localStorage
 
@@ -94,7 +94,7 @@ HotM is a **client-only React SPA**. Constraints are labeled:
 
 - **Backward Compatibility**: API client handles response shape variations
 - **CalVer Versioning**: `YYYY.M.PATCH` format, no leading zeros
-- **CI/CD**: GitHub Actions workflows, `gh act` for local validation
+- **CI/CD**: Gitea Actions workflows, `act_runner` for local validation
 
 ## Security Constraints
 
@@ -145,7 +145,7 @@ HotM is a **client-only React SPA**. Constraints are labeled:
 - **Linting**: ESLint must pass
 - **Type Safety**: TypeScript strict mode, zero `any` in new code
 - **Test Coverage**: 60-80% target
-- **CI Gates**: `gh act -j frontend-tests` exit code 0 before push
+- **CI Gates**: `act_runner exec -j quality-gate -W .gitea/workflows/ui-ci.yml` exit code 0 before push
 
 ### Testing (CLIENT)
 

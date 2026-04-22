@@ -180,7 +180,7 @@ Configuration and data are preserved across updates.
 ## Uninstalling
 
 ```bash
-sudo dpkg -r hot-m
+sudo dpkg -r hotm
 ```
 
 Data and configuration in `~/.config/com.hotm.app/` and `~/.local/share/com.hotm.app/` are not removed. Delete them manually if desired:

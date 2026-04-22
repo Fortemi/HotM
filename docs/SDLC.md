@@ -10,7 +10,7 @@
 - Post-Release: Monitoring, incident playbook, retrospective.
 
 ## Required Artifacts
-- RFC for non-trivial changes (API, schema, sync). Template in `.github/ISSUE_TEMPLATE/rfc.md`.
+- RFC for non-trivial changes (API, schema, sync). Template in `.gitea/ISSUE_TEMPLATE/rfc.md`.
 - Test plan for user-facing features.
 - Migration plan (if DB changes) and rollback steps.
 

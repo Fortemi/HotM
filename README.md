@@ -73,9 +73,8 @@ VITE_API_BASE_URL=http://localhost:3000
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `VITE_API_BASE_URL` | `http://localhost:3000/api/v1` | Fortemi API base URL |
-| `VITE_API_TIMEOUT` | `30000` | API request timeout (ms) |
-| `VITE_APP_TITLE` | `HotM` | Application title |
-| `VITE_DISABLE_WEBSOCKET` | `false` | Disable WebSocket transport |
+| `VITE_DISABLE_WEBSOCKET` | unset | Set to `true` to disable WebSocket real-time events |
+| `VITE_SENTRY_DSN` | unset | Sentry DSN for error tracking (omit to disable) |
 
 ## Development
 
@@ -88,14 +87,11 @@ npm run dev
 # Type checking
 npm run typecheck
 
-# Linting
-npm run lint
-
 # Run tests (quick local iteration)
 npm test -- --run
 
 # Full CI-parity test suite (authoritative)
-gh act -j frontend-tests
+act_runner exec -j quality-gate -W .gitea/workflows/ui-ci.yml
 
 # Production build
 npm run build
@@ -170,6 +166,6 @@ The container serves the SPA on port **4180** via nginx.
 2. Add or update tests with your change.
 3. Verify all checks pass:
    ```bash
-   gh act -j frontend-tests
+   act_runner exec -j quality-gate -W .gitea/workflows/ui-ci.yml
    ```
 4. Open a PR with screenshots for UI changes.

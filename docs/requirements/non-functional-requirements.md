@@ -140,7 +140,7 @@ Requirements marked **(Fortemi)** are documented here for context but owned by t
 - **TypeScript**: Strict mode, no `any` in new code
 - **Test Coverage**: 60-80% target (Vitest + React Testing Library)
 - **Linting**: ESLint with project configuration
-- **CI Gates**: `gh act -j frontend-tests` must pass before push
+- **CI Gates**: `act_runner exec -j quality-gate -W .gitea/workflows/ui-ci.yml` must pass before push
 
 ### Deployment
 

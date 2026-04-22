@@ -41,7 +41,7 @@ Comprehensive documentation is available in the `docs/` directory:
 **Gitea act_runner is the AUTHORITATIVE standard for all testing**
 
 Before pushing ANY changes:
-1. Run `act_runner exec -j ui-quality-checks -W .gitea/workflows/ui-ci.yml` from repo root and wait for completion
+1. Run `act_runner exec -j quality-gate -W .gitea/workflows/ui-ci.yml` from repo root and wait for completion
 2. Verify exit code 0 and all tests passing
 3. Only push after confirming green local test runs
 4. If any tests fail, fix issues and repeat from step 1
@@ -49,7 +49,7 @@ Before pushing ANY changes:
 **No exceptions - even for "simple" fixes. act_runner tests are the single source of truth.**
 
 #### Standard Test Commands (Use These)
-- **Full frontend validation**: `act_runner exec -j ui-quality-checks -W .gitea/workflows/ui-ci.yml` (React tests, TypeScript build, coverage, security audit)
+- **Full frontend validation**: `act_runner exec -j quality-gate -W .gitea/workflows/ui-ci.yml` (React tests, TypeScript build, coverage, security audit)
 - **Quick local iteration**: `cd ui && npm test -- --run`
 
 All shell-based test scripts have been removed - use `act_runner` for consistent CI/CD parity.
@@ -99,17 +99,14 @@ npm run preview
 # Type checking
 npm run typecheck
 
-# Linting
-npm run lint
-
 # Run tests (use act_runner for full CI validation)
-act_runner exec -j ui-quality-checks -W .gitea/workflows/ui-ci.yml
+act_runner exec -j quality-gate -W .gitea/workflows/ui-ci.yml
 ```
 
 ### Testing (Use act_runner - Authoritative Standard)
 ```bash
 # STANDARD: Run full frontend test suite via Gitea act_runner (mirrors CI exactly)
-act_runner exec -j ui-quality-checks -W .gitea/workflows/ui-ci.yml
+act_runner exec -j quality-gate -W .gitea/workflows/ui-ci.yml
 
 # Quick local iteration only (not comprehensive)
 cd ui && npm test -- --run     # Basic React unit tests only
@@ -162,15 +159,14 @@ hotm/
 │   ├── src/
 │   │   ├── api/        # Fortemi API client
 │   │   ├── components/ # React components
-│   │   ├── pages/      # Route pages
+│   │   ├── services/   # WebSocket, upload, job event management
 │   │   ├── hooks/      # Custom React hooks
-│   │   ├── lib/        # Utilities and helpers
-│   │   └── styles/     # Global styles and theme
+│   │   └── lib/        # Utilities and helpers
 │   ├── public/         # Static assets
 │   └── tests/          # E2E tests
 ├── docs/               # Architecture and design docs
 ├── .aiwg/              # SDLC artifacts (requirements, architecture, testing)
-└── .github/            # CI/CD workflows
+└── .gitea/             # CI/CD workflows (Gitea act_runner)
 ```
 
 ## Version Management
@@ -199,17 +195,18 @@ Channel configuration is stored in `release.json`.
 
 ## Environment Variables
 
-Create a `.env` file in the `ui/` directory:
+Create a `.env` or `.env.local` file in the `ui/` directory (`.env.local` is preferred for local overrides and is gitignored by Vite):
 
 - `VITE_API_BASE_URL`: Fortemi API base URL (default: `http://localhost:3000`)
-- `VITE_API_TIMEOUT`: API request timeout in milliseconds (default: `30000`)
-- `VITE_APP_TITLE`: Application title (default: `HotM`)
+- `VITE_DISABLE_WEBSOCKET`: Set to `true` to disable WebSocket real-time events (default: unset)
+- `VITE_SENTRY_DSN`: Sentry DSN for error tracking (optional, omit to disable Sentry)
+- `VITE_ENABLE_REALTIME_INSPECTOR`: Set to `true` to enable the realtime event inspector UI in development (default: unset)
+- `VITE_GIT_SHA`: Override the embedded git SHA in builds — useful in CI pipelines (default: auto-detected from git)
+- `TAURI_DEV_HOST`: Remote host for Tauri dev server — used for mobile/remote development scenarios (default: unset)
 
 Example `.env`:
 ```
 VITE_API_BASE_URL=http://localhost:3000
-VITE_API_TIMEOUT=30000
-VITE_APP_TITLE=HotM
 ```
 
 ## Important Files

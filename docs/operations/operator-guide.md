@@ -66,6 +66,17 @@ To kill a stale sidecar manually:
 pkill -f matric-api
 ```
 
+## Keyboard Shortcuts
+
+HotM registers one global OS-level shortcut that works even when the application window is hidden:
+
+| Shortcut | Platform | Action |
+|----------|----------|--------|
+| `Ctrl+Alt+H` | Linux / Windows | Toggle window visibility (show or hide) |
+| `Cmd+Alt+H` | macOS | Toggle window visibility (show or hide) |
+
+The shortcut is registered at startup. If another application has already claimed the same combination, HotM logs a warning (`HotM: Failed to register global shortcut`) and the shortcut is unavailable for that session.
+
 ## Logs
 
 Run HotM from a terminal to capture all output:
@@ -197,6 +208,55 @@ To point HotM at a remote or separately managed Fortemi instance instead of the 
 ```
 
 HotM will connect directly to the remote instance and skip sidecar spawning.
+
+## Launch Flags
+
+HotM accepts the following command-line flags at startup:
+
+| Flag | Description |
+|------|-------------|
+| `--minimized` (Linux/macOS) | Start with the window hidden in the system tray |
+| `/minimized` (Windows) | Same as `--minimized` |
+
+The `--minimized` flag is useful for autostart-on-login scenarios where you want HotM running in the background without interrupting the desktop session.
+
+```bash
+# Linux: start HotM minimized (e.g. in .profile or a systemd user unit)
+hotm --minimized
+```
+
+Example systemd user unit (`~/.config/systemd/user/hotm.service`):
+```ini
+[Unit]
+Description=HotM - Hall of the Mind
+After=graphical-session.target
+
+[Service]
+ExecStart=/usr/bin/hotm --minimized
+Restart=on-failure
+
+[Install]
+WantedBy=graphical-session.target
+```
+
+## PlantUML Diagrams
+
+The desktop app can render PlantUML diagrams embedded in notes. When a note contains a PlantUML code block, HotM sends the diagram source to a local PlantUML server and displays the rendered image inline.
+
+**Requirements:** A PlantUML server must be running on `localhost:8080`. The easiest way to run one is via Docker:
+
+```bash
+docker run -d -p 8080:8080 plantuml/plantuml-server:jetty
+```
+
+The container starts immediately and survives reboots if you add `--restart unless-stopped`.
+
+**Graceful degradation:** If no PlantUML server is reachable, HotM displays the raw diagram source as a fenced code block rather than an image. No error is shown to the user. To confirm the server is up:
+
+```bash
+curl -s http://localhost:8080/png/SyfFKj2rKt3CoKnELR1Io4ZDoSa70000 -o /dev/null -w "%{http_code}"
+# Expect: 200
+```
 
 ## Security Notes
 

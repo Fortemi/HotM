@@ -19,7 +19,7 @@ npm run test:realtime
 
 ## CI
 
-The realtime suite is executed in `React SPA CI` (`.github/workflows/ui-ci.yml`) as a dedicated step.
+The realtime suite is executed in the `quality-gate` job (`.gitea/workflows/ui-ci.yml`) as a dedicated step.
 
 ## Flaky Timing Troubleshooting
 

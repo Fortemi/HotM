@@ -2180,9 +2180,9 @@ describe('SKOS Browser Accessibility', () => {
 });
 ```
 
-#### CI/CD Integration (GitHub Actions)
+#### CI/CD Integration (Gitea Actions)
 ```yaml
-# .github/workflows/accessibility.yml
+# .gitea/workflows/accessibility.yml
 name: Accessibility Tests
 
 on:
