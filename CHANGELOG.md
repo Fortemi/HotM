@@ -58,6 +58,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Capture: `save-as-note` surfaces attachment failures as partial state rather than a hard error
 - CI: Gitea registry publishing uses `BUILD_REPO_TOKEN` for authentication
 - CI: sidecar download corrected to `Fortemi/fortemi@sidecar-latest` (previous workflows referenced a non-existent `Fortemi/matric-api` repository)
+- CI: macOS DMG build uses Tauri-produced bundle directly; custom ad-hoc re-signing of `matric-api` was failing strict codesign validation on the build host due to dylib paths baked in by Fortemi CI
 
 ## [2026.2.18] - 2026-02-24
 
