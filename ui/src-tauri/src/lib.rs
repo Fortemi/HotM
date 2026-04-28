@@ -384,7 +384,7 @@ pub fn run() {
 
                     let (rx, child) = app
                         .shell()
-                        .sidecar("matric-api")
+                        .sidecar("hotm-matric-api")
                         .map_err(|e| format!("sidecar not found: {e}"))?
                         .env("DATABASE_URL", &cfg.database_url)
                         .env("HOST", "127.0.0.1")

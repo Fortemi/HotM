@@ -41,7 +41,7 @@ Point your AI client at the Fortemi MCP binary. For Claude Desktop (`claude_desk
 {
   "mcpServers": {
     "fortemi": {
-      "command": "/path/to/matric-api",
+      "command": "/path/to/hotm-matric-api",
       "args": ["--mcp"],
       "env": {
         "DATABASE_URL": "postgres://matric:matric@localhost/matric"
@@ -52,8 +52,8 @@ Point your AI client at the Fortemi MCP binary. For Claude Desktop (`claude_desk
 ```
 
 Or use the installed sidecar binary:
-- **Linux:** `/usr/bin/matric-api --mcp`
-- **macOS:** `/Applications/HotM.app/Contents/MacOS/matric-api --mcp`
+- **Linux:** `/usr/bin/hotm-matric-api --mcp`
+- **macOS:** `/Applications/HotM.app/Contents/MacOS/hotm-matric-api --mcp`
 
 ### Archive Routing
 

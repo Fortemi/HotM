@@ -73,7 +73,7 @@ hotm
 
 Files installed:
 - `/usr/bin/hotm` — HotM UI (Tauri WebView)
-- `/usr/bin/matric-api` — Fortemi API sidecar
+- `/usr/bin/hotm-matric-api` — bundled Fortemi API sidecar (HotM-namespaced filename to avoid collision with sibling Tauri apps that bundle their own matric-api)
 - `/usr/share/applications/HotM.desktop` — desktop launcher
 - `/usr/share/icons/hicolor/*/apps/hotm.png` — application icons
 
@@ -220,7 +220,7 @@ Common causes:
 
 Kill stale sidecar processes:
 ```bash
-pkill -f matric-api
+pkill -f hotm-matric-api
 ```
 
 ### WebView fails to start

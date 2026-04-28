@@ -9,7 +9,7 @@
     "shell:allow-open",
     {
       "identifier": "shell:allow-execute",
-      "allow": [{ "name": "matric-api", "sidecar": true }]
+      "allow": [{ "name": "hotm-matric-api", "sidecar": true }]
     },
     "notification:default",
     "global-shortcut:allow-register",

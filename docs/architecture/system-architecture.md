@@ -124,7 +124,7 @@ The adapter contract is documented in full at `docs/host-adapter.md`.
 On startup, `lib.rs` checks whether `config.database_url` is non-empty. If so, it:
 
 1. Finds a free ephemeral TCP port via `TcpListener::bind("127.0.0.1:0")`.
-2. Spawns `binaries/matric-api` (bundled with the app) with env vars
+2. Spawns `binaries/hotm-matric-api` (bundled with the app, HotM-namespaced filename per #187) with env vars
    `DATABASE_URL`, `HOST=127.0.0.1`, `PORT`, and `FILE_STORAGE_PATH`.
 3. Polls `http://127.0.0.1:<port>/health` every 500 ms (30-second deadline),
    emits the `sidecar:ready` Tauri event when the sidecar passes its health check.

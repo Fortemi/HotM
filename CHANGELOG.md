@@ -4,6 +4,23 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased]
+
+### Changed
+
+- **Bundled Fortemi sidecar renamed to `hotm-matric-api`** (closes [#187](https://git.integrolabs.net/Fortemi/HotM/issues/187)) — the Tauri-bundled sidecar binary now installs as `hotm-matric-api` instead of `matric-api`, eliminating the `/usr/bin/` namespace collision with sibling Tauri apps that bundle their own `matric-api` (e.g., `bt6-arsenal`).
+  - Linux: bundled at `/usr/bin/hotm-matric-api`
+  - macOS: inside the .app at `Contents/MacOS/hotm-matric-api`
+  - Windows: alongside `hotm.exe` as `hotm-matric-api.exe`
+  - Tauri sidecar API call updated: `.sidecar("hotm-matric-api")`
+  - Tauri capability updated: `shell:allow-execute → name: hotm-matric-api`
+  - CI workflows now stage the binary as `binaries/hotm-matric-api-<triple>`; the upstream Fortemi sidecar release artifact name (`matric-api-<triple>`) is unchanged
+  - **Post-upgrade note for users with both HotM and bt6-arsenal installed via prior `dpkg --force-overwrite`**: after this upgrade, HotM removes `/usr/bin/matric-api` (it is no longer in the package contents). If you need the old path back for bt6-arsenal, run `sudo apt-get install --reinstall bt6-arsenal` to restore its file ownership.
+
+### Notes
+
+- This is a partial fix for [#187](https://git.integrolabs.net/Fortemi/HotM/issues/187). The bundled sidecar still lives under `/usr/bin/` rather than the Debian-Policy-recommended `/usr/lib/hot-m/` private path. A future change to relocate the binary to `/usr/lib/hot-m/hotm-matric-api` (or the macOS/Windows equivalents) is tracked separately when Tauri's `externalBin` mechanism supports private install paths.
+
 ## [2026.4.0] - 2026-04-22
 
 ### Added
