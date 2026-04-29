@@ -47,7 +47,18 @@ const HOTM_HOST_INIT: &str = concat!(
 ///     before HotM loads; initializationScript's guard skips this command.
 ///   - Docker/web: no Tauri, no initializationScript; native fetch is used.
 ///   - Dev browser: same as Docker/web.
-#[tauri::command]
+///
+/// Note on `rename_all = "snake_case"`: Tauri v2's default is to rename
+/// command argument keys from snake_case (Rust) to camelCase (JS). The
+/// `__HOTM_HOST__` adapter contract (see HotmHostAdapter in
+/// ui/src/lib/tauri.ts) and the manual JSON return value below both use
+/// snake_case (`body_b64`). Without this attribute, the JS-side
+/// `body_b64` key is silently dropped during deserialization, so every
+/// POST/PUT/PATCH body arrives as None and reqwest sends an empty body
+/// to the backend — producing 400 errors on Admin Panel "Test Connection",
+/// note creation, etc. Keeping the whole stack in snake_case is simpler
+/// than splitting conventions.
+#[tauri::command(rename_all = "snake_case")]
 async fn hotm_fetch(
     url: String,
     method: Option<String>,

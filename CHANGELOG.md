@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Fixed
+
+- **All POST/PUT/PATCH bodies were silently empty in standalone-Tauri mode** — Tauri v2 defaults command argument deserialization to camelCase, so the snake_case `body_b64` key sent by the documented `HotmHostAdapter` contract (and by the auto-injected `__HOTM_HOST__.network.fetch` adapter) was silently dropped. `hotm_fetch` received `body_b64: None` and reqwest sent an empty body. Every request through the host-fetch proxy that carried a body — Admin Panel **Test Connection** (most user-visible), note creation, configuration writes, agent tool calls — hit matric-api with `Content-Type: application/json` and zero bytes, producing the "Bad Request / Connection Failed" error even when Ollama and matric-api were fully reachable. GET requests were unaffected. Diagnosed via tcpdump on the loopback port; fixed by adding `#[tauri::command(rename_all = "snake_case")]` to `hotm_fetch` so the documented snake_case JS contract works end-to-end.
+
 ### Changed
 
 - **Bundled Fortemi sidecar renamed to `hotm-matric-api`** (closes [#187](https://git.integrolabs.net/Fortemi/HotM/issues/187)) — the Tauri-bundled sidecar binary now installs as `hotm-matric-api` instead of `matric-api`, eliminating the `/usr/bin/` namespace collision with sibling Tauri apps that bundle their own `matric-api` (e.g., `bt6-arsenal`).
