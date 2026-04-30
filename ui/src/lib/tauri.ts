@@ -24,6 +24,11 @@
  * See `docs/host-adapter.md` for the full contract and lifecycle.
  */
 export interface HotmHostAdapter {
+  /**
+   * Adapter contract version. Absent = pre-versioning era (treat as 0).
+   * v1 hosts publish `version: 1`; same shape as v0, purely a discovery aid.
+   */
+  version?: number;
   network: {
     sse: {
       connect(args: { url: string }): Promise<{ handle: string; event: string }>;
@@ -46,13 +51,41 @@ export interface HotmHostAdapter {
   };
 }
 
-/** Return the host adapter if the embedding shell has published one. */
+let _legacyAdapterWarned = false;
+
+/**
+ * Return the host adapter if the embedding shell has published one.
+ *
+ * Resolution order:
+ *   1. `globalThis.__HOTM_HOST__` — canonical, preferred.
+ *   2. `globalThis.__BT6_HOST__` — legacy name from the BT6-era organ
+ *      contract, kept for shells (older BT6-ARSENAL builds, third-party
+ *      embedders that copied the BT6 organ-starter template) that have
+ *      not yet renamed to `__HOTM_HOST__`. Logs a one-time deprecation
+ *      warning when this fallback is taken.
+ */
 export function getHostAdapter(): HotmHostAdapter | null {
   if (typeof globalThis === "undefined") return null;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const adapter = (globalThis as any).__HOTM_HOST__ as HotmHostAdapter | undefined;
+  const g = globalThis as any;
+  const canonical = g.__HOTM_HOST__ as HotmHostAdapter | undefined;
+  const legacy = g.__BT6_HOST__ as HotmHostAdapter | undefined;
+  const adapter = canonical ?? legacy;
   if (!adapter?.network?.sse?.connect || !adapter?.network?.fetch) return null;
+  if (!canonical && legacy && !_legacyAdapterWarned) {
+    _legacyAdapterWarned = true;
+    console.warn(
+      "HotM: detected legacy __BT6_HOST__ adapter without __HOTM_HOST__. " +
+        "This works but is deprecated; embedding shells should publish " +
+        "__HOTM_HOST__ (see docs/host-adapter.md).",
+    );
+  }
   return adapter;
+}
+
+/** Reset the legacy-adapter warning flag (for testing). */
+export function _resetHostAdapterWarning(): void {
+  _legacyAdapterWarned = false;
 }
 
 /** Convenience wrapper: adapter is present and usable. */
