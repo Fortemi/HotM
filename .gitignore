@@ -127,6 +127,9 @@ bin/act
 # Claude Code (local-only agent config)
 .claude/
 
+# Codex (local-only agent config; AIWG-managed deployment target)
+.codex/
+
 # Keep important files
 !.gitkeep
 !.github/

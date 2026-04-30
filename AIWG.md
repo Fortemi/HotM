@@ -13,7 +13,7 @@ This project uses the **AIWG SDLC framework** for software development lifecycle
 AIWG is a comprehensive SDLC framework providing:
 
 - **190 specialized agents** covering all lifecycle phases (Inception → Elaboration → Construction → Transition → Production)
-- **384 skills** for project management, security, testing, deployment, and traceability
+- **390 skills** for project management, security, testing, deployment, and traceability
 - **100+ templates** for requirements, architecture, testing, security, deployment artifacts
 - **Phase-based workflows** with gate criteria and milestone tracking
 - **Multi-agent orchestration** patterns for collaborative artifact generation
@@ -32,7 +32,7 @@ ls {AIWG_ROOT}/agentic/code/frameworks/sdlc-complete/
 
 # Available resources:
 # - agents/     → 190 agents
-# - skills/     → 384 skills
+# - skills/     → 390 skills
 # - templates/  → 100+ artifact templates
 # - flows/      → Phase workflow documentation
 ```
@@ -56,6 +56,7 @@ All SDLC artifacts (requirements, architecture, testing, etc.) are stored in **`
 ├── working/             # Temporary scratch (safe to delete)
 └── reports/             # Generated reports and indices
 ```
+
 
 ## Core Platform Orchestrator Role
 
@@ -326,9 +327,9 @@ AIWG maintains itself using its own CLI. Agents should use CLI commands — not 
 
 | Trigger | Action |
 |---------|--------|
-| Start of long orchestration session | `aiwg sync --dry-run` → sync if needed |
-| User asks "is AIWG up to date?" | `aiwg sync --dry-run` → report + offer sync |
-| `aiwg doctor` shows errors | `aiwg sync` or invoke AIWG Steward |
+| Start of long orchestration session | `aiwg refresh --dry-run` → refresh if needed |
+| User asks "is AIWG up to date?" | `aiwg refresh --dry-run` → report + offer refresh |
+| `aiwg doctor` shows errors | `aiwg refresh` or invoke AIWG Steward |
 | Deploying to a new provider | `aiwg use <framework> --provider <p>` |
 | User adds/removes a framework | `aiwg use` / `aiwg remove` |
 | Long parallel orchestration needed | `aiwg mc start` + `aiwg mc dispatch` |
@@ -351,10 +352,12 @@ For multi-task orchestrations exceeding a single session:
 ### Orchestrator Pre-Flight (Long Sessions)
 
 Before starting any orchestration session > 30 minutes:
-1. `aiwg sync --dry-run` — check currency
+1. `aiwg refresh --dry-run` — check currency
 2. `aiwg doctor` — baseline health
-3. If issues found: invoke AIWG Steward or run `aiwg sync`
+3. If issues found: invoke AIWG Steward or run `aiwg refresh`
 4. Confirm provider: `aiwg runtime-info`
+
+> `aiwg sync` is the deprecated alias for `aiwg refresh`. It still works but emits a warning; scheduled for removal after the 2026.5.x stable line.
 
 ## Phase Overview
 
