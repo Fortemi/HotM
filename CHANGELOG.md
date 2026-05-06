@@ -4,6 +4,26 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2026.5.0] - 2026-05-06
+
+### Changed
+
+- **Version aligned with Fortemi v2026.5.0** — HotM bumps to 2026.5.0 to track the matching Fortemi minor release ([Filesystem attachment durability + CI Docker fix](https://git.integrolabs.net/Fortemi/fortemi/releases/tag/v2026.5.0)). No HotM API contract changes; this release pairs the desktop bundle and Docker UI image with the latest Fortemi sidecar.
+
+### Fixed
+
+- **`__HOTM_HOST__` adapter accepts the legacy `__BT6_HOST__` injection point and a `version` field** — third-party shells embedding HotM via the older BT6 protocol name continue to work without changes ([#192](https://git.integrolabs.net/Fortemi/HotM/pulls/192)).
+- **macOS Gatekeeper first-launch flow** — `setup-macos.sh` and the install docs now walk users through the System Settings → Privacy & Security approval needed for the self-signed `.app` bundle.
+- **macOS install parity with Linux desktop** — `setup-macos.sh` reaches feature parity with the Linux setup script (sidecar staging, .env handling, Ollama detection).
+
+### CI
+
+- `ui-ci.yml` checkout aligned with the Fortemi workflow pattern, fixing intermittent `${GITHUB_SERVER_URL}` resolution failures on local act_runner runs ([#191](https://git.integrolabs.net/Fortemi/HotM/pulls/191)).
+
+### Internal
+
+- AIWG framework refreshed to 2026.4.0-rc.31; the Codex provider deployment is dropped (Codex is no longer a supported AIWG target for this repo).
+
 ## [2026.4.1] - 2026-04-29
 
 ### Fixed
