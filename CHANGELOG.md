@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2026.5.1] - 2026-05-07
+
+### Removed
+
+- **Legacy host-adapter fallback symbol** — the runtime no longer accepts adapters published under the previous (pre-`__HOTM_HOST__`) symbol name. Embedders must publish `window.__HOTM_HOST__`. The deprecated fallback and one-time deprecation warning introduced in v2026.5.0 are gone, along with their tests. Any embedder still on the legacy symbol must rename to `__HOTM_HOST__` before upgrading.
+
+### Changed
+
+- **Documentation cleanup** — removed historical project-name references from public-facing docs (`README.md`, `CHANGELOG.md`, `docs/host-adapter.md`, `docs/releases/v2026.4.1.md`, `docs/releases/v2026.5.0.md`). No behavior change beyond the host-adapter symbol removal above.
+
 ## [2026.5.0] - 2026-05-06
 
 ### Changed
@@ -12,7 +22,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Fixed
 
-- **`__HOTM_HOST__` adapter accepts the legacy `__BT6_HOST__` injection point and a `version` field** — third-party shells embedding HotM via the older BT6 protocol name continue to work without changes ([#192](https://git.integrolabs.net/Fortemi/HotM/pulls/192)).
+- **`__HOTM_HOST__` adapter contract v1** — the host-adapter now accepts an optional `version` field so embedders can declare the contract revision they implement ([#192](https://git.integrolabs.net/Fortemi/HotM/pulls/192)).
 - **macOS Gatekeeper first-launch flow** — `setup-macos.sh` and the install docs now walk users through the System Settings → Privacy & Security approval needed for the self-signed `.app` bundle.
 - **macOS install parity with Linux desktop** — `setup-macos.sh` reaches feature parity with the Linux setup script (sidecar staging, .env handling, Ollama detection).
 
@@ -32,14 +42,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed
 
-- **Bundled Fortemi sidecar renamed to `hotm-matric-api`** (closes [#187](https://git.integrolabs.net/Fortemi/HotM/issues/187)) — the Tauri-bundled sidecar binary now installs as `hotm-matric-api` instead of `matric-api`, eliminating the `/usr/bin/` namespace collision with sibling Tauri apps that bundle their own `matric-api` (e.g., `bt6-arsenal`).
+- **Bundled Fortemi sidecar renamed to `hotm-matric-api`** (closes [#187](https://git.integrolabs.net/Fortemi/HotM/issues/187)) — the Tauri-bundled sidecar binary now installs as `hotm-matric-api` instead of `matric-api`, eliminating the `/usr/bin/` namespace collision with sibling Tauri apps that bundle their own `matric-api`.
   - Linux: bundled at `/usr/bin/hotm-matric-api`
   - macOS: inside the .app at `Contents/MacOS/hotm-matric-api`
   - Windows: alongside `hotm.exe` as `hotm-matric-api.exe`
   - Tauri sidecar API call updated: `.sidecar("hotm-matric-api")`
   - Tauri capability updated: `shell:allow-execute → name: hotm-matric-api`
   - CI workflows now stage the binary as `binaries/hotm-matric-api-<triple>`; the upstream Fortemi sidecar release artifact name (`matric-api-<triple>`) is unchanged
-  - **Post-upgrade note for users with both HotM and bt6-arsenal installed via prior `dpkg --force-overwrite`**: after this upgrade, HotM removes `/usr/bin/matric-api` (it is no longer in the package contents). If you need the old path back for bt6-arsenal, run `sudo apt-get install --reinstall bt6-arsenal` to restore its file ownership.
+  - **Post-upgrade note for users with HotM installed alongside another package that previously claimed `/usr/bin/matric-api` via `dpkg --force-overwrite`**: after this upgrade, HotM removes `/usr/bin/matric-api` (it is no longer in the package contents). If you need the old path back for the sibling app, reinstall it via `sudo apt-get install --reinstall <sibling-package>` to restore its file ownership.
 
 ### Notes
 

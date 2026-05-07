@@ -152,7 +152,7 @@ The container serves the SPA on port **4180** via nginx.
 
 ## Embedding HotM
 
-HotM is embeddable as an iframe inside a host shell (BT6-ARSENAL today; other shells welcome). Publish a `window.__HOTM_HOST__` adapter per [`docs/host-adapter.md`](docs/host-adapter.md) and HotM will route HTTP and SSE through your host process — bypassing WebKit2GTK loopback restrictions on Linux and reusing whatever audited network pipe your shell already has.
+HotM is embeddable as an iframe inside a host shell. Publish a `window.__HOTM_HOST__` adapter per [`docs/host-adapter.md`](docs/host-adapter.md) and HotM will route HTTP and SSE through your host process — bypassing WebKit2GTK loopback restrictions on Linux and reusing whatever audited network pipe your shell already has.
 
 The adapter is auto-detected; HotM falls back to native `fetch` / `EventSource` (web SPA) or the Tauri HTTP plugin (standalone desktop) when no adapter is present. See the contract document for the full interface and version history.
 

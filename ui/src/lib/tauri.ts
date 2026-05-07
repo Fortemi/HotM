@@ -51,41 +51,17 @@ export interface HotmHostAdapter {
   };
 }
 
-let _legacyAdapterWarned = false;
-
 /**
- * Return the host adapter if the embedding shell has published one.
- *
- * Resolution order:
- *   1. `globalThis.__HOTM_HOST__` — canonical, preferred.
- *   2. `globalThis.__BT6_HOST__` — legacy name from the BT6-era organ
- *      contract, kept for shells (older BT6-ARSENAL builds, third-party
- *      embedders that copied the BT6 organ-starter template) that have
- *      not yet renamed to `__HOTM_HOST__`. Logs a one-time deprecation
- *      warning when this fallback is taken.
+ * Return the host adapter if the embedding shell has published one on
+ * `globalThis.__HOTM_HOST__`.
  */
 export function getHostAdapter(): HotmHostAdapter | null {
   if (typeof globalThis === "undefined") return null;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const g = globalThis as any;
-  const canonical = g.__HOTM_HOST__ as HotmHostAdapter | undefined;
-  const legacy = g.__BT6_HOST__ as HotmHostAdapter | undefined;
-  const adapter = canonical ?? legacy;
+  const adapter = g.__HOTM_HOST__ as HotmHostAdapter | undefined;
   if (!adapter?.network?.sse?.connect || !adapter?.network?.fetch) return null;
-  if (!canonical && legacy && !_legacyAdapterWarned) {
-    _legacyAdapterWarned = true;
-    console.warn(
-      "HotM: detected legacy __BT6_HOST__ adapter without __HOTM_HOST__. " +
-        "This works but is deprecated; embedding shells should publish " +
-        "__HOTM_HOST__ (see docs/host-adapter.md).",
-    );
-  }
   return adapter;
-}
-
-/** Reset the legacy-adapter warning flag (for testing). */
-export function _resetHostAdapterWarning(): void {
-  _legacyAdapterWarned = false;
 }
 
 /** Convenience wrapper: adapter is present and usable. */

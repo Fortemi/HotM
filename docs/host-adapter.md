@@ -144,33 +144,11 @@ rather than reaching into HotM source.
 | Version | Released | Notes |
 |---|---|---|
 | 0 (implicit) | 2026.2.x – 2026.4.x | Original contract. No `version` field; single canonical name `__HOTM_HOST__`. |
-| 1 | 2026.4.2+ | Adds optional `version: number` field. Same shape as v0. Adapters published only on the legacy `__BT6_HOST__` name are accepted as v0 with a deprecation warning. |
+| 1 | 2026.4.2+ | Adds optional `version: number` field. Same shape as v0. |
 
 Hosts publishing the new contract should set `version: 1`. HotM uses
 this only as a discovery aid: features that require a minimum contract
 version may degrade gracefully when a host's `version` is older.
-
-## Legacy name: `__BT6_HOST__`
-
-The host-adapter contract originated as `__BT6_HOST__` in the BT6-ARSENAL
-organ ecosystem and was generalized to `__HOTM_HOST__` when HotM became
-a standalone product. Current BT6-ARSENAL desktop builds publish both
-names, so existing deployments are unaffected.
-
-For shells that publish only the legacy name (older BT6-ARSENAL builds,
-third-party shells that copied the BT6 organ-starter template, or
-hand-rolled embedders that followed the original BT6 docs), HotM falls
-back to `__BT6_HOST__` when `__HOTM_HOST__` is absent and logs a one-time
-deprecation warning to the console:
-
-```
-HotM: detected legacy __BT6_HOST__ adapter without __HOTM_HOST__.
-This works but is deprecated; embedding shells should publish
-__HOTM_HOST__ (see docs/host-adapter.md).
-```
-
-New embedders should publish `__HOTM_HOST__` directly. The fallback is a
-backward-compatibility seam, not a supported alias.
 
 ## Backward compatibility
 
