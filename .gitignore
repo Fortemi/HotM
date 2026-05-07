@@ -134,3 +134,8 @@ bin/act
 !.gitkeep
 !.github/
 ui/src-tauri/binaries/
+
+# AIWG runtime (ephemeral)
+.aiwg/working/
+.aiwg/ralph/
+.aiwg/ralph-external/
