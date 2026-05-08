@@ -85,16 +85,56 @@ SELECT 'CREATE DATABASE matric OWNER matric'
 SQL
 
 # ── Enable extensions (best-effort; missing ones become non-fatal warnings) ─
-log "Enabling extensions: vector, postgis, pg_trgm..."
+log "Enabling extensions: vector, postgis, pg_trgm, pgcrypto..."
 su - postgres -c "psql -d matric -v ON_ERROR_STOP=0" <<'SQL' || true
 CREATE EXTENSION IF NOT EXISTS vector;
 CREATE EXTENSION IF NOT EXISTS postgis;
 CREATE EXTENSION IF NOT EXISTS pg_trgm;
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
+SQL
+
+# ── uuidv7() polyfill ──────────────────────────────────────────────────────
+# matric-api migrations call `uuidv7()` which is a Postgres 18 built-in.
+# On PG 13-17 the function doesn't exist and migrations fail. The PGDG repo
+# ships `postgresql-NN-pg-uuidv7`, but we don't add PGDG sources here (would
+# require apt-key + sources.list write during postinst — fragile).
+# Instead, define a plpgsql polyfill using gen_random_bytes from pgcrypto.
+# RFC 9562 layout: 48b unix_ts_ms || 4b version(7) || 12b rand_a ||
+#                  2b variant(10) || 62b rand_b
+# CREATE OR REPLACE is idempotent and harmless on PG 18 (replaces built-in
+# with an equivalent implementation).
+log "Installing uuidv7() polyfill (RFC 9562, plpgsql + pgcrypto)..."
+su - postgres -c "psql -d matric -v ON_ERROR_STOP=0" <<'SQL' || true
+CREATE OR REPLACE FUNCTION uuidv7() RETURNS uuid AS $$
+DECLARE
+  ms bigint;
+  ts_hex text;
+  rand_bytes bytea;
+  result_bytes bytea;
+BEGIN
+  ms := (EXTRACT(epoch FROM clock_timestamp()) * 1000)::bigint;
+  ts_hex := lpad(to_hex(ms), 12, '0');
+  rand_bytes := gen_random_bytes(10);
+  result_bytes := decode(ts_hex, 'hex') || rand_bytes;
+  -- Set version to 7 (top 4 bits of byte 6)
+  result_bytes := set_byte(result_bytes, 6, (get_byte(result_bytes, 6) & 15) | 112);
+  -- Set variant to 10 (top 2 bits of byte 8)
+  result_bytes := set_byte(result_bytes, 8, (get_byte(result_bytes, 8) & 63) | 128);
+  RETURN encode(result_bytes, 'hex')::uuid;
+END;
+$$ LANGUAGE plpgsql;
 SQL
 
 # Report which extensions are actually enabled
-ENABLED="$(su - postgres -c "psql -d matric -tAc \"SELECT string_agg(extname, ', ') FROM pg_extension WHERE extname IN ('vector','postgis','pg_trgm')\"" 2>/dev/null | tr -d ' ')"
+ENABLED="$(su - postgres -c "psql -d matric -tAc \"SELECT string_agg(extname, ', ') FROM pg_extension WHERE extname IN ('vector','postgis','pg_trgm','pgcrypto')\"" 2>/dev/null | tr -d ' ')"
 log "Extensions enabled: ${ENABLED:-(none)}"
+
+# Verify uuidv7() resolves
+if su - postgres -c "psql -d matric -tAc 'SELECT uuidv7()'" >/dev/null 2>&1; then
+  log "uuidv7() polyfill verified"
+else
+  warn "uuidv7() polyfill verification failed — matric-api migrations may fail"
+fi
 
 log "Postgres setup complete: postgres://matric:matric@localhost/matric"
 log "Note: Ollama must be installed separately. See: scripts/install.sh"
