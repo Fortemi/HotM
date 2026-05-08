@@ -8,26 +8,20 @@ The desktop app bundles the Fortemi API sidecar — no separate server setup req
 
 ### Linux
 
-**1. Install prerequisites** (PostgreSQL, pgvector, Ollama):
+**One command installs everything** (Postgres 18 via PGDG + pgvector + postgis + Ollama + HotM):
+
 ```bash
-curl -fsSL https://git.integrolabs.net/Fortemi/HotM/raw/branch/main/scripts/setup-linux.sh | bash
+curl -fsSL https://git.integrolabs.net/Fortemi/HotM/raw/branch/main/scripts/install.sh | bash
 ```
 
-**2. Install HotM:**
-```bash
-# .deb (Ubuntu/Debian)
-sudo dpkg -i HotM_2026.2.0_amd64.deb
+The bootstrap downloads + checksum-verifies the latest `.deb`, runs `apt install` (which pulls Postgres 18, pgvector, and postgis from PGDG via Depends/Recommends), seeds the `matric` database via the postinst hook, then installs the Ollama daemon and pulls models in the background. Idempotent — re-running is safe.
 
-# AppImage (any distro)
-chmod +x HotM_2026.2.0_amd64.AppImage && ./HotM_2026.2.0_amd64.AppImage
-```
-
-**3. Launch:**
+**Launch:**
 ```bash
 hotm
 ```
 
-See [desktop-linux.md](installation/desktop-linux.md) for full details, troubleshooting, and manual prerequisite setup.
+See [desktop-linux.md](installation/desktop-linux.md) for the AppImage path, manual install steps, troubleshooting, and the full list of installer flags.
 
 ### macOS
 
@@ -36,7 +30,7 @@ See [desktop-linux.md](installation/desktop-linux.md) for full details, troubles
 curl -fsSL https://git.integrolabs.net/Fortemi/HotM/raw/branch/main/scripts/setup-macos.sh | bash
 ```
 
-**2. Install HotM:** Download `HotM_2026.2.0_aarch64.dmg` from the releases page, open it, and drag **HotM** to `/Applications`.
+**2. Install HotM:** Download the latest `HotM_*_aarch64.dmg` from the [releases page](https://git.integrolabs.net/Fortemi/HotM/releases/latest), open it, and drag **HotM** to `/Applications`.
 
 **3. Launch:** Open HotM from Applications. On first launch macOS may show a Gatekeeper warning — right-click and choose **Open**.
 

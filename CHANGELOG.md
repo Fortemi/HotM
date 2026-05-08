@@ -4,6 +4,20 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2026.5.3] - 2026-05-08
+
+### Fixed
+
+- **Ollama service failed to start on dirty re-installs** ([#196](https://git.integrolabs.net/Fortemi/HotM/issues/196)). The upstream Ollama installer's idempotency logic skips data-directory creation when the `ollama` system user already exists from a prior install. On boxes where `/usr/share/ollama` was wiped manually but the user persisted, `ollama.service` then crash-looped with `could not create directory mkdir /usr/share/ollama: permission denied`. `install.sh` now defensively `install -d -o ollama:ollama /usr/share/ollama` after the upstream curl-pipe-bash. No-op on a true fresh install.
+
+### Removed
+
+- **`scripts/setup-linux.sh`** — fully superseded by `scripts/install.sh` and the `.deb` postinst hook in `v2026.5.2`. Deprecation banner shipped in `v2026.5.2`; deleted in this release per follow-up.
+
+### Documentation
+
+- **`docs/quick-start.md`** rewritten around the single-command install. Stale references to `setup-linux.sh` and pinned version strings (`HotM_2026.2.0_*`) replaced with the current `install.sh` one-liner and links to the latest-release page.
+
 ## [2026.5.2] - 2026-05-08
 
 ### Added
