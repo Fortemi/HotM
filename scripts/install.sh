@@ -67,12 +67,25 @@ case "${ARCH}" in
 esac
 
 # ── Resolve target version ──────────────────────────────────────────────────
+# Use Gitea API and filter for real semver tags (vYYYY.M.PATCH).
+# We can't trust the first <title> in releases.atom because some old releases
+# put "v" in their title and newer releases don't, so atom title order is
+# inconsistent. Tag-pattern filter on the API is reliable.
+GITEA_API="https://git.integrolabs.net/api/v1/repos/Fortemi/HotM"
 if [[ "${HOTM_VERSION}" == "latest" ]]; then
   info "Resolving latest HotM release..."
-  HOTM_VERSION="$(curl -fsSL "${GITEA_BASE}/releases.atom" 2>/dev/null \
-    | grep -oP '<title>v\K[0-9.]+' | head -1 || true)"
-  [[ -z "${HOTM_VERSION}" ]] && error "Could not resolve latest version. Try --version vX.Y.Z."
-  HOTM_VERSION="v${HOTM_VERSION}"
+  if command -v jq >/dev/null 2>&1; then
+    HOTM_VERSION="$(curl -fsSL "${GITEA_API}/releases?limit=20" 2>/dev/null \
+      | jq -r '[.[] | select(.draft == false and .prerelease == false
+                            and (.tag_name | test("^v[0-9]+\\.[0-9]+\\.[0-9]+$")))
+              | .tag_name] | first' 2>/dev/null || true)"
+  else
+    # jq fallback: parse JSON with grep — fragile but works without deps
+    HOTM_VERSION="$(curl -fsSL "${GITEA_API}/releases?limit=20" 2>/dev/null \
+      | grep -oP '"tag_name":\s*"\Kv[0-9]+\.[0-9]+\.[0-9]+(?=")' | head -1 || true)"
+  fi
+  [[ -z "${HOTM_VERSION}" || "${HOTM_VERSION}" == "null" ]] \
+    && error "Could not resolve latest version. Try --version vX.Y.Z."
 fi
 info "Target version: ${HOTM_VERSION}"
 
@@ -85,7 +98,8 @@ DEB_PATH="${TMPDIR_HOTM}/${DEB_NAME}"
 SUMS_PATH="${TMPDIR_HOTM}/SHA256SUMS.txt"
 
 # Skip download if already-installed version matches
-INSTALLED_VER="$(dpkg-query -W -f='${Version}' hotm 2>/dev/null || true)"
+# Note: package name is `hot-m` (tauri-bundler kebab-cases productName "HotM").
+INSTALLED_VER="$(dpkg-query -W -f='${Version}' hot-m 2>/dev/null || true)"
 if [[ -n "${INSTALLED_VER}" && "v${INSTALLED_VER}" == "${HOTM_VERSION}" ]]; then
   info "HotM ${HOTM_VERSION} already installed — skipping deb step."
   SKIP_DPKG=true
@@ -125,7 +139,7 @@ ${SUDO} systemctl is-active --quiet postgresql || ${SUDO} systemctl start postgr
 if ${SUDO} -u postgres psql -tAc "SELECT 1 FROM pg_database WHERE datname='matric'" | grep -q 1; then
   info "matric database present"
 else
-  warn "matric database missing — postinst may have failed. Check 'sudo dpkg-reconfigure hotm'."
+  warn "matric database missing — postinst may have failed. Check 'sudo dpkg-reconfigure hot-m'."
 fi
 
 # ── Ollama (optional) ───────────────────────────────────────────────────────
@@ -167,15 +181,22 @@ else
 fi
 
 # ── Final verification ──────────────────────────────────────────────────────
+# Resolve status values BEFORE printf — nested quote escaping inside $()
+# inside "..." word-splits SQL on whitespace and produces fake "missing" reports.
+HOTM_STATUS="$(dpkg-query -W -f='${Version}' hot-m 2>/dev/null || echo 'NOT INSTALLED')"
+PG_STATUS="$(systemctl is-active postgresql 2>/dev/null || echo 'inactive')"
+PGVEC_STATUS="$(${SUDO} -u postgres psql -d matric -tAc "SELECT extname FROM pg_extension WHERE extname='vector'" 2>/dev/null | grep -q vector && echo 'enabled' || echo 'missing')"
+OLLAMA_STATUS="$(systemctl is-active ollama 2>/dev/null || echo 'inactive')"
+
 echo ""
 echo "╔══════════════════════════════════════════════════════════════════╗"
 echo "║                    HotM Installation Status                      ║"
 echo "╠══════════════════════════════════════════════════════════════════╣"
-printf "║  HotM:        %-50s║\n" "$(dpkg-query -W -f='${Version}' hotm 2>/dev/null || echo 'NOT INSTALLED')"
-printf "║  Postgres:    %-50s║\n" "$(systemctl is-active postgresql 2>/dev/null || echo 'inactive')"
-printf "║  pgvector:    %-50s║\n" "$(sudo -u postgres psql -d matric -tAc \"SELECT extname FROM pg_extension WHERE extname='vector'\" 2>/dev/null | grep -q vector && echo 'enabled' || echo 'missing')"
+printf "║  HotM:        %-50s║\n" "${HOTM_STATUS}"
+printf "║  Postgres:    %-50s║\n" "${PG_STATUS}"
+printf "║  pgvector:    %-50s║\n" "${PGVEC_STATUS}"
 if [[ "${INSTALL_OLLAMA}" == "true" ]]; then
-printf "║  Ollama:      %-50s║\n" "$(systemctl is-active ollama 2>/dev/null || echo 'inactive')"
+printf "║  Ollama:      %-50s║\n" "${OLLAMA_STATUS}"
 printf "║  Models:      %-50s║\n" "pulling in background — see ollama-pull.log"
 else
 printf "║  Ollama:      %-50s║\n" "skipped"

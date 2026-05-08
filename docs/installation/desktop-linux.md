@@ -150,8 +150,12 @@ Configuration and data are preserved across updates.
 ## Uninstalling
 
 ```bash
-sudo apt-get remove hotm
+sudo apt-get remove hot-m
 ```
+
+> The dpkg package name is `hot-m` — Tauri's bundler kebab-cases the
+> `productName` ("HotM") when generating the deb. The user-facing app and
+> its binaries are still named `hotm` / `hotm-matric-api`.
 
 Remove user data and config (not done by `apt remove`):
 
@@ -204,7 +208,7 @@ psql "$(jq -r .database_url ~/.config/com.hotm.app/config.json)"
 Re-run the postinst:
 
 ```bash
-sudo dpkg-reconfigure hotm
+sudo dpkg-reconfigure hot-m
 ```
 
 If that fails, check that Postgres is reachable:
