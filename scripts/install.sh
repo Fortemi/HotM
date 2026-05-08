@@ -209,6 +209,16 @@ if [[ "${INSTALL_OLLAMA}" == "true" ]]; then
     curl -fsSL https://ollama.com/install.sh | sh
   fi
 
+  # Ollama's upstream installer skips data-dir creation when the `ollama`
+  # system user already exists from a prior install. If we re-install onto a
+  # box where /usr/share/ollama was wiped manually, the service then fails to
+  # start with "could not create directory mkdir /usr/share/ollama: permission
+  # denied". Idempotent fix: ensure the dir exists with ollama:ollama
+  # ownership before enabling the service.
+  if id ollama >/dev/null 2>&1; then
+    ${SUDO} install -d -m 0755 -o ollama -g ollama /usr/share/ollama 2>/dev/null || true
+  fi
+
   if ! systemctl is-active --quiet ollama 2>/dev/null; then
     info "Enabling and starting Ollama service..."
     ${SUDO} systemctl enable --now ollama 2>/dev/null \
