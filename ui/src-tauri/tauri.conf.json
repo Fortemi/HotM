@@ -41,12 +41,12 @@
         "depends": [
           "libwebkit2gtk-4.1-0",
           "libgtk-3-0",
-          "postgresql (>= 14)",
-          "postgresql-contrib"
+          "postgresql-18",
+          "postgresql-contrib-18"
         ],
         "recommends": [
-          "postgresql-17-pgvector | postgresql-16-pgvector | postgresql-15-pgvector",
-          "postgresql-17-postgis-3 | postgresql-16-postgis-3 | postgresql-15-postgis-3"
+          "postgresql-18-pgvector",
+          "postgresql-18-postgis-3"
         ],
         "section": "utils",
         "postInstallScript": "scripts/postinst.sh"

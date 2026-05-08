@@ -22,6 +22,7 @@ set -euo pipefail
 
 # ── Defaults ────────────────────────────────────────────────────────────────
 HOTM_VERSION="${HOTM_VERSION:-latest}"          # `latest` or `v2026.5.1`
+LOCAL_DEB=""                                    # path to local .deb (skips download)
 INSTALL_OLLAMA=true
 INSTALL_MODELS=true
 OLLAMA_EMBED_MODEL="${HOTM_OLLAMA_EMBED_MODEL:-nomic-embed-text}"
@@ -34,6 +35,7 @@ trap 'rm -rf "${TMPDIR_HOTM}"' EXIT
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --version)      HOTM_VERSION="$2";        shift 2 ;;
+    --local-deb)    LOCAL_DEB="$2";           shift 2 ;;
     --no-ollama)    INSTALL_OLLAMA=false;     shift ;;
     --skip-models)  INSTALL_MODELS=false;     shift ;;
     --embed-model)  OLLAMA_EMBED_MODEL="$2";  shift 2 ;;
@@ -66,13 +68,57 @@ case "${ARCH}" in
   *)      error "Unsupported architecture: ${ARCH}" ;;
 esac
 
+# ── PGDG repo (PostgreSQL 18 not in Ubuntu/Debian default repos) ────────────
+# HotM hard-depends on postgresql-18, which only PGDG ships at the moment.
+# Idempotent: if the repo is already configured, skip.
+add_pgdg_repo() {
+  if grep -rq "apt.postgresql.org" /etc/apt/sources.list /etc/apt/sources.list.d/ 2>/dev/null; then
+    info "PGDG apt repo already configured."
+    return 0
+  fi
+
+  info "Adding PostgreSQL Global Development Group (PGDG) apt repo..."
+  ${SUDO} apt-get install -y -qq ca-certificates gnupg lsb-release >/dev/null 2>&1
+  ${SUDO} install -d -m 0755 /etc/apt/keyrings
+
+  curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc \
+    | ${SUDO} gpg --dearmor --yes -o /etc/apt/keyrings/postgresql.gpg \
+    || error "Failed to fetch PGDG signing key"
+  ${SUDO} chmod 0644 /etc/apt/keyrings/postgresql.gpg
+
+  CODENAME="$(lsb_release -cs)"
+  # PGDG publishes per-codename releases; verify before writing the source.
+  if ! curl -fsI "https://apt.postgresql.org/pub/repos/apt/dists/${CODENAME}-pgdg/Release" >/dev/null 2>&1; then
+    error "PGDG does not publish for codename '${CODENAME}'. See https://apt.postgresql.org/pub/repos/apt/dists/ for supported distros."
+  fi
+  echo "deb [signed-by=/etc/apt/keyrings/postgresql.gpg] https://apt.postgresql.org/pub/repos/apt ${CODENAME}-pgdg main" \
+    | ${SUDO} tee /etc/apt/sources.list.d/pgdg.list >/dev/null
+
+  info "Refreshing apt index with PGDG..."
+  ${SUDO} apt-get update -qq
+}
+
+add_pgdg_repo
+
+# ── Local .deb shortcut ─────────────────────────────────────────────────────
+# When a local .deb is provided, skip Gitea version resolution and download.
+# This is the path used for pre-release validation (developer-built .deb).
+if [[ -n "${LOCAL_DEB}" ]]; then
+  [[ -f "${LOCAL_DEB}" ]] || error "Local .deb not found: ${LOCAL_DEB}"
+  HOTM_VERSION="local"
+  DEB_NAME="$(basename "${LOCAL_DEB}")"
+  DEB_PATH="${LOCAL_DEB}"
+  SKIP_DPKG=false
+  info "Using local .deb: ${LOCAL_DEB}"
+fi
+
 # ── Resolve target version ──────────────────────────────────────────────────
 # Use Gitea API and filter for real semver tags (vYYYY.M.PATCH).
 # We can't trust the first <title> in releases.atom because some old releases
 # put "v" in their title and newer releases don't, so atom title order is
 # inconsistent. Tag-pattern filter on the API is reliable.
 GITEA_API="https://git.integrolabs.net/api/v1/repos/Fortemi/HotM"
-if [[ "${HOTM_VERSION}" == "latest" ]]; then
+if [[ -z "${LOCAL_DEB}" && "${HOTM_VERSION}" == "latest" ]]; then
   info "Resolving latest HotM release..."
   if command -v jq >/dev/null 2>&1; then
     HOTM_VERSION="$(curl -fsSL "${GITEA_API}/releases?limit=20" 2>/dev/null \
@@ -89,36 +135,47 @@ if [[ "${HOTM_VERSION}" == "latest" ]]; then
 fi
 info "Target version: ${HOTM_VERSION}"
 
-DEB_NAME="HotM_${HOTM_VERSION#v}_amd64.deb"
-DEB_URL="${GITEA_BASE}/releases/download/${HOTM_VERSION}/${DEB_NAME}"
-SUMS_URL="${GITEA_BASE}/releases/download/${HOTM_VERSION}/SHA256SUMS.txt"
+if [[ -z "${LOCAL_DEB}" ]]; then
+  DEB_NAME="HotM_${HOTM_VERSION#v}_amd64.deb"
+  DEB_URL="${GITEA_BASE}/releases/download/${HOTM_VERSION}/${DEB_NAME}"
+  SUMS_URL="${GITEA_BASE}/releases/download/${HOTM_VERSION}/SHA256SUMS.txt"
 
-# ── Download .deb + verify checksum ─────────────────────────────────────────
-DEB_PATH="${TMPDIR_HOTM}/${DEB_NAME}"
-SUMS_PATH="${TMPDIR_HOTM}/SHA256SUMS.txt"
+  # ── Download .deb + verify checksum ──────────────────────────────────────
+  DEB_PATH="${TMPDIR_HOTM}/${DEB_NAME}"
+  SUMS_PATH="${TMPDIR_HOTM}/SHA256SUMS.txt"
 
-# Skip download if already-installed version matches
-# Note: package name is `hot-m` (tauri-bundler kebab-cases productName "HotM").
-INSTALLED_VER="$(dpkg-query -W -f='${Version}' hot-m 2>/dev/null || true)"
-if [[ -n "${INSTALLED_VER}" && "v${INSTALLED_VER}" == "${HOTM_VERSION}" ]]; then
-  info "HotM ${HOTM_VERSION} already installed — skipping deb step."
-  SKIP_DPKG=true
-else
-  SKIP_DPKG=false
-  info "Downloading ${DEB_NAME}..."
-  curl -fL --progress-bar -o "${DEB_PATH}" "${DEB_URL}" \
-    || error "Failed to download ${DEB_URL}"
-
-  info "Downloading SHA256SUMS.txt..."
-  if curl -fsSL -o "${SUMS_PATH}" "${SUMS_URL}"; then
-    info "Verifying checksum..."
-    EXPECTED="$(grep " ${DEB_NAME}\$" "${SUMS_PATH}" | awk '{print $1}')"
-    [[ -z "${EXPECTED}" ]] && error "Checksum for ${DEB_NAME} not found in SHA256SUMS.txt"
-    ACTUAL="$(sha256sum "${DEB_PATH}" | awk '{print $1}')"
-    [[ "${EXPECTED}" != "${ACTUAL}" ]] && error "Checksum mismatch! Expected ${EXPECTED}, got ${ACTUAL}"
-    info "Checksum OK"
+  # Skip download if already-installed version matches.
+  # Package name is `hot-m` (tauri-bundler kebab-cases productName "HotM").
+  INSTALLED_VER="$(dpkg-query -W -f='${Version}' hot-m 2>/dev/null || true)"
+  if [[ -n "${INSTALLED_VER}" && "v${INSTALLED_VER}" == "${HOTM_VERSION}" ]]; then
+    info "HotM ${HOTM_VERSION} already installed — skipping deb step."
+    SKIP_DPKG=true
   else
-    warn "SHA256SUMS.txt not available — proceeding without checksum verification."
+    SKIP_DPKG=false
+    info "Downloading ${DEB_NAME}..."
+    curl -fL --progress-bar -o "${DEB_PATH}" "${DEB_URL}" \
+      || error "Failed to download ${DEB_URL}"
+
+    info "Downloading SHA256SUMS.txt..."
+    if curl -fsSL -o "${SUMS_PATH}" "${SUMS_URL}"; then
+      info "Verifying checksum..."
+      # SHA256SUMS.txt entries may use either bare filename or full build path
+      # (e.g. "ui/src-tauri/target/release/bundle/deb/HotM_2026.5.1_amd64.deb").
+      # awk against $NF tolerates both formats and is pipefail-safe (grep|awk
+      # would abort with set -e if grep finds no match).
+      EXPECTED="$(awk -v target="${DEB_NAME}" '
+        {
+          n = split($NF, parts, "/");
+          if (parts[n] == target) { print $1; exit }
+        }
+      ' "${SUMS_PATH}")"
+      [[ -z "${EXPECTED}" ]] && error "Checksum for ${DEB_NAME} not found in SHA256SUMS.txt"
+      ACTUAL="$(sha256sum "${DEB_PATH}" | awk '{print $1}')"
+      [[ "${EXPECTED}" != "${ACTUAL}" ]] && error "Checksum mismatch! Expected ${EXPECTED}, got ${ACTUAL}"
+      info "Checksum OK"
+    else
+      warn "SHA256SUMS.txt not available — proceeding without checksum verification."
+    fi
   fi
 fi
 

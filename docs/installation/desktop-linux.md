@@ -1,6 +1,8 @@
 # HotM Desktop — Linux Installation
 
-HotM ships as a Tauri desktop application for Linux. The `.deb` and `.AppImage` bundles include the HotM UI and the Fortemi API sidecar. Postgres + pgvector + Ollama are runtime prerequisites and are handled by the bootstrap installer below.
+HotM ships as a Tauri desktop application for Linux. The `.deb` and `.AppImage` bundles include the HotM UI and the Fortemi API sidecar. Postgres 18 + pgvector + Ollama are runtime prerequisites and are handled by the bootstrap installer below.
+
+> **Postgres 18 required.** Fortemi migrations rely on `uuidv7()` (a Postgres 18 built-in). Older clusters (PG 13–17) will fail at first launch with `function uuidv7() does not exist`. Install.sh adds the [PGDG apt repo](https://wiki.postgresql.org/wiki/Apt) for you so PG 18 is available on Ubuntu 24.04 LTS, 25.10 (questing), and Debian 12+.
 
 ## Quick install (recommended)
 
@@ -18,11 +20,12 @@ The installer is idempotent — re-running is safe and skips anything already in
 |------|--------|
 | 1 | Resolves the latest HotM release on git.integrolabs.net |
 | 2 | Downloads `HotM_<version>_amd64.deb` and `SHA256SUMS.txt`, verifies the checksum |
-| 3 | Runs `apt-get install ./HotM_*.deb` — apt resolves and installs `postgresql`, `postgresql-contrib`, `libwebkit2gtk-4.1-0`, and the matching `postgresql-NN-pgvector` |
-| 4 | The `.deb` postinst creates the `matric` role, the `matric` database, and enables `vector`, `postgis`, `pg_trgm` extensions |
-| 5 | Runs the official Ollama installer (`curl https://ollama.com/install.sh \| sh`) and enables the `ollama` systemd service |
-| 6 | Pulls `nomic-embed-text` (embeddings) and `qwen3.5:9b` (generation) **in the background** — model pulls take 5-15 minutes and don't block the installer |
-| 7 | Reports installed status and next steps |
+| 3 | Adds the PGDG apt repo (PostgreSQL official) if not already configured |
+| 4 | Runs `apt-get install ./HotM_*.deb` — apt resolves and installs `postgresql-18`, `postgresql-contrib-18`, `postgresql-18-pgvector`, `postgresql-18-postgis-3`, and `libwebkit2gtk-4.1-0` |
+| 5 | The `.deb` postinst creates the `matric` role, the `matric` database, and enables `vector`, `postgis`, `pg_trgm`, `pgcrypto` extensions |
+| 6 | Runs the official Ollama installer (`curl https://ollama.com/install.sh \| sh`) and enables the `ollama` systemd service |
+| 7 | Pulls `nomic-embed-text` (embeddings) and `qwen3.5:9b` (generation) **in the background** — model pulls take 5-15 minutes and don't block the installer |
+| 8 | Reports installed status and next steps |
 
 Audit the script before piping by reading it directly:
 ```bash
@@ -44,13 +47,20 @@ curl -fsSL https://git.integrolabs.net/Fortemi/HotM/raw/branch/main/scripts/inst
 
 If you prefer to do it yourself or need to integrate with existing infrastructure:
 
-### 1. Install Postgres + pgvector via apt
+### 1. Add the PGDG apt repo and install Postgres 18
 
 ```bash
+sudo install -d -m 0755 /etc/apt/keyrings
+curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc \
+  | sudo gpg --dearmor -o /etc/apt/keyrings/postgresql.gpg
+CODENAME=$(lsb_release -cs)
+# Ubuntu 25.10 (questing) and similar post-LTS releases: substitute "noble".
+echo "deb [signed-by=/etc/apt/keyrings/postgresql.gpg] https://apt.postgresql.org/pub/repos/apt ${CODENAME}-pgdg main" \
+  | sudo tee /etc/apt/sources.list.d/pgdg.list
+
 sudo apt-get update
-sudo apt-get install postgresql postgresql-contrib
-PG_VER=$(pg_lsclusters --no-header | awk 'NR==1{print $1}')
-sudo apt-get install postgresql-${PG_VER}-pgvector postgresql-${PG_VER}-postgis-3
+sudo apt-get install postgresql-18 postgresql-contrib-18 \
+  postgresql-18-pgvector postgresql-18-postgis-3
 ```
 
 ### 2. Install the HotM `.deb`
@@ -238,15 +248,26 @@ sudo apt-get install libwebkit2gtk-4.1-0
 
 ### pgvector extension missing
 
-The `Recommends:` line covers Postgres 15-17. Other versions need manual install:
+The `Recommends:` pulls `postgresql-18-pgvector` from PGDG. If it's missing, the PGDG repo wasn't added — see manual install step 1 above. To install retroactively:
 
 ```bash
-PG_VER=$(pg_lsclusters --no-header | awk 'NR==1{print $1}')
-sudo apt-get install postgresql-${PG_VER}-pgvector
+sudo apt-get install postgresql-18-pgvector
 sudo -u postgres psql -d matric -c "CREATE EXTENSION IF NOT EXISTS vector;"
 ```
 
 Without pgvector, semantic search falls back to full-text only.
+
+### `function uuidv7() does not exist`
+
+Matric-api migrations require `uuidv7()` — a Postgres 18 built-in. If you see this error, the cluster is running Postgres 13–17. Upgrade to Postgres 18 (PGDG):
+
+```bash
+sudo systemctl stop postgresql
+sudo apt-get install postgresql-18
+# pg_upgradecluster from old version → 18, or accept data loss and re-run install
+```
+
+The install.sh bootstrap handles this automatically on fresh installs.
 
 ## See also
 
