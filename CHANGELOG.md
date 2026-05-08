@@ -8,7 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Fixed
 
-- **Ollama service failed to start on dirty re-installs** ([#196](https://git.integrolabs.net/Fortemi/HotM/issues/196)). The upstream Ollama installer's idempotency logic skips data-directory creation when the `ollama` system user already exists from a prior install. On boxes where `/usr/share/ollama` was wiped manually but the user persisted, `ollama.service` then crash-looped with `could not create directory mkdir /usr/share/ollama: permission denied`. `install.sh` now defensively `install -d -o ollama:ollama /usr/share/ollama` after the upstream curl-pipe-bash. No-op on a true fresh install.
+- **Ollama service failed to start on dirty re-installs** ([#196](https://github.com/Fortemi/HotM/releases/tag/v2026.5.2)). The upstream Ollama installer's idempotency logic skips data-directory creation when the `ollama` system user already exists from a prior install. On boxes where `/usr/share/ollama` was wiped manually but the user persisted, `ollama.service` then crash-looped with `could not create directory mkdir /usr/share/ollama: permission denied`. `install.sh` now defensively `install -d -o ollama:ollama /usr/share/ollama` after the upstream curl-pipe-bash. No-op on a true fresh install.
 
 ### Removed
 
@@ -22,8 +22,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
-- **Single-command Linux installer** ([#196](https://git.integrolabs.net/Fortemi/HotM/issues/196)). `scripts/install.sh` is now the supported one-liner: it adds the [PGDG](https://wiki.postgresql.org/wiki/Apt) apt repo, installs the `.deb` (which now pulls Postgres 18 + pgvector + postgis automatically via Depends/Recommends), runs the post-install hook to seed the `matric` database and extensions, and triggers the official Ollama installer with background model pulls. Idempotent — re-running skips anything already in place.
-  - Resolves the latest release via the Gitea API with a tag-pattern filter (`^v[0-9]+\.[0-9]+\.[0-9]+$`); replaces the previous fragile atom-feed regex.
+- **Single-command Linux installer** ([#196](https://github.com/Fortemi/HotM/releases/tag/v2026.5.2)). `scripts/install.sh` is now the supported one-liner: it adds the [PGDG](https://wiki.postgresql.org/wiki/Apt) apt repo, installs the `.deb` (which now pulls Postgres 18 + pgvector + postgis automatically via Depends/Recommends), runs the post-install hook to seed the `matric` database and extensions, and triggers the official Ollama installer with background model pulls. Idempotent — re-running skips anything already in place.
+  - Resolves the latest release via the GitHub releases API with a tag-pattern filter (`^v[0-9]+\.[0-9]+\.[0-9]+$`).
   - Verifies `SHA256SUMS.txt` against the downloaded `.deb`.
   - Flags: `--version`, `--no-ollama`, `--skip-models`, `--embed-model`, `--gen-model`, `--local-deb` (for testing pre-release builds).
 - **`.deb` postinst hook** that creates the `matric` role + database, enables `vector`, `postgis`, `pg_trgm`, and `pgcrypto` extensions, and self-checks `uuidv7()` resolves before declaring success.

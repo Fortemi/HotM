@@ -2,7 +2,7 @@
 # HotM one-line installer
 #
 # Bootstraps a fresh Ubuntu/Debian host:
-#   1. Downloads + verifies the latest .deb from git.integrolabs.net
+#   1. Downloads + verifies the latest .deb from github.com/Fortemi/HotM
 #   2. apt-installs it (postgres + pgvector + libwebkit pulled via Depends/Recommends)
 #   3. .deb postinst seeds the matric DB
 #   4. Installs Ollama daemon (curl|sh — official upstream, not an apt package)
@@ -10,9 +10,9 @@
 #   6. Verifies and reports
 #
 # Usage:
-#   curl -fsSL https://git.integrolabs.net/Fortemi/HotM/raw/branch/main/scripts/install.sh | bash
+#   curl -fsSL https://raw.githubusercontent.com/Fortemi/HotM/main/scripts/install.sh | bash
 #   ./scripts/install.sh                          # local checkout
-#   ./scripts/install.sh --version v2026.5.1      # pin to specific release
+#   ./scripts/install.sh --version v2026.5.3      # pin to specific release
 #   ./scripts/install.sh --no-ollama              # skip Ollama (degraded mode)
 #   ./scripts/install.sh --skip-models            # install Ollama, skip model pulls
 #
@@ -27,7 +27,9 @@ INSTALL_OLLAMA=true
 INSTALL_MODELS=true
 OLLAMA_EMBED_MODEL="${HOTM_OLLAMA_EMBED_MODEL:-nomic-embed-text}"
 OLLAMA_GEN_MODEL="${HOTM_OLLAMA_GEN_MODEL:-qwen3.5:9b}"
-GITEA_BASE="https://git.integrolabs.net/Fortemi/HotM"
+# Public release host. Internal users can override via HOTM_RELEASE_BASE / HOTM_RELEASE_API.
+RELEASE_BASE="${HOTM_RELEASE_BASE:-https://github.com/Fortemi/HotM}"
+RELEASE_API="${HOTM_RELEASE_API:-https://api.github.com/repos/Fortemi/HotM}"
 TMPDIR_HOTM="$(mktemp -d -t hotm-install.XXXXXX)"
 trap 'rm -rf "${TMPDIR_HOTM}"' EXIT
 
@@ -113,21 +115,21 @@ if [[ -n "${LOCAL_DEB}" ]]; then
 fi
 
 # ── Resolve target version ──────────────────────────────────────────────────
-# Use Gitea API and filter for real semver tags (vYYYY.M.PATCH).
-# We can't trust the first <title> in releases.atom because some old releases
-# put "v" in their title and newer releases don't, so atom title order is
-# inconsistent. Tag-pattern filter on the API is reliable.
-GITEA_API="https://git.integrolabs.net/api/v1/repos/Fortemi/HotM"
+# Use the GitHub releases API and filter for semver tags (vYYYY.M.PATCH).
+# Both the github.com and api.github.com paths support unauthenticated GETs;
+# we don't burn rate limit on a single install run.
 if [[ -z "${LOCAL_DEB}" && "${HOTM_VERSION}" == "latest" ]]; then
   info "Resolving latest HotM release..."
   if command -v jq >/dev/null 2>&1; then
-    HOTM_VERSION="$(curl -fsSL "${GITEA_API}/releases?limit=20" 2>/dev/null \
+    HOTM_VERSION="$(curl -fsSL -H 'Accept: application/vnd.github+json' \
+      "${RELEASE_API}/releases?per_page=20" 2>/dev/null \
       | jq -r '[.[] | select(.draft == false and .prerelease == false
                             and (.tag_name | test("^v[0-9]+\\.[0-9]+\\.[0-9]+$")))
               | .tag_name] | first' 2>/dev/null || true)"
   else
     # jq fallback: parse JSON with grep — fragile but works without deps
-    HOTM_VERSION="$(curl -fsSL "${GITEA_API}/releases?limit=20" 2>/dev/null \
+    HOTM_VERSION="$(curl -fsSL -H 'Accept: application/vnd.github+json' \
+      "${RELEASE_API}/releases?per_page=20" 2>/dev/null \
       | grep -oP '"tag_name":\s*"\Kv[0-9]+\.[0-9]+\.[0-9]+(?=")' | head -1 || true)"
   fi
   [[ -z "${HOTM_VERSION}" || "${HOTM_VERSION}" == "null" ]] \
@@ -137,8 +139,8 @@ info "Target version: ${HOTM_VERSION}"
 
 if [[ -z "${LOCAL_DEB}" ]]; then
   DEB_NAME="HotM_${HOTM_VERSION#v}_amd64.deb"
-  DEB_URL="${GITEA_BASE}/releases/download/${HOTM_VERSION}/${DEB_NAME}"
-  SUMS_URL="${GITEA_BASE}/releases/download/${HOTM_VERSION}/SHA256SUMS.txt"
+  DEB_URL="${RELEASE_BASE}/releases/download/${HOTM_VERSION}/${DEB_NAME}"
+  SUMS_URL="${RELEASE_BASE}/releases/download/${HOTM_VERSION}/SHA256SUMS.txt"
 
   # ── Download .deb + verify checksum ──────────────────────────────────────
   DEB_PATH="${TMPDIR_HOTM}/${DEB_NAME}"
@@ -272,5 +274,5 @@ echo "╚═══════════════════════�
 echo ""
 echo "Launch HotM:  hotm"
 echo "Logs:         hotm 2>&1 | tee ~/.local/share/com.hotm.app/hotm.log"
-echo "Docs:         ${GITEA_BASE}/src/branch/main/docs/installation/desktop-linux.md"
+echo "Docs:         ${RELEASE_BASE}/blob/main/docs/installation/desktop-linux.md"
 echo ""

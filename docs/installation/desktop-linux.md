@@ -9,7 +9,7 @@ HotM ships as a Tauri desktop application for Linux. The `.deb` and `.AppImage` 
 One command bootstraps everything on a fresh Ubuntu 24.04+ host:
 
 ```bash
-curl -fsSL https://git.integrolabs.net/Fortemi/HotM/raw/branch/main/scripts/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/Fortemi/HotM/main/scripts/install.sh | bash
 ```
 
 The installer is idempotent — re-running is safe and skips anything already in place.
@@ -18,7 +18,7 @@ The installer is idempotent — re-running is safe and skips anything already in
 
 | Step | Action |
 |------|--------|
-| 1 | Resolves the latest HotM release on git.integrolabs.net |
+| 1 | Resolves the latest HotM release via the GitHub releases API |
 | 2 | Downloads `HotM_<version>_amd64.deb` and `SHA256SUMS.txt`, verifies the checksum |
 | 3 | Adds the PGDG apt repo (PostgreSQL official) if not already configured |
 | 4 | Runs `apt-get install ./HotM_*.deb` — apt resolves and installs `postgresql-18`, `postgresql-contrib-18`, `postgresql-18-pgvector`, `postgresql-18-postgis-3`, and `libwebkit2gtk-4.1-0` |
@@ -29,7 +29,7 @@ The installer is idempotent — re-running is safe and skips anything already in
 
 Audit the script before piping by reading it directly:
 ```bash
-curl -fsSL https://git.integrolabs.net/Fortemi/HotM/raw/branch/main/scripts/install.sh | less
+curl -fsSL https://raw.githubusercontent.com/Fortemi/HotM/main/scripts/install.sh | less
 ```
 
 ### Installer flags
@@ -66,8 +66,8 @@ sudo apt-get install postgresql-18 postgresql-contrib-18 \
 ### 2. Install the HotM `.deb`
 
 ```bash
-wget https://git.integrolabs.net/Fortemi/HotM/releases/download/v2026.5.1/HotM_2026.5.1_amd64.deb
-sudo apt-get install ./HotM_2026.5.1_amd64.deb
+wget https://github.com/Fortemi/HotM/releases/download/v2026.5.3/HotM_2026.5.3_amd64.deb
+sudo apt-get install ./HotM_2026.5.3_amd64.deb
 # postinst seeds the matric role + database + extensions automatically
 ```
 
@@ -146,7 +146,7 @@ sudo -u postgres psql -c "ALTER ROLE matric WITH PASSWORD 'newpassword'"
 
 ```bash
 # Re-run the installer — it detects the installed version and skips if already current
-curl -fsSL https://git.integrolabs.net/Fortemi/HotM/raw/branch/main/scripts/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/Fortemi/HotM/main/scripts/install.sh | bash
 ```
 
 Or pin to a specific version:
