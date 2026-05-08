@@ -4,6 +4,32 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2026.5.2] - 2026-05-08
+
+### Added
+
+- **Single-command Linux installer** ([#196](https://git.integrolabs.net/Fortemi/HotM/issues/196)). `scripts/install.sh` is now the supported one-liner: it adds the [PGDG](https://wiki.postgresql.org/wiki/Apt) apt repo, installs the `.deb` (which now pulls Postgres 18 + pgvector + postgis automatically via Depends/Recommends), runs the post-install hook to seed the `matric` database and extensions, and triggers the official Ollama installer with background model pulls. Idempotent — re-running skips anything already in place.
+  - Resolves the latest release via the Gitea API with a tag-pattern filter (`^v[0-9]+\.[0-9]+\.[0-9]+$`); replaces the previous fragile atom-feed regex.
+  - Verifies `SHA256SUMS.txt` against the downloaded `.deb`.
+  - Flags: `--version`, `--no-ollama`, `--skip-models`, `--embed-model`, `--gen-model`, `--local-deb` (for testing pre-release builds).
+- **`.deb` postinst hook** that creates the `matric` role + database, enables `vector`, `postgis`, `pg_trgm`, and `pgcrypto` extensions, and self-checks `uuidv7()` resolves before declaring success.
+- **PGDG repo bootstrap** in `install.sh`. Verifies the host's codename has a published PGDG release before writing the source — fails fast on unsupported distros instead of silently substituting.
+
+### Changed
+
+- **Postgres 18 is now the supported runtime.** The `.deb` declares `Depends: postgresql-18, postgresql-contrib-18` (was `postgresql (>= 14)`) and `Recommends: postgresql-18-pgvector, postgresql-18-postgis-3`. This pins the `matric` cluster to PG 18 specifically — required because the matric-api migration `20260215000000` calls `uuidv7()`, a PG 18 built-in (RFC 9562) that doesn't exist on PG 13–17.
+- **`docs/installation/desktop-linux.md`** rewritten around the single-command path. Documents what `install.sh` does step-by-step so users can audit before piping. Manual install path retained for advanced users; troubleshooting section adds a `function uuidv7() does not exist` entry pointing at PG 18 / PGDG.
+- **`scripts/setup-linux.sh`** marked DEPRECATED — superseded by `install.sh` + the `.deb` postinst. Retained for dev environments running matric-api from source without the `.deb`.
+
+### Removed
+
+- **`setup_ollama.sh`** at repo root. Duplicated the Ollama install logic and used a different model name (`gpt-oss:20b`) than the rest of the project. Models are now standardized in one place: `install.sh` pulls `nomic-embed-text` for embeddings and `qwen3.5:9b` for generation.
+
+### Notes
+
+- The dpkg package name is `hot-m` (Tauri's bundler kebab-cases the `productName` "HotM" when generating the deb's control file). Use `apt remove hot-m` / `dpkg-reconfigure hot-m`. The user-facing app and binaries (`/usr/bin/hotm`, `/usr/bin/hotm-matric-api`) are still named `hotm`.
+- Verified end-to-end on a fresh Ubuntu 25.10 host (questing-pgdg): apt resolves `postgresql-18 18.3-1.pgdg25.10+1`, `postgresql-18-pgvector 0.8.2`, `postgresql-18-postgis-3 3.6.3`; postinst seeds matric DB cleanly; matric-api migrations complete with no errors using native PG 18 `uuidv7()`.
+
 ## [2026.5.1] - 2026-05-07
 
 ### Removed
