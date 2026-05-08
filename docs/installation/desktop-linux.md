@@ -1,114 +1,115 @@
 # HotM Desktop — Linux Installation
 
-HotM ships as a self-contained desktop application for Linux. The `.deb` and `.AppImage` bundles include both the HotM UI and the Fortemi API sidecar — no separate server installation required.
+HotM ships as a Tauri desktop application for Linux. The `.deb` and `.AppImage` bundles include the HotM UI and the Fortemi API sidecar. Postgres + pgvector + Ollama are runtime prerequisites and are handled by the bootstrap installer below.
 
-## Prerequisites
+## Quick install (recommended)
 
-### Automatic (recommended)
-
-Run the prerequisite script from the repo root (or download it separately):
+One command bootstraps everything on a fresh Ubuntu 24.04+ host:
 
 ```bash
-curl -fsSL https://git.integrolabs.net/Fortemi/HotM/raw/branch/main/scripts/setup-linux.sh | bash
+curl -fsSL https://git.integrolabs.net/Fortemi/HotM/raw/branch/main/scripts/install.sh | bash
 ```
 
-Or with custom options:
+The installer is idempotent — re-running is safe and skips anything already in place.
 
+### What `install.sh` does
+
+| Step | Action |
+|------|--------|
+| 1 | Resolves the latest HotM release on git.integrolabs.net |
+| 2 | Downloads `HotM_<version>_amd64.deb` and `SHA256SUMS.txt`, verifies the checksum |
+| 3 | Runs `apt-get install ./HotM_*.deb` — apt resolves and installs `postgresql`, `postgresql-contrib`, `libwebkit2gtk-4.1-0`, and the matching `postgresql-NN-pgvector` |
+| 4 | The `.deb` postinst creates the `matric` role, the `matric` database, and enables `vector`, `postgis`, `pg_trgm` extensions |
+| 5 | Runs the official Ollama installer (`curl https://ollama.com/install.sh \| sh`) and enables the `ollama` systemd service |
+| 6 | Pulls `nomic-embed-text` (embeddings) and `qwen3.5:9b` (generation) **in the background** — model pulls take 5-15 minutes and don't block the installer |
+| 7 | Reports installed status and next steps |
+
+Audit the script before piping by reading it directly:
 ```bash
-./scripts/setup-linux.sh \
-  --db-password "mypassword" \
-  --gen-model "llama3.1:8b"
+curl -fsSL https://git.integrolabs.net/Fortemi/HotM/raw/branch/main/scripts/install.sh | less
 ```
 
-The script installs and configures:
-- **PostgreSQL** with the `matric` role and `matric` database
-- **pgvector** extension for semantic search
-- **Ollama** with `nomic-embed-text` (embeddings) and `qwen3.5:9b` (generation/vision)
+### Installer flags
 
-Pass `--no-ollama` to skip Ollama — HotM will start in [Degraded mode](#degraded-mode) and you can configure a cloud provider later.
-
-### Manual Prerequisites
-
-If you prefer to set up manually:
-
-**PostgreSQL:**
 ```bash
+./scripts/install.sh \
+  --version v2026.5.1     # pin to a specific release (default: latest)
+  --no-ollama             # skip Ollama install (HotM starts in degraded mode)
+  --skip-models           # install Ollama but don't auto-pull models
+  --embed-model nomic-embed-text
+  --gen-model qwen3.5:9b
+```
+
+## Manual install (advanced)
+
+If you prefer to do it yourself or need to integrate with existing infrastructure:
+
+### 1. Install Postgres + pgvector via apt
+
+```bash
+sudo apt-get update
 sudo apt-get install postgresql postgresql-contrib
-# Install extensions matching the active cluster version (e.g. 18)
 PG_VER=$(pg_lsclusters --no-header | awk 'NR==1{print $1}')
 sudo apt-get install postgresql-${PG_VER}-pgvector postgresql-${PG_VER}-postgis-3
-sudo -u postgres psql <<SQL
-CREATE ROLE matric WITH LOGIN PASSWORD 'matric' SUPERUSER;
-CREATE DATABASE matric OWNER matric;
-SQL
-sudo -u postgres psql -d matric <<SQL
-CREATE EXTENSION IF NOT EXISTS vector;
-CREATE EXTENSION IF NOT EXISTS postgis;
-CREATE EXTENSION IF NOT EXISTS pg_trgm;
-SQL
 ```
 
-**Ollama** (optional):
+### 2. Install the HotM `.deb`
+
+```bash
+wget https://git.integrolabs.net/Fortemi/HotM/releases/download/v2026.5.1/HotM_2026.5.1_amd64.deb
+sudo apt-get install ./HotM_2026.5.1_amd64.deb
+# postinst seeds the matric role + database + extensions automatically
+```
+
+The `.deb` declares Postgres as `Depends:` and pgvector as `Recommends:`, so step 1 is technically redundant if you go straight to step 2. Step 1 is shown for clarity about what's being pulled in.
+
+### 3. Install Ollama (optional, for AI features)
+
 ```bash
 curl -fsSL https://ollama.com/install.sh | sh
+sudo systemctl enable --now ollama
 ollama pull nomic-embed-text
 ollama pull qwen3.5:9b
 ```
 
-## Installation
+Skip this step if you plan to use a remote inference provider — configure it in **Settings → Admin → Inference** after first launch.
 
-### Option A — .deb Package (recommended for Ubuntu/Debian)
+## Files installed
+
+| Path | Purpose |
+|------|---------|
+| `/usr/bin/hotm` | HotM UI (Tauri WebView) |
+| `/usr/bin/hotm-matric-api` | Bundled Fortemi API sidecar |
+| `/usr/share/applications/HotM.desktop` | Desktop launcher |
+| `/usr/share/icons/hicolor/*/apps/hotm.png` | Application icons |
+| `~/.config/com.hotm.app/config.json` | Per-user runtime config (created on first launch) |
+
+## First launch
 
 ```bash
-# Download from the releases page
-wget https://git.integrolabs.net/Fortemi/HotM/releases/download/latest/HotM_2026.2.0_amd64.deb
-
-# Install
-sudo dpkg -i HotM_2026.2.0_amd64.deb
-sudo apt-get install -f    # resolve any missing deps
-
-# Launch
 hotm
 ```
-
-Files installed:
-- `/usr/bin/hotm` — HotM UI (Tauri WebView)
-- `/usr/bin/hotm-matric-api` — bundled Fortemi API sidecar (HotM-namespaced filename to avoid collision with sibling Tauri apps that bundle their own matric-api)
-- `/usr/share/applications/HotM.desktop` — desktop launcher
-- `/usr/share/icons/hicolor/*/apps/hotm.png` — application icons
-
-### Option B — AppImage (portable, any distro)
-
-```bash
-chmod +x HotM_2026.2.0_amd64.AppImage
-./HotM_2026.2.0_amd64.AppImage
-```
-
-The AppImage bundles all libraries and runs on any x86-64 Linux distribution without installation.
-
-## First Launch
 
 On first launch HotM:
 
 1. Reads `~/.config/com.hotm.app/config.json` (creates defaults if absent)
-2. Spawns `matric-api` bound to `127.0.0.1:<free-port>`
+2. Spawns `hotm-matric-api` bound to `127.0.0.1:<free-port>`
 3. Writes the resolved API URL back to `config.json`
-4. Runs database migrations automatically
-5. Opens the Hall of the Mind window
+4. Runs database migrations against the `matric` database
+5. Connects to Ollama on `localhost:11434`
+6. Opens the Hall of the Mind window
 
-If everything is configured correctly the sidebar shows **API Connected** (green).
+The sidebar status indicator:
 
-If Ollama is available HotM shows **API Connected**. If Ollama is not running at startup, HotM shows **Degraded** (yellow) — notes and search work, AI enhancement does not. See [Degraded mode](#degraded-mode).
+| Color | Meaning |
+|-------|---------|
+| Green — **API Connected** | Postgres + Ollama both reachable, all features available |
+| Yellow — **Degraded** | Postgres OK, Ollama unavailable; notes/search work, AI enhancement disabled |
+| Red — **Offline** | Postgres unreachable; check `systemctl status postgresql` |
 
 ## Configuration
 
-HotM's configuration lives at:
-
-```
-~/.config/com.hotm.app/config.json
-```
-
-Default contents:
+Configuration lives at `~/.config/com.hotm.app/config.json`:
 
 ```json
 {
@@ -127,52 +128,21 @@ Default contents:
 To change the database password:
 
 ```bash
-# Update Postgres
 sudo -u postgres psql -c "ALTER ROLE matric WITH PASSWORD 'newpassword'"
-
-# Update config
-nano ~/.config/com.hotm.app/config.json
-# set "database_url": "postgres://matric:newpassword@localhost/matric"
-```
-
-## Viewing Sidecar Logs
-
-Fortemi sidecar output is piped to the host terminal when HotM is launched from a terminal:
-
-```bash
-hotm 2>&1 | grep -E "\[fortemi\]|\[fortemi:err\]"
-```
-
-For persistent log capture:
-
-```bash
-hotm 2>&1 | tee ~/.local/share/com.hotm.app/hotm.log
-```
-
-## Degraded Mode
-
-HotM shows **Degraded** (yellow) in the sidebar when Fortemi is reachable but inference is unavailable — typically because Ollama was not running when the Fortemi sidecar started.
-
-In degraded mode:
-- ✅ Note creation, editing, search, collections, tags — all work
-- ❌ AI enhancement (NLP revision, summarization, auto-tagging) — disabled
-
-**To recover without restarting:**
-
-1. Start Ollama: `ollama serve` or `sudo systemctl start ollama`
-2. In HotM: click the retry button in the sidebar, or close and reopen HotM
-
-**To avoid degraded mode:** ensure Ollama is running before launching HotM, or configure it as a persistent service:
-
-```bash
-sudo systemctl enable --now ollama
+# Then update database_url in config.json
 ```
 
 ## Updating
 
 ```bash
-# Download new .deb and reinstall — dpkg handles the upgrade
-sudo dpkg -i HotM_NEW_VERSION_amd64.deb
+# Re-run the installer — it detects the installed version and skips if already current
+curl -fsSL https://git.integrolabs.net/Fortemi/HotM/raw/branch/main/scripts/install.sh | bash
+```
+
+Or pin to a specific version:
+
+```bash
+./scripts/install.sh --version v2026.6.0
 ```
 
 Configuration and data are preserved across updates.
@@ -180,61 +150,101 @@ Configuration and data are preserved across updates.
 ## Uninstalling
 
 ```bash
-sudo dpkg -r hotm
+sudo apt-get remove hotm
 ```
 
-Data and configuration in `~/.config/com.hotm.app/` and `~/.local/share/com.hotm.app/` are not removed. Delete them manually if desired:
+Remove user data and config (not done by `apt remove`):
 
 ```bash
 rm -rf ~/.config/com.hotm.app ~/.local/share/com.hotm.app
 ```
 
+To also drop the `matric` database:
+
+```bash
+sudo -u postgres psql -c "DROP DATABASE matric; DROP ROLE matric;"
+```
+
+## Degraded mode recovery
+
+If HotM shows yellow **Degraded** in the sidebar:
+
+```bash
+# Check Ollama
+systemctl status ollama
+sudo systemctl start ollama
+
+# Check models are present
+ollama list
+# Should show nomic-embed-text and qwen3.5:9b
+
+# In HotM: click the retry button in the sidebar
+```
+
+If models are still pulling (background after install), check progress:
+
+```bash
+tail -f ~/.local/share/com.hotm.app/ollama-pull.log
+```
+
 ## Troubleshooting
 
-### "Offline Mode" on launch
+### "Offline Mode" on launch (red sidebar)
 
-**Cause:** PostgreSQL is not running, or the `database_url` in config.json is wrong.
+Postgres isn't running or `database_url` in config.json is wrong.
 
-**Fix:**
 ```bash
 sudo systemctl status postgresql
 sudo systemctl start postgresql
-```
-
-Check the connection string:
-```bash
 psql "$(jq -r .database_url ~/.config/com.hotm.app/config.json)"
 ```
 
-### matric-api crashes immediately
+### postinst failed during install
 
-Run HotM from a terminal to see sidecar logs:
+Re-run the postinst:
+
+```bash
+sudo dpkg-reconfigure hotm
+```
+
+If that fails, check that Postgres is reachable:
+
+```bash
+sudo -u postgres psql -c '\l'
+```
+
+### `hotm-matric-api` crashes on launch
+
+Run HotM from a terminal to see sidecar output:
+
 ```bash
 hotm 2>&1
 ```
 
 Common causes:
-- `database_url` credentials are wrong
-- PostgreSQL is not running
-- Port conflict (another `matric-api` process already running)
-
-Kill stale sidecar processes:
-```bash
-pkill -f hotm-matric-api
-```
+- `database_url` credentials wrong
+- Postgres not running
+- Stale sidecar process: `pkill -f hotm-matric-api`
 
 ### WebView fails to start
 
-HotM requires `libwebkit2gtk-4.1`. Install it:
 ```bash
 sudo apt-get install libwebkit2gtk-4.1-0
 ```
 
-### pgvector not available
+### pgvector extension missing
 
-Semantic search falls back to full-text only. To add pgvector:
+The `Recommends:` line covers Postgres 15-17. Other versions need manual install:
+
 ```bash
-# Ubuntu 24.04+
-sudo apt-get install postgresql-$(pg_lsclusters --no-header | awk 'NR==1{print $1}')-pgvector
+PG_VER=$(pg_lsclusters --no-header | awk 'NR==1{print $1}')
+sudo apt-get install postgresql-${PG_VER}-pgvector
 sudo -u postgres psql -d matric -c "CREATE EXTENSION IF NOT EXISTS vector;"
 ```
+
+Without pgvector, semantic search falls back to full-text only.
+
+## See also
+
+- [docker.md](./docker.md) — Docker Compose deployment (for headless / server use)
+- [desktop-macos.md](./desktop-macos.md) — macOS install via `.dmg`

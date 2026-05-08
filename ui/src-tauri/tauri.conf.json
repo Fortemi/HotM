@@ -40,9 +40,15 @@
       "deb": {
         "depends": [
           "libwebkit2gtk-4.1-0",
-          "libgtk-3-0"
+          "libgtk-3-0",
+          "postgresql (>= 14)",
+          "postgresql-contrib"
         ],
-        "section": "utils"
+        "recommends": [
+          "postgresql-17-pgvector | postgresql-16-pgvector | postgresql-15-pgvector"
+        ],
+        "section": "utils",
+        "postInstallScript": "scripts/postinst.sh"
       },
       "appimage": {
         "bundleMediaFramework": false

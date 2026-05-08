@@ -1,9 +1,15 @@
 #!/usr/bin/env bash
-# HotM Linux prerequisite setup
-# Installs and configures PostgreSQL + pgvector, creates the matric database,
-# and optionally installs Ollama for local inference.
+# HotM Linux prerequisite setup — DEPRECATED as of v2026.5.2.
 #
-# Usage:
+# This script is superseded by `scripts/install.sh`, which now also downloads
+# the .deb and lets dpkg postinst handle Postgres role/DB/extensions setup.
+# The script remains for users who want to run prereqs WITHOUT installing the
+# .deb (e.g., dev environments running matric-api from source).
+#
+# Recommended path for end users:
+#   curl -fsSL https://git.integrolabs.net/Fortemi/HotM/raw/branch/main/scripts/install.sh | bash
+#
+# Usage (legacy):
 #   ./scripts/setup-linux.sh [--no-ollama] [--db-password PASSWORD]
 #
 # Tested on: Ubuntu 24.04 / 25.04, Debian 12
