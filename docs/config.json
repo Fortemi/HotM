@@ -1,0 +1,29 @@
+{
+  "title": "HotM Docs",
+  "brandMark": "Hot",
+  "brandSub": "M",
+  "tagline": "House of the Memorian — the Fortémi desktop app.",
+  "description": "Documentation for HotM: install, operate, and develop the first-party desktop client for Fortémi.",
+  "accentColor": "#2563EB",
+  "welcome": {
+    "eyebrow": "HotM",
+    "headline": "Your Knowledge, On Your Desk",
+    "lead": "HotM is the first-party desktop application for Fortémi — a React 19 SPA bundled with the matric-api sidecar as a single .deb / .msi / .dmg / .AppImage. No Docker, no Postgres setup, no backend ops.",
+    "pillars": [
+      "Native desktop bundle for Linux, macOS, and Windows with a one-shot prereq script.",
+      "Bundled matric-api sidecar — same backend as Fortémi, kept in lockstep on features.",
+      "Editor, knowledge graph, capture, search, attachments — all running on your machine."
+    ],
+    "checklist": [
+      "Run the platform prereq script (setup-linux.sh, setup-macos.sh, or prereq_once.ps1).",
+      "Install the latest HotM bundle from the releases page.",
+      "Launch HotM and verify the bundled API is reachable."
+    ],
+    "quickLinks": [
+      { "label": "Quick Start", "href": "#/quick-start" },
+      { "label": "Installation", "href": "#/installation" },
+      { "label": "Operator Guide", "href": "#/operations" },
+      { "label": "Architecture", "href": "#/architecture-overview" }
+    ]
+  }
+}
