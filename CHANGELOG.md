@@ -4,6 +4,17 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2026.5.6] - 2026-05-10
+
+### Changed
+
+- **Bundled Fortemi sidecar** refreshed to current `Fortemi/fortemi` `sidecar-latest` at build time. No HotM contract change.
+
+### Fixed
+
+- **`install.sh` re-adds the PGDG GPG key when the source list survives a purge but the keyring does not** ([#200](https://git.integrolabs.net/Fortemi/HotM/issues/200)). Reinstalls on hosts that previously ran `apt purge postgresql-common` (which removes the keyring as a config file but leaves `/etc/apt/sources.list.d/pgdg.list` in place) used to silently fall back to cached apt index lists, with every subsequent `apt-get update` warning `NO_PUBKEY 7FCC7D46ACCC4CF8` until the keyring was manually restored. `add_pgdg_repo()` now treats source-list and keyring as independent prerequisites and re-fetches whichever is missing.
+- **`install.sh` recovers cleanly when an orphan `ollama` group survived a prior install** ([#201](https://git.integrolabs.net/Fortemi/HotM/issues/201)). The upstream Ollama installer's `useradd` failed (`group ollama exists`) and exited non-zero, which under `set -euo pipefail` aborted `install.sh` immediately after the upstream installer's misleading "Install complete" banner — leaving the user with no `ollama` user, no `/etc/systemd/system/ollama.service`, no model pulls, and no final status banner. The script now pre-cleans an orphan group, wraps `curl | sh` so a non-zero upstream exit does not abort the script, and surfaces an explicit warning with a remediation hint if the systemd service still doesn't exist after install. Fresh-host installs are unaffected.
+
 ## [2026.5.5] - 2026-05-10
 
 ### Changed
