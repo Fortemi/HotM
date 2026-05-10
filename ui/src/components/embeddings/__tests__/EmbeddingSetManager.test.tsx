@@ -362,6 +362,9 @@ describe('EmbeddingSetManager', () => {
       });
     });
 
+    // Radix Dialog's Presence waits for animationend events that jsdom doesn't
+    // fire reliably under heavy parallel load — bump the per-test timeout.
+    // Refs Fortemi/HotM#199.
     it('closes the create dialog when Cancel is clicked', async () => {
       render(<EmbeddingSetManager />);
 
@@ -380,7 +383,7 @@ describe('EmbeddingSetManager', () => {
       await waitFor(() => {
         expect(screen.queryByText('Create Embedding Set')).not.toBeInTheDocument();
       });
-    });
+    }, 15_000);
 
     it('Create button is disabled when slug or name is empty', async () => {
       render(<EmbeddingSetManager />);
@@ -597,6 +600,7 @@ describe('EmbeddingSetManager', () => {
       });
     });
 
+    // Radix Presence + jsdom flake under load — see note above. Refs Fortemi/HotM#199.
     it('closes the edit dialog when Cancel is clicked', async () => {
       render(<EmbeddingSetManager />);
 
@@ -616,7 +620,7 @@ describe('EmbeddingSetManager', () => {
       await waitFor(() => {
         expect(screen.queryByText('Edit Embedding Set')).not.toBeInTheDocument();
       });
-    });
+    }, 15_000);
 
     it('calls updateSet with the correct slug and payload', async () => {
       render(<EmbeddingSetManager />);
@@ -727,6 +731,7 @@ describe('EmbeddingSetManager', () => {
       });
     });
 
+    // Radix Presence + jsdom flake under load — see note above. Refs Fortemi/HotM#199.
     it('closes the delete dialog when Cancel is clicked', async () => {
       render(<EmbeddingSetManager />);
 
@@ -746,7 +751,7 @@ describe('EmbeddingSetManager', () => {
       await waitFor(() => {
         expect(screen.queryByText('Delete Embedding Set')).not.toBeInTheDocument();
       });
-    });
+    }, 15_000);
 
     it('calls deleteSet with the correct slug when confirmed', async () => {
       render(<EmbeddingSetManager />);
