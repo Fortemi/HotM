@@ -4,6 +4,20 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2026.5.5] - 2026-05-10
+
+### Changed
+
+- **Bundled Fortemi sidecar** refreshed to current `Fortemi/fortemi` `sidecar-latest` at build time. Picks up Fortemi-side improvements without changing HotM's contract — host-adapter, API surface, and `.deb` install behavior are all identical to v2026.5.4.
+
+### Documentation
+
+- **Bring-Your-Own-LLM onboarding** ([#198](https://git.integrolabs.net/Fortemi/HotM/issues/198)). `docs/quick-start.md` now opens with a three-path decision tree (Desktop bundle / Docker UI + external Fortemi / BYO-LLM) and a dedicated *Bring Your Own LLM* section showing the `--no-ollama` install one-liner and the Fortemi env vars to switch backends. `scripts/install.sh` advertises `--no-ollama` in the usage block and prints the Fortemi config hints when invoked. `.env.example` now distinguishes UI vars (`VITE_API_BASE_URL` only) from Fortemi backend vars with an explicit "NOT read by HotM UI" notice. `docker-compose.prod.yml` carries a header block clarifying the stack is UI-only and Fortemi's inference backend is invisible to the UI. Addresses real user feedback that the bundled-Ollama defaults conflicted with existing llama.cpp setups.
+
+### Fixed
+
+- **Flaky dialog-close tests under quality-gate parallel load** ([#199](https://git.integrolabs.net/Fortemi/HotM/issues/199)). Three `EmbeddingSetManager` Cancel-close tests (create / edit / delete) intermittently timed out at the 5000 ms vitest default. Root cause: Radix Dialog's `Presence` waits for `animationend` events that jsdom does not fire reliably under heavy event-loop contention — load-induced timeout, not a test code race. Per-test timeout bumped to 15 s on the three affected tests with an inline note linking the issue. Verified across 5 consecutive `act_runner exec -j quality-gate` runs (all green).
+
 ## [2026.5.4] - 2026-05-09
 
 ### Added
