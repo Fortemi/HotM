@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2026.5.4] - 2026-05-09
+
+### Added
+
+- **Docsite build + deploy workflows** ([`.gitea/workflows/docsite-build.yml`](.gitea/workflows/docsite-build.yml), [`.gitea/workflows/docsite-deploy.yml`](.gitea/workflows/docsite-deploy.yml)). Mirrors the docsite CI pattern landed in [Fortemi v2026.5.1](https://github.com/Fortemi/Fortemi/releases/tag/v2026.5.1): PR-time build validation against `docs/`, plus a deploy-on-push pipeline targeting `docs.fortemi.io/hotm`. Docs config moved into `docs/config.json` so both runners build the site reproducibly.
+
+### Changed
+
+- **AIWG framework refresh** to `2026.5.0-rc.21`. Pulls in the current SDLC framework bundle. No runtime impact — `.aiwg/` tooling only.
+
 ## [2026.5.3] - 2026-05-08
 
 ### Fixed
