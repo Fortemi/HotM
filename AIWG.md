@@ -12,8 +12,8 @@ This project uses the **AIWG SDLC framework** for software development lifecycle
 
 AIWG is a comprehensive SDLC framework providing:
 
-- **192 specialized agents** covering all lifecycle phases (Inception → Elaboration → Construction → Transition → Production)
-- **397 skills** for project management, security, testing, deployment, and traceability
+- **114 specialized agents** covering all lifecycle phases (Inception → Elaboration → Construction → Transition → Production)
+- **301 skills** for project management, security, testing, deployment, and traceability
 - **100+ templates** for requirements, architecture, testing, security, deployment artifacts
 - **Phase-based workflows** with gate criteria and milestone tracking
 - **Multi-agent orchestration** patterns for collaborative artifact generation
@@ -31,8 +31,8 @@ AIWG is a comprehensive SDLC framework providing:
 ls {AIWG_ROOT}/agentic/code/frameworks/sdlc-complete/
 
 # Available resources:
-# - agents/     → 192 agents
-# - skills/     → 397 skills
+# - agents/     → 114 agents
+# - skills/     → 301 skills
 # - templates/  → 100+ artifact templates
 # - flows/      → Phase workflow documentation
 ```
@@ -57,6 +57,11 @@ All SDLC artifacts (requirements, architecture, testing, etc.) are stored in **`
 └── reports/             # Generated reports and indices
 ```
 
+## Repo Topology
+
+Agents: respect this when picking remotes/providers. From `.aiwg/aiwg.config` `remotes` block (#994).
+
+- **Primary**: `origin` (git@git.integrolabs.net:Fortemi/HotM.git) — issues, PRs, CI live here
 
 ## Core Platform Orchestrator Role
 
