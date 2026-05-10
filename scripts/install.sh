@@ -78,14 +78,27 @@ esac
 
 # ── PGDG repo (PostgreSQL 18 not in Ubuntu/Debian default repos) ────────────
 # HotM hard-depends on postgresql-18, which only PGDG ships at the moment.
-# Idempotent: if the repo is already configured, skip.
+# Idempotent across two independent files: the source list AND the keyring.
+# `apt purge postgresql-common` removes the keyring but leaves the source list,
+# so a reinstall must re-fetch the key even when the source is already there.
+# See HotM#200.
 add_pgdg_repo() {
-  if grep -rq "apt.postgresql.org" /etc/apt/sources.list /etc/apt/sources.list.d/ 2>/dev/null; then
+  local source_present=false keyring_present=false
+  grep -rq "apt.postgresql.org" /etc/apt/sources.list /etc/apt/sources.list.d/ 2>/dev/null \
+    && source_present=true
+  [ -f /etc/apt/keyrings/postgresql.gpg ] && keyring_present=true
+
+  if $source_present && $keyring_present; then
     info "PGDG apt repo already configured."
     return 0
   fi
 
-  info "Adding PostgreSQL Global Development Group (PGDG) apt repo..."
+  if $source_present && ! $keyring_present; then
+    info "PGDG source list present but keyring missing — re-installing key only..."
+  else
+    info "Adding PostgreSQL Global Development Group (PGDG) apt repo..."
+  fi
+
   ${SUDO} apt-get install -y -qq ca-certificates gnupg lsb-release >/dev/null 2>&1
   ${SUDO} install -d -m 0755 /etc/apt/keyrings
 
@@ -94,13 +107,15 @@ add_pgdg_repo() {
     || error "Failed to fetch PGDG signing key"
   ${SUDO} chmod 0644 /etc/apt/keyrings/postgresql.gpg
 
-  CODENAME="$(lsb_release -cs)"
-  # PGDG publishes per-codename releases; verify before writing the source.
-  if ! curl -fsI "https://apt.postgresql.org/pub/repos/apt/dists/${CODENAME}-pgdg/Release" >/dev/null 2>&1; then
-    error "PGDG does not publish for codename '${CODENAME}'. See https://apt.postgresql.org/pub/repos/apt/dists/ for supported distros."
+  if ! $source_present; then
+    CODENAME="$(lsb_release -cs)"
+    # PGDG publishes per-codename releases; verify before writing the source.
+    if ! curl -fsI "https://apt.postgresql.org/pub/repos/apt/dists/${CODENAME}-pgdg/Release" >/dev/null 2>&1; then
+      error "PGDG does not publish for codename '${CODENAME}'. See https://apt.postgresql.org/pub/repos/apt/dists/ for supported distros."
+    fi
+    echo "deb [signed-by=/etc/apt/keyrings/postgresql.gpg] https://apt.postgresql.org/pub/repos/apt ${CODENAME}-pgdg main" \
+      | ${SUDO} tee /etc/apt/sources.list.d/pgdg.list >/dev/null
   fi
-  echo "deb [signed-by=/etc/apt/keyrings/postgresql.gpg] https://apt.postgresql.org/pub/repos/apt ${CODENAME}-pgdg main" \
-    | ${SUDO} tee /etc/apt/sources.list.d/pgdg.list >/dev/null
 
   info "Refreshing apt index with PGDG..."
   ${SUDO} apt-get update -qq
@@ -212,9 +227,28 @@ if [[ "${INSTALL_OLLAMA}" == "true" ]]; then
   if command -v ollama >/dev/null 2>&1; then
     info "Ollama already installed: $(ollama --version 2>/dev/null | head -1)"
   else
+    # Pre-clean orphan ollama group from a prior install. If `userdel ollama`
+    # was previously refused because the group "has other members" (a user got
+    # added to it), the upstream installer's useradd fails ("group ollama
+    # exists"), exits non-zero, and our `set -e` aborts the script before
+    # service enable / model pull / final banner can run. See HotM#201.
+    if getent group ollama >/dev/null 2>&1 && ! id ollama >/dev/null 2>&1; then
+      info "Cleaning orphan ollama group from prior install..."
+      group_members=$(getent group ollama | cut -d: -f4 | tr ',' ' ')
+      for u in $group_members; do
+        ${SUDO} gpasswd -d "$u" ollama >/dev/null 2>&1 || true
+      done
+      ${SUDO} groupdel ollama 2>&1 | grep -vE "primary group|does not exist" || true
+    fi
+
     info "Installing Ollama (curl-piping the official upstream installer)..."
     info "  This downloads from https://ollama.com/install.sh — review at that URL."
-    curl -fsSL https://ollama.com/install.sh | sh
+    # Don't let the upstream installer's exit code abort us — its claim of
+    # "Install complete" can coexist with a non-zero exit (e.g., from a useradd
+    # warning), and we still want to verify state and surface a clear warning.
+    if ! curl -fsSL https://ollama.com/install.sh | sh; then
+      warn "Upstream Ollama installer reported a non-zero exit. Verifying state below..."
+    fi
   fi
 
   # Ollama's upstream installer skips data-dir creation when the `ollama`
@@ -225,6 +259,15 @@ if [[ "${INSTALL_OLLAMA}" == "true" ]]; then
   # ownership before enabling the service.
   if id ollama >/dev/null 2>&1; then
     ${SUDO} install -d -m 0755 -o ollama -g ollama /usr/share/ollama 2>/dev/null || true
+  fi
+
+  # Verify the upstream installer actually created the systemd service. If not,
+  # surface a clear remediation hint instead of leaving the user with a half-
+  # installed Ollama and the misleading "API is now available" upstream banner.
+  if [ ! -f /etc/systemd/system/ollama.service ]; then
+    warn "Ollama upstream installer did not create /etc/systemd/system/ollama.service."
+    warn "  This usually means a leftover ollama user or group from a prior install."
+    warn "  Try: sudo userdel ollama; sudo groupdel ollama; then re-run this script."
   fi
 
   if ! systemctl is-active --quiet ollama 2>/dev/null; then
