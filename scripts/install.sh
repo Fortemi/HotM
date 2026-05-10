@@ -11,9 +11,15 @@
 #
 # Usage:
 #   curl -fsSL https://raw.githubusercontent.com/Fortemi/HotM/main/scripts/install.sh | bash
+#
+#   # Bring Your Own LLM — skip the bundled Ollama install if you already run
+#   # llama.cpp, vLLM, or any OpenAI-compatible endpoint. Fortemi is configurable
+#   # for any inference backend; see fortemi/README.md for env vars.
+#   curl -fsSL https://raw.githubusercontent.com/Fortemi/HotM/main/scripts/install.sh | bash -s -- --no-ollama
+#
+# Other flags:
 #   ./scripts/install.sh                          # local checkout
 #   ./scripts/install.sh --version v2026.5.3      # pin to specific release
-#   ./scripts/install.sh --no-ollama              # skip Ollama (degraded mode)
 #   ./scripts/install.sh --skip-models            # install Ollama, skip model pulls
 #
 # Idempotent — re-running is safe.
@@ -246,7 +252,10 @@ if [[ "${INSTALL_OLLAMA}" == "true" ]]; then
     info "Background pull PID: $!  (track with: tail -f ${PULL_LOG})"
   fi
 else
-  warn "Skipping Ollama (--no-ollama). HotM will start in degraded mode."
+  info "Skipping Ollama (--no-ollama). Configure Fortemi to use your existing inference backend:"
+  info "  MATRIC_INFERENCE_DEFAULT=llamacpp   (or openai, vllm, etc.)"
+  info "  LLAMACPP_BASE_URL=http://localhost:8080/v1"
+  info "  See https://git.integrolabs.net/Fortemi/fortemi#configuration for the full matrix."
 fi
 
 # ── Final verification ──────────────────────────────────────────────────────

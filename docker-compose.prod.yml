@@ -1,5 +1,18 @@
 # HotM Production Docker Compose
 #
+# What this is: a stateless nginx container serving the HotM React UI, plus a
+# small Node agent-proxy. It does NOT include Fortemi, PostgreSQL, or any LLM
+# inference. You must run Fortemi separately and point HotM at it via
+# FORTEMI_API_URL (which becomes VITE_API_BASE_URL inside the UI build).
+#
+# HotM is inference-agnostic — Fortemi's inference backend (Ollama, llama.cpp,
+# vLLM, any OpenAI-compatible endpoint) is configured entirely on the Fortemi
+# side and is invisible to the UI. The OLLAMA_URL env var below is consumed by
+# the agent-proxy only, for direct UI-side completions; it is independent of
+# whatever inference backend Fortemi itself uses.
+#
+# See: https://git.integrolabs.net/Fortemi/fortemi#configuration
+#
 # Usage (pull from GHCR - default):
 #   docker compose -f docker-compose.prod.yml pull
 #   docker compose -f docker-compose.prod.yml up -d
@@ -10,11 +23,12 @@
 # Environment variables (optional):
 #   - HOTM_REGISTRY: Image registry (default: ghcr.io)
 #   - VERSION: Image version tag (default: latest)
-#   - FORTEMI_API_URL: Fortemi API endpoint (default: http://localhost:3000/api/v1)
+#   - FORTEMI_API_URL: Fortemi API endpoint (default: http://localhost:3000/api/v1) — REQUIRED for the UI to function
 #   - APP_TITLE: Application title (default: HotM)
-#   - ANTHROPIC_API_KEY: Anthropic API key (optional, for agent)
-#   - OPENAI_API_KEY: OpenAI API key (optional, for agent)
-#   - OLLAMA_URL: Ollama API URL (default: http://localhost:11434)
+#   - ANTHROPIC_API_KEY: Anthropic API key (optional, for agent-proxy)
+#   - OPENAI_API_KEY: OpenAI API key (optional, for agent-proxy)
+#   - OLLAMA_URL: Ollama API URL for agent-proxy direct completions (default: http://localhost:11434).
+#                 NOTE: this does not affect Fortemi's inference backend — that's configured on Fortemi.
 
 services:
   hotm-ui:

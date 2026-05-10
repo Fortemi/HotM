@@ -1,8 +1,20 @@
 # Quick Start
 
-Get HotM running in under 10 minutes using the desktop app (Linux or macOS).
+Get HotM running in under 10 minutes. HotM is a React UI that talks to a Fortemi API. Pick the path that matches your setup.
 
-## Desktop Installation (Recommended)
+## Choose your install path
+
+| Path | When to use | Footprint | What gets installed |
+|------|-------------|-----------|---------------------|
+| **Desktop bundle** | First time trying HotM, no existing LLM setup | ~10 GB | HotM + Fortemi sidecar + Postgres + Ollama + models |
+| **Docker UI + external Fortemi** | You already run Fortemi somewhere | ~200 MB | Just the UI container; you provide Fortemi |
+| **Bring Your Own LLM** | You already run llama.cpp / vLLM / an OpenAI-compatible endpoint | HotM is agnostic | UI + Fortemi configured to point at your endpoint (skip the bundled Ollama) |
+
+The UI is inference-agnostic — it only needs `VITE_API_BASE_URL` pointing at any Fortemi instance. The inference backend (Ollama, llama.cpp, vLLM, OpenAI-compatible) is configured entirely on the Fortemi side.
+
+> **BYO-LLM users:** the desktop installer installs Ollama by default. Run with `--no-ollama` to skip it. See [Bring Your Own LLM](#bring-your-own-llm) below.
+
+## Desktop Installation
 
 The desktop app bundles the Fortemi API sidecar — no separate server setup required.
 
@@ -49,6 +61,26 @@ docker run -d \
 ```
 
 Open `http://localhost:8080`. See [docker.md](installation/docker.md) for compose setup.
+
+## Bring Your Own LLM
+
+If you already run llama.cpp, vLLM, or any OpenAI-compatible endpoint, skip the bundled Ollama install — Fortemi is configurable for any inference backend.
+
+**Linux desktop bundle, no Ollama:**
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/Fortemi/HotM/main/scripts/install.sh | bash -s -- --no-ollama
+```
+
+This installs HotM + Fortemi + Postgres but skips the Ollama daemon and model pulls. Configure your inference endpoint in Fortemi (env vars or `inference.toml`):
+
+- `MATRIC_INFERENCE_DEFAULT=llamacpp` (or `openai`)
+- `LLAMACPP_BASE_URL=http://localhost:8080/v1` (or your endpoint)
+- `OPENAI_API_KEY=...` (if using OpenAI or a compatible service)
+
+See the [Fortemi configuration docs](https://git.integrolabs.net/Fortemi/fortemi#configuration) for the full inference backend matrix.
+
+> HotM in Docker doesn't run inference at all — that's all on the Fortemi side. The Docker quickstart above already supports any Fortemi instance via `VITE_API_BASE_URL`.
 
 ## Status Indicators
 
