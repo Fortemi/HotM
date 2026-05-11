@@ -19,6 +19,7 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { api } from '@/api';
 import type { InferenceConfig } from '@/api/inference';
+import { realtimeEventBus, type RealtimeEvent } from '@/services/realtimeEventBus';
 
 type HealthState = 'healthy' | 'unknown' | 'unhealthy' | 'unconfigured' | 'loading';
 
@@ -125,6 +126,29 @@ export function InferenceStatusIndicator({ onNavigateToSettings }: InferenceStat
     void fetchStatus();
     const interval = setInterval(() => void fetchStatus(), 60_000);
     return () => clearInterval(interval);
+  }, [fetchStatus]);
+
+  // SSE subscription (Issue #203). React in real time to:
+  //   - inference.config.changed → full refetch so the dot+label reflect
+  //     the new provider/backend without waiting 60s for the poll.
+  //   - inference.availability.changed → flip just the reachable flag
+  //     using the event's `reachable` field. No GET round-trip needed.
+  React.useEffect(() => {
+    const handler = (event: RealtimeEvent) => {
+      if (event.type === 'InferenceConfigChanged') {
+        void fetchStatus();
+        return;
+      }
+      if (event.type === 'InferenceAvailabilityChanged') {
+        if (typeof event.reachable === 'boolean') {
+          setReachable(event.reachable);
+        } else {
+          // Server didn't include the flag — fall back to a probe.
+          void fetchStatus();
+        }
+      }
+    };
+    return realtimeEventBus.subscribe(handler);
   }, [fetchStatus]);
 
   const state = deriveState(config, reachable);

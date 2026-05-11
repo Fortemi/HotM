@@ -263,4 +263,58 @@ describe('realtimeEventBus', () => {
       expect(event.step_current).toBeUndefined();
     });
   });
+
+  describe('inference config events (Fortemi #654/#657 — Issue #203)', () => {
+    it('maps inference.config.changed → InferenceConfigChanged and extracts payload', () => {
+      const event = normalizeTransportEvent({
+        type: 'inference.config.changed',
+        default_backend: 'openrouter',
+        embedding_backend: 'ollama',
+        changed_fields: ['default_backend', 'openrouter.api_key'],
+      });
+      expect(event.type).toBe('InferenceConfigChanged');
+      expect(event.default_backend).toBe('openrouter');
+      expect(event.embedding_backend).toBe('ollama');
+      expect(event.changed_fields).toEqual(['default_backend', 'openrouter.api_key']);
+    });
+
+    it('preserves explicit null for embedding_backend (tri-state: cleared)', () => {
+      const event = normalizeTransportEvent({
+        type: 'inference.config.changed',
+        default_backend: 'ollama',
+        embedding_backend: null,
+        changed_fields: ['embedding_backend'],
+      });
+      expect(event.embedding_backend).toBeNull();
+    });
+
+    it('leaves embedding_backend undefined when key absent (tri-state: no change)', () => {
+      const event = normalizeTransportEvent({
+        type: 'inference.config.changed',
+        default_backend: 'ollama',
+        changed_fields: ['ollama.base_url'],
+      });
+      expect(event.embedding_backend).toBeUndefined();
+    });
+
+    it('extracts __reset__ sentinel in changed_fields', () => {
+      const event = normalizeTransportEvent({
+        type: 'inference.config.changed',
+        default_backend: 'ollama',
+        changed_fields: ['__reset__'],
+      });
+      expect(event.changed_fields).toContain('__reset__');
+    });
+
+    it('maps inference.availability.changed → InferenceAvailabilityChanged with reachable flag', () => {
+      const event = normalizeTransportEvent({
+        type: 'inference.availability.changed',
+        provider_id: 'ollama',
+        reachable: false,
+      });
+      expect(event.type).toBe('InferenceAvailabilityChanged');
+      expect(event.provider_id).toBe('ollama');
+      expect(event.reachable).toBe(false);
+    });
+  });
 });

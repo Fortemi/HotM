@@ -73,6 +73,8 @@ export const DEFAULT_SSE_EVENT_TYPES = [
   'attachment.extraction.updated',
   // Synthetic SSE events (client resilience)
   'resync_required', 'events.lagged',
+  // Inference config events (Fortemi #654/#657 — InferenceConfigChanged + InferenceAvailabilityChanged)
+  'inference.config.changed', 'inference.availability.changed',
 ] as const;
 
 export function createEventsClient(baseUrl: string, options: EventsClientOptions = {}) {

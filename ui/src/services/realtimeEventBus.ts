@@ -20,7 +20,9 @@ export type RealtimeEventType =
   | 'SearchIndexUpdated'
   | 'GraphUpdated'
   | 'ResyncRequired'
-  | 'EventsLagged';
+  | 'EventsLagged'
+  | 'InferenceConfigChanged'
+  | 'InferenceAvailabilityChanged';
 
 export interface RealtimeEvent {
   type: RealtimeEventType;
@@ -67,6 +69,18 @@ export interface RealtimeEvent {
   note_count?: number;
   // Synthetic event fields
   dropped_count?: number;
+  // Inference config events (Fortemi #654/#657 — InferenceConfigChanged, InferenceAvailabilityChanged)
+  default_backend?: string;
+  embedding_backend?: string | null;
+  changed_fields?: string[];
+  /**
+   * Optional archive name on InferenceConfigChanged when the change was
+   * scoped to a per-archive override. Filed as a Fortemi follow-up — not
+   * currently populated by the server. Treated as a no-op when absent.
+   */
+  archive_name?: string;
+  reachable?: boolean;
+  provider_id?: string;
 }
 
 type RealtimeEventHandler = (event: RealtimeEvent) => void;
@@ -98,6 +112,8 @@ const SUPPORTED_TYPES = new Set<RealtimeEventType>([
   'GraphUpdated',
   'ResyncRequired',
   'EventsLagged',
+  'InferenceConfigChanged',
+  'InferenceAvailabilityChanged',
 ]);
 const NOTE_UPDATE_ALIASES = new Set<string>([
   'NoteArchived',
@@ -198,6 +214,9 @@ const DOT_NOTATION_MAP: Record<string, string> = {
   // Synthetic SSE events
   'resync_required': 'ResyncRequired',
   'events.lagged': 'EventsLagged',
+  // Inference config events (Fortemi #654 family)
+  'inference.config.changed': 'InferenceConfigChanged',
+  'inference.availability.changed': 'InferenceAvailabilityChanged',
 };
 
 function normalizeEventType(input: Record<string, unknown>): RealtimeEventType {
@@ -288,6 +307,20 @@ export function normalizeTransportEvent(input: unknown): RealtimeEvent {
     note_count: getNumberField(normalizedInput, 'note_count'),
     // Synthetic event fields
     dropped_count: getNumberField(normalizedInput, 'dropped_count'),
+    // Inference config events
+    default_backend: getStringField(normalizedInput, 'default_backend'),
+    embedding_backend: ((): string | null | undefined => {
+      // embedding_backend on the server payload is Option<Option<String>>
+      // — present-but-null distinct from absent. Preserve null when explicitly set.
+      if (!('embedding_backend' in normalizedInput)) return undefined;
+      const raw = normalizedInput.embedding_backend;
+      if (raw === null) return null;
+      return typeof raw === 'string' ? raw : undefined;
+    })(),
+    changed_fields: getStringArrayField(normalizedInput, 'changed_fields'),
+    archive_name: getStringField(normalizedInput, 'archive_name'),
+    reachable: getBooleanField(normalizedInput, 'reachable'),
+    provider_id: getStringField(normalizedInput, 'provider_id'),
   };
 }
 

@@ -6,12 +6,14 @@ import {
   Database,
   Loader2,
   RefreshCw,
+  Sparkles,
   Star,
   Trash2,
 } from 'lucide-react';
 import { api, getActiveMemory } from '@/api';
 import { realtimeEventBus } from '@/services/realtimeEventBus';
 import type { ArchiveStatsResponse, MemoryArchive } from '@/api';
+import { ArchiveInferenceSettings } from './ArchiveInferenceSettings';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -35,6 +37,8 @@ export function ArchiveManager() {
   const [createOpen, setCreateOpen] = useState(false);
   const [cloneTarget, setCloneTarget] = useState<string | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
+  // Per-archive inference override dialog (Issue #208)
+  const [inferenceTarget, setInferenceTarget] = useState<string | null>(null);
 
   const [nameInput, setNameInput] = useState('');
   const [descInput, setDescInput] = useState('');
@@ -314,6 +318,16 @@ export function ArchiveManager() {
                       <Button
                         size="sm"
                         variant="outline"
+                        onClick={() => setInferenceTarget(archive.name)}
+                        disabled={isBusy}
+                        title="Override inference config for this archive"
+                      >
+                        <Sparkles className="w-3 h-3 mr-1" />
+                        Inference
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
                         onClick={() => {
                           setCloneTarget(archive.name);
                           setCloneNameInput(`${archive.name}-clone`);
@@ -438,6 +452,28 @@ export function ArchiveManager() {
             </Button>
             <Button variant="destructive" onClick={handleDelete}>
               Delete
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Per-archive inference override (Issue #208) */}
+      <Dialog
+        open={inferenceTarget !== null}
+        onOpenChange={(open) => !open && setInferenceTarget(null)}
+      >
+        <DialogContent className="max-h-[90vh] max-w-3xl overflow-auto">
+          <DialogHeader>
+            <DialogTitle>Inference override — {inferenceTarget}</DialogTitle>
+            <DialogDescription>
+              Configure inference providers that apply only when this archive is active.
+              Reads here merge over the global config (Fortemi #655).
+            </DialogDescription>
+          </DialogHeader>
+          {inferenceTarget && <ArchiveInferenceSettings archive={inferenceTarget} />}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setInferenceTarget(null)}>
+              Close
             </Button>
           </DialogFooter>
         </DialogContent>
