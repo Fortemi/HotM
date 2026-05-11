@@ -4,6 +4,33 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2026.5.8] - 2026-05-11
+
+Closes [epic #202](https://git.integrolabs.net/Fortemi/HotM/issues/202) — full UI consumption of Fortemi's runtime inference-config surface. Six child issues land together: SSE subscriptions, OpenRouter provider, save modes, embedding routing, audit log, per-archive overrides.
+
+### Added
+
+- **OpenRouter provider** ([#204](https://git.integrolabs.net/Fortemi/HotM/issues/204)) — new collapsible card in `InferenceSettings` with `base_url`, `api_key`, `generation_model`, and the OpenRouter-specific `http_referer` + `app_name` (X-Title) headers. Generation-only — no embedding model field. Provider capability badges (Generation / Embedding / Vision) now render on every provider card sourced from the new `PROVIDER_PROFILES` catalog.
+- **Save modes** ([#206](https://git.integrolabs.net/Fortemi/HotM/issues/206)) — Save split-button gains three additional modes: **Validate before save** (`?validate=true`, probes touched providers), **Atomic save** (`?atomic=true`, 503 if any probe fails with per-provider detail), and **Preview changes** (`?dry_run=true`, opens a side-by-side JSON diff modal without persisting or emitting an SSE event). `api.inference.updateConfig` now accepts an options object that builds the query string.
+- **Embedding routing** ([#205](https://git.integrolabs.net/Fortemi/HotM/issues/205)) — new **Routing** card above the provider cards. Default backend dropdown (all four providers) plus "Route embeddings independently" toggle + dropdown filtered to embedding-capable providers only. Tri-state semantics on `embedding_backend` (omit / clear / set) match the Fortemi `Option<Option<String>>` field. Active routing summary line ("Generation: openrouter — Embeddings: ollama") updates live.
+- **Audit log viewer** ([#207](https://git.integrolabs.net/Fortemi/HotM/issues/207)) — new **Audit Log** tab in AdminPanel. Paginated table over `GET /api/v1/inference/config/audit` with action-colored badges (set/reset/set_archive/reset_archive), expandable rows showing the before/after JSON diff, and filters for actor + action + limit (max 200). Auto-refreshes on `InferenceConfigChanged` SSE events. API keys remain redacted server-side via `redact_api_key()`.
+- **Per-archive inference overrides** ([#208](https://git.integrolabs.net/Fortemi/HotM/issues/208)) — `ArchiveManager` cards gain an **Inference** action that opens a dialog rendering `<InferenceSettings scope={{ archive }} />`. The settings component takes an optional `scope` prop and routes every API call through the `X-Fortemi-Memory` header. Composition over inheritance — single component serves both global and archive scope; no fork. A deferred-hot-swap warning banner explains that overrides persist but are not yet routed in the live runtime.
+
+### Changed
+
+- **`api.inference.updateConfig`** — new optional second argument `options` (`{ validate?, atomic?, dryRun? }`) and third argument `scope` (`{ archive? }`). `updateConfigValidated` is now marked `@deprecated` — kept for back-compat; new callers should pass `{ validate: true }` to `updateConfig` instead.
+- **All `api.inference.*` methods** — `getConfig`, `updateConfig`, `resetConfig` accept an optional `RequestScope` arg that adds the archive-routing header when set.
+- **`RealtimeEventType` + SSE subscriber list** ([#203](https://git.integrolabs.net/Fortemi/HotM/issues/203)) — extended with `InferenceConfigChanged` and `InferenceAvailabilityChanged`. `InferenceSettings` auto-refreshes when the form is clean, surfaces a non-destructive amber banner when dirty. `InferenceStatusIndicator` flips dot color on availability change without a full refetch. Handles `__reset__` + `__reset_archive__` sentinels.
+
+### Tests
+
+5 new cases in `realtimeEventBus.test.ts` covering tri-state null on `embedding_backend`, sentinel pass-through, and event mapping. Full suite: **1427 / 1427 passing**.
+
+### Known follow-ups (filed separately under #202)
+
+- Fortemi-side enhancement to add `archive_name` to the `InferenceConfigChanged` event payload so the per-archive UI can filter event handling to the open scope. Today the filter falls back to no-op when `archive_name` is absent.
+- Fortemi-side live runtime per-archive routing (the gap acknowledged in the #655 PR description — overrides persist but don't hot-swap to the live registry).
+
 ## [2026.5.7] - 2026-05-11
 
 Rebuild against [Fortemi v2026.5.6](https://github.com/Fortemi/Fortemi/releases/tag/v2026.5.6) — the bundled `hotm-matric-api` sidecar picks up two API additions and one important seed-path fix.
