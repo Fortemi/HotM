@@ -73,6 +73,7 @@ import { realtimeEventBus, type RealtimeEvent } from "@/services/realtimeEventBu
 import { api as coreApi } from "@/api";
 import { MEMORY_CHANGED_EVENT, getActiveMemory } from "@/api/memory-context";
 import type { NoteConceptSummary } from "@/api/types";
+import { extractTitleFromContent } from "@/lib/note-content";
 import {
   Select,
   SelectContent,
@@ -1135,8 +1136,13 @@ export function HallOfMind() {
     
     try {
       setIsLoading(true);
-      const createOptions = (newNoteDocType || newNoteRevisionMode)
+      // Detect a leading Markdown H1 (`# Title`) and use it as the explicit
+      // title. When set, the Fortemi sidecar skips AI title generation
+      // (Fortemi v2026.5.6 #675). Otherwise the sidecar generates a title.
+      const extractedTitle = extractTitleFromContent(newNoteContent);
+      const createOptions = (extractedTitle || newNoteDocType || newNoteRevisionMode)
         ? {
+            ...(extractedTitle && { title: extractedTitle }),
             ...(newNoteDocType && { document_type: newNoteDocType }),
             ...(newNoteRevisionMode && { revision_mode: newNoteRevisionMode }),
           }

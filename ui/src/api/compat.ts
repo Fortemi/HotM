@@ -188,10 +188,11 @@ class CompatApiClient {
 
   async createNote(
     content: string,
-    options?: { document_type?: string; revision_mode?: string },
+    options?: { document_type?: string; revision_mode?: string; title?: string },
   ): Promise<CreateNoteResponse> {
     return this.notes.create({
       content,
+      ...(options?.title && { title: options.title }),
       ...(options?.document_type && { document_type: options.document_type }),
       ...(options?.revision_mode && { revision_mode: options.revision_mode as any }),
     });

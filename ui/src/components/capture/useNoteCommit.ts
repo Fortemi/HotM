@@ -2,6 +2,7 @@ import { useState, useCallback, useRef } from "react";
 import { api } from "@/api";
 import { setActiveMemory, getActiveMemory } from "@/api/memory-context";
 import { uploadStore } from "@/services/uploadStore";
+import { extractTitleFromContent } from "@/lib/note-content";
 import type { StickySettings } from "./useStickySettings";
 
 export interface CommitResult {
@@ -43,12 +44,18 @@ export function useNoteCommit() {
             setActiveMemory(settings.archive);
           }
 
+          // Detect a leading Markdown H1 (`# Title`) and use it as the explicit
+          // title. When set, the Fortemi sidecar skips AI title generation
+          // (Fortemi v2026.5.6 #675). Otherwise the sidecar generates a title.
+          const extractedTitle = extractTitleFromContent(content);
+
           // Step 1: Create the note
           const { note_id } = await api.notes.create({
             content,
             format: settings.format,
             source: "manual",
             revision_mode: settings.revisionMode,
+            ...(extractedTitle && { title: extractedTitle }),
             ...(settings.documentType && { document_type: settings.documentType }),
             ...(settings.revisionMode === "contextual_filtered" &&
               settings.contextFilter &&
