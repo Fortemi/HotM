@@ -4,6 +4,25 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2026.5.9] - 2026-05-11
+
+Bug-fix release for the [v2026.5.8 epic #202](https://git.integrolabs.net/Fortemi/HotM/issues/202) landing — caught during live install smoke test. Two response-shape mismatches between the UI types and the Fortemi server.
+
+### Fixed
+
+- **`InferenceConfig.embedding_backend` shape** — server wraps the override as `AttributedValue<string>` (matching every other config field's source-attribution shape), not a bare string. The UI type now matches; the form hydrates and dirty-checks via `cfg.embedding_backend?.value`. Previously a server-set override would store the entire `{ source, value }` object as the form's selected backend, producing an unselected dropdown after `getConfig()`.
+- **`POST /inference/config` response shape** — the server returns `{ current, previous, status, warnings }`, not `InferenceConfig` directly. The UI now reads `result.current` for the effective config and `result.previous` for the dry-run modal's "before" panel. `result.warnings` is surfaced in the save toast — important for per-archive saves where the server attaches the deferred-hot-swap notice. Previously `setConfig(result)` would store the wrapper object and crash on the subsequent `result.ollama.base_url.value` access.
+- **`updateConfig` return type** — `Promise<UpdateConfigResponse>` instead of `Promise<InferenceConfig>`. `updateConfigValidated` (deprecated) updated to match. No call site outside `InferenceSettings.tsx` consumed the return value, so the type tightening is non-breaking.
+
+### Verification
+
+Live smoke test against the Fortemi v2026.5.6 sidecar:
+- `GET /api/v1/inference/config` returns the wrapped `embedding_backend` correctly
+- `POST /api/v1/inference/config` (plain, validate, dry_run) returns the `{ current, previous, status, warnings }` envelope
+- `GET /api/v1/inference/config/audit` returns `{ entries: [...] }` matching the existing types
+- `npm run typecheck` clean
+- `npm test -- --run`: **1427 / 1427 passing**
+
 ## [2026.5.8] - 2026-05-11
 
 Closes [epic #202](https://git.integrolabs.net/Fortemi/HotM/issues/202) — full UI consumption of Fortemi's runtime inference-config surface. Six child issues land together: SSE subscriptions, OpenRouter provider, save modes, embedding routing, audit log, per-archive overrides.

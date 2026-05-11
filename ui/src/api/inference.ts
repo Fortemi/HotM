@@ -129,22 +129,52 @@ export interface OpenRouterConfig {
   app_name: AttributedValue;
 }
 
-/** Full inference config response from GET /inference/config */
+/** Full inference config response from GET /inference/config.
+ *
+ *  Note on optionality: the server OMITS provider keys when no config is
+ *  set for that provider (e.g., a fresh install returns only `ollama`).
+ *  All four provider fields are typed `Provider | null | undefined` so the
+ *  UI handles all three states uniformly with `if (cfg.openai)` checks.
+ */
 export interface InferenceConfig {
   default_backend: string;
   /**
    * Optional override that routes embedding calls to a separate provider
-   * (Fortemi #654 PR 2c). When `null` (or absent) embeddings flow through
-   * `default_backend`. When set, must reference a provider whose profile
-   * includes the 'embedding' capability — the server validates and rejects
-   * mismatches with HTTP 400.
+   * (Fortemi #654 PR 2c). Server returns this wrapped as an AttributedValue
+   * (matching the per-field source attribution on every other config field).
+   * The key is omitted entirely when no override is set — embeddings flow
+   * through `default_backend`. When set, must reference a provider whose
+   * profile includes the 'embedding' capability.
    */
-  embedding_backend?: string | null;
-  ollama: OllamaConfig | null;
-  openai: OpenAIConfig | null;
-  openrouter: OpenRouterConfig | null;
-  llamacpp: LlamaCppConfig | null;
+  embedding_backend?: AttributedValue<string> | null;
+  ollama?: OllamaConfig | null;
+  openai?: OpenAIConfig | null;
+  openrouter?: OpenRouterConfig | null;
+  llamacpp?: LlamaCppConfig | null;
   providers: string[];
+}
+
+/** Response from POST /inference/config (Fortemi #654 PR 2c+).
+ *
+ *  All save modes — plain, validate, atomic, dry_run — return this shape.
+ *  The `status` field distinguishes them:
+ *    - 'applied'  — persisted + hot-swapped; SSE event emitted
+ *    - 'validated' — probes ran + passed, then applied
+ *    - 'dry_run'  — current shows the would-be config; nothing persisted
+ *
+ *  Atomic 503 is surfaced as a thrown error from the API client, not this
+ *  shape. The `previous` snapshot lets the UI render a diff against the
+ *  pre-change state without a separate GET.
+ */
+export interface UpdateConfigResponse {
+  /** The effective config after the change (or "would be" for dry-run). */
+  current: InferenceConfig;
+  /** The effective config before the change. Identical to `current` on dry-run. */
+  previous: InferenceConfig;
+  /** Mode applied. */
+  status: 'applied' | 'validated' | 'dry_run';
+  /** Server-side warnings (e.g., deferred-hot-swap notice on per-archive save). */
+  warnings?: string[];
 }
 
 /** Partial update request for POST /inference/config.
@@ -310,20 +340,24 @@ export function createInferenceApi(client: ApiClient) {
 
     /** Apply partial config override (merge + hot-swap).
      *  Pass `options` to choose a save mode (validate / atomic / dry_run).
-     *  Pass `scope.archive` to persist to the archive override table. */
+     *  Pass `scope.archive` to persist to the archive override table.
+     *  Returns the wrapped UpdateConfigResponse — callers read `.current`
+     *  for the effective config and `.previous` for the pre-change snapshot. */
     async updateConfig(
       update: InferenceConfigUpdate,
       options?: UpdateConfigOptions,
       scope?: RequestScope,
-    ): Promise<InferenceConfig> {
+    ): Promise<UpdateConfigResponse> {
       const url = `/inference/config${buildUpdateQuery(options)}`;
       const headers = scopeHeaders(scope);
-      return client.post<InferenceConfig>(url, update, headers);
+      return client.post<UpdateConfigResponse>(url, update, headers);
     },
 
-    /** @deprecated Use `updateConfig(update, { validate: true })` instead. */
-    async updateConfigValidated(update: InferenceConfigUpdate): Promise<InferenceConfig> {
-      return client.post<InferenceConfig>('/inference/config?validate=true', update);
+    /** @deprecated Use `updateConfig(update, { validate: true })` instead.
+     *  Returns the wrapped UpdateConfigResponse; legacy callers should read
+     *  `.current` for the effective config. */
+    async updateConfigValidated(update: InferenceConfigUpdate): Promise<UpdateConfigResponse> {
+      return client.post<UpdateConfigResponse>('/inference/config?validate=true', update);
     },
 
     /** Reset config to env/defaults (removes all DB overrides).

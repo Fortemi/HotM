@@ -303,11 +303,12 @@ export function InferenceSettings({ scope }: InferenceSettingsProps = {}) {
     try {
       const cfg = await api.inference.getConfig(scope);
       setConfig(cfg);
-      // Populate routing state (Issue #205)
+      // Populate routing state (Issue #205).
+      // embedding_backend is wrapped as AttributedValue<string> — read .value.
       setDefaultBackend(cfg.default_backend);
-      if (cfg.embedding_backend) {
+      if (cfg.embedding_backend?.value) {
         setEmbeddingOverrideEnabled(true);
-        setEmbeddingBackend(cfg.embedding_backend);
+        setEmbeddingBackend(cfg.embedding_backend.value);
       } else {
         setEmbeddingOverrideEnabled(false);
         setEmbeddingBackend('');
@@ -460,9 +461,11 @@ export function InferenceSettings({ scope }: InferenceSettingsProps = {}) {
     if (!config.openrouter && openrouterExpanded) {
       if (openrouterUrl || openrouterKey || openrouterGenModel || openrouterHttpReferer || openrouterAppName) return true;
     }
-    // Routing changes (Issue #205)
+    // Routing changes (Issue #205).
+    // embedding_backend is wrapped server-side as AttributedValue<string>;
+    // compare against .value (or null when absent).
     if (defaultBackend && defaultBackend !== config.default_backend) return true;
-    const serverEmbedding = config.embedding_backend ?? null;
+    const serverEmbedding = config.embedding_backend?.value ?? null;
     const formEmbedding = embeddingOverrideEnabled ? (embeddingBackend || null) : null;
     if (formEmbedding !== serverEmbedding) return true;
     return false;
@@ -522,11 +525,12 @@ export function InferenceSettings({ scope }: InferenceSettingsProps = {}) {
       update.default_backend = defaultBackend;
     }
     if (config) {
-      const serverEmbedding = config.embedding_backend ?? null;
+      const serverEmbedding = config.embedding_backend?.value ?? null;
       const formEmbedding = embeddingOverrideEnabled ? (embeddingBackend || null) : null;
       if (formEmbedding !== serverEmbedding) {
         // formEmbedding null = clear override; string = set override.
         // Either case becomes a present key on the payload (tri-state).
+        // The UPDATE payload is unwrapped (bare string | null), not AttributedValue.
         update.embedding_backend = formEmbedding;
       }
     }
@@ -556,14 +560,16 @@ export function InferenceSettings({ scope }: InferenceSettingsProps = {}) {
               ? { atomic: true }
               : { dryRun: true };
 
+      // POST returns { current, previous, status, warnings }. The actual
+      // config lives at `.current` — dry-run returns the would-be config
+      // there too; the server uses the same shape for all save modes.
       const result = await api.inference.updateConfig(update, options, scope);
+      const newCfg = result.current;
 
       if (mode === 'dry_run') {
-        // Don't mutate form or current config. Show diff modal against the
-        // current effective config in state.
-        if (config) {
-          setDryRunPreview({ current: config, would: result });
-        }
+        // Don't mutate form or current config. Diff against the current
+        // effective config from server state, not the form-local one.
+        setDryRunPreview({ current: result.previous, would: newCfg });
         setSaveMessage({
           type: 'success',
           text: 'Dry-run complete — preview opened. No changes were applied.',
@@ -572,46 +578,50 @@ export function InferenceSettings({ scope }: InferenceSettingsProps = {}) {
       }
 
       // Real save (plain / validate / atomic) — adopt the new config.
-      setConfig(result);
-      setDefaultBackend(result.default_backend);
-      if (result.embedding_backend) {
+      setConfig(newCfg);
+      setDefaultBackend(newCfg.default_backend);
+      if (newCfg.embedding_backend?.value) {
         setEmbeddingOverrideEnabled(true);
-        setEmbeddingBackend(result.embedding_backend);
+        setEmbeddingBackend(newCfg.embedding_backend.value);
       } else {
         setEmbeddingOverrideEnabled(false);
         setEmbeddingBackend('');
       }
-      if (result.ollama) {
-        setOllamaUrl(result.ollama.base_url.value);
-        setOllamaGenModel(result.ollama.generation_model.value);
-        setOllamaEmbedModel(result.ollama.embedding_model.value);
+      if (newCfg.ollama) {
+        setOllamaUrl(newCfg.ollama.base_url.value);
+        setOllamaGenModel(newCfg.ollama.generation_model.value);
+        setOllamaEmbedModel(newCfg.ollama.embedding_model.value);
       }
-      if (result.openai) {
-        setOpenaiUrl(result.openai.base_url.value);
-        setOpenaiKey(result.openai.api_key.value);
-        setOpenaiGenModel(result.openai.generation_model.value);
-        setOpenaiEmbedModel(result.openai.embedding_model.value);
+      if (newCfg.openai) {
+        setOpenaiUrl(newCfg.openai.base_url.value);
+        setOpenaiKey(newCfg.openai.api_key.value);
+        setOpenaiGenModel(newCfg.openai.generation_model.value);
+        setOpenaiEmbedModel(newCfg.openai.embedding_model.value);
       }
-      if (result.llamacpp) {
-        setLlamacppUrl(result.llamacpp.base_url.value);
-        setLlamacppKey(result.llamacpp.api_key.value);
-        setLlamacppGenModel(result.llamacpp.generation_model.value);
-        setLlamacppEmbedModel(result.llamacpp.embedding_model.value);
+      if (newCfg.llamacpp) {
+        setLlamacppUrl(newCfg.llamacpp.base_url.value);
+        setLlamacppKey(newCfg.llamacpp.api_key.value);
+        setLlamacppGenModel(newCfg.llamacpp.generation_model.value);
+        setLlamacppEmbedModel(newCfg.llamacpp.embedding_model.value);
       }
-      if (result.openrouter) {
-        setOpenrouterUrl(result.openrouter.base_url.value);
-        setOpenrouterKey(result.openrouter.api_key.value);
-        setOpenrouterGenModel(result.openrouter.generation_model.value);
-        setOpenrouterHttpReferer(result.openrouter.http_referer.value);
-        setOpenrouterAppName(result.openrouter.app_name.value);
+      if (newCfg.openrouter) {
+        setOpenrouterUrl(newCfg.openrouter.base_url.value);
+        setOpenrouterKey(newCfg.openrouter.api_key.value);
+        setOpenrouterGenModel(newCfg.openrouter.generation_model.value);
+        setOpenrouterHttpReferer(newCfg.openrouter.http_referer.value);
+        setOpenrouterAppName(newCfg.openrouter.app_name.value);
       }
-      const modeLabel =
+      const baseLabel =
         mode === 'validate'
           ? 'Configuration updated (validated)'
           : mode === 'atomic'
             ? 'Configuration updated (atomic)'
             : 'Configuration updated';
-      setSaveMessage({ type: 'success', text: modeLabel });
+      const warnings = result.warnings ?? [];
+      const text = warnings.length > 0
+        ? `${baseLabel} — ${warnings.join('; ')}`
+        : baseLabel;
+      setSaveMessage({ type: 'success', text });
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Failed to save configuration';
       // Atomic mode returns 503 with per-provider failure detail. Surface it
