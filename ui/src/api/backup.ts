@@ -70,9 +70,21 @@ export function createBackupApi(client: ApiClient) {
     },
 
     /**
-     * Import notes from a JSON backup file
+     * Import notes from a JSON backup file.
+     *
+     * @param file - JSON backup file (export from this or another Fortemi instance)
+     * @param options.deferInference - When true, sends `defer_inference: true` so the
+     *   Fortemi sidecar imports notes as raw content only and skips the NLP pipeline
+     *   (embeddings, metadata, NER, link detection, AI title generation). FTS works
+     *   immediately via the insert-trigger-maintained tsvector. Semantic backfill is
+     *   on-demand via POST /api/v1/notes/reprocess. Default false preserves prior
+     *   full-inference behavior. Added in Fortemi v2026.5.6 (#677), bundled in
+     *   HotM v2026.5.7+.
      */
-    async importBackup(file: File): Promise<void> {
+    async importBackup(
+      file: File,
+      options: { deferInference?: boolean } = {},
+    ): Promise<void> {
       if (!file) {
         throw new Error('Backup file is required');
       }
@@ -80,7 +92,10 @@ export function createBackupApi(client: ApiClient) {
       const text = await file.text();
       const parsed = JSON.parse(text);
       const backupPayload = parsed.backup ? parsed : { backup: parsed };
-      await client.post('/backup/import', backupPayload);
+      const payload = options.deferInference
+        ? { ...backupPayload, defer_inference: true }
+        : backupPayload;
+      await client.post('/backup/import', payload);
     },
 
     /**

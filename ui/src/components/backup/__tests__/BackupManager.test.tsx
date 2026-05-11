@@ -258,6 +258,104 @@ describe('BackupManager', () => {
         expect(fileInput).toBeInTheDocument();
       });
     });
+
+    describe('Defer AI processing toggle (Fortemi v2026.5.6 #677)', () => {
+      beforeEach(() => {
+        window.localStorage.removeItem('hotm.backup.deferInference');
+      });
+
+      it('shows the toggle when no file is selected (JSON path default)', async () => {
+        render(<BackupManager />);
+        fireEvent.click(screen.getByText('Import'));
+
+        await waitFor(() => {
+          expect(screen.getByLabelText(/Defer AI processing/)).toBeInTheDocument();
+        });
+      });
+
+      it('passes deferInference=false to importBackup by default', async () => {
+        vi.mocked(api.backup.importBackup).mockResolvedValueOnce(undefined);
+        render(<BackupManager />);
+        fireEvent.click(screen.getByText('Import'));
+
+        await waitFor(() => {
+          expect(screen.getByText('Import Knowledge Base')).toBeInTheDocument();
+        });
+
+        const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
+        const file = new File(['{"backup": {"notes": []}}'], 'test.json', { type: 'application/json' });
+        Object.defineProperty(fileInput, 'files', { value: [file] });
+        fireEvent.change(fileInput);
+
+        // Confirm the import button is enabled, then click it.
+        const importBtn = await screen.findByRole('button', { name: /^Import$/ });
+        fireEvent.click(importBtn);
+
+        await waitFor(() => {
+          expect(api.backup.importBackup).toHaveBeenCalledWith(
+            expect.any(File),
+            { deferInference: false },
+          );
+        });
+      });
+
+      it('passes deferInference=true when the user enables the toggle', async () => {
+        vi.mocked(api.backup.importBackup).mockResolvedValueOnce(undefined);
+        render(<BackupManager />);
+        fireEvent.click(screen.getByText('Import'));
+
+        const toggle = await screen.findByLabelText(/Defer AI processing/);
+        fireEvent.click(toggle);
+
+        const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
+        const file = new File(['{"backup": {"notes": []}}'], 'test.json', { type: 'application/json' });
+        Object.defineProperty(fileInput, 'files', { value: [file] });
+        fireEvent.change(fileInput);
+
+        const importBtn = await screen.findByRole('button', { name: /^Import$/ });
+        fireEvent.click(importBtn);
+
+        await waitFor(() => {
+          expect(api.backup.importBackup).toHaveBeenCalledWith(
+            expect.any(File),
+            { deferInference: true },
+          );
+        });
+
+        // Preference persisted to localStorage for next time
+        expect(window.localStorage.getItem('hotm.backup.deferInference')).toBe('true');
+      });
+
+      it('restores toggle state from localStorage on next open', async () => {
+        window.localStorage.setItem('hotm.backup.deferInference', 'true');
+        render(<BackupManager />);
+        fireEvent.click(screen.getByText('Import'));
+
+        const toggle = (await screen.findByLabelText(/Defer AI processing/)) as HTMLInputElement;
+        expect(toggle.checked).toBe(true);
+      });
+
+      it('surfaces the reprocess CTA in the success toast after a deferred import', async () => {
+        vi.mocked(api.backup.importBackup).mockResolvedValueOnce(undefined);
+        render(<BackupManager />);
+        fireEvent.click(screen.getByText('Import'));
+
+        const toggle = await screen.findByLabelText(/Defer AI processing/);
+        fireEvent.click(toggle);
+
+        const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
+        const file = new File(['{"backup": {"notes": []}}'], 'test.json', { type: 'application/json' });
+        Object.defineProperty(fileInput, 'files', { value: [file] });
+        fireEvent.change(fileInput);
+
+        const importBtn = await screen.findByRole('button', { name: /^Import$/ });
+        fireEvent.click(importBtn);
+
+        await waitFor(() => {
+          expect(screen.getByText(/AI processing is deferred/)).toBeInTheDocument();
+        });
+      });
+    });
   });
 
   describe('Restore', () => {

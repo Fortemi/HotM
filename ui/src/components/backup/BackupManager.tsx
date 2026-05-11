@@ -161,13 +161,34 @@ function ExportDialog({ isOpen, onClose, onExport }: ExportDialogProps) {
 interface ImportDialogProps {
   isOpen: boolean;
   onClose: () => void;
-  onImport: (file: File) => Promise<void>;
+  onImport: (file: File, options: { deferInference: boolean }) => Promise<void>;
+}
+
+const DEFER_INFERENCE_STORAGE_KEY = 'hotm.backup.deferInference';
+
+function readDeferInferencePreference(): boolean {
+  if (typeof window === 'undefined') return false;
+  try {
+    return window.localStorage.getItem(DEFER_INFERENCE_STORAGE_KEY) === 'true';
+  } catch {
+    return false;
+  }
+}
+
+function writeDeferInferencePreference(value: boolean): void {
+  if (typeof window === 'undefined') return;
+  try {
+    window.localStorage.setItem(DEFER_INFERENCE_STORAGE_KEY, value ? 'true' : 'false');
+  } catch {
+    // localStorage unavailable (private browsing, quota); preference becomes ephemeral
+  }
 }
 
 function ImportDialog({ isOpen, onClose, onImport }: ImportDialogProps) {
   const [file, setFile] = useState<File | null>(null);
   const [isImporting, setIsImporting] = useState(false);
   const [dragActive, setDragActive] = useState(false);
+  const [deferInference, setDeferInference] = useState<boolean>(readDeferInferencePreference);
 
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
@@ -178,11 +199,15 @@ function ImportDialog({ isOpen, onClose, onImport }: ImportDialogProps) {
     }
   };
 
+  // .shard imports don't currently expose defer_inference — the toggle is JSON-only.
+  const isShard = file?.name.endsWith('.shard') ?? false;
+
   const handleImport = async () => {
     if (!file) return;
     setIsImporting(true);
     try {
-      await onImport(file);
+      writeDeferInferencePreference(deferInference);
+      await onImport(file, { deferInference: !isShard && deferInference });
       onClose();
     } finally {
       setIsImporting(false);
@@ -237,6 +262,35 @@ function ImportDialog({ isOpen, onClose, onImport }: ImportDialogProps) {
               </div>
             )}
           </div>
+
+          {/* defer_inference toggle — JSON-only path, hidden for .shard which has its own
+              skip_embedding_regen flag wired separately. Fortemi v2026.5.6 (#677). */}
+          {!isShard && (
+            <div className="mt-4 flex items-start gap-3 rounded-md border border-muted bg-muted/30 p-3">
+              <input
+                id="defer-inference-toggle"
+                type="checkbox"
+                className="mt-1 h-4 w-4 cursor-pointer accent-primary"
+                checked={deferInference}
+                onChange={(e) => setDeferInference(e.target.checked)}
+                disabled={isImporting}
+              />
+              <label
+                htmlFor="defer-inference-toggle"
+                className="flex-1 cursor-pointer select-none text-sm"
+              >
+                <span className="font-medium">Defer AI processing</span>
+                <span className="ml-2 rounded bg-muted px-1.5 py-0.5 text-xs text-muted-foreground">
+                  faster import
+                </span>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Skip embeddings, metadata, link detection, and AI titles at import time.
+                  Full-text search works immediately; semantic search needs a follow-up
+                  reprocess. Recommended for large archives on edge hardware.
+                </p>
+              </label>
+            </div>
+          )}
         </div>
 
         <DialogFooter>
@@ -384,14 +438,23 @@ export function BackupManager({ className }: BackupManagerProps) {
     }
   };
 
-  const handleImport = async (file: File) => {
+  const handleImport = async (file: File, options: { deferInference: boolean }) => {
     try {
       if (file.name.endsWith('.shard')) {
         await api.backup.importKnowledgeShard(file);
+        setOperationStatus({ type: 'success', message: 'Import completed successfully' });
       } else {
-        await api.backup.importBackup(file);
+        await api.backup.importBackup(file, { deferInference: options.deferInference });
+        if (options.deferInference) {
+          setOperationStatus({
+            type: 'success',
+            message:
+              'Import complete. AI processing is deferred — run a reprocess from the Tools menu to populate semantic search.',
+          });
+        } else {
+          setOperationStatus({ type: 'success', message: 'Import completed successfully' });
+        }
       }
-      setOperationStatus({ type: 'success', message: 'Import completed successfully' });
     } catch (err) {
       setOperationStatus({ type: 'error', message: 'Import failed' });
       console.error(err);
