@@ -4,6 +4,21 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2026.5.7] - 2026-05-11
+
+Rebuild against [Fortemi v2026.5.6](https://github.com/Fortemi/Fortemi/releases/tag/v2026.5.6) — the bundled `hotm-matric-api` sidecar picks up two API additions and one important seed-path fix.
+
+### Changed
+
+- **Bundled sidecar rebuilt against Fortemi v2026.5.6.** Pulls in:
+  - **`defer_inference` flag on `POST /api/v1/backup/import`** (Fortemi #677) — When `true`, imported notes land as raw content only; the full NLP pipeline (embeddings, metadata, NER, linking, title generation) is skipped. FTS works immediately via the insert-trigger-maintained tsvector. Semantic backfill is on-demand via `POST /api/v1/notes/reprocess`. Default `false` preserves prior behavior. Fixes the case where a manual `/backup/import` of a large archive could pin Ollama for hours on edge hardware.
+  - **`title` field on `CreateNoteRequest` and `POST /api/v1/notes`** (Fortemi #675) — Optional explicit title. When provided, the AI title-generation pipeline step is skipped (caller's value is authoritative). Bulk-create accepts it on every item.
+- **`ui/src-tauri/Cargo.toml` and `Cargo.lock` version sync.** Previous releases (`v2026.5.5`, `v2026.5.6`) left the Rust crate version pinned at `2026.5.4` — only `ui/package.json` and `tauri.conf.json` were bumped. This release brings all four version pins back in sync at `2026.5.7`. No user-visible effect on the .app bundle (the Tauri build reads version from `tauri.conf.json`); fixes `cargo metadata` parity for downstream tooling.
+
+### AIWG
+
+- Framework refreshed to a kernel-only deployment model. `.agents/skills/` now ships ~10 quickref skills (one per installed framework + core utilities); the bulk of the SDLC, research, marketing, forensics, ops, knowledge-base, security-engineering, and media-curator skills moved to `.claude/skills/` and are reached via `aiwg discover` / `aiwg show` rather than pre-loaded. No runtime impact on the desktop app.
+
 ## [2026.5.6] - 2026-05-10
 
 ### Changed
