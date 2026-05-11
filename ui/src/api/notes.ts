@@ -85,6 +85,7 @@ export function createNotesApi(client: ApiClient) {
         content: request.content,
         format: request.format || 'markdown',
         source: request.source || 'manual',
+        ...(request.title && { title: request.title }),
         ...(request.revision_mode && { revision_mode: request.revision_mode }),
         ...(request.document_type && { document_type: request.document_type }),
         ...(request.context_filter && { context_filter: request.context_filter }),

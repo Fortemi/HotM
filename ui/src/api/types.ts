@@ -146,6 +146,12 @@ export interface ProcessingOptions {
  */
 export interface CreateNoteRequest {
   content: string;
+  /**
+   * Optional explicit title. When provided, the Fortemi sidecar skips the AI
+   * title-generation pipeline step — the caller's value is authoritative.
+   * Added in Fortemi v2026.5.6 (#675), bundled in HotM v2026.5.7+.
+   */
+  title?: string;
   format?: string;
   source?: string;
   revision_mode?: RevisionMode;

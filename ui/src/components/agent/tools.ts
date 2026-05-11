@@ -151,6 +151,12 @@ export const createNoteTool = tool({
     'Use this when the user asks to write, create, or save a new note.',
   inputSchema: z.object({
     content: z.string().describe('The note content (Markdown supported)'),
+    title: z
+      .string()
+      .optional()
+      .describe(
+        'Optional explicit title. When provided, the AI title-generation step is skipped — the caller value is authoritative. Use this when the user names the note ("Save this as Meeting Notes 2026-05-11") or when the title is otherwise obvious from context.',
+      ),
     revision_mode: z
       .enum(['none', 'light', 'standard', 'contextual'])
       .optional()
@@ -161,9 +167,10 @@ export const createNoteTool = tool({
       .optional()
       .describe('Tags to apply to the new note'),
   }),
-  execute: async ({ content, revision_mode, tags }) => {
+  execute: async ({ content, title, revision_mode, tags }) => {
     const response = await api.notes.create({
       content,
+      ...(title && { title }),
       revision_mode,
     });
     // Apply tags if provided
@@ -172,7 +179,7 @@ export const createNoteTool = tool({
     }
     return {
       note_id: response.note_id,
-      title: null,
+      title: title ?? null,
       revision_mode,
     };
   },

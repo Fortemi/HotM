@@ -42,6 +42,7 @@ export function SaveAsNoteButton({
       const markdown = formatSessionAsMarkdown(messages, { sessionName });
       const response = await api.notes.create({
         content: markdown,
+        title: sessionName,
         format: 'markdown',
         source: 'agent-session',
       });

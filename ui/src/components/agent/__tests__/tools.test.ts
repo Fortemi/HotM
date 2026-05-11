@@ -118,6 +118,41 @@ describe('agentTools', () => {
 
       expect(api.notes.updateTags).not.toHaveBeenCalled();
     });
+
+    it('forwards explicit title to api.notes.create when supplied', async () => {
+      const { api } = await import('@/api');
+      const result = await agentTools.create_note.execute!(
+        {
+          content: 'hello',
+          title: 'Meeting Notes 2026-05-11',
+          revision_mode: 'standard',
+        },
+        { toolCallId: 'tc-title', messages: [] },
+      );
+
+      expect(api.notes.create).toHaveBeenCalledWith({
+        content: 'hello',
+        title: 'Meeting Notes 2026-05-11',
+        revision_mode: 'standard',
+      });
+      expect(result).toMatchObject({
+        title: 'Meeting Notes 2026-05-11',
+      });
+    });
+
+    it('omits title field when not supplied', async () => {
+      const { api } = await import('@/api');
+      vi.mocked(api.notes.create).mockClear();
+
+      await agentTools.create_note.execute!(
+        { content: 'hello', revision_mode: 'none' },
+        { toolCallId: 'tc-no-title', messages: [] },
+      );
+
+      // Ensure title is not present in the payload (would force a no-op LLM round-trip on the sidecar)
+      const payload = vi.mocked(api.notes.create).mock.calls[0][0];
+      expect(payload).not.toHaveProperty('title');
+    });
   });
 
   describe('get_note', () => {

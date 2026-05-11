@@ -59,6 +59,7 @@ describe('SaveAsNoteButton', () => {
     await waitFor(() => {
       expect(mockCreate).toHaveBeenCalledWith({
         content: expect.stringContaining('# My Session'),
+        title: 'My Session',
         format: 'markdown',
         source: 'agent-session',
       });

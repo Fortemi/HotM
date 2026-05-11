@@ -182,6 +182,31 @@ describe('Notes API', () => {
         'Content is required'
       );
     });
+
+    it('forwards explicit title when supplied (Fortemi v2026.5.6 #675)', async () => {
+      vi.mocked(mockClient.post).mockResolvedValueOnce({ note_id: 'titled-1' });
+
+      await notesApi.create({
+        content: 'Test content',
+        title: 'My Custom Title',
+      });
+
+      expect(mockClient.post).toHaveBeenCalledWith('/notes', {
+        content: 'Test content',
+        title: 'My Custom Title',
+        format: 'markdown',
+        source: 'manual',
+      });
+    });
+
+    it('omits title when not supplied (lets sidecar AI-generate it)', async () => {
+      vi.mocked(mockClient.post).mockResolvedValueOnce({ note_id: 'untitled-1' });
+
+      await notesApi.create({ content: 'Test' });
+
+      const payload = vi.mocked(mockClient.post).mock.calls[0][1] as Record<string, unknown>;
+      expect(payload).not.toHaveProperty('title');
+    });
   });
 
   describe('update', () => {
