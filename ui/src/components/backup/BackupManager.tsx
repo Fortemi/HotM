@@ -316,6 +316,125 @@ function ImportDialog({ isOpen, onClose, onImport }: ImportDialogProps) {
   );
 }
 
+interface ReprocessDialogProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onConfirm: (options: {
+    revisionMode: 'none' | 'light' | 'standard' | 'contextual' | 'full';
+    limit: number;
+  }) => Promise<void>;
+}
+
+function ReprocessDialog({ isOpen, onClose, onConfirm }: ReprocessDialogProps) {
+  const [revisionMode, setRevisionMode] =
+    useState<'none' | 'light' | 'standard' | 'contextual' | 'full'>('standard');
+  const [limit, setLimit] = useState<number>(500);
+  const [showAdvanced, setShowAdvanced] = useState(false);
+  const [isQueueing, setIsQueueing] = useState(false);
+
+  const handleConfirm = async () => {
+    setIsQueueing(true);
+    try {
+      await onConfirm({ revisionMode, limit });
+      onClose();
+    } finally {
+      setIsQueueing(false);
+    }
+  };
+
+  return (
+    <Dialog open={isOpen} onOpenChange={() => onClose()}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Reprocess archive</DialogTitle>
+          <DialogDescription>
+            Re-run the NLP pipeline (embeddings, metadata, AI revision, link
+            detection, title generation) for notes in the active archive. Useful
+            after a deferred import or after switching models.
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="space-y-3 py-4">
+          <div className="rounded-md border border-amber-300/40 bg-amber-50 p-3 text-sm dark:border-amber-700/30 dark:bg-amber-900/20">
+            <p className="font-medium text-amber-900 dark:text-amber-200">
+              This pins Ollama for the duration of the run.
+            </p>
+            <p className="mt-1 text-xs text-amber-800/80 dark:text-amber-200/70">
+              Expect ~30–120 seconds per note for full revision mode; less for
+              lighter modes. Jobs run in the background — the UI stays usable.
+            </p>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => setShowAdvanced((v) => !v)}
+            className="text-xs text-muted-foreground hover:text-foreground"
+          >
+            {showAdvanced ? '▾' : '▸'} Advanced options
+          </button>
+
+          {showAdvanced && (
+            <div className="space-y-3 rounded-md border border-muted bg-muted/20 p-3">
+              <label className="block text-sm">
+                <span className="font-medium">Revision mode</span>
+                <select
+                  value={revisionMode}
+                  onChange={(e) =>
+                    setRevisionMode(e.target.value as typeof revisionMode)
+                  }
+                  className="mt-1 block w-full rounded border border-input bg-background px-2 py-1 text-sm"
+                  disabled={isQueueing}
+                >
+                  <option value="none">none — skip AI revision entirely</option>
+                  <option value="light">light — formatting only</option>
+                  <option value="standard">standard — default balance</option>
+                  <option value="contextual">contextual — link-aware</option>
+                  <option value="full">full — deep enhancement</option>
+                </select>
+              </label>
+
+              <label className="block text-sm">
+                <span className="font-medium">Limit</span>
+                <input
+                  type="number"
+                  min={1}
+                  max={5000}
+                  value={limit}
+                  onChange={(e) => setLimit(Number(e.target.value) || 500)}
+                  className="mt-1 block w-full rounded border border-input bg-background px-2 py-1 text-sm"
+                  disabled={isQueueing}
+                />
+                <span className="mt-1 block text-xs text-muted-foreground">
+                  Backend cap: 5000. Default 500 covers most archives.
+                </span>
+              </label>
+            </div>
+          )}
+        </div>
+
+        <DialogFooter>
+          <Button variant="outline" onClick={onClose} disabled={isQueueing}>
+            Cancel
+          </Button>
+          <Button onClick={handleConfirm} disabled={isQueueing}>
+            {isQueueing ? (
+              <>
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                Queueing...
+              </>
+            ) : (
+              <>
+                <RefreshCw className="w-4 h-4 mr-2" />
+                Queue reprocess
+              </>
+            )}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 interface BackupCardProps {
   backup: BackupInfo;
   onRestore: (backup: BackupInfo) => void;
@@ -368,6 +487,7 @@ export function BackupManager({ className }: BackupManagerProps) {
   const [exportDialogOpen, setExportDialogOpen] = useState(false);
   const [importDialogOpen, setImportDialogOpen] = useState(false);
   const [restoreDialogOpen, setRestoreDialogOpen] = useState(false);
+  const [reprocessDialogOpen, setReprocessDialogOpen] = useState(false);
   const [selectedBackup, setSelectedBackup] = useState<BackupInfo | null>(null);
 
   // Operation states
@@ -375,6 +495,11 @@ export function BackupManager({ className }: BackupManagerProps) {
   const [operationStatus, setOperationStatus] = useState<{
     type: 'success' | 'error';
     message: string;
+    action?: {
+      label: string;
+      onClick: () => void | Promise<void>;
+      pending?: boolean;
+    };
   } | null>(null);
 
   const loadBackups = useCallback(async () => {
@@ -438,6 +563,61 @@ export function BackupManager({ className }: BackupManagerProps) {
     }
   };
 
+  const handleReprocessFromDialog = useCallback(
+    async (options: {
+      revisionMode: 'none' | 'light' | 'standard' | 'contextual' | 'full';
+      limit: number;
+    }) => {
+      try {
+        const result = await api.notes.reprocessAll({
+          revisionMode: options.revisionMode,
+          limit: options.limit,
+        });
+        const queued = result?.jobs_queued;
+        setOperationStatus({
+          type: 'success',
+          message:
+            typeof queued === 'number'
+              ? `Reprocess queued (${queued} jobs). Track progress in the job inspector.`
+              : 'Reprocess queued. Track progress in the job inspector.',
+        });
+      } catch (err) {
+        console.error(err);
+        setOperationStatus({
+          type: 'error',
+          message: 'Failed to queue reprocess. Check the API logs and retry.',
+        });
+      }
+    },
+    [],
+  );
+
+  const handleReprocessNow = useCallback(async () => {
+    // Show pending state on the action button while the request is in flight.
+    setOperationStatus((prev) =>
+      prev?.action
+        ? { ...prev, action: { ...prev.action, pending: true } }
+        : prev,
+    );
+    try {
+      const result = await api.notes.reprocessAll();
+      const queued = result?.jobs_queued;
+      setOperationStatus({
+        type: 'success',
+        message:
+          typeof queued === 'number'
+            ? `Reprocess queued (${queued} jobs). Track progress in the job inspector.`
+            : 'Reprocess queued. Track progress in the job inspector.',
+      });
+    } catch (err) {
+      console.error(err);
+      setOperationStatus({
+        type: 'error',
+        message: 'Failed to queue reprocess. Check the API logs and retry.',
+      });
+    }
+  }, []);
+
   const handleImport = async (file: File, options: { deferInference: boolean }) => {
     try {
       if (file.name.endsWith('.shard')) {
@@ -449,7 +629,11 @@ export function BackupManager({ className }: BackupManagerProps) {
           setOperationStatus({
             type: 'success',
             message:
-              'Import complete. AI processing is deferred — run a reprocess from the Tools menu to populate semantic search.',
+              'Import complete. AI processing is deferred — semantic search is not populated yet. Use the Reprocess action below, or click Run inference now to queue it immediately.',
+            action: {
+              label: 'Run inference now',
+              onClick: handleReprocessNow,
+            },
           });
         } else {
           setOperationStatus({ type: 'success', message: 'Import completed successfully' });
@@ -525,6 +709,24 @@ export function BackupManager({ className }: BackupManagerProps) {
             <AlertTriangle className="w-4 h-4" />
           )}
           <span className="text-sm">{operationStatus.message}</span>
+          {operationStatus.action && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="ml-2 h-7 px-2 text-xs"
+              onClick={() => operationStatus.action?.onClick()}
+              disabled={operationStatus.action.pending}
+            >
+              {operationStatus.action.pending ? (
+                <>
+                  <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+                  {operationStatus.action.label}
+                </>
+              ) : (
+                operationStatus.action.label
+              )}
+            </Button>
+          )}
           <Button
             variant="ghost"
             size="sm"
@@ -537,7 +739,7 @@ export function BackupManager({ className }: BackupManagerProps) {
       )}
 
       {/* Quick Actions */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         <Button
           variant="outline"
           className="h-auto py-4 flex-col gap-2"
@@ -566,6 +768,14 @@ export function BackupManager({ className }: BackupManagerProps) {
             <Database className="w-5 h-5" />
           )}
           <span>Create Backup</span>
+        </Button>
+        <Button
+          variant="outline"
+          className="h-auto py-4 flex-col gap-2"
+          onClick={() => setReprocessDialogOpen(true)}
+        >
+          <RefreshCw className="w-5 h-5" />
+          <span>Reprocess</span>
         </Button>
       </div>
 
@@ -638,6 +848,12 @@ export function BackupManager({ className }: BackupManagerProps) {
         isOpen={importDialogOpen}
         onClose={() => setImportDialogOpen(false)}
         onImport={handleImport}
+      />
+
+      <ReprocessDialog
+        isOpen={reprocessDialogOpen}
+        onClose={() => setReprocessDialogOpen(false)}
+        onConfirm={handleReprocessFromDialog}
       />
 
       {/* Restore Confirmation */}

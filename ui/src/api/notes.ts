@@ -196,6 +196,49 @@ export function createNotesApi(client: ApiClient) {
         return Array.isArray(response) ? response : (response?.tags ?? updatedTags);
       }
     },
+
+    /**
+     * Bulk reprocess notes through the NLP pipeline.
+     *
+     * Triggers AI revision, re-embedding, link detection, and metadata
+     * extraction for either a subset of notes (when `noteIds` is set) or
+     * all non-deleted notes in the active archive.
+     *
+     * Backend: POST /api/v1/notes/reprocess (Fortemi
+     * `crates/matric-api/src/main.rs:1844`). Default backend limit is 500
+     * notes per call; max 5000. The active archive is selected via the
+     * memory-routing header configured on the API client.
+     *
+     * @param options.revisionMode - "none" | "light" | "standard" (default) | "contextual" | "full"
+     * @param options.noteIds - Specific note IDs to reprocess. If omitted, all non-deleted notes.
+     * @param options.steps - Pipeline steps to run. Omit for all steps.
+     * @param options.limit - Safety cap (default 500, max 5000).
+     * @param options.model - Optional model slug override.
+     */
+    async reprocessAll(options?: {
+      revisionMode?: 'none' | 'light' | 'standard' | 'contextual' | 'full';
+      noteIds?: string[];
+      steps?: string[];
+      limit?: number;
+      model?: string;
+    }): Promise<{ jobs_queued?: number; message?: string }> {
+      const body: Record<string, unknown> = {};
+      if (options?.revisionMode) body.revision_mode = options.revisionMode;
+      if (options?.noteIds?.length) body.note_ids = options.noteIds;
+      if (options?.steps?.length) body.steps = options.steps;
+      if (typeof options?.limit === 'number') body.limit = options.limit;
+      if (options?.model) body.model = options.model;
+
+      // Pass an empty body explicitly rather than undefined; the endpoint
+      // accepts `Option<Json<BulkReprocessBody>>` but some HTTP clients
+      // drop the request body for empty objects on POST, which the server
+      // treats as default params (all notes, all steps, limit=500).
+      const payload = Object.keys(body).length > 0 ? body : {};
+      return client.post<{ jobs_queued?: number; message?: string }>(
+        '/notes/reprocess',
+        payload,
+      );
+    },
   };
 }
 

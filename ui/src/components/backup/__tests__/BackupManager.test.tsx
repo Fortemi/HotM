@@ -23,6 +23,9 @@ vi.mock('@/api', () => ({
       importKnowledgeShard: vi.fn(),
       importBackup: vi.fn(),
     },
+    notes: {
+      reprocessAll: vi.fn(),
+    },
   },
 }));
 
@@ -335,7 +338,7 @@ describe('BackupManager', () => {
         expect(toggle.checked).toBe(true);
       });
 
-      it('surfaces the reprocess CTA in the success toast after a deferred import', async () => {
+      it('surfaces an actionable "Run inference now" CTA after a deferred import', async () => {
         vi.mocked(api.backup.importBackup).mockResolvedValueOnce(undefined);
         render(<BackupManager />);
         fireEvent.click(screen.getByText('Import'));
@@ -353,7 +356,117 @@ describe('BackupManager', () => {
 
         await waitFor(() => {
           expect(screen.getByText(/AI processing is deferred/)).toBeInTheDocument();
+          expect(screen.getByRole('button', { name: /Run inference now/ })).toBeInTheDocument();
         });
+      });
+
+      it('calls api.notes.reprocessAll when the toast CTA is clicked', async () => {
+        vi.mocked(api.backup.importBackup).mockResolvedValueOnce(undefined);
+        vi.mocked(api.notes.reprocessAll).mockResolvedValueOnce({ jobs_queued: 8 });
+
+        render(<BackupManager />);
+        fireEvent.click(screen.getByText('Import'));
+
+        const toggle = await screen.findByLabelText(/Defer AI processing/);
+        fireEvent.click(toggle);
+
+        const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
+        const file = new File(['{"backup": {"notes": []}}'], 'test.json', { type: 'application/json' });
+        Object.defineProperty(fileInput, 'files', { value: [file] });
+        fireEvent.change(fileInput);
+
+        const importBtn = await screen.findByRole('button', { name: /^Import$/ });
+        fireEvent.click(importBtn);
+
+        const reprocessBtn = await screen.findByRole('button', { name: /Run inference now/ });
+        fireEvent.click(reprocessBtn);
+
+        await waitFor(() => {
+          expect(api.notes.reprocessAll).toHaveBeenCalled();
+          expect(screen.getByText(/Reprocess queued \(8 jobs\)/)).toBeInTheDocument();
+        });
+      });
+    });
+  });
+
+  describe('Reprocess action (#211 Tools surface)', () => {
+    it('renders a Reprocess button in Quick Actions', async () => {
+      render(<BackupManager />);
+      await waitFor(() => {
+        expect(screen.getByRole('button', { name: /Reprocess$/ })).toBeInTheDocument();
+      });
+    });
+
+    it('opens the Reprocess dialog when the button is clicked', async () => {
+      render(<BackupManager />);
+      fireEvent.click(await screen.findByRole('button', { name: /Reprocess$/ }));
+
+      await waitFor(() => {
+        expect(screen.getByText('Reprocess archive')).toBeInTheDocument();
+        expect(screen.getByText(/pins Ollama for the duration/)).toBeInTheDocument();
+      });
+    });
+
+    it('exposes an Advanced section with revision mode and limit', async () => {
+      render(<BackupManager />);
+      fireEvent.click(await screen.findByRole('button', { name: /Reprocess$/ }));
+      fireEvent.click(await screen.findByText(/Advanced options/));
+
+      await waitFor(() => {
+        expect(screen.getByText(/Revision mode/)).toBeInTheDocument();
+        expect(screen.getByText(/^Limit$/)).toBeInTheDocument();
+      });
+    });
+
+    it('fires api.notes.reprocessAll with default options when confirmed', async () => {
+      vi.mocked(api.notes.reprocessAll).mockResolvedValueOnce({ jobs_queued: 23 });
+      render(<BackupManager />);
+      fireEvent.click(await screen.findByRole('button', { name: /Reprocess$/ }));
+
+      const confirmBtn = await screen.findByRole('button', { name: /Queue reprocess/ });
+      fireEvent.click(confirmBtn);
+
+      await waitFor(() => {
+        expect(api.notes.reprocessAll).toHaveBeenCalledWith({
+          revisionMode: 'standard',
+          limit: 500,
+        });
+        expect(screen.getByText(/Reprocess queued \(23 jobs\)/)).toBeInTheDocument();
+      });
+    });
+
+    it('passes advanced options through when changed by the user', async () => {
+      vi.mocked(api.notes.reprocessAll).mockResolvedValueOnce({ jobs_queued: 50 });
+      render(<BackupManager />);
+      fireEvent.click(await screen.findByRole('button', { name: /Reprocess$/ }));
+      fireEvent.click(await screen.findByText(/Advanced options/));
+
+      const revisionSelect = (await screen.findByDisplayValue(
+        /standard/i,
+      )) as HTMLSelectElement;
+      fireEvent.change(revisionSelect, { target: { value: 'contextual' } });
+
+      const limitInput = screen.getByDisplayValue('500') as HTMLInputElement;
+      fireEvent.change(limitInput, { target: { value: '100' } });
+
+      fireEvent.click(screen.getByRole('button', { name: /Queue reprocess/ }));
+
+      await waitFor(() => {
+        expect(api.notes.reprocessAll).toHaveBeenCalledWith({
+          revisionMode: 'contextual',
+          limit: 100,
+        });
+      });
+    });
+
+    it('surfaces an error toast when the reprocess call fails', async () => {
+      vi.mocked(api.notes.reprocessAll).mockRejectedValueOnce(new Error('API down'));
+      render(<BackupManager />);
+      fireEvent.click(await screen.findByRole('button', { name: /Reprocess$/ }));
+      fireEvent.click(await screen.findByRole('button', { name: /Queue reprocess/ }));
+
+      await waitFor(() => {
+        expect(screen.getByText(/Failed to queue reprocess/)).toBeInTheDocument();
       });
     });
   });

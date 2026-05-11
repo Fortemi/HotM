@@ -321,4 +321,70 @@ describe('Notes API', () => {
       );
     });
   });
+
+  describe('reprocessAll (Fortemi v2026.5.6 #677 bulk reprocess)', () => {
+    it('POSTs to /notes/reprocess with an empty body when no options supplied', async () => {
+      vi.mocked(mockClient.post).mockResolvedValueOnce({ jobs_queued: 12 });
+
+      await notesApi.reprocessAll();
+
+      expect(mockClient.post).toHaveBeenCalledWith('/notes/reprocess', {});
+    });
+
+    it('maps revisionMode → revision_mode', async () => {
+      vi.mocked(mockClient.post).mockResolvedValueOnce({});
+
+      await notesApi.reprocessAll({ revisionMode: 'contextual' });
+
+      expect(mockClient.post).toHaveBeenCalledWith('/notes/reprocess', {
+        revision_mode: 'contextual',
+      });
+    });
+
+    it('maps noteIds → note_ids and only includes when non-empty', async () => {
+      vi.mocked(mockClient.post).mockResolvedValueOnce({});
+
+      await notesApi.reprocessAll({ noteIds: ['n1', 'n2'] });
+
+      expect(mockClient.post).toHaveBeenCalledWith('/notes/reprocess', {
+        note_ids: ['n1', 'n2'],
+      });
+    });
+
+    it('omits note_ids when noteIds is an empty array', async () => {
+      vi.mocked(mockClient.post).mockResolvedValueOnce({});
+
+      await notesApi.reprocessAll({ noteIds: [] });
+
+      const payload = vi.mocked(mockClient.post).mock.calls[0][1] as Record<string, unknown>;
+      expect(payload).not.toHaveProperty('note_ids');
+    });
+
+    it('forwards limit/steps/model when set', async () => {
+      vi.mocked(mockClient.post).mockResolvedValueOnce({});
+
+      await notesApi.reprocessAll({
+        steps: ['embedding', 'title_generation'],
+        limit: 100,
+        model: 'qwen3.5:9b',
+      });
+
+      expect(mockClient.post).toHaveBeenCalledWith('/notes/reprocess', {
+        steps: ['embedding', 'title_generation'],
+        limit: 100,
+        model: 'qwen3.5:9b',
+      });
+    });
+
+    it('returns the backend response (jobs_queued + message)', async () => {
+      vi.mocked(mockClient.post).mockResolvedValueOnce({
+        jobs_queued: 42,
+        message: 'Reprocess queued',
+      });
+
+      const result = await notesApi.reprocessAll();
+
+      expect(result).toEqual({ jobs_queued: 42, message: 'Reprocess queued' });
+    });
+  });
 });
