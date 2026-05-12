@@ -4,6 +4,22 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2026.5.10] - 2026-05-11
+
+Installer-parity patch — caught during mutsu smoke test. The Linux `.deb` postinst and the macOS `setup-macos.sh` enabled different Postgres extension sets, even though both target the same Fortemi sidecar.
+
+### Fixed
+
+- **Linux postinst extension set aligned with macOS.** The `.deb` postinst previously enabled `vector, postgis, pg_trgm, pgcrypto`. Fortemi migrations do not use `pgcrypto` (the `gen_random_uuid()` references are Postgres 13+ built-ins, not the pgcrypto function). Fortemi's FTS migration *does* enable `unaccent` via `CREATE EXTENSION IF NOT EXISTS unaccent` — a trusted extension that the matric role can create at migration time, so the divergence wasn't user-visible, just inconsistent.
+  - Postinst now enables: `vector, postgis, pg_trgm, unaccent` (matching macOS).
+  - Comment in `postinst.sh` documents which extension each line is for and why `uuid-ossp` (created by fortemi's initial migration) and `pgcrypto` (unused) are absent.
+  - `docs/installation/desktop-linux.md` table updated to reflect the new extension list.
+
+### Notes
+
+- The .deb already Depends on `postgresql-contrib-18`, which ships both `pg_trgm` and `unaccent` — no apt resolution change. Existing installs upgraded from earlier versions retain `pgcrypto` (harmless leftover); the new postinst is idempotent so re-running it just adds `unaccent` without removing `pgcrypto`. Operators who want a tidy state can `DROP EXTENSION pgcrypto` manually.
+- No sidecar changes. Bundled Fortemi version stays v2026.5.6.
+
 ## [2026.5.9] - 2026-05-11
 
 Bug-fix release for the [v2026.5.8 epic #202](https://git.integrolabs.net/Fortemi/HotM/issues/202) landing — caught during live install smoke test. Two response-shape mismatches between the UI types and the Fortemi server.

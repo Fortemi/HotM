@@ -5,7 +5,7 @@
 #   1. Detect active Postgres cluster version
 #   2. Install matching postgresql-NN-pgvector if missing
 #   3. Create `matric` role + `matric` database
-#   4. Enable extensions: vector, postgis, pg_trgm
+#   4. Enable extensions: vector, postgis, pg_trgm, unaccent
 #
 # Ollama is intentionally NOT installed here — see scripts/install.sh.
 # Network access in postinst breaks unattended-upgrades and adds long latency
@@ -85,16 +85,24 @@ SELECT 'CREATE DATABASE matric OWNER matric'
 SQL
 
 # ── Enable extensions (best-effort; missing ones become non-fatal warnings) ─
-log "Enabling extensions: vector, postgis, pg_trgm, pgcrypto..."
+# Canonical set that fortemi migrations require:
+#   vector    — pgvector embedding columns (initial schema)
+#   postgis   — geospatial (migrations can't CREATE EXTENSION postgis because
+#               it's not trusted; we pre-enable here as superuser)
+#   pg_trgm   — trigram similarity for FTS
+#   unaccent  — accent-insensitive search ("café" matches "cafe")
+# Fortemi additionally creates `uuid-ossp` itself in the initial migration —
+# trusted, no pre-enable needed. `pgcrypto` is NOT used by fortemi.
+log "Enabling extensions: vector, postgis, pg_trgm, unaccent..."
 su - postgres -c "psql -d matric -v ON_ERROR_STOP=0" <<'SQL' || true
 CREATE EXTENSION IF NOT EXISTS vector;
 CREATE EXTENSION IF NOT EXISTS postgis;
 CREATE EXTENSION IF NOT EXISTS pg_trgm;
-CREATE EXTENSION IF NOT EXISTS pgcrypto;
+CREATE EXTENSION IF NOT EXISTS unaccent;
 SQL
 
 # Report which extensions are actually enabled
-ENABLED="$(su - postgres -c "psql -d matric -tAc \"SELECT string_agg(extname, ', ') FROM pg_extension WHERE extname IN ('vector','postgis','pg_trgm','pgcrypto')\"" 2>/dev/null | tr -d ' ')"
+ENABLED="$(su - postgres -c "psql -d matric -tAc \"SELECT string_agg(extname, ', ') FROM pg_extension WHERE extname IN ('vector','postgis','pg_trgm','unaccent')\"" 2>/dev/null | tr -d ' ')"
 log "Extensions enabled: ${ENABLED:-(none)}"
 
 # Verify uuidv7() resolves (built-in in Postgres 18+).

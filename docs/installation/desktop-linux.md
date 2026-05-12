@@ -22,7 +22,7 @@ The installer is idempotent — re-running is safe and skips anything already in
 | 2 | Downloads `HotM_<version>_amd64.deb` and `SHA256SUMS.txt`, verifies the checksum |
 | 3 | Adds the PGDG apt repo (PostgreSQL official) if not already configured |
 | 4 | Runs `apt-get install ./HotM_*.deb` — apt resolves and installs `postgresql-18`, `postgresql-contrib-18`, `postgresql-18-pgvector`, `postgresql-18-postgis-3`, and `libwebkit2gtk-4.1-0` |
-| 5 | The `.deb` postinst creates the `matric` role, the `matric` database, and enables `vector`, `postgis`, `pg_trgm`, `pgcrypto` extensions |
+| 5 | The `.deb` postinst creates the `matric` role, the `matric` database, and enables `vector`, `postgis`, `pg_trgm`, `unaccent` extensions |
 | 6 | Runs the official Ollama installer (`curl https://ollama.com/install.sh \| sh`) and enables the `ollama` systemd service |
 | 7 | Pulls `nomic-embed-text` (embeddings) and `qwen3.5:9b` (generation) **in the background** — model pulls take 5-15 minutes and don't block the installer |
 | 8 | Reports installed status and next steps |
