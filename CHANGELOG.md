@@ -4,6 +4,49 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2026.5.11] - 2026-05-15
+
+Security-hardening release. Full npm audit + dependency cleanup across both Node components, plus structural hardening on the agent-proxy sidecar and Tauri webview. **`npm audit` reports 0 vulnerabilities in both `ui/` and `agent-proxy/`** after this release (was 25 total: 21 in `ui/`, 4 in `agent-proxy/`). Verified clean against the full 2026-05 mini-shai-hulud TanStack supply-chain compromise (175 unique compromised npm package names cross-checked against both lockfiles).
+
+7 issues closed: #83, #212, #213, #214, #215, #216, #217, #218. One follow-up filed: #219 (drop `unsafe-inline`/`unsafe-eval` from Tauri CSP — needs desktop runtime test against Mermaid + KaTeX).
+
+### Security
+
+- **Mermaid CSS/HTML injection** ([#213](https://git.integrolabs.net/Fortemi/HotM/issues/213), GHSA-87f9-hvmw-gh4p + GHSA-ghcm-xqfw-q4vr) — `mermaid` patched via the ui audit-fix pass. Production-reachable XSS pathway closed: user-authored note content rendered through Mermaid no longer admits crafted `classDef` or config payloads.
+- **path-to-regexp ReDoS** ([#214](https://git.integrolabs.net/Fortemi/HotM/issues/214), GHSA-37ch-88jc-xwx2) — `path-to-regexp` patched via the agent-proxy audit-fix pass. Remote unauthenticated event-loop-wedge against `/api/agent/chat` is no longer reachable.
+- **Vite 7.0–7.3.1 dev-server vulns** ([#216](https://git.integrolabs.net/Fortemi/HotM/issues/216), three GHSAs: -4w7w-66w2-5vf9, -v2wj-q39q-566r, -p9ff-h696-f583) — `vite` patched in both components. `fs.deny` bypass, `.map` path traversal, and arbitrary file read via dev-server WebSocket all closed.
+- **Bulk ui patches** ([#217](https://git.integrolabs.net/Fortemi/HotM/issues/217)) — rollup arbitrary file write (GHSA-mw96-cpmx-2vgc), picomatch ReDoS + method injection (GHSA-3v7f-55p6-f55p, -c2c7-rcm5-vvqj), minimatch ReDoS x3 (GHSA-3ppc-4f35-3m26, -7r86-cg39-jmmj, -23c5-xmqv-rm74), postcss XSS (GHSA-qx2v-qp2m-jg93), uuid bounds check (GHSA-w5hq-g745-h8pq) — all cleared in one `npm audit fix` sweep.
+- **agent-proxy bound to 127.0.0.1 by default** ([#212](https://git.integrolabs.net/Fortemi/HotM/issues/212)) — was binding to all interfaces (Node default). `BIND_ADDR` env var added with localhost default; setting `0.0.0.0` is now an explicit opt-in. New `agent-proxy/SECURITY.md` documents the localhost-sidecar threat model, defense-in-depth layers, and operator checklist.
+- **agent-proxy rate limit** ([#218](https://git.integrolabs.net/Fortemi/HotM/issues/218)) — `express-rate-limit` middleware on `/api/agent/chat` (60 req/min/IP default, configurable via `AGENT_PROXY_RATE_LIMIT_RPM`, `0` to disable). `/health` stays unmetered. 4 new tests exercise the actual middleware against a live local Express server.
+- **Tauri CSP and HTTP allowlist tightened** ([#215](https://git.integrolabs.net/Fortemi/HotM/issues/215)) — CSP `connect-src` dropped blanket `http:` and `ws:`; kept `https:` and `wss:`; re-permitted plain `http`/`ws` only for `localhost` / `127.0.0.1` (dev sidecars: Fortemi, agent-proxy, Ollama, PlantUML). Tauri http capability dropped `http://**`; kept `https://**` plus `http://localhost:*/**` and `http://127.0.0.1:*/**`. Removing `unsafe-inline` / `unsafe-eval` is deferred to follow-up [#219](https://git.integrolabs.net/Fortemi/HotM/issues/219).
+
+### Changed
+
+- **vitest 1.x → 4.x in `ui/`** (closes [#83](https://git.integrolabs.net/Fortemi/HotM/issues/83)). Matches `agent-proxy/` on the same major. Side effects required for the upgrade:
+  - `vitest.config.ts` — added `restoreMocks: true` for vitest 4's stricter spy isolation
+  - 2 test files rewrote `vi.fn().mockImplementation(arrow)` → `vi.fn(function(this){})` for constructor-shape mocks (tus.Upload, DefaultChatTransport) — arrow-based `mockImplementation` is no longer constructable with `new` in vitest 4
+  - `use-tauri.test.ts` — snapshot-then-compare pattern instead of hardcoded `toHaveBeenCalledTimes(1)` for React 19 render counts
+  - `CriteriaEditor.test.tsx` — explicit generic on `vi.fn<(args) => ret>()` for callback props (vitest 4's `ReturnType<typeof vi.fn>` now includes `Constructable`)
+
+### Documentation
+
+- **`.aiwg/security/npm-audit-plan-2026-05-14.md`** (new) — full hardening plan and phase commit map.
+- **`agent-proxy/SECURITY.md`** (new) — threat model and operator checklist for the agent-proxy sidecar.
+- **`docs/host-adapter.md`** — documents `window.__HOTM_HOST__` as the canonical adapter global; clarifies that the v2026.5.0-era compatibility-fallback has been removed.
+- **`AIWG.md`** — regenerated for AIWG framework v2026.5.4.
+
+### Verification
+
+- `ui/`: typecheck pass, 1427 / 1427 tests pass, `npm run build` pass, `npm audit` 0 vulnerabilities.
+- `agent-proxy/`: typecheck pass, 116 unique tests pass, `npm run build` pass, `npm audit` 0 vulnerabilities.
+- `act_runner exec -j quality-gate -W .gitea/workflows/ui-ci.yml`: success on every release-candidate commit.
+- Supply-chain check against the official mini-shai-hulud CSV: zero matches.
+
+### Notes
+
+- No Fortemi sidecar version change. Bundled Fortemi version stays v2026.5.6.
+- Tauri runtime verification on platform-native webviews (WebKit / WebView2 / WebKitGTK) is the open work in [#219](https://git.integrolabs.net/Fortemi/HotM/issues/219); needs a desktop session, not just a `vite build`.
+
 ## [2026.5.10] - 2026-05-11
 
 Installer-parity patch — caught during mutsu smoke test. The Linux `.deb` postinst and the macOS `setup-macos.sh` enabled different Postgres extension sets, even though both target the same Fortemi sidecar.
