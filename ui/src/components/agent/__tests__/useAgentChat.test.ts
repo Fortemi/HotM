@@ -37,10 +37,14 @@ vi.mock('@ai-sdk/react', () => ({
 }));
 
 vi.mock('ai', () => ({
-  DefaultChatTransport: vi.fn().mockImplementation((opts: Record<string, unknown>) => ({
-    _type: 'DefaultChatTransport',
-    _opts: opts,
-  })),
+  // vitest 4: arrow-based mockImplementation is not constructable with `new`.
+  DefaultChatTransport: vi.fn(function (
+    this: Record<string, unknown>,
+    opts: Record<string, unknown>,
+  ) {
+    this._type = 'DefaultChatTransport';
+    this._opts = opts;
+  }),
 }));
 
 const defaultConfig: ProviderConfig = {

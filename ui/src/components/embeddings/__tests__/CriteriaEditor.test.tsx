@@ -12,10 +12,12 @@ const mockCollections = [
 const emptyCriteria: EmbeddingSetCriteria = {};
 
 describe('CriteriaEditor', () => {
-  let onChange: ReturnType<typeof vi.fn>;
+  // vitest 4: ReturnType<typeof vi.fn> now includes Constructable, which
+  // breaks assignment to a plain callback prop. Type the generic explicitly.
+  let onChange: ReturnType<typeof vi.fn<(criteria: EmbeddingSetCriteria) => void>>;
 
   beforeEach(() => {
-    onChange = vi.fn();
+    onChange = vi.fn<(criteria: EmbeddingSetCriteria) => void>();
   });
 
   describe('rendering', () => {

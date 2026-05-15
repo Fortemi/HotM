@@ -10,13 +10,13 @@ const mockAbort = vi.fn();
 let capturedOptions: Record<string, unknown> = {};
 
 vi.mock('tus-js-client', () => ({
-  Upload: vi.fn().mockImplementation((_file: File, options: Record<string, unknown>) => {
+  // vitest 4: arrow-based mockImplementation is not constructable with `new`.
+  // Use vi.fn(function(){}) so `this` binds to the new instance.
+  Upload: vi.fn(function (this: Record<string, unknown>, _file: File, options: Record<string, unknown>) {
     capturedOptions = options;
-    return {
-      start: mockStart,
-      abort: mockAbort,
-      url: 'https://api.example.com/tus/upload-123',
-    };
+    this.start = mockStart;
+    this.abort = mockAbort;
+    this.url = 'https://api.example.com/tus/upload-123';
   }),
 }));
 

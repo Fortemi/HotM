@@ -13,6 +13,7 @@ export default defineConfig({
     environment: 'jsdom',
     setupFiles: './src/components/__tests__/setup.ts',
     exclude: ['node_modules/**', 'e2e/**'],
+    restoreMocks: true,
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],
