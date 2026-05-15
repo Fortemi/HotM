@@ -9,6 +9,9 @@
  *
  * Environment variables:
  *   PORT              — Server port (default: 3001)
+ *   BIND_ADDR         — Interface to bind on (default: 127.0.0.1, localhost-only).
+ *                       Set to 0.0.0.0 to expose to the network — see SECURITY.md
+ *                       before doing so; the proxy holds raw API keys.
  *   FORTEMI_API_URL   — Fortemi API base URL (default: http://localhost:3000/api/v1)
  *   OLLAMA_URL        — Ollama API URL (default: http://localhost:11434)
  *   ANTHROPIC_API_KEY — Anthropic API key (optional, required for anthropic provider)
@@ -25,6 +28,7 @@ import rateLimit from 'express-rate-limit';
 import { chatRouter } from './routes/chat.js';
 
 const PORT = parseInt(process.env.PORT ?? '3001', 10);
+const BIND_ADDR = process.env.BIND_ADDR ?? '127.0.0.1';
 const CORS_ORIGIN = process.env.CORS_ORIGIN ?? 'http://localhost:5173';
 const RATE_LIMIT_RPM = parseInt(process.env.AGENT_PROXY_RATE_LIMIT_RPM ?? '60', 10);
 
@@ -63,8 +67,8 @@ app.get('/health', (_req, res) => {
   });
 });
 
-const server = app.listen(PORT, () => {
-  console.log(`[agent-proxy] Listening on port ${PORT}`);
+const server = app.listen(PORT, BIND_ADDR, () => {
+  console.log(`[agent-proxy] Listening on ${BIND_ADDR}:${PORT}${BIND_ADDR === '127.0.0.1' ? ' (localhost-only)' : ' (network-exposed — see SECURITY.md)'}`);
   console.log(`[agent-proxy] CORS origin: ${CORS_ORIGIN}`);
   console.log(`[agent-proxy] Fortemi API: ${process.env.FORTEMI_API_URL ?? 'http://localhost:3000/api/v1'}`);
   console.log(`[agent-proxy] Providers: ollama${process.env.ANTHROPIC_API_KEY ? ', anthropic' : ''}${process.env.OPENAI_API_KEY ? ', openai' : ''}`);
