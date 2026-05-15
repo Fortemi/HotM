@@ -82,6 +82,18 @@ interface HotmHostAdapter {
 Both `network.sse.connect` and `network.fetch` must be present for HotM
 to treat the adapter as active (`getHostAdapter()` in `lib/tauri.ts`).
 
+### Canonical global
+
+`window.__HOTM_HOST__` is the only supported adapter global in current
+HotM releases. A short-lived compatibility fallback for host-specific
+global names existed during the v2026.5.0 cycle, but that fallback has
+been removed. Embedding shells must publish `__HOTM_HOST__` directly.
+
+For runtime API routing, use `window.__HOTM_HOST__.config.api_base_url`.
+Do not publish a separate host-specific config global for HotM; if a host
+shell keeps one internally, translate it into the canonical adapter before
+HotM's bundle executes.
+
 ### SSE event forwarding
 
 After `connect()` resolves, the shell `postMessage`s each SSE event to
