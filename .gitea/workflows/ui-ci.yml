@@ -173,7 +173,12 @@ jobs:
     name: Publish Agent-Proxy Release Image
     runs-on: titan
     needs: [quality-gate, agent-proxy-quality-gate]
-    if: startsWith(github.ref, 'refs/tags/v')
+    # Gate on both event type AND ref. Gating on ref alone was firing this job
+    # on non-tag pushes to main (issue #221) — likely Gitea Actions context
+    # bleed from the workflow's mixed push+create triggers. The `on:` block
+    # only listens for tag creation via `create: tags: [v*]`, so requiring
+    # event_name=='create' is the correct narrow gate.
+    if: github.event_name == 'create' && startsWith(github.ref, 'refs/tags/v')
     steps:
       - name: Checkout
         shell: bash
