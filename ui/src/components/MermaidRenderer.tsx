@@ -15,7 +15,11 @@ const initializeMermaid = () => {
   mermaid.initialize({
     startOnLoad: false,
     theme: isDarkMode ? 'dark' : 'default',
-    securityLevel: 'loose',
+    // strict (default): sanitize all labels, no HTML / no script. The bundle
+    // analysis (#219) confirmed no in-tree code requires HTML-in-labels;
+    // tightening from 'loose' closes the actual XSS surface that #213's
+    // npm-advisory patch addressed only at the library-version level.
+    securityLevel: 'strict',
   themeVariables: isDarkMode ? {
     // Dark mode theme
     primaryColor: '#8b5cf6',
