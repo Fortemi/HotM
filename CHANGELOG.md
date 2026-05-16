@@ -4,6 +4,55 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2026.5.12] - 2026-05-16
+
+Targeted follow-up to v2026.5.11's security batch. The v2026.5.11 CSP tightening kept `'unsafe-inline'` and `'unsafe-eval'` in `script-src` and Mermaid's `securityLevel: 'loose'` pending a runtime test. A direct survey of the production bundle showed neither directive was actually load-bearing — both came from defensive boilerplate, not from any code path that runs.
+
+Closes [#219](https://git.integrolabs.net/Fortemi/HotM/issues/219).
+
+### Security
+
+- **Dropped `'unsafe-inline'` and `'unsafe-eval'` from CSP `script-src`** in `ui/src-tauri/tauri.conf.json`:
+  ```diff
+  - script-src 'self' 'unsafe-inline' 'unsafe-eval'
+  + script-src 'self'
+  ```
+  Any XSS that gets past the post-v2026.5.11 net can no longer construct code via `eval()` / `new Function()` or execute inline `<script>` blocks. The blast radius of any future webview compromise is dramatically reduced.
+
+  `style-src 'self' 'unsafe-inline'` is intentionally kept — 37+ source files use React's `style={{}}` prop plus Radix UI internals inject inline styles for animations. CSS injection has a fundamentally smaller blast radius than script execution; the directives that mattered are the ones removed.
+
+- **Mermaid `securityLevel: 'loose'` → `'strict'`** in `ui/src/components/MermaidRenderer.tsx`. The `loose` setting allowed HTML in node labels — the actual reachable XSS surface that v2026.5.11's npm-advisory patch (#213) addressed only at the library-version level. `strict` is the Mermaid library default and disallows HTML/script in labels entirely. No in-tree usage of HTML-in-labels detected.
+
+### Methodology
+
+Pre-change bundle survey on the production `dist/` artifact (4.0 MB main bundle + 930 KB lazy `ModelPreview` chunk):
+
+| Check | Result |
+|---|---|
+| `eval(...)` calls | **0** (4 raw substring matches were syntax-highlighter regex tokens like `/eval(?:cmd)?|exactp/`) |
+| `new Function(...)` calls | **0** |
+| `Function("...")` constructor calls | **0** (1 raw match was KaTeX's `r.callFunction` method call) |
+| Inline `<script>` blocks in `index.html` | **0** (both script tags use `src=`) |
+
+Heavy deps analyzed in `node_modules` vs the actual built artifact:
+- `mermaid` 11.x: zero eval/Function in shipped dist (the modernized release doesn't use them)
+- `katex`: produces static HTML; no runtime eval
+- `d3` (transitive): 2 source files use `Function()` — tree-shaken out, not in bundle
+- `three.js` (via `@google/model-viewer`): 9 source files use eval/Function — lazy `ModelPreview` chunk built from this had **0** eval/Function calls in output
+
+The conventional wisdom that Mermaid/KaTeX require `unsafe-eval` proved untrue for this codebase. Vite's tree-shaking plus Mermaid 11's modernization had already eliminated the paths that would have needed those directives.
+
+### Verification
+
+- `ui/`: typecheck pass, 1427 / 1427 tests pass, `npm run build` pass, `npm audit` 0 vulnerabilities.
+- `act_runner exec -j quality-gate -W .gitea/workflows/ui-ci.yml`: success.
+- Platform-native Tauri webview runtime verification (WebKit on macOS, WebView2 on Windows, WebKitGTK on Linux) is the remaining manual step — open DevTools after a desktop build, render a note with Mermaid + KaTeX, confirm no `Refused to execute inline script` / `Refused to evaluate string` console messages. The CSP engines on those platforms differ slightly from Vite's bundling assumptions; if anything trips, selectively allow back via `'unsafe-hashes'` or hash/nonce rather than re-adding blanket directives.
+
+### Notes
+
+- agent-proxy unchanged — no runtime version bump there; agent-proxy's CSP doesn't apply (it's an Express server, not a webview).
+- No Fortemi sidecar version change. Bundled Fortemi version stays v2026.5.6.
+
 ## [2026.5.11] - 2026-05-15
 
 Security-hardening release. Full npm audit + dependency cleanup across both Node components, plus structural hardening on the agent-proxy sidecar and Tauri webview. **`npm audit` reports 0 vulnerabilities in both `ui/` and `agent-proxy/`** after this release (was 25 total: 21 in `ui/`, 4 in `agent-proxy/`). Verified clean against the full 2026-05 mini-shai-hulud TanStack supply-chain compromise (175 unique compromised npm package names cross-checked against both lockfiles).
