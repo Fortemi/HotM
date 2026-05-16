@@ -27,18 +27,41 @@ jobs:
     timeout-minutes: 15
 
     steps:
+      # Precondition gate: GT_ACCESS_TOKEN must be provisioned to clone the
+      # private dbbuilder repo. Skip cleanly (with a visible warning) when the
+      # secret is absent, so missing-secret state stops muddying release CI.
+      # See issue #220.
+      - name: Check for required secret
+        id: precheck
+        env:
+          GT_ACCESS_TOKEN: ${{ secrets.GT_ACCESS_TOKEN }}
+        run: |
+          if [ -z "${GT_ACCESS_TOKEN:-}" ]; then
+            echo "::warning::GT_ACCESS_TOKEN not provisioned; skipping docsite build (issue #220)."
+            echo "::warning::Provision the secret at the repo or org level on git.integrolabs.net to re-enable."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Checkout HotM
+        if: steps.precheck.outputs.skip != 'true'
         uses: actions/checkout@v4
 
       - name: Clone dbbuilder
+        if: steps.precheck.outputs.skip != 'true'
+        env:
+          GT_ACCESS_TOKEN: ${{ secrets.GT_ACCESS_TOKEN }}
         run: |
-          git clone https://token:${{ secrets.GT_ACCESS_TOKEN }}@git.integrolabs.net/roctinam/dbbuilder.git /tmp/dbbuilder
+          git clone "https://token:${GT_ACCESS_TOKEN}@git.integrolabs.net/roctinam/dbbuilder.git" /tmp/dbbuilder
 
       - name: Install dbbuilder dependencies
+        if: steps.precheck.outputs.skip != 'true'
         working-directory: /tmp/dbbuilder/apps/publisher
         run: npm ci
 
       - name: Configure tenant
+        if: steps.precheck.outputs.skip != 'true'
         run: |
           cat > /tmp/dbbuilder/apps/publisher/tenants.json <<'TENANTS'
           {
@@ -58,10 +81,12 @@ jobs:
           TENANTS
 
       - name: Build doc site
+        if: steps.precheck.outputs.skip != 'true'
         working-directory: /tmp/dbbuilder/apps/publisher
         run: node scripts/build-tenants.js hotm-docs
 
       - name: Verify build output
+        if: steps.precheck.outputs.skip != 'true'
         run: |
           ls -la /tmp/dbbuilder/apps/publisher/dist/hotm-docs/
           test -f /tmp/dbbuilder/apps/publisher/dist/hotm-docs/index.html

@@ -30,18 +30,40 @@ jobs:
     timeout-minutes: 15
 
     steps:
+      # Precondition gate: GT_ACCESS_TOKEN must be provisioned to clone the
+      # private dbbuilder repo. Skip cleanly (with a visible warning) when the
+      # secret is absent. See issue #220.
+      - name: Check for required secret
+        id: precheck
+        env:
+          GT_ACCESS_TOKEN: ${{ secrets.GT_ACCESS_TOKEN }}
+        run: |
+          if [ -z "${GT_ACCESS_TOKEN:-}" ]; then
+            echo "::warning::GT_ACCESS_TOKEN not provisioned; skipping docsite deploy (issue #220)."
+            echo "::warning::Provision the secret at the repo or org level on git.integrolabs.net to re-enable."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Checkout HotM
+        if: steps.precheck.outputs.skip != 'true'
         uses: actions/checkout@v4
 
       - name: Clone dbbuilder
+        if: steps.precheck.outputs.skip != 'true'
+        env:
+          GT_ACCESS_TOKEN: ${{ secrets.GT_ACCESS_TOKEN }}
         run: |
-          git clone https://token:${{ secrets.GT_ACCESS_TOKEN }}@git.integrolabs.net/roctinam/dbbuilder.git /tmp/dbbuilder
+          git clone "https://token:${GT_ACCESS_TOKEN}@git.integrolabs.net/roctinam/dbbuilder.git" /tmp/dbbuilder
 
       - name: Install dbbuilder dependencies
+        if: steps.precheck.outputs.skip != 'true'
         working-directory: /tmp/dbbuilder/apps/publisher
         run: npm ci
 
       - name: Configure tenant
+        if: steps.precheck.outputs.skip != 'true'
         run: |
           cat > /tmp/dbbuilder/apps/publisher/tenants.json <<'TENANTS'
           {
@@ -61,10 +83,12 @@ jobs:
           TENANTS
 
       - name: Build doc site
+        if: steps.precheck.outputs.skip != 'true'
         working-directory: /tmp/dbbuilder/apps/publisher
         run: node scripts/build-tenants.js hotm-docs
 
       - name: Verify build output
+        if: steps.precheck.outputs.skip != 'true'
         run: |
           test -d /tmp/dbbuilder/apps/publisher/dist/hotm-docs || { echo "Missing build output directory"; exit 1; }
           test -f /tmp/dbbuilder/apps/publisher/dist/hotm-docs/index.html || { echo "Missing index.html"; exit 1; }
@@ -72,15 +96,18 @@ jobs:
           ls -lah /tmp/dbbuilder/apps/publisher/dist/hotm-docs/
 
       - name: Install SSH tools
+        if: steps.precheck.outputs.skip != 'true'
         run: apt-get update && apt-get install -y --no-install-recommends openssh-client rsync
 
       - name: Configure SSH key
+        if: steps.precheck.outputs.skip != 'true'
         run: |
           mkdir -p ~/.ssh
           printf '%s\n' '${{ secrets.DEPLOY_SSH_KEY }}' > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
 
       - name: Deploy to docs server (subpath /hotm)
+        if: steps.precheck.outputs.skip != 'true'
         run: |
           rsync -avz --delete \
             -e "ssh -i ~/.ssh/deploy_key -p ${{ secrets.DEPLOY_PORT }} -o StrictHostKeyChecking=accept-new" \
@@ -88,17 +115,18 @@ jobs:
             ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:${{ secrets.DEPLOY_PATH }}hotm/
 
       - name: Verify deployment
+        if: steps.precheck.outputs.skip != 'true'
         run: |
           ssh -i ~/.ssh/deploy_key -p ${{ secrets.DEPLOY_PORT }} -o StrictHostKeyChecking=accept-new \
             ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} \
             'test -f ${{ secrets.DEPLOY_PATH }}hotm/index.html && echo "Deploy verified: index.html present" || { echo "Deploy failed: index.html missing"; exit 1; }'
 
       - name: Cleanup SSH key
-        if: always()
+        if: always() && steps.precheck.outputs.skip != 'true'
         run: rm -f ~/.ssh/deploy_key
 
       - name: Log deployment result
-        if: success()
+        if: success() && steps.precheck.outputs.skip != 'true'
         run: |
           echo "Deployed docs.fortemi.io/hotm/"
           echo "Tag: ${{ gitea.ref }}"
