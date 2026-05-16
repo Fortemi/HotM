@@ -216,7 +216,7 @@ fi
 # ── Verify Postgres + matric DB ─────────────────────────────────────────────
 info "Verifying Postgres setup (postinst should have created matric DB)..."
 ${SUDO} systemctl is-active --quiet postgresql || ${SUDO} systemctl start postgresql
-if ${SUDO} -u postgres psql -tAc "SELECT 1 FROM pg_database WHERE datname='matric'" | grep -q 1; then
+if sudo -u postgres psql -tAc "SELECT 1 FROM pg_database WHERE datname='matric'" | grep -q 1; then
   info "matric database present"
 else
   warn "matric database missing — postinst may have failed. Check 'sudo dpkg-reconfigure hot-m'."
@@ -306,7 +306,7 @@ fi
 # inside "..." word-splits SQL on whitespace and produces fake "missing" reports.
 HOTM_STATUS="$(dpkg-query -W -f='${Version}' hot-m 2>/dev/null || echo 'NOT INSTALLED')"
 PG_STATUS="$(systemctl is-active postgresql 2>/dev/null || echo 'inactive')"
-PGVEC_STATUS="$(${SUDO} -u postgres psql -d matric -tAc "SELECT extname FROM pg_extension WHERE extname='vector'" 2>/dev/null | grep -q vector && echo 'enabled' || echo 'missing')"
+PGVEC_STATUS="$(sudo -u postgres psql -d matric -tAc "SELECT extname FROM pg_extension WHERE extname='vector'" 2>/dev/null | grep -q vector && echo 'enabled' || echo 'missing')"
 OLLAMA_STATUS="$(systemctl is-active ollama 2>/dev/null || echo 'inactive')"
 
 echo ""
