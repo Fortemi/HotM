@@ -52,7 +52,7 @@ services:
       - fortemi
 
   postgres:
-    image: pgvector/pgvector:pg17
+    image: pgvector/pgvector:pg18
     environment:
       POSTGRES_USER: matric
       POSTGRES_PASSWORD: matric

@@ -4,6 +4,30 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2026.5.13] - 2026-05-18
+
+Sidecar tracking release. Bundled Fortemi sidecar moves from v2026.5.6 to v2026.5.7 — picked up automatically at build time via the `sidecar-latest` download in `.gitea/workflows/tauri-build.yml` and `.gitea/workflows/desktop-release.yml`. No HotM source changes beyond the version bump and one doc fix.
+
+### Fortemi v2026.5.7 highlights (inherited)
+
+- **PostgreSQL 18 declared hard requirement.** Fortemi migrations now rely on PG 18 built-ins (`uuidv7()` and others). HotM's installer scripts and macOS/Linux desktop docs already target PG 18 since v2026.5.0, so end users see no behavior change — this release just brings the Docker compose example in line.
+- **Dependency advisories cleared** in the sidecar: Pillow ≥12.2.0 (open3d-renderer), `ip-address` ≥10.1.1 and `fast-uri` ≥3.1.2 (mcp-server), `hono` ≥4.12.18 + `@hono/node-server` ≥1.19.13, `rand` 0.10.1, `rustls-webpki` 0.103.13, `openssl` crate 0.10.79. Fortemi also added cargo-deny, cargo audit, and npm audit pre-merge gates so future bumps land faster.
+- Streaming PoC and unified workstation Docker stack landed in Fortemi but are not exposed through HotM's UI yet.
+
+### Fixed
+
+- **`docs/installation/docker.md` Postgres image pin**: `pgvector/pgvector:pg17` → `pgvector/pgvector:pg18`. The example compose snippet drifted behind the Linux and macOS install docs (both PG 18 since v2026.5.0). Following the old snippet against current Fortemi migrations would have produced the same `function uuidv7() does not exist` failure mode the desktop installers already prevent.
+
+### Changed
+
+- **`ui/src-tauri/gen/schemas/capabilities.json` regenerated.** Source `capabilities/default.json` was tightened in v2026.5.11's CSP hardening (`http://**` → `http://localhost:*/**` + `http://127.0.0.1:*/**`); the generated schema artifact had not been re-emitted on disk. Cargo build was already producing the tightened output — this commits the file to match.
+
+### Notes
+
+- agent-proxy unchanged.
+- No Tauri / WebKit2GTK / WebView2 version changes.
+- Verification: `ui/` typecheck pass, full test suite pass, `npm run build` pass.
+
 ## [2026.5.12] - 2026-05-16
 
 Targeted follow-up to v2026.5.11's security batch. The v2026.5.11 CSP tightening kept `'unsafe-inline'` and `'unsafe-eval'` in `script-src` and Mermaid's `securityLevel: 'loose'` pending a runtime test. A direct survey of the production bundle showed neither directive was actually load-bearing — both came from defensive boilerplate, not from any code path that runs.

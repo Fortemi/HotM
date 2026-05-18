@@ -3,7 +3,7 @@
   "description": "Hall of the Mind - React SPA interface for Fortemi API",
   "license": "BUSL-1.1",
   "private": true,
-  "version": "2026.5.12",
+  "version": "2026.5.13",
   "type": "module",
   "scripts": {
     "dev": "vite",
