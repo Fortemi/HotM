@@ -252,9 +252,6 @@ export function HallOfMind() {
     message?: string;
   } | null>(null);
   const [newNoteContent, setNewNoteContent] = useState("");
-  const [newNoteDocType, setNewNoteDocType] = useState<string>("");
-  const [newNoteRevisionMode, setNewNoteRevisionMode] = useState<string>("");
-  const [newNoteAdvancedOpen, setNewNoteAdvancedOpen] = useState(false);
   const [processingNotes, setProcessingNotes] = useState<Set<string>>(new Set());
   const [extractionProgress, setExtractionProgress] = useState<Map<string, {
     status: string;
@@ -1140,11 +1137,9 @@ export function HallOfMind() {
       // title. When set, the Fortemi sidecar skips AI title generation
       // (Fortemi v2026.5.6 #675). Otherwise the sidecar generates a title.
       const extractedTitle = extractTitleFromContent(newNoteContent);
-      const createOptions = (extractedTitle || newNoteDocType || newNoteRevisionMode)
+      const createOptions = extractedTitle
         ? {
-            ...(extractedTitle && { title: extractedTitle }),
-            ...(newNoteDocType && { document_type: newNoteDocType }),
-            ...(newNoteRevisionMode && { revision_mode: newNoteRevisionMode }),
+            title: extractedTitle,
           }
         : undefined;
       const response = await api.createNote(newNoteContent, createOptions);
@@ -1181,9 +1176,6 @@ export function HallOfMind() {
       setSelectedNote(simpleNote);
       setNoteContent(simpleNote.content);
       setNewNoteContent("");
-      setNewNoteDocType("");
-      setNewNoteRevisionMode("");
-      setNewNoteAdvancedOpen(false);
       setHasUnsavedChanges(false);
       
       // Refresh the notes list to ensure sync
@@ -2168,48 +2160,16 @@ export function HallOfMind() {
                         }
                       }}
                     />
-                    <button
+                    <Button
                       type="button"
-                      onClick={() => setNewNoteAdvancedOpen(!newNoteAdvancedOpen)}
-                      className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
+                      variant="outline"
+                      size="sm"
+                      className="h-7 w-full justify-start gap-2 text-xs"
+                      onClick={() => setCurrentView("capture")}
                     >
-                      {newNoteAdvancedOpen ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
-                      Advanced
-                    </button>
-                    {newNoteAdvancedOpen && (
-                      <div className="space-y-2 pl-1">
-                        <div className="space-y-1">
-                          <label className="text-xs text-muted-foreground">Document type</label>
-                          <Select value={newNoteDocType} onValueChange={setNewNoteDocType}>
-                            <SelectTrigger className="h-7 text-xs">
-                              <SelectValue placeholder="Auto-detect" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="general">General</SelectItem>
-                              <SelectItem value="academic">Academic</SelectItem>
-                              <SelectItem value="technical">Technical</SelectItem>
-                              <SelectItem value="personal">Personal</SelectItem>
-                              <SelectItem value="meeting_notes">Meeting Notes</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        <div className="space-y-1">
-                          <label className="text-xs text-muted-foreground">Revision mode</label>
-                          <Select value={newNoteRevisionMode} onValueChange={setNewNoteRevisionMode}>
-                            <SelectTrigger className="h-7 text-xs">
-                              <SelectValue placeholder="Default" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="standard">Standard</SelectItem>
-                              <SelectItem value="light">Light</SelectItem>
-                              <SelectItem value="contextual">Contextual</SelectItem>
-                              <SelectItem value="contextual_filtered">Contextual (filtered)</SelectItem>
-                              <SelectItem value="none">None</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                      </div>
-                    )}
+                      <Zap className="h-3 w-3" />
+                      Advanced Capture
+                    </Button>
                     <Button
                       onClick={createNewNote}
                       className="w-full justify-start gap-2"

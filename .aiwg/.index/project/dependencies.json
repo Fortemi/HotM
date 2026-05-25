@@ -1,0 +1,589 @@
+{
+  ".aiwg/.milestones.json": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/AIWG.md": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/api/compatibility/report-2026-05-25.md": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/architecture/ADR-001-client-server-architecture.md": {
+    "upstream": [],
+    "downstream": [
+      {
+        "path": ".aiwg/architecture/adr-mobile-cloud-architecture.md",
+        "type": "depends-on"
+      }
+    ]
+  },
+  ".aiwg/architecture/ADR-002-database-schema-rebuild.md": {
+    "upstream": [],
+    "downstream": [
+      {
+        "path": ".aiwg/architecture/adr-mobile-cloud-architecture.md",
+        "type": "depends-on"
+      }
+    ]
+  },
+  ".aiwg/architecture/ADR-007-spa-privacy-model.md": {
+    "upstream": [],
+    "downstream": [
+      {
+        "path": ".aiwg/architecture/adr-mobile-cloud-architecture.md",
+        "type": "depends-on"
+      }
+    ]
+  },
+  ".aiwg/architecture/ADR-008-agent-flow-state-machine.md": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/architecture/adr/ADR-003-local-first-privacy.md": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/architecture/adr/ADR-004-spa-migration.md": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/architecture/adr-auth-shared-crate.md": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/architecture/adr-mobile-cloud-architecture.md": {
+    "upstream": [
+      {
+        "path": ".aiwg/research/findings/mobile-tauri2-production-patterns.md",
+        "type": "depends-on"
+      },
+      {
+        "path": ".aiwg/research/findings/mobile-multitenant-byo-llm.md",
+        "type": "depends-on"
+      },
+      {
+        "path": ".aiwg/research/findings/mobile-manifest-remote-config.md",
+        "type": "depends-on"
+      },
+      {
+        "path": ".aiwg/architecture/ADR-001-client-server-architecture.md",
+        "type": "depends-on"
+      },
+      {
+        "path": ".aiwg/architecture/ADR-002-database-schema-rebuild.md",
+        "type": "depends-on"
+      },
+      {
+        "path": ".aiwg/architecture/ADR-007-spa-privacy-model.md",
+        "type": "depends-on"
+      }
+    ],
+    "downstream": []
+  },
+  ".aiwg/research/findings/mobile-tauri2-production-patterns.md": {
+    "upstream": [],
+    "downstream": [
+      {
+        "path": ".aiwg/architecture/adr-mobile-cloud-architecture.md",
+        "type": "depends-on"
+      }
+    ]
+  },
+  ".aiwg/research/findings/mobile-multitenant-byo-llm.md": {
+    "upstream": [],
+    "downstream": [
+      {
+        "path": ".aiwg/architecture/adr-mobile-cloud-architecture.md",
+        "type": "depends-on"
+      }
+    ]
+  },
+  ".aiwg/research/findings/mobile-manifest-remote-config.md": {
+    "upstream": [],
+    "downstream": [
+      {
+        "path": ".aiwg/architecture/adr-mobile-cloud-architecture.md",
+        "type": "depends-on"
+      }
+    ]
+  },
+  ".aiwg/architecture/impact/fortemi-api-contract-drift-2026-05.md": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/architecture/manifest-schema-v1.json": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/architecture/manifest-schema-v1.md": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/architecture/software-architecture-doc.md": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/archive/backend-docs/nlp-pipeline.md": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/archive/backend-docs/prompts/collection_and_path.md": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/archive/backend-docs/prompts/link_detection.md": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/archive/backend-docs/prompts/revision_summarize.md": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/archive/backend-docs/prompts/search_rerank.md": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/archive/backend-docs/prompts/tagging_entities.md": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/archive/backend-docs/storage-documentdb.md": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/archive/desktop-era/README.md": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/archive/desktop-era/docker-deployment.md": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/archive/desktop-era/first-run.md": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/archive/desktop-era/installer-plan.md": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/archive/desktop-era/mvp-acceptance-criteria-v1.md": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/archive/desktop-era/packaging-windows.md": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/archive/desktop-era/quickstart.md": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/archive/legacy-specs/api-specification-v1.md": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/archive/stage2-docs/ADR-001-journal-sync-lww.md": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/archive/stage2-docs/client-sync-agent.md": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/archive/stage2-docs/cloud-sync-architecture.md": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/archive/stage2-docs/stage-2-architecture.md": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/deferred/README.md": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/deferred/keycloak-oidc-plan.md": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/deferred/penetration-testing-plan.md": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/deferred/pwa-capabilities-plan.md": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/deferred/secure-token-storage-plan.md": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/design/fortemi-feature-ui-integration-plan-2026-05.md": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/discovery/fortemi-integration-gap-analysis.md": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/elaboration/api-endpoint-verification.md": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/elaboration/responsive-design-spec.md": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/elaboration/wireframes/p1-wireframes.md": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/forensics/chain-of-custody.md": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/frameworks/registry.json": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/gates/abm-gate-revalidation-2026-01.md": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/gates/fortemi-api-integration-gate-2026-05-25.md": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/gates/lom-gate-revalidation-2026-01.md": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/gates/lom-requirements-review.md": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/gates/lom-security-review.md": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/gates/lom-test-review.md": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/gates/lom-validation-report.md": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/gates/security-readiness-revalidation-2026-01.md": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/gates/test-readiness-revalidation-2026-01.md": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/gates/ui-redesign-abm-validation.md": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/gates/ui-redesign-lom-validation.md": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/inception/ui-redesign-requirements.md": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/inception/ui-redesign-vision.md": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/intake/ANALYSIS-REPORT.md": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/intake/option-matrix.md": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/intake/project-intake.md": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/intake/solution-profile.md": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/issues/ISSUES.md": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/kb/index.md": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/migration/completion-summary.md": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/migration/user-data-migration.md": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/operations/error-tracking.md": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/operations/issues-69-55-58-summary.md": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/operations/sentry-setup-instructions.md": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/planning/development-process-guide.md": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/planning/dual-track-workflow.md": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/planning/iteration-plan-001.md": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/planning/iteration-plan-002.md": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/planning/mobile-expansion-INDEX.md": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/planning/mobile-expansion-phase-plan.md": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/planning/phase-plan-elaboration.md": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/planning/phase-plan-inception.md": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/planning/tauri-integration-plan.md": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/ralph/completion-2026-02-04.md": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/ralph/current-loop.json": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/reports/abm-validation-report.md": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/reports/agentic-coding-architectures-2026-02.md": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/reports/architecture-stability-report.md": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/reports/consolidated-gate-validation-2026-01.md": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/reports/construction-readiness-report.md": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/reports/doc-sync-2026-04-22T03:42:28Z.md": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/reports/doc-sync-last-run.json": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/reports/elaboration-transition-2025-12-04.md": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/reports/fortemi-api-integration-traceability-2026-05-25.md": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/reports/gate-validation-inception-2025-12-04.md": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/reports/iteration-0-completion.md": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/reports/multi-agent-orchestration-2026-02.md": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/reports/tauri-v2-research-2026-02.md": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/requirements/ac-regenerate-ai-overhaul.md": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/requirements/fortemi-api-integration-requirements-2026-05.md": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/requirements/mvp-acceptance-criteria-v2.md": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/requirements/ux-quick-capture-note-entry.md": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/requirements/ux-regenerate-ai-overhaul.md": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/risks/risk-list-v2.md": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/risks/risk-list.md": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/risks/ui-redesign-risk-register.md": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/security/migration-security-assessment.md": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/security/npm-audit-plan-2026-05-14.md": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/security/sbom-policy.md": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/security/secrets-management-policy.md": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/security/spa-security-config.md": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/team/onboarding-guide.md": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/testing/api-contract-test-plan-addendum-2026-05.md": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/testing/coverage-baseline.md": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/testing/feature-test-plan-regenerate.md": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/testing/master-test-plan.md": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/testing/migration-test-strategy-addendum.md": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/testing/ui-redesign-performance-strategy.md": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/working/architecture/sad/drafts/v0.1-primary-draft.md": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/working/architecture/sad/reviews/security-architect-review.md": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/working/architecture/sad/reviews/test-architect-review.md": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/working/architecture/sad/synthesis/synthesis-report.md": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/working/elaboration/planning/architecture-objectives-draft.md": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/working/elaboration/planning/risk-validation-strategy-draft.md": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/working/elaboration/planning/steel-thread-use-cases-draft.md": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/working/elaboration/steel-threads/steel-thread-1-validation.md": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/working/elaboration/steel-threads/steel-thread-2-validation.md": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/working/elaboration/steel-threads/steel-thread-3-validation.md": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/working/mobile-planning/review-requirements-analyst.md": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/working/mobile-planning/review-security-architect.md": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/working/mobile-planning/review-synthesis.md": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/working/mobile-planning/review-technical-writer.md": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/working/mobile-planning/review-test-architect.md": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/working/rollback-analysis.md": {
+    "upstream": [],
+    "downstream": []
+  }
+}

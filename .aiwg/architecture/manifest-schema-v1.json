@@ -1,0 +1,384 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hotm.fortemi.io/schemas/manifest-v1.schema.json",
+  "title": "HotM Manifest v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "manifest_version",
+    "schema_revision",
+    "service",
+    "client_version",
+    "api",
+    "auth",
+    "models",
+    "features",
+    "tiers",
+    "branding",
+    "telemetry",
+    "links"
+  ],
+  "properties": {
+    "manifest_version": {
+      "const": 1
+    },
+    "schema_revision": {
+      "type": "string",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+    },
+    "service": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "message",
+        "cache_ttl_seconds"
+      ],
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": [
+            "operational",
+            "degraded",
+            "maintenance",
+            "shutdown"
+          ]
+        },
+        "message": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "cache_ttl_seconds": {
+          "type": "integer",
+          "minimum": 60,
+          "maximum": 3600
+        }
+      }
+    },
+    "client_version": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "minimum_supported",
+        "recommended",
+        "update_url_ios",
+        "update_url_android"
+      ],
+      "properties": {
+        "minimum_supported": {
+          "type": "string",
+          "pattern": "^\\d+\\.\\d+\\.\\d+$"
+        },
+        "recommended": {
+          "type": "string",
+          "pattern": "^\\d+\\.\\d+\\.\\d+$"
+        },
+        "update_url_ios": {
+          "type": "string",
+          "format": "uri"
+        },
+        "update_url_android": {
+          "type": "string",
+          "format": "uri"
+        }
+      }
+    },
+    "api": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "base_url",
+        "websocket_url"
+      ],
+      "properties": {
+        "base_url": {
+          "type": "string",
+          "format": "uri",
+          "pattern": "^https://"
+        },
+        "websocket_url": {
+          "type": "string",
+          "format": "uri",
+          "pattern": "^wss://"
+        }
+      }
+    },
+    "auth": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "provider",
+        "issuer_url",
+        "client_id",
+        "scopes",
+        "redirect_uri"
+      ],
+      "properties": {
+        "provider": {
+          "type": "string",
+          "enum": [
+            "clerk",
+            "auth0",
+            "keycloak",
+            "self",
+            "none"
+          ]
+        },
+        "issuer_url": {
+          "type": "string",
+          "format": "uri"
+        },
+        "client_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "scopes": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "redirect_uri": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "models": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "default_generation",
+        "default_embedding",
+        "available_providers",
+        "available_generation_models",
+        "available_embedding_models"
+      ],
+      "properties": {
+        "default_generation": {
+          "type": "string",
+          "minLength": 1
+        },
+        "default_embedding": {
+          "type": "string",
+          "minLength": 1
+        },
+        "available_providers": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "id",
+              "name",
+              "key_format"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "name": {
+                "type": "string",
+                "minLength": 1
+              },
+              "key_format": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            }
+          }
+        },
+        "available_generation_models": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "provider",
+              "model",
+              "label"
+            ],
+            "properties": {
+              "provider": {
+                "type": "string",
+                "minLength": 1
+              },
+              "model": {
+                "type": "string",
+                "minLength": 1
+              },
+              "label": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        },
+        "available_embedding_models": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "provider",
+              "model"
+            ],
+            "properties": {
+              "provider": {
+                "type": "string",
+                "minLength": 1
+              },
+              "model": {
+                "type": "string",
+                "minLength": 1
+              },
+              "label": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    },
+    "features": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "boolean"
+      },
+      "minProperties": 1,
+      "properties": {
+        "media_upload": {
+          "type": "boolean"
+        },
+        "spatial_search": {
+          "type": "boolean"
+        },
+        "voice_capture": {
+          "type": "boolean"
+        },
+        "agent_actions": {
+          "type": "boolean"
+        },
+        "experimental_panel": {
+          "type": "boolean"
+        }
+      }
+    },
+    "tiers": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "current_tier",
+        "limits"
+      ],
+      "properties": {
+        "current_tier": {
+          "type": "string",
+          "enum": [
+            "free",
+            "pro",
+            "team"
+          ]
+        },
+        "limits": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "max_notes",
+            "max_storage_bytes",
+            "max_inference_requests_per_day"
+          ],
+          "properties": {
+            "max_notes": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "max_storage_bytes": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "max_inference_requests_per_day": {
+              "type": "integer",
+              "minimum": 0
+            }
+          }
+        }
+      }
+    },
+    "branding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "primary_color",
+        "logo_url",
+        "app_name_override"
+      ],
+      "properties": {
+        "primary_color": {
+          "type": "string",
+          "pattern": "^#[0-9A-Fa-f]{6}$"
+        },
+        "logo_url": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "uri"
+        },
+        "app_name_override": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "telemetry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "enabled_by_default",
+        "endpoint"
+      ],
+      "properties": {
+        "enabled_by_default": {
+          "type": "boolean"
+        },
+        "endpoint": {
+          "type": "string",
+          "format": "uri"
+        }
+      }
+    },
+    "links": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "support_url",
+        "privacy_policy_url",
+        "terms_url"
+      ],
+      "properties": {
+        "support_url": {
+          "type": "string",
+          "format": "uri"
+        },
+        "privacy_policy_url": {
+          "type": "string",
+          "format": "uri"
+        },
+        "terms_url": {
+          "type": "string",
+          "format": "uri"
+        }
+      }
+    }
+  }
+}

@@ -318,6 +318,7 @@ export function createApi(baseUrl?: string) {
       : (ollamaRaw === undefined ? undefined : (ollamaRaw ? 'available' : 'unavailable'));
 
     return {
+      ...raw,
       status: statusValue,
       version: versionValue,
       database: databaseValue,

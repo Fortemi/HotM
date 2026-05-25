@@ -41,12 +41,12 @@ describe('api.healthCheck', () => {
     const api = createApi('http://localhost:3000');
     const result = await api.healthCheck();
 
-    expect(result).toEqual({
+    expect(result).toEqual(expect.objectContaining({
       status: 'healthy',
       version: 'unknown',
       database: 'connected',
       ollama: 'unavailable',
-    });
+    }));
     expect(mockFetch).toHaveBeenCalledWith('http://localhost:3000/health');
   });
 
@@ -64,12 +64,12 @@ describe('api.healthCheck', () => {
     const api = createApi('http://localhost:3000');
     const result = await api.healthCheck();
 
-    expect(result).toEqual({
+    expect(result).toEqual(expect.objectContaining({
       status: 'healthy',
       version: '1.2.3',
       database: 'connected',
       ollama: undefined,
-    });
+    }));
     expect(mockFetch).toHaveBeenNthCalledWith(
       1,
       'http://localhost:3000/health'
@@ -78,6 +78,35 @@ describe('api.healthCheck', () => {
       2,
       'http://localhost:3000/health/live'
     );
+  });
+
+  it('preserves Fortemi capability metadata from health payloads', async () => {
+    mockFetch.mockResolvedValueOnce(
+      okJson({
+        status: 'healthy',
+        version: '2026.5.25',
+        database: true,
+        capabilities: {
+          chat: { available: false, configured: true },
+          webhooks: true,
+        },
+        sse: { active_connections: 1, events_delivered: 42 },
+      })
+    );
+
+    const api = createApi('http://localhost:3000');
+    const result = await api.healthCheck();
+
+    expect(result).toEqual(expect.objectContaining({
+      status: 'healthy',
+      version: '2026.5.25',
+      database: 'connected',
+      capabilities: {
+        chat: { available: false, configured: true },
+        webhooks: true,
+      },
+      sse: { active_connections: 1, events_delivered: 42 },
+    }));
   });
 
   it('throws when all health endpoints fail', async () => {
@@ -102,11 +131,11 @@ describe('api.healthCheck', () => {
     const api = createApi('http://localhost:3000');
     const result = await api.healthCheck();
 
-    expect(result).toEqual({
+    expect(result).toEqual(expect.objectContaining({
       status: 'healthy',
       version: 'unknown',
       database: 'unknown',
       ollama: undefined,
-    });
+    }));
   });
 });

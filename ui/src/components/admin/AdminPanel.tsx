@@ -10,7 +10,7 @@
  */
 
 import * as React from 'react';
-import { Settings, Shield, Database, Cpu, Lock, Info, Sparkles, ScrollText } from 'lucide-react';
+import { Settings, Shield, Database, Cpu, Lock, Info, Sparkles, ScrollText, Server } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -22,6 +22,9 @@ import { api } from '@/api';
 import type { EmbeddingConfig, KnowledgeHealth } from '@/api';
 import { InferenceSettings } from './InferenceSettings';
 import { InferenceAuditLog } from './InferenceAuditLog';
+import { DocumentTypesPanel } from './DocumentTypesPanel';
+import { WebhooksPanel } from './WebhooksPanel';
+import { ApiCapabilitiesPanel } from './ApiCapabilitiesPanel';
 
 export interface AdminPanelProps {
   className?: string;
@@ -41,6 +44,7 @@ interface SystemHealth {
     events_emitted: number;
   };
 }
+
 
 export function AdminPanel({ className }: AdminPanelProps) {
   const [activeTab, setActiveTab] = React.useState('system');
@@ -119,6 +123,10 @@ export function AdminPanel({ className }: AdminPanelProps) {
             <Database className="size-4" />
             System Info
           </TabsTrigger>
+          <TabsTrigger value="api-surface">
+            <Server className="size-4" />
+            API Surface
+          </TabsTrigger>
           <TabsTrigger value="inference">
             <Sparkles className="size-4" />
             Inference
@@ -130,6 +138,14 @@ export function AdminPanel({ className }: AdminPanelProps) {
           <TabsTrigger value="embedding">
             <Cpu className="size-4" />
             Embedding Config
+          </TabsTrigger>
+          <TabsTrigger value="documents">
+            <Info className="size-4" />
+            Document Types
+          </TabsTrigger>
+          <TabsTrigger value="webhooks">
+            <ScrollText className="size-4" />
+            Webhooks
           </TabsTrigger>
           <TabsTrigger value="auth">
             <Shield className="size-4" />
@@ -272,6 +288,11 @@ export function AdminPanel({ className }: AdminPanelProps) {
           )}
         </TabsContent>
 
+        {/* API Surface Tab */}
+        <TabsContent value="api-surface">
+          <ApiCapabilitiesPanel />
+        </TabsContent>
+
         {/* Inference Tab */}
         <TabsContent value="inference">
           <InferenceSettings />
@@ -344,6 +365,16 @@ export function AdminPanel({ className }: AdminPanelProps) {
               </CardContent>
             </Card>
           )}
+        </TabsContent>
+
+        {/* Document Types Tab */}
+        <TabsContent value="documents">
+          <DocumentTypesPanel />
+        </TabsContent>
+
+        {/* Webhooks Tab */}
+        <TabsContent value="webhooks">
+          <WebhooksPanel />
         </TabsContent>
 
         {/* Authentication Tab */}

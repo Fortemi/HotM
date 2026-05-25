@@ -1,0 +1,41 @@
+{
+  "version": "1.0.0",
+  "builtAt": "2026-05-25T22:28:15.276Z",
+  "buildTimeMs": 39,
+  "totalArtifacts": 133,
+  "byPhase": {
+    "other": 76,
+    "architecture": 12,
+    "intake": 4,
+    "planning": 9,
+    "reports": 13,
+    "requirements": 5,
+    "risks": 3,
+    "security": 5,
+    "testing": 6
+  },
+  "byType": {
+    "document": 98,
+    "adr": 9,
+    "api-specification": 1,
+    "architecture": 6,
+    "deployment": 1,
+    "index": 1,
+    "phase-plan": 1,
+    "research-finding": 3,
+    "risk": 4,
+    "test-plan": 3,
+    "use-case": 1,
+    "review-feedback": 4,
+    "review-synthesis": 1
+  },
+  "tagDistribution": {},
+  "graphMetrics": {
+    "totalEdges": 6,
+    "orphanedArtifacts": 126,
+    "mostReferenced": {
+      "path": ".aiwg/architecture/ADR-001-client-server-architecture.md",
+      "count": 1
+    }
+  }
+}

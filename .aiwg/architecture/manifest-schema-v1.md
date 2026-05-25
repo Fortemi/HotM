@@ -163,6 +163,14 @@ GET https://api.hotm.fortemi.io/v1/manifest
 
 Every field is required in the response body. "Not applicable" values use `null` rather than being omitted, so client parsers never branch on field presence.
 
+## Machine-Readable Schema
+
+The normative JSON Schema companion for this prose specification is `.aiwg/architecture/manifest-schema-v1.json`. Validate schema changes with:
+
+```bash
+node .aiwg/testing/scripts/validate-manifest-schema.mjs
+```
+
 ## HTTP semantics
 
 ### Response codes

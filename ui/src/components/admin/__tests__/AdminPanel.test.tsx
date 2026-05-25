@@ -21,6 +21,17 @@ vi.mock('@/api', () => ({
     health: {
       getKnowledgeHealth: vi.fn(),
     },
+    documents: {
+      list: vi.fn(),
+      create: vi.fn(),
+      delete: vi.fn(),
+    },
+    webhooks: {
+      list: vi.fn(),
+      create: vi.fn(),
+      delete: vi.fn(),
+      test: vi.fn(),
+    },
   },
 }));
 
@@ -78,6 +89,8 @@ describe('AdminPanel', () => {
     (api.health.getKnowledgeHealth as any).mockResolvedValue(mockHealthData);
     (api.healthCheck as any).mockResolvedValue(mockSystemHealth);
     (api.client.get as any).mockResolvedValue(mockSystemHealth);
+    (api.documents.list as any).mockResolvedValue([]);
+    (api.webhooks.list as any).mockResolvedValue([]);
   });
 
   describe('Rendering', () => {
@@ -86,8 +99,11 @@ describe('AdminPanel', () => {
 
       await waitFor(() => {
         expect(screen.getByText('System Info')).toBeInTheDocument();
+        expect(screen.getByText('API Surface')).toBeInTheDocument();
         expect(screen.getByText('Embedding Config')).toBeInTheDocument();
         expect(screen.getByText('Authentication')).toBeInTheDocument();
+        expect(screen.getByText('Document Types')).toBeInTheDocument();
+        expect(screen.getAllByText('Webhooks').length).toBeGreaterThan(0);
         expect(screen.getByText('About')).toBeInTheDocument();
       });
     });
@@ -122,6 +138,20 @@ describe('AdminPanel', () => {
         expect(screen.getByText('150')).toBeInTheDocument();
         expect(screen.getByText(/Orphan Notes/i)).toBeInTheDocument();
         expect(screen.getByText('5')).toBeInTheDocument();
+      });
+    });
+
+    it('should display the API surface tab with compatibility features', async () => {
+      const user = userEvent.setup();
+      render(<AdminPanel />);
+
+      await user.click(screen.getByText('API Surface'));
+
+      await waitFor(() => {
+        expect(screen.getByText(/HotM Compatibility Surface/i)).toBeInTheDocument();
+        expect(screen.getByText('Explicit titles')).toBeInTheDocument();
+        expect(screen.getByText('Deferred import')).toBeInTheDocument();
+        expect(screen.getAllByText('Webhooks').length).toBeGreaterThan(0);
       });
     });
 
@@ -259,10 +289,28 @@ describe('AdminPanel', () => {
         expect(screen.getByText(/API Version/i)).toBeInTheDocument();
       });
 
+      // Switch to API Surface
+      await user.click(screen.getByText('API Surface'));
+      await waitFor(() => {
+        expect(screen.getByText('Advertised Capabilities')).toBeInTheDocument();
+      });
+
       // Switch to Embedding Config
       await user.click(screen.getByText('Embedding Config'));
       await waitFor(() => {
         expect(screen.getByText(/Embedding Model Configuration/i)).toBeInTheDocument();
+      });
+
+      // Switch to Document Types
+      await user.click(screen.getByText('Document Types'));
+      await waitFor(() => {
+        expect(screen.getByText(/Create Custom Type/i)).toBeInTheDocument();
+      });
+
+      // Switch to Webhooks
+      await user.click(screen.getByText('Webhooks'));
+      await waitFor(() => {
+        expect(screen.getByLabelText('URL')).toBeInTheDocument();
       });
 
       // Switch to Authentication

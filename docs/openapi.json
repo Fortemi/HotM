@@ -1,12 +1,19 @@
 {
   "openapi": "3.0.3",
   "info": {
-    "title": "HotM Local API",
+    "title": "HotM Fortemi API Compatibility Spec",
     "version": "v1",
-    "description": "Local-only API for HotM notes system. All timestamps are UTC ISO-8601; UI displays local time."
+    "description": "Compatibility snapshot for the HotM UI and local Fortemi sidecar. All timestamps are UTC ISO-8601; UI displays local time."
   },
   "servers": [
-    { "url": "http://127.0.0.1:53211/api/v1" }
+    {
+      "url": "http://localhost:3000/api/v1",
+      "description": "Fortemi local sidecar default"
+    },
+    {
+      "url": "http://127.0.0.1:3000/api/v1",
+      "description": "Loopback equivalent"
+    }
   ],
   "paths": {
     "/health": {
@@ -17,7 +24,11 @@
           "200": {
             "description": "OK",
             "content": {
-              "application/json": {"schema": {"$ref": "#/components/schemas/Health"}}
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Health"
+                }
+              }
             }
           }
         }
@@ -30,11 +41,24 @@
         "requestBody": {
           "required": true,
           "content": {
-            "application/json": {"schema": {"$ref": "#/components/schemas/CreateNoteRequest"}}
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateNoteRequest"
+              }
+            }
           }
         },
         "responses": {
-          "200": {"description": "Created", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/CreateNoteResponse"}}}}
+          "200": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateNoteResponse"
+                }
+              }
+            }
+          }
         }
       }
     },
@@ -43,11 +67,29 @@
         "operationId": "getNote",
         "summary": "Get note with original and revised",
         "parameters": [
-          {"name": "id", "in": "path", "required": true, "schema": {"type": "string"}}
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
         ],
         "responses": {
-          "200": {"description": "OK", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/GetNoteResponse"}}}},
-          "404": {"description": "Not found"}
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetNoteResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found"
+          }
         }
       }
     },
@@ -56,10 +98,37 @@
         "operationId": "putRevised",
         "summary": "Update revised content and create new revision",
         "parameters": [
-          {"name": "id", "in": "path", "required": true, "schema": {"type": "string"}}
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
         ],
-        "requestBody": {"required": true, "content": {"application/json": {"schema": {"$ref": "#/components/schemas/PutRevisedRequest"}}}},
-        "responses": {"200": {"description": "OK", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/PutRevisedResponse"}}}}}
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PutRevisedRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PutRevisedResponse"
+                }
+              }
+            }
+          }
+        }
       }
     },
     "/notes/{id}/provenance": {
@@ -67,9 +136,27 @@
         "operationId": "getProvenance",
         "summary": "Get provenance graph for note",
         "parameters": [
-          {"name": "id", "in": "path", "required": true, "schema": {"type": "string"}}
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
         ],
-        "responses": {"200": {"description": "OK", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ProvenanceResponse"}}}}}
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProvenanceResponse"
+                }
+              }
+            }
+          }
+        }
       }
     },
     "/notes/{id}/links": {
@@ -77,10 +164,37 @@
         "operationId": "postLink",
         "summary": "Create link from note to another note or external URL",
         "parameters": [
-          {"name": "id", "in": "path", "required": true, "schema": {"type": "string"}}
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
         ],
-        "requestBody": {"required": true, "content": {"application/json": {"schema": {"$ref": "#/components/schemas/PostLinkRequest"}}}},
-        "responses": {"200": {"description": "OK", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/PostLinkResponse"}}}}}
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PostLinkRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PostLinkResponse"
+                }
+              }
+            }
+          }
+        }
       }
     },
     "/search": {
@@ -88,27 +202,104 @@
         "operationId": "search",
         "summary": "Hybrid/FTS/Vector search with filters",
         "parameters": [
-          {"name": "q", "in": "query", "required": true, "schema": {"type": "string"}},
-          {"name": "mode", "in": "query", "schema": {"type": "string", "enum": ["hybrid", "fts", "vector"], "default": "hybrid"}},
-          {"name": "filters", "in": "query", "schema": {"type": "string", "description": "e.g., tag:project collection:work before:2025-08-01"}}
+          {
+            "name": "q",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "mode",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "hybrid",
+                "fts",
+                "vector"
+              ],
+              "default": "hybrid"
+            }
+          },
+          {
+            "name": "filters",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "description": "e.g., tag:project collection:work before:2025-08-01"
+            }
+          }
         ],
-        "responses": {"200": {"description": "OK", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/SearchResponse"}}}}}
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SearchResponse"
+                }
+              }
+            }
+          }
+        }
       }
     },
     "/semantic": {
       "post": {
         "operationId": "semanticSimilar",
         "summary": "Vector similarity against embeddings",
-        "requestBody": {"required": true, "content": {"application/json": {"schema": {"$ref": "#/components/schemas/SemanticRequest"}}}},
-        "responses": {"200": {"description": "OK", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/SemanticResponse"}}}}}
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SemanticRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SemanticResponse"
+                }
+              }
+            }
+          }
+        }
       }
     },
     "/collections": {
       "post": {
         "operationId": "createCollection",
         "summary": "Create collection",
-        "requestBody": {"required": true, "content": {"application/json": {"schema": {"$ref": "#/components/schemas/CreateCollectionRequest"}}}},
-        "responses": {"200": {"description": "OK", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/CreateCollectionResponse"}}}}}
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateCollectionRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateCollectionResponse"
+                }
+              }
+            }
+          }
+        }
       }
     },
     "/notes/{id}/collection": {
@@ -116,18 +307,65 @@
         "operationId": "putNoteCollection",
         "summary": "Assign collection to note",
         "parameters": [
-          {"name": "id", "in": "path", "required": true, "schema": {"type": "string"}}
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
         ],
-        "requestBody": {"required": true, "content": {"application/json": {"schema": {"$ref": "#/components/schemas/PutNoteCollectionRequest"}}}},
-        "responses": {"200": {"description": "OK", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/PutNoteCollectionResponse"}}}}}
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PutNoteCollectionRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PutNoteCollectionResponse"
+                }
+              }
+            }
+          }
+        }
       }
     },
     "/tags": {
       "post": {
         "operationId": "createTag",
         "summary": "Create tag",
-        "requestBody": {"required": true, "content": {"application/json": {"schema": {"$ref": "#/components/schemas/CreateTagRequest"}}}},
-        "responses": {"200": {"description": "OK", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/CreateTagResponse"}}}}}
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateTagRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateTagResponse"
+                }
+              }
+            }
+          }
+        }
       }
     },
     "/notes/{id}/tags": {
@@ -135,53 +373,990 @@
         "operationId": "putNoteTags",
         "summary": "Add/remove tags on note",
         "parameters": [
-          {"name": "id", "in": "path", "required": true, "schema": {"type": "string"}}
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
         ],
-        "requestBody": {"required": true, "content": {"application/json": {"schema": {"$ref": "#/components/schemas/PutNoteTagsRequest"}}}},
-        "responses": {"200": {"description": "OK", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/PutNoteTagsResponse"}}}}}
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PutNoteTagsRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PutNoteTagsResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/notes/reprocess": {
+      "post": {
+        "operationId": "bulkReprocessNotes",
+        "summary": "Trigger bulk or selected-note AI reprocessing",
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BulkReprocessRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Accepted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BulkReprocessResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/backup/import": {
+      "post": {
+        "operationId": "importBackup",
+        "summary": "Import a backup payload, optionally deferring inference",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BackupImportRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Imported",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            }
+          }
+        }
       }
     },
     "/chat": {
       "post": {
         "operationId": "chat",
         "summary": "Chat/command interface; returns messages or actions",
-        "requestBody": {"required": true, "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ChatRequest"}}}},
-        "responses": {"200": {"description": "OK", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ChatResponse"}}}}}
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChatRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChatResponse"
+                }
+              }
+            }
+          }
+        }
       }
     },
     "/stats": {
       "get": {
         "operationId": "stats",
         "summary": "Usage and activity stats",
-        "responses": {"200": {"description": "OK", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Stats"}}}}}
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Stats"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/webhooks": {
+      "get": {
+        "operationId": "listWebhooks",
+        "summary": "List registered webhooks",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "webhooks": {
+                          "type": "array",
+                          "items": {
+                            "$ref": "#/components/schemas/Webhook"
+                          }
+                        }
+                      }
+                    },
+                    {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Webhook"
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "createWebhook",
+        "summary": "Register webhook",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateWebhookRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/Webhook"
+                    },
+                    {
+                      "type": "object",
+                      "required": [
+                        "id"
+                      ],
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/webhooks/{id}": {
+      "get": {
+        "operationId": "getWebhook",
+        "summary": "Get webhook",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Webhook"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found"
+          }
+        }
+      },
+      "patch": {
+        "operationId": "updateWebhook",
+        "summary": "Update webhook",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateWebhookRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Webhook"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "operationId": "deleteWebhook",
+        "summary": "Delete webhook",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Deleted"
+          },
+          "204": {
+            "description": "Deleted"
+          }
+        }
+      }
+    },
+    "/webhooks/{id}/deliveries": {
+      "get": {
+        "operationId": "listWebhookDeliveries",
+        "summary": "List webhook delivery history",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "deliveries": {
+                          "type": "array",
+                          "items": {
+                            "$ref": "#/components/schemas/WebhookDelivery"
+                          }
+                        }
+                      }
+                    },
+                    {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/WebhookDelivery"
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/webhooks/{id}/test": {
+      "post": {
+        "operationId": "testWebhook",
+        "summary": "Send a test event to a webhook",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WebhookDelivery"
+                }
+              }
+            }
+          }
+        }
       }
     }
   },
   "components": {
     "schemas": {
-      "Health": {"type": "object", "properties": {"ok": {"type": "boolean"}, "ollama": {"type": "boolean"}}},
-      "CreateNoteRequest": {"type": "object", "required": ["content"], "properties": {"content": {"type": "string"}, "format": {"type": "string", "default": "markdown"}, "source": {"type": "string", "default": "manual"}}},
-      "CreateNoteResponse": {"type": "object", "properties": {"noteId": {"type": "string"}}},
-      "GetNoteResponse": {"type": "object", "properties": {"note": {"type": "object"}, "original": {"type": "object"}, "revised": {"type": "object"}, "tags": {"type": "array", "items": {"type": "string"}}, "links": {"type": "array", "items": {"type": "object"}}, "timestampsUTC": {"type": "object"}}},
-      "PutRevisedRequest": {"type": "object", "required": ["content"], "properties": {"content": {"type": "string"}, "rationale": {"type": "string"}}},
-      "PutRevisedResponse": {"type": "object", "properties": {"revisionId": {"type": "string"}, "revisedContent": {"type": "string"}}},
-      "ProvenanceResponse": {"type": "object", "properties": {"graph": {"type": "object"}}},
-      "PostLinkRequest": {"type": "object", "properties": {"toNoteId": {"type": "string"}, "toUrl": {"type": "string"}, "kind": {"type": "string"}, "score": {"type": "number"}}},
-      "PostLinkResponse": {"type": "object", "properties": {"linkId": {"type": "string"}}},
-      "SearchResponse": {"type": "object", "properties": {"hits": {"type": "array", "items": {"type": "object"}}}},
-      "SemanticRequest": {"type": "object", "required": ["text"], "properties": {"text": {"type": "string"}}},
-      "SemanticResponse": {"type": "object", "properties": {"similar": {"type": "array", "items": {"type": "object"}}}},
-      "CreateCollectionRequest": {"type": "object", "required": ["name"], "properties": {"name": {"type": "string"}, "description": {"type": "string"}}},
-      "CreateCollectionResponse": {"type": "object", "properties": {"collectionId": {"type": "string"}}},
-      "PutNoteCollectionRequest": {"type": "object", "required": ["collectionId"], "properties": {"collectionId": {"type": "string"}}},
-      "PutNoteCollectionResponse": {"type": "object", "properties": {"collectionId": {"type": "string"}}},
-      "CreateTagRequest": {"type": "object", "required": ["name"], "properties": {"name": {"type": "string"}}},
-      "CreateTagResponse": {"type": "object", "properties": {"name": {"type": "string"}}},
-      "PutNoteTagsRequest": {"type": "object", "properties": {"add": {"type": "array", "items": {"type": "string"}}, "remove": {"type": "array", "items": {"type": "string"}}}},
-      "PutNoteTagsResponse": {"type": "object", "properties": {"tags": {"type": "array", "items": {"type": "string"}}}},
-      "ChatRequest": {"type": "object", "required": ["input"], "properties": {"input": {"type": "string"}, "context": {"type": "object"}}},
-      "ChatResponse": {"type": "object", "properties": {"messages": {"type": "array", "items": {"type": "object"}}, "actions": {"type": "array", "items": {"type": "object"}}}},
-      "Stats": {"type": "object", "properties": {"counts": {"type": "object"}, "activity": {"type": "array", "items": {"type": "object"}}, "topTags": {"type": "array", "items": {"type": "string"}}, "recents": {"type": "array", "items": {"type": "object"}}}}
+      "Health": {
+        "type": "object",
+        "properties": {
+          "ok": {
+            "type": "boolean"
+          },
+          "ollama": {
+            "type": "boolean"
+          }
+        }
+      },
+      "CreateNoteRequest": {
+        "type": "object",
+        "required": [
+          "content"
+        ],
+        "properties": {
+          "content": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string",
+            "description": "Optional explicit title; when provided, callers may skip generated-title behavior."
+          },
+          "format": {
+            "type": "string",
+            "default": "markdown"
+          },
+          "source": {
+            "type": "string",
+            "default": "manual"
+          },
+          "revision_mode": {
+            "$ref": "#/components/schemas/RevisionMode"
+          },
+          "document_type": {
+            "type": "string"
+          },
+          "context_filter": {
+            "$ref": "#/components/schemas/ContextFilter"
+          },
+          "processing": {
+            "$ref": "#/components/schemas/ProcessingOptions"
+          }
+        }
+      },
+      "CreateNoteResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Fortemi canonical note id."
+          },
+          "note_id": {
+            "type": "string",
+            "description": "HotM normalized note id."
+          },
+          "noteId": {
+            "type": "string",
+            "deprecated": true,
+            "description": "Legacy note id alias retained for compatibility."
+          },
+          "status": {
+            "type": "string"
+          }
+        }
+      },
+      "GetNoteResponse": {
+        "type": "object",
+        "properties": {
+          "note": {
+            "type": "object"
+          },
+          "original": {
+            "type": "object"
+          },
+          "revised": {
+            "type": "object"
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "links": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "timestampsUTC": {
+            "type": "object"
+          }
+        }
+      },
+      "PutRevisedRequest": {
+        "type": "object",
+        "required": [
+          "content"
+        ],
+        "properties": {
+          "content": {
+            "type": "string"
+          },
+          "rationale": {
+            "type": "string"
+          }
+        }
+      },
+      "PutRevisedResponse": {
+        "type": "object",
+        "properties": {
+          "revisionId": {
+            "type": "string"
+          },
+          "revisedContent": {
+            "type": "string"
+          }
+        }
+      },
+      "ProvenanceResponse": {
+        "type": "object",
+        "properties": {
+          "graph": {
+            "type": "object"
+          }
+        }
+      },
+      "PostLinkRequest": {
+        "type": "object",
+        "properties": {
+          "toNoteId": {
+            "type": "string"
+          },
+          "toUrl": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string"
+          },
+          "score": {
+            "type": "number"
+          }
+        }
+      },
+      "PostLinkResponse": {
+        "type": "object",
+        "properties": {
+          "linkId": {
+            "type": "string"
+          }
+        }
+      },
+      "SearchResponse": {
+        "type": "object",
+        "properties": {
+          "hits": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          }
+        }
+      },
+      "SemanticRequest": {
+        "type": "object",
+        "required": [
+          "text"
+        ],
+        "properties": {
+          "text": {
+            "type": "string"
+          }
+        }
+      },
+      "SemanticResponse": {
+        "type": "object",
+        "properties": {
+          "similar": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          }
+        }
+      },
+      "CreateCollectionRequest": {
+        "type": "object",
+        "required": [
+          "name"
+        ],
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          }
+        }
+      },
+      "CreateCollectionResponse": {
+        "type": "object",
+        "properties": {
+          "collectionId": {
+            "type": "string"
+          }
+        }
+      },
+      "PutNoteCollectionRequest": {
+        "type": "object",
+        "required": [
+          "collectionId"
+        ],
+        "properties": {
+          "collectionId": {
+            "type": "string"
+          }
+        }
+      },
+      "PutNoteCollectionResponse": {
+        "type": "object",
+        "properties": {
+          "collectionId": {
+            "type": "string"
+          }
+        }
+      },
+      "CreateTagRequest": {
+        "type": "object",
+        "required": [
+          "name"
+        ],
+        "properties": {
+          "name": {
+            "type": "string"
+          }
+        }
+      },
+      "CreateTagResponse": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          }
+        }
+      },
+      "PutNoteTagsRequest": {
+        "type": "object",
+        "properties": {
+          "add": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "remove": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "PutNoteTagsResponse": {
+        "type": "object",
+        "properties": {
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "ChatRequest": {
+        "type": "object",
+        "required": [
+          "input"
+        ],
+        "properties": {
+          "input": {
+            "type": "string"
+          },
+          "context": {
+            "type": "object"
+          }
+        }
+      },
+      "ChatResponse": {
+        "type": "object",
+        "properties": {
+          "messages": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "actions": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          }
+        }
+      },
+      "Stats": {
+        "type": "object",
+        "properties": {
+          "counts": {
+            "type": "object"
+          },
+          "activity": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "topTags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "recents": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          }
+        }
+      },
+      "RevisionMode": {
+        "type": "string",
+        "enum": [
+          "none",
+          "light",
+          "standard",
+          "contextual",
+          "contextual_filtered",
+          "full"
+        ],
+        "description": "AI revision mode. full is a legacy alias for contextual."
+      },
+      "ContextFilter": {
+        "type": "object",
+        "properties": {
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "collection_id": {
+            "type": "string",
+            "nullable": true
+          },
+          "query": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": true
+      },
+      "ProcessingOptions": {
+        "type": "object",
+        "properties": {
+          "autoTagConcepts": {
+            "type": "boolean"
+          },
+          "generateEmbeddings": {
+            "type": "boolean"
+          },
+          "autoLinkRelated": {
+            "type": "boolean"
+          },
+          "extractMedia": {
+            "type": "boolean"
+          },
+          "generateTitle": {
+            "type": "boolean"
+          }
+        },
+        "additionalProperties": false
+      },
+      "BulkReprocessRequest": {
+        "type": "object",
+        "properties": {
+          "revision_mode": {
+            "$ref": "#/components/schemas/RevisionMode"
+          },
+          "note_ids": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "steps": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "limit": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "model": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "BulkReprocessResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string"
+          },
+          "job_id": {
+            "type": "string"
+          },
+          "job_ids": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "processed": {
+            "type": "integer"
+          },
+          "queued": {
+            "type": "integer"
+          }
+        },
+        "additionalProperties": true
+      },
+      "BackupImportRequest": {
+        "type": "object",
+        "required": [
+          "backup"
+        ],
+        "properties": {
+          "backup": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "defer_inference": {
+            "type": "boolean",
+            "default": false,
+            "description": "When true, import data first and run inference later via /notes/reprocess."
+          }
+        },
+        "additionalProperties": true
+      },
+      "Webhook": {
+        "type": "object",
+        "required": [
+          "id",
+          "url",
+          "events",
+          "is_active",
+          "created_at",
+          "updated_at",
+          "failure_count",
+          "max_retries"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string",
+            "format": "uri"
+          },
+          "secret": {
+            "type": "string"
+          },
+          "events": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "is_active": {
+            "type": "boolean"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "last_triggered_at": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "failure_count": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "max_retries": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "additionalProperties": true
+      },
+      "CreateWebhookRequest": {
+        "type": "object",
+        "required": [
+          "url",
+          "events"
+        ],
+        "properties": {
+          "url": {
+            "type": "string",
+            "format": "uri"
+          },
+          "secret": {
+            "type": "string"
+          },
+          "events": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "minItems": 1
+          },
+          "max_retries": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "additionalProperties": false
+      },
+      "UpdateWebhookRequest": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "format": "uri"
+          },
+          "secret": {
+            "type": "string"
+          },
+          "events": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "minItems": 1
+          },
+          "is_active": {
+            "type": "boolean"
+          },
+          "max_retries": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "additionalProperties": false
+      },
+      "WebhookDelivery": {
+        "type": "object",
+        "required": [
+          "id",
+          "webhook_id",
+          "event_type",
+          "payload",
+          "delivered_at",
+          "success"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "webhook_id": {
+            "type": "string"
+          },
+          "event_type": {
+            "type": "string"
+          },
+          "payload": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "status_code": {
+            "type": "integer"
+          },
+          "response_body": {
+            "type": "string"
+          },
+          "delivered_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "success": {
+            "type": "boolean"
+          }
+        },
+        "additionalProperties": true
+      }
     }
   }
 }
