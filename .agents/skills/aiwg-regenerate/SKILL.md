@@ -4,6 +4,14 @@ description: "Regenerate platform context file with preserved team directives"
 platforms: [codex]
 ---
 
+> **Deterministic execution (#1266)**: this skill has a `script:` entrypoint
+> that shells out to `aiwg regenerate "$@"`. Prefer
+> `aiwg run skill aiwg-regenerate -- <flags>` over agent-mediated invocation.
+> When invoked as a slash command on platforms without a deployed command stub,
+> the agent MUST run only `aiwg regenerate <flags>` and report its output — no
+> exploratory permission requests, no multi-step planning. The deterministic
+> CLI is the source of truth.
+
 # Regenerate Platform Context File
 
 Analyze current project state and regenerate the platform context file (CLAUDE.md, WARP.md, or AGENTS.md) while preserving team directives and organizational requirements.
@@ -24,25 +32,15 @@ By default, uses the **hook file architecture**: generates `AIWG.md` (or provide
 
 ## Platform Detection
 
-Detect current platform automatically by checking for existing context files:
+The CLI is the source of truth for provider selection. It resolves the target in this order:
 
-| Priority | Check | Platform | Command |
-|----------|-------|----------|---------|
-| 1 | `CLAUDE.md` exists | Claude Code | `/aiwg-regenerate-claude` |
-| 2 | `WARP.md` exists | Warp Terminal | `/aiwg-regenerate-warp` |
-| 3 | `.cursorrules` exists | Cursor | `/aiwg-regenerate-cursorrules` |
-| 4 | `.windsurfrules` exists | Windsurf | `/aiwg-regenerate-windsurfrules` |
-| 5 | `.github/copilot-instructions.md` exists | GitHub Copilot | `/aiwg-regenerate-copilot` |
-| 6 | `CODEX.md` exists | Codex | `/aiwg-regenerate-codex` |
-| 7 | `.opencode/context.md` exists | OpenCode | `/aiwg-regenerate-opencode` |
-| 8 | `AGENTS.md` exists + `.factory/` | Factory AI | `/aiwg-regenerate-factory` |
-| 9 | `AGENTS.md` exists | Windsurf/generic | `/aiwg-regenerate-agents` |
-| 10 | `.factory/` exists | Factory AI | `/aiwg-regenerate-factory` |
-| 11 | `.cursor/` exists | Cursor | `/aiwg-regenerate-cursorrules` |
-| 12 | `.windsurf/` exists | Windsurf | `/aiwg-regenerate-windsurfrules` |
-| 13 | `.github/agents/` exists | GitHub Copilot | `/aiwg-regenerate-copilot` |
+1. Explicit `--provider <name>` flag.
+2. Explicit provider environment, such as `AIWG_PROVIDER` or `CLAUDECODE_PROVIDER`.
+3. Active runtime environment markers, such as `CODEX_HOME` / `CODEX_SANDBOX`, Cursor, Warp, Copilot, OpenCode, Factory, Windsurf, OpenClaw, or Claude Code markers. Runtime markers win over unrelated API keys.
+4. Project configuration from `.aiwg/aiwg.config` when no active runtime is detected.
+5. `generic` when no provider can be inferred.
 
-If multiple files exist, use priority order. If ambiguous, ask user.
+Existing context files such as `CLAUDE.md` or `AGENTS.md` are not sufficient to override the active runtime. In mixed-provider workspaces, pass `--provider <name>` when you want a provider other than the current runtime.
 
 ### `--all` Mode
 

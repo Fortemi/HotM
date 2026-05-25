@@ -4,6 +4,13 @@ description: "Update AIWG CLI and redeploy frameworks/tools to current project w
 platforms: [codex]
 ---
 
+> **Deterministic execution (#1267)**: this skill has a `script:` entrypoint.
+> Prefer `aiwg run skill aiwg-refresh -- <flags>` over agent-mediated invocation.
+> When invoked as a slash command on platforms without a deployed command stub
+> (e.g. hermes), the agent MUST run only `aiwg refresh <flags>` and report its
+> output — no exploratory permission requests, no multi-step planning. The
+> deterministic CLI is the source of truth.
+
 # Refresh AIWG Deployment
 
 Update the AIWG CLI and/or redeploy frameworks, agents, commands, and tools to the current
