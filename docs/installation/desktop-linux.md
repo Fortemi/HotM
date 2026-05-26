@@ -25,7 +25,8 @@ The installer is idempotent — re-running is safe and skips anything already in
 | 5 | The `.deb` postinst creates the `matric` role, the `matric` database, and enables `vector`, `postgis`, `pg_trgm`, `unaccent` extensions |
 | 6 | Runs the official Ollama installer (`curl https://ollama.com/install.sh \| sh`) and enables the `ollama` systemd service |
 | 7 | Pulls `nomic-embed-text` (embeddings) and `qwen3.5:9b` (generation) **in the background** — model pulls take 5-15 minutes and don't block the installer |
-| 8 | Reports installed status and next steps |
+| 8 | Runs a short sidecar smoke probe unless `--skip-smoke-test` is set |
+| 9 | Reports installed status and next steps |
 
 Audit the script before piping by reading it directly:
 ```bash
@@ -36,11 +37,15 @@ curl -fsSL https://raw.githubusercontent.com/Fortemi/HotM/main/scripts/install.s
 
 ```bash
 ./scripts/install.sh \
-  --version v2026.5.1     # pin to a specific release (default: latest)
+  --version v2026.5.14    # pin to a specific release (default: latest)
+  --local-deb ./HotM_2026.5.14_amd64.deb
   --no-ollama             # skip Ollama install (HotM starts in degraded mode)
   --skip-models           # install Ollama but don't auto-pull models
   --embed-model nomic-embed-text
   --gen-model qwen3.5:9b
+  --reset-db              # reset an empty/drifted matric DB after install
+  --reset-db --force      # destructive: reset even when note rows exist
+  --skip-smoke-test       # skip the sidecar startup probe
 ```
 
 ## Manual install (advanced)
@@ -155,7 +160,7 @@ Or pin to a specific version:
 ./scripts/install.sh --version v2026.6.0
 ```
 
-Configuration and data are preserved across updates.
+Configuration and data are preserved across updates. If a reinstall hits Fortemi migration-checksum drift on a disposable host, rerun with `--reset-db`; the installer refuses to reset a database with note rows unless `--force` is also supplied.
 
 ## Uninstalling
 
