@@ -4,6 +4,36 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2026.5.14] - 2026-05-26
+
+Feature release for the latest Fortemi API surface integration. HotM now documents and exercises the newer Fortemi create-note, reprocess, backup import, document type, webhook, and capability-health contracts, and adds operator-facing Admin screens for the surfaces that need direct UI control.
+
+### Added
+
+- **Admin > API Surface** - dedicated capability/status screen showing the active sidecar endpoint, version/status, database and Ollama state, realtime counters, advertised capabilities, degraded-mode guidance, and HotM's wired UI feature coverage.
+- **Admin > Document Types** - manage custom Fortemi document types from HotM while keeping system document types protected from deletion.
+- **Admin > Webhooks** - register, test, and delete outbound Fortemi webhooks for lifecycle integrations.
+- **OpenAPI compatibility contract tests** covering create-note field additions (`title`, revision mode, document type, context filters, processing options), response aliases, `POST /notes/reprocess`, backup import, document types, and webhook routes.
+- **AIWG release-planning artifacts**: requirements, traceability matrix, gate report, API compatibility report, manifest schema JSON, and a cited feature/UI integration plan grounded in the local `research-papers` corpus.
+
+### Changed
+
+- **Quick Note now stays intentionally lightweight.** Advanced capture controls remain in the canonical Quick Capture workflow, avoiding duplicate partial create-note paths.
+- **API health normalization preserves Fortemi metadata** such as advertised capabilities, SSE state, and job-processing status instead of reducing the payload to only status/database/Ollama fields.
+- **`docs/openapi.json` expanded** as HotM's local compatibility snapshot for the latest UI-used Fortemi API surface.
+
+### Compatibility
+
+- No breaking changes to existing HotM UI workflows.
+- Uses Fortemi v2026.5.13 source-route audit evidence for latest-surface confirmation. A generated upstream Fortemi OpenAPI artifact was not present in the local source checkout, so canonical upstream OpenAPI diffing remains a follow-up control.
+
+### Verification
+
+- `npm test -- --run src/api/__tests__/index.test.ts src/api/__tests__/openapi-contract.test.ts src/components/admin/__tests__/ApiCapabilitiesPanel.test.tsx src/components/admin/__tests__/AdminPanel.test.tsx src/components/admin/__tests__/DocumentTypesPanel.test.tsx src/components/admin/__tests__/WebhooksPanel.test.tsx src/components/capture/__tests__/useNoteCommit.test.ts src/components/backup/__tests__/BackupManager.test.tsx`: 79 / 79 passing.
+- `npm run typecheck`: pass.
+- `node .aiwg/testing/scripts/validate-manifest-schema.mjs`: pass.
+- `git diff --check`: pass.
+
 ## [2026.5.13] - 2026-05-18
 
 Sidecar tracking release. Bundled Fortemi sidecar moves from v2026.5.6 to v2026.5.7 — picked up automatically at build time via the `sidecar-latest` download in `.gitea/workflows/tauri-build.yml` and `.gitea/workflows/desktop-release.yml`. No HotM source changes beyond the version bump and one doc fix.
