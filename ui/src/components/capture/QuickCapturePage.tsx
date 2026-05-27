@@ -67,7 +67,7 @@ export function QuickCapturePage() {
   // Pending file attachments
   const [pendingFiles, setPendingFiles] = useState<File[]>([]);
   const [isDragOver, setIsDragOver] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const fileInputId = "quick-capture-file-input";
 
   // Concept autocomplete
   const [conceptQuery, setConceptQuery] = useState("");
@@ -836,12 +836,13 @@ export function QuickCapturePage() {
           </div>
         )}
 
-        {/* Hidden file input */}
+        {/* Keep the input in the accessibility tree and let the label open it directly. */}
         <input
-          ref={fileInputRef}
+          id={fileInputId}
           type="file"
           multiple
-          className="hidden"
+          disabled={isCommitting}
+          className="sr-only"
           onChange={(e) => {
             if (e.target.files) addFiles(e.target.files);
             e.target.value = "";
@@ -873,16 +874,17 @@ export function QuickCapturePage() {
               )}
             </Button>
             <Button
-              type="button"
+              asChild
               variant="outline"
               size="icon"
-              className="h-9 w-9"
-              onClick={() => fileInputRef.current?.click()}
-              disabled={isCommitting}
+              className={`h-9 w-9 ${isCommitting ? "pointer-events-none opacity-50" : "cursor-pointer"}`}
               title="Attach files"
               aria-label="Attach files"
+              aria-disabled={isCommitting}
             >
-              <Paperclip className="h-4 w-4" />
+              <label htmlFor={fileInputId}>
+                <Paperclip className="h-4 w-4" />
+              </label>
             </Button>
           </div>
           <span
