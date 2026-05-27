@@ -22,7 +22,7 @@
     "typecheck": "tsc --noEmit",
     "tauri": "tauri",
     "tauri:dev": "tauri dev",
-    "tauri:build": "tauri build"
+    "tauri:build": "../scripts/refresh-sidecar.sh && tauri build"
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^3.0.49",

@@ -401,6 +401,13 @@ pub fn run() {
                         .env("HOST", "127.0.0.1")
                         .env("PORT", port.to_string())
                         .env("FILE_STORAGE_PATH", &file_storage)
+                        // The bundled desktop sidecar is private to localhost and the
+                        // webview host adapter. Fortemi now defaults to fail-closed
+                        // auth, so explicitly opt this embedded mode into anonymous
+                        // local access until HotM bootstraps OAuth tokens.
+                        .env("REQUIRE_AUTH", "false")
+                        .env("I_UNDERSTAND_NO_AUTH", "true")
+                        .env("RATE_LIMIT_ENABLED", "false")
                         .spawn()
                         .map_err(|e| format!("failed to spawn sidecar: {e}"))?;
 
