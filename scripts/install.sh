@@ -112,10 +112,20 @@ preflight() {
 }
 
 add_pgdg_repo() {
-  local source_present=false keyring_present=false codename
-  grep -rq "apt.postgresql.org" /etc/apt/sources.list /etc/apt/sources.list.d/ 2>/dev/null \
-    && source_present=true
-  [ -f /etc/apt/keyrings/postgresql.gpg ] && keyring_present=true
+  local source_present=false keyring_present=false codename keyring_path existing_keyring
+  keyring_path="/etc/apt/keyrings/postgresql.gpg"
+
+  if grep -rq "apt.postgresql.org" /etc/apt/sources.list /etc/apt/sources.list.d/ 2>/dev/null; then
+    source_present=true
+    existing_keyring="$(grep -RhoE 'signed-by=[^] ]+' /etc/apt/sources.list /etc/apt/sources.list.d/ 2>/dev/null \
+      | head -1 \
+      | sed -E 's/^signed-by=//')"
+    if [[ -n "${existing_keyring:-}" ]]; then
+      keyring_path="${existing_keyring}"
+    fi
+  fi
+
+  [ -f "${keyring_path}" ] && keyring_present=true
 
   if ${source_present} && ${keyring_present}; then
     info "PGDG apt repo already configured."
@@ -132,28 +142,27 @@ If this is an Ubuntu derivative, set the upstream codename and re-run, for examp
   fi
 
   if ${source_present} && ! ${keyring_present}; then
-    info "PGDG source list present but keyring missing - reinstalling key only..."
+    info "PGDG source list present but referenced keyring missing - reinstalling key at ${keyring_path}..."
   else
     info "Adding PostgreSQL Global Development Group (PGDG) apt repo for ${codename}-pgdg..."
   fi
 
   ${SUDO} apt-get install -y -qq ca-certificates gnupg lsb-release >/dev/null 2>&1
-  ${SUDO} install -d -m 0755 /etc/apt/keyrings
+  ${SUDO} install -d -m 0755 "$(dirname "${keyring_path}")"
 
   curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc \
-    | ${SUDO} gpg --dearmor --yes -o /etc/apt/keyrings/postgresql.gpg \
+    | ${SUDO} gpg --dearmor --yes -o "${keyring_path}" \
     || error "Failed to fetch PGDG signing key"
-  ${SUDO} chmod 0644 /etc/apt/keyrings/postgresql.gpg
+  ${SUDO} chmod 0644 "${keyring_path}"
 
   if ! ${source_present}; then
-    echo "deb [signed-by=/etc/apt/keyrings/postgresql.gpg] https://apt.postgresql.org/pub/repos/apt ${codename}-pgdg main" \
+    echo "deb [signed-by=${keyring_path}] https://apt.postgresql.org/pub/repos/apt ${codename}-pgdg main" \
       | ${SUDO} tee /etc/apt/sources.list.d/pgdg.list >/dev/null
   fi
 
   info "Refreshing apt index with PGDG..."
   ${SUDO} apt-get update -qq
 }
-
 resolve_version() {
   if [[ -n "${LOCAL_DEB}" ]]; then
     [[ -f "${LOCAL_DEB}" ]] || error "Local .deb not found: ${LOCAL_DEB}"
