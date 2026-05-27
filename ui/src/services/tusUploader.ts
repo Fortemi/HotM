@@ -24,8 +24,8 @@ import { getTauriFetch } from '@/lib/tauri';
 /** Files at or above this size use the tus resumable protocol. */
 export const TUS_THRESHOLD_BYTES = 50 * 1024 * 1024; // 50 MB
 
-/** Maximum bytes per PATCH request — keeps each chunk well under Chrome's HTTP/2 threshold. */
-export const TUS_CHUNK_SIZE = 5 * 1024 * 1024; // 5 MB
+/** Maximum bytes per PATCH request — keep IPC/base64 payloads small for desktop WebKit/Tauri. */
+export const TUS_CHUNK_SIZE = 1 * 1024 * 1024; // 1 MB
 
 /** Retry delays (ms) with exponential backoff for transient failures. */
 const TUS_RETRY_DELAYS = [0, 1000, 3000, 5000, 10000];

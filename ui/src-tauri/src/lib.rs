@@ -66,7 +66,7 @@ async fn hotm_fetch(
     body_b64: Option<String>,
 ) -> Result<serde_json::Value, String> {
     let client = reqwest::Client::builder()
-        .timeout(std::time::Duration::from_secs(30))
+        .timeout(std::time::Duration::from_secs(600))
         .build()
         .map_err(|e| e.to_string())?;
 

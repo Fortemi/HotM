@@ -14,7 +14,7 @@ vi.mock('@/api', () => ({
 const TUS_THRESHOLD = 50 * 1024 * 1024;
 vi.mock('@/services/tusUploader', () => ({
   TUS_THRESHOLD_BYTES: TUS_THRESHOLD,
-  TUS_CHUNK_SIZE: 5 * 1024 * 1024,
+  TUS_CHUNK_SIZE: 1 * 1024 * 1024,
   shouldUseTus: vi.fn((file: File) => file.size >= TUS_THRESHOLD),
   startTusUpload: vi.fn(),
 }));
