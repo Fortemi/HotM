@@ -263,11 +263,29 @@ function makeAdapterFetch(adapter: HotmHostAdapter): typeof globalThis.fetch {
 
     let bodyB64 = "";
     if (init?.body) {
-      const bodyStr =
-        typeof init.body === "string"
-          ? init.body
-          : new TextDecoder().decode(init.body as ArrayBuffer);
-      bodyB64 = btoa(unescape(encodeURIComponent(bodyStr)));
+      const body = init.body;
+      let bytes: Uint8Array;
+      if (typeof body === "string") {
+        bytes = new TextEncoder().encode(body);
+      } else if (body instanceof Blob) {
+        bytes = new Uint8Array(await body.arrayBuffer());
+      } else if (body instanceof ArrayBuffer) {
+        bytes = new Uint8Array(body);
+      } else if (ArrayBuffer.isView(body)) {
+        bytes = new Uint8Array(body.buffer, body.byteOffset, body.byteLength);
+      } else if (body instanceof URLSearchParams) {
+        bytes = new TextEncoder().encode(body.toString());
+      } else {
+        throw new Error("Host adapter fetch does not support this request body type");
+      }
+
+      let binary = "";
+      const chunkSize = 0x8000;
+      for (let i = 0; i < bytes.length; i += chunkSize) {
+        const chunk = bytes.subarray(i, i + chunkSize);
+        binary += String.fromCharCode(...chunk);
+      }
+      bodyB64 = btoa(binary);
     }
 
     const r = await adapter.network.fetch({

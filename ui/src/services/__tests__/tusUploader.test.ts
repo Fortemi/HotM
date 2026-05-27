@@ -100,6 +100,9 @@ describe('tusUploader', () => {
         filetype: 'video/mp4',
         media_optimize: 'true',
       });
+      const stack = options.httpStack as { getName: () => string };
+      expect(stack).toBeDefined();
+      expect(stack.getName()).toBe('FetchHttpStack');
     });
 
     it('omits media_optimize metadata when false', () => {
@@ -129,6 +132,43 @@ describe('tusUploader', () => {
       const file = makeFile('f.bin', 60 * 1024 * 1024);
       startTusUpload({ noteId: 'note-1', file, mediaOptimize: false });
       expect(mockStart).toHaveBeenCalledTimes(1);
+    });
+
+    it('sends tus chunks through the Tauri fetch adapter stack', async () => {
+      mockFetchFn.mockResolvedValueOnce({
+        status: 204,
+        headers: new Headers({ 'Upload-Offset': '3' }),
+        text: () => Promise.resolve(''),
+      });
+      const file = makeFile('f.bin', 60 * 1024 * 1024);
+
+      startTusUpload({ noteId: 'note-1', file, mediaOptimize: false });
+
+      const [, options] = vi.mocked(tus.Upload).mock.calls[0];
+      const stack = options.httpStack as { createRequest: (method: string, url: string) => {
+        setHeader: (header: string, value: string) => void;
+        setProgressHandler: (handler: (bytesSent: number) => void) => void;
+        send: (body: BodyInit) => Promise<{ getStatus: () => number; getHeader: (header: string) => string | undefined }>;
+      } };
+      const progress = vi.fn();
+      const body = new Blob(['abc']);
+      const request = stack.createRequest('PATCH', 'https://api.example.com/tus/upload-123');
+      request.setHeader('Tus-Resumable', '1.0.0');
+      request.setProgressHandler(progress);
+
+      const response = await request.send(body);
+
+      expect(mockFetchFn).toHaveBeenCalledWith(
+        'https://api.example.com/tus/upload-123',
+        expect.objectContaining({
+          method: 'PATCH',
+          headers: { 'Tus-Resumable': '1.0.0' },
+          body,
+        }),
+      );
+      expect(response.getStatus()).toBe(204);
+      expect(response.getHeader('Upload-Offset')).toBe('3');
+      expect(progress).toHaveBeenCalledWith(3);
     });
 
     it('delegates progress callback correctly', () => {

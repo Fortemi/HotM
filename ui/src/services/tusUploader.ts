@@ -5,11 +5,13 @@
  * Files >= TUS_THRESHOLD_BYTES are uploaded via the tus protocol (chunked,
  * resumable); smaller files continue through the existing fetch path.
  *
- * tus-js-client uses XHR internally, which avoids the Chrome HTTP/2
- * fetch bug that drops connections on large transfers.
+ * The default tus browser stack uses XHR; in desktop mode we provide a fetch
+ * stack so chunks route through HotM's host adapter and bypass webview
+ * loopback restrictions.
  */
 
 import * as tus from 'tus-js-client';
+import type { HttpRequest, HttpResponse, HttpStack } from 'tus-js-client';
 import { api } from '@/api';
 import type { Attachment } from '@/api/types-extended';
 import { getActiveMemory, getMemoryRoutingHeaderName } from '@/api/memory-context';
@@ -44,6 +46,99 @@ export interface TusUploadHandle {
   promise: Promise<Attachment>;
   /** Aborts the in-flight tus upload. */
   abort: () => void;
+}
+
+class FetchHttpResponse implements HttpResponse {
+  constructor(
+    private readonly response: Response,
+    private readonly body: string,
+  ) {}
+
+  getStatus(): number {
+    return this.response.status;
+  }
+
+  getHeader(header: string): string | undefined {
+    return this.response.headers.get(header) ?? undefined;
+  }
+
+  getBody(): string {
+    return this.body;
+  }
+
+  getUnderlyingObject(): Response {
+    return this.response;
+  }
+}
+
+class FetchHttpRequest implements HttpRequest {
+  private readonly headers: Record<string, string> = {};
+  private readonly abortController = new AbortController();
+  private progressHandler?: (bytesSent: number) => void;
+
+  constructor(
+    private readonly method: string,
+    private readonly url: string,
+  ) {}
+
+  getMethod(): string {
+    return this.method;
+  }
+
+  getURL(): string {
+    return this.url;
+  }
+
+  setHeader(header: string, value: string): void {
+    this.headers[header] = value;
+  }
+
+  getHeader(header: string): string | undefined {
+    return this.headers[header];
+  }
+
+  setProgressHandler(handler: (bytesSent: number) => void): void {
+    this.progressHandler = handler;
+  }
+
+  async send(body?: BodyInit | null): Promise<HttpResponse> {
+    const response = await getTauriFetch()(this.url, {
+      method: this.method,
+      headers: this.headers,
+      body: body ?? undefined,
+      signal: this.abortController.signal,
+    });
+    this.progressHandler?.(getBodySize(body));
+    return new FetchHttpResponse(response, await response.text());
+  }
+
+  async abort(): Promise<void> {
+    this.abortController.abort();
+  }
+
+  getUnderlyingObject(): AbortController {
+    return this.abortController;
+  }
+}
+
+class FetchHttpStack implements HttpStack {
+  createRequest(method: string, url: string): HttpRequest {
+    return new FetchHttpRequest(method, url);
+  }
+
+  getName(): string {
+    return 'FetchHttpStack';
+  }
+}
+
+function getBodySize(body?: BodyInit | null): number {
+  if (!body) return 0;
+  if (typeof body === 'string') return new TextEncoder().encode(body).byteLength;
+  if (body instanceof Blob) return body.size;
+  if (body instanceof ArrayBuffer) return body.byteLength;
+  if (ArrayBuffer.isView(body)) return body.byteLength;
+  if (body instanceof URLSearchParams) return new TextEncoder().encode(body.toString()).byteLength;
+  return 0;
 }
 
 // ---------------------------------------------------------------------------
@@ -91,6 +186,7 @@ export function startTusUpload(opts: TusUploadOptions): TusUploadHandle {
       headers,
       metadata,
       chunkSize: TUS_CHUNK_SIZE,
+      httpStack: new FetchHttpStack(),
       retryDelays: TUS_RETRY_DELAYS,
 
       onProgress(bytesUploaded: number, bytesTotal: number) {
