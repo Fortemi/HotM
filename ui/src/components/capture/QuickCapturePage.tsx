@@ -26,7 +26,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { api } from "@/api";
+import { invokeTauri } from "@/lib/tauri";
 import type { Collection, MemoryArchive, Tag } from "@/api";
+import type { LocalFileAttachment, UploadInput } from "@/services/uploadStore";
 import type { Concept, DocumentType } from "@/api/types-extended";
 import { useStickySettings } from "./useStickySettings";
 import { useNoteCommit, type CommitResult } from "./useNoteCommit";
@@ -65,8 +67,9 @@ export function QuickCapturePage() {
   const [successFlash, setSuccessFlash] = useState(false);
 
   // Pending file attachments
-  const [pendingFiles, setPendingFiles] = useState<File[]>([]);
+  const [pendingFiles, setPendingFiles] = useState<UploadInput[]>([]);
   const [isDragOver, setIsDragOver] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const fileInputId = "quick-capture-file-input";
 
   // Concept autocomplete
@@ -200,7 +203,7 @@ export function QuickCapturePage() {
   );
 
   // File attachment handlers
-  const addFiles = useCallback((files: FileList | File[]) => {
+  const addFiles = useCallback((files: FileList | UploadInput[]) => {
     const arr = Array.from(files);
     if (arr.length === 0) return;
     setPendingFiles((prev) => [...prev, ...arr]);
@@ -233,6 +236,33 @@ export function QuickCapturePage() {
     },
     [addFiles]
   );
+
+  const handleAttachClick = useCallback(async () => {
+    try {
+      const picked = await invokeTauri<Array<{
+        path: string;
+        name: string;
+        size: number;
+        content_type: string;
+      }>>("hotm_pick_local_files");
+
+      if (picked !== undefined) {
+        const localFiles: LocalFileAttachment[] = picked.map((file) => ({
+          source: "local",
+          path: file.path,
+          name: file.name,
+          size: file.size,
+          type: file.content_type || "application/octet-stream",
+        }));
+        addFiles(localFiles);
+        return;
+      }
+    } catch (err) {
+      console.error("Native file picker failed; falling back to browser picker", err);
+    }
+
+    fileInputRef.current?.click();
+  }, [addFiles]);
 
   // Commit handler
   const handleCommit = useCallback(async () => {
@@ -838,6 +868,7 @@ export function QuickCapturePage() {
 
         {/* Keep the input in the accessibility tree and let the label open it directly. */}
         <input
+          ref={fileInputRef}
           id={fileInputId}
           type="file"
           multiple
@@ -874,17 +905,16 @@ export function QuickCapturePage() {
               )}
             </Button>
             <Button
-              asChild
+              type="button"
               variant="outline"
               size="icon"
-              className={`h-9 w-9 ${isCommitting ? "pointer-events-none opacity-50" : "cursor-pointer"}`}
+              className="h-9 w-9"
+              onClick={handleAttachClick}
+              disabled={isCommitting}
               title="Attach files"
               aria-label="Attach files"
-              aria-disabled={isCommitting}
             >
-              <label htmlFor={fileInputId}>
-                <Paperclip className="h-4 w-4" />
-              </label>
+              <Paperclip className="h-4 w-4" />
             </Button>
           </div>
           <span

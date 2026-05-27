@@ -1,7 +1,7 @@
 import { useState, useCallback, useRef } from "react";
 import { api } from "@/api";
 import { setActiveMemory, getActiveMemory } from "@/api/memory-context";
-import { uploadStore } from "@/services/uploadStore";
+import { uploadStore, type UploadInput } from "@/services/uploadStore";
 import { extractTitleFromContent } from "@/lib/note-content";
 import type { StickySettings } from "./useStickySettings";
 
@@ -25,7 +25,7 @@ export function useNoteCommit() {
     async (
       content: string,
       settings: StickySettings,
-      files?: File[]
+      files?: UploadInput[]
     ): Promise<CommitResult> => {
       setIsCommitting(true);
       setLastError(null);

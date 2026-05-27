@@ -8,6 +8,8 @@
  */
 
 import { api } from '@/api';
+import { getActiveMemory, getMemoryRoutingHeaderName } from '@/api/memory-context';
+import { invokeTauri } from '@/lib/tauri';
 import type { Attachment } from '@/api/types-extended';
 import { startTusUpload, shouldUseTus, type TusUploadHandle } from './tusUploader';
 
@@ -17,9 +19,27 @@ import { startTusUpload, shouldUseTus, type TusUploadHandle } from './tusUploade
 
 export type UploadStatus = 'queued' | 'uploading' | 'completed' | 'failed' | 'cancelled';
 
+export interface LocalFileAttachment {
+  source: 'local';
+  path: string;
+  name: string;
+  size: number;
+  type: string;
+}
+
+export type UploadInput = File | LocalFileAttachment;
+
+function isLocalFile(file: UploadInput): file is LocalFileAttachment {
+  return (file as LocalFileAttachment).source === 'local';
+}
+
+function getUploadType(file: UploadInput): string {
+  return file.type || 'application/octet-stream';
+}
+
 export interface UploadFileEntry {
   id: string;
-  file: File;
+  file: UploadInput;
   noteId: string;
   status: UploadStatus;
   bytesUploaded: number;
@@ -96,7 +116,7 @@ class UploadStore {
 
   enqueueFiles(
     noteId: string,
-    files: FileList | File[],
+    files: FileList | UploadInput[],
     opts?: { mediaOptimize?: boolean },
   ): void {
     const fileArray = Array.from(files);
@@ -106,7 +126,8 @@ class UploadStore {
       const newEntries = new Map(s.entries);
       for (const file of fileArray) {
         const id = `upload-${++idCounter}-${Date.now()}`;
-        const isMedia = file.type.startsWith('audio/') || file.type.startsWith('video/');
+        const fileType = getUploadType(file);
+        const isMedia = fileType.startsWith('audio/') || fileType.startsWith('video/');
         newEntries.set(id, {
           id,
           file,
@@ -134,7 +155,7 @@ class UploadStore {
 
     // tus resumes from server offset via HEAD — preserve bytesUploaded.
     // Fetch uploads restart from scratch.
-    const preserveProgress = shouldUseTus(entry.file);
+    const preserveProgress = !isLocalFile(entry.file) && shouldUseTus(entry.file);
 
     this.mutate((s) => {
       const newEntries = new Map(s.entries);
@@ -285,9 +306,11 @@ class UploadStore {
       if (!current) continue;
 
       try {
-        const result = shouldUseTus(current.file)
-          ? await this.uploadViaTus(entryId, current)
-          : await this.uploadViaFetch(entryId, current);
+        const result = isLocalFile(current.file)
+          ? await this.uploadViaLocal(current)
+          : shouldUseTus(current.file)
+            ? await this.uploadViaTus(entryId, current)
+            : await this.uploadViaFetch(entryId, current);
 
         // Check if cancelled during upload
         const postUpload = this.state.entries.get(entryId);
@@ -355,14 +378,43 @@ class UploadStore {
   }
 
   private async uploadViaFetch(_entryId: string, entry: UploadFileEntry): Promise<Attachment> {
+    if (isLocalFile(entry.file)) {
+      return this.uploadViaLocal(entry);
+    }
     const opts = entry.mediaOptimize ? { mediaOptimize: true } : undefined;
     return api.attachments.uploadAttachment(entry.noteId, entry.file, opts);
+  }
+
+  private async uploadViaLocal(entry: UploadFileEntry): Promise<Attachment> {
+    if (!isLocalFile(entry.file)) {
+      throw new Error('Local upload requires a local file path');
+    }
+
+    const headers: Record<string, string> = {};
+    const selectedMemory = getActiveMemory();
+    if (selectedMemory) {
+      headers[getMemoryRoutingHeaderName()] = selectedMemory;
+    }
+
+    const attachment = await invokeTauri<Attachment>('hotm_upload_local_file', {
+      api_base_url: api.client.baseUrl,
+      note_id: entry.noteId,
+      path: entry.file.path,
+      content_type: entry.file.type,
+      media_optimize: entry.mediaOptimize,
+      headers,
+    });
+
+    if (!attachment) {
+      throw new Error('Desktop local upload is unavailable');
+    }
+    return attachment;
   }
 
   private async uploadViaTus(entryId: string, entry: UploadFileEntry): Promise<Attachment> {
     const handle = startTusUpload({
       noteId: entry.noteId,
-      file: entry.file,
+      file: entry.file as File,
       mediaOptimize: entry.mediaOptimize,
       onProgress: (bytesUploaded, bytesTotal) => {
         this.mutate((s) => {

@@ -1,4 +1,6 @@
+use serde::Serialize;
 use std::collections::HashMap;
+use std::io::Read;
 use std::net::TcpListener;
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::{Arc, Mutex};
@@ -15,6 +17,222 @@ mod config;
 mod plantuml;
 
 static SSE_COUNTER: AtomicU64 = AtomicU64::new(1);
+
+#[derive(Debug, Serialize)]
+struct LocalFileInfo {
+    path: String,
+    name: String,
+    size: u64,
+    content_type: String,
+}
+
+#[tauri::command]
+async fn hotm_pick_local_files() -> Result<Vec<LocalFileInfo>, String> {
+    let output = tauri::async_runtime::spawn_blocking(|| {
+        std::process::Command::new("zenity")
+            .args(["--file-selection", "--multiple", "--separator", "\n"])
+            .output()
+    })
+    .await
+    .map_err(|e| e.to_string())?;
+
+    let output = match output {
+        Ok(output) => output,
+        Err(e) if e.kind() == std::io::ErrorKind::NotFound => {
+            return Err("zenity is required for desktop file selection".to_string());
+        }
+        Err(e) => return Err(e.to_string()),
+    };
+
+    if !output.status.success() {
+        return Ok(Vec::new());
+    }
+
+    let stdout = String::from_utf8(output.stdout).map_err(|e| e.to_string())?;
+    let mut files = Vec::new();
+    for raw in stdout.lines().map(str::trim).filter(|line| !line.is_empty()) {
+        let path = std::path::PathBuf::from(raw);
+        let metadata = std::fs::metadata(&path).map_err(|e| format!("{}: {}", raw, e))?;
+        if !metadata.is_file() {
+            continue;
+        }
+        let name = path
+            .file_name()
+            .and_then(|v| v.to_str())
+            .unwrap_or(raw)
+            .to_string();
+        files.push(LocalFileInfo {
+            path: raw.to_string(),
+            content_type: guess_content_type(&name).to_string(),
+            name,
+            size: metadata.len(),
+        });
+    }
+    Ok(files)
+}
+
+#[tauri::command(rename_all = "snake_case")]
+async fn hotm_upload_local_file(
+    api_base_url: String,
+    note_id: String,
+    path: String,
+    content_type: Option<String>,
+    media_optimize: Option<bool>,
+    headers: Option<HashMap<String, String>>,
+) -> Result<serde_json::Value, String> {
+    let file_path = std::path::PathBuf::from(&path);
+    let metadata = std::fs::metadata(&file_path).map_err(|e| e.to_string())?;
+    if !metadata.is_file() {
+        return Err(format!("not a file: {}", path));
+    }
+
+    let filename = file_path
+        .file_name()
+        .and_then(|v| v.to_str())
+        .ok_or_else(|| "file path has no valid filename".to_string())?
+        .to_string();
+    let content_type = content_type.unwrap_or_else(|| guess_content_type(&filename).to_string());
+    let endpoint = format!(
+        "{}/notes/{}/attachments/tus",
+        api_base_url.trim_end_matches('/'),
+        note_id
+    );
+
+    let client = reqwest::Client::builder()
+        .timeout(std::time::Duration::from_secs(3600))
+        .build()
+        .map_err(|e| e.to_string())?;
+
+    let mut req = client
+        .post(&endpoint)
+        .header("Tus-Resumable", "1.0.0")
+        .header("Upload-Length", metadata.len().to_string())
+        .header("Upload-Metadata", build_tus_metadata(&filename, &content_type, media_optimize.unwrap_or(false)));
+    if let Some(hdrs) = &headers {
+        for (k, v) in hdrs {
+            req = req.header(k, v);
+        }
+    }
+
+    let create_resp = req.send().await.map_err(|e| e.to_string())?;
+    if !create_resp.status().is_success() {
+        let status = create_resp.status();
+        let body = create_resp.text().await.unwrap_or_default();
+        return Err(format!("TUS create failed: HTTP {} {}", status.as_u16(), body));
+    }
+
+    let location = create_resp
+        .headers()
+        .get(reqwest::header::LOCATION)
+        .and_then(|v| v.to_str().ok())
+        .ok_or_else(|| "TUS create response missing Location".to_string())?;
+    let upload_url = reqwest::Url::parse(&endpoint)
+        .map_err(|e| e.to_string())?
+        .join(location)
+        .map_err(|e| e.to_string())?;
+
+    let mut file = std::fs::File::open(&file_path).map_err(|e| e.to_string())?;
+    let mut offset: u64 = 0;
+    let mut final_attachment: Option<serde_json::Value> = None;
+    let mut buffer = vec![0_u8; 1024 * 1024];
+
+    loop {
+        let n = file.read(&mut buffer).map_err(|e| e.to_string())?;
+        if n == 0 {
+            break;
+        }
+
+        let mut patch = client
+            .patch(upload_url.clone())
+            .header("Tus-Resumable", "1.0.0")
+            .header("Upload-Offset", offset.to_string())
+            .header("Content-Type", "application/offset+octet-stream")
+            .body(buffer[..n].to_vec());
+        if let Some(hdrs) = &headers {
+            for (k, v) in hdrs {
+                patch = patch.header(k, v);
+            }
+        }
+
+        let resp = patch.send().await.map_err(|e| e.to_string())?;
+        let status = resp.status();
+        if !status.is_success() {
+            let body = resp.text().await.unwrap_or_default();
+            return Err(format!("TUS patch failed at offset {}: HTTP {} {}", offset, status.as_u16(), body));
+        }
+
+        offset += n as u64;
+        if let Some(server_offset) = resp
+            .headers()
+            .get("Upload-Offset")
+            .and_then(|v| v.to_str().ok())
+            .and_then(|v| v.parse::<u64>().ok())
+        {
+            offset = server_offset;
+        }
+
+        if offset == metadata.len() {
+            final_attachment = Some(resp.json::<serde_json::Value>().await.map_err(|e| e.to_string())?);
+            break;
+        }
+    }
+
+    if let Some(attachment) = final_attachment {
+        return Ok(attachment);
+    }
+
+    let mut get = client.get(upload_url);
+    if let Some(hdrs) = &headers {
+        for (k, v) in hdrs {
+            get = get.header(k, v);
+        }
+    }
+    let resp = get.send().await.map_err(|e| e.to_string())?;
+    if !resp.status().is_success() {
+        let status = resp.status();
+        let body = resp.text().await.unwrap_or_default();
+        return Err(format!("TUS finalize failed: HTTP {} {}", status.as_u16(), body));
+    }
+    resp.json::<serde_json::Value>().await.map_err(|e| e.to_string())
+}
+
+fn build_tus_metadata(filename: &str, content_type: &str, media_optimize: bool) -> String {
+    let mut parts = vec![
+        format!("filename {}", B64.encode(filename.as_bytes())),
+        format!("filetype {}", B64.encode(content_type.as_bytes())),
+    ];
+    if media_optimize {
+        parts.push(format!("media_optimize {}", B64.encode(b"true")));
+    }
+    parts.join(",")
+}
+
+fn guess_content_type(filename: &str) -> &'static str {
+    match std::path::Path::new(filename)
+        .extension()
+        .and_then(|v| v.to_str())
+        .map(|v| v.to_ascii_lowercase())
+        .as_deref()
+    {
+        Some("mp4") | Some("m4v") => "video/mp4",
+        Some("mov") => "video/quicktime",
+        Some("webm") => "video/webm",
+        Some("mkv") => "video/x-matroska",
+        Some("mp3") => "audio/mpeg",
+        Some("wav") => "audio/wav",
+        Some("flac") => "audio/flac",
+        Some("m4a") => "audio/mp4",
+        Some("png") => "image/png",
+        Some("jpg") | Some("jpeg") => "image/jpeg",
+        Some("gif") => "image/gif",
+        Some("webp") => "image/webp",
+        Some("pdf") => "application/pdf",
+        Some("txt") | Some("md") => "text/plain",
+        Some("json") => "application/json",
+        Some("csv") => "text/csv",
+        _ => "application/octet-stream",
+    }
+}
 
 /// Initialization script injected into every webview before any page JS runs.
 ///
@@ -347,6 +565,8 @@ pub fn run() {
             ensure_plantuml,
             get_app_config, save_app_config,
             hotm_fetch,
+            hotm_pick_local_files,
+            hotm_upload_local_file,
             hotm_sse_connect,
             hotm_sse_close,
         ])
