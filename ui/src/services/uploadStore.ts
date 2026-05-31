@@ -9,7 +9,7 @@
 
 import { api } from '@/api';
 import { getActiveMemory, getMemoryRoutingHeaderName } from '@/api/memory-context';
-import { invokeTauri } from '@/lib/tauri';
+import { invokeTauri, listenTauriEvent } from '@/lib/tauri';
 import type { Attachment } from '@/api/types-extended';
 import { startTusUpload, shouldUseTus, type TusUploadHandle } from './tusUploader';
 
@@ -78,6 +78,12 @@ const AUTO_CLEAR_DELAY_MS = 30_000;
 type Listener = () => void;
 type NoteUploadCallback = (noteId: string, entry: UploadFileEntry) => void;
 
+interface NativeUploadProgressEvent {
+  upload_id: string;
+  bytes_uploaded: number;
+  bytes_total: number;
+}
+
 let idCounter = 0;
 
 class UploadStore {
@@ -86,6 +92,7 @@ class UploadStore {
   private noteUploadCallbacks = new Set<NoteUploadCallback>();
   private clearTimers = new Map<string, ReturnType<typeof setTimeout>>();
   private activeTusUploads = new Map<string, TusUploadHandle>();
+  private nativeProgressListener: Promise<void> | null = null;
 
   constructor() {
     this.state = {
@@ -390,6 +397,8 @@ class UploadStore {
       throw new Error('Local upload requires a local file path');
     }
 
+    await this.ensureNativeProgressListener();
+
     const headers: Record<string, string> = {};
     const selectedMemory = getActiveMemory();
     if (selectedMemory) {
@@ -403,6 +412,7 @@ class UploadStore {
       content_type: entry.file.type,
       media_optimize: entry.mediaOptimize,
       headers,
+      upload_id: entry.id,
     });
 
     if (!attachment) {
@@ -429,6 +439,33 @@ class UploadStore {
 
     this.activeTusUploads.set(entryId, handle);
     return handle.promise;
+  }
+
+  private ensureNativeProgressListener(): Promise<void> {
+    if (this.nativeProgressListener) return this.nativeProgressListener;
+
+    this.nativeProgressListener = listenTauriEvent<NativeUploadProgressEvent>(
+      'hotm-upload-progress',
+      ({ payload }) => {
+        if (!payload?.upload_id) return;
+        this.mutate((s) => {
+          const current = s.entries.get(payload.upload_id);
+          if (!current || current.status !== 'uploading') return;
+          const bytesTotal = payload.bytes_total || current.bytesTotal;
+          const bytesUploaded = Math.min(payload.bytes_uploaded || 0, bytesTotal);
+          if (current.bytesUploaded === bytesUploaded && current.bytesTotal === bytesTotal) return;
+          const newEntries = new Map(s.entries);
+          newEntries.set(payload.upload_id, { ...current, bytesUploaded, bytesTotal });
+          s.entries = newEntries;
+        });
+      },
+    )
+      .then(() => {})
+      .catch((err) => {
+        console.error('uploadStore native progress listener error:', err);
+      });
+
+    return this.nativeProgressListener;
   }
 
   private emitNoteCallback(noteId: string, entry: UploadFileEntry): void {

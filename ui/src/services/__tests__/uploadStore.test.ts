@@ -1,5 +1,11 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
+const tauriMocks = vi.hoisted(() => ({
+  invokeTauri: vi.fn(),
+  listenTauriEvent: vi.fn(),
+  nativeProgressHandler: undefined as undefined | ((event: { payload: { upload_id: string; bytes_uploaded: number; bytes_total: number } }) => void),
+}));
+
 // Mock the API before importing the store
 vi.mock('@/api', () => ({
   api: {
@@ -19,6 +25,11 @@ vi.mock('@/services/tusUploader', () => ({
   startTusUpload: vi.fn(),
 }));
 
+vi.mock('@/lib/tauri', () => ({
+  invokeTauri: tauriMocks.invokeTauri,
+  listenTauriEvent: tauriMocks.listenTauriEvent,
+}));
+
 describe('uploadStore', () => {
   let mod: typeof import('@/services/uploadStore');
   let apiMod: typeof import('@/api');
@@ -27,6 +38,13 @@ describe('uploadStore', () => {
   beforeEach(async () => {
     vi.useFakeTimers();
     vi.resetModules();
+    tauriMocks.invokeTauri.mockReset();
+    tauriMocks.listenTauriEvent.mockReset();
+    tauriMocks.nativeProgressHandler = undefined;
+    tauriMocks.listenTauriEvent.mockImplementation(async (_event: string, handler: typeof tauriMocks.nativeProgressHandler) => {
+      tauriMocks.nativeProgressHandler = handler;
+      return vi.fn();
+    });
     mod = await import('@/services/uploadStore');
     apiMod = await import('@/api');
     tusMod = await import('@/services/tusUploader');
@@ -328,6 +346,51 @@ describe('uploadStore', () => {
 
       expect(apiMod.api.attachments.uploadAttachment).toHaveBeenCalledTimes(1);
       expect(tusMod.startTusUpload).not.toHaveBeenCalled();
+    });
+
+    it('reports native local upload progress via bytesUploaded', async () => {
+      let resolveUpload!: (value: unknown) => void;
+      tauriMocks.invokeTauri.mockImplementationOnce(() => new Promise((resolve) => { resolveUpload = resolve; }));
+
+      mod.uploadStore.enqueueFiles('note-1', [{
+        source: 'local',
+        path: '/tmp/video.mp4',
+        name: 'video.mp4',
+        size: 10 * 1024 * 1024,
+        type: 'video/mp4',
+      }]);
+
+      await vi.advanceTimersByTimeAsync(0);
+
+      const started = Array.from(mod.uploadStore.getSnapshot().entries.values())[0];
+      expect(started.status).toBe('uploading');
+      expect(tauriMocks.listenTauriEvent).toHaveBeenCalledWith('hotm-upload-progress', expect.any(Function));
+      expect(tauriMocks.invokeTauri).toHaveBeenCalledWith('hotm_upload_local_file', expect.objectContaining({
+        note_id: 'note-1',
+        path: '/tmp/video.mp4',
+        upload_id: started.id,
+      }));
+
+      tauriMocks.nativeProgressHandler?.({
+        payload: {
+          upload_id: started.id,
+          bytes_uploaded: 5 * 1024 * 1024,
+          bytes_total: 10 * 1024 * 1024,
+        },
+      });
+
+      let state = mod.uploadStore.getSnapshot();
+      let entry = Array.from(state.entries.values())[0];
+      expect(entry.bytesUploaded).toBe(5 * 1024 * 1024);
+      expect(entry.bytesTotal).toBe(10 * 1024 * 1024);
+
+      resolveUpload({ id: 'att-local', filename: 'video.mp4' });
+      await flushQueue();
+
+      state = mod.uploadStore.getSnapshot();
+      entry = Array.from(state.entries.values())[0];
+      expect(entry.status).toBe('completed');
+      expect(entry.bytesUploaded).toBe(10 * 1024 * 1024);
     });
 
     it('reports tus progress via bytesUploaded', async () => {

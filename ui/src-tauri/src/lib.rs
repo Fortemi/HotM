@@ -26,6 +26,13 @@ struct LocalFileInfo {
     content_type: String,
 }
 
+#[derive(Clone, Debug, Serialize)]
+struct UploadProgress {
+    upload_id: String,
+    bytes_uploaded: u64,
+    bytes_total: u64,
+}
+
 #[tauri::command]
 async fn hotm_pick_local_files() -> Result<Vec<LocalFileInfo>, String> {
     let output = tauri::async_runtime::spawn_blocking(|| {
@@ -73,12 +80,14 @@ async fn hotm_pick_local_files() -> Result<Vec<LocalFileInfo>, String> {
 
 #[tauri::command(rename_all = "snake_case")]
 async fn hotm_upload_local_file(
+    app: tauri::AppHandle,
     api_base_url: String,
     note_id: String,
     path: String,
     content_type: Option<String>,
     media_optimize: Option<bool>,
     headers: Option<HashMap<String, String>>,
+    upload_id: Option<String>,
 ) -> Result<serde_json::Value, String> {
     let file_path = std::path::PathBuf::from(&path);
     let metadata = std::fs::metadata(&file_path).map_err(|e| e.to_string())?;
@@ -120,6 +129,7 @@ async fn hotm_upload_local_file(
         let body = create_resp.text().await.unwrap_or_default();
         return Err(format!("TUS create failed: HTTP {} {}", status.as_u16(), body));
     }
+    emit_upload_progress(&app, &upload_id, 0, metadata.len());
 
     let location = create_resp
         .headers()
@@ -170,6 +180,7 @@ async fn hotm_upload_local_file(
         {
             offset = server_offset;
         }
+        emit_upload_progress(&app, &upload_id, offset, metadata.len());
 
         if offset == metadata.len() {
             final_attachment = Some(resp.json::<serde_json::Value>().await.map_err(|e| e.to_string())?);
@@ -194,6 +205,24 @@ async fn hotm_upload_local_file(
         return Err(format!("TUS finalize failed: HTTP {} {}", status.as_u16(), body));
     }
     resp.json::<serde_json::Value>().await.map_err(|e| e.to_string())
+}
+
+fn emit_upload_progress(
+    app: &tauri::AppHandle,
+    upload_id: &Option<String>,
+    bytes_uploaded: u64,
+    bytes_total: u64,
+) {
+    if let Some(upload_id) = upload_id {
+        let _ = app.emit(
+            "hotm-upload-progress",
+            UploadProgress {
+                upload_id: upload_id.clone(),
+                bytes_uploaded,
+                bytes_total,
+            },
+        );
+    }
 }
 
 fn build_tus_metadata(filename: &str, content_type: &str, media_optimize: bool) -> String {

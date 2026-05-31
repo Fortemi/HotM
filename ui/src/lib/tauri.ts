@@ -312,14 +312,14 @@ function makeAdapterFetch(adapter: HotmHostAdapter): typeof globalThis.fetch {
  * Returns an unsubscribe function; call it on component unmount.
  * No-ops when not running in Tauri (returns a no-op unsubscribe).
  */
-export async function listenTauriEvent(
+export async function listenTauriEvent<T = unknown>(
   event: string,
-  handler: () => void,
+  handler: (event: { payload: T }) => void,
 ): Promise<() => void> {
   if (!isTauri()) return () => {};
   try {
     const { listen } = await import("@tauri-apps/api/event");
-    return listen(event, handler);
+    return listen<T>(event, handler);
   } catch {
     return () => {};
   }
