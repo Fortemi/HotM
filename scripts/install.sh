@@ -9,7 +9,8 @@
 #   5. The .deb postinst seeds the matric DB
 #   6. Optionally resets the matric DB when explicitly requested
 #   7. Installs Ollama daemon and pulls default models in the background
-#   8. Smoke-tests the sidecar against the local DB and reports status
+#   8. Installs and starts Speaches/Whisper for audio/video transcription
+#   9. Smoke-tests the sidecar against the local DB and reports status
 #
 # Usage:
 #   curl -fsSL https://raw.githubusercontent.com/Fortemi/HotM/main/scripts/install.sh | bash
@@ -24,6 +25,7 @@
 #   ./scripts/install.sh --version v2026.5.14      # pin to specific release
 #   ./scripts/install.sh --local-deb path/to.deb   # use a developer-built .deb
 #   ./scripts/install.sh --skip-models             # install Ollama, skip model pulls
+#   ./scripts/install.sh --no-whisper              # do not install/start transcription service
 #   ./scripts/install.sh --reset-db                # reset empty matric DB after install
 #   ./scripts/install.sh --reset-db --force        # reset even when note data exists
 #   ./scripts/install.sh --skip-smoke-test         # skip sidecar probe
@@ -36,11 +38,14 @@ HOTM_VERSION="${HOTM_VERSION:-latest}"
 LOCAL_DEB=""
 INSTALL_OLLAMA=true
 INSTALL_MODELS=true
+INSTALL_WHISPER=true
 RESET_DB=false
 RESET_DB_FORCE=false
 SKIP_SMOKE_TEST=false
 OLLAMA_EMBED_MODEL="${HOTM_OLLAMA_EMBED_MODEL:-nomic-embed-text}"
 OLLAMA_GEN_MODEL="${HOTM_OLLAMA_GEN_MODEL:-qwen3.5:9b}"
+WHISPER_MODEL="${HOTM_WHISPER_MODEL:-Systran/faster-distil-whisper-large-v3}"
+WHISPER_IMAGE="${HOTM_WHISPER_IMAGE:-ghcr.io/speaches-ai/speaches:latest-cpu}"
 RELEASE_BASE="${HOTM_RELEASE_BASE:-https://github.com/Fortemi/HotM}"
 RELEASE_API="${HOTM_RELEASE_API:-https://api.github.com/repos/Fortemi/HotM}"
 PGDG_CODENAME="${HOTM_PGDG_CODENAME:-}"
@@ -53,8 +58,11 @@ while [[ $# -gt 0 ]]; do
     --local-deb)       LOCAL_DEB="$2";           shift 2 ;;
     --no-ollama)       INSTALL_OLLAMA=false;     shift ;;
     --skip-models)     INSTALL_MODELS=false;     shift ;;
+    --no-whisper)      INSTALL_WHISPER=false;    shift ;;
     --embed-model)     OLLAMA_EMBED_MODEL="$2";  shift 2 ;;
     --gen-model)       OLLAMA_GEN_MODEL="$2";    shift 2 ;;
+    --whisper-model)   WHISPER_MODEL="$2";       shift 2 ;;
+    --whisper-image)   WHISPER_IMAGE="$2";       shift 2 ;;
     --reset-db)        RESET_DB=true;            shift ;;
     --force)           RESET_DB_FORCE=true;      shift ;;
     --skip-smoke-test) SKIP_SMOKE_TEST=true;     shift ;;
@@ -88,6 +96,19 @@ run_as_postgres() {
 
 psql_postgres() {
   run_as_postgres psql "$@"
+}
+
+target_home() {
+  local install_user home_dir
+  install_user="${SUDO_USER:-${USER:-}}"
+  if [[ -n "${install_user}" ]]; then
+    home_dir="$(getent passwd "${install_user}" 2>/dev/null | cut -d: -f6 || true)"
+    if [[ -n "${home_dir}" ]]; then
+      printf '%s\n' "${home_dir}"
+      return 0
+    fi
+  fi
+  printf '%s\n' "${HOME}"
 }
 
 preflight() {
@@ -167,10 +188,10 @@ resolve_version() {
   if [[ -n "${LOCAL_DEB}" ]]; then
     [[ -f "${LOCAL_DEB}" ]] || error "Local .deb not found: ${LOCAL_DEB}"
     HOTM_VERSION="local"
-    DEB_NAME="$(basename "${LOCAL_DEB}")"
-    DEB_PATH="${LOCAL_DEB}"
+    DEB_PATH="$(readlink -f "${LOCAL_DEB}")"
+    DEB_NAME="$(basename "${DEB_PATH}")"
     SKIP_DPKG=false
-    info "Using local .deb: ${LOCAL_DEB}"
+    info "Using local .deb: ${DEB_PATH}"
     return 0
   fi
 
@@ -339,7 +360,7 @@ pull_models() {
     return 0
   fi
 
-  LOG_DIR="${HOME}/.local/share/com.hotm.app"
+  LOG_DIR="$(target_home)/.local/share/com.hotm.app"
   mkdir -p "${LOG_DIR}"
   PULL_LOG="${LOG_DIR}/ollama-pull.log"
 
@@ -355,6 +376,115 @@ pull_models() {
   info "Background pull PID: $!  (track with: tail -f ${PULL_LOG})"
 }
 
+install_docker_runtime() {
+  if command -v docker >/dev/null 2>&1; then
+    if docker version >/dev/null 2>&1 || ${SUDO} docker version >/dev/null 2>&1; then
+      return 0
+    fi
+  fi
+
+  info "Installing Docker runtime for local transcription service..."
+  ${SUDO} apt-get update -qq
+  ${SUDO} apt-get install -y docker.io
+  ${SUDO} systemctl enable --now docker 2>/dev/null \
+    || warn "Could not enable docker via systemd - start Docker manually before transcription."
+}
+
+install_whisper() {
+  if [[ "${INSTALL_WHISPER}" != "true" ]]; then
+    info "Skipping Speaches/Whisper (--no-whisper)."
+    return 0
+  fi
+
+  if curl -sf http://127.0.0.1:8000/health --max-time 2 >/dev/null 2>&1; then
+    info "Whisper-compatible transcription service already healthy on 127.0.0.1:8000."
+    return 0
+  fi
+
+  install_docker_runtime
+
+  if ! command -v docker >/dev/null 2>&1; then
+    warn "docker command not found - skipping Speaches/Whisper install."
+    return 0
+  fi
+
+  info "Starting Speaches/Whisper container (${WHISPER_IMAGE})..."
+  ${SUDO} docker pull "${WHISPER_IMAGE}" >/dev/null
+  ${SUDO} docker rm -f hotm-speaches >/dev/null 2>&1 || true
+  ${SUDO} docker volume create hotm-speaches-models >/dev/null
+  ${SUDO} docker run -d \
+    --name hotm-speaches \
+    --restart unless-stopped \
+    -p 127.0.0.1:8000:8000 \
+    -v hotm-speaches-models:/home/ubuntu/.cache/huggingface/hub \
+    -e "WHISPER__MODEL=${WHISPER_MODEL}" \
+    "${WHISPER_IMAGE}" >/dev/null
+
+  info "Waiting for Speaches health endpoint (first model load may take several minutes)..."
+  for _ in $(seq 1 30); do
+    if curl -sf http://127.0.0.1:8000/health --max-time 2 >/dev/null 2>&1; then
+      info "Speaches/Whisper is healthy on 127.0.0.1:8000."
+      return 0
+    fi
+    sleep 2
+  done
+
+  warn "Speaches/Whisper did not become healthy yet. Check: sudo docker logs -f hotm-speaches"
+}
+
+configure_desktop_components() {
+  local config_dir config_path whisper_enabled ollama_enabled
+  config_dir="$(target_home)/.config/com.hotm.app"
+  config_path="${config_dir}/config.json"
+  whisper_enabled="${INSTALL_WHISPER}"
+  ollama_enabled="${INSTALL_OLLAMA}"
+
+  # Defaults already enable every component. Only write config when an
+  # installer flag intentionally disables a component or the file is absent.
+  if [[ "${whisper_enabled}" == "true" && "${ollama_enabled}" == "true" && -f "${config_path}" ]]; then
+    return 0
+  fi
+
+  mkdir -p "${config_dir}"
+  if command -v python3 >/dev/null 2>&1; then
+    HOTM_CONFIG_PATH="${config_path}" \
+    HOTM_COMPONENT_OLLAMA="${ollama_enabled}" \
+    HOTM_COMPONENT_WHISPER="${whisper_enabled}" \
+    HOTM_WHISPER_BASE_URL="http://127.0.0.1:8000" \
+    HOTM_OLLAMA_BASE_URL="http://127.0.0.1:11434" \
+      python3 - <<'PY'
+import json
+import os
+from pathlib import Path
+
+path = Path(os.environ["HOTM_CONFIG_PATH"])
+data = {}
+if path.exists():
+    try:
+        data = json.loads(path.read_text())
+    except Exception:
+        backup = path.with_suffix(path.suffix + ".bak")
+        backup.write_text(path.read_text())
+        data = {}
+
+data.setdefault("api_base_url", "http://127.0.0.1:3000")
+data.setdefault("database_url", "postgres://matric:matric@localhost/matric")
+data.setdefault("file_storage_path", "")
+data.setdefault("ollama_base_url", os.environ["HOTM_OLLAMA_BASE_URL"])
+data.setdefault("whisper_base_url", os.environ["HOTM_WHISPER_BASE_URL"])
+data["components"] = {
+    "ollama": os.environ["HOTM_COMPONENT_OLLAMA"] == "true",
+    "whisper": os.environ["HOTM_COMPONENT_WHISPER"] == "true",
+}
+path.write_text(json.dumps(data, indent=2) + "\n")
+PY
+    info "Desktop component config written: ${config_path}"
+  else
+    warn "python3 not found; cannot merge desktop component config automatically."
+    warn "Set components.whisper=false in ${config_path} if using --no-whisper."
+  fi
+}
+
 smoke_test_sidecar() {
   if [[ "${SKIP_SMOKE_TEST}" == "true" ]]; then
     return 0
@@ -365,11 +495,16 @@ smoke_test_sidecar() {
   fi
 
   info "Probing hotm-matric-api against existing matric DB (10s smoke test)..."
-  local probe_port=33501 probe_log pid
+  local probe_port=33501 probe_log pid smoke_whisper_url
   probe_log="$(mktemp -t hotm-sidecar-smoke.XXXXXX)"
+  if [[ "${INSTALL_WHISPER}" == "true" ]]; then
+    smoke_whisper_url="http://127.0.0.1:8000"
+  else
+    smoke_whisper_url=""
+  fi
 
   DATABASE_URL="postgres://matric:matric@localhost:5432/matric" \
-  HOST=127.0.0.1 PORT="${probe_port}" RUST_LOG=info \
+  HOST=127.0.0.1 PORT="${probe_port}" RUST_LOG=info WHISPER_BASE_URL="${smoke_whisper_url}" \
     "${bin}" >/dev/null 2>"${probe_log}" &
   pid=$!
 
@@ -407,7 +542,7 @@ smoke_test_sidecar() {
 }
 
 report_status() {
-  local hotm_status pg_status pg_ver vector_status postgis_status trgm_status unaccent_status ollama_status model_count
+  local hotm_status pg_status pg_ver vector_status postgis_status trgm_status unaccent_status ollama_status whisper_status model_count
   hotm_status="$(dpkg-query -W -f='${Version}' hot-m 2>/dev/null || echo 'NOT INSTALLED')"
   pg_status="$(systemctl is-active postgresql 2>/dev/null || echo 'inactive')"
   pg_ver="$(psql_postgres -tAc 'SHOW server_version' 2>/dev/null | head -1 || true)"
@@ -431,6 +566,18 @@ report_status() {
     ollama_status="skipped"
   fi
 
+  if [[ "${INSTALL_WHISPER}" == "true" ]]; then
+    if curl -sf http://127.0.0.1:8000/health --max-time 2 >/dev/null 2>&1; then
+      whisper_status="running on 127.0.0.1:8000"
+    elif command -v docker >/dev/null 2>&1 && ${SUDO} docker inspect hotm-speaches >/dev/null 2>&1; then
+      whisper_status="container installed, not healthy yet"
+    else
+      whisper_status="not running"
+    fi
+  else
+    whisper_status="disabled by installer flag"
+  fi
+
   echo ""
   echo "=================================================================="
   echo "  HotM Installation Status"
@@ -440,6 +587,7 @@ report_status() {
   printf "  %-12s vector=%s postgis=%s pg_trgm=%s unaccent=%s\n" "Extensions:" \
     "${vector_status:-MISSING}" "${postgis_status:-MISSING}" "${trgm_status:-MISSING}" "${unaccent_status:-MISSING}"
   printf "  %-12s %s\n" "Ollama:" "${ollama_status}"
+  printf "  %-12s %s\n" "Whisper:" "${whisper_status}"
   if [[ "${INSTALL_OLLAMA}" == "true" && "${INSTALL_MODELS}" == "true" ]]; then
     printf "  %-12s %s\n" "Models:" "pulling in background - see ~/.local/share/com.hotm.app/ollama-pull.log"
   fi
@@ -460,6 +608,8 @@ main() {
   reset_matric_db
   install_ollama
   pull_models
+  install_whisper
+  configure_desktop_components
   smoke_test_sidecar
   report_status
 }

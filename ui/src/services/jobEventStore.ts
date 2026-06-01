@@ -211,6 +211,9 @@ class JobEventStore {
 
   private handleJobQueued(_event: RealtimeEvent): void {
     this.mutate((s) => {
+      if (_event.job_id) {
+        s.completedJobs = s.completedJobs.filter((job) => job.job_id !== _event.job_id);
+      }
       s.queueStatus = {
         ...s.queueStatus,
         pending: s.queueStatus.pending + 1,
@@ -234,6 +237,7 @@ class JobEventStore {
         started_at: new Date().toISOString(),
       });
       s.activeJobs = newActiveJobs;
+      s.completedJobs = s.completedJobs.filter((job) => job.job_id !== event.job_id);
       s.queueStatus = {
         ...s.queueStatus,
         pending: Math.max(0, s.queueStatus.pending - 1),

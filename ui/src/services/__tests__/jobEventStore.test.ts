@@ -177,6 +177,56 @@ describe('jobEventStore', () => {
     expect(state.queueStatus.total_jobs).toBe(6);
   });
 
+  it('removes retry failures when the same job is queued again', () => {
+    capturedEventHandler!(makeEvent({
+      type: 'JobStarted',
+      job_id: 'j1',
+      job_type: 'KeyframeVision',
+    }));
+    capturedEventHandler!(makeEvent({
+      type: 'JobFailed',
+      job_id: 'j1',
+      job_type: 'KeyframeVision',
+      error: 'Vision LLM failed - will retry',
+    }));
+    expect(mod.jobEventStore.getSnapshot().completedJobs).toHaveLength(1);
+
+    capturedEventHandler!(makeEvent({
+      type: 'JobQueued',
+      job_id: 'j1',
+      job_type: 'KeyframeVision',
+    }));
+
+    const state = mod.jobEventStore.getSnapshot();
+    expect(state.completedJobs).toHaveLength(0);
+    expect(state.queueStatus.pending).toBe(1);
+  });
+
+  it('removes retry failures when the same job starts again', () => {
+    capturedEventHandler!(makeEvent({
+      type: 'JobStarted',
+      job_id: 'j1',
+      job_type: 'KeyframeVision',
+    }));
+    capturedEventHandler!(makeEvent({
+      type: 'JobFailed',
+      job_id: 'j1',
+      job_type: 'KeyframeVision',
+      error: 'Vision LLM failed - will retry',
+    }));
+    expect(mod.jobEventStore.getSnapshot().completedJobs).toHaveLength(1);
+
+    capturedEventHandler!(makeEvent({
+      type: 'JobStarted',
+      job_id: 'j1',
+      job_type: 'KeyframeVision',
+    }));
+
+    const state = mod.jobEventStore.getSnapshot();
+    expect(state.completedJobs).toHaveLength(0);
+    expect(state.activeJobs.has('j1')).toBe(true);
+  });
+
   it('caps completed jobs at 50', () => {
     for (let i = 0; i < 60; i++) {
       capturedEventHandler!(makeEvent({

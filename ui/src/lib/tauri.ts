@@ -93,8 +93,18 @@ export async function invokeTauri<T>(
 
 // --- App Config (runtime API URL for desktop builds) ---
 
+export interface ComponentConfig {
+  ollama: boolean;
+  whisper: boolean;
+}
+
 export interface AppConfig {
   api_base_url: string;
+  database_url?: string;
+  file_storage_path?: string;
+  components?: ComponentConfig;
+  ollama_base_url?: string;
+  whisper_base_url?: string;
 }
 
 let _cachedConfig: AppConfig | null = null;

@@ -110,6 +110,8 @@ describe('Tauri Config', () => {
 
       expect(config).toContain('struct AppConfig');
       expect(config).toContain('api_base_url');
+      expect(config).toContain('components');
+      expect(config).toContain('whisper_base_url');
       expect(config).toContain('fn load_config');
       expect(config).toContain('fn save_config');
       expect(config).toContain('"http://127.0.0.1:3000"');
@@ -122,7 +124,8 @@ describe('Tauri Config', () => {
       expect(lib).toContain('mod config;');
       expect(lib).toContain('fn get_app_config');
       expect(lib).toContain('fn save_app_config');
-      expect(lib).toContain('get_app_config, save_app_config');
+      expect(lib).toContain('get_app_config');
+      expect(lib).toContain('save_app_config');
     });
   });
 });

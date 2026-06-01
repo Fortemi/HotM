@@ -57,7 +57,11 @@ async fn hotm_pick_local_files() -> Result<Vec<LocalFileInfo>, String> {
 
     let stdout = String::from_utf8(output.stdout).map_err(|e| e.to_string())?;
     let mut files = Vec::new();
-    for raw in stdout.lines().map(str::trim).filter(|line| !line.is_empty()) {
+    for raw in stdout
+        .lines()
+        .map(str::trim)
+        .filter(|line| !line.is_empty())
+    {
         let path = std::path::PathBuf::from(raw);
         let metadata = std::fs::metadata(&path).map_err(|e| format!("{}: {}", raw, e))?;
         if !metadata.is_file() {
@@ -116,7 +120,10 @@ async fn hotm_upload_local_file(
         .post(&endpoint)
         .header("Tus-Resumable", "1.0.0")
         .header("Upload-Length", metadata.len().to_string())
-        .header("Upload-Metadata", build_tus_metadata(&filename, &content_type, media_optimize.unwrap_or(false)));
+        .header(
+            "Upload-Metadata",
+            build_tus_metadata(&filename, &content_type, media_optimize.unwrap_or(false)),
+        );
     if let Some(hdrs) = &headers {
         for (k, v) in hdrs {
             req = req.header(k, v);
@@ -127,7 +134,11 @@ async fn hotm_upload_local_file(
     if !create_resp.status().is_success() {
         let status = create_resp.status();
         let body = create_resp.text().await.unwrap_or_default();
-        return Err(format!("TUS create failed: HTTP {} {}", status.as_u16(), body));
+        return Err(format!(
+            "TUS create failed: HTTP {} {}",
+            status.as_u16(),
+            body
+        ));
     }
     emit_upload_progress(&app, &upload_id, 0, metadata.len());
 
@@ -168,7 +179,12 @@ async fn hotm_upload_local_file(
         let status = resp.status();
         if !status.is_success() {
             let body = resp.text().await.unwrap_or_default();
-            return Err(format!("TUS patch failed at offset {}: HTTP {} {}", offset, status.as_u16(), body));
+            return Err(format!(
+                "TUS patch failed at offset {}: HTTP {} {}",
+                offset,
+                status.as_u16(),
+                body
+            ));
         }
 
         offset += n as u64;
@@ -183,7 +199,11 @@ async fn hotm_upload_local_file(
         emit_upload_progress(&app, &upload_id, offset, metadata.len());
 
         if offset == metadata.len() {
-            final_attachment = Some(resp.json::<serde_json::Value>().await.map_err(|e| e.to_string())?);
+            final_attachment = Some(
+                resp.json::<serde_json::Value>()
+                    .await
+                    .map_err(|e| e.to_string())?,
+            );
             break;
         }
     }
@@ -202,9 +222,15 @@ async fn hotm_upload_local_file(
     if !resp.status().is_success() {
         let status = resp.status();
         let body = resp.text().await.unwrap_or_default();
-        return Err(format!("TUS finalize failed: HTTP {} {}", status.as_u16(), body));
+        return Err(format!(
+            "TUS finalize failed: HTTP {} {}",
+            status.as_u16(),
+            body
+        ));
     }
-    resp.json::<serde_json::Value>().await.map_err(|e| e.to_string())
+    resp.json::<serde_json::Value>()
+        .await
+        .map_err(|e| e.to_string())
 }
 
 fn emit_upload_progress(
@@ -318,8 +344,7 @@ async fn hotm_fetch(
         .map_err(|e| e.to_string())?;
 
     let method_str = method.as_deref().unwrap_or("GET");
-    let method = reqwest::Method::from_bytes(method_str.as_bytes())
-        .map_err(|e| e.to_string())?;
+    let method = reqwest::Method::from_bytes(method_str.as_bytes()).map_err(|e| e.to_string())?;
 
     let mut req = client.request(method, &url);
 
@@ -338,16 +363,15 @@ async fn hotm_fetch(
 
     let resp = req.send().await.map_err(|e| e.to_string())?;
     let status = resp.status().as_u16();
-    let status_text = resp
-        .status()
-        .canonical_reason()
-        .unwrap_or("")
-        .to_string();
+    let status_text = resp.status().canonical_reason().unwrap_or("").to_string();
 
     let mut resp_headers = serde_json::Map::new();
     for (k, v) in resp.headers() {
         if let Ok(vs) = v.to_str() {
-            resp_headers.insert(k.as_str().to_string(), serde_json::Value::String(vs.to_string()));
+            resp_headers.insert(
+                k.as_str().to_string(),
+                serde_json::Value::String(vs.to_string()),
+            );
         }
     }
 
@@ -408,8 +432,16 @@ async fn hotm_sse_connect(app: tauri::AppHandle, url: String) -> Result<serde_js
 
                         if line.is_empty() {
                             if !ev_data.is_empty() {
-                                let t = if ev_type.is_empty() { "message" } else { &ev_type };
-                                let id = if ev_id.is_empty() { None } else { Some(ev_id.as_str()) };
+                                let t = if ev_type.is_empty() {
+                                    "message"
+                                } else {
+                                    &ev_type
+                                };
+                                let id = if ev_id.is_empty() {
+                                    None
+                                } else {
+                                    Some(ev_id.as_str())
+                                };
                                 let _ = post_sse_event(&app, &handle_clone, t, Some(&ev_data), id);
                             }
                             ev_type.clear();
@@ -490,7 +522,9 @@ type SidecarHandle = Arc<Mutex<Option<CommandChild>>>;
 
 #[tauri::command]
 async fn render_plantuml(app: tauri::AppHandle, code: String) -> Result<String, String> {
-    plantuml::render_plantuml(&app, &code).await.map_err(|e| e.to_string())
+    plantuml::render_plantuml(&app, &code)
+        .await
+        .map_err(|e| e.to_string())
 }
 
 #[tauri::command]
@@ -527,25 +561,16 @@ fn create_default_icon() -> tauri::image::Image<'static> {
             let fx = x as f32;
             let fy = y as f32;
 
-            let left_dist =
-                ((fx - (cx - 3.0)).powi(2) / 49.0 + (fy - cy).powi(2) / 81.0).sqrt();
+            let left_dist = ((fx - (cx - 3.0)).powi(2) / 49.0 + (fy - cy).powi(2) / 81.0).sqrt();
             let is_left_hemisphere = left_dist <= 1.0 && fx <= cx;
 
-            let right_dist =
-                ((fx - (cx + 3.0)).powi(2) / 49.0 + (fy - cy).powi(2) / 81.0).sqrt();
+            let right_dist = ((fx - (cx + 3.0)).powi(2) / 49.0 + (fy - cy).powi(2) / 81.0).sqrt();
             let is_right_hemisphere = right_dist <= 1.0 && fx >= cx;
 
-            let is_division =
-                fx >= cx - 0.5 && fx <= cx + 0.5 && fy >= cy - 8.0 && fy <= cy + 6.0;
+            let is_division = fx >= cx - 0.5 && fx <= cx + 0.5 && fy >= cy - 8.0 && fy <= cy + 6.0;
 
-            let fold1 = (fx >= cx - 6.0
-                && fx <= cx - 4.0
-                && fy >= cy - 3.0
-                && fy <= cy + 3.0)
-                || (fx >= cx + 4.0
-                    && fx <= cx + 6.0
-                    && fy >= cy - 3.0
-                    && fy <= cy + 3.0);
+            let fold1 = (fx >= cx - 6.0 && fx <= cx - 4.0 && fy >= cy - 3.0 && fy <= cy + 3.0)
+                || (fx >= cx + 4.0 && fx <= cx + 6.0 && fy >= cy - 3.0 && fy <= cy + 3.0);
 
             if is_left_hemisphere || is_right_hemisphere || is_division || fold1 {
                 pixels.extend_from_slice(&[255, 255, 255, 255]);
@@ -561,8 +586,8 @@ fn create_default_icon() -> tauri::image::Image<'static> {
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     let args: Vec<String> = std::env::args().collect();
-    let start_minimized = args.contains(&"--minimized".to_string())
-        || args.contains(&"/minimized".to_string());
+    let start_minimized =
+        args.contains(&"--minimized".to_string()) || args.contains(&"/minimized".to_string());
 
     let shortcut_plugin = tauri_plugin_global_shortcut::Builder::new()
         .with_handler(move |app, _shortcut, event| {
@@ -592,7 +617,8 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             render_plantuml,
             ensure_plantuml,
-            get_app_config, save_app_config,
+            get_app_config,
+            save_app_config,
             hotm_fetch,
             hotm_pick_local_files,
             hotm_upload_local_file,
@@ -640,9 +666,18 @@ pub fn run() {
                         cfg.file_storage_path.clone()
                     };
 
-                    eprintln!("HotM: launching Fortemi sidecar on {} (storage: {})", api_url, file_storage);
+                    eprintln!(
+                        "HotM: launching Fortemi sidecar on {} (storage: {})",
+                        api_url, file_storage
+                    );
 
-                    let (rx, child) = app
+                    let whisper_base_url = if cfg.components.whisper {
+                        cfg.whisper_base_url.trim().to_string()
+                    } else {
+                        String::new()
+                    };
+
+                    let mut sidecar = app
                         .shell()
                         .sidecar("hotm-matric-api")
                         .map_err(|e| format!("sidecar not found: {e}"))?
@@ -651,13 +686,20 @@ pub fn run() {
                         .env("PORT", port.to_string())
                         .env("FILE_STORAGE_PATH", &file_storage)
                         .env("MATRIC_MAX_UPLOAD_SIZE_BYTES", "2147483648")
+                        .env("WHISPER_BASE_URL", whisper_base_url)
                         // The bundled desktop sidecar is private to localhost and the
                         // webview host adapter. Fortemi now defaults to fail-closed
                         // auth, so explicitly opt this embedded mode into anonymous
                         // local access until HotM bootstraps OAuth tokens.
                         .env("REQUIRE_AUTH", "false")
                         .env("I_UNDERSTAND_NO_AUTH", "true")
-                        .env("RATE_LIMIT_ENABLED", "false")
+                        .env("RATE_LIMIT_ENABLED", "false");
+
+                    if cfg.components.ollama {
+                        sidecar = sidecar.env("OLLAMA_BASE", cfg.ollama_base_url.trim());
+                    }
+
+                    let (rx, child) = sidecar
                         .spawn()
                         .map_err(|e| format!("failed to spawn sidecar: {e}"))?;
 
@@ -679,8 +721,8 @@ pub fn run() {
                                 .timeout(std::time::Duration::from_secs(2))
                                 .build()
                                 .unwrap_or_default();
-                            let deadline = std::time::Instant::now()
-                                + std::time::Duration::from_secs(30);
+                            let deadline =
+                                std::time::Instant::now() + std::time::Duration::from_secs(30);
                             loop {
                                 if std::time::Instant::now() > deadline {
                                     eprintln!("HotM: sidecar did not become healthy within 30s");

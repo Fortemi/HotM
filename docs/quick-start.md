@@ -64,7 +64,7 @@ Open `http://localhost:8080`. See [docker.md](installation/docker.md) for compos
 
 ## Bring Your Own LLM
 
-If you already run llama.cpp, vLLM, or any OpenAI-compatible endpoint, skip the bundled Ollama install — Fortemi is configurable for any inference backend.
+If you already run llama.cpp, vLLM, or any OpenAI-compatible endpoint, skip the bundled Ollama install — Fortemi is configurable for any inference backend. The Linux installer still starts Speaches/Whisper by default for audio/video transcription unless you pass `--no-whisper`.
 
 **Linux desktop bundle, no Ollama:**
 
@@ -79,6 +79,14 @@ This installs HotM + Fortemi + Postgres but skips the Ollama daemon and model pu
 - `OPENAI_API_KEY=...` (if using OpenAI or a compatible service)
 
 See the [Fortemi configuration docs](https://git.integrolabs.net/Fortemi/fortemi#configuration) for the full inference backend matrix.
+
+**Linux desktop bundle, no local transcription:**
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/Fortemi/HotM/main/scripts/install.sh | bash -s -- --no-whisper
+```
+
+This leaves media upload enabled but disables local transcription scheduling in the desktop sidecar profile.
 
 > HotM in Docker doesn't run inference at all — that's all on the Fortemi side. The Docker quickstart above already supports any Fortemi instance via `VITE_API_BASE_URL`.
 

@@ -114,6 +114,8 @@ Inference is configured through the Admin Panel (**Admin → Inference** tab in 
 | `MATRIC_OLLAMA_URL` | `http://127.0.0.1:11434` | Ollama base URL |
 | `MATRIC_OLLAMA_GENERATION_MODEL` | `qwen3.5:9b` | Generation/vision model |
 | `MATRIC_OLLAMA_EMBEDDING_MODEL` | `nomic-embed-text` | Embedding model |
+| `WHISPER_BASE_URL` | `http://127.0.0.1:8000` | Whisper-compatible transcription URL; set empty to disable |
+| `WHISPER_MODEL` | `Systran/faster-distil-whisper-large-v3` | Audio/video transcription model |
 
 To use a cloud provider (OpenAI, OpenRouter) instead of Ollama, set these through the Admin Panel. Configuration is persisted in the Fortemi database.
 
@@ -203,7 +205,11 @@ To point HotM at a remote or separately managed Fortemi instance instead of the 
 {
   "api_base_url": "http://192.168.1.100:3000",
   "database_url": "",
-  "file_storage_path": ""
+  "file_storage_path": "",
+  "components": {
+    "ollama": false,
+    "whisper": false
+  }
 }
 ```
 

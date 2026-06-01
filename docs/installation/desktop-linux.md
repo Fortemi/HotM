@@ -1,6 +1,6 @@
 # HotM Desktop — Linux Installation
 
-HotM ships as a Tauri desktop application for Linux. The `.deb` and `.AppImage` bundles include the HotM UI and the Fortemi API sidecar. Postgres 18 + pgvector + Ollama are runtime prerequisites and are handled by the bootstrap installer below.
+HotM ships as a Tauri desktop application for Linux. The `.deb` and `.AppImage` bundles include the HotM UI and the Fortemi API sidecar. Postgres 18 + pgvector, Ollama, and Speaches/Whisper are runtime prerequisites and are handled by the bootstrap installer below.
 
 > **Postgres 18 required.** Fortemi migrations rely on `uuidv7()` (a Postgres 18 built-in). Older clusters (PG 13–17) will fail at first launch with `function uuidv7() does not exist`. Install.sh adds the [PGDG apt repo](https://wiki.postgresql.org/wiki/Apt) for you so PG 18 is available on Ubuntu 24.04 LTS, 25.10 (questing), and Debian 12+.
 
@@ -25,8 +25,9 @@ The installer is idempotent — re-running is safe and skips anything already in
 | 5 | The `.deb` postinst creates the `matric` role, the `matric` database, and enables `vector`, `postgis`, `pg_trgm`, `unaccent` extensions |
 | 6 | Runs the official Ollama installer (`curl https://ollama.com/install.sh \| sh`) and enables the `ollama` systemd service |
 | 7 | Pulls `nomic-embed-text` (embeddings) and `qwen3.5:9b` (generation) **in the background** — model pulls take 5-15 minutes and don't block the installer |
-| 8 | Runs a short sidecar smoke probe unless `--skip-smoke-test` is set |
-| 9 | Reports installed status and next steps |
+| 8 | Installs Docker if needed and starts Speaches/Whisper on `127.0.0.1:8000` for audio/video transcription |
+| 9 | Runs a short sidecar smoke probe unless `--skip-smoke-test` is set |
+| 10 | Reports installed status and next steps |
 
 Audit the script before piping by reading it directly:
 ```bash
@@ -41,8 +42,11 @@ curl -fsSL https://raw.githubusercontent.com/Fortemi/HotM/main/scripts/install.s
   --local-deb ./HotM_2026.5.14_amd64.deb
   --no-ollama             # skip Ollama install (HotM starts in degraded mode)
   --skip-models           # install Ollama but don't auto-pull models
+  --no-whisper            # skip local Speaches/Whisper and disable transcription jobs
   --embed-model nomic-embed-text
   --gen-model qwen3.5:9b
+  --whisper-model Systran/faster-distil-whisper-large-v3
+  --whisper-image ghcr.io/speaches-ai/speaches:latest-cpu
   --reset-db              # reset an empty/drifted matric DB after install
   --reset-db --force      # destructive: reset even when note rows exist
   --skip-smoke-test       # skip the sidecar startup probe
@@ -89,6 +93,24 @@ ollama pull qwen3.5:9b
 
 Skip this step if you plan to use a remote inference provider — configure it in **Settings → Admin → Inference** after first launch.
 
+### 4. Install Speaches/Whisper (optional, for audio/video transcription)
+
+The installer starts the CPU image by default:
+
+```bash
+sudo apt-get install docker.io
+sudo systemctl enable --now docker
+sudo docker run -d \
+  --name hotm-speaches \
+  --restart unless-stopped \
+  -p 127.0.0.1:8000:8000 \
+  -v hotm-speaches-models:/home/ubuntu/.cache/huggingface/hub \
+  -e WHISPER__MODEL=Systran/faster-distil-whisper-large-v3 \
+  ghcr.io/speaches-ai/speaches:latest-cpu
+```
+
+Use `--no-whisper` when this host should not run local transcription. That writes `components.whisper=false` so the bundled sidecar disables transcription jobs instead of queuing work that cannot run.
+
 ## Files installed
 
 | Path | Purpose |
@@ -130,7 +152,13 @@ Configuration lives at `~/.config/com.hotm.app/config.json`:
 {
   "api_base_url": "http://127.0.0.1:PORT",
   "database_url": "postgres://matric:matric@localhost/matric",
-  "file_storage_path": ""
+  "file_storage_path": "",
+  "components": {
+    "ollama": true,
+    "whisper": true
+  },
+  "ollama_base_url": "http://127.0.0.1:11434",
+  "whisper_base_url": "http://127.0.0.1:8000"
 }
 ```
 
@@ -139,6 +167,10 @@ Configuration lives at `~/.config/com.hotm.app/config.json`:
 | `api_base_url` | Updated automatically at startup — do not edit manually |
 | `database_url` | PostgreSQL connection string for the Fortemi sidecar |
 | `file_storage_path` | Where attachments are stored. Empty → `~/.local/share/com.hotm.app/fortemi-files` |
+| `components.ollama` | Whether this desktop profile expects the local Ollama service |
+| `components.whisper` | Whether this desktop profile enables local audio/video transcription |
+| `ollama_base_url` | Ollama endpoint passed to the bundled Fortemi sidecar |
+| `whisper_base_url` | Whisper-compatible endpoint passed to the bundled Fortemi sidecar |
 
 To change the database password:
 
