@@ -38,8 +38,8 @@ curl -fsSL https://raw.githubusercontent.com/Fortemi/HotM/main/scripts/install.s
 
 ```bash
 ./scripts/install.sh \
-  --version v2026.5.14    # pin to a specific release (default: latest)
-  --local-deb ./HotM_2026.5.14_amd64.deb
+  --version v2026.6.0     # pin to a specific release (default: latest)
+  --local-deb ./HotM_2026.6.0_amd64.deb
   --no-ollama             # skip Ollama install (HotM starts in degraded mode)
   --skip-models           # install Ollama but don't auto-pull models
   --no-whisper            # skip local Speaches/Whisper and disable transcription jobs
@@ -75,8 +75,8 @@ sudo apt-get install postgresql-18 postgresql-contrib-18 \
 ### 2. Install the HotM `.deb`
 
 ```bash
-wget https://github.com/Fortemi/HotM/releases/download/v2026.5.3/HotM_2026.5.3_amd64.deb
-sudo apt-get install ./HotM_2026.5.3_amd64.deb
+wget https://github.com/Fortemi/HotM/releases/download/v2026.6.0/HotM_2026.6.0_amd64.deb
+sudo apt-get install ./HotM_2026.6.0_amd64.deb
 # postinst seeds the matric role + database + extensions automatically
 ```
 

@@ -4,6 +4,35 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2026.6.0] - 2026-06-02
+
+Installer and desktop capture reliability release. Linux fresh installs now provision local transcription by default, while desktop video attachment upload paths use the native host adapter and surface upload progress consistently.
+
+### Added
+
+- **Default Linux transcription provisioning** via Speaches/Whisper. `scripts/install.sh` now installs Docker when needed and starts `hotm-speaches` on `127.0.0.1:8000`, so audio/video transcription jobs are enabled in the default desktop profile.
+- **Installer controls for component startup**: `--no-whisper`, `--whisper-model`, and `--whisper-image` let operators disable local transcription or pin the local transcription model/image for constrained deployments.
+- **Desktop component config** for `components.ollama`, `components.whisper`, `ollama_base_url`, and `whisper_base_url`, allowing the launcher to pass only the services expected by the active profile.
+
+### Fixed
+
+- **Desktop video attachments upload through the native Tauri adapter** instead of relying on browser file handling that could silently skip the transfer after a note was created.
+- **Large local uploads** now route through the desktop upload/TUS path with a higher sidecar upload ceiling and visible upload progress events.
+- **Linux local-mode sidecar startup** now passes the correct auth and service environment, preventing API-connected/offline-mode mismatches after reinstall.
+- **Installer fresh-host behavior** tightened around PGDG key recovery, `--local-deb` path handling, and target-home resolution for logs/config written during sudo-driven installs.
+- **Retrying queued jobs** removes stale completed/failed event cards when the same job is queued or started again.
+- **npm audit advisory for `ws`** cleared by updating the transitive dev dependency from `8.19.0` to `8.21.0`.
+
+### Compatibility
+
+- No breaking changes to existing HotM data or UI workflows.
+- Linux default installs now run local transcription infrastructure. Operators who do not want the Docker-backed Speaches service on a host should install with `--no-whisper`; the installer writes `components.whisper=false` so transcription jobs are not scheduled for that profile.
+
+### Verification
+
+- Gitea CI on `main` was green for the merged installer/transcription work before release prep.
+- Local checks from the installer validation pass: `bash -n scripts/install.sh`, `npm run typecheck`, targeted Vitest coverage for job events and Tauri config, `cargo check`, `npm run tauri:build`, local `.deb` install, Speaches `/health` probe, and desktop launch smoke with the Whisper model ready.
+
 ## [2026.5.14] - 2026-05-26
 
 Feature release for the latest Fortemi API surface integration. HotM now documents and exercises the newer Fortemi create-note, reprocess, backup import, document type, webhook, and capability-health contracts, and adds operator-facing Admin screens for the surfaces that need direct UI control.
