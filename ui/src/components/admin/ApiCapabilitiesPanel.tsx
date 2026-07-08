@@ -1,6 +1,7 @@
 import * as React from 'react';
-import { Activity, AlertTriangle, CheckCircle2, Database, Loader2, RefreshCw, Server } from 'lucide-react';
+import { Activity, AlertTriangle, CheckCircle2, Database, Loader2, Lock, Package, RefreshCw, Server } from 'lucide-react';
 import { api } from '@/api';
+import type { SystemCompatibilityResponse } from '@/api';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -34,6 +35,49 @@ const UI_FEATURES = [
   { label: 'Webhooks', detail: 'Admin can list, register, test, and delete outbound event hooks' },
 ] as const;
 
+const ENTERPRISE_SURFACES = [
+  {
+    key: 'hosted_auth',
+    label: 'Hosted Auth',
+    detail: 'Sign-in and tenant context for hosted workflows',
+  },
+  {
+    key: 'realtime_activity',
+    label: 'Realtime Activity',
+    detail: 'Connection, job, sync, and admin event visibility',
+  },
+  {
+    key: 'premium_components',
+    label: 'Premium Components',
+    detail: 'Premium catalog state and entitlement-safe previews',
+  },
+  {
+    key: 'backoffice_api',
+    label: 'Backoffice Console',
+    detail: 'Tenant health, support, and operator tooling',
+  },
+  {
+    key: 'audit_posture',
+    label: 'Audit Posture',
+    detail: 'Coarse audit pipeline readiness for admin review',
+  },
+  {
+    key: 'quota_status',
+    label: 'Quota Status',
+    detail: 'Tenant quota and usage posture',
+  },
+  {
+    key: 'kms_status',
+    label: 'KMS Status',
+    detail: 'Key-provider readiness without exposing key material',
+  },
+  {
+    key: 'mcp_scope_gate',
+    label: 'MCP Scope Gate',
+    detail: 'Scope and tool-gate readiness for enterprise agents',
+  },
+] as const;
+
 function toTitle(value: string): string {
   return value
     .replace(/_/g, ' ')
@@ -44,7 +88,7 @@ function statusVariant(status?: string): 'default' | 'secondary' | 'destructive'
   const normalized = status?.toLowerCase();
   if (!normalized) return 'outline';
   if (['healthy', 'ok', 'operational', 'running', 'connected', 'available'].includes(normalized)) return 'default';
-  if (['degraded', 'unavailable', 'unknown'].includes(normalized)) return 'outline';
+  if (['degraded', 'preview', 'unavailable', 'unknown'].includes(normalized)) return 'outline';
   if (['unhealthy', 'offline', 'failed', 'disconnected', 'shutdown'].includes(normalized)) return 'destructive';
   return 'secondary';
 }
@@ -61,8 +105,9 @@ function capabilityState(value: CapabilityValue): { label: string; variant: 'def
     const configured = value.configured;
     const enabled = value.enabled;
     const status = typeof value.status === 'string' ? value.status : undefined;
-    const isUnavailable = available === false || configured === false || enabled === false;
-    const label = status ?? (isUnavailable ? 'degraded' : 'available');
+    const contractState = typeof value.state === 'string' ? value.state : undefined;
+    const isUnavailable = available === false || configured === false || enabled === false || contractState === 'unavailable';
+    const label = contractState ?? status ?? (isUnavailable ? 'degraded' : 'available');
     const detail = Object.entries(value)
       .filter(([, item]) => ['string', 'number', 'boolean'].includes(typeof item))
       .map(([key, item]) => key + ': ' + String(item))
@@ -79,7 +124,11 @@ function capabilityState(value: CapabilityValue): { label: string; variant: 'def
   return { label: String(value), variant: statusVariant(String(value)) };
 }
 
-function isDegraded(health: ApiSurfaceHealth | null): boolean {
+function isDegraded(health: ApiSurfaceHealth | null, compatibility: SystemCompatibilityResponse | null): boolean {
+  if (compatibility) {
+    return Object.values(compatibility.capabilities).some((value) => value.state !== 'available');
+  }
+
   if (!health) return false;
   const status = health.status?.toLowerCase();
   if (status === 'degraded') return true;
@@ -92,20 +141,328 @@ function isDegraded(health: ApiSurfaceHealth | null): boolean {
   });
 }
 
+function enterpriseSurfaceState(
+  compatibility: SystemCompatibilityResponse | null,
+  key: string
+): { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline'; reason: string; productionEnabled: boolean } {
+  if (!compatibility) {
+    return {
+      label: 'unknown',
+      variant: 'outline',
+      reason: 'compatibility_discovery_unavailable',
+      productionEnabled: false,
+    };
+  }
+
+  const capability = compatibility.capabilities[key];
+  if (!capability) {
+    return {
+      label: 'unknown',
+      variant: 'outline',
+      reason: 'capability_not_advertised',
+      productionEnabled: false,
+    };
+  }
+
+  return {
+    label: capability.state,
+    variant: statusVariant(capability.state),
+    reason: capability.reason_code ?? (capability.state === 'available' ? 'ready' : 'no_reason_code'),
+    productionEnabled: capability.state === 'available',
+  };
+}
+
+function hostedAuthPreviewRows(compatibility: SystemCompatibilityResponse | null) {
+  const unknown = {
+    state: 'unknown',
+    variant: 'outline' as const,
+    reason: 'compatibility_discovery_unavailable',
+  };
+
+  if (!compatibility) {
+    return [
+      { label: 'Local Mode', detail: 'Local workflows stay available while hosted auth is unknown.', ...unknown },
+      { label: 'Sign-In Path', detail: 'Hosted sign-in is hidden until compatibility metadata is available.', ...unknown },
+      { label: 'Tenant Context', detail: 'Tenant context is not assumed without an advertised session contract.', ...unknown },
+      { label: 'Admin Authorization', detail: 'Admin surfaces stay disabled without role or scope evidence.', ...unknown },
+      { label: 'Auth Failure Handling', detail: 'Failures use fixed categories when hosted auth reports an error.', ...unknown },
+    ];
+  }
+
+  const hostedAuth = enterpriseSurfaceState(compatibility, 'hosted_auth');
+  const mode = compatibility.auth.mode.toLowerCase();
+  const localMode = compatibility.deployment.mode === 'local_sidecar' || mode.includes('anonymous_local');
+  const authFailure = mode.includes('fail') || mode.includes('error');
+  const insufficientRole = mode.includes('insufficient') || mode.includes('forbidden') || mode.includes('missing_scope');
+  const tenantContext = compatibility.auth.tenant_context_available;
+  const hostedAdvertised = hostedAuth.label === 'available' || hostedAuth.label === 'preview';
+
+  return [
+    {
+      label: 'Local Mode',
+      detail: localMode
+        ? 'Local/private workflows remain available; hosted controls stay gated.'
+        : 'Hosted endpoint selected; local-mode fallback is not the active auth posture.',
+      state: localMode ? 'available' : 'unavailable',
+      variant: localMode ? 'default' as const : 'outline' as const,
+      reason: localMode ? 'anonymous_local_mode' : 'hosted_mode_selected',
+    },
+    {
+      label: 'Sign-In Path',
+      detail: hostedAdvertised
+        ? 'Hosted sign-in can be shown without rendering tokens or provider diagnostics.'
+        : 'Hosted sign-in remains disabled until Fortemi advertises hosted auth.',
+      state: hostedAdvertised && !authFailure ? 'preview' : 'unavailable',
+      variant: hostedAdvertised && !authFailure ? 'secondary' as const : 'outline' as const,
+      reason: authFailure ? 'auth_failure' : hostedAuth.reason,
+    },
+    {
+      label: 'Tenant Context',
+      detail: tenantContext
+        ? 'Tenant context is present for preview surfaces.'
+        : 'Tenant context is absent; enterprise panels stay disabled or local-only.',
+      state: tenantContext ? 'available' : 'unavailable',
+      variant: tenantContext ? 'default' as const : 'outline' as const,
+      reason: tenantContext ? 'tenant_context_available' : 'tenant_context_absent',
+    },
+    {
+      label: 'Admin Authorization',
+      detail: insufficientRole
+        ? 'Session is valid but lacks the admin role or scope required for enterprise controls.'
+        : 'Admin scope is treated as preview-only until the hosted auth contract exposes role evidence.',
+      state: insufficientRole ? 'unavailable' : tenantContext && hostedAdvertised ? 'preview' : 'unavailable',
+      variant: insufficientRole ? 'outline' as const : tenantContext && hostedAdvertised ? 'secondary' as const : 'outline' as const,
+      reason: insufficientRole ? 'insufficient_role_or_scope' : tenantContext && hostedAdvertised ? 'scope_contract_pending' : 'admin_scope_unverified',
+    },
+    {
+      label: 'Auth Failure Handling',
+      detail: authFailure
+        ? 'A fixed auth failure category is visible; raw provider diagnostics remain hidden.'
+        : 'Failure copy is ready for hosted auth errors without exposing raw provider output.',
+      state: authFailure ? 'unavailable' : 'preview',
+      variant: authFailure ? 'outline' as const : 'secondary' as const,
+      reason: authFailure ? 'fixed_error_category' : 'no_auth_failure_reported',
+    },
+  ];
+}
+
+type CatalogStatus = 'available' | 'unavailable' | 'license required' | 'admin required' | 'preview only' | 'unknown';
+type BackofficePanelStatus = 'enabled' | 'disabled' | 'degraded' | 'preview-only' | 'unavailable' | 'unknown';
+
+function catalogVariant(status: CatalogStatus): 'default' | 'secondary' | 'destructive' | 'outline' {
+  if (status === 'available') return 'default';
+  if (status === 'preview only') return 'secondary';
+  return 'outline';
+}
+
+function catalogStatusFromCapability(
+  compatibility: SystemCompatibilityResponse | null,
+  key: string
+): CatalogStatus {
+  if (!compatibility) return 'unknown';
+
+  const capability = compatibility.capabilities[key];
+  if (!capability) return 'unknown';
+  if (capability.state === 'available') return 'available';
+  if (capability.state === 'preview') return 'preview only';
+  if (capability.state === 'unavailable') return 'unavailable';
+  return 'unknown';
+}
+
+function premiumCatalogRows(compatibility: SystemCompatibilityResponse | null) {
+  const premiumStatus = catalogStatusFromCapability(compatibility, 'premium_components');
+  const hostedAuthStatus = catalogStatusFromCapability(compatibility, 'hosted_auth');
+  const backofficeStatus = catalogStatusFromCapability(compatibility, 'backoffice_api');
+  const kmsStatus = catalogStatusFromCapability(compatibility, 'kms_status');
+  const mcpStatus = catalogStatusFromCapability(compatibility, 'mcp_scope_gate');
+  const tenantContext = compatibility?.auth.tenant_context_available === true;
+  const enterpriseEdition = compatibility?.deployment.edition === 'enterprise';
+
+  return [
+    {
+      name: 'Premium Components',
+      status: premiumStatus,
+      description: 'Catalog shell for licensed enterprise UI modules.',
+      role: 'Tenant admin',
+      dependency: 'premium_components capability',
+      actionEnabled: premiumStatus === 'available' && tenantContext,
+      reason: premiumStatus === 'available' && tenantContext ? 'preview_details_available' : 'component_gate_not_satisfied',
+    },
+    {
+      name: 'Licensed Server Components',
+      status: enterpriseEdition && premiumStatus === 'available' ? 'available' as CatalogStatus : 'license required' as CatalogStatus,
+      description: 'Coarse licensed-server readiness without exposing license material.',
+      role: 'Operator',
+      dependency: 'Fortemi/licensing#1',
+      actionEnabled: false,
+      reason: enterpriseEdition && premiumStatus === 'available' ? 'license_review_pending' : 'license_required',
+    },
+    {
+      name: 'Backoffice Widgets',
+      status: backofficeStatus,
+      description: 'Tenant health, quota, audit, KMS, and support preview widgets.',
+      role: 'Tenant admin',
+      dependency: 'Fortemi/fortemi#1020',
+      actionEnabled: false,
+      reason: backofficeStatus === 'available' ? 'production_action_still_gated' : 'backoffice_contract_pending',
+    },
+    {
+      name: 'Enterprise MCP Tools',
+      status: mcpStatus === 'available' && tenantContext ? 'admin required' as CatalogStatus : mcpStatus,
+      description: 'Scope-gated tool access shown as preview metadata only.',
+      role: 'Tenant admin',
+      dependency: 'mcp_scope_gate capability',
+      actionEnabled: false,
+      reason: mcpStatus === 'available' && tenantContext ? 'admin_scope_contract_pending' : 'mcp_scope_gate_not_satisfied',
+    },
+    {
+      name: 'Hosted Auth Components',
+      status: hostedAuthStatus,
+      description: 'Hosted identity, tenant context, and role-gated surface wiring.',
+      role: 'Tenant admin',
+      dependency: 'Fortemi/fortemi-auth#25',
+      actionEnabled: false,
+      reason: hostedAuthStatus === 'available' ? 'session_contract_pending' : 'hosted_auth_not_ready',
+    },
+    {
+      name: 'KMS Integrations',
+      status: kmsStatus,
+      description: 'Key-provider readiness displayed as coarse status only.',
+      role: 'Operator',
+      dependency: 'Fortemi/fortemi#1019',
+      actionEnabled: false,
+      reason: kmsStatus === 'available' ? 'key_material_hidden' : 'kms_gate_not_satisfied',
+    },
+  ];
+}
+
+function backofficeVariant(status: BackofficePanelStatus): 'default' | 'secondary' | 'destructive' | 'outline' {
+  if (status === 'enabled') return 'default';
+  if (status === 'preview-only') return 'secondary';
+  if (status === 'degraded') return 'outline';
+  return 'outline';
+}
+
+function panelStatusFromCapability(
+  compatibility: SystemCompatibilityResponse | null,
+  key: string
+): BackofficePanelStatus {
+  if (!compatibility) return 'unavailable';
+
+  const capability = compatibility.capabilities[key];
+  if (!capability) return 'unknown';
+  if (capability.state === 'available') return 'enabled';
+  if (capability.state === 'preview') return 'preview-only';
+  if (capability.state === 'unavailable') return 'unavailable';
+  return 'unknown';
+}
+
+function backofficePanelRows(
+  compatibility: SystemCompatibilityResponse | null,
+  health: ApiSurfaceHealth | null,
+  degraded: boolean
+) {
+  const backofficeStatus = panelStatusFromCapability(compatibility, 'backoffice_api');
+  const auditStatus = panelStatusFromCapability(compatibility, 'audit_posture');
+  const quotaStatus = panelStatusFromCapability(compatibility, 'quota_status');
+  const kmsStatus = panelStatusFromCapability(compatibility, 'kms_status');
+  const supportStatus = panelStatusFromCapability(compatibility, 'support_diagnostics');
+  const tenantContext = compatibility?.auth.tenant_context_available === true;
+  const insufficientRole = compatibility?.auth.mode.toLowerCase().includes('insufficient') === true;
+  const hostedProductionBlocked = compatibility ? !compatibility.deployment.hosted_multi_tenant_ready : true;
+
+  const tenantHealthStatus: BackofficePanelStatus = !compatibility
+    ? 'unavailable'
+    : insufficientRole
+      ? 'disabled'
+      : backofficeStatus === 'enabled' && tenantContext
+        ? 'enabled'
+        : backofficeStatus;
+
+  return [
+    {
+      name: 'Tenant Health',
+      status: tenantHealthStatus,
+      preview: compatibility
+        ? `${toTitle(compatibility.deployment.mode)} / ${toTitle(compatibility.deployment.edition)}; ${compatibilityStatusLabel(degraded)}`
+        : 'Compatibility discovery unavailable; local workflows remain separate.',
+      dependency: 'Fortemi/fortemi#1018, Fortemi/fortemi#1020',
+      action: 'Production action disabled',
+      reason: hostedProductionBlocked ? 'hosted_production_blocked_rls_gate' : 'read_only_preview',
+    },
+    {
+      name: 'Audit Posture',
+      status: auditStatus === 'preview-only' ? 'degraded' as BackofficePanelStatus : auditStatus,
+      preview: 'Audit availability, redaction status, and event-count class only.',
+      dependency: 'Fortemi/fortemi#1020, enterprise audit sinks',
+      action: 'Production action disabled',
+      reason: auditStatus === 'enabled' ? 'audit_contract_pending' : 'audit_sink_gate_not_satisfied',
+    },
+    {
+      name: 'Quota Status',
+      status: quotaStatus,
+      preview: 'Coarse quota posture only: ok, warning, exceeded, or unknown.',
+      dependency: 'Fortemi/fortemi#1020',
+      action: 'Production action disabled',
+      reason: quotaStatus === 'enabled' ? 'quota_action_requires_fixture' : 'quota_contract_pending',
+    },
+    {
+      name: 'KMS Status',
+      status: kmsStatus,
+      preview: 'Key-provider readiness without key IDs, fingerprints, or provider resource names.',
+      dependency: 'Fortemi/fortemi#1019, Fortemi-Enterprise/kms#2',
+      action: 'Production action disabled',
+      reason: kmsStatus === 'enabled' ? 'key_material_hidden' : 'kms_gate_not_satisfied',
+    },
+    {
+      name: 'Support Diagnostics',
+      status: insufficientRole ? 'disabled' as BackofficePanelStatus : supportStatus,
+      preview: health?.sse
+        ? `Safe categories only; ${health.sse.events_delivered ?? 0} realtime events delivered.`
+        : 'Safe diagnostic categories only; support bundles unavailable.',
+      dependency: 'Fortemi/fortemi#1020 and audit gate',
+      action: 'Export disabled',
+      reason: supportStatus === 'enabled' && !insufficientRole ? 'support_export_requires_audit_gate' : 'support_contract_pending',
+    },
+  ];
+}
+
+function compatibilityStatusLabel(degraded: boolean): string {
+  return degraded ? 'capability attention required' : 'compatible metadata available';
+}
+
 export function ApiCapabilitiesPanel() {
   const [health, setHealth] = React.useState<ApiSurfaceHealth | null>(null);
+  const [compatibility, setCompatibility] = React.useState<SystemCompatibilityResponse | null>(null);
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
 
   const loadHealth = React.useCallback(async () => {
     setLoading(true);
     setError(null);
+    setCompatibility(null);
     try {
-      setHealth(await api.healthCheck() as ApiSurfaceHealth);
+      const [compatibilityResult, healthResult] = await Promise.allSettled([
+        api.systemCompatibility.get(),
+        api.healthCheck() as Promise<ApiSurfaceHealth>,
+      ]);
+
+      if (compatibilityResult.status === 'fulfilled') {
+        setCompatibility(compatibilityResult.value);
+      }
+
+      if (healthResult.status === 'fulfilled') {
+        setHealth(healthResult.value);
+      } else if (compatibilityResult.status === 'fulfilled') {
+        setHealth(null);
+      } else {
+        throw healthResult.reason;
+      }
     } catch (err) {
       console.error('Failed to load API surface:', err);
       setError('Error loading API surface');
       setHealth(null);
+      setCompatibility(null);
     } finally {
       setLoading(false);
     }
@@ -115,8 +472,11 @@ export function ApiCapabilitiesPanel() {
     void loadHealth();
   }, [loadHealth]);
 
-  const capabilityEntries = Object.entries(health?.capabilities ?? {});
-  const degraded = isDegraded(health);
+  const capabilityEntries = Object.entries(compatibility?.capabilities ?? health?.capabilities ?? {});
+  const degraded = isDegraded(health, compatibility);
+  const compatibilityStatus = compatibility
+    ? (degraded ? 'needs attention' : 'compatible')
+    : 'legacy health';
 
   return (
     <div className="flex flex-col gap-4">
@@ -155,10 +515,21 @@ export function ApiCapabilitiesPanel() {
                   <div className="mt-1 break-all font-mono text-sm">{api.client.baseUrl}</div>
                 </div>
                 <div className="rounded border p-3">
-                  <div className="text-xs text-muted-foreground">Status</div>
+                  <div className="text-xs text-muted-foreground">Compatibility</div>
                   <div className="mt-1 flex items-center gap-2">
-                    <Badge variant={statusVariant(health?.status)}>{health?.status ?? 'unknown'}</Badge>
-                    {health?.version && <span className="text-sm text-muted-foreground">v{health.version}</span>}
+                    <Badge variant={degraded ? 'outline' : 'default'}>{compatibilityStatus}</Badge>
+                    {compatibility?.contract_revision && (
+                      <span className="text-sm text-muted-foreground">{compatibility.contract_revision}</span>
+                    )}
+                  </div>
+                </div>
+                <div className="rounded border p-3">
+                  <div className="text-xs text-muted-foreground">API</div>
+                  <div className="mt-1 flex items-center gap-2">
+                    <Badge variant={statusVariant(health?.status)}>{health?.status ?? compatibility?.api.name ?? 'unknown'}</Badge>
+                    {(compatibility?.api.version ?? health?.version) && (
+                      <span className="text-sm text-muted-foreground">v{compatibility?.api.version ?? health?.version}</span>
+                    )}
                   </div>
                 </div>
                 <div className="rounded border p-3">
@@ -183,9 +554,110 @@ export function ApiCapabilitiesPanel() {
                     </div>
                   </div>
                 )}
+                {compatibility && (
+                  <>
+                    <div className="rounded border p-3">
+                      <div className="text-xs text-muted-foreground">Deployment</div>
+                      <div className="mt-1 text-sm text-muted-foreground">
+                        {toTitle(compatibility.deployment.mode)} / {toTitle(compatibility.deployment.edition)}
+                      </div>
+                    </div>
+                    <div className="rounded border p-3">
+                      <div className="text-xs text-muted-foreground">Auth</div>
+                      <div className="mt-1 text-sm text-muted-foreground">
+                        {toTitle(compatibility.auth.mode)}
+                      </div>
+                    </div>
+                  </>
+                )}
               </div>
             </>
           )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Server className="size-5" />
+            Backoffice Console Preview
+          </CardTitle>
+          <CardDescription>Tenant operations panels with production actions disabled until backend, role, audit, and fixture gates pass.</CardDescription>
+        </CardHeader>
+        <CardContent className="grid gap-3 md:grid-cols-2">
+          {backofficePanelRows(compatibility, health, degraded).map((panel) => (
+            <div key={panel.name} className="rounded border p-3">
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <div className="text-sm font-medium">{panel.name}</div>
+                  <p className="mt-1 text-xs text-muted-foreground">{panel.preview}</p>
+                </div>
+                <Badge variant={backofficeVariant(panel.status)}>{panel.status}</Badge>
+              </div>
+              <div className="mt-3 grid gap-1 text-xs text-muted-foreground">
+                <div>Dependency: {panel.dependency}</div>
+                <div>Reason: {panel.reason}</div>
+              </div>
+              <Button className="mt-3 w-full" size="sm" variant="outline" disabled>
+                {panel.action}
+              </Button>
+            </div>
+          ))}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Package className="size-5" />
+            Premium Components Catalog
+          </CardTitle>
+          <CardDescription>Coarse premium component states with license, role, and backend gates preserved.</CardDescription>
+        </CardHeader>
+        <CardContent className="grid gap-3 md:grid-cols-2">
+          {premiumCatalogRows(compatibility).map((item) => (
+            <div key={item.name} className="rounded border p-3">
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <div className="text-sm font-medium">{item.name}</div>
+                  <p className="mt-1 text-xs text-muted-foreground">{item.description}</p>
+                </div>
+                <Badge variant={catalogVariant(item.status)}>{item.status}</Badge>
+              </div>
+              <div className="mt-3 grid gap-1 text-xs text-muted-foreground">
+                <div>Role: {item.role}</div>
+                <div>Dependency: {item.dependency}</div>
+                <div>Reason: {item.reason}</div>
+              </div>
+              <Button className="mt-3 w-full" size="sm" variant="outline" disabled={!item.actionEnabled}>
+                {item.actionEnabled ? 'View preview details' : 'Action gated'}
+              </Button>
+            </div>
+          ))}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Lock className="size-5" />
+            Hosted Auth Preview
+          </CardTitle>
+          <CardDescription>Local, sign-in, tenant, role, and failure states for the enterprise demo path.</CardDescription>
+        </CardHeader>
+        <CardContent className="grid gap-3 md:grid-cols-2">
+          {hostedAuthPreviewRows(compatibility).map((row) => (
+            <div key={row.label} className="rounded border p-3">
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <div className="text-sm font-medium">{row.label}</div>
+                  <p className="mt-1 text-xs text-muted-foreground">{row.detail}</p>
+                </div>
+                <Badge variant={row.variant}>{row.state}</Badge>
+              </div>
+              <div className="mt-3 text-xs text-muted-foreground">{row.reason}</div>
+            </div>
+          ))}
         </CardContent>
       </Card>
 
@@ -240,6 +712,38 @@ export function ApiCapabilitiesPanel() {
               <p className="mt-1 text-xs text-muted-foreground">{feature.detail}</p>
             </div>
           ))}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Server className="size-5" />
+            Enterprise Preview
+          </CardTitle>
+          <CardDescription>Premium and backoffice surfaces gated by Fortemi compatibility metadata.</CardDescription>
+        </CardHeader>
+        <CardContent className="grid gap-3 md:grid-cols-2">
+          {ENTERPRISE_SURFACES.map((surface) => {
+            const state = enterpriseSurfaceState(compatibility, surface.key);
+            return (
+              <div key={surface.key} className="rounded border p-3">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <div className="text-sm font-medium">{surface.label}</div>
+                    <p className="mt-1 text-xs text-muted-foreground">{surface.detail}</p>
+                  </div>
+                  <Badge variant={state.variant}>{state.label}</Badge>
+                </div>
+                <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+                  <Badge variant={state.productionEnabled ? 'default' : 'outline'} className="text-xs">
+                    {state.productionEnabled ? 'production enabled' : 'production disabled'}
+                  </Badge>
+                  <span>{state.reason}</span>
+                </div>
+              </div>
+            );
+          })}
         </CardContent>
       </Card>
     </div>

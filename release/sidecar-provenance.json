@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "source_repository": "Fortemi/fortemi",
+  "release_tag": "sidecar-latest",
+  "target_commitish": "5b389cb86e4e8d8a610955d2e68f7f3e0a5de371",
+  "published_at": "2026-07-04T19:25:21-04:00",
+  "base_url": "https://git.integrolabs.net/Fortemi/fortemi/releases/download/sidecar-latest",
+  "assets": {
+    "x86_64-unknown-linux-gnu": {
+      "asset_name": "matric-api-x86_64-unknown-linux-gnu",
+      "sha256": "66bb1f0d441220659e33471c3af72c3d0a3320cf0dcb5cf355f36fa10096a97c",
+      "size": 64849680
+    },
+    "aarch64-apple-darwin": {
+      "asset_name": "matric-api-aarch64-apple-darwin",
+      "sha256": "fc39931180ce8c9f6102420da8d37148f7c543e7dd3c920a9f26e216383bd79d",
+      "size": 54563808
+    },
+    "x86_64-apple-darwin": {
+      "asset_name": "matric-api-x86_64-apple-darwin",
+      "sha256": "6ec7935d6d00890f62d025ec1c3af468fa5ee77e318258a682c8cdfa41e5eea6",
+      "size": 57986584
+    }
+  }
+}

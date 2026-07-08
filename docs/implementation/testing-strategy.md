@@ -13,6 +13,7 @@ Testing in this repo covers client code only.
 cd ui
 npm run typecheck
 npm run test -- --run
+npm run test:hux-traceability
 npm run build
 ```
 

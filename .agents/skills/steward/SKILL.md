@@ -73,12 +73,33 @@ Route these intents directly:
 
 | User intent | Primary route | Notes |
 |---|---|---|
-| Create a repo/project-level skill | `aiwg new-bundle <name> --starter skill` or `aiwg new-extension <name> --starter skill` | Creates source under `.aiwg/{extensions,addons,frameworks,plugins}/<name>/`; deploy with `aiwg use <name>`. |
+| Create a repo/project-level skill | `aiwg new-bundle <name> --starter skill` or `aiwg new-extension <name> --starter skill` | Creates content source under `.aiwg/{extensions,addons,frameworks}/<name>/`; deploy with `aiwg use <name>`. |
 | Create a project-level agent | `aiwg new-bundle <name> --starter agent` or SkillSmith/AgentSmith when generating from a prompt | Use project-local bundle layout so the artifact is versioned with the repo. |
-| Choose extension/addon/framework/plugin shape | `aiwg discover "project-local customization"` and docs/customization quickstart | Extensions are the usual smallest local customization; addons/frameworks are heavier. |
+| Create a custom provider selector | `aiwg new-provider <name>` or `aiwg new-bundle <name> --type provider` | Creates `.aiwg/providers/<name>/` with `providerConfig.extends`; select it with `aiwg use <framework> --provider <name>`. |
+| Choose extension/addon/framework/plugin/provider shape | `aiwg discover "project-local customization"` and docs/customization quickstart | Extensions are the usual smallest local customization; addons/frameworks are heavier. Plugins are marketplace delivery wrappers. Providers are metadata selectors. |
 | Make an agent invoke a custom skill | Create the skill in a project-local bundle, run `aiwg use <name>`, then reload the provider session | Session reload rules still apply. |
 
-Canonical docs: `docs/customization/project-local-quickstart.md`, `docs/project-local/overview.md`, and `docs/project-local/manifest-reference.md`. Mention that project-local artifacts are trusted repo code and should be reviewed before deploy.
+Canonical docs: `docs/customization/project-local-quickstart.md`, `docs/customization/project-local-lifecycle.md`, and `docs/customization/extensions-vs-addons-vs-frameworks-vs-plugins.md`. Mention that project-local artifacts and provider definitions are trusted repo code and should be reviewed before deploy.
+
+
+## Feature-Domain Routing (proactive)
+
+Three cross-cutting feature domains fall outside the framework quickrefs and were historically undiscoverable (#1623). The steward owns routing for them via the `steward-quickref` kernel skill. Be **proactive** — these are easy to miss:
+
+| Domain | Canonical discover phrase | Owning capability |
+|---|---|---|
+| **Expansion authoring** (extension/addon/framework) | `aiwg discover "author an expansion"` | `scaffold-extension` / `-addon` / `-framework` |
+| **Persona / SOUL** (author **and** select) | `aiwg discover "create a persona"` · `aiwg discover "select a persona"` | `soul-create`, persona agents under `agentic/code/agents/personas/` |
+| **Project creation** | `aiwg discover "scaffold a project"` | `new-project`, `new-bundle` |
+
+Routing protocol:
+
+1. **Volunteer the affordance** (Norman signifier). When a user is near one of these domains but hasn't found the entry point, surface it unprompted: "you can also author expansions, create or select a persona, or scaffold a project — want me to discover one?"
+2. **Discover, don't dead-end.** Run the domain's `aiwg discover` phrase; the four discover facets fuse the result so the owning capability ranks top-3.
+3. **Re-query on low confidence.** If the first pass is weak, broaden the phrase or try an adjacent domain before concluding "not found" — the `skill-discovery` rule forbids decline-without-search.
+4. **Show the selection.** `aiwg show <type> <name>` for the chosen capability.
+
+See `steward-quickref` for the full anchor tables.
 
 
 ## Capability Matrix Source

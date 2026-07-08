@@ -20,6 +20,7 @@ on:
     paths:
       - 'ui/**'
       - 'agent-proxy/**'
+      - 'scripts/verify-hux-traceability.sh'
       - '.gitea/workflows/ui-ci.yml'
   create:
     tags: ['v*']
@@ -28,6 +29,7 @@ on:
     paths:
       - 'ui/**'
       - 'agent-proxy/**'
+      - 'scripts/verify-hux-traceability.sh'
       - '.gitea/workflows/ui-ci.yml'
   workflow_dispatch:
 
@@ -69,6 +71,10 @@ jobs:
       - name: Run realtime convergence suite
         working-directory: ui
         run: npm run test:realtime
+
+      - name: Verify HUX traceability anchors
+        working-directory: ui
+        run: npm run test:hux-traceability
 
       - name: Security audit (non-blocking)
         working-directory: ui
@@ -247,4 +253,3 @@ jobs:
           echo "Published agent-proxy release images:"
           echo "  Gitea:  ${GITEA_PROXY}:${VERSION}, :latest, :sha-${SHORT_SHA}"
           echo "  GitHub: ${GHCR_PROXY}:${VERSION}, :latest, :sha-${SHORT_SHA}"
-

@@ -1,670 +1,745 @@
 {
   "version": 1,
-  "generated": "2026-05-25T22:28:15.274Z",
+  "generated": "2026-07-08T03:57:20.144Z",
   "entries": {
     ".aiwg/.milestones.json": {
       "checksum": "f4ef5c1e93af8038",
-      "mtime": "2026-05-25T06:28:12.443Z",
+      "mtime": "2026-07-04T19:56:08.108Z",
       "size": 49
     },
     ".aiwg/AIWG.md": {
-      "checksum": "e897ea8e172890af",
-      "mtime": "2026-05-25T06:41:11.975Z",
-      "size": 1975
+      "checksum": "6cbe9a7a99e69a00",
+      "mtime": "2026-07-07T19:32:55.173Z",
+      "size": 2837
     },
     ".aiwg/api/compatibility/report-2026-05-25.md": {
       "checksum": "7abe8d7656d4f866",
-      "mtime": "2026-05-25T19:24:48.987Z",
+      "mtime": "2026-07-04T19:56:08.109Z",
       "size": 2762
     },
     ".aiwg/architecture/ADR-001-client-server-architecture.md": {
       "checksum": "492afc22c95528f5",
-      "mtime": "2026-04-21T04:26:07.951Z",
+      "mtime": "2026-07-04T19:56:08.109Z",
       "size": 11966
     },
     ".aiwg/architecture/ADR-002-database-schema-rebuild.md": {
       "checksum": "b5c05b23523d393e",
-      "mtime": "2026-04-21T04:26:07.951Z",
+      "mtime": "2026-07-04T19:56:08.109Z",
       "size": 10941
     },
     ".aiwg/architecture/ADR-007-spa-privacy-model.md": {
       "checksum": "13001c1a813b14e7",
-      "mtime": "2026-04-21T04:26:07.951Z",
+      "mtime": "2026-07-04T19:56:08.109Z",
       "size": 17276
     },
     ".aiwg/architecture/ADR-008-agent-flow-state-machine.md": {
       "checksum": "c3fb4ca300e29aa2",
-      "mtime": "2026-04-21T04:26:07.951Z",
+      "mtime": "2026-07-04T19:56:08.109Z",
       "size": 4811
     },
     ".aiwg/architecture/adr/ADR-003-local-first-privacy.md": {
       "checksum": "56ff3de23833776c",
-      "mtime": "2026-04-21T04:26:07.951Z",
+      "mtime": "2026-07-04T19:56:08.109Z",
       "size": 6302
     },
     ".aiwg/architecture/adr/ADR-004-spa-migration.md": {
       "checksum": "6205b182f7549e4d",
-      "mtime": "2026-04-21T04:26:07.952Z",
+      "mtime": "2026-07-04T19:56:08.109Z",
       "size": 13652
+    },
+    ".aiwg/architecture/adr/ADR-009-enterprise-capability-driven-ux.md": {
+      "checksum": "9244af956d004faf",
+      "mtime": "2026-07-06T21:41:58.517Z",
+      "size": 6292
     },
     ".aiwg/architecture/adr-auth-shared-crate.md": {
       "checksum": "66893c3dcf781293",
-      "mtime": "2026-05-18T00:30:44.413Z",
+      "mtime": "2026-07-04T19:56:08.109Z",
       "size": 2146
     },
     ".aiwg/architecture/adr-mobile-cloud-architecture.md": {
-      "checksum": "51a315e01bd2176e",
-      "mtime": "2026-05-17T21:42:24.908Z",
-      "size": 26600
+      "checksum": "88fd802ef5edc4f7",
+      "mtime": "2026-07-07T06:34:18.021Z",
+      "size": 26688
+    },
+    ".aiwg/architecture/cryptographic-decisions.md": {
+      "checksum": "d61f11fb3e66f8c0",
+      "mtime": "2026-07-07T06:34:18.021Z",
+      "size": 3294
+    },
+    ".aiwg/architecture/fortemi-compatibility-consumption-2026-07.md": {
+      "checksum": "1d90b83ae7a7e2b9",
+      "mtime": "2026-07-06T22:36:08.406Z",
+      "size": 5910
     },
     ".aiwg/architecture/impact/fortemi-api-contract-drift-2026-05.md": {
       "checksum": "8ebfc384b64095e7",
-      "mtime": "2026-05-25T20:17:19.413Z",
+      "mtime": "2026-07-04T19:56:08.109Z",
       "size": 5595
     },
     ".aiwg/architecture/manifest-schema-v1.json": {
       "checksum": "999d96240c395eea",
-      "mtime": "2026-05-25T18:11:39.085Z",
+      "mtime": "2026-07-04T19:56:08.109Z",
       "size": 8524
     },
     ".aiwg/architecture/manifest-schema-v1.md": {
-      "checksum": "a439b442a4bb8a6f",
-      "mtime": "2026-05-25T18:21:06.227Z",
-      "size": 22538
+      "checksum": "97565d05632ebfac",
+      "mtime": "2026-07-07T22:57:19.095Z",
+      "size": 23447
     },
     ".aiwg/architecture/software-architecture-doc.md": {
       "checksum": "e26727a077515113",
-      "mtime": "2026-04-21T04:26:07.952Z",
+      "mtime": "2026-07-04T19:56:08.109Z",
       "size": 64564
     },
     ".aiwg/archive/backend-docs/nlp-pipeline.md": {
       "checksum": "6c8c0a39d1cef5ce",
-      "mtime": "2026-04-21T04:26:07.952Z",
+      "mtime": "2026-07-04T19:56:08.110Z",
       "size": 12981
     },
     ".aiwg/archive/backend-docs/prompts/collection_and_path.md": {
       "checksum": "9a733e4968fe22a9",
-      "mtime": "2026-04-21T04:26:07.953Z",
+      "mtime": "2026-07-04T19:56:08.110Z",
       "size": 521
     },
     ".aiwg/archive/backend-docs/prompts/link_detection.md": {
       "checksum": "b2c58ad3d56c8299",
-      "mtime": "2026-04-21T04:26:07.953Z",
+      "mtime": "2026-07-04T19:56:08.110Z",
       "size": 547
     },
     ".aiwg/archive/backend-docs/prompts/revision_summarize.md": {
       "checksum": "4daa8173c33c9b7b",
-      "mtime": "2026-04-21T04:26:07.953Z",
+      "mtime": "2026-07-04T19:56:08.110Z",
       "size": 937
     },
     ".aiwg/archive/backend-docs/prompts/search_rerank.md": {
       "checksum": "ba63a117342e3498",
-      "mtime": "2026-04-21T04:26:07.953Z",
+      "mtime": "2026-07-04T19:56:08.110Z",
       "size": 348
     },
     ".aiwg/archive/backend-docs/prompts/tagging_entities.md": {
       "checksum": "dfe80c3b7907eb5b",
-      "mtime": "2026-04-21T04:26:07.953Z",
+      "mtime": "2026-07-04T19:56:08.110Z",
       "size": 622
     },
     ".aiwg/archive/backend-docs/storage-documentdb.md": {
       "checksum": "055a25bccc7053b3",
-      "mtime": "2026-04-21T04:26:07.953Z",
+      "mtime": "2026-07-04T19:56:08.110Z",
       "size": 1462
     },
     ".aiwg/archive/desktop-era/README.md": {
       "checksum": "bacd2fc9643a4c90",
-      "mtime": "2026-04-21T04:26:07.953Z",
+      "mtime": "2026-07-04T19:56:08.110Z",
       "size": 8629
     },
     ".aiwg/archive/desktop-era/docker-deployment.md": {
       "checksum": "88762aeb7199df8b",
-      "mtime": "2026-04-21T04:26:07.953Z",
+      "mtime": "2026-07-04T19:56:08.110Z",
       "size": 11670
     },
     ".aiwg/archive/desktop-era/first-run.md": {
       "checksum": "f774cb5410785b45",
-      "mtime": "2026-04-21T04:26:07.953Z",
+      "mtime": "2026-07-04T19:56:08.110Z",
       "size": 854
     },
     ".aiwg/archive/desktop-era/installer-plan.md": {
       "checksum": "700e5d4fe7f2f90a",
-      "mtime": "2026-04-21T04:26:07.953Z",
+      "mtime": "2026-07-04T19:56:08.110Z",
       "size": 3030
     },
     ".aiwg/archive/desktop-era/mvp-acceptance-criteria-v1.md": {
       "checksum": "1131d6fcd55130d6",
-      "mtime": "2026-04-21T04:26:07.953Z",
+      "mtime": "2026-07-04T19:56:08.110Z",
       "size": 43328
     },
     ".aiwg/archive/desktop-era/packaging-windows.md": {
       "checksum": "87cbe59ae135ae35",
-      "mtime": "2026-04-21T04:26:07.953Z",
+      "mtime": "2026-07-04T19:56:08.110Z",
       "size": 680
     },
     ".aiwg/archive/desktop-era/quickstart.md": {
       "checksum": "0454beecc000b52a",
-      "mtime": "2026-04-21T04:26:07.953Z",
+      "mtime": "2026-07-04T19:56:08.110Z",
       "size": 4495
     },
     ".aiwg/archive/legacy-specs/api-specification-v1.md": {
       "checksum": "69d5374d4bee63da",
-      "mtime": "2026-04-21T04:26:07.953Z",
+      "mtime": "2026-07-04T19:56:08.110Z",
       "size": 8059
     },
     ".aiwg/archive/stage2-docs/ADR-001-journal-sync-lww.md": {
       "checksum": "b92c33a737eef069",
-      "mtime": "2026-04-21T04:26:07.953Z",
+      "mtime": "2026-07-04T19:56:08.110Z",
       "size": 1853
     },
     ".aiwg/archive/stage2-docs/client-sync-agent.md": {
       "checksum": "f61ccd522ad4d95d",
-      "mtime": "2026-04-21T04:26:07.954Z",
+      "mtime": "2026-07-04T19:56:08.111Z",
       "size": 2771
     },
     ".aiwg/archive/stage2-docs/cloud-sync-architecture.md": {
       "checksum": "3e55aa5f1f2b5a89",
-      "mtime": "2026-04-21T04:26:07.954Z",
+      "mtime": "2026-07-04T19:56:08.111Z",
       "size": 18035
     },
     ".aiwg/archive/stage2-docs/stage-2-architecture.md": {
       "checksum": "dc27be5d5294a1f7",
-      "mtime": "2026-04-21T04:26:07.954Z",
+      "mtime": "2026-07-04T19:56:08.111Z",
       "size": 4189
     },
     ".aiwg/deferred/README.md": {
       "checksum": "bf8007818ecb3d9f",
-      "mtime": "2026-04-21T04:26:07.954Z",
+      "mtime": "2026-07-04T19:56:08.111Z",
       "size": 3579
     },
     ".aiwg/deferred/keycloak-oidc-plan.md": {
       "checksum": "a8bc8d7607f3f2f2",
-      "mtime": "2026-04-21T04:26:07.954Z",
+      "mtime": "2026-07-04T19:56:08.111Z",
       "size": 20898
     },
     ".aiwg/deferred/penetration-testing-plan.md": {
       "checksum": "bfd4d5385c64bafc",
-      "mtime": "2026-04-21T04:26:07.954Z",
+      "mtime": "2026-07-04T19:56:08.111Z",
       "size": 23057
     },
     ".aiwg/deferred/pwa-capabilities-plan.md": {
       "checksum": "d2777a2bc8447e58",
-      "mtime": "2026-04-21T04:26:07.954Z",
+      "mtime": "2026-07-04T19:56:08.111Z",
       "size": 24617
     },
     ".aiwg/deferred/secure-token-storage-plan.md": {
       "checksum": "953478b4a75bfdfa",
-      "mtime": "2026-04-21T04:26:07.954Z",
+      "mtime": "2026-07-04T19:56:08.111Z",
       "size": 17894
+    },
+    ".aiwg/design/enterprise-demo-screen-state-blueprint-2026-07.md": {
+      "checksum": "0bccfab37a8dd1cd",
+      "mtime": "2026-07-07T21:21:05.803Z",
+      "size": 15912
     },
     ".aiwg/design/fortemi-feature-ui-integration-plan-2026-05.md": {
       "checksum": "cf27d37f59fb5511",
-      "mtime": "2026-05-25T19:59:22.680Z",
+      "mtime": "2026-07-04T19:56:08.112Z",
       "size": 11172
     },
     ".aiwg/discovery/fortemi-integration-gap-analysis.md": {
       "checksum": "9aa671ba58910b87",
-      "mtime": "2026-04-21T04:26:07.955Z",
+      "mtime": "2026-07-04T19:56:08.112Z",
       "size": 9082
     },
     ".aiwg/elaboration/api-endpoint-verification.md": {
       "checksum": "a7ba04d33a269132",
-      "mtime": "2026-04-21T04:26:07.955Z",
+      "mtime": "2026-07-04T19:56:08.112Z",
       "size": 8887
     },
     ".aiwg/elaboration/responsive-design-spec.md": {
       "checksum": "6fc9b2c6b44e6f06",
-      "mtime": "2026-04-21T04:26:07.955Z",
+      "mtime": "2026-07-04T19:56:08.112Z",
       "size": 37895
     },
     ".aiwg/elaboration/wireframes/p1-wireframes.md": {
       "checksum": "a91ec31255b43f15",
-      "mtime": "2026-04-21T04:26:07.955Z",
+      "mtime": "2026-07-04T19:56:08.112Z",
       "size": 58197
+    },
+    ".aiwg/evidence/hotm-enterprise-preview-evidence-2026-07-06.md": {
+      "checksum": "ff487f786e7bdcfa",
+      "mtime": "2026-07-07T18:50:26.016Z",
+      "size": 2184
     },
     ".aiwg/forensics/chain-of-custody.md": {
       "checksum": "a5b333337ae3400f",
-      "mtime": "2026-05-25T06:28:09.444Z",
+      "mtime": "2026-07-04T19:56:08.112Z",
       "size": 5548
+    },
+    ".aiwg/frameworks/forensics-complete/chain-of-custody.md": {
+      "checksum": "a5b333337ae3400f",
+      "mtime": "2026-07-07T19:32:53.043Z",
+      "size": 5548
+    },
+    ".aiwg/frameworks/knowledge-base/index.md": {
+      "checksum": "0a3745f5a0c5c39e",
+      "mtime": "2026-07-07T19:32:53.043Z",
+      "size": 9
     },
     ".aiwg/frameworks/registry.json": {
       "checksum": "81ad9b241e280e6b",
-      "mtime": "2026-04-21T04:26:07.955Z",
+      "mtime": "2026-07-04T19:56:08.112Z",
       "size": 586
     },
     ".aiwg/gates/abm-gate-revalidation-2026-01.md": {
       "checksum": "91e2ec3abbf09b68",
-      "mtime": "2026-04-21T04:26:07.955Z",
+      "mtime": "2026-07-04T19:56:08.112Z",
       "size": 13764
     },
     ".aiwg/gates/fortemi-api-integration-gate-2026-05-25.md": {
       "checksum": "aea3d71501397633",
-      "mtime": "2026-05-25T22:26:27.181Z",
+      "mtime": "2026-07-04T19:56:08.113Z",
       "size": 3455
     },
     ".aiwg/gates/lom-gate-revalidation-2026-01.md": {
       "checksum": "8bcff2c3a4f18065",
-      "mtime": "2026-04-21T04:26:07.955Z",
+      "mtime": "2026-07-04T19:56:08.113Z",
       "size": 24929
     },
     ".aiwg/gates/lom-requirements-review.md": {
       "checksum": "c26456ac6c7beffb",
-      "mtime": "2026-04-21T04:26:07.955Z",
+      "mtime": "2026-07-04T19:56:08.113Z",
       "size": 36319
     },
     ".aiwg/gates/lom-security-review.md": {
       "checksum": "b99547e97767f5b3",
-      "mtime": "2026-04-21T04:26:07.955Z",
+      "mtime": "2026-07-04T19:56:08.113Z",
       "size": 10527
     },
     ".aiwg/gates/lom-test-review.md": {
       "checksum": "20dc0233ad41e299",
-      "mtime": "2026-04-21T04:26:07.955Z",
+      "mtime": "2026-07-04T19:56:08.113Z",
       "size": 22021
     },
     ".aiwg/gates/lom-validation-report.md": {
       "checksum": "e7da68a979c74751",
-      "mtime": "2026-04-21T04:26:07.955Z",
+      "mtime": "2026-07-04T19:56:08.113Z",
       "size": 36486
     },
     ".aiwg/gates/security-readiness-revalidation-2026-01.md": {
       "checksum": "477dba5a9a089f62",
-      "mtime": "2026-04-21T04:26:07.956Z",
+      "mtime": "2026-07-04T19:56:08.113Z",
       "size": 15344
     },
     ".aiwg/gates/test-readiness-revalidation-2026-01.md": {
       "checksum": "2d37b72aad87eeb7",
-      "mtime": "2026-04-21T04:26:07.956Z",
+      "mtime": "2026-07-04T19:56:08.113Z",
       "size": 32473
     },
     ".aiwg/gates/ui-redesign-abm-validation.md": {
       "checksum": "023f3552407717b7",
-      "mtime": "2026-04-21T04:26:07.956Z",
+      "mtime": "2026-07-04T19:56:08.113Z",
       "size": 4028
     },
     ".aiwg/gates/ui-redesign-lom-validation.md": {
       "checksum": "4e1ce7739205481e",
-      "mtime": "2026-04-21T04:26:07.956Z",
+      "mtime": "2026-07-04T19:56:08.113Z",
       "size": 2701
     },
     ".aiwg/inception/ui-redesign-requirements.md": {
       "checksum": "c9194ebdb27f3b4b",
-      "mtime": "2026-04-21T04:26:07.956Z",
+      "mtime": "2026-07-04T19:56:08.113Z",
       "size": 7398
     },
     ".aiwg/inception/ui-redesign-vision.md": {
       "checksum": "8d026476bc293000",
-      "mtime": "2026-04-21T04:26:07.957Z",
+      "mtime": "2026-07-04T19:56:08.114Z",
       "size": 5363
     },
     ".aiwg/intake/ANALYSIS-REPORT.md": {
       "checksum": "196d955f256a0a13",
-      "mtime": "2026-04-21T04:26:07.957Z",
+      "mtime": "2026-07-04T19:56:08.114Z",
       "size": 19185
     },
     ".aiwg/intake/option-matrix.md": {
       "checksum": "dadbd7dc77f3215a",
-      "mtime": "2026-04-21T04:26:07.957Z",
+      "mtime": "2026-07-04T19:56:08.114Z",
       "size": 21283
     },
     ".aiwg/intake/project-intake.md": {
       "checksum": "6ce31b53be1336c3",
-      "mtime": "2026-04-21T04:26:07.957Z",
+      "mtime": "2026-07-04T19:56:08.114Z",
       "size": 34385
     },
     ".aiwg/intake/solution-profile.md": {
       "checksum": "d65afbffab5a8375",
-      "mtime": "2026-04-21T04:26:07.957Z",
+      "mtime": "2026-07-04T19:56:08.114Z",
       "size": 16900
     },
     ".aiwg/issues/ISSUES.md": {
       "checksum": "a6b16c41fbf3a4a4",
-      "mtime": "2026-04-21T04:26:07.957Z",
+      "mtime": "2026-07-04T19:56:08.114Z",
       "size": 11057
+    },
+    ".aiwg/issues/checkpoint-issue-drafts-2026-07.md": {
+      "checksum": "10dcf9defe4d1c16",
+      "mtime": "2026-07-07T20:13:21.226Z",
+      "size": 8401
     },
     ".aiwg/kb/index.md": {
       "checksum": "eb9ab63dc04b9099",
-      "mtime": "2026-05-25T07:43:06.488Z",
+      "mtime": "2026-07-04T19:56:08.114Z",
       "size": 8
     },
     ".aiwg/migration/completion-summary.md": {
       "checksum": "14a38cbf89a7631a",
-      "mtime": "2026-04-21T04:26:07.957Z",
+      "mtime": "2026-07-04T19:56:08.114Z",
       "size": 8985
     },
     ".aiwg/migration/user-data-migration.md": {
       "checksum": "dd49438523c2eaae",
-      "mtime": "2026-04-21T04:26:07.958Z",
+      "mtime": "2026-07-04T19:56:08.114Z",
       "size": 18479
     },
     ".aiwg/operations/error-tracking.md": {
       "checksum": "b6a8892c8d4bfced",
-      "mtime": "2026-04-21T04:26:07.958Z",
+      "mtime": "2026-07-04T19:56:08.114Z",
       "size": 10230
     },
     ".aiwg/operations/issues-69-55-58-summary.md": {
       "checksum": "8ec924c14e3164d8",
-      "mtime": "2026-04-21T04:26:07.958Z",
+      "mtime": "2026-07-04T19:56:08.115Z",
       "size": 10406
     },
     ".aiwg/operations/sentry-setup-instructions.md": {
       "checksum": "0b45ff538ad4f263",
-      "mtime": "2026-04-21T04:26:07.958Z",
+      "mtime": "2026-07-04T19:56:08.115Z",
       "size": 8151
+    },
+    ".aiwg/planning/aiwg-provider-context-pin-rationale-2026-07-07.md": {
+      "checksum": "2510f828e74f688d",
+      "mtime": "2026-07-07T19:35:33.820Z",
+      "size": 1374
     },
     ".aiwg/planning/development-process-guide.md": {
       "checksum": "18e34c10cccc5a37",
-      "mtime": "2026-04-21T04:26:07.958Z",
+      "mtime": "2026-07-04T19:56:08.115Z",
       "size": 33663
     },
     ".aiwg/planning/dual-track-workflow.md": {
       "checksum": "42958ef9aaf22484",
-      "mtime": "2026-04-21T04:26:07.959Z",
+      "mtime": "2026-07-04T19:56:08.115Z",
       "size": 35577
+    },
+    ".aiwg/planning/enterprise-demo-scenarios-2026-07.md": {
+      "checksum": "e106b0e454bed1fb",
+      "mtime": "2026-07-07T00:45:42.084Z",
+      "size": 6802
     },
     ".aiwg/planning/iteration-plan-001.md": {
       "checksum": "5d48073e21a1668b",
-      "mtime": "2026-04-21T04:26:07.959Z",
+      "mtime": "2026-07-04T19:56:08.115Z",
       "size": 18145
     },
     ".aiwg/planning/iteration-plan-002.md": {
       "checksum": "b4c24b4884361225",
-      "mtime": "2026-04-21T04:26:07.959Z",
+      "mtime": "2026-07-04T19:56:08.115Z",
       "size": 31702
     },
     ".aiwg/planning/mobile-expansion-INDEX.md": {
-      "checksum": "06974f4708e8df1d",
-      "mtime": "2026-05-17T21:45:32.848Z",
-      "size": 6325
+      "checksum": "3b7add80a3d665b8",
+      "mtime": "2026-07-08T00:22:02.310Z",
+      "size": 6888
     },
     ".aiwg/planning/mobile-expansion-phase-plan.md": {
       "checksum": "7b9836dfe91f5007",
-      "mtime": "2026-05-17T21:44:55.339Z",
+      "mtime": "2026-07-04T19:56:08.115Z",
       "size": 33231
     },
     ".aiwg/planning/phase-plan-elaboration.md": {
       "checksum": "cd0774bf516ce421",
-      "mtime": "2026-04-21T04:26:07.959Z",
+      "mtime": "2026-07-04T19:56:08.115Z",
       "size": 16985
     },
     ".aiwg/planning/phase-plan-inception.md": {
       "checksum": "26c86b665c94fde1",
-      "mtime": "2026-04-21T04:26:07.959Z",
+      "mtime": "2026-07-04T19:56:08.115Z",
       "size": 22350
     },
     ".aiwg/planning/tauri-integration-plan.md": {
       "checksum": "9d7a7ab8e1d55562",
-      "mtime": "2026-04-21T04:26:07.959Z",
+      "mtime": "2026-07-04T19:56:08.115Z",
       "size": 7182
     },
     ".aiwg/ralph/completion-2026-02-04.md": {
       "checksum": "1bf14faeb2327cdb",
-      "mtime": "2026-04-21T04:26:07.959Z",
+      "mtime": "2026-07-04T19:56:08.115Z",
       "size": 4550
     },
     ".aiwg/ralph/current-loop.json": {
       "checksum": "0762e22d5cbea9fa",
-      "mtime": "2026-04-21T04:26:07.960Z",
+      "mtime": "2026-07-04T19:56:08.116Z",
       "size": 2137
     },
     ".aiwg/reports/abm-validation-report.md": {
       "checksum": "eec0cbc05cd61124",
-      "mtime": "2026-04-21T04:26:07.960Z",
+      "mtime": "2026-07-04T19:56:08.116Z",
       "size": 25881
     },
     ".aiwg/reports/agentic-coding-architectures-2026-02.md": {
       "checksum": "39b59fbf97f76f58",
-      "mtime": "2026-04-21T04:26:07.960Z",
+      "mtime": "2026-07-04T19:56:08.116Z",
       "size": 33078
     },
     ".aiwg/reports/architecture-stability-report.md": {
       "checksum": "76f57aa8101cbd3f",
-      "mtime": "2026-04-21T04:26:07.960Z",
+      "mtime": "2026-07-04T19:56:08.116Z",
       "size": 14525
     },
     ".aiwg/reports/consolidated-gate-validation-2026-01.md": {
       "checksum": "dd43cfb061ad0cfa",
-      "mtime": "2026-04-21T04:26:07.960Z",
+      "mtime": "2026-07-04T19:56:08.116Z",
       "size": 24993
     },
     ".aiwg/reports/construction-readiness-report.md": {
       "checksum": "fef197a0cff479e3",
-      "mtime": "2026-04-21T04:26:07.960Z",
+      "mtime": "2026-07-04T19:56:08.116Z",
       "size": 52203
     },
     ".aiwg/reports/doc-sync-2026-04-22T03:42:28Z.md": {
       "checksum": "06a84043ef843618",
-      "mtime": "2026-04-28T20:38:09.107Z",
+      "mtime": "2026-07-04T19:56:08.116Z",
       "size": 9657
     },
     ".aiwg/reports/doc-sync-last-run.json": {
       "checksum": "ae6a568c62f166f5",
-      "mtime": "2026-04-28T20:38:09.107Z",
+      "mtime": "2026-07-04T19:56:08.116Z",
       "size": 223
     },
     ".aiwg/reports/elaboration-transition-2025-12-04.md": {
       "checksum": "52ba5cb3aa34a21a",
-      "mtime": "2026-04-21T04:26:07.960Z",
+      "mtime": "2026-07-04T19:56:08.116Z",
       "size": 6170
     },
     ".aiwg/reports/fortemi-api-integration-traceability-2026-05-25.md": {
       "checksum": "17ef88fec8ea089d",
-      "mtime": "2026-05-25T22:26:27.181Z",
+      "mtime": "2026-07-04T19:56:08.116Z",
       "size": 5193
     },
     ".aiwg/reports/gate-validation-inception-2025-12-04.md": {
       "checksum": "64013752d88626a4",
-      "mtime": "2026-04-21T04:26:07.960Z",
+      "mtime": "2026-07-04T19:56:08.116Z",
       "size": 6929
     },
     ".aiwg/reports/iteration-0-completion.md": {
       "checksum": "2f65186d6cf76615",
-      "mtime": "2026-04-21T04:26:07.960Z",
+      "mtime": "2026-07-04T19:56:08.116Z",
       "size": 21038
     },
     ".aiwg/reports/multi-agent-orchestration-2026-02.md": {
       "checksum": "3c3682748c739140",
-      "mtime": "2026-04-21T04:26:07.961Z",
+      "mtime": "2026-07-04T19:56:08.116Z",
       "size": 31666
+    },
+    ".aiwg/reports/sdlc-checkpoint-2026-07.md": {
+      "checksum": "028ff98f19b12ed1",
+      "mtime": "2026-07-08T03:06:16.065Z",
+      "size": 9173
     },
     ".aiwg/reports/tauri-v2-research-2026-02.md": {
       "checksum": "59f980ed8db2fae0",
-      "mtime": "2026-04-21T04:26:07.961Z",
+      "mtime": "2026-07-04T19:56:08.116Z",
       "size": 32936
     },
     ".aiwg/requirements/ac-regenerate-ai-overhaul.md": {
       "checksum": "dcdbb5e65a1e39d3",
-      "mtime": "2026-04-21T04:26:07.961Z",
+      "mtime": "2026-07-04T19:56:08.116Z",
       "size": 7646
+    },
+    ".aiwg/requirements/enterprise-demo-requirements-2026-07.md": {
+      "checksum": "70597c1c3469144a",
+      "mtime": "2026-07-07T21:45:40.971Z",
+      "size": 9347
     },
     ".aiwg/requirements/fortemi-api-integration-requirements-2026-05.md": {
       "checksum": "2e39f0a19f248cef",
-      "mtime": "2026-05-25T22:26:27.181Z",
+      "mtime": "2026-07-04T19:56:08.117Z",
       "size": 2628
     },
     ".aiwg/requirements/mvp-acceptance-criteria-v2.md": {
       "checksum": "f29d8a7c8cbc4f3f",
-      "mtime": "2026-04-21T04:26:07.962Z",
+      "mtime": "2026-07-04T19:56:08.117Z",
       "size": 44946
     },
     ".aiwg/requirements/ux-quick-capture-note-entry.md": {
       "checksum": "3dd48ed44f2a5e89",
-      "mtime": "2026-04-21T04:26:07.962Z",
+      "mtime": "2026-07-04T19:56:08.117Z",
       "size": 39182
     },
     ".aiwg/requirements/ux-regenerate-ai-overhaul.md": {
       "checksum": "baadb4c90389b031",
-      "mtime": "2026-04-21T04:26:07.962Z",
+      "mtime": "2026-07-04T19:56:08.117Z",
       "size": 23433
     },
     ".aiwg/research/findings/mobile-manifest-remote-config.md": {
       "checksum": "5c6a8e3126d95e92",
-      "mtime": "2026-05-17T21:18:18.275Z",
+      "mtime": "2026-07-04T19:56:08.117Z",
       "size": 15114
     },
     ".aiwg/research/findings/mobile-multitenant-byo-llm.md": {
       "checksum": "7f4bcb99f24c627e",
-      "mtime": "2026-05-17T21:16:45.252Z",
+      "mtime": "2026-07-04T19:56:08.117Z",
       "size": 15612
     },
     ".aiwg/research/findings/mobile-tauri2-production-patterns.md": {
       "checksum": "cd35fdc42fd8e33b",
-      "mtime": "2026-05-17T21:15:10.176Z",
+      "mtime": "2026-07-04T19:56:08.117Z",
       "size": 13726
     },
     ".aiwg/risks/risk-list-v2.md": {
       "checksum": "a49b12d14493cd02",
-      "mtime": "2026-04-21T04:26:07.962Z",
+      "mtime": "2026-07-04T19:56:08.117Z",
       "size": 30403
     },
     ".aiwg/risks/risk-list.md": {
       "checksum": "e3f980771cf47a11",
-      "mtime": "2026-04-21T04:26:07.963Z",
+      "mtime": "2026-07-04T19:56:08.117Z",
       "size": 24050
     },
     ".aiwg/risks/ui-redesign-risk-register.md": {
       "checksum": "43bf7895e48e6ded",
-      "mtime": "2026-04-21T04:26:07.963Z",
+      "mtime": "2026-07-04T19:56:08.117Z",
       "size": 9372
     },
     ".aiwg/security/migration-security-assessment.md": {
       "checksum": "21a4e02bff81e8f5",
-      "mtime": "2026-04-21T04:26:07.963Z",
+      "mtime": "2026-07-04T19:56:08.117Z",
       "size": 21610
     },
     ".aiwg/security/npm-audit-plan-2026-05-14.md": {
       "checksum": "c615b8065f4fc92f",
-      "mtime": "2026-05-15T17:55:29.697Z",
+      "mtime": "2026-07-04T19:56:08.117Z",
       "size": 13184
     },
     ".aiwg/security/sbom-policy.md": {
       "checksum": "ab1bb9190aeef79b",
-      "mtime": "2026-04-21T04:26:07.964Z",
+      "mtime": "2026-07-04T19:56:08.117Z",
       "size": 5824
     },
     ".aiwg/security/secrets-management-policy.md": {
       "checksum": "6a8570b55ca9085c",
-      "mtime": "2026-04-21T04:26:07.964Z",
+      "mtime": "2026-07-04T19:56:08.117Z",
       "size": 19928
     },
     ".aiwg/security/spa-security-config.md": {
       "checksum": "9413289b4fda051a",
-      "mtime": "2026-04-21T04:26:07.964Z",
+      "mtime": "2026-07-04T19:56:08.117Z",
       "size": 23808
+    },
+    ".aiwg/supply-chain/sidecar-provenance-gate-2026-07.md": {
+      "checksum": "f78e2ac4532f9edf",
+      "mtime": "2026-07-07T02:33:44.841Z",
+      "size": 3834
+    },
+    ".aiwg/supply-chain/sidecar-provenance-live-ci-evidence-2026-07-06.md": {
+      "checksum": "c59a6cc8c2a534fb",
+      "mtime": "2026-07-07T16:01:50.333Z",
+      "size": 4199
     },
     ".aiwg/team/onboarding-guide.md": {
       "checksum": "cde8e4083f8ee75a",
-      "mtime": "2026-04-21T04:26:07.964Z",
+      "mtime": "2026-07-04T19:56:08.117Z",
       "size": 25836
     },
     ".aiwg/testing/api-contract-test-plan-addendum-2026-05.md": {
       "checksum": "5552942e51c68837",
-      "mtime": "2026-05-25T19:53:53.498Z",
+      "mtime": "2026-07-04T19:56:08.117Z",
       "size": 4706
     },
     ".aiwg/testing/coverage-baseline.md": {
       "checksum": "95444cdfd5b1a980",
-      "mtime": "2026-04-21T04:26:07.964Z",
+      "mtime": "2026-07-04T19:56:08.118Z",
       "size": 29873
+    },
+    ".aiwg/testing/enterprise-demo-dry-run-receipt-template-2026-07.md": {
+      "checksum": "fe1d760f493fd22e",
+      "mtime": "2026-07-07T21:21:05.802Z",
+      "size": 6103
+    },
+    ".aiwg/testing/enterprise-demo-operator-signoff-2026-07-06.md": {
+      "checksum": "65744a0a21f9f4c1",
+      "mtime": "2026-07-07T21:49:10.720Z",
+      "size": 9472
+    },
+    ".aiwg/testing/enterprise-demo-readiness-matrix-2026-07.md": {
+      "checksum": "f817107890b53e35",
+      "mtime": "2026-07-08T03:57:10.994Z",
+      "size": 6495
+    },
+    ".aiwg/testing/enterprise-demo-runbook-2026-07.md": {
+      "checksum": "14adba6e3b2e9a6c",
+      "mtime": "2026-07-07T21:49:59.674Z",
+      "size": 21290
+    },
+    ".aiwg/testing/enterprise-demo-test-plan-2026-07.md": {
+      "checksum": "163ac9763cecb2ac",
+      "mtime": "2026-07-07T21:47:25.932Z",
+      "size": 14202
     },
     ".aiwg/testing/feature-test-plan-regenerate.md": {
       "checksum": "1df95951d7b00b44",
-      "mtime": "2026-04-21T04:26:07.964Z",
+      "mtime": "2026-07-04T19:56:08.118Z",
       "size": 3218
+    },
+    ".aiwg/testing/manifest-launch-rate-limit-proof-plan-2026-07.md": {
+      "checksum": "a2a29450d04eb1f9",
+      "mtime": "2026-07-07T20:13:21.226Z",
+      "size": 5655
     },
     ".aiwg/testing/master-test-plan.md": {
       "checksum": "621c427754dca9e9",
-      "mtime": "2026-04-21T04:26:07.964Z",
+      "mtime": "2026-07-04T19:56:08.118Z",
       "size": 36803
     },
     ".aiwg/testing/migration-test-strategy-addendum.md": {
       "checksum": "2cdad953369f9f29",
-      "mtime": "2026-04-21T04:26:07.964Z",
+      "mtime": "2026-07-04T19:56:08.118Z",
       "size": 56145
     },
     ".aiwg/testing/ui-redesign-performance-strategy.md": {
       "checksum": "0ff8a071315001f3",
-      "mtime": "2026-04-21T04:26:07.964Z",
+      "mtime": "2026-07-04T19:56:08.118Z",
       "size": 45836
     },
     ".aiwg/working/architecture/sad/drafts/v0.1-primary-draft.md": {
       "checksum": "6ebce56cf46d881d",
-      "mtime": "2026-04-21T04:26:07.965Z",
+      "mtime": "2026-07-04T19:56:08.118Z",
       "size": 46329
     },
     ".aiwg/working/architecture/sad/reviews/security-architect-review.md": {
       "checksum": "f3fc899f2bf39be0",
-      "mtime": "2026-04-21T04:26:07.965Z",
+      "mtime": "2026-07-04T19:56:08.118Z",
       "size": 16820
     },
     ".aiwg/working/architecture/sad/reviews/test-architect-review.md": {
       "checksum": "814801bab0392a11",
-      "mtime": "2026-04-21T04:26:07.966Z",
+      "mtime": "2026-07-04T19:56:08.118Z",
       "size": 22150
     },
     ".aiwg/working/architecture/sad/synthesis/synthesis-report.md": {
       "checksum": "2294a5a63c84af33",
-      "mtime": "2026-04-21T04:26:07.966Z",
+      "mtime": "2026-07-04T19:56:08.118Z",
       "size": 9398
     },
     ".aiwg/working/elaboration/planning/architecture-objectives-draft.md": {
       "checksum": "e34b68d39e1c157f",
-      "mtime": "2026-04-21T04:26:07.966Z",
+      "mtime": "2026-07-04T19:56:08.119Z",
       "size": 22417
     },
     ".aiwg/working/elaboration/planning/risk-validation-strategy-draft.md": {
       "checksum": "e272621f5015d643",
-      "mtime": "2026-04-21T04:26:07.967Z",
+      "mtime": "2026-07-04T19:56:08.119Z",
       "size": 20749
     },
     ".aiwg/working/elaboration/planning/steel-thread-use-cases-draft.md": {
       "checksum": "bad23f72e5644ee6",
-      "mtime": "2026-04-21T04:26:07.967Z",
+      "mtime": "2026-07-04T19:56:08.119Z",
       "size": 37997
     },
     ".aiwg/working/elaboration/steel-threads/steel-thread-1-validation.md": {
       "checksum": "5d2c0326be0c4f8e",
-      "mtime": "2026-04-21T04:26:07.967Z",
+      "mtime": "2026-07-04T19:56:08.119Z",
       "size": 8711
     },
     ".aiwg/working/elaboration/steel-threads/steel-thread-2-validation.md": {
       "checksum": "db74be1dee3d02fc",
-      "mtime": "2026-04-21T04:26:07.967Z",
+      "mtime": "2026-07-04T19:56:08.119Z",
       "size": 9499
     },
     ".aiwg/working/elaboration/steel-threads/steel-thread-3-validation.md": {
       "checksum": "ce8c49898e944916",
-      "mtime": "2026-04-21T04:26:07.967Z",
+      "mtime": "2026-07-04T19:56:08.119Z",
       "size": 12128
-    },
-    ".aiwg/working/mobile-planning/review-requirements-analyst.md": {
-      "checksum": "f352b40f5eeb8445",
-      "mtime": "2026-05-17T21:39:11.986Z",
-      "size": 10651
-    },
-    ".aiwg/working/mobile-planning/review-security-architect.md": {
-      "checksum": "a7b5df5dc55bb9f5",
-      "mtime": "2026-05-17T21:31:04.989Z",
-      "size": 12916
-    },
-    ".aiwg/working/mobile-planning/review-synthesis.md": {
-      "checksum": "10d1a86bfe11c1c9",
-      "mtime": "2026-05-17T21:41:07.934Z",
-      "size": 10291
-    },
-    ".aiwg/working/mobile-planning/review-technical-writer.md": {
-      "checksum": "0ce7b2c15d4839e2",
-      "mtime": "2026-05-17T21:39:55.721Z",
-      "size": 7805
-    },
-    ".aiwg/working/mobile-planning/review-test-architect.md": {
-      "checksum": "8e941c42d6faab50",
-      "mtime": "2026-05-17T21:36:22.138Z",
-      "size": 7969
     },
     ".aiwg/working/rollback-analysis.md": {
       "checksum": "d761fd8cb2d9337f",
-      "mtime": "2026-04-21T04:26:07.967Z",
+      "mtime": "2026-07-04T19:56:08.119Z",
       "size": 20556
     }
   }

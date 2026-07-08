@@ -5,13 +5,18 @@
 
 ## Client Release
 1. Update version in `ui/package.json`.
-2. Update `CHANGELOG.md` with all changes, breaking notes, and manual steps.
-3. Create release notes in `docs/releases/v<version>.md`.
-4. Tag: `git tag v<YYYY.M.PATCH>[-channel] && git push --tags` (e.g., `v2026.2.3`).
-5. Build artifacts:
+2. Update the pinned Fortemi sidecar manifest if this release refreshes the bundled backend:
+   - Fetch upstream release metadata from `https://git.integrolabs.net/api/v1/repos/Fortemi/fortemi/releases/tags/sidecar-latest`.
+   - Fetch upstream checksums from `https://git.integrolabs.net/Fortemi/fortemi/releases/download/sidecar-latest/SHA256SUMS.txt`.
+   - Update `release/sidecar-provenance.json` with the upstream commit, published timestamp, asset sizes, and SHA-256 values.
+   - Verify at least the Linux asset with `scripts/download-pinned-sidecar.sh x86_64-unknown-linux-gnu /tmp/hotm-sidecar-provenance-check`.
+3. Update `CHANGELOG.md` with all changes, breaking notes, sidecar pin, and manual steps.
+4. Create release notes in `docs/releases/v<version>.md`.
+5. Tag: `git tag v<YYYY.M.PATCH>[-channel] && git push --tags` (e.g., `v2026.2.3`).
+6. Build artifacts:
    - Web SPA: `cd ui && npm ci && npm run build`
    - Docker: `docker compose -f docker-compose.prod.yml build`
-6. Verify environment config for target backend (`VITE_API_BASE_URL`).
+7. Verify environment config for target backend (`VITE_API_BASE_URL`).
 
 ## Rollback
 - Use previous tag/build artifact.

@@ -8,6 +8,7 @@ related_artifacts:
   - .aiwg/architecture/adr-mobile-cloud-architecture.md
   - .aiwg/research/findings/mobile-manifest-remote-config.md
   - .aiwg/planning/mobile-expansion-phase-plan.md
+  - .aiwg/testing/manifest-launch-rate-limit-proof-plan-2026-07.md
 ---
 
 # HotM Manifest Endpoint v1 Specification
@@ -30,9 +31,11 @@ GET https://api.hotm.fortemi.io/v1/manifest
 |---|---|
 | **Method** | `GET` only. `POST/PUT/PATCH/DELETE` return 405. |
 | **Authentication** | None. Must be reachable before user login. |
-| **Rate limit** | Per-IP token bucket. Recommended initial capacity: 60 requests/minute (TBD; tighten before public launch based on observed traffic). |
+| **Rate limit** | Per-IP token bucket. Provisional checkpoint planning value: 60 requests/minute; `Fortemi/HotM#251` must replace or justify the launch value before public/hosted/mobile production claims. |
 | **CDN cacheable** | Yes. ETag + Cache-Control headers (see §HTTP Semantics). |
 | **TLS** | Required. HTTP redirects to HTTPS. HSTS preload eligibility once domain is stable. |
+
+Launch-boundary update, 2026-07: the `60 requests/minute` value remains provisional. `Fortemi/HotM#251` and `.aiwg/testing/manifest-launch-rate-limit-proof-plan-2026-07.md` must replace or justify the launch baseline, burst capacity, enforcement layer, identity key, `429`/`Retry-After` behavior, cache/ETag interaction, non-bypass proof, and telemetry evidence before hosted/mobile manifest discovery can support public production-readiness or backoffice claims. This does not block the current fixture-backed HotM enterprise preview.
 
 ## Schema (JSON)
 
@@ -441,10 +444,10 @@ Client retries after `Retry-After` interval with exponential backoff.
 These cannot be settled in this spec alone; they require operator/product input:
 
 1. **Auth provider final choice**. The schema lists `clerk` first, but the choice between Clerk, Auth0, Keycloak (self-hosted), and a roll-your-own depends on cost tolerance and lock-in posture. Settled in the phase plan, locked in the ADR.
-2. **Tier definitions**. Are there actually tiers at launch, or is there only a single `free` tier? Limit values are placeholders.
+2. **Tier definitions**. Are there actually tiers at launch, or is there only a single `free` tier? Limit values are placeholders until the manifest launch proof records the accepted launch baseline and tier policy.
 3. **Telemetry endpoint**. Does HotM operate its own telemetry endpoint or use a vendor (PostHog, Plausible)? Affects the `telemetry.endpoint` URL.
 4. **Domain choice**. `api.hotm.fortemi.io` is suggestive but not confirmed. The exact domain affects DNS, CDN, and certificate setup.
 5. **Manifest update mechanism**. How does the operator actually change the served manifest? Direct git commit + redeploy? An admin UI? A CLI? Affects the operational story but not the contract.
-6. **Initial rate-limit numbers**. The 60/min figure is unjustified; needs to be set based on observed traffic before public launch.
+6. **Initial rate-limit numbers**. The 60/min figure is unjustified; `Fortemi/HotM#251` must replace or justify it with launch-rate proof before public launch.
 
-These should be tracked as line-items in the phase plan and resolved before the manifest endpoint goes to public production.
+These should be tracked as line-items in the phase plan and resolved before the manifest endpoint goes to public production. The launch-rate items are specifically tracked by `Fortemi/HotM#251` and `.aiwg/testing/manifest-launch-rate-limit-proof-plan-2026-07.md`.

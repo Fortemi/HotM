@@ -50,6 +50,10 @@
     "upstream": [],
     "downstream": []
   },
+  ".aiwg/architecture/adr/ADR-009-enterprise-capability-driven-ux.md": {
+    "upstream": [],
+    "downstream": []
+  },
   ".aiwg/architecture/adr-auth-shared-crate.md": {
     "upstream": [],
     "downstream": []
@@ -109,6 +113,14 @@
         "type": "depends-on"
       }
     ]
+  },
+  ".aiwg/architecture/cryptographic-decisions.md": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/architecture/fortemi-compatibility-consumption-2026-07.md": {
+    "upstream": [],
+    "downstream": []
   },
   ".aiwg/architecture/impact/fortemi-api-contract-drift-2026-05.md": {
     "upstream": [],
@@ -222,6 +234,10 @@
     "upstream": [],
     "downstream": []
   },
+  ".aiwg/design/enterprise-demo-screen-state-blueprint-2026-07.md": {
+    "upstream": [],
+    "downstream": []
+  },
   ".aiwg/design/fortemi-feature-ui-integration-plan-2026-05.md": {
     "upstream": [],
     "downstream": []
@@ -242,7 +258,19 @@
     "upstream": [],
     "downstream": []
   },
+  ".aiwg/evidence/hotm-enterprise-preview-evidence-2026-07-06.md": {
+    "upstream": [],
+    "downstream": []
+  },
   ".aiwg/forensics/chain-of-custody.md": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/frameworks/forensics-complete/chain-of-custody.md": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/frameworks/knowledge-base/index.md": {
     "upstream": [],
     "downstream": []
   },
@@ -322,6 +350,10 @@
     "upstream": [],
     "downstream": []
   },
+  ".aiwg/issues/checkpoint-issue-drafts-2026-07.md": {
+    "upstream": [],
+    "downstream": []
+  },
   ".aiwg/kb/index.md": {
     "upstream": [],
     "downstream": []
@@ -346,11 +378,19 @@
     "upstream": [],
     "downstream": []
   },
+  ".aiwg/planning/aiwg-provider-context-pin-rationale-2026-07-07.md": {
+    "upstream": [],
+    "downstream": []
+  },
   ".aiwg/planning/development-process-guide.md": {
     "upstream": [],
     "downstream": []
   },
   ".aiwg/planning/dual-track-workflow.md": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/planning/enterprise-demo-scenarios-2026-07.md": {
     "upstream": [],
     "downstream": []
   },
@@ -438,11 +478,19 @@
     "upstream": [],
     "downstream": []
   },
+  ".aiwg/reports/sdlc-checkpoint-2026-07.md": {
+    "upstream": [],
+    "downstream": []
+  },
   ".aiwg/reports/tauri-v2-research-2026-02.md": {
     "upstream": [],
     "downstream": []
   },
   ".aiwg/requirements/ac-regenerate-ai-overhaul.md": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/requirements/enterprise-demo-requirements-2026-07.md": {
     "upstream": [],
     "downstream": []
   },
@@ -494,6 +542,14 @@
     "upstream": [],
     "downstream": []
   },
+  ".aiwg/supply-chain/sidecar-provenance-gate-2026-07.md": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/supply-chain/sidecar-provenance-live-ci-evidence-2026-07-06.md": {
+    "upstream": [],
+    "downstream": []
+  },
   ".aiwg/team/onboarding-guide.md": {
     "upstream": [],
     "downstream": []
@@ -506,7 +562,31 @@
     "upstream": [],
     "downstream": []
   },
+  ".aiwg/testing/enterprise-demo-dry-run-receipt-template-2026-07.md": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/testing/enterprise-demo-operator-signoff-2026-07-06.md": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/testing/enterprise-demo-readiness-matrix-2026-07.md": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/testing/enterprise-demo-runbook-2026-07.md": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/testing/enterprise-demo-test-plan-2026-07.md": {
+    "upstream": [],
+    "downstream": []
+  },
   ".aiwg/testing/feature-test-plan-regenerate.md": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/testing/manifest-launch-rate-limit-proof-plan-2026-07.md": {
     "upstream": [],
     "downstream": []
   },
@@ -559,26 +639,6 @@
     "downstream": []
   },
   ".aiwg/working/elaboration/steel-threads/steel-thread-3-validation.md": {
-    "upstream": [],
-    "downstream": []
-  },
-  ".aiwg/working/mobile-planning/review-requirements-analyst.md": {
-    "upstream": [],
-    "downstream": []
-  },
-  ".aiwg/working/mobile-planning/review-security-architect.md": {
-    "upstream": [],
-    "downstream": []
-  },
-  ".aiwg/working/mobile-planning/review-synthesis.md": {
-    "upstream": [],
-    "downstream": []
-  },
-  ".aiwg/working/mobile-planning/review-technical-writer.md": {
-    "upstream": [],
-    "downstream": []
-  },
-  ".aiwg/working/mobile-planning/review-test-architect.md": {
     "upstream": [],
     "downstream": []
   },

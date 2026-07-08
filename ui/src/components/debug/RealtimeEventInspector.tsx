@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Pause, Play, RefreshCw, Search, Trash2 } from 'lucide-react';
 import { realtimeEventBus, type RealtimeEvent } from '@/services/realtimeEventBus';
+import { describeRealtimeActivity } from '@/services/realtimeActivity';
 import { useWebSocket } from '@/services/websocket';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -10,7 +11,6 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 
 interface InspectorEvent extends RealtimeEvent {
   timestamp: string;
-  entity_id?: string;
 }
 
 const MAX_EVENTS = 200;
@@ -32,10 +32,8 @@ export function RealtimeEventInspector() {
       return;
     }
     const unsubscribe = realtimeEventBus.subscribe((event) => {
-      const entityId = event.note_id ?? event.job_id;
       const normalized: InspectorEvent = {
         ...event,
-        entity_id: entityId,
         timestamp: new Date().toISOString(),
       };
 
@@ -50,13 +48,13 @@ export function RealtimeEventInspector() {
     }
     const search = query.toLowerCase();
     return events.filter((event) => {
+      const activity = describeRealtimeActivity(event);
       const haystack = [
         event.raw_event_type,
         event.type,
-        event.entity_id,
-        event.memory,
-        event.correlation_id,
-        event.event_id,
+        activity.category,
+        activity.title,
+        activity.entity,
       ]
         .filter(Boolean)
         .join(' ')
@@ -69,9 +67,9 @@ export function RealtimeEventInspector() {
     <div className="space-y-4">
       <Card>
         <CardHeader>
-          <CardTitle>Realtime Inspector</CardTitle>
+          <CardTitle>Realtime Activity</CardTitle>
           <CardDescription>
-            Debug view for subscribed realtime events and recent event stream.
+            Sanitized view of connection, job, sync, MCP, and admin activity.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-3">
@@ -101,7 +99,7 @@ export function RealtimeEventInspector() {
               <Input
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder="Filter by event type, entity, memory, correlation id"
+                placeholder="Filter by category, event type, or activity"
                 className="pl-9"
               />
             </div>
@@ -135,28 +133,36 @@ export function RealtimeEventInspector() {
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Recent Events</CardTitle>
+          <CardTitle className="text-base">Recent Activity</CardTitle>
         </CardHeader>
         <CardContent>
           <ScrollArea className="h-[480px] pr-3">
             <div className="space-y-2">
               {filtered.length === 0 && (
                 <div className="text-sm text-muted-foreground py-6 text-center">
-                  No events match current filter.
+                  No activity matches current filter.
                 </div>
               )}
-              {filtered.map((event, index) => (
-                <div key={`${event.event_id ?? event.timestamp}-${index}`} className="border rounded-md p-2 text-xs">
-                  <div className="flex flex-wrap gap-2 mb-1">
-                    <Badge variant="secondary">{event.raw_event_type ?? event.type}</Badge>
-                    <Badge variant="outline">{event.type}</Badge>
-                    {event.entity_id && <Badge variant="outline">entity: {event.entity_id}</Badge>}
+              {filtered.map((event, index) => {
+                const activity = describeRealtimeActivity(event);
+                return (
+                  <div key={`${event.timestamp}-${index}`} className="border rounded-md p-3 text-xs">
+                    <div className="flex flex-wrap items-center gap-2 mb-2">
+                      <Badge variant="secondary">{activity.category}</Badge>
+                      <Badge variant={activity.severity === 'error' ? 'destructive' : 'outline'}>
+                        {activity.severity}
+                      </Badge>
+                      <Badge variant="outline">{activity.entity}</Badge>
+                      <Badge variant="outline">{event.raw_event_type ?? event.type}</Badge>
+                    </div>
+                    <div className="font-medium text-sm">{activity.title}</div>
+                    <div className="mt-1 text-muted-foreground">{activity.summary}</div>
+                    <div className="mt-2 text-muted-foreground">
+                      time: {new Date(event.timestamp).toLocaleTimeString()}
+                    </div>
                   </div>
-                  <div className="text-muted-foreground">
-                    time: {new Date(event.timestamp).toLocaleTimeString()} | memory: {event.memory ?? 'n/a'} | correlation: {event.correlation_id ?? 'n/a'} | event_id: {event.event_id ?? 'n/a'}
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </ScrollArea>
         </CardContent>
@@ -164,4 +170,3 @@ export function RealtimeEventInspector() {
     </div>
   );
 }
-

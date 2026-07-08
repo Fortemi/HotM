@@ -20,7 +20,7 @@ Walk the action hierarchy in order. The agent always prefers a **skill** over a 
 
 ## The canonical pipeline: `discover → show`
 
-Most AIWG skills (~385 of 400) are **not in your context** and are not in `<provider>/skills/` either — they stay at `$AIWG_ROOT` (no per-project copy by default, #1217). Two commands close the loop:
+Most AIWG skills (~460 of 480) are **not in your context** and are not in `<provider>/skills/` either — they stay at `$AIWG_ROOT` (no per-project copy by default, #1217). Two commands close the loop:
 
 ```bash
 # 1. Find — returns ranked candidates with absolute paths
@@ -61,7 +61,7 @@ If a quickref isn't loaded, the framework isn't installed in this project. Use `
 
 ## Addons & extensions (separate kernel quickref)
 
-For everything **outside the framework set** — the ~270 skills across 28 addons (loops, voice, memory, color, testing, NLP, etc.) and 7 ops extensions (sys/net/sec/dev/it/stream/api-adapter) — load `aiwg-language-map`. It's also kernel-resident and acts as the orientation layer for the addon/extension surface, with curated discover phrases per capability domain.
+For everything **outside the framework set** — the ~214 skills across 29 addons (loops, voice, memory, color, testing, NLP, etc.) and 7 ops extensions (sys/net/sec/dev/it/stream/api-adapter) — load `aiwg-language-map`. It's also kernel-resident and acts as the orientation layer for the addon/extension surface, with curated discover phrases per capability domain.
 
 ```
 aiwg-language-map  → addon capability domains + extension domains + cheat sheet
@@ -184,17 +184,30 @@ aiwg discover "choose issue tracking backend"  # → issue-workflow-guide
 aiwg discover "project-local customization"     # → project-local quickstart / customization docs
 ```
 
-### Project-local extensions (pilot → promote)
+### Feature domains the steward owns (expansion / persona / project)
 
-AIWG supports authoring rules/skills/agents per-project under `.aiwg/{extensions,addons,frameworks,plugins}/<name>/` — pilot here, promote upstream when mature.
+Three cross-cutting domains that no framework quickref owns — consult the `steward-quickref` kernel skill, or discover directly:
+
+```bash
+aiwg discover "author an expansion"            # → scaffold-extension / -addon / -framework
+aiwg discover "create a persona"               # → soul-create (author a SOUL identity)
+aiwg discover "select a persona"               # → persona agents (agentic/code/agents/personas/*)
+aiwg discover "scaffold a project"             # → new-project (+ new-bundle for project-local)
+```
+
+### Project-local bundles (pilot → promote)
+
+AIWG supports authoring rules/skills/agents per-project under `.aiwg/{extensions,addons,frameworks}/<name>/`, marketplace wrappers under `.aiwg/plugins/<name>/`, and custom provider selectors under `.aiwg/providers/<name>/`. Pilot here, promote upstream when mature.
 
 ```bash
 aiwg new-bundle <name>                         # scaffold; auto-builds project graph
 aiwg new-extension <name> --starter rule       # extension with a starter rule
+aiwg new-provider <name>                       # provider selector using providerConfig.extends
 aiwg new-bundle <name> --dry-run               # preview without writing
 aiwg list --project-local                      # inventory + validation
 aiwg doctor --project-local                    # health check (counts, drift, shadows)
 aiwg use <name>                                # deploy a single project-local bundle
+aiwg use sdlc --provider <name>                # select a project-local provider bundle
 aiwg promote <name>                            # graduate to upstream (hash-verified copy)
 aiwg promote <name> --dry-run                  # preview promotion
 ```

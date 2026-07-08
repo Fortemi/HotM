@@ -21,6 +21,13 @@ import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -274,6 +281,7 @@ export function HallOfMind() {
   const [systemSnapshot, setSystemSnapshot] = useState<SystemSnapshot | null>(null);
   const [systemSnapshotError, setSystemSnapshotError] = useState<string | null>(null);
   const [isRefreshingSystemSnapshot, setIsRefreshingSystemSnapshot] = useState(false);
+  const [activityDrawerOpen, setActivityDrawerOpen] = useState(false);
   const showRealtimeDebug =
     import.meta.env.DEV || import.meta.env.VITE_ENABLE_REALTIME_INSPECTOR === "true";
   const {
@@ -2286,6 +2294,22 @@ export function HallOfMind() {
                 )}
                 <InferenceStatusIndicator onNavigateToSettings={() => setCurrentView("admin")} />
                 <JobQueueIndicator />
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="gap-2"
+                  onClick={() => setActivityDrawerOpen(true)}
+                  aria-label="Open realtime activity"
+                >
+                  <Activity className="h-4 w-4" />
+                  <span className="hidden lg:inline">Activity</span>
+                  <Badge
+                    variant={realtimeConnected ? "secondary" : "destructive"}
+                    className="hidden sm:inline-flex text-[10px]"
+                  >
+                    {realtimeConnectionState ?? (realtimeConnected ? "connected" : "offline")}
+                  </Badge>
+                </Button>
               </div>
             </div>
           </header>
@@ -3212,6 +3236,20 @@ export function HallOfMind() {
         noteTitle={noteToDelete?.title}
         onConfirm={confirmDeleteNote}
       />
+
+      <Sheet open={activityDrawerOpen} onOpenChange={setActivityDrawerOpen}>
+        <SheetContent className="w-full overflow-hidden p-0 sm:max-w-xl">
+          <SheetHeader className="border-b p-4 pr-12">
+            <SheetTitle>Realtime Activity</SheetTitle>
+            <SheetDescription>
+              Sanitized connection, job, sync, MCP, and admin activity from the active Fortemi sidecar.
+            </SheetDescription>
+          </SheetHeader>
+          <div className="min-h-0 flex-1 overflow-auto p-4">
+            <RealtimeEventInspector />
+          </div>
+        </SheetContent>
+      </Sheet>
     </SidebarProvider>
   );
 }

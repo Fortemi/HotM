@@ -2,6 +2,7 @@
  * AttachmentsPanel Component Tests
  *
  * Tests file attachment management with upload, preview, and metadata display.
+ * HUX-REQ-014: attachment realtime UI tests prove sanitized progress only, not binary projection/export readiness.
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';

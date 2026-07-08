@@ -10,6 +10,7 @@ function okJson(body: unknown) {
     ok: true,
     status: 200,
     statusText: 'OK',
+    json: () => Promise.resolve(body),
     text: () => Promise.resolve(text),
   };
 }
@@ -137,5 +138,60 @@ describe('api.healthCheck', () => {
       database: 'unknown',
       ollama: undefined,
     }));
+  });
+});
+
+describe('api.systemCompatibility', () => {
+  beforeEach(() => {
+    mockFetch.mockReset();
+  });
+
+  it('HUX-REQ-001 HUX-REQ-002 HUX-REQ-003 fetches and normalizes the Fortemi compatibility contract', async () => {
+    mockFetch.mockResolvedValueOnce(
+      okJson({
+        schema_version: 1,
+        contract_revision: '2026-07-06',
+        api: {
+          name: 'fortemi',
+          version: '2026.5.25',
+          minimum_hotm_enterprise_client: '0.0.0-checkpoint',
+          git_sha_present: true,
+          build_date_present: true,
+        },
+        deployment: {
+          mode: 'local_sidecar',
+          edition: 'community',
+          hosted_multi_tenant_ready: false,
+        },
+        auth: {
+          required: false,
+          mode: 'anonymous_local',
+          oauth_issuer_configured: false,
+          tenant_context_available: false,
+        },
+        capabilities: {
+          core_notes: { state: 'available' },
+          future_surface: { state: 'experimental' },
+          malformed_surface: true,
+        },
+        links: {
+          openapi: '/openapi.yaml',
+          asyncapi: '/asyncapi.yaml',
+          health: '/health',
+          streaming_health: '/api/v1/health/streaming',
+        },
+      })
+    );
+
+    const api = createApi('http://localhost:3000/api/v1');
+    const result = await api.systemCompatibility.get();
+
+    expect(mockFetch).toHaveBeenCalledWith(
+      'http://localhost:3000/api/v1/system/compatibility',
+      expect.objectContaining({ method: 'GET' })
+    );
+    expect(result.capabilities.core_notes).toEqual({ state: 'available' });
+    expect(result.capabilities.future_surface).toEqual({ state: 'unknown' });
+    expect(result.capabilities.malformed_surface).toEqual({ state: 'unknown' });
   });
 });

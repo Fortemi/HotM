@@ -29,6 +29,7 @@ import { createArchivesApi } from './archives';
 import { createJobsApi } from './jobs';
 import { createChatApi } from './chat';
 import { createInferenceApi } from './inference';
+import { createSystemCompatibilityApi } from './systemCompatibility';
 
 // Export core types
 export type {
@@ -69,6 +70,12 @@ export type {
   RelatedNotesResponse,
   UserMetadataLabel,
 } from './extended';
+
+export type {
+  SystemCapability,
+  SystemCapabilityState,
+  SystemCompatibilityResponse,
+} from './systemCompatibility';
 
 // Export all new extended types
 export type {
@@ -351,6 +358,7 @@ export function createApi(baseUrl?: string) {
     jobs: createJobsApi(client),
     chat: createChatApi(client),
     inference: createInferenceApi(client),
+    systemCompatibility: createSystemCompatibilityApi(client),
 
     /**
      * Quick health check endpoint (legacy)

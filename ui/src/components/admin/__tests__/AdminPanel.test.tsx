@@ -14,6 +14,9 @@ vi.mock('@/api', () => ({
   api: {
     client: { baseUrl: 'http://localhost:3000', get: vi.fn() },
     healthCheck: vi.fn(),
+    systemCompatibility: {
+      get: vi.fn(),
+    },
     embeddings: {
       listConfigs: vi.fn(),
       getDefaultConfig: vi.fn(),
@@ -88,6 +91,41 @@ describe('AdminPanel', () => {
     (api.embeddings.getDefaultConfig as any).mockResolvedValue(mockEmbeddingConfigs[0]);
     (api.health.getKnowledgeHealth as any).mockResolvedValue(mockHealthData);
     (api.healthCheck as any).mockResolvedValue(mockSystemHealth);
+    (api.systemCompatibility.get as any).mockResolvedValue({
+      schema_version: 1,
+      contract_revision: '2026-07-06',
+      api: {
+        name: 'fortemi',
+        version: '2026.5.25',
+        minimum_hotm_enterprise_client: '0.0.0-checkpoint',
+        git_sha_present: true,
+        build_date_present: true,
+      },
+      deployment: {
+        mode: 'local_sidecar',
+        edition: 'community',
+        hosted_multi_tenant_ready: false,
+      },
+      auth: {
+        required: false,
+        mode: 'anonymous_local',
+        oauth_issuer_configured: false,
+        tenant_context_available: false,
+      },
+      capabilities: {
+        core_notes: { state: 'available' },
+        realtime_activity: { state: 'available' },
+        hosted_auth: { state: 'unavailable', reason_code: 'hosted_auth_not_configured' },
+        premium_components: { state: 'preview', reason_code: 'capability_catalog_preview_only' },
+        backoffice_api: { state: 'unavailable', reason_code: 'contract_not_implemented' },
+      },
+      links: {
+        openapi: '/openapi.yaml',
+        asyncapi: '/asyncapi.yaml',
+        health: '/health',
+        streaming_health: '/api/v1/health/streaming',
+      },
+    });
     (api.client.get as any).mockResolvedValue(mockSystemHealth);
     (api.documents.list as any).mockResolvedValue([]);
     (api.webhooks.list as any).mockResolvedValue([]);
@@ -141,7 +179,7 @@ describe('AdminPanel', () => {
       });
     });
 
-    it('should display the API surface tab with compatibility features', async () => {
+    it('HUX-REQ-001 should display the API surface tab with compatibility features', async () => {
       const user = userEvent.setup();
       render(<AdminPanel />);
 
@@ -149,8 +187,34 @@ describe('AdminPanel', () => {
 
       await waitFor(() => {
         expect(screen.getByText(/HotM Compatibility Surface/i)).toBeInTheDocument();
+        expect(screen.getByText(/Enterprise Preview/i)).toBeInTheDocument();
         expect(screen.getByText('Explicit titles')).toBeInTheDocument();
+        expect(screen.getByText('Backoffice Console')).toBeInTheDocument();
         expect(screen.getByText('Deferred import')).toBeInTheDocument();
+        expect(screen.getAllByText('Webhooks').length).toBeGreaterThan(0);
+      });
+    });
+
+    it('HUX-REQ-004 keeps local admin workflows reachable when enterprise compatibility discovery is absent', async () => {
+      const user = userEvent.setup();
+      (api.systemCompatibility.get as any).mockRejectedValue(new Error('not found'));
+      render(<AdminPanel />);
+
+      await user.click(screen.getByText('API Surface'));
+
+      await waitFor(() => {
+        expect(screen.getByText('legacy health')).toBeInTheDocument();
+        expect(screen.getAllByText('compatibility_discovery_unavailable').length).toBeGreaterThan(0);
+        expect(screen.getAllByRole('button', { name: /Action gated/i }).length).toBeGreaterThan(0);
+      });
+
+      await user.click(screen.getByRole('tab', { name: /Document Types/i }));
+      await waitFor(() => {
+        expect(screen.getByText(/No document types returned by the API/i)).toBeInTheDocument();
+      });
+
+      await user.click(screen.getByRole('tab', { name: /Webhooks/i }));
+      await waitFor(() => {
         expect(screen.getAllByText('Webhooks').length).toBeGreaterThan(0);
       });
     });

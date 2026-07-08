@@ -103,18 +103,15 @@ jobs:
         working-directory: ui
         run: npm ci
 
-      - name: Download Fortemi sidecar (Linux x86_64)
+      - name: Download pinned Fortemi sidecar (Linux x86_64)
         shell: bash
         run: |
           set -euo pipefail
           # Rename to hotm-namespaced filename so the bundled sidecar lands at
           # /usr/bin/hotm-matric-api in the .deb (no collision with sibling
           # apps that bundle their own /usr/bin/matric-api). See #187.
-          SRC="matric-api-x86_64-unknown-linux-gnu"
           DEST="ui/src-tauri/binaries/hotm-matric-api-x86_64-unknown-linux-gnu"
-          mkdir -p ui/src-tauri/binaries
-          curl -sfL "https://git.integrolabs.net/Fortemi/fortemi/releases/download/sidecar-latest/${SRC}" -o "${DEST}"
-          chmod +x "${DEST}"
+          scripts/download-pinned-sidecar.sh x86_64-unknown-linux-gnu "${DEST}"
           echo "Sidecar ready: ${DEST} ($(du -h ${DEST} | cut -f1))"
 
       - name: Build Tauri app (Linux)
@@ -291,14 +288,11 @@ jobs:
           . /Volumes/build/bt6/cargo/env 2>/dev/null || true
           echo "Rust: $(cargo --version)  Node: $(node --version)"
 
-          # Download Fortemi sidecar (macOS aarch64) — rename to hotm-namespaced
+          # Download pinned Fortemi sidecar (macOS aarch64) — rename to hotm-namespaced
           # filename so the bundled sidecar lives inside the .app bundle as
           # MacOS/hotm-matric-api (no collision with sibling apps). See #187.
-          SRC="matric-api-aarch64-apple-darwin"
           DEST="${BUILD_DIR}/ui/src-tauri/binaries/hotm-matric-api-aarch64-apple-darwin"
-          mkdir -p "${BUILD_DIR}/ui/src-tauri/binaries"
-          curl -sfL "https://git.integrolabs.net/Fortemi/fortemi/releases/download/sidecar-latest/${SRC}" -o "${DEST}"
-          chmod +x "${DEST}"
+          "${BUILD_DIR}/scripts/download-pinned-sidecar.sh" aarch64-apple-darwin "${DEST}"
           echo "Sidecar ready: ${DEST} ($(du -h ${DEST} | cut -f1))"
 
           cd "${BUILD_DIR}/ui"

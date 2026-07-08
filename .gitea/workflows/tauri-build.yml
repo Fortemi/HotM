@@ -8,6 +8,8 @@ on:
       - 'ui/src/**'
       - 'ui/package.json'
       - 'ui/package-lock.json'
+      - 'release/sidecar-provenance.json'
+      - 'scripts/download-pinned-sidecar.sh'
       - '.gitea/workflows/tauri-build.yml'
   pull_request:
     branches: [ main ]
@@ -15,6 +17,8 @@ on:
       - 'ui/src-tauri/**'
       - 'ui/src/**'
       - 'ui/package.json'
+      - 'release/sidecar-provenance.json'
+      - 'scripts/download-pinned-sidecar.sh'
       - '.gitea/workflows/tauri-build.yml'
   workflow_dispatch:
 
@@ -61,7 +65,7 @@ jobs:
         working-directory: ui
         run: npm ci
 
-      - name: Download Fortemi sidecar (Linux x86_64)
+      - name: Download pinned Fortemi sidecar (Linux x86_64)
         shell: bash
         run: |
           set -euo pipefail
@@ -70,11 +74,8 @@ jobs:
           # at /usr/bin/hotm-matric-api in the .deb (no /usr/bin/matric-api
           # collision with sibling Tauri apps that also bundle matric-api).
           # See issue #187.
-          SRC="matric-api-x86_64-unknown-linux-gnu"
           DEST="ui/src-tauri/binaries/hotm-matric-api-x86_64-unknown-linux-gnu"
-          mkdir -p ui/src-tauri/binaries
-          curl -sfL "https://git.integrolabs.net/Fortemi/fortemi/releases/download/sidecar-latest/${SRC}" -o "${DEST}"
-          chmod +x "${DEST}"
+          scripts/download-pinned-sidecar.sh x86_64-unknown-linux-gnu "${DEST}"
           echo "Sidecar ready: ${DEST} ($(du -h ${DEST} | cut -f1))"
 
       - name: Build Tauri app

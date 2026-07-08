@@ -14,7 +14,7 @@ Single entry-point for the SDLC + research artifacts produced for HotM's mobile 
 | Artifact | Status | Notes |
 |---|---|---|
 | [ADR-MOBILE-001 — Mobile cloud architecture](../architecture/adr-mobile-cloud-architecture.md) | Proposed (rev 1) | Seven decisions. Reviewed by 4 agents; revisions merged. |
-| [Manifest schema v1](../architecture/manifest-schema-v1.md) | Proposed | The `GET /v1/manifest` API contract. JSON Schema file (`manifest-schema-v1.json`) to be authored alongside Phase 2 implementation. |
+| [Manifest schema v1](../architecture/manifest-schema-v1.md) | Proposed | The `GET /v1/manifest` API contract. Machine-readable JSON Schema companion exists at `../architecture/manifest-schema-v1.json` and is validated by `../testing/scripts/validate-manifest-schema.mjs`. |
 
 ## Plan
 
@@ -40,15 +40,15 @@ Single entry-point for the SDLC + research artifacts produced for HotM's mobile 
 | Technical Writer | [review-technical-writer.md](../working/mobile-planning/review-technical-writer.md) | APPROVED_WITH_CHANGES |
 | **Synthesis** | [review-synthesis.md](../working/mobile-planning/review-synthesis.md) | 11 HIGH / 13 MEDIUM / 25 LOW findings. Top-priority HIGH findings merged into the ADR + phase plan revisions. |
 
-## Required follow-up artifacts
+## Follow-up artifacts
 
-These artifacts are referenced by the ADR and phase plan but have not yet been authored. Each is gated to a specific phase:
+These artifacts are referenced by the ADR and phase plan. Some are authored as draft evidence but still require review, implementation, or launch evidence before their gates close:
 
 | Artifact | Gates at | Owner role | Notes |
 |---|---|---|---|
-| `cryptographic-decisions.md` | Phase 1 | applied-cryptographer | AEAD primitive, KDF, wrap mode, HKDF info labels. |
+| `cryptographic-decisions.md` | Phase 1 | applied-cryptographer | Authored draft exists; applied-cryptographer review and implementation/test evidence remain required. |
 | `adr-mobile-002-hybrid-data-semantics.md` | Phase 2 | Architecture Designer | Local↔cloud mode-switch semantics (independent / cloud-authoritative / local-authoritative). |
-| `manifest-schema-v1.json` | Phase 2 | API Designer | Actual JSON Schema file for CI validation. |
+| `manifest-schema-v1.json` | Phase 2 | API Designer | Authored companion schema exists; keep `node .aiwg/testing/scripts/validate-manifest-schema.mjs` passing and wire server/client contract tests when Phase 2 implementation starts. |
 | `UC-MOBILE-001` through `UC-MOBILE-005` | Phase 3 | Requirements Analyst | Five launch use cases. |
 | `nfr-modules/mobile-accessibility.md` | Phase 3 | UX Lead | VoiceOver/TalkBack/WCAG/dynamic-type. |
 | `mobile-launch-readiness-checklist.md` | Phase 5 | Project Manager | Already embedded in phase plan §Phase 5; promote to standalone if it grows. |
@@ -56,6 +56,8 @@ These artifacts are referenced by the ADR and phase plan but have not yet been a
 ## Open strategic questions (for operator)
 
 These were captured in the ADR (§Open questions) and the phase plan (§Open questions). Pinned here so they don't get lost:
+
+Checkpoint consolidation exists at suite-root `.aiwg/decisions/hotm-mobile-cloud-operator-questions-2026-07-07.md` as the operator response surface for these questions. Keep this list and that root decision artifact synchronized until the rows are answered.
 
 1. Auth provider final choice (Clerk vs Auth0 vs Keycloak vs roll-your-own).
 2. Hosting provider for `matric-api` (Fly.io vs Render vs Railway vs Hetzner vs self-host).

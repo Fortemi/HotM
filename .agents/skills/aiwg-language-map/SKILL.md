@@ -6,7 +6,7 @@ platforms: [codex]
 
 # AIWG Language Map — Addons + Extensions
 
-This is your always-loaded directory for the AIWG **addon and extension** surface. It's the orientation layer for the ~270 skills that live outside the 8 frameworks. Frameworks have their own per-framework quickrefs (`sdlc-quickref`, `forensics-quickref`, etc.); this map covers everything else: addons (utilities, loops, voice, testing, etc.) and ops extensions (sys/net/sec/dev/it/stream).
+This is your always-loaded directory for the AIWG **addon and extension** surface. It's the orientation layer for the ~214 skills that live outside the 8 frameworks. Frameworks have their own per-framework quickrefs (`sdlc-quickref`, `forensics-quickref`, etc.); this map covers everything else: addons (utilities, loops, voice, testing, etc.) and ops extensions (sys/net/sec/dev/it/stream).
 
 ## How to use this map
 
@@ -303,14 +303,14 @@ When you don't know which domain a need falls into:
 
 ## Project-local extensions (pilot → promote)
 
-Addons and extensions don't all have to come from upstream. Users can pilot their own bundles per-project under `.aiwg/{extensions,addons,frameworks,plugins}/<name>/`, validate them, then promote to upstream when mature. Curated phrases:
+Addons, extensions, and frameworks don't all have to come from upstream. Users can pilot content bundles per-project under `.aiwg/{extensions,addons,frameworks}/<name>/`, validate them, then promote to upstream when mature. Use `.aiwg/plugins/<name>/` only when wrapping a bundle for marketplace delivery. Curated phrases:
 
 ```bash
 aiwg new-bundle <name>                         # scaffold; auto-builds project graph
 aiwg new-extension <name> --starter rule       # extension with starter rule
 aiwg new-addon <name>                          # addon
 aiwg new-framework <name>                      # framework
-aiwg new-plugin <name>                         # plugin
+aiwg new-plugin <name>                         # marketplace delivery wrapper
 aiwg new-bundle <name> --dry-run               # preview without writing
 aiwg list --project-local                      # inventory + validation status
 aiwg doctor --project-local                    # health check (counts, drift, shadows)

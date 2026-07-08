@@ -29,6 +29,7 @@ The `quality-gate` job runs on every push to `main`/`develop` and every PR to `m
 1. **TypeScript compilation** — `npm run typecheck` (strict mode, no emitted output)
 2. **Unit tests with coverage** — `npm run test:coverage -- --run` via Vitest
 3. **Realtime convergence suite** — `npm run test:realtime` (separate Vitest config targeting realtime/WebSocket paths)
+4. **HUX traceability anchors** — `npm run test:hux-traceability` verifies HUX-REQ-001 through HUX-REQ-013 remain anchored in HotM tests/scripts
 4. **Security audit** — `npm audit --audit-level high` (non-blocking: exits `|| true`, reported in logs only)
 5. **SBOM generation** — CycloneDX SBOM written to `ui/sbom.json`
 
@@ -61,7 +62,7 @@ cd ui && npm test -- --run
 **What it does**:
 1. Installs Rust stable targeting `x86_64-unknown-linux-gnu`
 2. Installs WebKit2GTK and GTK system dependencies (required by Tauri on Linux)
-3. Downloads the Fortemi sidecar binary (`matric-api-x86_64-unknown-linux-gnu`) from the `sidecar-latest` release in the Fortemi/fortemi repo — this binary is required at build time and is not checked into the repo
+3. Downloads the Fortemi sidecar binary (`matric-api-x86_64-unknown-linux-gnu`) through `scripts/download-pinned-sidecar.sh`, using `release/sidecar-provenance.json` for the pinned upstream commit and SHA-256 verification — this binary is required at build time and is not checked into the repo
 4. Runs `npx tauri build`
 5. Uploads `.deb` and `.AppImage` bundles as CI artifacts (retained briefly; not published to any release)
 
@@ -77,7 +78,7 @@ Triggers on every push to `main` that touches `ui/**`. Produces rolling dev buil
 
 **Linux job** (`build-linux`, runs on `ubuntu-22.04`):
 - Installs Node 20, Rust stable, and all WebKit/GTK dependencies with mirror-fallback retry logic for flaky Ubuntu apt mirrors
-- Downloads `matric-api-x86_64-unknown-linux-gnu` sidecar from `sidecar-latest`
+- Downloads `matric-api-x86_64-unknown-linux-gnu` sidecar through `scripts/download-pinned-sidecar.sh`; the script reads `release/sidecar-provenance.json`, verifies SHA-256, and writes a sidecar provenance receipt beside the staged binary
 - Builds Tauri; produces `.AppImage` and `.deb`
 - Upserts the `dev-latest` Gitea release (creates if missing, replaces stale assets of the same name)
 
@@ -271,6 +272,12 @@ cd ui && npm run test:coverage -- --run
 
 ```bash
 cd ui && npm run test:realtime
+```
+
+**HotM enterprise demo traceability only**:
+
+```bash
+cd ui && npm run test:hux-traceability
 ```
 
 ---

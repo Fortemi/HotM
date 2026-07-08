@@ -1,4 +1,4 @@
-import { act, render, screen, waitFor } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { HallOfMind } from '../HallOfMind';
 import * as apiModule from '@/services/api';
@@ -154,6 +154,34 @@ describe('HallOfMind WebSocket Integration', () => {
   });
 
   describe('WebSocket Component Integration', () => {
+    it('HUX-REQ-006 opens the realtime activity drawer from the shell header', async () => {
+      mockUseWebSocket.mockReturnValue({
+        connected: true,
+        connectionState: 'connected',
+        transportMode: 'sse',
+        replayCursor: 'evt-1',
+        subscribedEventTypes: ['job.progress', 'events.lagged'],
+        queueStatus: {
+          total_jobs: 0,
+          running: 0,
+          pending: 0,
+        },
+        queueStatusAgeMs: 0,
+        isQueueStalled: false,
+        sendMessage: vi.fn(),
+      });
+
+      render(<HallOfMind />);
+
+      const trigger = await screen.findByRole('button', { name: /open realtime activity/i });
+      fireEvent.click(trigger);
+
+      await waitFor(() => {
+        expect(screen.getAllByText('Realtime Activity').length).toBeGreaterThan(0);
+        expect(screen.getByText(/Sanitized connection, job, sync, MCP, and admin activity/i)).toBeInTheDocument();
+      });
+    });
+
     it('renders with WebSocket connection status - connected', async () => {
       // Test with connected WebSocket
       mockUseWebSocket.mockReturnValue({
