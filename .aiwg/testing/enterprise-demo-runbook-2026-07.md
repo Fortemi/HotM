@@ -6,12 +6,15 @@ Provide a reproducible manual and fixture-backed runbook for the HotM enterprise
 
 ## Status
 
-- Status: draft
+- Status: accepted OP baseline; dry-run receipt still required
 - Primary tracker: `Fortemi/HotM#250`
 - Parent plan: `Fortemi/HotM#243`
-- Persona default: tenant admin until the operator decides otherwise.
-- Deployment target default: local sidecar plus hosted preview metadata until the operator decides otherwise.
-- Demo priority default: compatibility center, hosted auth, realtime activity, premium catalog, backoffice preview.
+- Persona: tenant admin, accepted via OP-2026-07-001 on 2026-07-09.
+- Deployment target: local sidecar plus hosted preview metadata, accepted via OP-2026-07-002 on 2026-07-09.
+- Demo priority: compatibility center, hosted auth, realtime activity, premium catalog, backoffice preview, accepted via OP-2026-07-003 on 2026-07-09.
+- Claim boundary: fixture-backed preview only, accepted via OP-2026-07-004 on 2026-07-09.
+- Live CI caveat: HUX-REQ-010 remains open until an authenticated Gitea Actions sidecar provenance receipt exists, accepted via OP-2026-07-005 on 2026-07-09.
+- Private registry posture: ADR-096 private registry readiness remains a hard blocker until publish/consume proof exists, accepted via OP-2026-07-006 on 2026-07-09.
 
 ## Preconditions
 
@@ -65,7 +68,7 @@ Binary attachment projection boundary note, 2026-07-08: attachment realtime regr
 
 ### Default First-Demo Path
 
-Use this path unless the operator changes the persona, target, or priority:
+Use this accepted path:
 
 1. Run HotM in fixture-backed mode with local-sidecar compatibility as the baseline.
 2. Open API Surface and show the Connection/Compatibility state, also called the Connection and Compatibility Center, before any enterprise surface.

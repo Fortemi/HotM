@@ -4,9 +4,9 @@
 
 Define the first demonstrable HotM UX slice for recent Fortemi streaming/security work and the upcoming enterprise/backoffice phase.
 
-## Recommended First Demo Persona
+## Accepted First Product Persona
 
-**Tenant admin** is the recommended first persona.
+**Tenant admin** is the accepted first persona for the HotM desktop-plus-enterprise product sequence.
 
 Reasoning:
 
@@ -14,11 +14,11 @@ Reasoning:
 - It requires the same compatibility/auth/capability model that end users and operators also need.
 - It makes missing backend contracts visible without pretending the enterprise implementation is complete.
 
-## Demo Thread
+## Product Validation Thread
 
-Default path until the operator decides otherwise:
+Accepted OP baseline as of 2026-07-09:
 
-| Decision | Default |
+| Decision | Accepted answer |
 |---|---|
 | Persona | Tenant admin |
 | Deployment target | Local sidecar plus hosted preview metadata |
@@ -27,7 +27,7 @@ Default path until the operator decides otherwise:
 | HUX-REQ-010 live CI caveat | Keep open until live sidecar provenance CI receipt exists |
 | Private registry posture | Keep as hard blocker until publish/consume proof exists |
 
-This keeps the demo tied to current implementation evidence while still showing the enterprise/backoffice direction through capability discovery and disabled-state explanations. Do not switch the script to a hosted multi-tenant demo or broader public claim until the RLS, auth, KMS, backoffice, package, and claim-control gates are proven or explicitly accepted by the operator.
+This keeps the product validation tied to current implementation evidence while still showing the enterprise/backoffice direction through capability discovery and disabled-state explanations. Do not switch the script to a hosted multi-tenant production path or broader public claim until the RLS, auth, KMS, backoffice, package, and claim-control gates are proven or explicitly accepted by the operator.
 
 ### Scenario HUX-DEMO-001: Admin connects HotM to an enterprise-capable Fortemi endpoint
 
@@ -113,14 +113,14 @@ This keeps the demo tied to current implementation evidence while still showing 
 - Screen/state blueprint: `.aiwg/design/enterprise-demo-screen-state-blueprint-2026-07.md`
 - Operator signoff packet: `.aiwg/testing/enterprise-demo-operator-signoff-2026-07-06.md`
 
-## Open Decisions
+## Accepted OP Decisions
 
 Use the root operator ballot artifact as the source of truth for accepted answers: `../.aiwg/decisions/operator-decision-ballot-2026-07-06.md` from the HotM repo root's parent suite directory. The older request artifact remains context only.
 
-- OP-2026-07-001: Confirm whether tenant admin is the first demo persona.
-- OP-2026-07-002: Choose target deployment for the demo: fixture-only local, local sidecar plus hosted preview metadata, single-tenant Fortemi, hosted preview metadata only, or hosted multi-tenant demo.
-- OP-2026-07-003: Choose first demo priority: compatibility center, hosted auth/OAuth, realtime/streaming, premium component discovery, or backoffice administration.
-- OP-2026-07-004: Confirm the fixture-backed preview claim boundary or provide an approved replacement claim boundary.
-- OP-2026-07-005: Accept the HUX-REQ-010 live CI caveat, provide the live sidecar provenance receipt, or change first-demo requirements.
-- OP-2026-07-006: Confirm private Cargo registry posture: keep blocked, provide registry proof, or accept a documented fallback.
+- OP-2026-07-001: Tenant admin.
+- OP-2026-07-002: Local sidecar plus hosted preview metadata.
+- OP-2026-07-003: Compatibility center, hosted auth, realtime activity, premium catalog, backoffice preview.
+- OP-2026-07-004: Fixture-backed preview only; no hosted production, EE implementation, private package, or production backoffice readiness claim.
+- OP-2026-07-005: Keep HUX-REQ-010 open until an authenticated Gitea Actions sidecar provenance receipt exists.
+- OP-2026-07-006: Keep ADR-096 private registry readiness hard-blocked until publish/consume proof exists.
 - Choose target API version once `Fortemi/fortemi#1018` defines the compatibility contract.
