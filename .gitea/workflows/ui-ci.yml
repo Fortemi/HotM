@@ -119,7 +119,7 @@ jobs:
   # ─── On push / manual dispatch: Publish dev image ─────────────────
   publish-dev:
     name: Publish Dev Image (Gitea + GHCR)
-    runs-on: titan
+    runs-on: ubuntu-22.04
     needs: [quality-gate, agent-proxy-quality-gate]
     if: (github.ref == 'refs/heads/main' && github.event_name == 'push') || github.event_name == 'workflow_dispatch'
     steps:
@@ -189,7 +189,7 @@ jobs:
   # HotM UI Docker is handled by publish-hotm-ui-image.yml
   publish-release:
     name: Publish Agent-Proxy Release Image
-    runs-on: titan
+    runs-on: ubuntu-22.04
     needs: [quality-gate, agent-proxy-quality-gate]
     # Gate on both event type AND ref. Gating on ref alone was firing this job
     # on non-tag pushes to main (issue #221) — likely Gitea Actions context
