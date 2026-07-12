@@ -2,7 +2,7 @@
 #
 # Responsibilities:
 #   - Always: quality gates for ui/ and agent-proxy/ (parallel)
-#   - On push to main: publish agent-proxy dev image to Gitea registry
+#   - On push to main / manual dispatch: publish agent-proxy dev image to Gitea + GHCR
 #   - On tag v*: publish agent-proxy release image to Gitea + GHCR
 #
 # Out of scope (handled by dedicated workflows):
@@ -116,12 +116,12 @@ jobs:
         working-directory: agent-proxy
         run: npm audit --audit-level high || true
 
-  # ─── On push: Publish dev image to Gitea internal registry ─────────
+  # ─── On push / manual dispatch: Publish dev image ─────────────────
   publish-dev:
-    name: Publish Dev Image (Gitea)
+    name: Publish Dev Image (Gitea + GHCR)
     runs-on: titan
     needs: [quality-gate, agent-proxy-quality-gate]
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    if: (github.ref == 'refs/heads/main' && github.event_name == 'push') || github.event_name == 'workflow_dispatch'
     steps:
       - name: Checkout
         shell: bash
@@ -134,12 +134,16 @@ jobs:
             "https://token:${{ github.token }}@git.integrolabs.net/${GITHUB_REPOSITORY}.git" .
           git checkout "${GITHUB_SHA:-HEAD}"
 
-      - name: Log in to Gitea registry
-        run: echo "${{ secrets.BUILD_REPO_TOKEN }}" | docker login ${GITEA_REGISTRY} -u ${{ gitea.actor }} --password-stdin
+      - name: Log in to registries
+        run: |
+          echo "${{ secrets.BUILD_REPO_TOKEN }}" | docker login ${GITEA_REGISTRY} -u ${{ gitea.actor }} --password-stdin
+          echo "${{ secrets.GH_PUBLISH_TOKEN }}" | docker login ${GHCR_REGISTRY} -u fortemi --password-stdin
 
       - name: Build and push agent-proxy dev image
         run: |
-          PROXY_IMAGE="${GITEA_REGISTRY}/${AGENT_PROXY_IMAGE_NAME}"
+          set -euo pipefail
+          GITEA_PROXY="${GITEA_REGISTRY}/${AGENT_PROXY_IMAGE_NAME}"
+          GHCR_PROXY="${GHCR_REGISTRY}/${AGENT_PROXY_IMAGE_NAME}"
           SHORT_SHA="${GITHUB_SHA:0:7}"
 
           push_with_retry() {
@@ -160,14 +164,22 @@ jobs:
 
           docker build \
             -f agent-proxy/Dockerfile \
-            -t "${PROXY_IMAGE}:main" \
-            -t "${PROXY_IMAGE}:latest" \
-            -t "${PROXY_IMAGE}:sha-${SHORT_SHA}" \
+            -t "hotm-agent-proxy:build" \
             agent-proxy
 
-          push_with_retry "${PROXY_IMAGE}:main"
-          push_with_retry "${PROXY_IMAGE}:latest"
-          push_with_retry "${PROXY_IMAGE}:sha-${SHORT_SHA}"
+          for image in "${GITEA_PROXY}" "${GHCR_PROXY}"; do
+            docker tag "hotm-agent-proxy:build" "${image}:main"
+            docker tag "hotm-agent-proxy:build" "${image}:latest"
+            docker tag "hotm-agent-proxy:build" "${image}:sha-${SHORT_SHA}"
+
+            push_with_retry "${image}:main"
+            push_with_retry "${image}:latest"
+            push_with_retry "${image}:sha-${SHORT_SHA}"
+          done
+
+          echo "Published agent-proxy dev images:"
+          echo "  Gitea:  ${GITEA_PROXY}:main, :latest, :sha-${SHORT_SHA}"
+          echo "  GitHub: ${GHCR_PROXY}:main, :latest, :sha-${SHORT_SHA}"
 
   # =============================================================================
   # Release Jobs (tag push only)
