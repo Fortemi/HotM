@@ -8,9 +8,9 @@
 #   main push → :latest + :sha-<7char>
 #   v* tag    → :latest + :<version>  (e.g. :2026.2.0)
 #
-# Secrets required:
-#   GH_PUBLISH_TOKEN  — GitHub PAT with write:packages scope
-#   BUILD_REPO_TOKEN  — Gitea PAT with write:package scope (same token used by ui-ci.yml)
+# Gitea secrets required:
+#   BAO_CI_ROLE_ID    — OpenBao AppRole role_id for this repo
+#   BAO_CI_SECRET_ID  — OpenBao AppRole secret_id for this repo
 #
 # Downstream: docker run -e VITE_API_BASE_URL=http://fortemi:3000 -p 8080:80 hotm-ui
 #
@@ -82,15 +82,22 @@ jobs:
         run: |
           docker buildx create --use --name hotm-builder 2>/dev/null || true
 
+      - name: Fetch registry tokens from OpenBao
+        shell: bash
+        env:
+          BAO_CI_ROLE_ID: ${{ secrets.BAO_CI_ROLE_ID }}
+          BAO_CI_SECRET_ID: ${{ secrets.BAO_CI_SECRET_ID }}
+        run: ci/openbao-fetch.sh --spec ci/openbao-fetch.registry.spec
+
       - name: Log in to GHCR
         shell: bash
         run: |
-          echo "${{ secrets.GH_PUBLISH_TOKEN }}" | docker login ghcr.io -u fortemi --password-stdin
+          printf '%s\n' "${GH_PUBLISH_TOKEN:?GH_PUBLISH_TOKEN is required}" | docker login ghcr.io -u fortemi --password-stdin
 
       - name: Log in to Gitea registry
         shell: bash
         run: |
-          echo "${{ secrets.BUILD_REPO_TOKEN }}" | docker login git.integrolabs.net -u ${{ gitea.actor }} --password-stdin
+          printf '%s\n' "${BUILD_REPO_TOKEN:?BUILD_REPO_TOKEN is required}" | docker login git.integrolabs.net -u ${{ gitea.actor }} --password-stdin
 
       - name: Build and push
         shell: bash

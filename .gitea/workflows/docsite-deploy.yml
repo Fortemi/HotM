@@ -3,9 +3,11 @@
 # Builds and deploys the HotM documentation site on new release tags.
 # Deploys to docs.fortemi.io/hotm/ — a subpath of the Fortémi docs domain.
 #
-# Required secrets:
-#   GT_ACCESS_TOKEN  — Gitea token for cloning the private dbbuilder repo
-#   DEPLOY_SSH_KEY   — private key for the deploy user
+# Required Gitea secrets:
+#   BAO_CI_ROLE_ID   — OpenBao AppRole role_id for this repo
+#   BAO_CI_SECRET_ID — OpenBao AppRole secret_id for this repo
+#
+# Required Gitea variables:
 #   DEPLOY_HOST      — docs server hostname
 #   DEPLOY_PORT      — docs server SSH port
 #   DEPLOY_USER      — deploy user on the docs server
@@ -28,19 +30,19 @@ jobs:
     runs-on: ubuntu-latest
     container: node:20
     timeout-minutes: 15
+    defaults:
+      run:
+        shell: bash
 
     steps:
-      # Precondition gate: GT_ACCESS_TOKEN must be provisioned to clone the
-      # private dbbuilder repo. Skip cleanly (with a visible warning) when the
-      # secret is absent. See issue #220.
-      - name: Check for required secret
+      - name: Check for OpenBao bootstrap
         id: precheck
         env:
-          GT_ACCESS_TOKEN: ${{ secrets.GT_ACCESS_TOKEN }}
+          BAO_CI_ROLE_ID: ${{ secrets.BAO_CI_ROLE_ID }}
+          BAO_CI_SECRET_ID: ${{ secrets.BAO_CI_SECRET_ID }}
         run: |
-          if [ -z "${GT_ACCESS_TOKEN:-}" ]; then
-            echo "::warning::GT_ACCESS_TOKEN not provisioned; skipping docsite deploy (issue #220)."
-            echo "::warning::Provision the secret at the repo or org level on git.integrolabs.net to re-enable."
+          if [ -z "${BAO_CI_ROLE_ID:-}" ] || [ -z "${BAO_CI_SECRET_ID:-}" ]; then
+            echo "::warning::OpenBao CI bootstrap is not provisioned; skipping docsite deploy."
             echo "skip=true" >> "$GITHUB_OUTPUT"
           else
             echo "skip=false" >> "$GITHUB_OUTPUT"
@@ -50,10 +52,35 @@ jobs:
         if: steps.precheck.outputs.skip != 'true'
         uses: actions/checkout@v4
 
-      - name: Clone dbbuilder
+      - name: Install deployment tools
+        if: steps.precheck.outputs.skip != 'true'
+        run: apt-get update && apt-get install -y --no-install-recommends curl jq openssh-client rsync
+
+      - name: Fetch docsite secrets from OpenBao
         if: steps.precheck.outputs.skip != 'true'
         env:
-          GT_ACCESS_TOKEN: ${{ secrets.GT_ACCESS_TOKEN }}
+          BAO_CI_ROLE_ID: ${{ secrets.BAO_CI_ROLE_ID }}
+          BAO_CI_SECRET_ID: ${{ secrets.BAO_CI_SECRET_ID }}
+        run: ci/openbao-fetch.sh --spec ci/openbao-fetch.docsite-deploy.spec
+
+      - name: Validate deploy configuration
+        if: steps.precheck.outputs.skip != 'true'
+        env:
+          DEPLOY_HOST: ${{ vars.DEPLOY_HOST }}
+          DEPLOY_PORT: ${{ vars.DEPLOY_PORT }}
+          DEPLOY_USER: ${{ vars.DEPLOY_USER }}
+          DEPLOY_PATH: ${{ vars.DEPLOY_PATH }}
+        run: |
+          set -euo pipefail
+          for name in DEPLOY_HOST DEPLOY_PORT DEPLOY_USER DEPLOY_PATH; do
+            if [ -z "${!name:-}" ]; then
+              echo "$name Gitea variable is required" >&2
+              exit 1
+            fi
+          done
+
+      - name: Clone dbbuilder
+        if: steps.precheck.outputs.skip != 'true'
         run: |
           git clone "https://token:${GT_ACCESS_TOKEN}@git.integrolabs.net/roctinam/dbbuilder.git" /tmp/dbbuilder
 
@@ -95,35 +122,49 @@ jobs:
           echo "Build verification passed"
           ls -lah /tmp/dbbuilder/apps/publisher/dist/hotm-docs/
 
-      - name: Install SSH tools
-        if: steps.precheck.outputs.skip != 'true'
-        run: apt-get update && apt-get install -y --no-install-recommends openssh-client rsync
-
       - name: Configure SSH key
         if: steps.precheck.outputs.skip != 'true'
         run: |
+          set -euo pipefail
+          test -s "${DEPLOY_SSH_KEY_FILE:?DEPLOY_SSH_KEY_FILE is required}"
           mkdir -p ~/.ssh
-          printf '%s\n' '${{ secrets.DEPLOY_SSH_KEY }}' > ~/.ssh/deploy_key
+          cp "$DEPLOY_SSH_KEY_FILE" ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
 
       - name: Deploy to docs server (subpath /hotm)
         if: steps.precheck.outputs.skip != 'true'
+        env:
+          DEPLOY_HOST: ${{ vars.DEPLOY_HOST }}
+          DEPLOY_PORT: ${{ vars.DEPLOY_PORT }}
+          DEPLOY_USER: ${{ vars.DEPLOY_USER }}
+          DEPLOY_PATH: ${{ vars.DEPLOY_PATH }}
         run: |
+          set -euo pipefail
+          DEPLOY_PATH="${DEPLOY_PATH%/}/"
           rsync -avz --delete \
-            -e "ssh -i ~/.ssh/deploy_key -p ${{ secrets.DEPLOY_PORT }} -o StrictHostKeyChecking=accept-new" \
+            -e "ssh -i ~/.ssh/deploy_key -p ${DEPLOY_PORT} -o StrictHostKeyChecking=accept-new" \
             /tmp/dbbuilder/apps/publisher/dist/hotm-docs/ \
-            ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:${{ secrets.DEPLOY_PATH }}hotm/
+            "${DEPLOY_USER}@${DEPLOY_HOST}:${DEPLOY_PATH}hotm/"
 
       - name: Verify deployment
         if: steps.precheck.outputs.skip != 'true'
+        env:
+          DEPLOY_HOST: ${{ vars.DEPLOY_HOST }}
+          DEPLOY_PORT: ${{ vars.DEPLOY_PORT }}
+          DEPLOY_USER: ${{ vars.DEPLOY_USER }}
+          DEPLOY_PATH: ${{ vars.DEPLOY_PATH }}
         run: |
-          ssh -i ~/.ssh/deploy_key -p ${{ secrets.DEPLOY_PORT }} -o StrictHostKeyChecking=accept-new \
-            ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} \
-            'test -f ${{ secrets.DEPLOY_PATH }}hotm/index.html && echo "Deploy verified: index.html present" || { echo "Deploy failed: index.html missing"; exit 1; }'
+          set -euo pipefail
+          DEPLOY_PATH="${DEPLOY_PATH%/}/"
+          ssh -i ~/.ssh/deploy_key -p "$DEPLOY_PORT" -o StrictHostKeyChecking=accept-new \
+            "${DEPLOY_USER}@${DEPLOY_HOST}" \
+            "test -f '${DEPLOY_PATH}hotm/index.html' && echo 'Deploy verified: index.html present' || { echo 'Deploy failed: index.html missing'; exit 1; }"
 
       - name: Cleanup SSH key
         if: always() && steps.precheck.outputs.skip != 'true'
-        run: rm -f ~/.ssh/deploy_key
+        run: |
+          rm -f ~/.ssh/deploy_key
+          ci/openbao-fetch.sh --cleanup
 
       - name: Log deployment result
         if: success() && steps.precheck.outputs.skip != 'true'

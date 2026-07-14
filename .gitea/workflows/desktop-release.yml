@@ -7,8 +7,8 @@
 # Trigger: push a v* tag  (e.g. git tag v2026.2.1 && git push origin v2026.2.1)
 #
 # Secrets required:
-#   MUTSU_SSH_KEY     — SSH private key for manitcor@10.0.42.41
-#   GH_PUBLISH_TOKEN  — GitHub PAT with repo + write:releases scope
+#   BAO_CI_ROLE_ID    — OpenBao AppRole role_id for this repo
+#   BAO_CI_SECRET_ID  — OpenBao AppRole secret_id for this repo
 #
 # Tracking: Fortemi/HotM#182
 
@@ -233,11 +233,21 @@ jobs:
           apt-get update -qq
           apt-get install -y --no-install-recommends curl jq openssh-client
 
+      - name: Checkout OpenBao helper
+        uses: actions/checkout@v4
+
+      - name: Fetch mutsu SSH key from OpenBao
+        env:
+          BAO_CI_ROLE_ID: ${{ secrets.BAO_CI_ROLE_ID }}
+          BAO_CI_SECRET_ID: ${{ secrets.BAO_CI_SECRET_ID }}
+        run: ci/openbao-fetch.sh --spec ci/openbao-fetch.mutsu.spec
+
       - name: Set up SSH to mutsu
         shell: bash
         run: |
+          test -s "${MUTSU_SSH_KEY_FILE:?MUTSU_SSH_KEY_FILE is required}"
           mkdir -p ~/.ssh
-          echo "${{ secrets.MUTSU_SSH_KEY }}" > ~/.ssh/mutsu_key
+          cp "$MUTSU_SSH_KEY_FILE" ~/.ssh/mutsu_key
           chmod 600 ~/.ssh/mutsu_key
           ssh-keyscan -t ed25519 10.0.42.41 >> ~/.ssh/known_hosts 2>/dev/null || true
           cat >> ~/.ssh/config << 'EOF'
@@ -394,6 +404,8 @@ jobs:
         shell: bash
         run: |
           ssh mutsu "rm -rf '/Volumes/build/hotm/builds/run-${GITHUB_RUN_ID}'" || true
+          rm -f ~/.ssh/mutsu_key
+          ci/openbao-fetch.sh --cleanup
 
 # ---------------------------------------------------------------------------
 # Mirror release to GitHub
@@ -443,14 +455,19 @@ jobs:
           git fetch --depth=1 origin "${GITHUB_SHA}"
           git checkout --force FETCH_HEAD
 
+      - name: Fetch GitHub release token from OpenBao
+        env:
+          BAO_CI_ROLE_ID: ${{ secrets.BAO_CI_ROLE_ID }}
+          BAO_CI_SECRET_ID: ${{ secrets.BAO_CI_SECRET_ID }}
+        run: ci/openbao-fetch.sh --spec ci/openbao-fetch.github-release.spec
+
       - name: Mirror Gitea release to GitHub
         shell: bash
         env:
-          GH_TOKEN: ${{ secrets.GH_PUBLISH_TOKEN }}
           GITEA_TOKEN: ${{ github.token }}
           GITEA_REPO: ${{ github.repository }}
           GITHUB_REPO: Fortemi/HotM
         run: |
           set -euo pipefail
-          test -n "${GH_TOKEN}" || { echo "GH_PUBLISH_TOKEN is required"; exit 1; }
+          export GH_TOKEN="${GH_PUBLISH_TOKEN:?GH_PUBLISH_TOKEN is required}"
           tools/release/mirror-gitea-release-to-github.sh "${RELEASE_TAG}"

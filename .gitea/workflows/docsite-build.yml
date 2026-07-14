@@ -3,7 +3,9 @@
 # Validates that the documentation site builds successfully when docs change.
 # Catches broken links, bad config, and build errors before merge.
 #
-# Required secrets: GT_ACCESS_TOKEN
+# Required Gitea secrets:
+#   BAO_CI_ROLE_ID    — OpenBao AppRole role_id for this repo
+#   BAO_CI_SECRET_ID  — OpenBao AppRole secret_id for this repo
 
 name: Docsite Build
 
@@ -25,20 +27,19 @@ jobs:
     runs-on: ubuntu-latest
     container: node:20
     timeout-minutes: 15
+    defaults:
+      run:
+        shell: bash
 
     steps:
-      # Precondition gate: GT_ACCESS_TOKEN must be provisioned to clone the
-      # private dbbuilder repo. Skip cleanly (with a visible warning) when the
-      # secret is absent, so missing-secret state stops muddying release CI.
-      # See issue #220.
-      - name: Check for required secret
+      - name: Check for OpenBao bootstrap
         id: precheck
         env:
-          GT_ACCESS_TOKEN: ${{ secrets.GT_ACCESS_TOKEN }}
+          BAO_CI_ROLE_ID: ${{ secrets.BAO_CI_ROLE_ID }}
+          BAO_CI_SECRET_ID: ${{ secrets.BAO_CI_SECRET_ID }}
         run: |
-          if [ -z "${GT_ACCESS_TOKEN:-}" ]; then
-            echo "::warning::GT_ACCESS_TOKEN not provisioned; skipping docsite build (issue #220)."
-            echo "::warning::Provision the secret at the repo or org level on git.integrolabs.net to re-enable."
+          if [ -z "${BAO_CI_ROLE_ID:-}" ] || [ -z "${BAO_CI_SECRET_ID:-}" ]; then
+            echo "::warning::OpenBao CI bootstrap is not provisioned; skipping docsite build."
             echo "skip=true" >> "$GITHUB_OUTPUT"
           else
             echo "skip=false" >> "$GITHUB_OUTPUT"
@@ -48,10 +49,19 @@ jobs:
         if: steps.precheck.outputs.skip != 'true'
         uses: actions/checkout@v4
 
-      - name: Clone dbbuilder
+      - name: Install OpenBao fetch dependencies
+        if: steps.precheck.outputs.skip != 'true'
+        run: apt-get update && apt-get install -y --no-install-recommends curl jq
+
+      - name: Fetch dbbuilder clone token from OpenBao
         if: steps.precheck.outputs.skip != 'true'
         env:
-          GT_ACCESS_TOKEN: ${{ secrets.GT_ACCESS_TOKEN }}
+          BAO_CI_ROLE_ID: ${{ secrets.BAO_CI_ROLE_ID }}
+          BAO_CI_SECRET_ID: ${{ secrets.BAO_CI_SECRET_ID }}
+        run: ci/openbao-fetch.sh --spec ci/openbao-fetch.docsite-build.spec
+
+      - name: Clone dbbuilder
+        if: steps.precheck.outputs.skip != 'true'
         run: |
           git clone "https://token:${GT_ACCESS_TOKEN}@git.integrolabs.net/roctinam/dbbuilder.git" /tmp/dbbuilder
 

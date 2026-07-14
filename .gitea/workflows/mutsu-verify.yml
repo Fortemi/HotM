@@ -5,7 +5,8 @@
 # drops a health-check script, and reports full environment status.
 #
 # Run this after completing the manual steps in issue #183:
-#   - MUTSU_SSH_KEY secret added to this repo
+#   - BAO_CI_ROLE_ID and BAO_CI_SECRET_ID bootstrap secrets added to this repo
+#   - mutsu SSH key readable through the HotM OpenBao CI role
 #   - SSD "Ignore permissions" turned OFF in Disk Utility
 #
 # Tracking: Fortemi/HotM#183
@@ -22,11 +23,26 @@ jobs:
     timeout-minutes: 15
 
     steps:
+      - name: Checkout OpenBao helper
+        uses: actions/checkout@v4
+
+      - name: Install OpenBao fetch dependencies
+        run: |
+          apt-get update -qq
+          apt-get install -y --no-install-recommends curl jq
+
+      - name: Fetch mutsu SSH key from OpenBao
+        env:
+          BAO_CI_ROLE_ID: ${{ secrets.BAO_CI_ROLE_ID }}
+          BAO_CI_SECRET_ID: ${{ secrets.BAO_CI_SECRET_ID }}
+        run: ci/openbao-fetch.sh --spec ci/openbao-fetch.mutsu.spec
+
       - name: Set up SSH to mutsu
         shell: bash
         run: |
+          test -s "${MUTSU_SSH_KEY_FILE:?MUTSU_SSH_KEY_FILE is required}"
           mkdir -p ~/.ssh
-          echo "${{ secrets.MUTSU_SSH_KEY }}" > ~/.ssh/mutsu_key
+          cp "$MUTSU_SSH_KEY_FILE" ~/.ssh/mutsu_key
           chmod 600 ~/.ssh/mutsu_key
           ssh-keyscan -t ed25519 10.0.42.41 >> ~/.ssh/known_hosts 2>/dev/null
           echo "Host mutsu
@@ -185,10 +201,14 @@ jobs:
           echo "All automated checks passed."
           echo ""
           echo "Remaining manual steps (if not done):"
-          echo "  1. Add MUTSU_SSH_KEY to Fortemi/HotM repo secrets in Gitea"
-          echo "     (Settings → Secrets → Actions → New Secret)"
-          echo "  2. Verify keepalive launchd agent is loaded (for reboots)"
+          echo "  1. Verify keepalive launchd agent is loaded (for reboots)"
           echo "     ssh mutsu 'launchctl list | grep keepalive'"
           echo ""
           echo "Run health check anytime:"
           echo "  ssh mutsu /Volumes/build/hotm/health.sh"
+
+      - name: Cleanup mutsu SSH key
+        if: always()
+        run: |
+          rm -f ~/.ssh/mutsu_key
+          ci/openbao-fetch.sh --cleanup

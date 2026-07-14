@@ -28,5 +28,4 @@ jobs:
             --no-progress --verbose --offline
             './docs/**/*.md' './README.md' './AGENTS.md' './CLAUDE.md'
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
+          GITHUB_TOKEN: ${{ github.token }}

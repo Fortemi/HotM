@@ -1,0 +1,37 @@
+{
+  "repository": "Fortemi/HotM",
+  "reader_approle": "ci-hotm",
+  "bootstrap_tracker_secrets": [
+    "BAO_CI_ROLE_ID",
+    "BAO_CI_SECRET_ID"
+  ],
+  "tracker_variables": [
+    "DEPLOY_HOST",
+    "DEPLOY_PORT",
+    "DEPLOY_USER",
+    "DEPLOY_PATH"
+  ],
+  "leaves": [
+    {
+      "mount": "kv_internal",
+      "path": "ci/hotm/gitea-build-token",
+      "field": "token",
+      "type": "api-token",
+      "service": "ci/hotm",
+      "owner": "itops",
+      "tenant": "internal",
+      "purpose": "Gitea package publish token for HotM container workflows",
+      "consumers": "gitea-actions:hotm:ui-ci,publish-hotm-ui-image",
+      "reader_approle": "ci-hotm",
+      "sensitivity": "high",
+      "rotation": "quarterly",
+      "sop": "itops/docs/openbao-ci-migration.md"
+    }
+  ],
+  "shared_leaves": [
+    "kv_internal/ci/gitea-clone-token:token",
+    "kv_internal/ci/shared/docs-deploy:private_key",
+    "kv_internal/ci/shared/ghcr-token:token",
+    "kv_internal/ci/shared/mutsu-ssh-key:private_key"
+  ]
+}
