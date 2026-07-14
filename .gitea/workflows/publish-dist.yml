@@ -220,3 +220,29 @@ jobs:
             echo "Failed to upload asset (HTTP ${UPLOAD_CODE})"
             exit 1
           fi
+
+      - name: Install GitHub CLI
+        if: startsWith(github.ref, 'refs/tags/v')
+        shell: bash
+        run: |
+          set -euo pipefail
+          apt-get update -qq
+          apt-get install -y --no-install-recommends curl jq
+          curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg \
+            | dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg
+          echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" \
+            > /etc/apt/sources.list.d/github-cli.list
+          apt-get update -qq
+          apt-get install -y gh
+
+      - name: Mirror versioned release to GitHub
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          GH_TOKEN: ${{ secrets.GH_PUBLISH_TOKEN }}
+          GITEA_TOKEN: ${{ github.token }}
+          GITEA_REPO: ${{ github.repository }}
+          GITHUB_REPO: Fortemi/HotM
+        run: |
+          set -euo pipefail
+          test -n "${GH_TOKEN}" || { echo "GH_PUBLISH_TOKEN is required"; exit 1; }
+          tools/release/mirror-gitea-release-to-github.sh "${GITHUB_REF_NAME}"

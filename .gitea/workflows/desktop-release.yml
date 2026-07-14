@@ -431,64 +431,26 @@ jobs:
             > /etc/apt/sources.list.d/github-cli.list
           apt-get update -qq && apt-get install -y gh
 
-      - name: Download all assets from Gitea release
+      - name: Checkout mirror tooling
         shell: bash
         env:
-          API_TOKEN: ${{ github.token }}
+          GITHUB_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          TAG="${RELEASE_TAG}"
-          mkdir -p /tmp/release-assets
+          REPO_URL="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}.git"
+          AUTH_URL="${REPO_URL/https:\/\//https:\/\/x-access-token:${GITHUB_TOKEN}@}"
+          git init . && git remote add origin "${AUTH_URL}"
+          git fetch --depth=1 origin "${GITHUB_SHA}"
+          git checkout --force FETCH_HEAD
 
-          # Get release JSON
-          RELEASE_JSON=$(curl -s \
-            -H "Authorization: token ${API_TOKEN}" \
-            "${GITEA_API}/releases/tags/${TAG}")
-          echo "$RELEASE_JSON" > /tmp/release.json
-
-          RELEASE_BODY=$(echo "$RELEASE_JSON" | jq -r '.body // "Release '"${TAG}"'"')
-          echo "RELEASE_BODY<<__EOF__" >> $GITHUB_ENV
-          echo "${RELEASE_BODY}" >> $GITHUB_ENV
-          echo "__EOF__" >> $GITHUB_ENV
-
-          # Download each asset
-          echo "$RELEASE_JSON" | jq -r '.assets[]? | .browser_download_url + "\t" + .name' \
-          | while IFS=$'\t' read -r URL NAME; do
-              curl -sL \
-                -H "Authorization: token ${API_TOKEN}" \
-                "$URL" -o "/tmp/release-assets/${NAME}"
-              echo "Downloaded: ${NAME} ($(du -h /tmp/release-assets/${NAME} | cut -f1))"
-            done
-
-          # Rename any files with spaces (gh CLI compatibility)
-          for f in /tmp/release-assets/*; do
-            safe=$(basename "$f" | tr ' ' '.')
-            [ "$(basename $f)" != "$safe" ] && mv "$f" "/tmp/release-assets/${safe}"
-          done
-
-          echo "Assets ready:"; ls -lh /tmp/release-assets/
-
-      - name: Create GitHub release and upload assets
+      - name: Mirror Gitea release to GitHub
         shell: bash
         env:
           GH_TOKEN: ${{ secrets.GH_PUBLISH_TOKEN }}
+          GITEA_TOKEN: ${{ github.token }}
+          GITEA_REPO: ${{ github.repository }}
+          GITHUB_REPO: Fortemi/HotM
         run: |
           set -euo pipefail
-          TAG="${RELEASE_TAG}"
-          VERSION="${RELEASE_VERSION}"
-          ASSETS=$(ls /tmp/release-assets/)
-
-          cd /tmp/release-assets
-
-          if gh release view "${TAG}" --repo "Fortemi/HotM" > /dev/null 2>&1; then
-            echo "GitHub release ${TAG} already exists — uploading assets"
-            gh release upload "${TAG}" --repo "Fortemi/HotM" ${ASSETS} --clobber
-          else
-            echo "Creating GitHub release ${TAG}"
-            gh release create "${TAG}" \
-              --repo "Fortemi/HotM" \
-              --title "HotM ${VERSION}" \
-              --notes "${RELEASE_BODY}" \
-              ${ASSETS}
-          fi
-          echo "GitHub release ${TAG} published"
+          test -n "${GH_TOKEN}" || { echo "GH_PUBLISH_TOKEN is required"; exit 1; }
+          tools/release/mirror-gitea-release-to-github.sh "${RELEASE_TAG}"

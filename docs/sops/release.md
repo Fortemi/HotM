@@ -17,6 +17,13 @@
    - Web SPA: `cd ui && npm ci && npm run build`
    - Docker: `docker compose -f docker-compose.prod.yml build`
 7. Verify environment config for target backend (`VITE_API_BASE_URL`).
+8. Verify the Gitea release and GitHub release contain the same downloadable assets. The CI mirror path uses:
+
+   ```bash
+   tools/release/mirror-gitea-release-to-github.sh v<YYYY.M.PATCH>
+   ```
+
+   The script is idempotent and can be used to backfill historical releases from Gitea to GitHub.
 
 ## Rollback
 - Use previous tag/build artifact.
