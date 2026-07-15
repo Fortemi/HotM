@@ -9,8 +9,8 @@
 #   v* tag    → :latest + :<version>  (e.g. :2026.2.0)
 #
 # Gitea secrets required:
-#   BAO_CI_ROLE_ID    — OpenBao AppRole role_id for this repo
-#   BAO_CI_SECRET_ID  — OpenBao AppRole secret_id for this repo
+#   VAULT_CI_ROLE_ID    — vault AppRole role_id for this repo
+#   VAULT_CI_SECRET_ID  — vault AppRole secret_id for this repo
 #
 # Downstream: docker run -e VITE_API_BASE_URL=http://fortemi:3000 -p 8080:80 hotm-ui
 #
@@ -82,12 +82,17 @@ jobs:
         run: |
           docker buildx create --use --name hotm-builder 2>/dev/null || true
 
-      - name: Fetch registry tokens from OpenBao
+      - name: Fetch registry tokens from vault
         shell: bash
         env:
-          BAO_CI_ROLE_ID: ${{ secrets.BAO_CI_ROLE_ID }}
-          BAO_CI_SECRET_ID: ${{ secrets.BAO_CI_SECRET_ID }}
-        run: ci/openbao-fetch.sh --spec ci/openbao-fetch.registry.spec
+          VAULT_ADDR: ${{ vars.VAULT_ADDR }}
+          VAULT_CI_ROLE_ID: ${{ secrets.VAULT_CI_ROLE_ID }}
+          VAULT_CI_SECRET_ID: ${{ secrets.VAULT_CI_SECRET_ID }}
+          GH_PUBLISH_TOKEN_VAULT_PATH: ${{ vars.GH_PUBLISH_TOKEN_VAULT_PATH }}
+          GH_PUBLISH_TOKEN_VAULT_FIELD: ${{ vars.GH_PUBLISH_TOKEN_VAULT_FIELD }}
+          BUILD_REPO_TOKEN_VAULT_PATH: ${{ vars.BUILD_REPO_TOKEN_VAULT_PATH }}
+          BUILD_REPO_TOKEN_VAULT_FIELD: ${{ vars.BUILD_REPO_TOKEN_VAULT_FIELD }}
+        run: ci/vault-fetch.sh --spec ci/vault-fetch.registry.spec
 
       - name: Log in to GHCR
         shell: bash

@@ -5,8 +5,8 @@
 # drops a health-check script, and reports full environment status.
 #
 # Run this after completing the manual steps in issue #183:
-#   - BAO_CI_ROLE_ID and BAO_CI_SECRET_ID bootstrap secrets added to this repo
-#   - mutsu SSH key readable through the HotM OpenBao CI role
+#   - VAULT_CI_ROLE_ID and VAULT_CI_SECRET_ID bootstrap secrets added to this repo
+#   - mutsu SSH key readable through the HotM vault CI role
 #   - SSD "Ignore permissions" turned OFF in Disk Utility
 #
 # Tracking: Fortemi/HotM#183
@@ -23,19 +23,22 @@ jobs:
     timeout-minutes: 15
 
     steps:
-      - name: Checkout OpenBao helper
+      - name: Checkout vault helper
         uses: actions/checkout@v4
 
-      - name: Install OpenBao fetch dependencies
+      - name: Install vault fetch dependencies
         run: |
           apt-get update -qq
           apt-get install -y --no-install-recommends curl jq
 
-      - name: Fetch mutsu SSH key from OpenBao
+      - name: Fetch mutsu SSH key from vault
         env:
-          BAO_CI_ROLE_ID: ${{ secrets.BAO_CI_ROLE_ID }}
-          BAO_CI_SECRET_ID: ${{ secrets.BAO_CI_SECRET_ID }}
-        run: ci/openbao-fetch.sh --spec ci/openbao-fetch.mutsu.spec
+          VAULT_ADDR: ${{ vars.VAULT_ADDR }}
+          VAULT_CI_ROLE_ID: ${{ secrets.VAULT_CI_ROLE_ID }}
+          VAULT_CI_SECRET_ID: ${{ secrets.VAULT_CI_SECRET_ID }}
+          MUTSU_SSH_KEY_VAULT_PATH: ${{ vars.MUTSU_SSH_KEY_VAULT_PATH }}
+          MUTSU_SSH_KEY_VAULT_FIELD: ${{ vars.MUTSU_SSH_KEY_VAULT_FIELD }}
+        run: ci/vault-fetch.sh --spec ci/vault-fetch.mutsu.spec
 
       - name: Set up SSH to mutsu
         shell: bash
@@ -211,4 +214,4 @@ jobs:
         if: always()
         run: |
           rm -f ~/.ssh/mutsu_key
-          ci/openbao-fetch.sh --cleanup
+          ci/vault-fetch.sh --cleanup

@@ -7,8 +7,8 @@
 # macOS build: ubuntu-22.04 runner SSHes to mutsu (M4 Mac mini, 10.0.42.41)
 # to produce a native aarch64 DMG. No act_runner on mac — SSH hybrid pattern.
 #
-# Prerequisite: BAO_CI_ROLE_ID and BAO_CI_SECRET_ID repo secrets set.
-# The mutsu SSH key is fetched through the HotM OpenBao CI role.
+# Prerequisite: VAULT_CI_ROLE_ID and VAULT_CI_SECRET_ID repo secrets set.
+# The mutsu SSH key is fetched through the HotM vault CI role.
 # Runner setup: .gitea/workflows/mutsu-verify.yml
 #
 # Tracking: Fortemi/HotM#181 (macOS), Fortemi/HotM#180 (Linux)
@@ -230,14 +230,17 @@ jobs:
           apt-get update -qq
           apt-get install -y --no-install-recommends curl jq openssh-client
 
-      - name: Checkout OpenBao helper
+      - name: Checkout vault helper
         uses: actions/checkout@v4
 
-      - name: Fetch mutsu SSH key from OpenBao
+      - name: Fetch mutsu SSH key from vault
         env:
-          BAO_CI_ROLE_ID: ${{ secrets.BAO_CI_ROLE_ID }}
-          BAO_CI_SECRET_ID: ${{ secrets.BAO_CI_SECRET_ID }}
-        run: ci/openbao-fetch.sh --spec ci/openbao-fetch.mutsu.spec
+          VAULT_ADDR: ${{ vars.VAULT_ADDR }}
+          VAULT_CI_ROLE_ID: ${{ secrets.VAULT_CI_ROLE_ID }}
+          VAULT_CI_SECRET_ID: ${{ secrets.VAULT_CI_SECRET_ID }}
+          MUTSU_SSH_KEY_VAULT_PATH: ${{ vars.MUTSU_SSH_KEY_VAULT_PATH }}
+          MUTSU_SSH_KEY_VAULT_FIELD: ${{ vars.MUTSU_SSH_KEY_VAULT_FIELD }}
+        run: ci/vault-fetch.sh --spec ci/vault-fetch.mutsu.spec
 
       - name: Set up SSH to mutsu
         shell: bash
@@ -430,4 +433,4 @@ jobs:
           BUILD_DIR="/Volumes/build/hotm/builds/run-${GITHUB_RUN_ID}"
           ssh mutsu "rm -rf '${BUILD_DIR}'" && echo "Cleaned ${BUILD_DIR}" || true
           rm -f ~/.ssh/mutsu_key
-          ci/openbao-fetch.sh --cleanup
+          ci/vault-fetch.sh --cleanup

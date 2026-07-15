@@ -7,8 +7,8 @@
 # Trigger: push a v* tag  (e.g. git tag v2026.2.1 && git push origin v2026.2.1)
 #
 # Secrets required:
-#   BAO_CI_ROLE_ID    — OpenBao AppRole role_id for this repo
-#   BAO_CI_SECRET_ID  — OpenBao AppRole secret_id for this repo
+#   VAULT_CI_ROLE_ID    — vault AppRole role_id for this repo
+#   VAULT_CI_SECRET_ID  — vault AppRole secret_id for this repo
 #
 # Tracking: Fortemi/HotM#182
 
@@ -233,14 +233,17 @@ jobs:
           apt-get update -qq
           apt-get install -y --no-install-recommends curl jq openssh-client
 
-      - name: Checkout OpenBao helper
+      - name: Checkout vault helper
         uses: actions/checkout@v4
 
-      - name: Fetch mutsu SSH key from OpenBao
+      - name: Fetch mutsu SSH key from vault
         env:
-          BAO_CI_ROLE_ID: ${{ secrets.BAO_CI_ROLE_ID }}
-          BAO_CI_SECRET_ID: ${{ secrets.BAO_CI_SECRET_ID }}
-        run: ci/openbao-fetch.sh --spec ci/openbao-fetch.mutsu.spec
+          VAULT_ADDR: ${{ vars.VAULT_ADDR }}
+          VAULT_CI_ROLE_ID: ${{ secrets.VAULT_CI_ROLE_ID }}
+          VAULT_CI_SECRET_ID: ${{ secrets.VAULT_CI_SECRET_ID }}
+          MUTSU_SSH_KEY_VAULT_PATH: ${{ vars.MUTSU_SSH_KEY_VAULT_PATH }}
+          MUTSU_SSH_KEY_VAULT_FIELD: ${{ vars.MUTSU_SSH_KEY_VAULT_FIELD }}
+        run: ci/vault-fetch.sh --spec ci/vault-fetch.mutsu.spec
 
       - name: Set up SSH to mutsu
         shell: bash
@@ -405,7 +408,7 @@ jobs:
         run: |
           ssh mutsu "rm -rf '/Volumes/build/hotm/builds/run-${GITHUB_RUN_ID}'" || true
           rm -f ~/.ssh/mutsu_key
-          ci/openbao-fetch.sh --cleanup
+          ci/vault-fetch.sh --cleanup
 
 # ---------------------------------------------------------------------------
 # Mirror release to GitHub
@@ -455,11 +458,14 @@ jobs:
           git fetch --depth=1 origin "${GITHUB_SHA}"
           git checkout --force FETCH_HEAD
 
-      - name: Fetch GitHub release token from OpenBao
+      - name: Fetch GitHub release token from vault
         env:
-          BAO_CI_ROLE_ID: ${{ secrets.BAO_CI_ROLE_ID }}
-          BAO_CI_SECRET_ID: ${{ secrets.BAO_CI_SECRET_ID }}
-        run: ci/openbao-fetch.sh --spec ci/openbao-fetch.github-release.spec
+          VAULT_ADDR: ${{ vars.VAULT_ADDR }}
+          VAULT_CI_ROLE_ID: ${{ secrets.VAULT_CI_ROLE_ID }}
+          VAULT_CI_SECRET_ID: ${{ secrets.VAULT_CI_SECRET_ID }}
+          GH_PUBLISH_TOKEN_VAULT_PATH: ${{ vars.GH_PUBLISH_TOKEN_VAULT_PATH }}
+          GH_PUBLISH_TOKEN_VAULT_FIELD: ${{ vars.GH_PUBLISH_TOKEN_VAULT_FIELD }}
+        run: ci/vault-fetch.sh --spec ci/vault-fetch.github-release.spec
 
       - name: Mirror Gitea release to GitHub
         shell: bash
