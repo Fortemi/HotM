@@ -24,7 +24,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          git clone --depth 1 \
+          git clone \
             "https://token:${{ github.token }}@git.integrolabs.net/${FORTEMI_REPOSITORY}" \
             ../fortemi
 
