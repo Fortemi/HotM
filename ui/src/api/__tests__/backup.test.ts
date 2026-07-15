@@ -18,6 +18,13 @@ vi.mock('../memory-context', () => ({
 const mockFetch = vi.fn();
 global.fetch = mockFetch;
 
+const expectBlobSize = async (value: Promise<Blob>, expectedText: string): Promise<void> => {
+  const blob = await value;
+  expect(blob).toEqual(expect.objectContaining({
+    size: new TextEncoder().encode(expectedText).byteLength,
+  }));
+};
+
 describe('Backup API', () => {
   let mockClient: ApiClient;
   let backupApi: ReturnType<typeof createBackupApi>;
@@ -109,7 +116,7 @@ describe('Backup API', () => {
     expect(mockClient.get).toHaveBeenCalledWith('/backup/export');
 
     mockFetch.mockResolvedValueOnce(new Response('backup-json'));
-    await expect(backupApi.downloadBackup()).resolves.toBeInstanceOf(Blob);
+    await expectBlobSize(backupApi.downloadBackup(), 'backup-json');
     expect(mockFetch).toHaveBeenCalledWith(
       'http://localhost:3000/backup/download',
       { headers: {} },
@@ -127,9 +134,10 @@ describe('Backup API', () => {
     memoryState.activeMemory = 'research';
     mockFetch.mockResolvedValueOnce(new Response('shard'));
 
-    await expect(
+    await expectBlobSize(
       backupApi.exportKnowledgeShard({ format: 'json', include_deleted: true }),
-    ).resolves.toBeInstanceOf(Blob);
+      'shard',
+    );
     expect(mockFetch).toHaveBeenCalledWith(
       'http://localhost:3000/backup/knowledge-shard?format=json&include_deleted=true',
       { headers: { 'X-Fortemi-Memory': 'research' } },
@@ -164,7 +172,7 @@ describe('Backup API', () => {
     memoryState.activeMemory = 'project-a';
     mockFetch.mockResolvedValueOnce(new Response('pgdump'));
 
-    await expect(backupApi.downloadDatabaseBackup()).resolves.toBeInstanceOf(Blob);
+    await expectBlobSize(backupApi.downloadDatabaseBackup(), 'pgdump');
     expect(mockFetch).toHaveBeenCalledWith(
       'http://localhost:3000/backup/database',
       { headers: { 'X-Fortemi-Memory': 'project-a' } },
@@ -221,14 +229,14 @@ describe('Backup API', () => {
         headers: { 'Content-Type': 'application/json' },
       }));
 
-    await expect(backupApi.downloadMemoryBackup('Project A')).resolves.toBeInstanceOf(Blob);
+    await expectBlobSize(backupApi.downloadMemoryBackup('Project A'), 'memory');
     expect(mockFetch).toHaveBeenNthCalledWith(
       1,
       'http://localhost:3000/backup/memory/Project%20A',
       { headers: { 'X-Fortemi-Memory': 'archive-a' } },
     );
 
-    await expect(backupApi.downloadKnowledgeArchive('snapshot 1.tar.gz')).resolves.toBeInstanceOf(Blob);
+    await expectBlobSize(backupApi.downloadKnowledgeArchive('snapshot 1.tar.gz'), 'archive');
     expect(mockFetch).toHaveBeenNthCalledWith(
       2,
       'http://localhost:3000/backup/knowledge-archive/snapshot%201.tar.gz',
