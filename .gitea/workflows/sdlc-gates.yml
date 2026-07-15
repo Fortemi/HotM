@@ -37,7 +37,7 @@ jobs:
         run: python3 .aiwg/testing/scripts/verify-fortemi-closeout-package.py
 
   validate-pr:
-    runs-on: ubuntu-latest
+    runs-on: node-20
     permissions:
       pull-requests: write
       contents: read
