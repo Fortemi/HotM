@@ -1,0 +1,355 @@
+{
+  "generated_at": "2026-07-14",
+  "fortemi_commit": "f6733252",
+  "fortemi_latest_tag": "v2026.7.1",
+  "purpose": "Machine-readable route-family evidence map for the HotM Fortemi v2026.7.1 verifier planning path. This is SDLC planning evidence; implementation PRs should keep it aligned with the generated route inventory.",
+  "evidence_levels": {
+    "strong": "Current source and focused test evidence exist for the route family.",
+    "medium": "Source evidence exists with adjacent tests or broad route coverage, but route-level parity still needs verifier hardening.",
+    "weak": "Source or planning evidence exists, but focused route-level test evidence is missing or unclear.",
+    "none": "No HotM implementation evidence was found, or the family is intentionally excluded."
+  },
+  "families": {
+    "archives": {
+      "status": "covered",
+      "evidence_strength": "strong",
+      "tracker": "#253",
+      "source_files": ["ui/src/api/archives.ts", "ui/src/api/memory-context.ts"],
+      "test_files": ["ui/src/api/__tests__/archives.test.ts"],
+      "ui_surfaces": ["ui/src/components/archives/ArchiveManager.tsx"],
+      "verifier_action": "Assert archive and memory route parity, including stats, clone, set-default, and memory overview paths."
+    },
+    "attachments": {
+      "status": "covered",
+      "evidence_strength": "strong",
+      "tracker": "#257",
+      "source_files": ["ui/src/api/attachments.ts"],
+      "test_files": [
+        "ui/src/api/__tests__/attachments.test.ts",
+        "ui/src/components/attachments/__tests__/AttachmentsBrowser.test.tsx",
+        "ui/src/components/attachments/__tests__/AttachmentsPanel.test.tsx",
+        "ui/src/components/attachments/__tests__/TranscriptPanel.test.tsx",
+        "ui/src/components/attachments/__tests__/ThumbnailPreview.test.tsx"
+      ],
+      "ui_surfaces": ["ui/src/components/attachments/AttachmentsBrowser.tsx", "ui/src/components/attachments/AttachmentsPanel.tsx"],
+      "verifier_action": "Assert list, note attachments, upload, download, subtitle, thumbnail, VTT, sprite, and delete route coverage."
+    },
+    "attachments_tus": {
+      "status": "covered",
+      "evidence_strength": "strong",
+      "tracker": "#257",
+      "source_files": ["ui/src/services/tusUploader.ts", "ui/src/services/uploadStore.ts", "ui/src/components/JobQueueMonitor.tsx"],
+      "test_files": ["ui/src/services/__tests__/tusUploader.test.ts", "ui/src/services/__tests__/uploadStore.test.ts", "ui/src/components/__tests__/JobQueueMonitor.test.tsx"],
+      "ui_surfaces": ["ui/src/components/attachments/AttachmentsPanel.tsx", "ui/src/components/JobQueueMonitor.tsx"],
+    "verifier_action": "Preserve TUS coverage for POST creation metadata, media_optimize create-query handling, OPTIONS discovery, HEAD resume headers, PATCH required headers/offset, DELETE termination, GET finalization, termination aborts, upload-store degraded states for offset mismatch/chunk-too-large/expired-not-found recovery, and the explicit no checksum-extension claim."
+    },
+    "audio_tools": {
+      "status": "covered",
+      "evidence_strength": "strong",
+      "tracker": "#259",
+      "source_files": ["ui/src/api/mediaTools.ts", "ui/src/components/attachments/AttachmentsPanel.tsx"],
+      "test_files": ["ui/src/api/__tests__/mediaTools.test.ts", "ui/src/components/attachments/__tests__/AttachmentsPanel.test.tsx"],
+      "ui_surfaces": ["ui/src/components/attachments/AttachmentsPanel.tsx"],
+      "verifier_action": "Preserve `/audio/transcribe` multipart client tests plus attachment preview transcription success, unsupported media, endpoint error, transcript rendering, and no raw model-name rendering assertions."
+    },
+    "auth_api_keys": {
+      "status": "covered",
+      "evidence_strength": "medium",
+      "tracker": "#231",
+      "source_files": ["ui/src/api/auth.ts"],
+      "test_files": ["ui/src/api/__tests__/compat.test.ts", "ui/src/components/agent/__tests__/providers.test.ts"],
+      "ui_surfaces": ["ui/src/components/admin/AdminPanel.tsx"],
+      "verifier_action": "Add or confirm API key list/create/delete tests with copy-once and redaction assertions."
+    },
+    "backup_archive": {
+      "status": "covered",
+      "evidence_strength": "strong",
+      "tracker": "#257",
+      "source_files": ["ui/src/api/backup.ts", "ui/src/components/backup/BackupManager.tsx"],
+      "test_files": ["ui/src/api/__tests__/backup.test.ts", "ui/src/components/backup/__tests__/BackupManager.test.tsx"],
+      "ui_surfaces": ["ui/src/components/backup/BackupManager.tsx"],
+      "verifier_action": "Preserve API route-shape and BackupManager UX evidence for legacy backup, knowledge shard import/upload, database download/snapshot/upload/restore, memory download, knowledge archive download/upload, list/detail/swap, metadata get/update, and portable shard limitation copy."
+    },
+    "chat_sync": {
+      "status": "covered",
+      "evidence_strength": "medium",
+      "tracker": "#242",
+      "source_files": ["ui/src/api/chat.ts", "ui/src/components/agent/useAgentChat.ts", "agent-proxy/src/routes/chat.ts"],
+      "test_files": ["ui/src/api/__tests__/chat.test.ts", "ui/src/components/agent/__tests__/useAgentChat.test.ts", "agent-proxy/src/__tests__/chat-route.test.ts"],
+      "ui_surfaces": ["ui/src/components/agent/AgentPanel.tsx"],
+      "verifier_action": "Preserve synchronous chat and model-list fallback while native stream work lands."
+    },
+    "collections": {
+      "status": "covered",
+      "evidence_strength": "medium",
+      "tracker": "#253",
+      "source_files": ["ui/src/api/collections.ts"],
+      "test_files": ["ui/e2e/uat/collections-ux.spec.ts"],
+      "ui_surfaces": ["ui/src/components/collections/CollectionsManager.tsx"],
+      "verifier_action": "Add exact route-level assertions for collection CRUD, collection notes, note move, and collection export."
+    },
+    "concepts": {
+      "status": "covered",
+      "evidence_strength": "strong",
+      "tracker": "#253",
+      "source_files": ["ui/src/api/concepts.ts"],
+      "test_files": ["ui/src/api/__tests__/concepts.test.ts", "ui/src/components/concepts/__tests__/ConceptBrowser.test.tsx"],
+      "ui_surfaces": ["ui/src/components/concepts/ConceptBrowser.tsx"],
+      "verifier_action": "Assert scheme, concept, relationship, governance, Turtle export, collection, and note-concept route coverage."
+    },
+    "contract_docs": {
+      "status": "covered",
+      "evidence_strength": "strong",
+      "tracker": "#253",
+      "source_files": [".aiwg/testing/scripts/fortemi-route-coverage.py", "ui/src/api/systemCompatibility.ts", "ui/src/components/admin/ApiCapabilitiesPanel.tsx"],
+      "test_files": ["ui/src/api/__tests__/index.test.ts", "ui/src/components/admin/__tests__/ApiCapabilitiesPanel.test.tsx"],
+      "ui_surfaces": ["ui/src/components/admin/ApiCapabilitiesPanel.tsx"],
+      "verifier_action": "Preserve advertised OpenAPI/AsyncAPI link rendering, root-relative contract fetch tests, and source-route extraction verifier coverage."
+    },
+    "document_types": {
+      "status": "covered",
+      "evidence_strength": "medium",
+      "tracker": "#253",
+      "source_files": ["ui/src/api/documents.ts"],
+      "test_files": ["ui/src/components/admin/__tests__/DocumentTypesPanel.test.tsx"],
+      "ui_surfaces": ["ui/src/components/admin/DocumentTypesPanel.tsx"],
+      "verifier_action": "Add or confirm API-level tests for list, create, get, patch, delete, and detect routes."
+    },
+    "embeddings": {
+      "status": "covered",
+      "evidence_strength": "medium",
+      "tracker": "#253",
+      "source_files": ["ui/src/api/embeddings.ts"],
+      "test_files": [
+        "ui/src/components/embeddings/__tests__/EmbeddingSetManager.test.tsx",
+        "ui/src/components/embeddings/__tests__/CriteriaEditor.test.tsx",
+        "ui/src/components/embeddings/__tests__/MemberManager.test.tsx"
+      ],
+      "ui_surfaces": ["ui/src/components/embeddings/EmbeddingSetManager.tsx"],
+      "verifier_action": "Assert embedding set/config CRUD, members, refresh, default config, and fallback path behavior."
+    },
+    "graph": {
+      "status": "covered",
+      "evidence_strength": "strong",
+      "tracker": "#253",
+      "source_files": ["ui/src/api/links.ts", "ui/src/components/graph/GraphExplorer.tsx", "ui/src/components/graph/GraphExplorerSigma.tsx", "ui/src/components/graph/graphTransforms.ts"],
+      "test_files": ["ui/src/api/__tests__/links.test.ts", "ui/src/components/graph/__tests__/graphTransforms.test.ts", "ui/src/components/graph/__tests__/GraphExplorerSigma.lifecycle.test.tsx"],
+      "ui_surfaces": ["ui/src/components/graph/GraphExplorer.tsx"],
+      "verifier_action": "Preserve route-level tests for diagnostics, snapshots, history, compare, SNN, PFNET, community, maintenance, cold-spots, topology, and graph fetch."
+    },
+    "health": {
+      "status": "covered",
+      "evidence_strength": "strong",
+      "tracker": "#253",
+      "source_files": ["ui/src/api/auth.ts", "ui/src/services/api.ts"],
+      "test_files": ["ui/src/services/__tests__/api.test.ts"],
+      "ui_surfaces": ["ui/src/components/admin/AdminPanel.tsx"],
+      "verifier_action": "Preserve basic health/live checks; do not use this family to satisfy streaming health."
+    },
+    "inbound_sources": {
+      "status": "covered",
+      "evidence_strength": "strong",
+      "tracker": "#256",
+      "source_files": ["ui/src/api/webhooks.ts", "ui/src/components/admin/WebhooksPanel.tsx"],
+      "test_files": ["ui/src/api/__tests__/webhooks.test.ts", "ui/src/components/admin/__tests__/WebhooksPanel.test.tsx"],
+      "ui_surfaces": ["ui/src/components/admin/WebhooksPanel.tsx"],
+      "verifier_action": "Preserve metadata-only list/create/delete coverage and redaction assertions for names, kinds, URLs, headers, credentials, and connector config."
+    },
+    "incoming_webhook_receivers": {
+      "status": "covered",
+      "evidence_strength": "strong",
+      "tracker": "#256",
+      "source_files": ["ui/src/api/webhooks.ts", "ui/src/components/admin/WebhooksPanel.tsx"],
+      "test_files": ["ui/src/api/__tests__/webhooks.test.ts", "ui/src/components/admin/__tests__/WebhooksPanel.test.tsx"],
+      "ui_surfaces": ["ui/src/components/admin/WebhooksPanel.tsx"],
+      "verifier_action": "Preserve incoming receiver list/create/get/update/delete/validate API coverage, Admin metadata rendering, and no raw slug/provider/schema/HMAC secret assertions."
+    },
+    "inference": {
+      "status": "covered",
+      "evidence_strength": "medium",
+      "tracker": "#253",
+      "source_files": ["ui/src/api/inference.ts"],
+      "test_files": ["ui/src/api/__tests__/openapi-contract.test.ts"],
+      "ui_surfaces": ["ui/src/components/admin/AdminPanel.tsx", "ui/src/components/InferenceStatusIndicator.tsx"],
+      "verifier_action": "Add route-level assertions for config, audit, providers, complete, stream, and test-connection with redaction."
+    },
+    "jobs": {
+      "status": "covered",
+      "evidence_strength": "strong",
+      "tracker": "#253",
+      "source_files": ["ui/src/api/jobs.ts", "ui/src/services/jobEventStore.ts"],
+      "test_files": [
+        "ui/src/components/jobs/__tests__/JobQueueView.test.tsx",
+        "ui/src/components/jobs/__tests__/job-utils.test.ts",
+        "ui/src/services/__tests__/jobEventStore.test.ts"
+      ],
+      "ui_surfaces": ["ui/src/components/jobs/JobQueueView.tsx", "ui/src/components/JobManagementPanel.tsx"],
+      "verifier_action": "Assert list, detail, stats, status, pause/resume, archive pause/resume, pending, and extraction stats."
+    },
+    "knowledge_health": {
+      "status": "covered",
+      "evidence_strength": "strong",
+      "tracker": "#253",
+      "source_files": ["ui/src/api/health.ts"],
+      "test_files": ["ui/src/api/__tests__/health.test.ts", "ui/src/components/health/__tests__/KnowledgeHealthDashboard.test.tsx"],
+      "ui_surfaces": ["ui/src/components/health/KnowledgeHealthDashboard.tsx"],
+      "verifier_action": "Assert all knowledge-health endpoints in fixtures: knowledge, orphan tags, stale notes, unlinked notes, tag cooccurrence, access frequency."
+    },
+    "models": {
+      "status": "covered",
+      "evidence_strength": "strong",
+      "tracker": "#159",
+      "source_files": ["ui/src/api/chat.ts"],
+      "test_files": ["ui/src/api/__tests__/chat.test.ts", "ui/src/components/agent/__tests__/AgentSettings.test.tsx"],
+      "ui_surfaces": ["ui/src/components/agent/AgentPanel.tsx", "ui/src/components/agent/AgentSettings.tsx"],
+      "verifier_action": "Preserve `/api/v1/models` catalog and `/api/v1/chat/models` agent-selection route assertions."
+    },
+    "native_chat_stream": {
+      "status": "covered",
+      "evidence_strength": "strong",
+      "tracker": "#242",
+      "source_files": ["ui/src/api/chat.ts", "ui/src/components/agent/useAgentChat.ts", "ui/src/components/agent/providers.ts"],
+      "test_files": ["ui/src/api/__tests__/chat.test.ts", "ui/src/components/agent/__tests__/useAgentChat.test.ts", "ui/src/components/agent/__tests__/providers.test.ts"],
+      "ui_surfaces": ["ui/src/components/agent/AgentPanel.tsx"],
+      "verifier_action": "Preserve native Fortemi POST stream parser, Last-Event-ID support, delta/done/error handling, Agent hook streaming, cancellation path, and synchronous fallback on stream failure."
+    },
+    "notes": {
+      "status": "covered",
+      "evidence_strength": "strong",
+      "tracker": "#253",
+      "source_files": ["ui/src/api/notes.ts", "ui/src/api/extended.ts", "ui/src/api/versions.ts", "ui/src/api/links.ts"],
+      "test_files": ["ui/src/api/__tests__/notes.test.ts", "ui/e2e/tests/note-crud.spec.ts", "ui/e2e/uat/notes-ux.spec.ts"],
+      "ui_surfaces": ["ui/src/components/HallOfMind.tsx", "ui/src/components/versions/VersionHistory.tsx"],
+      "verifier_action": "Assert every note route family member, including bulk, restore, purge, reprocess, tags, links, backlinks, related, export, full, provenance, versions, diff, timeline, activity, status, concepts, and move."
+    },
+    "oauth": {
+      "status": "covered",
+      "evidence_strength": "strong",
+      "tracker": "#247",
+      "source_files": ["ui/src/api/auth.ts", "ui/src/components/admin/AdminPanel.tsx"],
+      "test_files": ["ui/src/api/__tests__/auth.test.ts", "ui/src/components/admin/__tests__/AdminPanel.test.tsx"],
+      "ui_surfaces": ["ui/src/components/admin/AdminPanel.tsx"],
+      "verifier_action": "Preserve OAuth discovery, authorize URL/consent/form, register, token, introspect, revoke route tests plus Admin diagnostics redaction assertions. Hosted session/role UX remains gated until Fortemi advertises that contract."
+    },
+    "outbound_webhooks": {
+      "status": "covered",
+      "evidence_strength": "medium",
+      "tracker": "#256",
+      "source_files": ["ui/src/api/webhooks.ts"],
+      "test_files": ["ui/src/components/admin/__tests__/WebhooksPanel.test.tsx"],
+      "ui_surfaces": ["ui/src/components/admin/WebhooksPanel.tsx"],
+      "verifier_action": "Preserve outbound lifecycle tests and keep incoming receivers as separate gap work."
+    },
+    "pke": {
+      "status": "documented_exclusion",
+      "evidence_strength": "none",
+      "tracker": "#253",
+      "source_files": [],
+      "test_files": [],
+      "ui_surfaces": [],
+      "manual_evidence": "No current HotM PKE UX claim.",
+      "verifier_action": "Ensure UI and agent prompts do not claim PKE support until a product slice opens."
+    },
+    "provenance": {
+      "status": "covered",
+      "evidence_strength": "strong",
+      "tracker": "#253",
+      "source_files": ["ui/src/api/provenance.ts", "ui/src/api/memory.ts"],
+      "test_files": ["ui/src/api/__tests__/provenance.test.ts"],
+      "ui_surfaces": ["ui/src/components/NoteMetadata.tsx"],
+      "verifier_action": "Preserve route-level tests for note provenance plus provenance location, named-location, device, file, and note creation endpoints; memory provenance stays covered by memory APIs."
+    },
+    "rate_limit": {
+      "status": "documented_exclusion",
+      "evidence_strength": "none",
+      "tracker": "#251",
+      "source_files": [],
+      "test_files": [],
+      "ui_surfaces": [],
+      "manual_evidence": "No general HotM rate-limit status UX claim; manifest launch proof is tracked separately.",
+      "verifier_action": "Keep excluded unless manifest/rate-limit diagnostics become an explicit product surface."
+    },
+    "realtime_calls": {
+      "status": "covered",
+      "evidence_strength": "strong",
+      "tracker": "#259",
+      "source_files": ["ui/src/api/calls.ts", "ui/src/components/admin/ApiCapabilitiesPanel.tsx"],
+      "test_files": ["ui/src/api/__tests__/calls.test.ts", "ui/src/components/admin/__tests__/ApiCapabilitiesPanel.test.tsx"],
+      "ui_surfaces": ["ui/src/components/admin/ApiCapabilitiesPanel.tsx"],
+      "manual_evidence": "`GET /api/v1/calls/{id}` is available as redacted Admin API Surface call diagnostics; `GET /api/v1/realtime/twilio/{provider_call_id}` remains a documented exclusion with no helper or product claim.",
+      "verifier_action": "Preserve typed `/calls/{id}` REST client tests, redacted call diagnostics UI tests, transcript/provider-ID non-rendering assertions, and Twilio realtime no-claim copy."
+    },
+    "realtime_events": {
+      "status": "covered",
+      "evidence_strength": "strong",
+      "tracker": "#246",
+      "source_files": ["ui/src/api/events.ts", "ui/src/services/realtimeEventBus.ts", "ui/src/services/websocket.ts"],
+      "test_files": ["ui/src/api/__tests__/events.test.ts", "ui/src/services/__tests__/realtimeEventBus.test.ts", "ui/src/services/__tests__/realtimeActivity.test.ts"],
+      "ui_surfaces": ["ui/src/components/debug/RealtimeEventInspector.tsx", "ui/src/components/HallOfMind.tsx"],
+      "verifier_action": "Assert SSE event parsing, WebSocket fallback, resync/degraded states, and activity drawer integration."
+    },
+    "search": {
+      "status": "covered",
+      "evidence_strength": "strong",
+      "tracker": "#253",
+      "source_files": ["ui/src/api/search.ts", "agent-proxy/src/tools.ts"],
+      "test_files": ["ui/src/api/__tests__/search.test.ts", "ui/src/components/search/__tests__/SearchPage.test.tsx", "agent-proxy/src/__tests__/tools.test.ts"],
+      "ui_surfaces": ["ui/src/components/search/SearchPage.tsx"],
+      "verifier_action": "Assert `/search` and `/search/federated` plus agent search tool route usage."
+    },
+    "streaming_health": {
+      "status": "covered",
+      "evidence_strength": "strong",
+      "tracker": "#254",
+      "source_files": ["ui/src/api/health.ts", "ui/src/components/admin/ApiCapabilitiesPanel.tsx"],
+      "test_files": ["ui/src/api/__tests__/health.test.ts", "ui/src/components/admin/__tests__/ApiCapabilitiesPanel.test.tsx"],
+      "ui_surfaces": ["ui/src/components/admin/ApiCapabilitiesPanel.tsx"],
+      "verifier_action": "Preserve `/health/streaming` parser and UI tests for populated, missing, malformed, unavailable, chat drop counters, ingest pressure, connector lag/errors, and call telemetry summaries."
+    },
+    "streaming_ingest": {
+      "status": "covered",
+      "evidence_strength": "strong",
+      "tracker": "#255",
+      "source_files": ["ui/src/api/ingest.ts", "ui/src/components/backup/BackupManager.tsx"],
+      "test_files": ["ui/src/api/__tests__/ingest.test.ts", "ui/src/components/backup/__tests__/BackupManager.test.tsx"],
+      "ui_surfaces": ["ui/src/components/backup/BackupManager.tsx"],
+      "verifier_action": "Preserve ingest token mint/revoke, NDJSON POST stream upload, ack/progress/warning/error/done/cursor parsing, progress UI, and token revocation/no-secret-render tests."
+    },
+    "system_compatibility": {
+      "status": "covered",
+      "evidence_strength": "strong",
+      "tracker": "#244",
+      "source_files": ["ui/src/api/systemCompatibility.ts"],
+      "test_files": ["ui/src/api/__tests__/compat.test.ts", "ui/src/components/admin/__tests__/ApiCapabilitiesPanel.test.tsx"],
+      "ui_surfaces": ["ui/src/components/admin/ApiCapabilitiesPanel.tsx"],
+      "verifier_action": "Keep fail-closed unknown/preview/unavailable compatibility fixtures current."
+    },
+    "tags": {
+      "status": "covered",
+      "evidence_strength": "strong",
+      "tracker": "#253",
+      "source_files": ["ui/src/api/tags.ts"],
+      "test_files": ["ui/src/api/__tests__/tags.test.ts", "ui/e2e/tests/tags.spec.ts"],
+      "ui_surfaces": ["ui/src/components/tags/TagManager.tsx"],
+      "verifier_action": "Assert tag list and manager behavior."
+    },
+    "templates": {
+      "status": "covered",
+      "evidence_strength": "medium",
+      "tracker": "#253",
+      "source_files": ["ui/src/api/templates.ts"],
+      "test_files": ["ui/src/components/templates/__tests__/TemplateManager.test.tsx"],
+      "ui_surfaces": ["ui/src/components/templates/TemplateManager.tsx"],
+      "verifier_action": "Add API-level route assertions for template CRUD and instantiate."
+    },
+    "vision_tools": {
+      "status": "covered",
+      "evidence_strength": "strong",
+      "tracker": "#259",
+      "source_files": ["ui/src/api/mediaTools.ts", "ui/src/components/attachments/AttachmentsPanel.tsx"],
+      "test_files": ["ui/src/api/__tests__/mediaTools.test.ts", "ui/src/components/attachments/__tests__/AttachmentsPanel.test.tsx"],
+      "ui_surfaces": ["ui/src/components/attachments/AttachmentsPanel.tsx"],
+      "verifier_action": "Preserve `/vision/describe` multipart client tests plus attachment preview image-analysis success, unsupported media, endpoint error, and no raw model-name rendering assertions."
+    }
+  }
+}

@@ -11,6 +11,117 @@ import type {
 
 export type LinkKind = 'related' | 'mention' | 'reference' | 'task' | 'semantic' | 'keyword';
 
+export interface GraphTopologyStats {
+  total_notes: number;
+  total_links: number;
+  isolated_nodes: number;
+  connected_components: number;
+  avg_degree: number;
+  max_degree: number;
+  min_degree_linked?: number;
+  median_degree?: number;
+  linking_strategy?: string;
+  effective_k?: number;
+  [key: string]: unknown;
+}
+
+export interface GraphDiagnostics {
+  [key: string]: unknown;
+}
+
+export interface GraphDiagnosticsSnapshot {
+  id: string;
+  label?: string;
+  created_at?: string;
+  diagnostics?: GraphDiagnostics;
+  [key: string]: unknown;
+}
+
+export interface GraphDiagnosticsComparison {
+  before?: GraphDiagnosticsSnapshot | GraphDiagnostics;
+  after?: GraphDiagnosticsSnapshot | GraphDiagnostics;
+  delta?: Record<string, unknown>;
+  [key: string]: unknown;
+}
+
+export interface CaptureGraphDiagnosticsSnapshotRequest {
+  label: string;
+  sample_size?: number;
+}
+
+export interface GraphControlRequest {
+  dry_run?: boolean;
+  [key: string]: unknown;
+}
+
+export interface RecomputeSnnRequest extends GraphControlRequest {
+  k?: number;
+  threshold?: number;
+}
+
+export interface PfnetSparsifyRequest extends GraphControlRequest {
+  q?: number;
+}
+
+export interface CoarseCommunityRequest {
+  coarse_dim?: number;
+  similarity_threshold?: number;
+  resolution?: number;
+}
+
+export interface GraphControlResult {
+  [key: string]: unknown;
+}
+
+export interface GraphMaintenanceRequest {
+  steps?: Array<'normalize' | 'snn' | 'pfnet' | 'snapshot' | string>;
+}
+
+export interface GraphMaintenanceResponse {
+  id: string | null;
+  status: 'queued' | 'already_pending' | string;
+  steps?: string[];
+}
+
+export interface ColdSpotNote {
+  id: string;
+  title?: string | null;
+  access_count: number;
+  last_accessed_at?: string | null;
+  created_at: string;
+  days_since_access: number;
+}
+
+export interface ColdSpotBucket {
+  count: number;
+  topic_summary: string[];
+  sample: ColdSpotNote[];
+}
+
+export interface GraphColdSpotsResponse {
+  summary: {
+    total_notes: number;
+    isolated_count: number;
+    isolated_pct: number;
+    cold_access_count: number;
+    cold_access_pct: number;
+    overlap_count: number;
+    parameters: {
+      cold_days: number;
+      max_accesses: number;
+      limit: number;
+    };
+  };
+  isolated_notes: ColdSpotBucket;
+  cold_access_notes: ColdSpotBucket;
+  overlap: {
+    description: string;
+    count: number;
+    note_ids: string[];
+  };
+  recommendations: string[];
+}
+
 export interface CreateLinkRequest {
   to_note_id?: string;
   to_url?: string;
@@ -152,6 +263,93 @@ export function createLinksApi(client: ApiClient) {
         `/graph/${noteId}`,
         params
       );
+    },
+
+    /**
+     * Fetch graph topology statistics for diagnostics and route coverage.
+     */
+    async getGraphTopologyStats(): Promise<GraphTopologyStats> {
+      return client.get<GraphTopologyStats>('/graph/topology/stats');
+    },
+
+    /**
+     * Fetch graph quality diagnostics.
+     */
+    async getGraphDiagnostics(sampleSize?: number): Promise<GraphDiagnostics> {
+      const params: Record<string, string> = {};
+      if (sampleSize !== undefined) {
+        params.sample_size = String(sampleSize);
+      }
+      return client.get<GraphDiagnostics>('/graph/diagnostics', params);
+    },
+
+    async captureGraphDiagnosticsSnapshot(
+      request: CaptureGraphDiagnosticsSnapshotRequest,
+    ): Promise<GraphDiagnosticsSnapshot> {
+      if (!request.label || request.label.trim() === '') {
+        throw new Error('Snapshot label is required');
+      }
+      return client.post<GraphDiagnosticsSnapshot>('/graph/diagnostics/snapshot', request);
+    },
+
+    async listGraphDiagnosticsSnapshots(limit?: number): Promise<GraphDiagnosticsSnapshot[]> {
+      const params: Record<string, string> = {};
+      if (limit !== undefined) {
+        params.limit = String(limit);
+      }
+      return client.get<GraphDiagnosticsSnapshot[]>('/graph/diagnostics/history', params);
+    },
+
+    async compareGraphDiagnosticsSnapshots(
+      before: string,
+      after: string,
+    ): Promise<GraphDiagnosticsComparison> {
+      if (!before || before.trim() === '') {
+        throw new Error('Before snapshot ID is required');
+      }
+      if (!after || after.trim() === '') {
+        throw new Error('After snapshot ID is required');
+      }
+      return client.get<GraphDiagnosticsComparison>('/graph/diagnostics/compare', {
+        before,
+        after,
+      });
+    },
+
+    async recomputeSnnScores(request: RecomputeSnnRequest = {}): Promise<GraphControlResult> {
+      return client.post<GraphControlResult>('/graph/snn/recompute', request);
+    },
+
+    async sparsifyGraphWithPfnet(request: PfnetSparsifyRequest = {}): Promise<GraphControlResult> {
+      return client.post<GraphControlResult>('/graph/pfnet/sparsify', request);
+    },
+
+    async detectCoarseGraphCommunities(request: CoarseCommunityRequest = {}): Promise<GraphControlResult> {
+      return client.post<GraphControlResult>('/graph/community/coarse', request);
+    },
+
+    async triggerGraphMaintenance(
+      request: GraphMaintenanceRequest = {},
+    ): Promise<GraphMaintenanceResponse> {
+      return client.post<GraphMaintenanceResponse>('/graph/maintenance', request);
+    },
+
+    async getGraphColdSpots(options: {
+      limit?: number;
+      cold_days?: number;
+      max_accesses?: number;
+    } = {}): Promise<GraphColdSpotsResponse> {
+      const params: Record<string, string> = {};
+      if (options.limit !== undefined) {
+        params.limit = String(options.limit);
+      }
+      if (options.cold_days !== undefined) {
+        params.cold_days = String(options.cold_days);
+      }
+      if (options.max_accesses !== undefined) {
+        params.max_accesses = String(options.max_accesses);
+      }
+      return client.get<GraphColdSpotsResponse>('/graph/cold-spots', params);
     },
   };
 }

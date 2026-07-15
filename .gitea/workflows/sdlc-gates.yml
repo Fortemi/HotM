@@ -5,6 +5,37 @@ on:
     types: [opened, edited, synchronize]
 
 jobs:
+  fortemi-route-inventory:
+    name: Fortemi Route Inventory
+    runs-on: ubuntu-latest
+    env:
+      FORTEMI_REPOSITORY: Fortemi/fortemi.git
+    steps:
+      - name: Checkout HotM
+        shell: bash
+        run: |
+          set -euo pipefail
+          BRANCH="${GITHUB_HEAD_REF:-${GITHUB_REF_NAME:-main}}"
+          git clone --depth 1 --branch "${BRANCH}" \
+            "https://token:${{ github.token }}@git.integrolabs.net/${GITHUB_REPOSITORY}.git" .
+          git checkout "${GITHUB_SHA:-HEAD}"
+
+      - name: Checkout Fortemi sibling
+        shell: bash
+        run: |
+          set -euo pipefail
+          git clone --depth 1 \
+            "https://token:${{ github.token }}@git.integrolabs.net/${FORTEMI_REPOSITORY}" \
+            ../fortemi
+
+      - name: Verify Fortemi route inventory
+        shell: bash
+        run: .aiwg/testing/scripts/verify-fortemi-route-inventory.sh
+
+      - name: Verify Fortemi closeout package
+        shell: bash
+        run: python3 .aiwg/testing/scripts/verify-fortemi-closeout-package.py
+
   validate-pr:
     runs-on: ubuntu-latest
     permissions:

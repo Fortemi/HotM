@@ -1,10 +1,11 @@
 import * as React from 'react';
 import { Activity, AlertTriangle, CheckCircle2, Database, Loader2, Lock, Package, RefreshCw, Server } from 'lucide-react';
 import { api } from '@/api';
-import type { SystemCompatibilityResponse } from '@/api';
+import type { CallDetailResponse, StreamingHealthResponse, SystemCompatibilityResponse } from '@/api';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
 
 type CapabilityValue = boolean | string | number | null | Record<string, unknown>;
 
@@ -431,20 +432,214 @@ function compatibilityStatusLabel(degraded: boolean): string {
   return degraded ? 'capability attention required' : 'compatible metadata available';
 }
 
+function metricValue(
+  block: StreamingHealthResponse[keyof Pick<StreamingHealthResponse, 'sse' | 'rtp' | 'chat' | 'ingest' | 'inbound'>] | undefined,
+  key: string
+): string {
+  const value = block?.metrics[key]?.value;
+  if (typeof value === 'number') return value.toLocaleString();
+  if (typeof value === 'boolean') return value ? 'true' : 'false';
+  if (typeof value === 'string' && value.trim().length > 0) return value;
+  return '--';
+}
+
+function streamingBlockVariant(state?: string): 'default' | 'secondary' | 'destructive' | 'outline' {
+  if (state === 'reported') return 'default';
+  if (state === 'malformed') return 'destructive';
+  return 'outline';
+}
+
+function streamingHealthRows(streamingHealth: StreamingHealthResponse | null) {
+  return [
+    {
+      name: 'Chat Stream',
+      block: streamingHealth?.chat,
+      summary: `${metricValue(streamingHealth?.chat, 'chat_stream_started_total')} started, ${metricValue(streamingHealth?.chat, 'chat_stream_completed_total')} completed, ${metricValue(streamingHealth?.chat, 'chat_stream_errored_total')} errored`,
+      detail: `${metricValue(streamingHealth?.chat, 'chat_stream_dropped_tokens_total')} dropped tokens`,
+    },
+    {
+      name: 'Ingest Stream',
+      block: streamingHealth?.ingest,
+      summary: `${metricValue(streamingHealth?.ingest, 'ingest_stream_buffer_pressure')} pressure, ${metricValue(streamingHealth?.ingest, 'ingest_stream_buffer_pressure_peak')} peak`,
+      detail: `${metricValue(streamingHealth?.ingest, 'ingest_stream_backpressure_warnings_total')} warnings, ${metricValue(streamingHealth?.ingest, 'ingest_stream_throttled_total')} throttled, ${metricValue(streamingHealth?.ingest, 'ingest_stream_rate_limited_total')} rate limited`,
+    },
+    {
+      name: 'Realtime Events',
+      block: streamingHealth?.sse,
+      summary: `${metricValue(streamingHealth?.sse, 'active_connections')} active, ${metricValue(streamingHealth?.sse, 'events_delivered')} delivered`,
+      detail: `${metricValue(streamingHealth?.sse, 'events_lagged')} lagged, ${metricValue(streamingHealth?.sse, 'events_emitted')} emitted`,
+    },
+    {
+      name: 'Inbound Connectors',
+      block: streamingHealth?.inbound,
+      summary: `${metricValue(streamingHealth?.inbound, 'connectors')} connectors, ${metricValue(streamingHealth?.inbound, 'events_total')} events`,
+      detail: `${metricValue(streamingHealth?.inbound, 'errors_total')} errors, ${metricValue(streamingHealth?.inbound, 'lag_max')} max lag`,
+    },
+    {
+      name: 'Realtime Calls',
+      block: streamingHealth?.rtp,
+      summary: `${metricValue(streamingHealth?.rtp, 'active_sessions')} active, ${metricValue(streamingHealth?.rtp, 'sessions_total')} total`,
+      detail: `${metricValue(streamingHealth?.rtp, 'asr_cost_per_minute')} ASR cost/min, ${metricValue(streamingHealth?.rtp, 'transcript_events_total')} transcript events`,
+    },
+  ];
+}
+
+function formatOptionalNumber(value: number | null | undefined): string {
+  return typeof value === 'number' ? value.toLocaleString() : 'unknown';
+}
+
+function formatOptionalDate(value: string | null | undefined): string {
+  if (!value) return 'unknown';
+  const parsed = new Date(value);
+  return Number.isNaN(parsed.getTime()) ? 'reported' : parsed.toLocaleString();
+}
+
+interface CallDiagnosticsProps {
+  callDetail: CallDetailResponse | null;
+  callError: string | null;
+  callId: string;
+  callLoading: boolean;
+  onCallIdChange: (value: string) => void;
+  onSubmit: (event: React.FormEvent<HTMLFormElement>) => void;
+}
+
+function CallDiagnosticsPanel({
+  callDetail,
+  callError,
+  callId,
+  callLoading,
+  onCallIdChange,
+  onSubmit,
+}: CallDiagnosticsProps) {
+  const providerRef = callDetail?.provider_call ?? {};
+  const segmentPreview = callDetail?.segments.slice(0, 3) ?? [];
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <Activity className="size-5" />
+          Call Diagnostics
+        </CardTitle>
+        <CardDescription>Redacted call-session lookup for Fortemi REST diagnostics.</CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <form className="grid gap-3 md:grid-cols-[1fr_auto]" onSubmit={onSubmit}>
+          <div className="space-y-1">
+            <label htmlFor="call-diagnostic-id" className="text-xs font-medium text-muted-foreground">
+              Call ID
+            </label>
+            <Input
+              id="call-diagnostic-id"
+              value={callId}
+              onChange={(event) => onCallIdChange(event.target.value)}
+              placeholder="Fortemi call UUID"
+            />
+          </div>
+          <Button type="submit" className="self-end" disabled={callLoading}>
+            {callLoading ? <Loader2 className="mr-2 size-4 animate-spin" /> : <RefreshCw className="mr-2 size-4" />}
+            Load call
+          </Button>
+        </form>
+
+        {callError && (
+          <div className="rounded border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-700 dark:text-red-300">
+            {callError}
+          </div>
+        )}
+
+        <div className="rounded border p-3 text-sm text-muted-foreground">
+          Twilio realtime WebSocket diagnostics are not exposed in HotM. Live provider stream validation remains a documented exclusion.
+        </div>
+
+        {callDetail ? (
+          <div className="grid gap-3 md:grid-cols-2">
+            <div className="rounded border p-3">
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <div className="text-sm font-medium">Session</div>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Provider: {callDetail.provider}; duration {formatOptionalNumber(callDetail.duration_secs)} seconds
+                  </p>
+                </div>
+                <Badge variant={statusVariant(callDetail.ended_at ? 'available' : 'preview')}>
+                  {callDetail.ended_at ? 'ended' : 'active'}
+                </Badge>
+              </div>
+              <div className="mt-3 grid gap-1 text-xs text-muted-foreground">
+                <div>Started: {formatOptionalDate(callDetail.started_at)}</div>
+                <div>Ended: {formatOptionalDate(callDetail.ended_at)}</div>
+                <div>End reason: {callDetail.end_reason ?? 'unknown'}</div>
+              </div>
+            </div>
+
+            <div className="rounded border p-3">
+              <div className="text-sm font-medium">Redaction Summary</div>
+              <div className="mt-3 grid gap-1 text-xs text-muted-foreground">
+                <div>Provider call ID present: {providerRef.provider_call_id_present ? 'yes' : 'no'}</div>
+                <div>Provider call ID length: {formatOptionalNumber(providerRef.provider_call_id_len)}</div>
+                <div>Remote party present: {callDetail.remote_party_present ? 'yes' : 'no'}</div>
+                <div>Remote party length: {formatOptionalNumber(callDetail.remote_party_len)}</div>
+                <div>ASR backend length: {formatOptionalNumber(callDetail.asr_backend_len)}</div>
+                <div>Archive reference present: {callDetail.archive_id ? 'yes' : 'no'}</div>
+                <div>Metadata: {callDetail.metadata_class}, {callDetail.metadata_len.toLocaleString()} bytes</div>
+              </div>
+            </div>
+
+            <div className="rounded border p-3 md:col-span-2">
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <div className="text-sm font-medium">Transcript Summary</div>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    {callDetail.segment_count.toLocaleString()} segments; page {callDetail.pagination.offset.toLocaleString()} offset, {callDetail.pagination.limit.toLocaleString()} limit, {callDetail.pagination.total.toLocaleString()} total
+                  </p>
+                </div>
+                <Badge variant="outline">{callDetail.pagination.has_more ? 'has more' : 'complete page'}</Badge>
+              </div>
+              {segmentPreview.length > 0 ? (
+                <div className="mt-3 grid gap-2">
+                  {segmentPreview.map((segment, index) => (
+                    <div key={`${segment.start_secs}-${segment.end_secs}-${index}`} className="rounded border bg-muted/30 p-2 text-xs text-muted-foreground">
+                      Segment {index + 1}: {segment.start_secs}s-{segment.end_secs}s; text length {segment.text.length.toLocaleString()}; words {formatOptionalNumber(segment.words?.length)}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="mt-3 text-xs text-muted-foreground">No transcript segments returned for this page.</div>
+              )}
+            </div>
+          </div>
+        ) : (
+          <div className="rounded border border-dashed p-4 text-sm text-muted-foreground">
+            Enter a Fortemi call ID to inspect safe call metadata and transcript counts.
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
 export function ApiCapabilitiesPanel() {
   const [health, setHealth] = React.useState<ApiSurfaceHealth | null>(null);
+  const [streamingHealth, setStreamingHealth] = React.useState<StreamingHealthResponse | null>(null);
   const [compatibility, setCompatibility] = React.useState<SystemCompatibilityResponse | null>(null);
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
+  const [callId, setCallId] = React.useState('');
+  const [callDetail, setCallDetail] = React.useState<CallDetailResponse | null>(null);
+  const [callLoading, setCallLoading] = React.useState(false);
+  const [callError, setCallError] = React.useState<string | null>(null);
 
   const loadHealth = React.useCallback(async () => {
     setLoading(true);
     setError(null);
     setCompatibility(null);
+    setStreamingHealth(null);
     try {
-      const [compatibilityResult, healthResult] = await Promise.allSettled([
+      const [compatibilityResult, healthResult, streamingHealthResult] = await Promise.allSettled([
         api.systemCompatibility.get(),
         api.healthCheck() as Promise<ApiSurfaceHealth>,
+        api.health.getStreamingHealth(),
       ]);
 
       if (compatibilityResult.status === 'fulfilled') {
@@ -458,11 +653,16 @@ export function ApiCapabilitiesPanel() {
       } else {
         throw healthResult.reason;
       }
+
+      if (streamingHealthResult.status === 'fulfilled') {
+        setStreamingHealth(streamingHealthResult.value);
+      }
     } catch (err) {
       console.error('Failed to load API surface:', err);
       setError('Error loading API surface');
       setHealth(null);
       setCompatibility(null);
+      setStreamingHealth(null);
     } finally {
       setLoading(false);
     }
@@ -471,6 +671,29 @@ export function ApiCapabilitiesPanel() {
   React.useEffect(() => {
     void loadHealth();
   }, [loadHealth]);
+
+  const loadCallDetail = React.useCallback(async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const trimmed = callId.trim();
+    setCallError(null);
+    if (!trimmed) {
+      setCallDetail(null);
+      setCallError('Call ID is required.');
+      return;
+    }
+
+    setCallLoading(true);
+    try {
+      const detail = await api.calls.getCall(trimmed, { limit: 50, offset: 0 });
+      setCallDetail(detail);
+    } catch (err) {
+      console.error('Failed to load call diagnostics:', err);
+      setCallDetail(null);
+      setCallError('Call diagnostic fetch failed. Check the call ID and server diagnostics.');
+    } finally {
+      setCallLoading(false);
+    }
+  }, [callId]);
 
   const capabilityEntries = Object.entries(compatibility?.capabilities ?? health?.capabilities ?? {});
   const degraded = isDegraded(health, compatibility);
@@ -522,6 +745,12 @@ export function ApiCapabilitiesPanel() {
                       <span className="text-sm text-muted-foreground">{compatibility.contract_revision}</span>
                     )}
                   </div>
+                  {compatibility?.links && (
+                    <div className="mt-2 flex flex-wrap gap-2 text-xs">
+                      <a className="text-primary hover:underline" href={compatibility.links.openapi}>OpenAPI</a>
+                      <a className="text-primary hover:underline" href={compatibility.links.asyncapi}>AsyncAPI</a>
+                    </div>
+                  )}
                 </div>
                 <div className="rounded border p-3">
                   <div className="text-xs text-muted-foreground">API</div>
@@ -575,6 +804,50 @@ export function ApiCapabilitiesPanel() {
           )}
         </CardContent>
       </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Activity className="size-5" />
+            Streaming Health
+          </CardTitle>
+          <CardDescription>Chat, ingest, realtime event, inbound connector, and call stream telemetry from Fortemi.</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <div className="flex items-center justify-between rounded border p-3">
+            <div>
+              <div className="text-sm font-medium">Endpoint status</div>
+              <div className="mt-1 text-xs text-muted-foreground">
+                {streamingHealth ? 'Fortemi streaming health endpoint responded.' : 'Streaming health endpoint unavailable or not reported.'}
+              </div>
+            </div>
+            <Badge variant={statusVariant(streamingHealth?.status)}>{streamingHealth?.status ?? 'unknown'}</Badge>
+          </div>
+          <div className="grid gap-3 md:grid-cols-2">
+            {streamingHealthRows(streamingHealth).map((row) => (
+              <div key={row.name} className="rounded border p-3">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <div className="text-sm font-medium">{row.name}</div>
+                    <p className="mt-1 text-xs text-muted-foreground">{row.summary}</p>
+                    <p className="mt-1 text-xs text-muted-foreground">{row.detail}</p>
+                  </div>
+                  <Badge variant={streamingBlockVariant(row.block?.state)}>{row.block?.state ?? 'missing'}</Badge>
+                </div>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      <CallDiagnosticsPanel
+        callDetail={callDetail}
+        callError={callError}
+        callId={callId}
+        callLoading={callLoading}
+        onCallIdChange={setCallId}
+        onSubmit={loadCallDetail}
+      />
 
       <Card>
         <CardHeader>

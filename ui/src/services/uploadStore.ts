@@ -18,6 +18,12 @@ import { startTusUpload, shouldUseTus, type TusUploadHandle } from './tusUploade
 // ---------------------------------------------------------------------------
 
 export type UploadStatus = 'queued' | 'uploading' | 'completed' | 'failed' | 'cancelled';
+export type UploadDegradedReason =
+  | 'tus_offset_mismatch'
+  | 'tus_chunk_too_large'
+  | 'tus_session_unavailable'
+  | 'tus_checksum_unsupported'
+  | 'generic';
 
 export interface LocalFileAttachment {
   source: 'local';
@@ -45,6 +51,8 @@ export interface UploadFileEntry {
   bytesUploaded: number;
   bytesTotal: number;
   error: string | null;
+  degradedReason: UploadDegradedReason | null;
+  recoveryHint: string | null;
   retryCount: number;
   mediaOptimize: boolean;
   result: Attachment | null;
@@ -70,6 +78,72 @@ export interface UploadStoreState {
 // ---------------------------------------------------------------------------
 
 const AUTO_CLEAR_DELAY_MS = 30_000;
+
+function classifyUploadFailure(entry: UploadFileEntry, err: unknown): {
+  error: string;
+  degradedReason: UploadDegradedReason;
+  recoveryHint: string | null;
+} {
+  const rawMessage = err instanceof Error ? err.message : 'Upload failed';
+  if (isLocalFile(entry.file) || !shouldUseTus(entry.file)) {
+    return {
+      error: rawMessage,
+      degradedReason: 'generic',
+      recoveryHint: null,
+    };
+  }
+
+  const message = rawMessage.toLowerCase();
+  if (message.includes('checksum')) {
+    return {
+      error: 'Fortemi does not advertise TUS checksum validation for this server.',
+      degradedReason: 'tus_checksum_unsupported',
+      recoveryHint: 'Retry the upload without assuming TUS checksum-extension support.',
+    };
+  }
+
+  if (message.includes('offset') || message.includes('409') || message.includes('conflict')) {
+    return {
+      error: 'Fortemi reported a resumable upload offset mismatch.',
+      degradedReason: 'tus_offset_mismatch',
+      recoveryHint: 'Retry keeps the selected file and asks the server for the current resume offset.',
+    };
+  }
+
+  if (
+    message.includes('413') ||
+    message.includes('too large') ||
+    message.includes('max size') ||
+    message.includes('maximum') ||
+    message.includes('chunk')
+  ) {
+    return {
+      error: 'Fortemi rejected the upload because it exceeds the current TUS size limit.',
+      degradedReason: 'tus_chunk_too_large',
+      recoveryHint: 'Use a smaller file or reduce the source before retrying.',
+    };
+  }
+
+  if (
+    message.includes('404') ||
+    message.includes('410') ||
+    message.includes('expired') ||
+    message.includes('not found') ||
+    message.includes('gone')
+  ) {
+    return {
+      error: 'The Fortemi TUS upload session expired or was not found.',
+      degradedReason: 'tus_session_unavailable',
+      recoveryHint: 'Retry keeps the selected file and starts a fresh server upload session.',
+    };
+  }
+
+  return {
+    error: rawMessage,
+    degradedReason: 'generic',
+    recoveryHint: 'Retry keeps the selected file in the queue.',
+  };
+}
 
 // ---------------------------------------------------------------------------
 // UploadStore
@@ -143,6 +217,8 @@ class UploadStore {
           bytesUploaded: 0,
           bytesTotal: file.size,
           error: null,
+          degradedReason: null,
+          recoveryHint: null,
           retryCount: 0,
           mediaOptimize: !!(opts?.mediaOptimize && isMedia),
           result: null,
@@ -170,6 +246,8 @@ class UploadStore {
         ...entry,
         status: 'queued',
         error: null,
+        degradedReason: null,
+        recoveryHint: null,
         retryCount: entry.retryCount + 1,
         bytesUploaded: preserveProgress ? entry.bytesUploaded : 0,
         result: null,
@@ -358,7 +436,7 @@ class UploadStore {
           continue;
         }
 
-        const errorMsg = err instanceof Error ? err.message : 'Upload failed';
+        const failure = classifyUploadFailure(current, err);
         this.mutate((s) => {
           const entry = s.entries.get(entryId);
           if (!entry) return;
@@ -366,7 +444,9 @@ class UploadStore {
           newEntries.set(entryId, {
             ...entry,
             status: 'failed',
-            error: errorMsg,
+            error: failure.error,
+            degradedReason: failure.degradedReason,
+            recoveryHint: failure.recoveryHint,
             completedAt: Date.now(),
           });
           s.entries = newEntries;

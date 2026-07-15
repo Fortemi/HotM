@@ -13,11 +13,89 @@ import type {
 } from './types-extended';
 import type { NoteSummary } from './types';
 
+export type StreamingHealthBlockState = 'reported' | 'missing' | 'malformed';
+
+export interface StreamingMetricValue {
+  type: string;
+  value: number | string | boolean | null;
+}
+
+export interface StreamingHealthBlock {
+  state: StreamingHealthBlockState;
+  metrics: Record<string, StreamingMetricValue>;
+}
+
+export interface StreamingHealthResponse {
+  status: string;
+  sse: StreamingHealthBlock;
+  rtp: StreamingHealthBlock;
+  chat: StreamingHealthBlock;
+  ingest: StreamingHealthBlock;
+  inbound: StreamingHealthBlock;
+}
+
 export function createHealthApi(client: ApiClient) {
   const asNumber = (value: unknown): number | undefined =>
     typeof value === 'number' && Number.isFinite(value) ? value : undefined;
 
+  const normalizeMetricBlock = (value: unknown): StreamingHealthBlock => {
+    if (value === undefined || value === null) {
+      return { state: 'missing', metrics: {} };
+    }
+
+    if (typeof value !== 'object' || Array.isArray(value)) {
+      return { state: 'malformed', metrics: {} };
+    }
+
+    const metrics: Record<string, StreamingMetricValue> = {};
+    for (const [key, rawMetric] of Object.entries(value as Record<string, unknown>)) {
+      if (rawMetric && typeof rawMetric === 'object' && !Array.isArray(rawMetric)) {
+        const metricRecord = rawMetric as Record<string, unknown>;
+        const rawValue = metricRecord.value;
+        const rawType = metricRecord.type;
+        metrics[key] = {
+          type: typeof rawType === 'string' ? rawType : 'unknown',
+          value:
+            typeof rawValue === 'number' ||
+            typeof rawValue === 'string' ||
+            typeof rawValue === 'boolean' ||
+            rawValue === null
+              ? rawValue
+              : null,
+        };
+        continue;
+      }
+
+      if (
+        typeof rawMetric === 'number' ||
+        typeof rawMetric === 'string' ||
+        typeof rawMetric === 'boolean' ||
+        rawMetric === null
+      ) {
+        metrics[key] = { type: 'unknown', value: rawMetric };
+      }
+    }
+
+    return { state: 'reported', metrics };
+  };
+
   return {
+    /**
+     * Get streaming subsystem health and realtime/backpressure metrics.
+     */
+    async getStreamingHealth(): Promise<StreamingHealthResponse> {
+      const response = await client.get<Record<string, unknown>>('/health/streaming');
+
+      return {
+        status: typeof response.status === 'string' ? response.status : 'unknown',
+        sse: normalizeMetricBlock(response.sse),
+        rtp: normalizeMetricBlock(response.rtp),
+        chat: normalizeMetricBlock(response.chat),
+        ingest: normalizeMetricBlock(response.ingest),
+        inbound: normalizeMetricBlock(response.inbound),
+      };
+    },
+
     /**
      * Get overall knowledge base health metrics
      */

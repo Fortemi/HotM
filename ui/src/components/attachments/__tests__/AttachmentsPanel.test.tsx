@@ -27,6 +27,10 @@ vi.mock('@/api', () => ({
       getSpriteUrl: vi.fn((id: string, index: number) => `http://test/api/v1/attachments/${id}/sprites/${index}.jpg`),
       deleteAttachment: vi.fn(),
     },
+    mediaTools: {
+      describeImage: vi.fn(),
+      transcribeAudio: vi.fn(),
+    },
   },
 }));
 
@@ -117,6 +121,19 @@ describe('AttachmentsPanel', () => {
     vi.mocked(api.attachments.downloadAttachment).mockResolvedValue(
       new Blob(['test'], { type: 'application/octet-stream' })
     );
+    vi.mocked(api.mediaTools.describeImage).mockResolvedValue({
+      description: 'Generated image description',
+      model: 'private-vision-model',
+      image_size: 4,
+    });
+    vi.mocked(api.mediaTools.transcribeAudio).mockResolvedValue({
+      text: 'Generated transcript text',
+      segments: [{ start_secs: 0, end_secs: 1.5, text: 'Generated transcript text' }],
+      language: 'en',
+      duration_secs: 1.5,
+      model: 'private-audio-model',
+      audio_size: 4,
+    });
     vi.mocked(api.attachments.getDownloadUrl).mockReturnValue('https://example.com/download');
     vi.mocked(api.attachments.deleteAttachment).mockResolvedValue(undefined);
     vi.mocked(uploadStore.enqueueFiles).mockClear();
@@ -694,6 +711,200 @@ describe('AttachmentsPanel', () => {
         expect(within(descSection).getByText(/A sunset over the ocean/)).toBeInTheDocument();
         expect(screen.getByText('by qwen3-vl:8b')).toBeInTheDocument();
       });
+    });
+
+    it('should run image analysis from the attachment preview', async () => {
+      const imageAttachment: Attachment[] = [
+        {
+          id: 'att-image-analysis',
+          note_id: 'note-123',
+          filename: 'whiteboard.png',
+          content_type: 'image/png',
+          size_bytes: 4096,
+          status: 'completed',
+          storage_path: '/attachments/att-image-analysis/whiteboard.png',
+          has_exif: false,
+          has_location: false,
+          created_at: '2024-01-15T10:00:00Z',
+        },
+      ];
+      vi.mocked(api.attachments.listAttachments).mockResolvedValue(imageAttachment);
+      vi.mocked(api.attachments.downloadAttachment).mockResolvedValue(
+        new Blob(['img'], { type: 'image/png' }),
+      );
+      vi.mocked(api.mediaTools.describeImage).mockResolvedValue({
+        description: 'A whiteboard with a routing diagram',
+        model: 'private-vision-model',
+        image_size: 3,
+      });
+
+      render(<AttachmentsPanel noteId="note-123" />);
+
+      await waitFor(() => {
+        expect(screen.getByText('whiteboard.png')).toBeInTheDocument();
+      });
+
+      fireEvent.click(screen.getByTestId('attachment-card-att-image-analysis'));
+      await waitFor(() => {
+        expect(screen.getByRole('dialog')).toBeInTheDocument();
+      });
+
+      fireEvent.mouseDown(screen.getByRole('tab', { name: 'AI Content' }));
+      fireEvent.click(screen.getByRole('button', { name: 'Describe image' }));
+
+      await waitFor(() => {
+        expect(api.attachments.downloadAttachment).toHaveBeenCalledWith('att-image-analysis');
+      });
+      await waitFor(() => {
+        expect(api.mediaTools.describeImage).toHaveBeenCalledWith(expect.any(File));
+        expect(screen.getByTestId('media-analysis-description')).toHaveTextContent(
+          'A whiteboard with a routing diagram',
+        );
+      });
+
+      const submitted = vi.mocked(api.mediaTools.describeImage).mock.calls[0][0] as File;
+      expect(submitted.name).toBe('whiteboard.png');
+      expect(submitted.type).toBe('image/png');
+      expect(screen.queryByText('private-vision-model')).not.toBeInTheDocument();
+      expect(screen.getByText(/Model name length:/)).toBeInTheDocument();
+    });
+
+    it('should run audio transcription from the attachment preview', async () => {
+      const audioAttachment: Attachment[] = [
+        {
+          id: 'att-audio-analysis',
+          note_id: 'note-123',
+          filename: 'meeting.wav',
+          content_type: 'audio/wav',
+          size_bytes: 8192,
+          status: 'completed',
+          storage_path: '/attachments/att-audio-analysis/meeting.wav',
+          has_exif: false,
+          has_location: false,
+          created_at: '2024-01-15T10:00:00Z',
+        },
+      ];
+      vi.mocked(api.attachments.listAttachments).mockResolvedValue(audioAttachment);
+      vi.mocked(api.attachments.downloadAttachment).mockResolvedValue(
+        new Blob(['wav'], { type: 'audio/wav' }),
+      );
+      vi.mocked(api.mediaTools.transcribeAudio).mockResolvedValue({
+        text: 'Discuss launch blockers',
+        segments: [{ start_secs: 0, end_secs: 2, text: 'Discuss launch blockers' }],
+        language: 'en',
+        duration_secs: 2,
+        model: 'private-audio-model',
+        audio_size: 3,
+      });
+
+      render(<AttachmentsPanel noteId="note-123" />);
+
+      await waitFor(() => {
+        expect(screen.getByText('meeting.wav')).toBeInTheDocument();
+      });
+
+      fireEvent.click(screen.getByTestId('attachment-card-att-audio-analysis'));
+      await waitFor(() => {
+        expect(screen.getByRole('dialog')).toBeInTheDocument();
+      });
+
+      fireEvent.mouseDown(screen.getByRole('tab', { name: 'AI Content' }));
+      fireEvent.click(screen.getByRole('button', { name: 'Transcribe audio' }));
+
+      await waitFor(() => {
+        expect(api.attachments.downloadAttachment).toHaveBeenCalledWith('att-audio-analysis');
+      });
+      await waitFor(() => {
+        expect(api.mediaTools.transcribeAudio).toHaveBeenCalledWith(expect.any(File));
+        expect(screen.getByTestId('media-analysis-transcript')).toHaveTextContent(
+          'Discuss launch blockers',
+        );
+      });
+
+      const submitted = vi.mocked(api.mediaTools.transcribeAudio).mock.calls[0][0] as File;
+      expect(submitted.name).toBe('meeting.wav');
+      expect(submitted.type).toBe('audio/wav');
+      expect(screen.queryByText('private-audio-model')).not.toBeInTheDocument();
+      expect(screen.getByText('1 segment')).toBeInTheDocument();
+    });
+
+    it('should not offer media analysis for unsupported attachments', async () => {
+      const pdfAttachment: Attachment[] = [
+        {
+          id: 'att-pdf-analysis',
+          note_id: 'note-123',
+          filename: 'report.pdf',
+          content_type: 'application/pdf',
+          size_bytes: 1024,
+          status: 'completed',
+          storage_path: '/attachments/att-pdf-analysis/report.pdf',
+          has_exif: false,
+          has_location: false,
+          created_at: '2024-01-15T10:00:00Z',
+        },
+      ];
+      vi.mocked(api.attachments.listAttachments).mockResolvedValue(pdfAttachment);
+
+      render(<AttachmentsPanel noteId="note-123" />);
+
+      await waitFor(() => {
+        expect(screen.getByText('report.pdf')).toBeInTheDocument();
+      });
+
+      fireEvent.click(screen.getByTestId('attachment-card-att-pdf-analysis'));
+
+      await waitFor(() => {
+        expect(screen.getByRole('dialog')).toBeInTheDocument();
+      });
+
+      expect(screen.queryByRole('tab', { name: 'AI Content' })).not.toBeInTheDocument();
+      expect(screen.queryByText('Describe image')).not.toBeInTheDocument();
+      expect(screen.queryByText('Transcribe audio')).not.toBeInTheDocument();
+    });
+
+    it('should render media analysis endpoint errors without raw model output', async () => {
+      const imageAttachment: Attachment[] = [
+        {
+          id: 'att-image-error',
+          note_id: 'note-123',
+          filename: 'diagram.png',
+          content_type: 'image/png',
+          size_bytes: 4096,
+          status: 'completed',
+          storage_path: '/attachments/att-image-error/diagram.png',
+          has_exif: false,
+          has_location: false,
+          created_at: '2024-01-15T10:00:00Z',
+        },
+      ];
+      vi.mocked(api.attachments.listAttachments).mockResolvedValue(imageAttachment);
+      vi.mocked(api.attachments.downloadAttachment).mockResolvedValue(
+        new Blob(['img'], { type: 'image/png' }),
+      );
+      vi.mocked(api.mediaTools.describeImage).mockRejectedValue(
+        new Error('Image description failed: Vision analysis backend failed. Check server logs for diagnostics.'),
+      );
+
+      render(<AttachmentsPanel noteId="note-123" />);
+
+      await waitFor(() => {
+        expect(screen.getByText('diagram.png')).toBeInTheDocument();
+      });
+
+      fireEvent.click(screen.getByTestId('attachment-card-att-image-error'));
+      await waitFor(() => {
+        expect(screen.getByRole('dialog')).toBeInTheDocument();
+      });
+
+      fireEvent.mouseDown(screen.getByRole('tab', { name: 'AI Content' }));
+      fireEvent.click(screen.getByRole('button', { name: 'Describe image' }));
+
+      await waitFor(() => {
+        expect(screen.getByTestId('media-analysis-error')).toHaveTextContent(
+          'Vision analysis backend failed. Check server logs for diagnostics.',
+        );
+      });
+      expect(screen.queryByText(/private-vision-model/)).not.toBeInTheDocument();
     });
 
     it('should show extraction pending state in preview dialog', async () => {

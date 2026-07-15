@@ -1,4 +1,6 @@
 import type { ApiClient } from './client';
+import { getServerRoot } from './client';
+import { getTauriFetch } from '@/lib/tauri';
 
 export type SystemCapabilityState =
   | 'available'
@@ -73,10 +75,35 @@ export function normalizeSystemCompatibility(raw: SystemCompatibilityResponse): 
 }
 
 export function createSystemCompatibilityApi(client: ApiClient) {
+  const contractUrl = (path: string): string => {
+    if (/^https?:\/\//i.test(path)) return path;
+    const normalizedPath = path.startsWith('/') ? path : `/${path}`;
+    return `${getServerRoot(client.baseUrl)}${normalizedPath}`;
+  };
+
+  const fetchContract = async (path: string, fallback: string): Promise<string> => {
+    const response = await getTauriFetch()(contractUrl(path), {
+      method: 'GET',
+      headers: { Accept: 'application/yaml,text/yaml,text/plain,*/*' },
+    });
+    if (!response.ok) {
+      throw new Error(`${fallback} fetch failed: ${response.statusText || response.status}`);
+    }
+    return response.text();
+  };
+
   return {
     async get(): Promise<SystemCompatibilityResponse> {
       const response = await client.get<SystemCompatibilityResponse>('/system/compatibility');
       return normalizeSystemCompatibility(response);
+    },
+
+    async getOpenApi(path = '/openapi.yaml'): Promise<string> {
+      return fetchContract(path, 'OpenAPI');
+    },
+
+    async getAsyncApi(path = '/asyncapi.yaml'): Promise<string> {
+      return fetchContract(path, 'AsyncAPI');
     },
   };
 }

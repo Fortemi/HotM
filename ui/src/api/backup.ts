@@ -8,6 +8,7 @@ import type {
   BackupInfo,
   BackupListResponse,
   BackupMetadata,
+  BackupMetadataResponse,
   BackupStatus,
   CreateSnapshotRequest,
   RestoreDatabaseRequest,
@@ -36,6 +37,16 @@ export function createBackupApi(client: ApiClient) {
       binary += String.fromCharCode(...chunk);
     }
     return btoa(binary);
+  };
+  const encodePathSegment = (value: string): string => encodeURIComponent(value.trim());
+  const jsonErrorMessage = async (response: Response, fallback: string): Promise<string> => {
+    const error = await response.json().catch(() => ({}));
+    if (error && typeof error === 'object') {
+      const message = (error as { message?: unknown; error?: { message?: unknown } }).message
+        ?? (error as { error?: { message?: unknown } }).error?.message;
+      if (typeof message === 'string' && message.trim()) return message;
+    }
+    return fallback;
   };
 
   return {
@@ -162,6 +173,48 @@ export function createBackupApi(client: ApiClient) {
       });
     },
 
+    /**
+     * Import knowledge shard via multipart upload.
+     */
+    async uploadKnowledgeShard(
+      file: File,
+      options: {
+        include?: string;
+        dryRun?: boolean;
+        onConflict?: 'skip' | 'replace' | 'merge';
+        skipEmbeddingRegen?: boolean;
+      } = {},
+    ): Promise<unknown> {
+      if (!file) {
+        throw new Error('Knowledge shard file is required');
+      }
+
+      const params: Record<string, string> = {};
+      if (options.include?.trim()) params.include = options.include.trim();
+      if (options.dryRun !== undefined) params.dry_run = String(options.dryRun);
+      if (options.onConflict) params.on_conflict = options.onConflict;
+      if (options.skipEmbeddingRegen !== undefined) {
+        params.skip_embedding_regen = String(options.skipEmbeddingRegen);
+      }
+
+      const queryString = new URLSearchParams(params).toString();
+      const url = `${getBaseUrl()}/backup/knowledge-shard/upload${queryString ? `?${queryString}` : ''}`;
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const response = await getTauriFetch()(url, {
+        method: 'POST',
+        headers: getMemoryHeaders(),
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error(await jsonErrorMessage(response, `Upload failed: ${response.statusText}`));
+      }
+
+      return response.json().catch(() => undefined);
+    },
+
     // ===========================
     // Database Backups (Full)
     // ===========================
@@ -188,17 +241,20 @@ export function createBackupApi(client: ApiClient) {
      * Create a named database snapshot
      */
     async createSnapshot(request: CreateSnapshotRequest): Promise<void> {
-      if (!request.label || request.label.trim() === '') {
-        throw new Error('Snapshot label is required');
-      }
-
-      await client.post('/backup/database/snapshot', request);
+      await client.post('/backup/database/snapshot', {
+        name: request.name ?? request.label,
+        title: request.title ?? request.label,
+        description: request.description,
+      });
     },
 
     /**
      * Upload a database backup file
      */
-    async uploadDatabaseBackup(file: File): Promise<void> {
+    async uploadDatabaseBackup(
+      file: File,
+      metadata: { title?: string; description?: string } = {},
+    ): Promise<void> {
       if (!file) {
         throw new Error('Database backup file is required');
       }
@@ -207,6 +263,8 @@ export function createBackupApi(client: ApiClient) {
       await client.post('/backup/database/upload', {
         data_base64: dataBase64,
         original_filename: file.name,
+        title: metadata.title,
+        description: metadata.description,
       });
     },
 
@@ -257,9 +315,11 @@ export function createBackupApi(client: ApiClient) {
       }
 
       const baseUrl = getBaseUrl();
-      const url = `${baseUrl}/backup/knowledge-archive/${filename}`;
+      const url = `${baseUrl}/backup/knowledge-archive/${encodePathSegment(filename)}`;
 
-      const response = await getTauriFetch()(url);
+      const response = await getTauriFetch()(url, {
+        headers: getMemoryHeaders(),
+      });
 
       if (!response.ok) {
         throw new Error(`Download failed: ${response.statusText}`);
@@ -289,8 +349,7 @@ export function createBackupApi(client: ApiClient) {
       });
 
       if (!response.ok) {
-        const error = await response.json().catch(() => ({}));
-        throw new Error(error.message || `Upload failed: ${response.statusText}`);
+        throw new Error(await jsonErrorMessage(response, `Upload failed: ${response.statusText}`));
       }
     },
 
@@ -320,7 +379,7 @@ export function createBackupApi(client: ApiClient) {
         throw new Error('Backup filename is required');
       }
 
-      return client.get<BackupInfo>(`/backup/list/${filename}`);
+      return client.get<BackupInfo>(`/backup/list/${encodePathSegment(filename)}`);
     },
 
     /**
@@ -328,11 +387,16 @@ export function createBackupApi(client: ApiClient) {
      * Creates backup of current state first
      */
     async swapBackup(request: SwapBackupRequest): Promise<void> {
-      if (!request.backup_filename || request.backup_filename.trim() === '') {
+      const filename = request.filename ?? request.backup_filename;
+      if (!filename || filename.trim() === '') {
         throw new Error('Backup filename is required');
       }
 
-      await client.post('/backup/swap', request);
+      await client.post('/backup/swap', {
+        filename,
+        dry_run: request.dry_run,
+        strategy: request.strategy,
+      });
     },
 
     // ===========================
@@ -342,13 +406,13 @@ export function createBackupApi(client: ApiClient) {
     /**
      * Get metadata for a backup file
      */
-    async getBackupMetadata(filename: string): Promise<BackupMetadata> {
+    async getBackupMetadata(filename: string): Promise<BackupMetadataResponse> {
       if (!filename || filename.trim() === '') {
         throw new Error('Backup filename is required');
       }
 
-      return client.get<BackupMetadata>(
-        `/backup/metadata/${filename}`
+      return client.get<BackupMetadataResponse>(
+        `/backup/metadata/${encodePathSegment(filename)}`
       );
     },
 
@@ -358,12 +422,18 @@ export function createBackupApi(client: ApiClient) {
     async updateBackupMetadata(
       filename: string,
       metadata: BackupMetadata
-    ): Promise<void> {
+    ): Promise<BackupMetadataResponse> {
       if (!filename || filename.trim() === '') {
         throw new Error('Backup filename is required');
       }
 
-      await client.put(`/backup/metadata/${filename}`, metadata);
+      return client.put<BackupMetadataResponse>(
+        `/backup/metadata/${encodePathSegment(filename)}`,
+        {
+          title: metadata.title ?? metadata.label,
+          description: metadata.description,
+        },
+      );
     },
   };
 }

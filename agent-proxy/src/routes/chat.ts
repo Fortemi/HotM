@@ -15,7 +15,12 @@
 import { Router } from 'express';
 import { streamText, convertToModelMessages, stepCountIs } from 'ai';
 import { getModel, type ProviderName, DEFAULT_MODELS } from '../providers/index.js';
-import { agentTools } from '../tools.js';
+import {
+  agentTools,
+  deferredToolDecisions,
+  nonToolBoundaries,
+  toolMetadata,
+} from '../tools.js';
 import {
   createFlowActor,
   getFlowState,
@@ -125,6 +130,9 @@ chatRouter.get('/', (_req, res) => {
     defaultProvider: 'ollama',
     defaultModel: DEFAULT_MODELS.ollama,
     tools: Object.keys(agentTools),
+    toolMetadata,
+    deferredToolDecisions,
+    nonToolBoundaries,
   });
 });
 

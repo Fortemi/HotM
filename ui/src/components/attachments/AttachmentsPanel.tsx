@@ -54,6 +54,7 @@ import { api } from '@/api';
 import { realtimeEventBus } from '@/services/realtimeEventBus';
 import { uploadStore } from '@/services/uploadStore';
 import { useBlobUrl } from '@/lib/tauri';
+import type { DescribeImageResponse, TranscribeAudioResponse } from '@/api';
 import type { Attachment, AttachmentMetadata, ExtractionStatus, AttachmentStatus } from '@/api/types-extended';
 import { getPreviewMode, shouldDownloadBlob, getDocTypeLabel, getLanguageFromType } from './preview-utils';
 import type { PreviewMode } from './preview-utils';
@@ -827,6 +828,120 @@ function hasAiContent(attachment: Attachment): boolean {
   return false;
 }
 
+function getMediaAnalysisKind(attachment: Attachment): 'image' | 'audio' | null {
+  if (attachment.content_type.startsWith('image/')) return 'image';
+  if (attachment.content_type.startsWith('audio/') || attachment.content_type.startsWith('video/')) return 'audio';
+  return null;
+}
+
+async function attachmentToFile(blob: Blob, attachment: Attachment): Promise<File> {
+  const part = typeof blob.arrayBuffer === 'function'
+    ? await blob.arrayBuffer()
+    : blob;
+  return new globalThis.File([part], attachment.filename, {
+    type: attachment.content_type || blob.type || 'application/octet-stream',
+  });
+}
+
+interface MediaAnalysisState {
+  status: 'idle' | 'running' | 'done' | 'error';
+  kind: 'image' | 'audio';
+  image?: DescribeImageResponse;
+  audio?: TranscribeAudioResponse;
+  error?: string;
+}
+
+function MediaAnalysisSection({ attachment }: { attachment: Attachment }) {
+  const analysisKind = getMediaAnalysisKind(attachment);
+  const [state, setState] = useState<MediaAnalysisState | null>(
+    analysisKind ? { status: 'idle', kind: analysisKind } : null,
+  );
+
+  useEffect(() => {
+    setState(analysisKind ? { status: 'idle', kind: analysisKind } : null);
+  }, [analysisKind, attachment.id]);
+
+  if (!analysisKind || !state) return null;
+
+  const runAnalysis = async () => {
+    setState({ status: 'running', kind: analysisKind });
+    try {
+      const blob = await api.attachments.downloadAttachment(attachment.id);
+      const file = await attachmentToFile(blob, attachment);
+      if (analysisKind === 'image') {
+        const image = await api.mediaTools.describeImage(file);
+        setState({ status: 'done', kind: analysisKind, image });
+      } else {
+        const audio = await api.mediaTools.transcribeAudio(file);
+        setState({ status: 'done', kind: analysisKind, audio });
+      }
+    } catch (error) {
+      console.error('Media analysis failed:', error);
+      const message = error instanceof Error ? error.message : 'Analysis failed';
+      setState({ status: 'error', kind: analysisKind, error: message });
+    }
+  };
+
+  const buttonLabel = analysisKind === 'image' ? 'Describe image' : 'Transcribe audio';
+  const title = analysisKind === 'image' ? 'Image Analysis' : 'Audio Transcription';
+
+  return (
+    <div className="rounded-lg border p-4 space-y-3" data-testid="media-analysis">
+      <div className="flex items-center gap-2">
+        <Sparkles className="w-4 h-4 text-primary" />
+        <span className="text-sm font-medium">{title}</span>
+        <Button
+          variant="outline"
+          size="sm"
+          className="ml-auto"
+          onClick={runAnalysis}
+          disabled={state.status === 'running'}
+        >
+          {state.status === 'running' && <Loader2 className="w-3.5 h-3.5 mr-2 animate-spin" />}
+          {buttonLabel}
+        </Button>
+      </div>
+
+      {state.status === 'idle' && (
+        <p className="text-xs text-muted-foreground">
+          Run ad-hoc analysis on this attachment using the connected Fortemi media endpoint.
+        </p>
+      )}
+
+      {state.status === 'error' && (
+        <div className="rounded border border-red-500/20 bg-red-500/5 p-3 text-sm" data-testid="media-analysis-error">
+          <div className="flex items-center gap-2 text-red-700 dark:text-red-400">
+            <AlertCircle className="w-4 h-4" />
+            <span className="font-medium">Analysis failed</span>
+          </div>
+          <p className="text-muted-foreground mt-1">{state.error}</p>
+        </div>
+      )}
+
+      {state.image && (
+        <div className="rounded bg-muted/30 p-3" data-testid="media-analysis-description">
+          <p className="text-sm whitespace-pre-wrap">{state.image.description}</p>
+          <p className="text-xs text-muted-foreground mt-2">
+            Model name length: {state.image.model.length}; image size: {formatFileSize(state.image.image_size)}
+          </p>
+        </div>
+      )}
+
+      {state.audio && (
+        <div className="rounded bg-muted/30 p-3 space-y-2" data-testid="media-analysis-transcript">
+          <p className="text-sm whitespace-pre-wrap">{state.audio.text}</p>
+          <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
+            <span>{state.audio.segments.length} segment{state.audio.segments.length === 1 ? '' : 's'}</span>
+            {state.audio.language && <span>Language: {state.audio.language}</span>}
+            {state.audio.duration_secs != null && <span>Duration: {formatMediaDuration(state.audio.duration_secs)}</span>}
+            <span>Model name length: {state.audio.model.length}</span>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function PreviewDialogTabs({
   attachment,
   metadata,
@@ -841,7 +956,8 @@ function PreviewDialogTabs({
   onDownload: () => void;
 }) {
   const extractionStatus = getExtractionStatus(attachment);
-  const showAiTab = hasAiContent(attachment) || extractionStatus === 'pending' || extractionStatus === 'failed';
+  const hasMediaAnalysis = getMediaAnalysisKind(attachment) !== null;
+  const showAiTab = hasMediaAnalysis || hasAiContent(attachment) || extractionStatus === 'pending' || extractionStatus === 'failed';
   const meta = (attachment.extracted_metadata ?? {}) as Record<string, unknown>;
   const transcriptSegments = Array.isArray(meta.transcript_segments) ? meta.transcript_segments as TranscriptSegment[] : null;
   const keyframeDescs = Array.isArray(meta.keyframe_descriptions) ? meta.keyframe_descriptions as KeyframeDescription[] : null;
@@ -917,6 +1033,8 @@ function PreviewDialogTabs({
       {showAiTab && (
         <TabsContent value="ai-content" className="overflow-y-auto flex-1">
           <div className="space-y-4 py-2">
+            <MediaAnalysisSection attachment={attachment} />
+
             {/* Extraction Pending/Failed States */}
             {getExtractionStatus(attachment) === 'pending' && (
               <div className="rounded-lg border border-yellow-500/20 bg-yellow-500/5 p-4 text-sm" data-testid="extraction-pending">

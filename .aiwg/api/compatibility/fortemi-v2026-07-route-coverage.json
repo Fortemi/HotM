@@ -1,0 +1,2368 @@
+{
+  "generated_at": "2026-07-14",
+  "fortemi_root": "/home/roctinam/dev/fortemi/fortemi",
+  "fortemi_commit": "f6733252",
+  "fortemi_latest_tag": "v2026.7.1",
+  "route_count": 200,
+  "status_counts": {
+    "covered": 186,
+    "documented_exclusion": 14
+  },
+  "family_counts": {
+    "health": 2,
+    "streaming_health": 1,
+    "system_compatibility": 1,
+    "contract_docs": 2,
+    "notes": 25,
+    "search": 2,
+    "archives": 13,
+    "provenance": 5,
+    "knowledge_health": 6,
+    "realtime_calls": 2,
+    "jobs": 10,
+    "models": 1,
+    "inference": 6,
+    "vision_tools": 1,
+    "audio_tools": 1,
+    "chat_sync": 2,
+    "native_chat_stream": 1,
+    "streaming_ingest": 3,
+    "document_types": 3,
+    "pke": 12,
+    "tags": 1,
+    "concepts": 22,
+    "attachments": 9,
+    "attachments_tus": 2,
+    "collections": 4,
+    "embeddings": 8,
+    "graph": 11,
+    "templates": 3,
+    "oauth": 7,
+    "auth_api_keys": 2,
+    "backup_archive": 20,
+    "realtime_events": 2,
+    "outbound_webhooks": 4,
+    "incoming_webhook_receivers": 3,
+    "inbound_sources": 2,
+    "rate_limit": 1
+  },
+  "route_level_overrides": [
+    {
+      "method": "GET",
+      "path": "/api/v1/calls/{id}",
+      "current_family": "realtime_calls",
+      "current_status": "covered",
+      "family": "realtime_calls",
+      "proposed_status": "covered",
+      "proposed_surface": "Admin API Surface call diagnostics",
+      "tracker": "#259",
+      "source": "ADR-011",
+      "note": "Typed REST client and redacted Admin call diagnostics evidence have landed."
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/realtime/twilio/{provider_call_id}",
+      "current_family": "realtime_calls",
+      "current_status": "documented_exclusion",
+      "family": "realtime_calls",
+      "proposed_status": "documented_exclusion",
+      "proposed_surface": "Admin API Surface no-claim message for provider-specific live validation",
+      "tracker": "#259",
+      "source": "ADR-011",
+      "note": "HotM renders a documented-exclusion boundary and exposes no Twilio realtime helper."
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/vision/describe",
+      "current_family": "vision_tools",
+      "current_status": "covered",
+      "family": "vision_tools",
+      "proposed_status": "covered",
+      "proposed_surface": "Attachment preview action for supported image attachments",
+      "tracker": "#259",
+      "source": "ADR-011",
+      "note": "Typed client and attachment action UX evidence have landed."
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/audio/transcribe",
+      "current_family": "audio_tools",
+      "current_status": "covered",
+      "family": "audio_tools",
+      "proposed_status": "covered",
+      "proposed_surface": "Attachment preview action for audio/video attachments",
+      "tracker": "#259",
+      "source": "ADR-011",
+      "note": "Typed client and attachment action UX evidence have landed."
+    }
+  ],
+  "routes": [
+    {
+      "methods": [
+        "GET"
+      ],
+      "path": "/health",
+      "handler_expr": "get(health_check)",
+      "family": "health",
+      "status": "covered",
+      "hotm_evidence": "health checks in compat/core client",
+      "tracker": "#253"
+    },
+    {
+      "methods": [
+        "GET"
+      ],
+      "path": "/health/live",
+      "handler_expr": "get(health_check_live)",
+      "family": "health",
+      "status": "covered",
+      "hotm_evidence": "health checks in compat/core client",
+      "tracker": "#253"
+    },
+    {
+      "methods": [
+        "GET"
+      ],
+      "path": "/api/v1/health/streaming",
+      "handler_expr": "get(streaming_health_check)",
+      "family": "streaming_health",
+      "status": "covered",
+      "hotm_evidence": "ui/src/api/health.ts and ApiCapabilitiesPanel streaming health card",
+      "tracker": "#254"
+    },
+    {
+      "methods": [
+        "GET"
+      ],
+      "path": "/api/v1/system/compatibility",
+      "handler_expr": "get(system_compatibility)",
+      "family": "system_compatibility",
+      "status": "covered",
+      "hotm_evidence": "ui/src/api/systemCompatibility.ts and ApiCapabilitiesPanel",
+      "tracker": "#244"
+    },
+    {
+      "methods": [
+        "GET"
+      ],
+      "path": "/openapi.yaml",
+      "handler_expr": "get(openapi_yaml)",
+      "family": "contract_docs",
+      "status": "covered",
+      "hotm_evidence": "ui/src/api/systemCompatibility.ts fetches advertised OpenAPI and Admin API Surface links it",
+      "tracker": "#253"
+    },
+    {
+      "methods": [
+        "GET"
+      ],
+      "path": "/asyncapi.yaml",
+      "handler_expr": "get(asyncapi_yaml)",
+      "family": "contract_docs",
+      "status": "covered",
+      "hotm_evidence": "ui/src/api/systemCompatibility.ts fetches advertised AsyncAPI and Admin API Surface links it",
+      "tracker": "#253"
+    },
+    {
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "path": "/api/v1/notes",
+      "handler_expr": "get(list_notes).post(create_note)",
+      "family": "notes",
+      "status": "covered",
+      "hotm_evidence": "ui/src/api/notes.ts, extended.ts, versions.ts, links.ts",
+      "tracker": "#253"
+    },
+    {
+      "methods": [
+        "POST"
+      ],
+      "path": "/api/v1/notes/bulk",
+      "handler_expr": "post(bulk_create_notes)",
+      "family": "notes",
+      "status": "covered",
+      "hotm_evidence": "ui/src/api/notes.ts, extended.ts, versions.ts, links.ts",
+      "tracker": "#253"
+    },
+    {
+      "methods": [
+        "GET",
+        "PATCH",
+        "DELETE"
+      ],
+      "path": "/api/v1/notes/{id}",
+      "handler_expr": "get(get_note).patch(update_note).delete(delete_note),",
+      "family": "notes",
+      "status": "covered",
+      "hotm_evidence": "ui/src/api/notes.ts, extended.ts, versions.ts, links.ts",
+      "tracker": "#253"
+    },
+    {
+      "methods": [
+        "POST"
+      ],
+      "path": "/api/v1/notes/{id}/restore",
+      "handler_expr": "post(restore_note)",
+      "family": "notes",
+      "status": "covered",
+      "hotm_evidence": "ui/src/api/notes.ts, extended.ts, versions.ts, links.ts",
+      "tracker": "#253"
+    },
+    {
+      "methods": [
+        "POST"
+      ],
+      "path": "/api/v1/notes/{id}/purge",
+      "handler_expr": "post(purge_note)",
+      "family": "notes",
+      "status": "covered",
+      "hotm_evidence": "ui/src/api/notes.ts, extended.ts, versions.ts, links.ts",
+      "tracker": "#253"
+    },
+    {
+      "methods": [
+        "POST"
+      ],
+      "path": "/api/v1/notes/{id}/reprocess",
+      "handler_expr": "post(reprocess_note)",
+      "family": "notes",
+      "status": "covered",
+      "hotm_evidence": "ui/src/api/notes.ts, extended.ts, versions.ts, links.ts",
+      "tracker": "#253"
+    },
+    {
+      "methods": [
+        "POST"
+      ],
+      "path": "/api/v1/notes/reprocess",
+      "handler_expr": "post(bulk_reprocess_notes)",
+      "family": "notes",
+      "status": "covered",
+      "hotm_evidence": "ui/src/api/notes.ts, extended.ts, versions.ts, links.ts",
+      "tracker": "#253"
+    },
+    {
+      "methods": [
+        "GET",
+        "PUT"
+      ],
+      "path": "/api/v1/notes/{id}/tags",
+      "handler_expr": "get(get_note_tags).put(set_note_tags),",
+      "family": "notes",
+      "status": "covered",
+      "hotm_evidence": "ui/src/api/notes.ts, extended.ts, versions.ts, links.ts",
+      "tracker": "#253"
+    },
+    {
+      "methods": [
+        "GET"
+      ],
+      "path": "/api/v1/notes/{id}/links",
+      "handler_expr": "get(get_note_links)",
+      "family": "notes",
+      "status": "covered",
+      "hotm_evidence": "ui/src/api/notes.ts, extended.ts, versions.ts, links.ts",
+      "tracker": "#253"
+    },
+    {
+      "methods": [
+        "GET"
+      ],
+      "path": "/api/v1/notes/{id}/backlinks",
+      "handler_expr": "get(get_note_backlinks)",
+      "family": "notes",
+      "status": "covered",
+      "hotm_evidence": "ui/src/api/notes.ts, extended.ts, versions.ts, links.ts",
+      "tracker": "#253"
+    },
+    {
+      "methods": [
+        "GET"
+      ],
+      "path": "/api/v1/notes/{id}/related",
+      "handler_expr": "get(get_related_notes)",
+      "family": "notes",
+      "status": "covered",
+      "hotm_evidence": "ui/src/api/notes.ts, extended.ts, versions.ts, links.ts",
+      "tracker": "#253"
+    },
+    {
+      "methods": [
+        "GET"
+      ],
+      "path": "/api/v1/notes/{id}/export",
+      "handler_expr": "get(export_note)",
+      "family": "notes",
+      "status": "covered",
+      "hotm_evidence": "ui/src/api/notes.ts, extended.ts, versions.ts, links.ts",
+      "tracker": "#253"
+    },
+    {
+      "methods": [
+        "GET"
+      ],
+      "path": "/api/v1/notes/{id}/full",
+      "handler_expr": "get(get_full_document)",
+      "family": "notes",
+      "status": "covered",
+      "hotm_evidence": "ui/src/api/notes.ts, extended.ts, versions.ts, links.ts",
+      "tracker": "#253"
+    },
+    {
+      "methods": [
+        "GET"
+      ],
+      "path": "/api/v1/notes/{id}/provenance",
+      "handler_expr": "get(get_note_provenance)",
+      "family": "notes",
+      "status": "covered",
+      "hotm_evidence": "ui/src/api/notes.ts, extended.ts, versions.ts, links.ts",
+      "tracker": "#253"
+    },
+    {
+      "methods": [
+        "GET"
+      ],
+      "path": "/api/v1/notes/{id}/versions",
+      "handler_expr": "get(list_note_versions)",
+      "family": "notes",
+      "status": "covered",
+      "hotm_evidence": "ui/src/api/notes.ts, extended.ts, versions.ts, links.ts",
+      "tracker": "#253"
+    },
+    {
+      "methods": [
+        "GET",
+        "DELETE"
+      ],
+      "path": "/api/v1/notes/{id}/versions/{version}",
+      "handler_expr": "get(get_note_version).delete(delete_note_version),",
+      "family": "notes",
+      "status": "covered",
+      "hotm_evidence": "ui/src/api/notes.ts, extended.ts, versions.ts, links.ts",
+      "tracker": "#253"
+    },
+    {
+      "methods": [
+        "POST"
+      ],
+      "path": "/api/v1/notes/{id}/versions/{version}/restore",
+      "handler_expr": "post(restore_note_version),",
+      "family": "notes",
+      "status": "covered",
+      "hotm_evidence": "ui/src/api/notes.ts, extended.ts, versions.ts, links.ts",
+      "tracker": "#253"
+    },
+    {
+      "methods": [
+        "GET"
+      ],
+      "path": "/api/v1/notes/{id}/versions/diff",
+      "handler_expr": "get(diff_note_versions)",
+      "family": "notes",
+      "status": "covered",
+      "hotm_evidence": "ui/src/api/notes.ts, extended.ts, versions.ts, links.ts",
+      "tracker": "#253"
+    },
+    {
+      "methods": [
+        "GET"
+      ],
+      "path": "/api/v1/search",
+      "handler_expr": "get(search_notes)",
+      "family": "search",
+      "status": "covered",
+      "hotm_evidence": "ui/src/api/search.ts and SearchPage/agent tool",
+      "tracker": "#253"
+    },
+    {
+      "methods": [
+        "POST"
+      ],
+      "path": "/api/v1/search/federated",
+      "handler_expr": "post(federated_search)",
+      "family": "search",
+      "status": "covered",
+      "hotm_evidence": "ui/src/api/search.ts and SearchPage/agent tool",
+      "tracker": "#253"
+    },
+    {
+      "methods": [
+        "GET"
+      ],
+      "path": "/api/v1/memories/search",
+      "handler_expr": "get(search_memories)",
+      "family": "archives",
+      "status": "covered",
+      "hotm_evidence": "archive/memory routing APIs and ArchiveManager",
+      "tracker": "#253"
+    },
+    {
+      "methods": [
+        "GET"
+      ],
+      "path": "/api/v1/notes/{id}/memory-provenance",
+      "handler_expr": "get(get_memory_provenance_handler),",
+      "family": "notes",
+      "status": "covered",
+      "hotm_evidence": "ui/src/api/notes.ts, extended.ts, versions.ts, links.ts",
+      "tracker": "#253"
+    },
+    {
+      "methods": [
+        "POST"
+      ],
+      "path": "/api/v1/provenance/locations",
+      "handler_expr": "post(create_prov_location)",
+      "family": "provenance",
+      "status": "covered",
+      "hotm_evidence": "ui/src/api/provenance.ts and memory provenance APIs",
+      "tracker": "#253"
+    },
+    {
+      "methods": [
+        "POST"
+      ],
+      "path": "/api/v1/provenance/named-locations",
+      "handler_expr": "post(create_named_location),",
+      "family": "provenance",
+      "status": "covered",
+      "hotm_evidence": "ui/src/api/provenance.ts and memory provenance APIs",
+      "tracker": "#253"
+    },
+    {
+      "methods": [
+        "POST"
+      ],
+      "path": "/api/v1/provenance/devices",
+      "handler_expr": "post(create_prov_device)",
+      "family": "provenance",
+      "status": "covered",
+      "hotm_evidence": "ui/src/api/provenance.ts and memory provenance APIs",
+      "tracker": "#253"
+    },
+    {
+      "methods": [
+        "POST"
+      ],
+      "path": "/api/v1/provenance/files",
+      "handler_expr": "post(create_file_provenance)",
+      "family": "provenance",
+      "status": "covered",
+      "hotm_evidence": "ui/src/api/provenance.ts and memory provenance APIs",
+      "tracker": "#253"
+    },
+    {
+      "methods": [
+        "POST"
+      ],
+      "path": "/api/v1/provenance/notes",
+      "handler_expr": "post(create_note_provenance)",
+      "family": "provenance",
+      "status": "covered",
+      "hotm_evidence": "ui/src/api/provenance.ts and memory provenance APIs",
+      "tracker": "#253"
+    },
+    {
+      "methods": [
+        "GET"
+      ],
+      "path": "/api/v1/notes/timeline",
+      "handler_expr": "get(get_notes_timeline)",
+      "family": "notes",
+      "status": "covered",
+      "hotm_evidence": "ui/src/api/notes.ts, extended.ts, versions.ts, links.ts",
+      "tracker": "#253"
+    },
+    {
+      "methods": [
+        "GET"
+      ],
+      "path": "/api/v1/notes/activity",
+      "handler_expr": "get(get_notes_activity)",
+      "family": "notes",
+      "status": "covered",
+      "hotm_evidence": "ui/src/api/notes.ts, extended.ts, versions.ts, links.ts",
+      "tracker": "#253"
+    },
+    {
+      "methods": [
+        "GET"
+      ],
+      "path": "/api/v1/health/knowledge",
+      "handler_expr": "get(get_knowledge_health)",
+      "family": "knowledge_health",
+      "status": "covered",
+      "hotm_evidence": "ui/src/api/health.ts and KnowledgeHealthDashboard",
+      "tracker": "#253"
+    },
+    {
+      "methods": [
+        "GET"
+      ],
+      "path": "/api/v1/health/orphan-tags",
+      "handler_expr": "get(get_orphan_tags)",
+      "family": "knowledge_health",
+      "status": "covered",
+      "hotm_evidence": "ui/src/api/health.ts and KnowledgeHealthDashboard",
+      "tracker": "#253"
+    },
+    {
+      "methods": [
+        "GET"
+      ],
+      "path": "/api/v1/health/stale-notes",
+      "handler_expr": "get(get_stale_notes)",
+      "family": "knowledge_health",
+      "status": "covered",
+      "hotm_evidence": "ui/src/api/health.ts and KnowledgeHealthDashboard",
+      "tracker": "#253"
+    },
+    {
+      "methods": [
+        "GET"
+      ],
+      "path": "/api/v1/health/unlinked-notes",
+      "handler_expr": "get(get_unlinked_notes)",
+      "family": "knowledge_health",
+      "status": "covered",
+      "hotm_evidence": "ui/src/api/health.ts and KnowledgeHealthDashboard",
+      "tracker": "#253"
+    },
+    {
+      "methods": [
+        "GET"
+      ],
+      "path": "/api/v1/health/tag-cooccurrence",
+      "handler_expr": "get(get_tag_cooccurrence)",
+      "family": "knowledge_health",
+      "status": "covered",
+      "hotm_evidence": "ui/src/api/health.ts and KnowledgeHealthDashboard",
+      "tracker": "#253"
+    },
+    {
+      "methods": [
+        "GET"
+      ],
+      "path": "/api/v1/health/access-frequency",
+      "handler_expr": "get(get_access_frequency)",
+      "family": "knowledge_health",
+      "status": "covered",
+      "hotm_evidence": "ui/src/api/health.ts and KnowledgeHealthDashboard",
+      "tracker": "#253"
+    },
+    {
+      "methods": [
+        "PATCH"
+      ],
+      "path": "/api/v1/notes/{id}/status",
+      "handler_expr": "patch(update_note_status)",
+      "family": "notes",
+      "status": "covered",
+      "hotm_evidence": "ui/src/api/notes.ts, extended.ts, versions.ts, links.ts",
+      "tracker": "#253"
+    },
+    {
+      "methods": [
+        "GET"
+      ],
+      "path": "/api/v1/calls/{id}",
+      "handler_expr": "get(get_call)",
+      "family": "realtime_calls",
+      "status": "covered",
+      "hotm_evidence": "ui/src/api/calls.ts and ApiCapabilitiesPanel redacted call diagnostics",
+      "tracker": "#259"
+    },
+    {
+      "methods": [
+        "GET"
+      ],
+      "path": "/api/v1/realtime/twilio/{provider_call_id}",
+      "handler_expr": "get(twilio_realtime_ws),",
+      "family": "realtime_calls",
+      "status": "documented_exclusion",
+      "hotm_evidence": "HotM documents no Twilio realtime WebSocket diagnostic surface and exposes no helper",
+      "tracker": "#259"
+    },
+    {
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "path": "/api/v1/jobs",
+      "handler_expr": "get(list_jobs).post(create_job)",
+      "family": "jobs",
+      "status": "covered",
+      "hotm_evidence": "ui/src/api/jobs.ts and job panels/store",
+      "tracker": "#253"
+    },
+    {
+      "methods": [
+        "GET"
+      ],
+      "path": "/api/v1/jobs/{id}",
+      "handler_expr": "get(get_job)",
+      "family": "jobs",
+      "status": "covered",
+      "hotm_evidence": "ui/src/api/jobs.ts and job panels/store",
+      "tracker": "#253"
+    },
+    {
+      "methods": [
+        "GET"
+      ],
+      "path": "/api/v1/jobs/pending",
+      "handler_expr": "get(pending_jobs_count)",
+      "family": "jobs",
+      "status": "covered",
+      "hotm_evidence": "ui/src/api/jobs.ts and job panels/store",
+      "tracker": "#253"
+    },
+    {
+      "methods": [
+        "GET"
+      ],
+      "path": "/api/v1/jobs/stats",
+      "handler_expr": "get(queue_stats)",
+      "family": "jobs",
+      "status": "covered",
+      "hotm_evidence": "ui/src/api/jobs.ts and job panels/store",
+      "tracker": "#253"
+    },
+    {
+      "methods": [
+        "GET"
+      ],
+      "path": "/api/v1/jobs/status",
+      "handler_expr": "get(get_job_pause_status)",
+      "family": "jobs",
+      "status": "covered",
+      "hotm_evidence": "ui/src/api/jobs.ts and job panels/store",
+      "tracker": "#253"
+    },
+    {
+      "methods": [
+        "POST"
+      ],
+      "path": "/api/v1/jobs/pause",
+      "handler_expr": "post(pause_jobs_global)",
+      "family": "jobs",
+      "status": "covered",
+      "hotm_evidence": "ui/src/api/jobs.ts and job panels/store",
+      "tracker": "#253"
+    },
+    {
+      "methods": [
+        "POST"
+      ],
+      "path": "/api/v1/jobs/resume",
+      "handler_expr": "post(resume_jobs_global)",
+      "family": "jobs",
+      "status": "covered",
+      "hotm_evidence": "ui/src/api/jobs.ts and job panels/store",
+      "tracker": "#253"
+    },
+    {
+      "methods": [
+        "POST"
+      ],
+      "path": "/api/v1/jobs/pause/{archive}",
+      "handler_expr": "post(pause_jobs_archive)",
+      "family": "jobs",
+      "status": "covered",
+      "hotm_evidence": "ui/src/api/jobs.ts and job panels/store",
+      "tracker": "#253"
+    },
+    {
+      "methods": [
+        "POST"
+      ],
+      "path": "/api/v1/jobs/resume/{archive}",
+      "handler_expr": "post(resume_jobs_archive)",
+      "family": "jobs",
+      "status": "covered",
+      "hotm_evidence": "ui/src/api/jobs.ts and job panels/store",
+      "tracker": "#253"
+    },
+    {
+      "methods": [
+        "GET"
+      ],
+      "path": "/api/v1/extraction/stats",
+      "handler_expr": "get(extraction_stats)",
+      "family": "jobs",
+      "status": "covered",
+      "hotm_evidence": "attachment/job status surfaces",
+      "tracker": "#253"
+    },
+    {
+      "methods": [
+        "GET"
+      ],
+      "path": "/api/v1/models",
+      "handler_expr": "get(list_models)",
+      "family": "models",
+      "status": "covered",
+      "hotm_evidence": "ui/src/api/chat.ts/inference settings model discovery",
+      "tracker": "#159"
+    },
+    {
+      "methods": [
+        "GET",
+        "POST",
+        "DELETE"
+      ],
+      "path": "/api/v1/inference/config",
+      "handler_expr": "get(get_inference_config) .post(update_inference_config) .delete(delete_inference_config),",
+      "family": "inference",
+      "status": "covered",
+      "hotm_evidence": "ui/src/api/inference.ts and Admin inference settings/audit",
+      "tracker": "#253"
+    },
+    {
+      "methods": [
+        "GET"
+      ],
+      "path": "/api/v1/inference/config/audit",
+      "handler_expr": "get(get_inference_config_audit),",
+      "family": "inference",
+      "status": "covered",
+      "hotm_evidence": "ui/src/api/inference.ts and Admin inference settings/audit",
+      "tracker": "#253"
+    },
+    {
+      "methods": [
+        "POST"
+      ],
+      "path": "/api/v1/inference/test-connection",
+      "handler_expr": "post(test_connection)",
+      "family": "inference",
+      "status": "covered",
+      "hotm_evidence": "ui/src/api/inference.ts and Admin inference settings/audit",
+      "tracker": "#253"
+    },
+    {
+      "methods": [
+        "POST"
+      ],
+      "path": "/api/v1/inference/complete",
+      "handler_expr": "post(inference_complete_handler),",
+      "family": "inference",
+      "status": "covered",
+      "hotm_evidence": "ui/src/api/inference.ts and Admin inference settings/audit",
+      "tracker": "#253"
+    },
+    {
+      "methods": [
+        "POST"
+      ],
+      "path": "/api/v1/inference/stream",
+      "handler_expr": "post(inference_stream_handler)",
+      "family": "inference",
+      "status": "covered",
+      "hotm_evidence": "ui/src/api/inference.ts and Admin inference settings/audit",
+      "tracker": "#253"
+    },
+    {
+      "methods": [
+        "GET"
+      ],
+      "path": "/api/v1/inference/providers",
+      "handler_expr": "get(list_inference_providers)",
+      "family": "inference",
+      "status": "covered",
+      "hotm_evidence": "ui/src/api/inference.ts and Admin inference settings/audit",
+      "tracker": "#253"
+    },
+    {
+      "methods": [
+        "POST"
+      ],
+      "path": "/api/v1/vision/describe",
+      "handler_expr": "post(describe_image).layer(DefaultBodyLimit::max(max_upload_size)),",
+      "family": "vision_tools",
+      "status": "covered",
+      "hotm_evidence": "ui/src/api/mediaTools.ts and AttachmentsPanel image analysis action",
+      "tracker": "#259"
+    },
+    {
+      "methods": [
+        "POST"
+      ],
+      "path": "/api/v1/audio/transcribe",
+      "handler_expr": "post(transcribe_audio).layer(DefaultBodyLimit::max(max_upload_size)),",
+      "family": "audio_tools",
+      "status": "covered",
+      "hotm_evidence": "ui/src/api/mediaTools.ts and AttachmentsPanel audio/video transcription action",
+      "tracker": "#259"
+    },
+    {
+      "methods": [
+        "POST"
+      ],
+      "path": "/api/v1/chat",
+      "handler_expr": "post(chat_handler)",
+      "family": "chat_sync",
+      "status": "covered",
+      "hotm_evidence": "ui/src/api/chat.ts and agent components",
+      "tracker": "#242"
+    },
+    {
+      "methods": [
+        "POST"
+      ],
+      "path": "/api/v1/chat/stream",
+      "handler_expr": "post(chat_stream_handler)",
+      "family": "native_chat_stream",
+      "status": "covered",
+      "hotm_evidence": "ui/src/api/chat.ts native stream client and Agent Fortemi stream path",
+      "tracker": "#242"
+    },
+    {
+      "methods": [
+        "POST"
+      ],
+      "path": "/api/v1/ingest/stream",
+      "handler_expr": "post(handlers::ingest_stream::ingest_stream_handler),",
+      "family": "streaming_ingest",
+      "status": "covered",
+      "hotm_evidence": "ui/src/api/ingest.ts and BackupManager NDJSON stream import",
+      "tracker": "#255"
+    },
+    {
+      "methods": [
+        "POST"
+      ],
+      "path": "/api/v1/ingest/tokens",
+      "handler_expr": "post(handlers::ingest_tokens::mint_ingest_token),",
+      "family": "streaming_ingest",
+      "status": "covered",
+      "hotm_evidence": "ui/src/api/ingest.ts and BackupManager NDJSON stream import",
+      "tracker": "#255"
+    },
+    {
+      "methods": [
+        "DELETE"
+      ],
+      "path": "/api/v1/ingest/tokens/{token_id}",
+      "handler_expr": "delete(handlers::ingest_tokens::revoke_ingest_token),",
+      "family": "streaming_ingest",
+      "status": "covered",
+      "hotm_evidence": "ui/src/api/ingest.ts and BackupManager NDJSON stream import",
+      "tracker": "#255"
+    },
+    {
+      "methods": [
+        "GET"
+      ],
+      "path": "/api/v1/chat/models",
+      "handler_expr": "get(list_chat_models)",
+      "family": "chat_sync",
+      "status": "covered",
+      "hotm_evidence": "ui/src/api/chat.ts and agent components",
+      "tracker": "#242"
+    },
+    {
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "path": "/api/v1/document-types",
+      "handler_expr": "get(list_document_types).post(create_document_type),",
+      "family": "document_types",
+      "status": "covered",
+      "hotm_evidence": "ui/src/api/documents.ts and DocumentTypesPanel",
+      "tracker": "#253"
+    },
+    {
+      "methods": [
+        "GET",
+        "PATCH",
+        "DELETE"
+      ],
+      "path": "/api/v1/document-types/{name}",
+      "handler_expr": "get(get_document_type) .patch(update_document_type) .delete(delete_document_type),",
+      "family": "document_types",
+      "status": "covered",
+      "hotm_evidence": "ui/src/api/documents.ts and DocumentTypesPanel",
+      "tracker": "#253"
+    },
+    {
+      "methods": [
+        "POST"
+      ],
+      "path": "/api/v1/document-types/detect",
+      "handler_expr": "post(detect_document_type)",
+      "family": "document_types",
+      "status": "covered",
+      "hotm_evidence": "ui/src/api/documents.ts and DocumentTypesPanel",
+      "tracker": "#253"
+    },
+    {
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "path": "/api/v1/archives",
+      "handler_expr": "get(list_archives).post(create_archive)",
+      "family": "archives",
+      "status": "covered",
+      "hotm_evidence": "ui/src/api/archives.ts and ArchiveManager",
+      "tracker": "#253"
+    },
+    {
+      "methods": [
+        "GET",
+        "PATCH",
+        "DELETE"
+      ],
+      "path": "/api/v1/archives/{name}",
+      "handler_expr": "get(get_archive) .patch(update_archive) .delete(delete_archive),",
+      "family": "archives",
+      "status": "covered",
+      "hotm_evidence": "ui/src/api/archives.ts and ArchiveManager",
+      "tracker": "#253"
+    },
+    {
+      "methods": [
+        "POST"
+      ],
+      "path": "/api/v1/archives/{name}/set-default",
+      "handler_expr": "post(set_default_archive),",
+      "family": "archives",
+      "status": "covered",
+      "hotm_evidence": "ui/src/api/archives.ts and ArchiveManager",
+      "tracker": "#253"
+    },
+    {
+      "methods": [
+        "GET"
+      ],
+      "path": "/api/v1/archives/{name}/stats",
+      "handler_expr": "get(get_archive_stats)",
+      "family": "archives",
+      "status": "covered",
+      "hotm_evidence": "ui/src/api/archives.ts and ArchiveManager",
+      "tracker": "#253"
+    },
+    {
+      "methods": [
+        "POST"
+      ],
+      "path": "/api/v1/archives/{name}/clone",
+      "handler_expr": "post(clone_archive)",
+      "family": "archives",
+      "status": "covered",
+      "hotm_evidence": "ui/src/api/archives.ts and ArchiveManager",
+      "tracker": "#253"
+    },
+    {
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "path": "/api/v1/memories",
+      "handler_expr": "get(list_archives).post(create_archive)",
+      "family": "archives",
+      "status": "covered",
+      "hotm_evidence": "archive/memory routing APIs and ArchiveManager",
+      "tracker": "#253"
+    },
+    {
+      "methods": [
+        "GET"
+      ],
+      "path": "/api/v1/memories/overview",
+      "handler_expr": "get(memories_overview)",
+      "family": "archives",
+      "status": "covered",
+      "hotm_evidence": "archive/memory routing APIs and ArchiveManager",
+      "tracker": "#253"
+    },
+    {
+      "methods": [
+        "GET",
+        "PATCH",
+        "DELETE"
+      ],
+      "path": "/api/v1/memories/{name}",
+      "handler_expr": "get(get_archive) .patch(update_archive) .delete(delete_archive),",
+      "family": "archives",
+      "status": "covered",
+      "hotm_evidence": "archive/memory routing APIs and ArchiveManager",
+      "tracker": "#253"
+    },
+    {
+      "methods": [
+        "POST"
+      ],
+      "path": "/api/v1/memories/{name}/set-default",
+      "handler_expr": "post(set_default_archive),",
+      "family": "archives",
+      "status": "covered",
+      "hotm_evidence": "archive/memory routing APIs and ArchiveManager",
+      "tracker": "#253"
+    },
+    {
+      "methods": [
+        "GET"
+      ],
+      "path": "/api/v1/memories/{name}/stats",
+      "handler_expr": "get(get_archive_stats)",
+      "family": "archives",
+      "status": "covered",
+      "hotm_evidence": "archive/memory routing APIs and ArchiveManager",
+      "tracker": "#253"
+    },
+    {
+      "methods": [
+        "POST"
+      ],
+      "path": "/api/v1/memories/{name}/clone",
+      "handler_expr": "post(clone_archive)",
+      "family": "archives",
+      "status": "covered",
+      "hotm_evidence": "archive/memory routing APIs and ArchiveManager",
+      "tracker": "#253"
+    },
+    {
+      "methods": [
+        "POST"
+      ],
+      "path": "/api/v1/pke/keygen",
+      "handler_expr": "post(pke_keygen)",
+      "family": "pke",
+      "status": "documented_exclusion",
+      "hotm_evidence": "No current HotM PKE UX claim; keep excluded until product slice",
+      "tracker": "#253"
+    },
+    {
+      "methods": [
+        "POST"
+      ],
+      "path": "/api/v1/pke/address",
+      "handler_expr": "post(pke_address)",
+      "family": "pke",
+      "status": "documented_exclusion",
+      "hotm_evidence": "No current HotM PKE UX claim; keep excluded until product slice",
+      "tracker": "#253"
+    },
+    {
+      "methods": [
+        "POST"
+      ],
+      "path": "/api/v1/pke/encrypt",
+      "handler_expr": "post(pke_encrypt)",
+      "family": "pke",
+      "status": "documented_exclusion",
+      "hotm_evidence": "No current HotM PKE UX claim; keep excluded until product slice",
+      "tracker": "#253"
+    },
+    {
+      "methods": [
+        "POST"
+      ],
+      "path": "/api/v1/pke/decrypt",
+      "handler_expr": "post(pke_decrypt)",
+      "family": "pke",
+      "status": "documented_exclusion",
+      "hotm_evidence": "No current HotM PKE UX claim; keep excluded until product slice",
+      "tracker": "#253"
+    },
+    {
+      "methods": [
+        "POST"
+      ],
+      "path": "/api/v1/pke/recipients",
+      "handler_expr": "post(pke_recipients)",
+      "family": "pke",
+      "status": "documented_exclusion",
+      "hotm_evidence": "No current HotM PKE UX claim; keep excluded until product slice",
+      "tracker": "#253"
+    },
+    {
+      "methods": [
+        "GET"
+      ],
+      "path": "/api/v1/pke/verify/{address}",
+      "handler_expr": "get(pke_verify)",
+      "family": "pke",
+      "status": "documented_exclusion",
+      "hotm_evidence": "No current HotM PKE UX claim; keep excluded until product slice",
+      "tracker": "#253"
+    },
+    {
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "path": "/api/v1/pke/keysets",
+      "handler_expr": "get(list_keysets).post(create_keyset)",
+      "family": "pke",
+      "status": "documented_exclusion",
+      "hotm_evidence": "No current HotM PKE UX claim; keep excluded until product slice",
+      "tracker": "#253"
+    },
+    {
+      "methods": [
+        "GET"
+      ],
+      "path": "/api/v1/pke/keysets/active",
+      "handler_expr": "get(get_active_keyset)",
+      "family": "pke",
+      "status": "documented_exclusion",
+      "hotm_evidence": "No current HotM PKE UX claim; keep excluded until product slice",
+      "tracker": "#253"
+    },
+    {
+      "methods": [
+        "POST"
+      ],
+      "path": "/api/v1/pke/keysets/import",
+      "handler_expr": "post(import_keyset)",
+      "family": "pke",
+      "status": "documented_exclusion",
+      "hotm_evidence": "No current HotM PKE UX claim; keep excluded until product slice",
+      "tracker": "#253"
+    },
+    {
+      "methods": [
+        "DELETE"
+      ],
+      "path": "/api/v1/pke/keysets/{name_or_id}",
+      "handler_expr": "delete(delete_keyset)",
+      "family": "pke",
+      "status": "documented_exclusion",
+      "hotm_evidence": "No current HotM PKE UX claim; keep excluded until product slice",
+      "tracker": "#253"
+    },
+    {
+      "methods": [
+        "PUT"
+      ],
+      "path": "/api/v1/pke/keysets/{name_or_id}/active",
+      "handler_expr": "put(set_active_keyset),",
+      "family": "pke",
+      "status": "documented_exclusion",
+      "hotm_evidence": "No current HotM PKE UX claim; keep excluded until product slice",
+      "tracker": "#253"
+    },
+    {
+      "methods": [
+        "GET"
+      ],
+      "path": "/api/v1/pke/keysets/{name_or_id}/export",
+      "handler_expr": "get(export_keyset),",
+      "family": "pke",
+      "status": "documented_exclusion",
+      "hotm_evidence": "No current HotM PKE UX claim; keep excluded until product slice",
+      "tracker": "#253"
+    },
+    {
+      "methods": [
+        "GET"
+      ],
+      "path": "/api/v1/tags",
+      "handler_expr": "get(list_tags)",
+      "family": "tags",
+      "status": "covered",
+      "hotm_evidence": "ui/src/api/tags.ts and TagManager",
+      "tracker": "#253"
+    },
+    {
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "path": "/api/v1/concepts/schemes",
+      "handler_expr": "get(list_concept_schemes).post(create_concept_scheme),",
+      "family": "concepts",
+      "status": "covered",
+      "hotm_evidence": "ui/src/api/concepts.ts and ConceptBrowser",
+      "tracker": "#253"
+    },
+    {
+      "methods": [
+        "GET",
+        "PATCH",
+        "DELETE"
+      ],
+      "path": "/api/v1/concepts/schemes/{id}",
+      "handler_expr": "get(get_concept_scheme) .patch(update_concept_scheme) .delete(delete_concept_scheme),",
+      "family": "concepts",
+      "status": "covered",
+      "hotm_evidence": "ui/src/api/concepts.ts and ConceptBrowser",
+      "tracker": "#253"
+    },
+    {
+      "methods": [
+        "GET"
+      ],
+      "path": "/api/v1/concepts/schemes/{id}/top-concepts",
+      "handler_expr": "get(get_top_concepts),",
+      "family": "concepts",
+      "status": "covered",
+      "hotm_evidence": "ui/src/api/concepts.ts and ConceptBrowser",
+      "tracker": "#253"
+    },
+    {
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "path": "/api/v1/concepts",
+      "handler_expr": "get(search_concepts).post(create_concept),",
+      "family": "concepts",
+      "status": "covered",
+      "hotm_evidence": "ui/src/api/concepts.ts and ConceptBrowser",
+      "tracker": "#253"
+    },
+    {
+      "methods": [
+        "GET"
+      ],
+      "path": "/api/v1/concepts/autocomplete",
+      "handler_expr": "get(autocomplete_concepts)",
+      "family": "concepts",
+      "status": "covered",
+      "hotm_evidence": "ui/src/api/concepts.ts and ConceptBrowser",
+      "tracker": "#253"
+    },
+    {
+      "methods": [
+        "GET",
+        "PATCH",
+        "DELETE"
+      ],
+      "path": "/api/v1/concepts/{id}",
+      "handler_expr": "get(get_concept) .patch(update_concept) .delete(delete_concept),",
+      "family": "concepts",
+      "status": "covered",
+      "hotm_evidence": "ui/src/api/concepts.ts and ConceptBrowser",
+      "tracker": "#253"
+    },
+    {
+      "methods": [
+        "GET"
+      ],
+      "path": "/api/v1/concepts/{id}/full",
+      "handler_expr": "get(get_concept_full)",
+      "family": "concepts",
+      "status": "covered",
+      "hotm_evidence": "ui/src/api/concepts.ts and ConceptBrowser",
+      "tracker": "#253"
+    },
+    {
+      "methods": [
+        "GET"
+      ],
+      "path": "/api/v1/concepts/{id}/ancestors",
+      "handler_expr": "get(get_ancestors)",
+      "family": "concepts",
+      "status": "covered",
+      "hotm_evidence": "ui/src/api/concepts.ts and ConceptBrowser",
+      "tracker": "#253"
+    },
+    {
+      "methods": [
+        "GET"
+      ],
+      "path": "/api/v1/concepts/{id}/descendants",
+      "handler_expr": "get(get_descendants)",
+      "family": "concepts",
+      "status": "covered",
+      "hotm_evidence": "ui/src/api/concepts.ts and ConceptBrowser",
+      "tracker": "#253"
+    },
+    {
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "path": "/api/v1/concepts/{id}/broader",
+      "handler_expr": "get(get_broader).post(add_broader),",
+      "family": "concepts",
+      "status": "covered",
+      "hotm_evidence": "ui/src/api/concepts.ts and ConceptBrowser",
+      "tracker": "#253"
+    },
+    {
+      "methods": [
+        "DELETE"
+      ],
+      "path": "/api/v1/concepts/{id}/broader/{target_id}",
+      "handler_expr": "delete(remove_broader),",
+      "family": "concepts",
+      "status": "covered",
+      "hotm_evidence": "ui/src/api/concepts.ts and ConceptBrowser",
+      "tracker": "#253"
+    },
+    {
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "path": "/api/v1/concepts/{id}/narrower",
+      "handler_expr": "get(get_narrower).post(add_narrower),",
+      "family": "concepts",
+      "status": "covered",
+      "hotm_evidence": "ui/src/api/concepts.ts and ConceptBrowser",
+      "tracker": "#253"
+    },
+    {
+      "methods": [
+        "DELETE"
+      ],
+      "path": "/api/v1/concepts/{id}/narrower/{target_id}",
+      "handler_expr": "delete(remove_narrower),",
+      "family": "concepts",
+      "status": "covered",
+      "hotm_evidence": "ui/src/api/concepts.ts and ConceptBrowser",
+      "tracker": "#253"
+    },
+    {
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "path": "/api/v1/concepts/{id}/related",
+      "handler_expr": "get(get_related).post(add_related),",
+      "family": "concepts",
+      "status": "covered",
+      "hotm_evidence": "ui/src/api/concepts.ts and ConceptBrowser",
+      "tracker": "#253"
+    },
+    {
+      "methods": [
+        "DELETE"
+      ],
+      "path": "/api/v1/concepts/{id}/related/{target_id}",
+      "handler_expr": "delete(remove_related),",
+      "family": "concepts",
+      "status": "covered",
+      "hotm_evidence": "ui/src/api/concepts.ts and ConceptBrowser",
+      "tracker": "#253"
+    },
+    {
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "path": "/api/v1/notes/{id}/concepts",
+      "handler_expr": "get(get_note_concepts).post(tag_note_with_concept),",
+      "family": "notes",
+      "status": "covered",
+      "hotm_evidence": "ui/src/api/notes.ts, extended.ts, versions.ts, links.ts",
+      "tracker": "#253"
+    },
+    {
+      "methods": [
+        "DELETE"
+      ],
+      "path": "/api/v1/notes/{id}/concepts/{concept_id}",
+      "handler_expr": "delete(untag_note_concept),",
+      "family": "notes",
+      "status": "covered",
+      "hotm_evidence": "ui/src/api/notes.ts, extended.ts, versions.ts, links.ts",
+      "tracker": "#253"
+    },
+    {
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "path": "/api/v1/notes/{id}/attachments",
+      "handler_expr": "get(list_attachments).post(upload_attachment),",
+      "family": "attachments",
+      "status": "covered",
+      "hotm_evidence": "ui/src/api/attachments.ts and upload store",
+      "tracker": "#257"
+    },
+    {
+      "methods": [
+        "POST"
+      ],
+      "path": "/api/v1/notes/{id}/attachments/upload",
+      "handler_expr": "post(upload_attachment_multipart).layer(DefaultBodyLimit::max(max_upload_size)),",
+      "family": "attachments",
+      "status": "covered",
+      "hotm_evidence": "ui/src/api/attachments.ts and upload store",
+      "tracker": "#257"
+    },
+    {
+      "methods": [
+        "POST",
+        "OPTIONS"
+      ],
+      "path": "/api/v1/notes/{id}/attachments/tus",
+      "handler_expr": "post(tus_create_upload).options(tus_options),",
+      "family": "attachments_tus",
+      "status": "covered",
+      "hotm_evidence": "tusUploader/uploadStore/JobQueueMonitor cover TUS verbs, resume, termination, degraded states, and no checksum-extension claim",
+      "tracker": "#257"
+    },
+    {
+      "methods": [
+        "GET",
+        "PATCH",
+        "DELETE",
+        "HEAD"
+      ],
+      "path": "/api/v1/notes/{id}/attachments/tus/{upload_id}",
+      "handler_expr": "get(tus_get_upload) .head(tus_head_upload) .patch(tus_patch_upload) .delete(tus_delete_upload) .layer(DefaultBodyLimit::max(max_upload_size)),",
+      "family": "attachments_tus",
+      "status": "covered",
+      "hotm_evidence": "tusUploader/uploadStore/JobQueueMonitor cover TUS verbs, resume, termination, degraded states, and no checksum-extension claim",
+      "tracker": "#257"
+    },
+    {
+      "methods": [
+        "GET"
+      ],
+      "path": "/api/v1/attachments",
+      "handler_expr": "get(list_all_attachments)",
+      "family": "attachments",
+      "status": "covered",
+      "hotm_evidence": "ui/src/api/attachments.ts and attachment browser/panels",
+      "tracker": "#257"
+    },
+    {
+      "methods": [
+        "GET",
+        "DELETE"
+      ],
+      "path": "/api/v1/attachments/{attachment_id}",
+      "handler_expr": "get(get_attachment).delete(delete_attachment),",
+      "family": "attachments",
+      "status": "covered",
+      "hotm_evidence": "ui/src/api/attachments.ts and attachment browser/panels",
+      "tracker": "#257"
+    },
+    {
+      "methods": [
+        "GET"
+      ],
+      "path": "/api/v1/attachments/{attachment_id}/download",
+      "handler_expr": "get(download_attachment).layer(tower::limit::ConcurrencyLimitLayer::new( matric_core::defaults::MEDIA_MAX_CONCURRENT_DOWNLOADS, )),",
+      "family": "attachments",
+      "status": "covered",
+      "hotm_evidence": "ui/src/api/attachments.ts and attachment browser/panels",
+      "tracker": "#257"
+    },
+    {
+      "methods": [
+        "GET"
+      ],
+      "path": "/api/v1/attachments/{attachment_id}/subtitles",
+      "handler_expr": "get(get_attachment_subtitles),",
+      "family": "attachments",
+      "status": "covered",
+      "hotm_evidence": "ui/src/api/attachments.ts and attachment browser/panels",
+      "tracker": "#257"
+    },
+    {
+      "methods": [
+        "GET"
+      ],
+      "path": "/api/v1/attachments/{attachment_id}/thumbnail",
+      "handler_expr": "get(get_attachment_thumbnail),",
+      "family": "attachments",
+      "status": "covered",
+      "hotm_evidence": "ui/src/api/attachments.ts and attachment browser/panels",
+      "tracker": "#257"
+    },
+    {
+      "methods": [
+        "GET"
+      ],
+      "path": "/api/v1/attachments/{attachment_id}/thumbnails.vtt",
+      "handler_expr": "get(get_sprite_vtt),",
+      "family": "attachments",
+      "status": "covered",
+      "hotm_evidence": "ui/src/api/attachments.ts and attachment browser/panels",
+      "tracker": "#257"
+    },
+    {
+      "methods": [
+        "GET"
+      ],
+      "path": "/api/v1/attachments/{attachment_id}/sprites/{sprite_index}",
+      "handler_expr": "get(get_sprite_sheet),",
+      "family": "attachments",
+      "status": "covered",
+      "hotm_evidence": "ui/src/api/attachments.ts and attachment browser/panels",
+      "tracker": "#257"
+    },
+    {
+      "methods": [
+        "GET"
+      ],
+      "path": "/api/v1/concepts/governance",
+      "handler_expr": "get(get_governance_stats)",
+      "family": "concepts",
+      "status": "covered",
+      "hotm_evidence": "ui/src/api/concepts.ts and ConceptBrowser",
+      "tracker": "#253"
+    },
+    {
+      "methods": [
+        "GET"
+      ],
+      "path": "/api/v1/concepts/schemes/{id}/export/turtle",
+      "handler_expr": "get(export_scheme_turtle),",
+      "family": "concepts",
+      "status": "covered",
+      "hotm_evidence": "ui/src/api/concepts.ts and ConceptBrowser",
+      "tracker": "#253"
+    },
+    {
+      "methods": [
+        "GET"
+      ],
+      "path": "/api/v1/concepts/schemes/export/turtle",
+      "handler_expr": "get(export_all_schemes_turtle),",
+      "family": "concepts",
+      "status": "covered",
+      "hotm_evidence": "ui/src/api/concepts.ts and ConceptBrowser",
+      "tracker": "#253"
+    },
+    {
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "path": "/api/v1/concepts/collections",
+      "handler_expr": "get(list_skos_collections).post(create_skos_collection),",
+      "family": "concepts",
+      "status": "covered",
+      "hotm_evidence": "ui/src/api/concepts.ts and ConceptBrowser",
+      "tracker": "#253"
+    },
+    {
+      "methods": [
+        "GET",
+        "PATCH",
+        "DELETE"
+      ],
+      "path": "/api/v1/concepts/collections/{id}",
+      "handler_expr": "get(get_skos_collection) .patch(update_skos_collection) .delete(delete_skos_collection),",
+      "family": "concepts",
+      "status": "covered",
+      "hotm_evidence": "ui/src/api/concepts.ts and ConceptBrowser",
+      "tracker": "#253"
+    },
+    {
+      "methods": [
+        "PUT"
+      ],
+      "path": "/api/v1/concepts/collections/{id}/members",
+      "handler_expr": "put(replace_skos_collection_members),",
+      "family": "concepts",
+      "status": "covered",
+      "hotm_evidence": "ui/src/api/concepts.ts and ConceptBrowser",
+      "tracker": "#253"
+    },
+    {
+      "methods": [
+        "POST",
+        "DELETE"
+      ],
+      "path": "/api/v1/concepts/collections/{id}/members/{concept_id}",
+      "handler_expr": "post(add_skos_collection_member).delete(remove_skos_collection_member),",
+      "family": "concepts",
+      "status": "covered",
+      "hotm_evidence": "ui/src/api/concepts.ts and ConceptBrowser",
+      "tracker": "#253"
+    },
+    {
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "path": "/api/v1/collections",
+      "handler_expr": "get(list_collections).post(create_collection),",
+      "family": "collections",
+      "status": "covered",
+      "hotm_evidence": "ui/src/api/collections.ts and CollectionsManager",
+      "tracker": "#253"
+    },
+    {
+      "methods": [
+        "GET",
+        "PATCH",
+        "DELETE"
+      ],
+      "path": "/api/v1/collections/{id}",
+      "handler_expr": "get(get_collection) .patch(update_collection) .delete(delete_collection),",
+      "family": "collections",
+      "status": "covered",
+      "hotm_evidence": "ui/src/api/collections.ts and CollectionsManager",
+      "tracker": "#253"
+    },
+    {
+      "methods": [
+        "GET"
+      ],
+      "path": "/api/v1/collections/{id}/notes",
+      "handler_expr": "get(get_collection_notes)",
+      "family": "collections",
+      "status": "covered",
+      "hotm_evidence": "ui/src/api/collections.ts and CollectionsManager",
+      "tracker": "#253"
+    },
+    {
+      "methods": [
+        "GET"
+      ],
+      "path": "/api/v1/collections/{id}/export",
+      "handler_expr": "get(export_collection)",
+      "family": "collections",
+      "status": "covered",
+      "hotm_evidence": "ui/src/api/collections.ts and CollectionsManager",
+      "tracker": "#253"
+    },
+    {
+      "methods": [
+        "POST"
+      ],
+      "path": "/api/v1/notes/{id}/move",
+      "handler_expr": "post(move_note_to_collection)",
+      "family": "notes",
+      "status": "covered",
+      "hotm_evidence": "ui/src/api/notes.ts, extended.ts, versions.ts, links.ts",
+      "tracker": "#253"
+    },
+    {
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "path": "/api/v1/embedding-sets",
+      "handler_expr": "get(list_embedding_sets).post(create_embedding_set),",
+      "family": "embeddings",
+      "status": "covered",
+      "hotm_evidence": "ui/src/api/embeddings.ts and embedding components",
+      "tracker": "#253"
+    },
+    {
+      "methods": [
+        "GET",
+        "PATCH",
+        "DELETE"
+      ],
+      "path": "/api/v1/embedding-sets/{slug}",
+      "handler_expr": "get(get_embedding_set) .patch(update_embedding_set) .delete(delete_embedding_set),",
+      "family": "embeddings",
+      "status": "covered",
+      "hotm_evidence": "ui/src/api/embeddings.ts and embedding components",
+      "tracker": "#253"
+    },
+    {
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "path": "/api/v1/embedding-sets/{slug}/members",
+      "handler_expr": "get(list_embedding_set_members).post(add_embedding_set_members),",
+      "family": "embeddings",
+      "status": "covered",
+      "hotm_evidence": "ui/src/api/embeddings.ts and embedding components",
+      "tracker": "#253"
+    },
+    {
+      "methods": [
+        "DELETE"
+      ],
+      "path": "/api/v1/embedding-sets/{slug}/members/{note_id}",
+      "handler_expr": "delete(remove_embedding_set_member),",
+      "family": "embeddings",
+      "status": "covered",
+      "hotm_evidence": "ui/src/api/embeddings.ts and embedding components",
+      "tracker": "#253"
+    },
+    {
+      "methods": [
+        "POST"
+      ],
+      "path": "/api/v1/embedding-sets/{slug}/refresh",
+      "handler_expr": "post(refresh_embedding_set),",
+      "family": "embeddings",
+      "status": "covered",
+      "hotm_evidence": "ui/src/api/embeddings.ts and embedding components",
+      "tracker": "#253"
+    },
+    {
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "path": "/api/v1/embedding-configs",
+      "handler_expr": "get(list_embedding_configs).post(create_embedding_config),",
+      "family": "embeddings",
+      "status": "covered",
+      "hotm_evidence": "ui/src/api/embeddings.ts and embedding components",
+      "tracker": "#253"
+    },
+    {
+      "methods": [
+        "GET"
+      ],
+      "path": "/api/v1/embedding-configs/default",
+      "handler_expr": "get(get_default_embedding_config),",
+      "family": "embeddings",
+      "status": "covered",
+      "hotm_evidence": "ui/src/api/embeddings.ts and embedding components",
+      "tracker": "#253"
+    },
+    {
+      "methods": [
+        "GET",
+        "PATCH",
+        "DELETE"
+      ],
+      "path": "/api/v1/embedding-configs/{id}",
+      "handler_expr": "get(get_embedding_config) .patch(update_embedding_config) .delete(delete_embedding_config),",
+      "family": "embeddings",
+      "status": "covered",
+      "hotm_evidence": "ui/src/api/embeddings.ts and embedding components",
+      "tracker": "#253"
+    },
+    {
+      "methods": [
+        "GET"
+      ],
+      "path": "/api/v1/graph/topology/stats",
+      "handler_expr": "get(graph_topology_stats)",
+      "family": "graph",
+      "status": "covered",
+      "hotm_evidence": "ui/src/components/graph and link/search APIs",
+      "tracker": "#253"
+    },
+    {
+      "methods": [
+        "GET"
+      ],
+      "path": "/api/v1/graph/diagnostics",
+      "handler_expr": "get(graph_diagnostics)",
+      "family": "graph",
+      "status": "covered",
+      "hotm_evidence": "ui/src/components/graph and link/search APIs",
+      "tracker": "#253"
+    },
+    {
+      "methods": [
+        "POST"
+      ],
+      "path": "/api/v1/graph/diagnostics/snapshot",
+      "handler_expr": "post(capture_diagnostics_snapshot),",
+      "family": "graph",
+      "status": "covered",
+      "hotm_evidence": "ui/src/components/graph and link/search APIs",
+      "tracker": "#253"
+    },
+    {
+      "methods": [
+        "GET"
+      ],
+      "path": "/api/v1/graph/diagnostics/history",
+      "handler_expr": "get(list_diagnostics_snapshots),",
+      "family": "graph",
+      "status": "covered",
+      "hotm_evidence": "ui/src/components/graph and link/search APIs",
+      "tracker": "#253"
+    },
+    {
+      "methods": [
+        "GET"
+      ],
+      "path": "/api/v1/graph/diagnostics/compare",
+      "handler_expr": "get(compare_diagnostics_snapshots),",
+      "family": "graph",
+      "status": "covered",
+      "hotm_evidence": "ui/src/components/graph and link/search APIs",
+      "tracker": "#253"
+    },
+    {
+      "methods": [
+        "POST"
+      ],
+      "path": "/api/v1/graph/snn/recompute",
+      "handler_expr": "post(recompute_snn_scores)",
+      "family": "graph",
+      "status": "covered",
+      "hotm_evidence": "ui/src/components/graph and link/search APIs",
+      "tracker": "#253"
+    },
+    {
+      "methods": [
+        "POST"
+      ],
+      "path": "/api/v1/graph/pfnet/sparsify",
+      "handler_expr": "post(pfnet_sparsify)",
+      "family": "graph",
+      "status": "covered",
+      "hotm_evidence": "ui/src/components/graph and link/search APIs",
+      "tracker": "#253"
+    },
+    {
+      "methods": [
+        "POST"
+      ],
+      "path": "/api/v1/graph/community/coarse",
+      "handler_expr": "post(coarse_community_detection),",
+      "family": "graph",
+      "status": "covered",
+      "hotm_evidence": "ui/src/components/graph and link/search APIs",
+      "tracker": "#253"
+    },
+    {
+      "methods": [
+        "POST"
+      ],
+      "path": "/api/v1/graph/maintenance",
+      "handler_expr": "post(trigger_graph_maintenance)",
+      "family": "graph",
+      "status": "covered",
+      "hotm_evidence": "ui/src/components/graph and link/search APIs",
+      "tracker": "#253"
+    },
+    {
+      "methods": [
+        "GET"
+      ],
+      "path": "/api/v1/graph/cold-spots",
+      "handler_expr": "get(get_cold_spots)",
+      "family": "graph",
+      "status": "covered",
+      "hotm_evidence": "ui/src/components/graph and link/search APIs",
+      "tracker": "#253"
+    },
+    {
+      "methods": [
+        "GET"
+      ],
+      "path": "/api/v1/graph/{id}",
+      "handler_expr": "get(explore_graph)",
+      "family": "graph",
+      "status": "covered",
+      "hotm_evidence": "ui/src/components/graph and link/search APIs",
+      "tracker": "#253"
+    },
+    {
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "path": "/api/v1/templates",
+      "handler_expr": "get(list_templates).post(create_template),",
+      "family": "templates",
+      "status": "covered",
+      "hotm_evidence": "ui/src/api/templates.ts and TemplateManager",
+      "tracker": "#253"
+    },
+    {
+      "methods": [
+        "GET",
+        "PATCH",
+        "DELETE"
+      ],
+      "path": "/api/v1/templates/{id}",
+      "handler_expr": "get(get_template) .patch(update_template) .delete(delete_template),",
+      "family": "templates",
+      "status": "covered",
+      "hotm_evidence": "ui/src/api/templates.ts and TemplateManager",
+      "tracker": "#253"
+    },
+    {
+      "methods": [
+        "POST"
+      ],
+      "path": "/api/v1/templates/{id}/instantiate",
+      "handler_expr": "post(instantiate_template),",
+      "family": "templates",
+      "status": "covered",
+      "hotm_evidence": "ui/src/api/templates.ts and TemplateManager",
+      "tracker": "#253"
+    },
+    {
+      "methods": [
+        "GET"
+      ],
+      "path": "/.well-known/oauth-authorization-server",
+      "handler_expr": "get(oauth_discovery),",
+      "family": "oauth",
+      "status": "covered",
+      "hotm_evidence": "ui/src/api/auth.ts and Admin auth diagnostics cover OAuth discovery metadata and redaction",
+      "tracker": "#247"
+    },
+    {
+      "methods": [
+        "GET"
+      ],
+      "path": "/.well-known/oauth-protected-resource",
+      "handler_expr": "get(oauth_protected_resource),",
+      "family": "oauth",
+      "status": "covered",
+      "hotm_evidence": "ui/src/api/auth.ts and Admin auth diagnostics cover OAuth discovery metadata and redaction",
+      "tracker": "#247"
+    },
+    {
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "path": "/oauth/authorize",
+      "handler_expr": "get(oauth_authorize_get).post(oauth_authorize_post),",
+      "family": "oauth",
+      "status": "covered",
+      "hotm_evidence": "ui/src/api/auth.ts and Admin auth diagnostics cover discovery, authorize, register, token, introspect, revoke, and redaction",
+      "tracker": "#247"
+    },
+    {
+      "methods": [
+        "POST"
+      ],
+      "path": "/oauth/register",
+      "handler_expr": "post(oauth_register)",
+      "family": "oauth",
+      "status": "covered",
+      "hotm_evidence": "ui/src/api/auth.ts and Admin auth diagnostics cover discovery, authorize, register, token, introspect, revoke, and redaction",
+      "tracker": "#247"
+    },
+    {
+      "methods": [
+        "POST"
+      ],
+      "path": "/oauth/token",
+      "handler_expr": "post(oauth_token)",
+      "family": "oauth",
+      "status": "covered",
+      "hotm_evidence": "ui/src/api/auth.ts and Admin auth diagnostics cover discovery, authorize, register, token, introspect, revoke, and redaction",
+      "tracker": "#247"
+    },
+    {
+      "methods": [
+        "POST"
+      ],
+      "path": "/oauth/introspect",
+      "handler_expr": "post(oauth_introspect)",
+      "family": "oauth",
+      "status": "covered",
+      "hotm_evidence": "ui/src/api/auth.ts and Admin auth diagnostics cover discovery, authorize, register, token, introspect, revoke, and redaction",
+      "tracker": "#247"
+    },
+    {
+      "methods": [
+        "POST"
+      ],
+      "path": "/oauth/revoke",
+      "handler_expr": "post(oauth_revoke)",
+      "family": "oauth",
+      "status": "covered",
+      "hotm_evidence": "ui/src/api/auth.ts and Admin auth diagnostics cover discovery, authorize, register, token, introspect, revoke, and redaction",
+      "tracker": "#247"
+    },
+    {
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "path": "/api/v1/api-keys",
+      "handler_expr": "get(list_api_keys).post(create_api_key)",
+      "family": "auth_api_keys",
+      "status": "covered",
+      "hotm_evidence": "ui/src/api/auth.ts",
+      "tracker": "#231"
+    },
+    {
+      "methods": [
+        "DELETE"
+      ],
+      "path": "/api/v1/api-keys/{id}",
+      "handler_expr": "delete(revoke_api_key)",
+      "family": "auth_api_keys",
+      "status": "covered",
+      "hotm_evidence": "ui/src/api/auth.ts",
+      "tracker": "#231"
+    },
+    {
+      "methods": [
+        "GET"
+      ],
+      "path": "/api/v1/backup/export",
+      "handler_expr": "get(backup_export)",
+      "family": "backup_archive",
+      "status": "covered",
+      "hotm_evidence": "ui/src/api/backup.ts and BackupManager cover backup/archive route shapes, UX groups, and portable sidecar limitation copy",
+      "tracker": "#257"
+    },
+    {
+      "methods": [
+        "GET"
+      ],
+      "path": "/api/v1/backup/download",
+      "handler_expr": "get(backup_download)",
+      "family": "backup_archive",
+      "status": "covered",
+      "hotm_evidence": "ui/src/api/backup.ts and BackupManager cover backup/archive route shapes, UX groups, and portable sidecar limitation copy",
+      "tracker": "#257"
+    },
+    {
+      "methods": [
+        "POST"
+      ],
+      "path": "/api/v1/backup/import",
+      "handler_expr": "post(backup_import)",
+      "family": "backup_archive",
+      "status": "covered",
+      "hotm_evidence": "ui/src/api/backup.ts and BackupManager cover backup/archive route shapes, UX groups, and portable sidecar limitation copy",
+      "tracker": "#257"
+    },
+    {
+      "methods": [
+        "POST"
+      ],
+      "path": "/api/v1/backup/trigger",
+      "handler_expr": "post(backup_trigger)",
+      "family": "backup_archive",
+      "status": "covered",
+      "hotm_evidence": "ui/src/api/backup.ts and BackupManager cover backup/archive route shapes, UX groups, and portable sidecar limitation copy",
+      "tracker": "#257"
+    },
+    {
+      "methods": [
+        "GET"
+      ],
+      "path": "/api/v1/backup/status",
+      "handler_expr": "get(backup_status)",
+      "family": "backup_archive",
+      "status": "covered",
+      "hotm_evidence": "ui/src/api/backup.ts and BackupManager cover backup/archive route shapes, UX groups, and portable sidecar limitation copy",
+      "tracker": "#257"
+    },
+    {
+      "methods": [
+        "GET"
+      ],
+      "path": "/api/v1/backup/knowledge-shard",
+      "handler_expr": "get(knowledge_shard)",
+      "family": "backup_archive",
+      "status": "covered",
+      "hotm_evidence": "ui/src/api/backup.ts and BackupManager cover backup/archive route shapes, UX groups, and portable sidecar limitation copy",
+      "tracker": "#257"
+    },
+    {
+      "methods": [
+        "POST"
+      ],
+      "path": "/api/v1/backup/knowledge-shard/import",
+      "handler_expr": "post(knowledge_shard_import),",
+      "family": "backup_archive",
+      "status": "covered",
+      "hotm_evidence": "ui/src/api/backup.ts and BackupManager cover backup/archive route shapes, UX groups, and portable sidecar limitation copy",
+      "tracker": "#257"
+    },
+    {
+      "methods": [
+        "POST"
+      ],
+      "path": "/api/v1/backup/knowledge-shard/upload",
+      "handler_expr": "post(knowledge_shard_import_upload),",
+      "family": "backup_archive",
+      "status": "covered",
+      "hotm_evidence": "ui/src/api/backup.ts and BackupManager cover backup/archive route shapes, UX groups, and portable sidecar limitation copy",
+      "tracker": "#257"
+    },
+    {
+      "methods": [
+        "GET"
+      ],
+      "path": "/api/v1/backup/database",
+      "handler_expr": "get(database_backup_download)",
+      "family": "backup_archive",
+      "status": "covered",
+      "hotm_evidence": "ui/src/api/backup.ts and BackupManager cover database backup operations",
+      "tracker": "#257"
+    },
+    {
+      "methods": [
+        "POST"
+      ],
+      "path": "/api/v1/backup/database/snapshot",
+      "handler_expr": "post(database_backup_snapshot),",
+      "family": "backup_archive",
+      "status": "covered",
+      "hotm_evidence": "ui/src/api/backup.ts and BackupManager cover database backup operations",
+      "tracker": "#257"
+    },
+    {
+      "methods": [
+        "POST"
+      ],
+      "path": "/api/v1/backup/database/upload",
+      "handler_expr": "post(database_backup_upload),",
+      "family": "backup_archive",
+      "status": "covered",
+      "hotm_evidence": "ui/src/api/backup.ts and BackupManager cover database backup operations",
+      "tracker": "#257"
+    },
+    {
+      "methods": [
+        "POST"
+      ],
+      "path": "/api/v1/backup/database/restore",
+      "handler_expr": "post(database_backup_restore),",
+      "family": "backup_archive",
+      "status": "covered",
+      "hotm_evidence": "ui/src/api/backup.ts and BackupManager cover database backup operations",
+      "tracker": "#257"
+    },
+    {
+      "methods": [
+        "GET"
+      ],
+      "path": "/api/v1/backup/memory/{name}",
+      "handler_expr": "get(memory_backup_download)",
+      "family": "backup_archive",
+      "status": "covered",
+      "hotm_evidence": "ui/src/api/backup.ts and BackupManager memory backup route-group controls",
+      "tracker": "#257"
+    },
+    {
+      "methods": [
+        "GET"
+      ],
+      "path": "/api/v1/backup/knowledge-archive/{filename}",
+      "handler_expr": "get(knowledge_archive_download),",
+      "family": "backup_archive",
+      "status": "covered",
+      "hotm_evidence": "ui/src/api/backup.ts and BackupManager knowledge archive route-group controls",
+      "tracker": "#257"
+    },
+    {
+      "methods": [
+        "POST"
+      ],
+      "path": "/api/v1/backup/knowledge-archive",
+      "handler_expr": "post(knowledge_archive_upload),",
+      "family": "backup_archive",
+      "status": "covered",
+      "hotm_evidence": "ui/src/api/backup.ts and BackupManager knowledge archive route-group controls",
+      "tracker": "#257"
+    },
+    {
+      "methods": [
+        "GET"
+      ],
+      "path": "/api/v1/backup/list",
+      "handler_expr": "get(list_backups)",
+      "family": "backup_archive",
+      "status": "covered",
+      "hotm_evidence": "ui/src/api/backup.ts and BackupManager cover backup/archive route shapes, UX groups, and portable sidecar limitation copy",
+      "tracker": "#257"
+    },
+    {
+      "methods": [
+        "GET"
+      ],
+      "path": "/api/v1/backup/list/{filename}",
+      "handler_expr": "get(get_backup_info)",
+      "family": "backup_archive",
+      "status": "covered",
+      "hotm_evidence": "ui/src/api/backup.ts and BackupManager cover backup/archive route shapes, UX groups, and portable sidecar limitation copy",
+      "tracker": "#257"
+    },
+    {
+      "methods": [
+        "POST"
+      ],
+      "path": "/api/v1/backup/swap",
+      "handler_expr": "post(swap_backup)",
+      "family": "backup_archive",
+      "status": "covered",
+      "hotm_evidence": "ui/src/api/backup.ts and BackupManager cover backup/archive route shapes, UX groups, and portable sidecar limitation copy",
+      "tracker": "#257"
+    },
+    {
+      "methods": [
+        "GET"
+      ],
+      "path": "/api/v1/backup/metadata/{filename}",
+      "handler_expr": "get(get_backup_metadata),",
+      "family": "backup_archive",
+      "status": "covered",
+      "hotm_evidence": "ui/src/api/backup.ts and BackupManager metadata sidecar controls",
+      "tracker": "#257"
+    },
+    {
+      "methods": [
+        "PUT"
+      ],
+      "path": "/api/v1/backup/metadata/{filename}",
+      "handler_expr": "put(update_backup_metadata),",
+      "family": "backup_archive",
+      "status": "covered",
+      "hotm_evidence": "ui/src/api/backup.ts and BackupManager metadata sidecar controls",
+      "tracker": "#257"
+    },
+    {
+      "methods": [
+        "GET"
+      ],
+      "path": "/api/v1/memory/info",
+      "handler_expr": "get(memory_info)",
+      "family": "archives",
+      "status": "covered",
+      "hotm_evidence": "memory/archive status surfaces",
+      "tracker": "#253"
+    },
+    {
+      "methods": [
+        "GET"
+      ],
+      "path": "/api/v1/ws",
+      "handler_expr": "get(ws_handler)",
+      "family": "realtime_events",
+      "status": "covered",
+      "hotm_evidence": "ui/src/services/websocket.ts fallback",
+      "tracker": "#246"
+    },
+    {
+      "methods": [
+        "GET"
+      ],
+      "path": "/api/v1/events",
+      "handler_expr": "get(sse_events)",
+      "family": "realtime_events",
+      "status": "covered",
+      "hotm_evidence": "ui/src/api/events.ts and realtimeEventBus/websocket service",
+      "tracker": "#246"
+    },
+    {
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "path": "/api/v1/webhooks",
+      "handler_expr": "post(create_webhook).get(list_webhooks)",
+      "family": "outbound_webhooks",
+      "status": "covered",
+      "hotm_evidence": "ui/src/api/webhooks.ts and Admin WebhooksPanel",
+      "tracker": "#256"
+    },
+    {
+      "methods": [
+        "GET",
+        "PATCH",
+        "DELETE"
+      ],
+      "path": "/api/v1/webhooks/{id}",
+      "handler_expr": "get(get_webhook) .patch(update_webhook) .delete(delete_webhook_handler),",
+      "family": "outbound_webhooks",
+      "status": "covered",
+      "hotm_evidence": "ui/src/api/webhooks.ts and Admin WebhooksPanel",
+      "tracker": "#256"
+    },
+    {
+      "methods": [
+        "GET"
+      ],
+      "path": "/api/v1/webhooks/{id}/deliveries",
+      "handler_expr": "get(list_webhook_deliveries),",
+      "family": "outbound_webhooks",
+      "status": "covered",
+      "hotm_evidence": "ui/src/api/webhooks.ts and Admin WebhooksPanel",
+      "tracker": "#256"
+    },
+    {
+      "methods": [
+        "POST"
+      ],
+      "path": "/api/v1/webhooks/{id}/test",
+      "handler_expr": "post(test_webhook)",
+      "family": "outbound_webhooks",
+      "status": "covered",
+      "hotm_evidence": "ui/src/api/webhooks.ts and Admin WebhooksPanel",
+      "tracker": "#256"
+    },
+    {
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "path": "/api/v1/webhooks/incoming",
+      "handler_expr": "post(create_incoming_webhook_receiver).get(list_incoming_webhook_receivers),",
+      "family": "incoming_webhook_receivers",
+      "status": "covered",
+      "hotm_evidence": "ui/src/api/webhooks.ts and Admin WebhooksPanel incoming receiver metadata surface",
+      "tracker": "#256"
+    },
+    {
+      "methods": [
+        "POST"
+      ],
+      "path": "/api/v1/webhooks/incoming/validate",
+      "handler_expr": "post(validate_incoming_webhook_payload_handler),",
+      "family": "incoming_webhook_receivers",
+      "status": "covered",
+      "hotm_evidence": "ui/src/api/webhooks.ts and Admin WebhooksPanel incoming receiver metadata surface",
+      "tracker": "#256"
+    },
+    {
+      "methods": [
+        "GET",
+        "POST",
+        "PATCH",
+        "DELETE"
+      ],
+      "path": "/api/v1/webhooks/incoming/{slug}",
+      "handler_expr": "get(get_incoming_webhook_receiver) .post(receive_incoming_webhook) .patch(update_incoming_webhook_receiver) .delete(delete_incoming_webhook_receiver),",
+      "family": "incoming_webhook_receivers",
+      "status": "covered",
+      "hotm_evidence": "ui/src/api/webhooks.ts and Admin WebhooksPanel incoming receiver metadata surface",
+      "tracker": "#256"
+    },
+    {
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "path": "/api/v1/inbound-sources",
+      "handler_expr": "post(create_inbound_source).get(list_inbound_sources),",
+      "family": "inbound_sources",
+      "status": "covered",
+      "hotm_evidence": "ui/src/api/webhooks.ts and Admin WebhooksPanel inbound source metadata surface",
+      "tracker": "#256"
+    },
+    {
+      "methods": [
+        "DELETE"
+      ],
+      "path": "/api/v1/inbound-sources/{name}",
+      "handler_expr": "delete(delete_inbound_source),",
+      "family": "inbound_sources",
+      "status": "covered",
+      "hotm_evidence": "ui/src/api/webhooks.ts and Admin WebhooksPanel inbound source metadata surface",
+      "tracker": "#256"
+    },
+    {
+      "methods": [
+        "GET"
+      ],
+      "path": "/api/v1/rate-limit/status",
+      "handler_expr": "get(rate_limit_status)",
+      "family": "rate_limit",
+      "status": "documented_exclusion",
+      "hotm_evidence": "No HotM rate-limit UI claim yet; tracked by manifest/rate-limit planning",
+      "tracker": "#251"
+    }
+  ],
+  "verifier_diagnostics": {
+    "metadata_issues": [],
+    "unclassified_routes": [],
+    "status_drift": {},
+    "evidence_issues": []
+  }
+}

@@ -18,13 +18,22 @@ vi.mock('@/api', () => ({
       restoreDatabase: vi.fn(),
       downloadBackup: vi.fn(),
       downloadDatabaseBackup: vi.fn(),
+      downloadMemoryBackup: vi.fn(),
       downloadKnowledgeArchive: vi.fn(),
+      uploadKnowledgeArchive: vi.fn(),
+      getBackupMetadata: vi.fn(),
+      updateBackupMetadata: vi.fn(),
       exportKnowledgeShard: vi.fn(),
       importKnowledgeShard: vi.fn(),
       importBackup: vi.fn(),
     },
     notes: {
       reprocessAll: vi.fn(),
+    },
+    ingest: {
+      mintToken: vi.fn(),
+      streamNotes: vi.fn(),
+      revokeToken: vi.fn(),
     },
   },
 }));
@@ -53,18 +62,63 @@ const mockBackups: BackupInfo[] = [
   },
 ];
 
+function getBackupImportFileInput(): HTMLInputElement {
+  const input = document.querySelector('input[type="file"][accept=".json,.shard"]');
+  if (!(input instanceof HTMLInputElement)) {
+    throw new Error('Backup import file input not found');
+  }
+  return input;
+}
+
 describe('BackupManager', () => {
+  let anchorClickSpy: ReturnType<typeof vi.spyOn>;
+
   beforeEach(() => {
+    anchorClickSpy = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
     vi.mocked(api.backup.listBackups).mockResolvedValue(mockBackups);
     vi.mocked(api.backup.triggerBackup).mockResolvedValue(undefined);
     vi.mocked(api.backup.restoreDatabase).mockResolvedValue(undefined);
     vi.mocked(api.backup.downloadBackup).mockResolvedValue(new Blob(['test']));
     vi.mocked(api.backup.downloadDatabaseBackup).mockResolvedValue(new Blob(['test']));
+    vi.mocked(api.backup.downloadMemoryBackup).mockResolvedValue(new Blob(['memory']));
     vi.mocked(api.backup.exportKnowledgeShard).mockResolvedValue(new Blob(['test']));
+    vi.mocked(api.backup.downloadKnowledgeArchive).mockResolvedValue(new Blob(['archive']));
+    vi.mocked(api.backup.uploadKnowledgeArchive).mockResolvedValue(undefined);
+    vi.mocked(api.backup.getBackupMetadata).mockResolvedValue({
+      filename: 'backup-2024-01-15.db',
+      has_metadata: true,
+      metadata: {
+        title: 'Loaded title',
+        description: 'Loaded description',
+      },
+    });
+    vi.mocked(api.backup.updateBackupMetadata).mockResolvedValue({
+      filename: 'backup-2024-01-15.db',
+      success: true,
+      metadata: {
+        title: 'Saved title',
+        description: 'Saved description',
+      },
+    });
+    vi.mocked(api.ingest.mintToken).mockResolvedValue({
+      token: 'secret-stream-token',
+      token_id: 'tok-1',
+      rate_limit: 0,
+      expires_in: 3600,
+    });
+    vi.mocked(api.ingest.streamNotes).mockResolvedValue({
+      total: 1,
+      success: 1,
+      errors: 0,
+      lastCursor: 'stream-1',
+      events: [],
+    });
+    vi.mocked(api.ingest.revokeToken).mockResolvedValue(undefined);
   });
 
   afterEach(() => {
     vi.clearAllMocks();
+    anchorClickSpy.mockRestore();
   });
 
   describe('Rendering', () => {
@@ -257,7 +311,7 @@ describe('BackupManager', () => {
       fireEvent.click(screen.getByText('Import'));
 
       await waitFor(() => {
-        const fileInput = document.querySelector('input[type="file"]');
+        const fileInput = document.querySelector('input[type="file"][accept=".json,.shard"]');
         expect(fileInput).toBeInTheDocument();
       });
     });
@@ -285,7 +339,7 @@ describe('BackupManager', () => {
           expect(screen.getByText('Import Knowledge Base')).toBeInTheDocument();
         });
 
-        const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
+        const fileInput = getBackupImportFileInput();
         const file = new File(['{"backup": {"notes": []}}'], 'test.json', { type: 'application/json' });
         Object.defineProperty(fileInput, 'files', { value: [file] });
         fireEvent.change(fileInput);
@@ -310,7 +364,7 @@ describe('BackupManager', () => {
         const toggle = await screen.findByLabelText(/Defer AI processing/);
         fireEvent.click(toggle);
 
-        const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
+        const fileInput = getBackupImportFileInput();
         const file = new File(['{"backup": {"notes": []}}'], 'test.json', { type: 'application/json' });
         Object.defineProperty(fileInput, 'files', { value: [file] });
         fireEvent.change(fileInput);
@@ -346,7 +400,7 @@ describe('BackupManager', () => {
         const toggle = await screen.findByLabelText(/Defer AI processing/);
         fireEvent.click(toggle);
 
-        const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
+        const fileInput = getBackupImportFileInput();
         const file = new File(['{"backup": {"notes": []}}'], 'test.json', { type: 'application/json' });
         Object.defineProperty(fileInput, 'files', { value: [file] });
         fireEvent.change(fileInput);
@@ -370,7 +424,7 @@ describe('BackupManager', () => {
         const toggle = await screen.findByLabelText(/Defer AI processing/);
         fireEvent.click(toggle);
 
-        const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
+        const fileInput = getBackupImportFileInput();
         const file = new File(['{"backup": {"notes": []}}'], 'test.json', { type: 'application/json' });
         Object.defineProperty(fileInput, 'files', { value: [file] });
         fireEvent.change(fileInput);
@@ -467,6 +521,165 @@ describe('BackupManager', () => {
 
       await waitFor(() => {
         expect(screen.getByText(/Failed to queue reprocess/)).toBeInTheDocument();
+      });
+    });
+  });
+
+  describe('Stream NDJSON import (#255)', () => {
+    it('renders stream import controls in the backup surface', async () => {
+      render(<BackupManager />);
+
+      await waitFor(() => {
+        expect(screen.getByText('Stream NDJSON Import')).toBeInTheDocument();
+        expect(screen.getByText('Choose .ndjson')).toBeInTheDocument();
+        expect(screen.getByLabelText('Stream ingest rate limit')).toBeInTheDocument();
+      });
+    });
+
+    it('mints a token, streams the selected file, revokes the token, and does not render the secret', async () => {
+      render(<BackupManager />);
+
+      const fileInput = await screen.findByTestId('stream-ingest-file') as HTMLInputElement;
+      const file = new File(
+        ['{"type":"note","data":{"content":"hello"}}\n'],
+        'notes.ndjson',
+        { type: 'application/x-ndjson' },
+      );
+      Object.defineProperty(fileInput, 'files', { value: [file] });
+      fireEvent.change(fileInput);
+
+      fireEvent.change(screen.getByLabelText('Stream ingest rate limit'), {
+        target: { value: '25' },
+      });
+      fireEvent.click(screen.getByRole('button', { name: /^Stream Import$/ }));
+
+      await waitFor(() => {
+        expect(api.ingest.mintToken).toHaveBeenCalledWith({ rateLimit: 25 });
+        expect(api.ingest.streamNotes).toHaveBeenCalledWith(
+          file,
+          expect.objectContaining({ token: 'secret-stream-token' }),
+        );
+        expect(api.ingest.revokeToken).toHaveBeenCalledWith('tok-1');
+        expect(screen.getByText(/Stream import finished: 1\/1 stored, 0 errors/)).toBeInTheDocument();
+      });
+
+      expect(screen.queryByText('secret-stream-token')).not.toBeInTheDocument();
+    });
+
+    it('updates processed count from stream callbacks', async () => {
+      vi.mocked(api.ingest.streamNotes).mockImplementationOnce(async (_file, options) => {
+        options.onEvent?.({ event: 'progress', processed: 2 });
+        options.onEvent?.({ event: 'done', total: 3, success: 3, errors: 0 });
+        return {
+          total: 3,
+          success: 3,
+          errors: 0,
+          lastCursor: 'stream-3',
+          events: [],
+        };
+      });
+
+      render(<BackupManager />);
+
+      const fileInput = await screen.findByTestId('stream-ingest-file') as HTMLInputElement;
+      const file = new File(['{}\n{}\n{}\n'], 'notes.ndjson', {
+        type: 'application/x-ndjson',
+      });
+      Object.defineProperty(fileInput, 'files', { value: [file] });
+      fireEvent.change(fileInput);
+      fireEvent.click(screen.getByRole('button', { name: /^Stream Import$/ }));
+
+      await waitFor(() => {
+        expect(screen.getByText('3 total')).toBeInTheDocument();
+        expect(screen.getByText('3 stored')).toBeInTheDocument();
+        expect(screen.getByText('0 errors')).toBeInTheDocument();
+        expect(screen.getByText('cursor_len=8')).toBeInTheDocument();
+      });
+    });
+  });
+
+  describe('Backup route groups (#257)', () => {
+    it('renders current backup route groups and portable shard limitation copy', async () => {
+      render(<BackupManager />);
+
+      await waitFor(() => {
+        expect(screen.getByText('Backup Route Groups')).toBeInTheDocument();
+        expect(screen.getByText('Memory Backup')).toBeInTheDocument();
+        expect(screen.getByText('Knowledge Archive')).toBeInTheDocument();
+        expect(screen.getByText('Metadata Sidecar')).toBeInTheDocument();
+        expect(screen.getByText(/attachment records and attachment bytes are not restored/)).toBeInTheDocument();
+      });
+    });
+
+    it('downloads a named memory backup', async () => {
+      render(<BackupManager />);
+
+      fireEvent.change(await screen.findByLabelText('Memory backup name'), {
+        target: { value: 'research' },
+      });
+      fireEvent.click(screen.getByRole('button', { name: /Download Memory/ }));
+
+      await waitFor(() => {
+        expect(api.backup.downloadMemoryBackup).toHaveBeenCalledWith('research');
+        expect(screen.getByText('Downloaded memory backup for research')).toBeInTheDocument();
+      });
+    });
+
+    it('downloads and uploads knowledge archives', async () => {
+      render(<BackupManager />);
+
+      fireEvent.change(await screen.findByLabelText('Knowledge archive filename'), {
+        target: { value: 'snapshot 1.tar.gz' },
+      });
+      fireEvent.click(screen.getByRole('button', { name: /Download Archive/ }));
+
+      await waitFor(() => {
+        expect(api.backup.downloadKnowledgeArchive).toHaveBeenCalledWith('snapshot 1.tar.gz');
+      });
+
+      const fileInput = await screen.findByTestId('knowledge-archive-upload-file') as HTMLInputElement;
+      const archiveFile = new File(['archive'], 'bundle.tar.gz', { type: 'application/gzip' });
+      Object.defineProperty(fileInput, 'files', { value: [archiveFile] });
+      fireEvent.change(fileInput);
+
+      fireEvent.click(screen.getByRole('button', { name: /Upload Archive/ }));
+
+      await waitFor(() => {
+        expect(api.backup.uploadKnowledgeArchive).toHaveBeenCalledWith(archiveFile);
+        expect(api.backup.listBackups).toHaveBeenCalledTimes(2);
+        expect(screen.getByText('Uploaded knowledge archive bundle.tar.gz')).toBeInTheDocument();
+      });
+    });
+
+    it('loads and updates backup metadata sidecars', async () => {
+      render(<BackupManager />);
+
+      fireEvent.change(await screen.findByLabelText('Backup metadata filename'), {
+        target: { value: 'backup-2024-01-15.db' },
+      });
+      fireEvent.click(screen.getByRole('button', { name: /Load Metadata/ }));
+
+      await waitFor(() => {
+        expect(api.backup.getBackupMetadata).toHaveBeenCalledWith('backup-2024-01-15.db');
+        expect(screen.getByDisplayValue('Loaded title')).toBeInTheDocument();
+        expect(screen.getByDisplayValue('Loaded description')).toBeInTheDocument();
+        expect(screen.getByText('Metadata loaded for backup-2024-01-15.db')).toBeInTheDocument();
+      });
+
+      fireEvent.change(screen.getByLabelText('Backup metadata title'), {
+        target: { value: 'Saved title' },
+      });
+      fireEvent.change(screen.getByLabelText('Backup metadata description'), {
+        target: { value: 'Saved description' },
+      });
+      fireEvent.click(screen.getByRole('button', { name: /Save Metadata/ }));
+
+      await waitFor(() => {
+        expect(api.backup.updateBackupMetadata).toHaveBeenCalledWith('backup-2024-01-15.db', {
+          title: 'Saved title',
+          description: 'Saved description',
+        });
+        expect(screen.getByText('Backup metadata updated')).toBeInTheDocument();
       });
     });
   });

@@ -178,9 +178,10 @@ export function createApiClient(baseUrl: string) {
     async post<T>(
       path: string,
       body?: unknown,
-      headers?: Record<string, string>
+      headers?: Record<string, string>,
+      params?: Record<string, string>
     ): Promise<T> {
-      return request<T>(path, { method: 'POST', body, headers });
+      return request<T>(path, { method: 'POST', body, headers, params });
     },
 
     async patch<T>(

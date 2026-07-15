@@ -2,9 +2,33 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { createBackupApi } from '../backup';
 import type { ApiClient } from '../client';
 
+vi.mock('@/lib/tauri', () => ({
+  getTauriFetch: () => global.fetch,
+}));
+
+const memoryState = vi.hoisted(() => ({
+  activeMemory: null as string | null,
+}));
+
+vi.mock('../memory-context', () => ({
+  getActiveMemory: () => memoryState.activeMemory,
+  getMemoryRoutingHeaderName: () => 'X-Fortemi-Memory',
+}));
+
+const mockFetch = vi.fn();
+global.fetch = mockFetch;
+
 describe('Backup API', () => {
   let mockClient: ApiClient;
   let backupApi: ReturnType<typeof createBackupApi>;
+
+  const makeBinaryFile = (body: string, name: string, type = 'application/octet-stream'): File => {
+    const file = new File([body], name, { type });
+    Object.defineProperty(file, 'arrayBuffer', {
+      value: () => Promise.resolve(new TextEncoder().encode(body).buffer),
+    });
+    return file;
+  };
 
   beforeEach(() => {
     mockClient = {
@@ -17,6 +41,8 @@ describe('Backup API', () => {
     } as unknown as ApiClient;
 
     backupApi = createBackupApi(mockClient);
+    mockFetch.mockReset();
+    memoryState.activeMemory = null;
   });
 
   describe('importBackup', () => {
@@ -75,5 +101,227 @@ describe('Backup API', () => {
         defer_inference: true,
       });
     });
+  });
+
+  it('covers legacy export, download, trigger, and status routes', async () => {
+    vi.mocked(mockClient.get).mockResolvedValueOnce({ notes: [] });
+    await expect(backupApi.exportBackup()).resolves.toEqual({ notes: [] });
+    expect(mockClient.get).toHaveBeenCalledWith('/backup/export');
+
+    mockFetch.mockResolvedValueOnce(new Response('backup-json'));
+    await expect(backupApi.downloadBackup()).resolves.toBeInstanceOf(Blob);
+    expect(mockFetch).toHaveBeenCalledWith(
+      'http://localhost:3000/backup/download',
+      { headers: {} },
+    );
+
+    await backupApi.triggerBackup();
+    expect(mockClient.post).toHaveBeenCalledWith('/backup/trigger');
+
+    vi.mocked(mockClient.get).mockResolvedValueOnce({ status: 'idle' });
+    await expect(backupApi.getBackupStatus()).resolves.toEqual({ status: 'idle' });
+    expect(mockClient.get).toHaveBeenCalledWith('/backup/status');
+  });
+
+  it('covers knowledge shard download, base64 import, and multipart upload routes', async () => {
+    memoryState.activeMemory = 'research';
+    mockFetch.mockResolvedValueOnce(new Response('shard'));
+
+    await expect(
+      backupApi.exportKnowledgeShard({ format: 'json', include_deleted: true }),
+    ).resolves.toBeInstanceOf(Blob);
+    expect(mockFetch).toHaveBeenCalledWith(
+      'http://localhost:3000/backup/knowledge-shard?format=json&include_deleted=true',
+      { headers: { 'X-Fortemi-Memory': 'research' } },
+    );
+
+    const shard = makeBinaryFile('abc', 'knowledge.tar.gz');
+    await backupApi.importKnowledgeShard(shard);
+    expect(mockClient.post).toHaveBeenCalledWith('/backup/knowledge-shard/import', {
+      shard_base64: 'YWJj',
+    });
+
+    mockFetch.mockResolvedValueOnce(new Response(JSON.stringify({ status: 'ok' }), {
+      headers: { 'Content-Type': 'application/json' },
+    }));
+    await expect(
+      backupApi.uploadKnowledgeShard(shard, {
+        include: 'notes,tags',
+        dryRun: true,
+        onConflict: 'replace',
+        skipEmbeddingRegen: true,
+      }),
+    ).resolves.toEqual({ status: 'ok' });
+    expect(mockFetch).toHaveBeenCalledWith(
+      'http://localhost:3000/backup/knowledge-shard/upload?include=notes%2Ctags&dry_run=true&on_conflict=replace&skip_embedding_regen=true',
+      expect.objectContaining({ method: 'POST', headers: { 'X-Fortemi-Memory': 'research' } }),
+    );
+    const formData = mockFetch.mock.calls[1][1].body as FormData;
+    expect(formData.get('file')).toBe(shard);
+  });
+
+  it('covers database backup download, snapshot, upload, and restore request shapes', async () => {
+    memoryState.activeMemory = 'project-a';
+    mockFetch.mockResolvedValueOnce(new Response('pgdump'));
+
+    await expect(backupApi.downloadDatabaseBackup()).resolves.toBeInstanceOf(Blob);
+    expect(mockFetch).toHaveBeenCalledWith(
+      'http://localhost:3000/backup/database',
+      { headers: { 'X-Fortemi-Memory': 'project-a' } },
+    );
+
+    await backupApi.createSnapshot({
+      name: 'release-candidate',
+      title: 'Release candidate',
+      description: 'Before migration',
+    });
+    expect(mockClient.post).toHaveBeenCalledWith('/backup/database/snapshot', {
+      name: 'release-candidate',
+      title: 'Release candidate',
+      description: 'Before migration',
+    });
+
+    await backupApi.createSnapshot({ label: 'Legacy label' });
+    expect(mockClient.post).toHaveBeenCalledWith('/backup/database/snapshot', {
+      name: 'Legacy label',
+      title: 'Legacy label',
+      description: undefined,
+    });
+
+    const database = makeBinaryFile('sql', 'restore.sql.gz');
+    await backupApi.uploadDatabaseBackup(database, {
+      title: 'Uploaded restore point',
+      description: 'Known-good dump',
+    });
+    expect(mockClient.post).toHaveBeenCalledWith('/backup/database/upload', {
+      data_base64: 'c3Fs',
+      original_filename: 'restore.sql.gz',
+      title: 'Uploaded restore point',
+      description: 'Known-good dump',
+    });
+
+    await backupApi.restoreDatabase({
+      filename: 'restore.sql.gz',
+      skip_snapshot: true,
+      memory: 'project-a',
+    });
+    expect(mockClient.post).toHaveBeenCalledWith('/backup/database/restore', {
+      filename: 'restore.sql.gz',
+      skip_snapshot: true,
+      memory: 'project-a',
+    });
+  });
+
+  it('covers memory and knowledge-archive download/upload routes with encoded filenames', async () => {
+    memoryState.activeMemory = 'archive-a';
+    mockFetch
+      .mockResolvedValueOnce(new Response('memory'))
+      .mockResolvedValueOnce(new Response('archive'))
+      .mockResolvedValueOnce(new Response(JSON.stringify({ success: true }), {
+        headers: { 'Content-Type': 'application/json' },
+      }));
+
+    await expect(backupApi.downloadMemoryBackup('Project A')).resolves.toBeInstanceOf(Blob);
+    expect(mockFetch).toHaveBeenNthCalledWith(
+      1,
+      'http://localhost:3000/backup/memory/Project%20A',
+      { headers: { 'X-Fortemi-Memory': 'archive-a' } },
+    );
+
+    await expect(backupApi.downloadKnowledgeArchive('snapshot 1.tar.gz')).resolves.toBeInstanceOf(Blob);
+    expect(mockFetch).toHaveBeenNthCalledWith(
+      2,
+      'http://localhost:3000/backup/knowledge-archive/snapshot%201.tar.gz',
+      { headers: { 'X-Fortemi-Memory': 'archive-a' } },
+    );
+
+    const archive = new File(['archive'], 'bundle.archive');
+    await backupApi.uploadKnowledgeArchive(archive);
+    expect(mockFetch).toHaveBeenNthCalledWith(
+      3,
+      'http://localhost:3000/backup/knowledge-archive',
+      expect.objectContaining({ method: 'POST', headers: { 'X-Fortemi-Memory': 'archive-a' } }),
+    );
+    const formData = mockFetch.mock.calls[2][1].body as FormData;
+    expect(formData.get('file')).toBe(archive);
+  });
+
+  it('covers backup browser, swap, and metadata routes with encoded filenames', async () => {
+    vi.mocked(mockClient.get).mockResolvedValueOnce({
+      shards: [{
+        filename: 'snapshot 1.tar.gz',
+        size_bytes: 120,
+        created_at: '2026-07-14T00:00:00Z',
+        type: 'archive',
+      }],
+    });
+
+    await expect(backupApi.listBackups()).resolves.toHaveLength(1);
+    expect(mockClient.get).toHaveBeenCalledWith('/backup/list');
+
+    vi.mocked(mockClient.get).mockResolvedValueOnce({
+      filename: 'snapshot 1.tar.gz',
+      size_bytes: 120,
+      created_at: '2026-07-14T00:00:00Z',
+      type: 'archive',
+    });
+    await backupApi.getBackupInfo('snapshot 1.tar.gz');
+    expect(mockClient.get).toHaveBeenCalledWith('/backup/list/snapshot%201.tar.gz');
+
+    await backupApi.swapBackup({
+      filename: 'snapshot 1.tar.gz',
+      dry_run: true,
+      strategy: 'merge',
+    });
+    expect(mockClient.post).toHaveBeenCalledWith('/backup/swap', {
+      filename: 'snapshot 1.tar.gz',
+      dry_run: true,
+      strategy: 'merge',
+    });
+
+    await backupApi.swapBackup({ backup_filename: 'legacy.tar.gz' });
+    expect(mockClient.post).toHaveBeenCalledWith('/backup/swap', {
+      filename: 'legacy.tar.gz',
+      dry_run: undefined,
+      strategy: undefined,
+    });
+
+    vi.mocked(mockClient.get).mockResolvedValueOnce({
+      has_metadata: true,
+      filename: 'filename_len:17',
+      metadata: { title: 'Snapshot' },
+    });
+    await backupApi.getBackupMetadata('snapshot 1.tar.gz');
+    expect(mockClient.get).toHaveBeenCalledWith('/backup/metadata/snapshot%201.tar.gz');
+
+    vi.mocked(mockClient.put).mockResolvedValueOnce({
+      success: true,
+      filename: 'filename_len:17',
+      metadata: { title: 'Updated' },
+    });
+    await expect(
+      backupApi.updateBackupMetadata('snapshot 1.tar.gz', {
+        label: 'Updated',
+        description: 'Operator note',
+      }),
+    ).resolves.toEqual({
+      success: true,
+      filename: 'filename_len:17',
+      metadata: { title: 'Updated' },
+    });
+    expect(mockClient.put).toHaveBeenCalledWith('/backup/metadata/snapshot%201.tar.gz', {
+      title: 'Updated',
+      description: 'Operator note',
+    });
+  });
+
+  it('rejects blank backup route identifiers before issuing route requests', async () => {
+    await expect(backupApi.downloadMemoryBackup(' ')).rejects.toThrow('Memory name is required');
+    await expect(backupApi.downloadKnowledgeArchive(' ')).rejects.toThrow('Archive filename is required');
+    await expect(backupApi.getBackupInfo(' ')).rejects.toThrow('Backup filename is required');
+    await expect(backupApi.swapBackup({ filename: ' ' })).rejects.toThrow('Backup filename is required');
+    await expect(backupApi.getBackupMetadata(' ')).rejects.toThrow('Backup filename is required');
+    await expect(backupApi.updateBackupMetadata(' ', {})).rejects.toThrow('Backup filename is required');
+    expect(mockFetch).not.toHaveBeenCalled();
   });
 });

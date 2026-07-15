@@ -159,7 +159,12 @@ export function shouldUseTus(file: File): boolean {
 export function startTusUpload(opts: TusUploadOptions): TusUploadHandle {
   const { noteId, file, mediaOptimize, onProgress } = opts;
   const baseUrl = api.client.baseUrl;
-  const endpoint = `${baseUrl}/notes/${noteId}/attachments/tus`;
+  const endpointParams = new URLSearchParams();
+  if (mediaOptimize) {
+    endpointParams.set('media_optimize', 'true');
+  }
+  const endpointQuery = endpointParams.toString();
+  const endpoint = `${baseUrl}/notes/${encodeURIComponent(noteId)}/attachments/tus${endpointQuery ? `?${endpointQuery}` : ''}`;
 
   // Build routing headers
   const headers: Record<string, string> = {};
@@ -173,9 +178,6 @@ export function startTusUpload(opts: TusUploadOptions): TusUploadHandle {
     filename: file.name,
     filetype: file.type,
   };
-  if (mediaOptimize) {
-    metadata['media_optimize'] = 'true';
-  }
 
   let tusUpload: tus.Upload;
   let aborted = false;
@@ -240,7 +242,7 @@ export function startTusUpload(opts: TusUploadOptions): TusUploadHandle {
     promise,
     abort() {
       aborted = true;
-      tusUpload?.abort();
+      void tusUpload?.abort(true);
     },
   };
 }

@@ -35,7 +35,12 @@ vi.mock('../providers/index.js', () => ({
 }));
 
 import { chatRouter } from '../routes/chat.js';
-import { agentTools } from '../tools.js';
+import {
+  agentTools,
+  deferredToolDecisions,
+  nonToolBoundaries,
+  toolMetadata,
+} from '../tools.js';
 import { DEFAULT_MODELS } from '../providers/index.js';
 
 // ---------------------------------------------------------------------------
@@ -119,6 +124,27 @@ describe('GET /api/agent/chat', () => {
     const res = await request(app, 'GET', '/api/agent/chat');
     const tools = res.body.tools as string[];
     expect(tools).toEqual(Object.keys(agentTools));
+  });
+
+  it('returns route-family tool metadata and gated non-tool decisions', async () => {
+    const res = await request(app, 'GET', '/api/agent/chat');
+    expect(res.body.toolMetadata).toEqual(toolMetadata);
+    expect(res.body.deferredToolDecisions).toEqual(deferredToolDecisions);
+    expect(res.body.nonToolBoundaries).toEqual(nonToolBoundaries);
+
+    const metadata = res.body.toolMetadata as typeof toolMetadata;
+    expect(metadata.search_notes.routeFamilies).toContain('search');
+    expect(metadata.create_note.safety).toBe('write');
+    expect(metadata.get_attachments.resultPolicy).toMatch(/no bytes/i);
+
+    const deferred = res.body.deferredToolDecisions as typeof deferredToolDecisions;
+    expect(deferred.map((decision) => decision.candidate)).toContain('stream_ingest');
+    expect(deferred.map((decision) => decision.candidate)).toContain('inspect_call_session');
+
+    const boundaries = res.body.nonToolBoundaries as typeof nonToolBoundaries;
+    expect(boundaries.flatMap((decision) => decision.routeFamilies)).toEqual(
+      expect.arrayContaining(['oauth', 'auth_api_keys', 'pke', 'rate_limit']),
+    );
   });
 
   it('returns provider availability', async () => {
