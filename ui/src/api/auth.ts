@@ -14,6 +14,28 @@ import type {
   CreateApiKeyResponse,
 } from './types-extended';
 
+export interface OAuthAuthorizationRequest {
+  response_type: 'code' | string;
+  client_id: string;
+  redirect_uri: string;
+  scope?: string;
+  state?: string;
+  code_challenge?: string;
+  code_challenge_method?: 'S256' | 'plain' | string;
+}
+
+export interface OAuthAuthorizationForm extends OAuthAuthorizationRequest {
+  action: 'approve' | 'deny' | string;
+}
+
+export interface OAuthTokenOptions {
+  scope?: string;
+  code?: string;
+  redirect_uri?: string;
+  refresh_token?: string;
+  code_verifier?: string;
+}
+
 /**
  * Helper to make JSON requests against the server root (non-API-versioned endpoints).
  * Used for OAuth2 and well-known endpoints that live outside /api/v1/.
@@ -37,7 +59,46 @@ async function serverRequest<T>(
   if (response.status === 204) {
     return null as T;
   }
-  return response.json() as Promise<T>;
+  const text = await response.text();
+  if (!text.trim()) {
+    return null as T;
+  }
+  return JSON.parse(text) as T;
+}
+
+function buildAuthorizationParams(request: OAuthAuthorizationRequest): URLSearchParams {
+  if (!request.response_type || request.response_type.trim() === '') {
+    throw new Error('Response type is required');
+  }
+
+  if (!request.client_id || request.client_id.trim() === '') {
+    throw new Error('Client ID is required');
+  }
+
+  if (!request.redirect_uri || request.redirect_uri.trim() === '') {
+    throw new Error('Redirect URI is required');
+  }
+
+  const params = new URLSearchParams({
+    response_type: request.response_type,
+    client_id: request.client_id,
+    redirect_uri: request.redirect_uri,
+  });
+
+  if (request.scope) {
+    params.append('scope', request.scope);
+  }
+  if (request.state) {
+    params.append('state', request.state);
+  }
+  if (request.code_challenge) {
+    params.append('code_challenge', request.code_challenge);
+  }
+  if (request.code_challenge_method) {
+    params.append('code_challenge_method', request.code_challenge_method);
+  }
+
+  return params;
 }
 
 export function createAuthApi(client: ApiClient) {
@@ -87,6 +148,50 @@ export function createAuthApi(client: ApiClient) {
     },
 
     // ===========================
+    // OAuth2 Authorization Code Flow
+    // ===========================
+
+    /**
+     * Build the Fortemi authorization endpoint URL for browser navigation.
+     */
+    getAuthorizeUrl(request: OAuthAuthorizationRequest): string {
+      return `${serverUrl}/oauth/authorize?${buildAuthorizationParams(request).toString()}`;
+    },
+
+    /**
+     * Fetch the Fortemi authorization consent HTML.
+     */
+    async getAuthorizationConsentPage(request: OAuthAuthorizationRequest): Promise<string> {
+      const path = `/oauth/authorize?${buildAuthorizationParams(request).toString()}`;
+      const response = await getTauriFetch()(`${serverUrl}${path}`, {
+        method: 'GET',
+        headers: { Accept: 'text/html,*/*' },
+      });
+      if (!response.ok) {
+        throw new Error(`${path} returned ${response.status}`);
+      }
+      return response.text();
+    },
+
+    /**
+     * Submit the authorization consent form.
+     *
+     * Fortemi returns an HTTP redirect to the registered redirect_uri. Browser
+     * callers normally navigate to the consent URL instead of invoking this
+     * helper directly; this method exists for diagnostics and route tests.
+     */
+    async submitAuthorization(request: OAuthAuthorizationForm): Promise<void> {
+      const params = buildAuthorizationParams(request);
+      params.append('action', request.action);
+
+      await serverRequest<void>(serverUrl, '/oauth/authorize', {
+        method: 'POST',
+        body: params.toString(),
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      });
+    },
+
+    // ===========================
     // OAuth2 Token Management
     // ===========================
 
@@ -97,7 +202,7 @@ export function createAuthApi(client: ApiClient) {
       clientId: string,
       clientSecret: string,
       grantType: string = 'client_credentials',
-      scope?: string
+      scopeOrOptions?: string | OAuthTokenOptions
     ): Promise<TokenResponse> {
       if (!clientId || clientId.trim() === '') {
         throw new Error('Client ID is required');
@@ -113,8 +218,24 @@ export function createAuthApi(client: ApiClient) {
         client_secret: clientSecret,
       });
 
-      if (scope) {
-        body.append('scope', scope);
+      const options = typeof scopeOrOptions === 'string'
+        ? { scope: scopeOrOptions }
+        : scopeOrOptions;
+
+      if (options?.scope) {
+        body.append('scope', options.scope);
+      }
+      if (options?.code) {
+        body.append('code', options.code);
+      }
+      if (options?.redirect_uri) {
+        body.append('redirect_uri', options.redirect_uri);
+      }
+      if (options?.refresh_token) {
+        body.append('refresh_token', options.refresh_token);
+      }
+      if (options?.code_verifier) {
+        body.append('code_verifier', options.code_verifier);
       }
 
       // OAuth2 token endpoint expects form-urlencoded
@@ -137,7 +258,9 @@ export function createAuthApi(client: ApiClient) {
         throw new Error('Refresh token is required');
       }
 
-      return this.requestToken(clientId, clientSecret, 'refresh_token');
+      return this.requestToken(clientId, clientSecret, 'refresh_token', {
+        refresh_token: refreshToken,
+      });
     },
 
     /**

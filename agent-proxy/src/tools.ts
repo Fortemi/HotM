@@ -15,6 +15,27 @@
 import { tool } from 'ai';
 import { z } from 'zod';
 
+export type AgentToolSafety = 'read' | 'write';
+
+export type AgentToolIntent = 'exploratory' | 'knowledge-action';
+
+export interface AgentToolMetadata {
+  intentSets: AgentToolIntent[];
+  routeFamilies: string[];
+  endpoints: string[];
+  safety: AgentToolSafety;
+  capabilityGate: string;
+  roleScope: string;
+  resultPolicy: string;
+}
+
+export interface DeferredToolDecision {
+  candidate: string;
+  routeFamilies: string[];
+  disposition: 'ui_only' | 'diagnostic_candidate' | 'deferred' | 'excluded';
+  reason: string;
+}
+
 // ---------------------------------------------------------------------------
 // Fortemi API client (lightweight fetch wrapper)
 // ---------------------------------------------------------------------------
@@ -488,3 +509,200 @@ export const agentTools = {
   list_notes: listNotesTool,
   get_attachments: getAttachmentsTool,
 } as const;
+
+export type AgentToolName = keyof typeof agentTools;
+
+export const toolMetadata: Record<AgentToolName, AgentToolMetadata> = {
+  search_notes: {
+    intentSets: ['exploratory', 'knowledge-action'],
+    routeFamilies: ['search'],
+    endpoints: ['GET /api/v1/search'],
+    safety: 'read',
+    capabilityGate: 'search capability available',
+    roleScope: 'read',
+    resultPolicy: 'Return note id, title, snippet, score, and tags only.',
+  },
+  create_note: {
+    intentSets: ['knowledge-action'],
+    routeFamilies: ['notes', 'tags'],
+    endpoints: ['POST /api/v1/notes', 'PUT /api/v1/notes/{id}/tags'],
+    safety: 'write',
+    capabilityGate: 'notes write capability available',
+    roleScope: 'write',
+    resultPolicy: 'Return created note id and revision mode; do not return raw auth or server internals.',
+  },
+  get_note: {
+    intentSets: ['exploratory', 'knowledge-action'],
+    routeFamilies: ['notes', 'attachments'],
+    endpoints: ['GET /api/v1/notes/{id}', 'GET /api/v1/notes/{id}/attachments'],
+    safety: 'read',
+    capabilityGate: 'notes read capability available',
+    roleScope: 'read',
+    resultPolicy: 'Return note content and attachment summaries only; no attachment bytes or private paths.',
+  },
+  revise_note: {
+    intentSets: ['knowledge-action'],
+    routeFamilies: ['jobs', 'notes'],
+    endpoints: ['POST /api/v1/jobs'],
+    safety: 'write',
+    capabilityGate: 'jobs and revision capability available',
+    roleScope: 'write',
+    resultPolicy: 'Return queued-state summary only.',
+  },
+  update_tags: {
+    intentSets: ['knowledge-action'],
+    routeFamilies: ['tags', 'notes'],
+    endpoints: ['GET /api/v1/notes/{id}/tags', 'PUT /api/v1/notes/{id}/tags'],
+    safety: 'write',
+    capabilityGate: 'tag update capability available',
+    roleScope: 'write',
+    resultPolicy: 'Return final tag set only.',
+  },
+  link_notes: {
+    intentSets: ['knowledge-action'],
+    routeFamilies: ['notes'],
+    endpoints: ['POST /api/v1/notes/{id}/links'],
+    safety: 'write',
+    capabilityGate: 'note link capability available',
+    roleScope: 'write',
+    resultPolicy: 'Return source id, target id, and link kind only.',
+  },
+  list_collections: {
+    intentSets: ['exploratory', 'knowledge-action'],
+    routeFamilies: ['collections'],
+    endpoints: ['GET /api/v1/collections'],
+    safety: 'read',
+    capabilityGate: 'collections read capability available',
+    roleScope: 'read',
+    resultPolicy: 'Return collection id, name, and description only.',
+  },
+  search_concepts: {
+    intentSets: ['exploratory', 'knowledge-action'],
+    routeFamilies: ['concepts'],
+    endpoints: ['GET /api/v1/concepts'],
+    safety: 'read',
+    capabilityGate: 'concept taxonomy read capability available',
+    roleScope: 'read',
+    resultPolicy: 'Return concept id, label, notation, status, and note count only.',
+  },
+  get_related: {
+    intentSets: ['exploratory', 'knowledge-action'],
+    routeFamilies: ['notes', 'search'],
+    endpoints: ['GET /api/v1/notes/{id}/similar'],
+    safety: 'read',
+    capabilityGate: 'related-notes capability available',
+    roleScope: 'read',
+    resultPolicy: 'Return related note summaries only.',
+  },
+  list_archives: {
+    intentSets: ['exploratory', 'knowledge-action'],
+    routeFamilies: ['archives'],
+    endpoints: ['GET /api/v1/archives'],
+    safety: 'read',
+    capabilityGate: 'archive listing capability available',
+    roleScope: 'read',
+    resultPolicy: 'Return archive summary metadata only.',
+  },
+  list_notes: {
+    intentSets: ['exploratory', 'knowledge-action'],
+    routeFamilies: ['notes'],
+    endpoints: ['GET /api/v1/notes'],
+    safety: 'read',
+    capabilityGate: 'notes list capability available',
+    roleScope: 'read',
+    resultPolicy: 'Return note summaries and attachment presence only.',
+  },
+  get_attachments: {
+    intentSets: ['exploratory', 'knowledge-action'],
+    routeFamilies: ['attachments'],
+    endpoints: ['GET /api/v1/notes/{id}/attachments'],
+    safety: 'read',
+    capabilityGate: 'attachment listing capability available',
+    roleScope: 'read',
+    resultPolicy: 'Return attachment metadata and truncated extracted text only; no bytes, paths, or upload credentials.',
+  },
+};
+
+export const deferredToolDecisions: DeferredToolDecision[] = [
+  {
+    candidate: 'inspect_streaming_health',
+    routeFamilies: ['streaming_health'],
+    disposition: 'diagnostic_candidate',
+    reason: 'Admin API Surface owns streaming health diagnostics until agent read-only summaries have capability-disabled fixtures.',
+  },
+  {
+    candidate: 'stream_ingest',
+    routeFamilies: ['streaming_ingest'],
+    disposition: 'deferred',
+    reason: 'Backup owns tokenized NDJSON ingest; agent tools must not mint, persist, or render ingest tokens.',
+  },
+  {
+    candidate: 'inspect_inference_providers',
+    routeFamilies: ['inference'],
+    disposition: 'diagnostic_candidate',
+    reason: 'Admin inference settings own provider diagnostics until agent summaries prove secret redaction.',
+  },
+  {
+    candidate: 'inspect_backup_status',
+    routeFamilies: ['backup_archive'],
+    disposition: 'diagnostic_candidate',
+    reason: 'Backup Manager owns backup/archive controls; agent candidate is read-only status after path redaction evidence.',
+  },
+  {
+    candidate: 'inspect_incoming_receivers',
+    routeFamilies: ['incoming_webhook_receivers', 'inbound_sources'],
+    disposition: 'diagnostic_candidate',
+    reason: 'Admin Webhooks owns receiver/source lifecycle; agent candidate must never return receiver secrets or connector config.',
+  },
+  {
+    candidate: 'describe_attachment_image',
+    routeFamilies: ['vision_tools', 'attachments'],
+    disposition: 'ui_only',
+    reason: 'Attachment preview action is the accepted surface; agent exposure remains gated by capability and redaction tests.',
+  },
+  {
+    candidate: 'transcribe_attachment_audio',
+    routeFamilies: ['audio_tools', 'attachments'],
+    disposition: 'ui_only',
+    reason: 'Attachment preview action is the accepted surface; sensitive transcript handling remains UI-first.',
+  },
+  {
+    candidate: 'inspect_call_session',
+    routeFamilies: ['realtime_calls'],
+    disposition: 'diagnostic_candidate',
+    reason: 'Admin API Surface owns redacted call diagnostics; no agent call summary until operator diagnostics are accepted.',
+  },
+];
+
+export const nonToolBoundaries: DeferredToolDecision[] = [
+  {
+    candidate: 'oauth_or_api_key_management',
+    routeFamilies: ['oauth', 'auth_api_keys'],
+    disposition: 'excluded',
+    reason: 'Credential exchange and API key creation are system/admin flows, not agent tools.',
+  },
+  {
+    candidate: 'pke_or_encryption_management',
+    routeFamilies: ['pke'],
+    disposition: 'excluded',
+    reason: 'PKE remains a documented exclusion from current HotM claims.',
+  },
+  {
+    candidate: 'rate_limit_management',
+    routeFamilies: ['rate_limit'],
+    disposition: 'excluded',
+    reason: 'Rate-limit launch proof remains an ops/gate concern, not an embedded agent tool.',
+  },
+  {
+    candidate: 'twilio_realtime_debug',
+    routeFamilies: ['realtime_calls'],
+    disposition: 'excluded',
+    reason: 'Twilio realtime WebSocket diagnostics are explicitly excluded by ADR-011.',
+  },
+  {
+    candidate: 'destructive_backup_or_purge',
+    routeFamilies: ['backup_archive', 'notes'],
+    disposition: 'excluded',
+    reason: 'Restore, import, purge, and destructive backup actions require explicit confirmation, audit, and recovery UX outside the agent.',
+  },
+];

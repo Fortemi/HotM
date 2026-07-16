@@ -29,6 +29,9 @@ import { createArchivesApi } from './archives';
 import { createJobsApi } from './jobs';
 import { createChatApi } from './chat';
 import { createInferenceApi } from './inference';
+import { createIngestApi } from './ingest';
+import { createMediaToolsApi } from './mediaTools';
+import { createCallsApi } from './calls';
 import { createSystemCompatibilityApi } from './systemCompatibility';
 
 // Export core types
@@ -206,7 +209,26 @@ export { createMemoryApi } from './memory';
 export { createBackupApi } from './backup';
 export { createEmbeddingsApi } from './embeddings';
 export { createLinksApi } from './links';
-export type { LinkKind, CreateLinkRequest, CreateLinkResponse } from './links';
+export type {
+  CaptureGraphDiagnosticsSnapshotRequest,
+  CoarseCommunityRequest,
+  ColdSpotBucket,
+  ColdSpotNote,
+  CreateLinkRequest,
+  CreateLinkResponse,
+  GraphColdSpotsResponse,
+  GraphControlRequest,
+  GraphControlResult,
+  GraphDiagnostics,
+  GraphDiagnosticsComparison,
+  GraphDiagnosticsSnapshot,
+  GraphMaintenanceRequest,
+  GraphMaintenanceResponse,
+  GraphTopologyStats,
+  LinkKind,
+  PfnetSparsifyRequest,
+  RecomputeSnnRequest,
+} from './links';
 export { createProvenanceApi } from './provenance';
 export { createEventsClient } from './events';
 export type { ServerEvent, EventsClient } from './events';
@@ -215,6 +237,38 @@ export { createArchivesApi } from './archives';
 export { createJobsApi } from './jobs';
 export { createChatApi } from './chat';
 export { createInferenceApi } from './inference';
+export { createIngestApi } from './ingest';
+export { createMediaToolsApi } from './mediaTools';
+export { createCallsApi } from './calls';
+export type {
+  IngestAckEvent,
+  IngestApi,
+  IngestDoneEvent,
+  IngestErrorEvent,
+  IngestProgressEvent,
+  IngestStreamEvent,
+  IngestWarningEvent,
+  MintIngestTokenResponse,
+  StreamIngestSummary,
+} from './ingest';
+export type {
+  DescribeImageOptions,
+  DescribeImageResponse,
+  MediaToolsApi,
+  TranscribeAudioOptions,
+  TranscribeAudioResponse,
+  TranscriptionSegment,
+  TranscriptionWord,
+} from './mediaTools';
+export type {
+  CallDetailResponse,
+  CallPagination,
+  CallProviderReference,
+  CallQueryOptions,
+  CallsApi,
+  CallTranscriptSegment,
+  CallTranscriptWord,
+} from './calls';
 export type {
   InferenceConfig,
   InferenceConfigUpdate,
@@ -231,6 +285,8 @@ export type {
 } from './inference';
 export type {
   Webhook,
+  IncomingWebhookReceiver,
+  InboundSource,
   CreateWebhookRequest,
   UpdateWebhookRequest,
   WebhookDelivery,
@@ -251,7 +307,7 @@ export type { ConceptsApi } from './concepts';
 export type { CollectionsApi } from './collections';
 export type { TemplatesApi } from './templates';
 export type { DocumentsApi } from './documents';
-export type { HealthApi } from './health';
+export type { HealthApi, StreamingHealthResponse } from './health';
 export type { MemoryApi } from './memory';
 export type { BackupApi } from './backup';
 export type { EmbeddingsApi } from './embeddings';
@@ -358,6 +414,9 @@ export function createApi(baseUrl?: string) {
     jobs: createJobsApi(client),
     chat: createChatApi(client),
     inference: createInferenceApi(client),
+    ingest: createIngestApi(client),
+    mediaTools: createMediaToolsApi(client),
+    calls: createCallsApi(client),
     systemCompatibility: createSystemCompatibilityApi(client),
 
     /**

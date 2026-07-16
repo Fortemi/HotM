@@ -5,16 +5,17 @@
  * Provides access to:
  * - System information and health metrics
  * - Embedding configuration management
- * - Authentication settings (placeholder)
+ * - Authentication metadata diagnostics
  * - Application information
  */
 
 import * as React from 'react';
-import { Settings, Shield, Database, Cpu, Lock, Info, Sparkles, ScrollText, Server } from 'lucide-react';
+import { Settings, Shield, Database, Cpu, Lock, Info, Sparkles, ScrollText, Server, RefreshCw } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { getCachedConfig } from '@/lib/tauri';
 import { getRuntimeConfig } from '@/lib/runtime-config';
@@ -45,6 +46,152 @@ interface SystemHealth {
   };
 }
 
+interface AuthDiscoveryState {
+  authorization?: Record<string, unknown>;
+  protectedResource?: Record<string, unknown>;
+  loading: boolean;
+  error: string | null;
+}
+
+const OAUTH_ROUTE_ROWS = [
+  'GET /.well-known/oauth-authorization-server',
+  'GET /.well-known/oauth-protected-resource',
+  'GET/POST /oauth/authorize',
+  'POST /oauth/register',
+  'POST /oauth/token',
+  'POST /oauth/introspect',
+  'POST /oauth/revoke',
+];
+
+function metadataString(metadata: Record<string, unknown> | undefined, key: string): string {
+  const value = metadata?.[key];
+  return typeof value === 'string' && value.trim() ? value : 'not advertised';
+}
+
+function metadataList(metadata: Record<string, unknown> | undefined, key: string): string {
+  const value = metadata?.[key];
+  if (Array.isArray(value)) {
+    const entries = value.filter((entry): entry is string => typeof entry === 'string');
+    return entries.length ? entries.join(', ') : 'not advertised';
+  }
+  return 'not advertised';
+}
+
+function AuthDiagnosticsPanel() {
+  const [state, setState] = React.useState<AuthDiscoveryState>({
+    loading: true,
+    error: null,
+  });
+
+  const loadMetadata = React.useCallback(async () => {
+    setState((current) => ({ ...current, loading: true, error: null }));
+    try {
+      const [authorization, protectedResource] = await Promise.all([
+        api.auth.getAuthServerMetadata(),
+        api.auth.getProtectedResourceMetadata(),
+      ]);
+      setState({ authorization, protectedResource, loading: false, error: null });
+    } catch (err) {
+      console.error('Failed to fetch OAuth metadata:', err);
+      setState({
+        loading: false,
+        error: 'OAuth discovery metadata is unavailable',
+      });
+    }
+  }, []);
+
+  React.useEffect(() => {
+    loadMetadata();
+  }, [loadMetadata]);
+
+  return (
+    <div className="grid gap-4 lg:grid-cols-2">
+      <Card>
+        <CardHeader>
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <CardTitle>OAuth Discovery</CardTitle>
+              <CardDescription>Read-only authorization server and protected resource metadata</CardDescription>
+            </div>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={loadMetadata}
+              disabled={state.loading}
+            >
+              <RefreshCw className="size-4" />
+              Refresh
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent className="flex flex-col gap-3">
+          {state.loading && <div className="text-sm text-muted-foreground">Loading OAuth metadata...</div>}
+          {state.error && <div className="text-sm text-destructive">{state.error}</div>}
+          {!state.loading && !state.error && (
+            <>
+              <div className="flex items-center justify-between gap-4">
+                <span className="text-sm font-medium">Issuer</span>
+                <span className="truncate text-sm text-muted-foreground">{metadataString(state.authorization, 'issuer')}</span>
+              </div>
+              <Separator />
+              <div className="flex items-center justify-between gap-4">
+                <span className="text-sm font-medium">Authorization endpoint</span>
+                <span className="truncate text-sm text-muted-foreground">{metadataString(state.authorization, 'authorization_endpoint')}</span>
+              </div>
+              <Separator />
+              <div className="flex items-center justify-between gap-4">
+                <span className="text-sm font-medium">Token endpoint</span>
+                <span className="truncate text-sm text-muted-foreground">{metadataString(state.authorization, 'token_endpoint')}</span>
+              </div>
+              <Separator />
+              <div className="flex items-center justify-between gap-4">
+                <span className="text-sm font-medium">Registration endpoint</span>
+                <span className="truncate text-sm text-muted-foreground">{metadataString(state.authorization, 'registration_endpoint')}</span>
+              </div>
+              <Separator />
+              <div className="flex items-center justify-between gap-4">
+                <span className="text-sm font-medium">Protected resource</span>
+                <span className="truncate text-sm text-muted-foreground">{metadataString(state.protectedResource, 'resource')}</span>
+              </div>
+              <Separator />
+              <div className="flex items-center justify-between gap-4">
+                <span className="text-sm font-medium">Scopes</span>
+                <span className="truncate text-sm text-muted-foreground">{metadataList(state.authorization, 'scopes_supported')}</span>
+              </div>
+            </>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>OAuth Route Coverage</CardTitle>
+          <CardDescription>Diagnostic surface for Fortemi root auth endpoints</CardDescription>
+        </CardHeader>
+        <CardContent className="flex flex-col gap-3">
+          <div className="grid gap-2">
+            {OAUTH_ROUTE_ROWS.map((route) => (
+              <div key={route} className="flex items-center justify-between gap-3 rounded-md border px-3 py-2">
+                <span className="text-sm font-mono">{route}</span>
+                <Badge variant="outline">covered</Badge>
+              </div>
+            ))}
+          </div>
+          <Separator />
+          <div className="flex items-start gap-3 rounded-md border bg-muted/40 p-3">
+            <Lock className="mt-0.5 size-4 text-muted-foreground" />
+            <p className="text-sm text-muted-foreground">
+              Token exchange, introspection, revocation, and client registration remain API-client flows.
+              This panel renders discovery metadata only and does not display client secrets, access tokens,
+              refresh tokens, authorization codes, or tenant credentials.
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
 
 export function AdminPanel({ className }: AdminPanelProps) {
   const [activeTab, setActiveTab] = React.useState('system');
@@ -379,22 +526,7 @@ export function AdminPanel({ className }: AdminPanelProps) {
 
         {/* Authentication Tab */}
         <TabsContent value="auth">
-          <Card>
-            <CardHeader>
-              <CardTitle>Authentication</CardTitle>
-              <CardDescription>OAuth2 login and API key management</CardDescription>
-            </CardHeader>
-            <CardContent className="flex flex-col items-center justify-center gap-4 py-12">
-              <Lock className="size-16 text-muted-foreground" />
-              <div className="text-center">
-                <h3 className="text-lg font-semibold mb-2">Coming Soon</h3>
-                <p className="text-sm text-muted-foreground max-w-md">
-                  Authentication features including OAuth2 login, API key management, and user access controls
-                  will be available in a future release.
-                </p>
-              </div>
-            </CardContent>
-          </Card>
+          <AuthDiagnosticsPanel />
         </TabsContent>
 
         {/* About Tab */}

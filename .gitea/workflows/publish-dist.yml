@@ -235,12 +235,15 @@ jobs:
           apt-get update -qq
           apt-get install -y gh
 
-      - name: Fetch GitHub release token from OpenBao
+      - name: Fetch GitHub release token from vault
         if: startsWith(github.ref, 'refs/tags/v')
         env:
-          BAO_CI_ROLE_ID: ${{ secrets.BAO_CI_ROLE_ID }}
-          BAO_CI_SECRET_ID: ${{ secrets.BAO_CI_SECRET_ID }}
-        run: ci/openbao-fetch.sh --spec ci/openbao-fetch.github-release.spec
+          VAULT_ADDR: ${{ vars.VAULT_ADDR }}
+          VAULT_CI_ROLE_ID: ${{ secrets.VAULT_CI_ROLE_ID }}
+          VAULT_CI_SECRET_ID: ${{ secrets.VAULT_CI_SECRET_ID }}
+          GH_PUBLISH_TOKEN_VAULT_PATH: ${{ vars.GH_PUBLISH_TOKEN_VAULT_PATH }}
+          GH_PUBLISH_TOKEN_VAULT_FIELD: ${{ vars.GH_PUBLISH_TOKEN_VAULT_FIELD }}
+        run: ci/vault-fetch.sh --spec ci/vault-fetch.github-release.spec
 
       - name: Mirror versioned release to GitHub
         if: startsWith(github.ref, 'refs/tags/v')

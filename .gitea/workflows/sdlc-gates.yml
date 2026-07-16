@@ -5,8 +5,44 @@ on:
     types: [opened, edited, synchronize]
 
 jobs:
-  validate-pr:
+  fortemi-route-inventory:
+    name: Fortemi Route Inventory
     runs-on: ubuntu-latest
+    env:
+      FORTEMI_REPOSITORY: Fortemi/fortemi.git
+    steps:
+      - name: Checkout HotM
+        shell: bash
+        run: |
+          set -euo pipefail
+          BRANCH="${GITHUB_HEAD_REF:-${GITHUB_REF_NAME:-main}}"
+          git clone --depth 1 --branch "${BRANCH}" \
+            "https://token:${{ github.token }}@git.integrolabs.net/${GITHUB_REPOSITORY}.git" .
+          git checkout "${GITHUB_SHA:-HEAD}"
+
+      - name: Checkout Fortemi sibling
+        shell: bash
+        run: |
+          set -euo pipefail
+          FORTEMI_COMMIT="$(
+            python3 -c \
+              'import json; print(json.load(open("release/sidecar-provenance.json"))["target_commitish"])'
+          )"
+          git clone \
+            "https://token:${{ github.token }}@git.integrolabs.net/${FORTEMI_REPOSITORY}" \
+            ../fortemi
+          git -C ../fortemi checkout --detach "${FORTEMI_COMMIT}"
+
+      - name: Verify Fortemi route inventory
+        shell: bash
+        run: .aiwg/testing/scripts/verify-fortemi-route-inventory.sh
+
+      - name: Verify Fortemi closeout package
+        shell: bash
+        run: python3 .aiwg/testing/scripts/verify-fortemi-closeout-package.py
+
+  validate-pr:
+    runs-on: node-20
     permissions:
       pull-requests: write
       contents: read

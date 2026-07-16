@@ -47,6 +47,18 @@ vi.mock('ai', () => ({
   }),
 }));
 
+const mockNativeStream = vi.fn();
+const mockSyncSend = vi.fn();
+
+vi.mock('@/api', () => ({
+  api: {
+    chat: {
+      stream: (...args: unknown[]) => mockNativeStream(...args),
+      send: (...args: unknown[]) => mockSyncSend(...args),
+    },
+  },
+}));
+
 const defaultConfig: ProviderConfig = {
   provider: 'ollama',
   model: 'llama3.2',
@@ -57,6 +69,11 @@ const defaultConfig: ProviderConfig = {
 describe('useAgentChat', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockNativeStream.mockResolvedValue({ content: 'native response', events: [] });
+    mockSyncSend.mockResolvedValue({
+      messages: [{ role: 'assistant', content: 'sync fallback' }],
+      actions: [],
+    });
   });
 
   it('returns expected interface', () => {
@@ -265,5 +282,49 @@ describe('useAgentChat', () => {
 
     expect(opts).toHaveProperty('id');
     expect(opts).toHaveProperty('transport');
+  });
+
+  it('uses native Fortemi /chat/stream for the fortemi provider', async () => {
+    mockNativeStream.mockImplementationOnce(async (_request, options) => {
+      options.onEvent?.({ event: 'delta', content: 'Hel', role: 'assistant', kind: 'message' });
+      options.onEvent?.({ event: 'delta', content: 'lo', role: 'assistant', kind: 'message' });
+      options.onEvent?.({ event: 'done', finish_reason: 'stop', model: 'qwen3:8b' });
+      return { content: 'Hello', events: [] };
+    });
+
+    const { result } = renderHook(() =>
+      useAgentChat({ config: { provider: 'fortemi', model: 'qwen3:8b' } }),
+    );
+
+    await act(async () => {
+      await result.current.sendMessage('hello fortemi');
+    });
+
+    expect(mockNativeStream).toHaveBeenCalledWith(
+      expect.objectContaining({
+        input: 'hello fortemi',
+        model: 'qwen3:8b',
+      }),
+      expect.objectContaining({ signal: expect.any(AbortSignal), onEvent: expect.any(Function) }),
+    );
+    expect(mockSendMessage).not.toHaveBeenCalled();
+    expect(result.current.messages).toHaveLength(2);
+    expect(result.current.messages[1].parts).toEqual([{ type: 'text', text: 'Hello' }]);
+  });
+
+  it('falls back to synchronous Fortemi /chat when native streaming fails', async () => {
+    mockNativeStream.mockRejectedValueOnce(new Error('Chat stream failed: 503 Service Unavailable'));
+
+    const { result } = renderHook(() =>
+      useAgentChat({ config: { provider: 'fortemi' } }),
+    );
+
+    await act(async () => {
+      await result.current.sendMessage('hello');
+    });
+
+    expect(mockSyncSend).toHaveBeenCalledWith(expect.objectContaining({ input: 'hello' }));
+    expect(result.current.error).toBeUndefined();
+    expect(result.current.messages[1].parts).toEqual([{ type: 'text', text: 'sync fallback' }]);
   });
 });

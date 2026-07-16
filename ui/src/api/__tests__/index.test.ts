@@ -194,4 +194,42 @@ describe('api.systemCompatibility', () => {
     expect(result.capabilities.future_surface).toEqual({ state: 'unknown' });
     expect(result.capabilities.malformed_surface).toEqual({ state: 'unknown' });
   });
+
+  it('fetches advertised OpenAPI and AsyncAPI contracts from the Fortemi server root', async () => {
+    mockFetch
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        statusText: 'OK',
+        text: () => Promise.resolve('openapi: 3.1.0\ninfo:\n  title: Fortemi\n'),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        statusText: 'OK',
+        text: () => Promise.resolve('asyncapi: 3.0.0\ninfo:\n  title: Fortemi Events\n'),
+      });
+
+    const api = createApi('http://localhost:3000/api/v1');
+
+    await expect(api.systemCompatibility.getOpenApi('/openapi.yaml')).resolves.toContain('openapi: 3.1.0');
+    await expect(api.systemCompatibility.getAsyncApi('/asyncapi.yaml')).resolves.toContain('asyncapi: 3.0.0');
+
+    expect(mockFetch).toHaveBeenNthCalledWith(
+      1,
+      'http://localhost:3000/openapi.yaml',
+      expect.objectContaining({
+        method: 'GET',
+        headers: expect.objectContaining({ Accept: expect.stringContaining('application/yaml') }),
+      }),
+    );
+    expect(mockFetch).toHaveBeenNthCalledWith(
+      2,
+      'http://localhost:3000/asyncapi.yaml',
+      expect.objectContaining({
+        method: 'GET',
+        headers: expect.objectContaining({ Accept: expect.stringContaining('application/yaml') }),
+      }),
+    );
+  });
 });

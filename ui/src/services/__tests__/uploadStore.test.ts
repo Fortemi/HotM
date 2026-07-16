@@ -491,6 +491,74 @@ describe('uploadStore', () => {
       expect(retried.retryCount).toBe(1);
     });
 
+    it('classifies tus offset mismatch failures with resume guidance', async () => {
+      vi.mocked(tusMod.startTusUpload).mockReturnValueOnce({
+        promise: Promise.reject(new Error('409 Conflict: Upload-Offset mismatch')),
+        abort: vi.fn(),
+      });
+
+      mod.uploadStore.enqueueFiles('note-1', [makeLargeFile('big.bin')]);
+
+      await flushQueue();
+
+      const failedEntry = Array.from(mod.uploadStore.getSnapshot().entries.values())[0];
+      expect(failedEntry.status).toBe('failed');
+      expect(failedEntry.degradedReason).toBe('tus_offset_mismatch');
+      expect(failedEntry.error).toBe('Fortemi reported a resumable upload offset mismatch.');
+      expect(failedEntry.recoveryHint).toContain('current resume offset');
+    });
+
+    it('classifies tus size-limit failures without discarding the queued file', async () => {
+      vi.mocked(tusMod.startTusUpload).mockReturnValueOnce({
+        promise: Promise.reject(new Error('413 Payload Too Large: Tus-Max-Size exceeded')),
+        abort: vi.fn(),
+      });
+
+      const file = makeLargeFile('too-large.bin');
+      mod.uploadStore.enqueueFiles('note-1', [file]);
+
+      await flushQueue();
+
+      const failedEntry = Array.from(mod.uploadStore.getSnapshot().entries.values())[0];
+      expect(failedEntry.file).toBe(file);
+      expect(failedEntry.status).toBe('failed');
+      expect(failedEntry.degradedReason).toBe('tus_chunk_too_large');
+      expect(failedEntry.recoveryHint).toContain('smaller file');
+    });
+
+    it('classifies expired or missing tus sessions as fresh-session retries', async () => {
+      vi.mocked(tusMod.startTusUpload).mockReturnValueOnce({
+        promise: Promise.reject(new Error('410 Gone: upload expired or not found')),
+        abort: vi.fn(),
+      });
+
+      mod.uploadStore.enqueueFiles('note-1', [makeLargeFile('expired.bin')]);
+
+      await flushQueue();
+
+      const failedEntry = Array.from(mod.uploadStore.getSnapshot().entries.values())[0];
+      expect(failedEntry.status).toBe('failed');
+      expect(failedEntry.degradedReason).toBe('tus_session_unavailable');
+      expect(failedEntry.recoveryHint).toContain('fresh server upload session');
+    });
+
+    it('does not claim tus checksum-extension support when checksum text appears', async () => {
+      vi.mocked(tusMod.startTusUpload).mockReturnValueOnce({
+        promise: Promise.reject(new Error('checksum mismatch')),
+        abort: vi.fn(),
+      });
+
+      mod.uploadStore.enqueueFiles('note-1', [makeLargeFile('checksummed.bin')]);
+
+      await flushQueue();
+
+      const failedEntry = Array.from(mod.uploadStore.getSnapshot().entries.values())[0];
+      expect(failedEntry.status).toBe('failed');
+      expect(failedEntry.degradedReason).toBe('tus_checksum_unsupported');
+      expect(failedEntry.error).toContain('does not advertise TUS checksum validation');
+      expect(failedEntry.recoveryHint).toContain('without assuming TUS checksum-extension support');
+    });
+
     it('retryFile resets bytesUploaded for fetch entries', async () => {
       vi.mocked(apiMod.api.attachments.uploadAttachment)
         .mockRejectedValueOnce(new Error('fail'))

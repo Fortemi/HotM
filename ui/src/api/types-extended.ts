@@ -25,6 +25,8 @@ export interface ClientRegistrationRequest {
   client_name: string;
   grant_types: string[];
   redirect_uris?: string[];
+  response_types?: string[];
+  scope?: string;
   token_endpoint_auth_method?: string;
 }
 
@@ -711,7 +713,13 @@ export interface BackupInfo {
   size_bytes: number;
   created_at: string;
   type: 'database' | 'knowledge-shard' | 'archive';
+  shard_type?: string;
+  size_human?: string;
+  modified_iso?: string;
+  sha256_short?: string | null;
+  metadata_file?: string | null;
   label?: string;
+  title?: string;
   description?: string;
   tags?: string[];
 }
@@ -720,16 +728,35 @@ export interface BackupInfo {
  * List backups response
  */
 export interface BackupListResponse {
-  backups: BackupInfo[];
+  backups?: BackupInfo[];
+  shards?: BackupInfo[];
+  total_size_bytes?: number;
+  total_size_human?: string;
 }
 
 /**
  * Backup metadata
  */
 export interface BackupMetadata {
+  title?: string;
   label?: string;
   description?: string;
+  backup_type?: string;
+  created_at?: string;
+  note_count?: number | null;
+  db_size_bytes?: number | null;
+  source?: string;
+  extra?: Record<string, string>;
   tags?: string[];
+}
+
+export interface BackupMetadataResponse {
+  has_metadata?: boolean;
+  filename: string;
+  metadata?: BackupMetadata;
+  backup_type?: string;
+  message?: string;
+  success?: boolean;
 }
 
 /**
@@ -758,7 +785,11 @@ export interface KnowledgeShard {
  * Create snapshot request
  */
 export interface CreateSnapshotRequest {
-  label: string;
+  name?: string;
+  title?: string;
+  description?: string;
+  /** @deprecated Fortemi v2026.7.1 accepts name/title/description. */
+  label?: string;
 }
 
 /**
@@ -766,13 +797,19 @@ export interface CreateSnapshotRequest {
  */
 export interface RestoreDatabaseRequest {
   filename: string;
+  skip_snapshot?: boolean;
+  memory?: string;
 }
 
 /**
  * Swap backup request
  */
 export interface SwapBackupRequest {
-  backup_filename: string;
+  filename?: string;
+  dry_run?: boolean;
+  strategy?: 'wipe' | 'merge';
+  /** @deprecated Fortemi v2026.7.1 accepts filename. */
+  backup_filename?: string;
 }
 
 // ===========================
@@ -1122,6 +1159,7 @@ export interface ChatAction {
  */
 export interface ChatRequest {
   input: string;
+  model?: string;
   context?: {
     note_id?: string;
     collection_id?: string;
@@ -1159,4 +1197,42 @@ export interface ChatModelInfo {
 export interface ChatModelsResponse {
   models: ChatModelInfo[];
   default_model: string;
+}
+
+/**
+ * Model metadata returned by GET /models
+ */
+export interface ModelCatalogEntry {
+  slug: string;
+  provider: string;
+  capabilities: string[];
+  default_for?: string[];
+  parameter_size?: string;
+  quantization?: string;
+  size_bytes?: number;
+  family?: string;
+}
+
+/**
+ * Provider metadata returned by GET /models
+ */
+export interface ModelProviderInfo {
+  id: string;
+  capabilities: string[];
+  is_default: boolean;
+  health: 'healthy' | 'unknown' | 'unhealthy' | string;
+}
+
+/**
+ * Server model catalog from GET /models.
+ */
+export interface ModelCatalogResponse {
+  models: ModelCatalogEntry[];
+  defaults: {
+    language: string;
+    embedding: string;
+    vision?: string;
+    transcription?: string;
+  };
+  providers: ModelProviderInfo[];
 }

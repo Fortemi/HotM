@@ -42,6 +42,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { api } from '@/api';
 import type { BackupInfo } from '@/api/types-extended';
+import type { IngestStreamEvent, StreamIngestSummary } from '@/api';
 
 interface BackupManagerProps {
   className?: string;
@@ -492,6 +493,19 @@ export function BackupManager({ className }: BackupManagerProps) {
 
   // Operation states
   const [isCreatingBackup, setIsCreatingBackup] = useState(false);
+  const [streamFile, setStreamFile] = useState<File | null>(null);
+  const [streamRateLimit, setStreamRateLimit] = useState<number>(0);
+  const [isStreamingIngest, setIsStreamingIngest] = useState(false);
+  const [streamSummary, setStreamSummary] = useState<StreamIngestSummary | null>(null);
+  const [streamProcessed, setStreamProcessed] = useState(0);
+  const [memoryBackupName, setMemoryBackupName] = useState('');
+  const [archiveFilename, setArchiveFilename] = useState('');
+  const [archiveUploadFile, setArchiveUploadFile] = useState<File | null>(null);
+  const [metadataFilename, setMetadataFilename] = useState('');
+  const [metadataTitle, setMetadataTitle] = useState('');
+  const [metadataDescription, setMetadataDescription] = useState('');
+  const [metadataPreview, setMetadataPreview] = useState<string | null>(null);
+  const [backupOperation, setBackupOperation] = useState<string | null>(null);
   const [operationStatus, setOperationStatus] = useState<{
     type: 'success' | 'error';
     message: string;
@@ -501,6 +515,15 @@ export function BackupManager({ className }: BackupManagerProps) {
       pending?: boolean;
     };
   } | null>(null);
+
+  const downloadBlob = useCallback((blob: Blob, filename: string) => {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
+  }, []);
 
   const loadBackups = useCallback(async () => {
     setIsLoading(true);
@@ -548,18 +571,64 @@ export function BackupManager({ className }: BackupManagerProps) {
         filename = `notes-export-${new Date().toISOString().split('T')[0]}.json`;
       }
 
-      // Download the file
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = filename;
-      a.click();
-      URL.revokeObjectURL(url);
+      downloadBlob(blob, filename);
 
       setOperationStatus({ type: 'success', message: `Exported to ${filename}` });
     } catch (err) {
       setOperationStatus({ type: 'error', message: 'Export failed' });
       console.error(err);
+    }
+  };
+
+  const handleStreamEvent = useCallback((event: IngestStreamEvent) => {
+    if (event.event === 'ack') {
+      setStreamProcessed((value) => Math.max(value, event.line));
+    }
+    if (event.event === 'progress') {
+      setStreamProcessed(event.processed);
+    }
+    if (event.event === 'done') {
+      setStreamProcessed(event.total);
+    }
+  }, []);
+
+  const handleStreamImport = async () => {
+    if (!streamFile) {
+      setOperationStatus({ type: 'error', message: 'Choose an NDJSON file to stream' });
+      return;
+    }
+
+    let tokenId: string | undefined;
+    setIsStreamingIngest(true);
+    setStreamSummary(null);
+    setStreamProcessed(0);
+    setOperationStatus(null);
+    try {
+      const minted = await api.ingest.mintToken({
+        rateLimit: streamRateLimit > 0 ? streamRateLimit : undefined,
+      });
+      tokenId = minted.token_id;
+      const summary = await api.ingest.streamNotes(streamFile, {
+        token: minted.token,
+        onEvent: handleStreamEvent,
+      });
+      setStreamSummary(summary);
+      setOperationStatus({
+        type: summary.errors > 0 ? 'error' : 'success',
+        message: `Stream import finished: ${summary.success}/${summary.total} stored, ${summary.errors} errors`,
+      });
+    } catch (err) {
+      setOperationStatus({ type: 'error', message: 'Stream import failed' });
+      console.error(err);
+    } finally {
+      if (tokenId) {
+        try {
+          await api.ingest.revokeToken(tokenId);
+        } catch (err) {
+          console.error(err);
+        }
+      }
+      setIsStreamingIngest(false);
     }
   };
 
@@ -665,16 +734,98 @@ export function BackupManager({ className }: BackupManagerProps) {
       } else {
         blob = await api.backup.downloadDatabaseBackup();
       }
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = backup.filename;
-      a.click();
-      URL.revokeObjectURL(url);
+      downloadBlob(blob, backup.filename);
     } catch (err) {
       setOperationStatus({ type: 'error', message: 'Download failed' });
       console.error(err);
     }
+  };
+
+  const runBackupOperation = async (name: string, operation: () => Promise<void>) => {
+    setBackupOperation(name);
+    setOperationStatus(null);
+    try {
+      await operation();
+    } catch (err) {
+      setOperationStatus({ type: 'error', message: 'Backup operation failed' });
+      console.error(err);
+    } finally {
+      setBackupOperation(null);
+    }
+  };
+
+  const handleMemoryDownload = async () => {
+    const memoryName = memoryBackupName.trim();
+    if (!memoryName) {
+      setOperationStatus({ type: 'error', message: 'Enter a memory archive name' });
+      return;
+    }
+    await runBackupOperation('memory-download', async () => {
+      const blob = await api.backup.downloadMemoryBackup(memoryName);
+      downloadBlob(blob, `${memoryName}.backup`);
+      setOperationStatus({ type: 'success', message: `Downloaded memory backup for ${memoryName}` });
+    });
+  };
+
+  const handleArchiveDownload = async () => {
+    const filename = archiveFilename.trim();
+    if (!filename) {
+      setOperationStatus({ type: 'error', message: 'Enter a knowledge archive filename' });
+      return;
+    }
+    await runBackupOperation('archive-download', async () => {
+      const blob = await api.backup.downloadKnowledgeArchive(filename);
+      downloadBlob(blob, filename);
+      setOperationStatus({ type: 'success', message: `Downloaded knowledge archive ${filename}` });
+    });
+  };
+
+  const handleArchiveUpload = async () => {
+    if (!archiveUploadFile) {
+      setOperationStatus({ type: 'error', message: 'Choose a knowledge archive file' });
+      return;
+    }
+    await runBackupOperation('archive-upload', async () => {
+      await api.backup.uploadKnowledgeArchive(archiveUploadFile);
+      await loadBackups();
+      setOperationStatus({ type: 'success', message: `Uploaded knowledge archive ${archiveUploadFile.name}` });
+    });
+  };
+
+  const handleMetadataLoad = async () => {
+    const filename = metadataFilename.trim();
+    if (!filename) {
+      setOperationStatus({ type: 'error', message: 'Enter a backup filename for metadata' });
+      return;
+    }
+    await runBackupOperation('metadata-load', async () => {
+      const response = await api.backup.getBackupMetadata(filename);
+      const metadata = response.metadata;
+      setMetadataTitle(metadata?.title ?? metadata?.label ?? '');
+      setMetadataDescription(metadata?.description ?? '');
+      setMetadataPreview(
+        response.has_metadata
+          ? `Metadata loaded for ${response.filename}`
+          : `No metadata sidecar found for ${response.filename}`,
+      );
+      setOperationStatus({ type: 'success', message: 'Backup metadata loaded' });
+    });
+  };
+
+  const handleMetadataSave = async () => {
+    const filename = metadataFilename.trim();
+    if (!filename) {
+      setOperationStatus({ type: 'error', message: 'Enter a backup filename for metadata' });
+      return;
+    }
+    await runBackupOperation('metadata-save', async () => {
+      const response = await api.backup.updateBackupMetadata(filename, {
+        title: metadataTitle.trim() || undefined,
+        description: metadataDescription.trim() || undefined,
+      });
+      setMetadataPreview(`Metadata saved for ${response.filename}`);
+      setOperationStatus({ type: 'success', message: 'Backup metadata updated' });
+    });
   };
 
   return (
@@ -777,6 +928,206 @@ export function BackupManager({ className }: BackupManagerProps) {
           <RefreshCw className="w-5 h-5" />
           <span>Reprocess</span>
         </Button>
+      </div>
+
+      <div className="rounded-lg border p-4">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+          <div className="space-y-2">
+            <div className="flex items-center gap-2 text-sm font-medium">
+              <Upload className="w-4 h-4" />
+              Stream NDJSON Import
+              {isStreamingIngest && (
+                <Badge variant="outline" className="text-xs">
+                  {streamProcessed} processed
+                </Badge>
+              )}
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              <label className="inline-flex cursor-pointer items-center gap-2 rounded-md border px-3 py-2 text-sm hover:bg-muted/50">
+                <FileJson className="w-4 h-4" />
+                {streamFile ? streamFile.name : 'Choose .ndjson'}
+                <input
+                  data-testid="stream-ingest-file"
+                  type="file"
+                  accept=".ndjson,application/x-ndjson"
+                  className="hidden"
+                  onChange={(e) => setStreamFile(e.target.files?.[0] ?? null)}
+                  disabled={isStreamingIngest}
+                />
+              </label>
+              <label className="flex items-center gap-2 text-sm">
+                <span className="text-muted-foreground">rate</span>
+                <input
+                  type="number"
+                  min={0}
+                  max={10000}
+                  value={streamRateLimit}
+                  onChange={(e) => setStreamRateLimit(Number(e.target.value) || 0)}
+                  className="h-9 w-24 rounded border border-input bg-background px-2 text-sm"
+                  disabled={isStreamingIngest}
+                  aria-label="Stream ingest rate limit"
+                />
+              </label>
+            </div>
+            {streamSummary && (
+              <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
+                <span>{streamSummary.total} total</span>
+                <span>{streamSummary.success} stored</span>
+                <span>{streamSummary.errors} errors</span>
+                {streamSummary.lastCursor && <span>cursor_len={streamSummary.lastCursor.length}</span>}
+              </div>
+            )}
+          </div>
+          <Button
+            variant="outline"
+            onClick={handleStreamImport}
+            disabled={!streamFile || isStreamingIngest}
+          >
+            {isStreamingIngest ? (
+              <>
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                Streaming...
+              </>
+            ) : (
+              <>
+                <Upload className="w-4 h-4 mr-2" />
+                Stream Import
+              </>
+            )}
+          </Button>
+        </div>
+      </div>
+
+      <div className="rounded-lg border p-4">
+        <div className="space-y-4">
+          <div>
+            <div className="flex items-center gap-2 text-sm font-medium">
+              <Package className="w-4 h-4" />
+              Backup Route Groups
+            </div>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Current Fortemi archive operations by route family. Portable shard imports restore note data; attachment records and attachment bytes are not restored by this server contract.
+            </p>
+          </div>
+
+          <div className="grid gap-4 lg:grid-cols-3">
+            <div className="space-y-3 rounded-md border p-3">
+              <div>
+                <p className="text-sm font-medium">Memory Backup</p>
+                <p className="text-xs text-muted-foreground">Download a specific memory archive backup.</p>
+              </div>
+              <input
+                value={memoryBackupName}
+                onChange={(e) => setMemoryBackupName(e.target.value)}
+                placeholder="memory name"
+                aria-label="Memory backup name"
+                className="h-9 w-full rounded border border-input bg-background px-2 text-sm"
+              />
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleMemoryDownload}
+                disabled={backupOperation === 'memory-download'}
+              >
+                {backupOperation === 'memory-download' ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Download className="w-4 h-4 mr-2" />}
+                Download Memory
+              </Button>
+            </div>
+
+            <div className="space-y-3 rounded-md border p-3">
+              <div>
+                <p className="text-sm font-medium">Knowledge Archive</p>
+                <p className="text-xs text-muted-foreground">Download by filename or upload an archive bundle.</p>
+              </div>
+              <input
+                value={archiveFilename}
+                onChange={(e) => setArchiveFilename(e.target.value)}
+                placeholder="archive filename"
+                aria-label="Knowledge archive filename"
+                className="h-9 w-full rounded border border-input bg-background px-2 text-sm"
+              />
+              <div className="flex flex-wrap gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleArchiveDownload}
+                  disabled={backupOperation === 'archive-download'}
+                >
+                  {backupOperation === 'archive-download' ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Download className="w-4 h-4 mr-2" />}
+                  Download Archive
+                </Button>
+                <label className="inline-flex cursor-pointer items-center gap-2 rounded-md border px-3 py-2 text-sm hover:bg-muted/50">
+                  <Upload className="w-4 h-4" />
+                  {archiveUploadFile ? archiveUploadFile.name : 'Choose archive'}
+                  <input
+                    data-testid="knowledge-archive-upload-file"
+                    type="file"
+                    className="hidden"
+                    onChange={(e) => setArchiveUploadFile(e.target.files?.[0] ?? null)}
+                  />
+                </label>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleArchiveUpload}
+                  disabled={!archiveUploadFile || backupOperation === 'archive-upload'}
+                >
+                  {backupOperation === 'archive-upload' ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Upload className="w-4 h-4 mr-2" />}
+                  Upload Archive
+                </Button>
+              </div>
+            </div>
+
+            <div className="space-y-3 rounded-md border p-3">
+              <div>
+                <p className="text-sm font-medium">Metadata Sidecar</p>
+                <p className="text-xs text-muted-foreground">Read or update title and description sidecars.</p>
+              </div>
+              <input
+                value={metadataFilename}
+                onChange={(e) => setMetadataFilename(e.target.value)}
+                placeholder="backup filename"
+                aria-label="Backup metadata filename"
+                className="h-9 w-full rounded border border-input bg-background px-2 text-sm"
+              />
+              <input
+                value={metadataTitle}
+                onChange={(e) => setMetadataTitle(e.target.value)}
+                placeholder="title"
+                aria-label="Backup metadata title"
+                className="h-9 w-full rounded border border-input bg-background px-2 text-sm"
+              />
+              <textarea
+                value={metadataDescription}
+                onChange={(e) => setMetadataDescription(e.target.value)}
+                placeholder="description"
+                aria-label="Backup metadata description"
+                className="min-h-16 w-full rounded border border-input bg-background px-2 py-1 text-sm"
+              />
+              {metadataPreview && (
+                <p className="text-xs text-muted-foreground">{metadataPreview}</p>
+              )}
+              <div className="flex flex-wrap gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleMetadataLoad}
+                  disabled={backupOperation === 'metadata-load'}
+                >
+                  Load Metadata
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleMetadataSave}
+                  disabled={backupOperation === 'metadata-save'}
+                >
+                  Save Metadata
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Backups List - Simple Expandable Section */}

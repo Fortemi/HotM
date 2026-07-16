@@ -61,4 +61,57 @@ describe('Health API', () => {
       last_activity: '2026-02-16T00:00:00Z',
     });
   });
+
+  it('normalizes streaming health metric blocks', async () => {
+    vi.mocked(mockClient.get).mockResolvedValueOnce({
+      status: 'healthy',
+      chat: {
+        chat_stream_started_total: { type: 'counter', value: 5 },
+        chat_stream_dropped_tokens_total: { type: 'counter', value: 1 },
+      },
+      ingest: {
+        ingest_stream_buffer_pressure: { type: 'gauge', value: 17 },
+        ingest_stream_throttled_total: { type: 'counter', value: 2 },
+      },
+      sse: {
+        active_connections: 3,
+        events_delivered: 42,
+      },
+      inbound: {
+        connectors: 2,
+        errors_total: 1,
+        lag_max: 9,
+      },
+      rtp: {
+        active_sessions: 1,
+      },
+    });
+
+    const result = await healthApi.getStreamingHealth();
+
+    expect(mockClient.get).toHaveBeenCalledWith('/health/streaming');
+    expect(result.status).toBe('healthy');
+    expect(result.chat.state).toBe('reported');
+    expect(result.chat.metrics.chat_stream_started_total).toEqual({ type: 'counter', value: 5 });
+    expect(result.ingest.metrics.ingest_stream_buffer_pressure).toEqual({ type: 'gauge', value: 17 });
+    expect(result.sse.metrics.active_connections).toEqual({ type: 'unknown', value: 3 });
+    expect(result.inbound.metrics.lag_max).toEqual({ type: 'unknown', value: 9 });
+  });
+
+  it('marks missing and malformed streaming health blocks without treating them as reported', async () => {
+    vi.mocked(mockClient.get).mockResolvedValueOnce({
+      status: 'healthy',
+      chat: 'not-a-block',
+      ingest: null,
+      sse: {},
+    });
+
+    const result = await healthApi.getStreamingHealth();
+
+    expect(result.chat.state).toBe('malformed');
+    expect(result.ingest.state).toBe('missing');
+    expect(result.sse.state).toBe('reported');
+    expect(result.rtp.state).toBe('missing');
+    expect(result.inbound.state).toBe('missing');
+  });
 });

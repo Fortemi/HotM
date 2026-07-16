@@ -24,6 +24,10 @@ vi.mock('@/api', () => ({
     health: {
       getKnowledgeHealth: vi.fn(),
     },
+    auth: {
+      getAuthServerMetadata: vi.fn(),
+      getProtectedResourceMetadata: vi.fn(),
+    },
     documents: {
       list: vi.fn(),
       create: vi.fn(),
@@ -91,6 +95,23 @@ describe('AdminPanel', () => {
     (api.embeddings.getDefaultConfig as any).mockResolvedValue(mockEmbeddingConfigs[0]);
     (api.health.getKnowledgeHealth as any).mockResolvedValue(mockHealthData);
     (api.healthCheck as any).mockResolvedValue(mockSystemHealth);
+    (api.auth.getAuthServerMetadata as any).mockResolvedValue({
+      issuer: 'http://localhost:3000',
+      authorization_endpoint: 'http://localhost:3000/oauth/authorize',
+      token_endpoint: 'http://localhost:3000/oauth/token',
+      registration_endpoint: 'http://localhost:3000/oauth/register',
+      introspection_endpoint: 'http://localhost:3000/oauth/introspect',
+      revocation_endpoint: 'http://localhost:3000/oauth/revoke',
+      scopes_supported: ['read', 'write', 'mcp'],
+      client_secret: 'secret-stream-token',
+      access_token: 'raw-access-token',
+    });
+    (api.auth.getProtectedResourceMetadata as any).mockResolvedValue({
+      resource: 'http://localhost:3000',
+      authorization_servers: ['http://localhost:3000'],
+      bearer_methods_supported: ['header'],
+      refresh_token: 'raw-refresh-token',
+    });
     (api.systemCompatibility.get as any).mockResolvedValue({
       schema_version: 1,
       contract_revision: '2026-07-06',
@@ -290,7 +311,7 @@ describe('AdminPanel', () => {
   });
 
   describe('Authentication Tab', () => {
-    it('should switch to authentication tab', async () => {
+    it('should display OAuth discovery diagnostics', async () => {
       const user = userEvent.setup();
       render(<AdminPanel />);
 
@@ -298,20 +319,50 @@ describe('AdminPanel', () => {
       await user.click(authTab);
 
       await waitFor(() => {
-        expect(screen.getByText(/Coming Soon/i)).toBeInTheDocument();
+        expect(screen.getByText('OAuth Discovery')).toBeInTheDocument();
+        expect(screen.getByText('OAuth Route Coverage')).toBeInTheDocument();
+        expect(screen.getByText('http://localhost:3000/oauth/authorize')).toBeInTheDocument();
+        expect(screen.getByText('GET/POST /oauth/authorize')).toBeInTheDocument();
+        expect(screen.getByText('POST /oauth/register')).toBeInTheDocument();
+        expect(api.auth.getAuthServerMetadata).toHaveBeenCalledTimes(1);
+        expect(api.auth.getProtectedResourceMetadata).toHaveBeenCalledTimes(1);
       });
     });
 
-    it('should display authentication placeholder', async () => {
+    it('should keep OAuth secrets and tokens out of the diagnostics surface', async () => {
       const user = userEvent.setup();
-      render(<AdminPanel />);
+      const { container } = render(<AdminPanel />);
 
       const authTab = screen.getByText('Authentication');
       await user.click(authTab);
 
       await waitFor(() => {
-        expect(screen.getByText(/OAuth2 login and API key management/i)).toBeInTheDocument();
+        expect(screen.getByText('Token endpoint')).toBeInTheDocument();
       });
+
+      expect(container.textContent).not.toContain('secret-stream-token');
+      expect(container.textContent).not.toContain('raw-access-token');
+      expect(container.textContent).not.toContain('raw-refresh-token');
+    });
+
+    it('should show unavailable discovery state without blocking other admin tabs', async () => {
+      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+      (api.auth.getAuthServerMetadata as any).mockRejectedValue(new Error('metadata unavailable'));
+      const user = userEvent.setup();
+      render(<AdminPanel />);
+
+      await user.click(screen.getByText('Authentication'));
+
+      await waitFor(() => {
+        expect(screen.getByText('OAuth discovery metadata is unavailable')).toBeInTheDocument();
+      });
+
+      await user.click(screen.getByText('About'));
+      await waitFor(() => {
+        expect(screen.getByText(/About HotM/i)).toBeInTheDocument();
+      });
+
+      consoleErrorSpy.mockRestore();
     });
   });
 
@@ -380,7 +431,7 @@ describe('AdminPanel', () => {
       // Switch to Authentication
       await user.click(screen.getByText('Authentication'));
       await waitFor(() => {
-        expect(screen.getByText(/Coming Soon/i)).toBeInTheDocument();
+        expect(screen.getByText('OAuth Discovery')).toBeInTheDocument();
       });
 
       // Switch to About

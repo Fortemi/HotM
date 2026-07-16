@@ -42,11 +42,11 @@ describe('providers', () => {
   });
 
   describe('supportsStreaming', () => {
-    it('returns false for fortemi', () => {
-      expect(supportsStreaming('fortemi')).toBe(false);
+    it('returns true for fortemi native chat stream', () => {
+      expect(supportsStreaming('fortemi')).toBe(true);
     });
 
-    it('returns true for all other providers', () => {
+    it('returns true for all providers', () => {
       expect(supportsStreaming('ollama')).toBe(true);
       expect(supportsStreaming('anthropic')).toBe(true);
       expect(supportsStreaming('openai')).toBe(true);

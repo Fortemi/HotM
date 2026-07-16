@@ -45,8 +45,8 @@ export function requiresProxy(provider: AgentProvider): boolean {
 }
 
 /** Whether a provider supports streaming via AI SDK */
-export function supportsStreaming(provider: AgentProvider): boolean {
-  return provider !== 'fortemi';
+export function supportsStreaming(_provider: AgentProvider): boolean {
+  return true;
 }
 
 const STORAGE_KEY = 'hotm:agent-provider';

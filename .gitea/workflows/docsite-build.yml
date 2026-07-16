@@ -4,8 +4,8 @@
 # Catches broken links, bad config, and build errors before merge.
 #
 # Required Gitea secrets:
-#   BAO_CI_ROLE_ID    — OpenBao AppRole role_id for this repo
-#   BAO_CI_SECRET_ID  — OpenBao AppRole secret_id for this repo
+#   VAULT_CI_ROLE_ID    — vault AppRole role_id for this repo
+#   VAULT_CI_SECRET_ID  — vault AppRole secret_id for this repo
 
 name: Docsite Build
 
@@ -32,14 +32,14 @@ jobs:
         shell: bash
 
     steps:
-      - name: Check for OpenBao bootstrap
+      - name: Check for vault bootstrap
         id: precheck
         env:
-          BAO_CI_ROLE_ID: ${{ secrets.BAO_CI_ROLE_ID }}
-          BAO_CI_SECRET_ID: ${{ secrets.BAO_CI_SECRET_ID }}
+          VAULT_CI_ROLE_ID: ${{ secrets.VAULT_CI_ROLE_ID }}
+          VAULT_CI_SECRET_ID: ${{ secrets.VAULT_CI_SECRET_ID }}
         run: |
-          if [ -z "${BAO_CI_ROLE_ID:-}" ] || [ -z "${BAO_CI_SECRET_ID:-}" ]; then
-            echo "::warning::OpenBao CI bootstrap is not provisioned; skipping docsite build."
+          if [ -z "${VAULT_CI_ROLE_ID:-}" ] || [ -z "${VAULT_CI_SECRET_ID:-}" ]; then
+            echo "::warning::vault CI bootstrap is not provisioned; skipping docsite build."
             echo "skip=true" >> "$GITHUB_OUTPUT"
           else
             echo "skip=false" >> "$GITHUB_OUTPUT"
@@ -49,16 +49,19 @@ jobs:
         if: steps.precheck.outputs.skip != 'true'
         uses: actions/checkout@v4
 
-      - name: Install OpenBao fetch dependencies
+      - name: Install vault fetch dependencies
         if: steps.precheck.outputs.skip != 'true'
         run: apt-get update && apt-get install -y --no-install-recommends curl jq
 
-      - name: Fetch dbbuilder clone token from OpenBao
+      - name: Fetch dbbuilder clone token from vault
         if: steps.precheck.outputs.skip != 'true'
         env:
-          BAO_CI_ROLE_ID: ${{ secrets.BAO_CI_ROLE_ID }}
-          BAO_CI_SECRET_ID: ${{ secrets.BAO_CI_SECRET_ID }}
-        run: ci/openbao-fetch.sh --spec ci/openbao-fetch.docsite-build.spec
+          VAULT_ADDR: ${{ vars.VAULT_ADDR }}
+          VAULT_CI_ROLE_ID: ${{ secrets.VAULT_CI_ROLE_ID }}
+          VAULT_CI_SECRET_ID: ${{ secrets.VAULT_CI_SECRET_ID }}
+          GT_ACCESS_TOKEN_VAULT_PATH: ${{ vars.GT_ACCESS_TOKEN_VAULT_PATH }}
+          GT_ACCESS_TOKEN_VAULT_FIELD: ${{ vars.GT_ACCESS_TOKEN_VAULT_FIELD }}
+        run: ci/vault-fetch.sh --spec ci/vault-fetch.docsite-build.spec
 
       - name: Clone dbbuilder
         if: steps.precheck.outputs.skip != 'true'

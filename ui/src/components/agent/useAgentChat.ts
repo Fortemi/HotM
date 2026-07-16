@@ -15,7 +15,8 @@
 
 import { DefaultChatTransport } from 'ai';
 import { useChat, type UIMessage } from '@ai-sdk/react';
-import { useCallback, useMemo, useRef } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
+import { api } from '@/api';
 import type { AgentContext } from './useAgent';
 import type { ProviderConfig } from './providers';
 
@@ -40,14 +41,34 @@ export interface UseAgentChatReturn {
 
 const DEFAULT_PROXY_URL = '/api/agent/chat';
 
+let nativeMessageCounter = 0;
+
+function nextNativeMessageId(): string {
+  nativeMessageCounter += 1;
+  return `fortemi-native-${Date.now()}-${nativeMessageCounter}`;
+}
+
+function makeTextMessage(role: 'user' | 'assistant', text: string): UIMessage {
+  return {
+    id: nextNativeMessageId(),
+    role,
+    parts: [{ type: 'text', text }],
+  } as UIMessage;
+}
+
 export function useAgentChat(options: UseAgentChatOptions): UseAgentChatReturn {
   const { config, context, proxyUrl = DEFAULT_PROXY_URL } = options;
   const maxSteps = config.maxSteps ?? 5;
+  const useNativeFortemiStream = config.provider === 'fortemi';
 
   const chatId = useMemo(() => `agent-${Date.now()}`, []);
 
   // Track steps per conversation turn (for client-side awareness only)
   const stepCountRef = useRef(0);
+  const nativeAbortRef = useRef<AbortController | null>(null);
+  const [nativeMessages, setNativeMessages] = useState<UIMessage[]>([]);
+  const [nativeLoading, setNativeLoading] = useState(false);
+  const [nativeError, setNativeError] = useState<Error | undefined>();
 
   // DefaultChatTransport handles the AI SDK data stream protocol.
   // The proxy backend speaks this protocol and routes to the
@@ -95,27 +116,199 @@ export function useAgentChat(options: UseAgentChatOptions): UseAgentChatReturn {
     async (input: string) => {
       if (!input.trim()) return;
       stepCountRef.current = 0;
+
+      if (useNativeFortemiStream) {
+        const text = input.trim();
+        const userMessage = makeTextMessage('user', text);
+        const assistantMessage = makeTextMessage('assistant', '');
+        const controller = new AbortController();
+
+        nativeAbortRef.current?.abort();
+        nativeAbortRef.current = controller;
+        setNativeError(undefined);
+        setNativeLoading(true);
+        setNativeMessages((prev) => [...prev, userMessage, assistantMessage]);
+        let streamed = '';
+
+        try {
+          const currentMessages = [...nativeMessages, userMessage];
+          await api.chat.stream(
+            {
+              input: text,
+              model: config.model,
+              context: {
+                note_id: context?.noteId,
+                collection_id: context?.collectionId,
+                search_query: context?.searchQuery,
+                conversation_history: currentMessages.map((message) => ({
+                  role: message.role,
+                  content: message.parts
+                    .filter((part): part is { type: 'text'; text: string } => part.type === 'text')
+                    .map((part) => part.text)
+                    .join('\n'),
+                })),
+              },
+            },
+            {
+              signal: controller.signal,
+              onEvent: (event) => {
+                if (event.event === 'delta') {
+                  streamed += event.content;
+                  setNativeMessages((prev) =>
+                    prev.map((message) =>
+                      message.id === assistantMessage.id
+                        ? { ...message, parts: [{ type: 'text', text: streamed }] as UIMessage['parts'] }
+                        : message,
+                    ),
+                  );
+                }
+                if (event.event === 'done' && event.content) {
+                  streamed = event.content;
+                  setNativeMessages((prev) =>
+                    prev.map((message) =>
+                      message.id === assistantMessage.id
+                        ? { ...message, parts: [{ type: 'text', text: streamed }] as UIMessage['parts'] }
+                        : message,
+                    ),
+                  );
+                }
+                if (event.event === 'status' && event.content && !streamed) {
+                  setNativeMessages((prev) =>
+                    prev.map((message) =>
+                      message.id === assistantMessage.id
+                        ? { ...message, parts: [{ type: 'text', text: event.content ?? '' }] as UIMessage['parts'] }
+                        : message,
+                    ),
+                  );
+                }
+              },
+            },
+          );
+          if (!streamed) {
+            setNativeMessages((prev) =>
+              prev.map((message) =>
+                message.id === assistantMessage.id
+                  ? { ...message, parts: [{ type: 'text', text: 'No response received.' }] as UIMessage['parts'] }
+                  : message,
+              ),
+            );
+          }
+        } catch (err) {
+          if (controller.signal.aborted) {
+            setNativeMessages((prev) =>
+              prev.map((message) =>
+                message.id === assistantMessage.id
+                  ? { ...message, parts: [{ type: 'text', text: streamed ? `${streamed}\n\n[stopped]` : '[stopped]' }] as UIMessage['parts'] }
+                  : message,
+              ),
+            );
+            return;
+          }
+
+          try {
+            const response = await api.chat.send({
+              input: text,
+              model: config.model,
+              context: {
+                note_id: context?.noteId,
+                collection_id: context?.collectionId,
+                search_query: context?.searchQuery,
+              },
+            });
+            const fallback = response.messages.find((message) => message.role === 'assistant')
+              ?? response.messages[0];
+            setNativeMessages((prev) =>
+              prev.map((message) =>
+                message.id === assistantMessage.id
+                  ? {
+                      ...message,
+                      parts: [{
+                        type: 'text',
+                        text: fallback?.content ?? 'No response received.',
+                      }] as UIMessage['parts'],
+                    }
+                  : message,
+              ),
+            );
+          } catch {
+            const message = err instanceof Error ? err : new Error('Failed to stream message');
+            setNativeError(message);
+            setNativeMessages((prev) => prev.filter((messageItem) => messageItem.id !== assistantMessage.id));
+          }
+        } finally {
+          if (nativeAbortRef.current === controller) {
+            nativeAbortRef.current = null;
+          }
+          setNativeLoading(false);
+        }
+        return;
+      }
+
       // Clear any previous error so stale error banners don't persist
       // alongside a new (potentially successful) response.
       if (error) clearError();
       await sdkSendMessage({ text: input.trim() });
     },
-    [sdkSendMessage, error, clearError],
+    [
+      useNativeFortemiStream,
+      nativeMessages,
+      config.model,
+      context?.noteId,
+      context?.collectionId,
+      context?.searchQuery,
+      sdkSendMessage,
+      error,
+      clearError,
+    ],
   );
 
   const clearMessages = useCallback(() => {
+    if (useNativeFortemiStream) {
+      nativeAbortRef.current?.abort();
+      setNativeMessages([]);
+      setNativeError(undefined);
+      return;
+    }
     setMessages([]);
     stepCountRef.current = 0;
-  }, [setMessages]);
+  }, [useNativeFortemiStream, setMessages]);
+
+  const stopNativeOrProxy = useCallback(() => {
+    if (useNativeFortemiStream) {
+      nativeAbortRef.current?.abort();
+      setNativeLoading(false);
+      return;
+    }
+    stop();
+  }, [useNativeFortemiStream, stop]);
+
+  const clearNativeOrProxyError = useCallback(() => {
+    if (useNativeFortemiStream) {
+      setNativeError(undefined);
+      return;
+    }
+    clearError();
+  }, [useNativeFortemiStream, clearError]);
+
+  const setNativeOrProxyMessages = useCallback(
+    (nextMessages: UIMessage[]) => {
+      if (useNativeFortemiStream) {
+        setNativeMessages(nextMessages);
+        return;
+      }
+      setMessages(nextMessages);
+    },
+    [useNativeFortemiStream, setMessages],
+  );
 
   return {
-    messages,
-    isLoading,
-    error,
+    messages: useNativeFortemiStream ? nativeMessages : messages,
+    isLoading: useNativeFortemiStream ? nativeLoading : isLoading,
+    error: useNativeFortemiStream ? nativeError : error,
     sendMessage: wrappedSendMessage,
     clearMessages,
-    clearError,
-    stop,
-    setMessages,
+    clearError: clearNativeOrProxyError,
+    stop: stopNativeOrProxy,
+    setMessages: setNativeOrProxyMessages,
   };
 }

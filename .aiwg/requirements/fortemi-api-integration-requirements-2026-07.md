@@ -1,0 +1,74 @@
+---
+title: Fortemi API Integration Requirements - v2026.7.1
+status: proposed
+date: 2026-07-14
+artifact_type: requirements
+related_artifacts:
+  - .aiwg/api/compatibility/fortemi-v2026-07-route-coverage.md
+  - .aiwg/architecture/impact/fortemi-api-contract-drift-2026-07.md
+  - .aiwg/architecture/adr/ADR-010-fortemi-v2026-07-api-coverage.md
+  - .aiwg/architecture/adr/ADR-011-fortemi-media-call-surface-disposition.md
+  - .aiwg/architecture/sad-fortemi-integration-addendum-2026-07.md
+  - .aiwg/design/fortemi-v2026-07-capability-surface-matrix.md
+  - .aiwg/design/fortemi-v2026-07-ux-integration-addendum.md
+  - .aiwg/requirements/fortemi-v2026-07-ux-workflow-scenarios.md
+  - .aiwg/planning/fortemi-v2026-07-hotm-integration-plan.md
+  - .aiwg/planning/fortemi-v2026-07-implementation-roadmap.md
+  - .aiwg/testing/api-contract-test-plan-addendum-2026-07.md
+  - .aiwg/reports/fortemi-v2026-07-api-integration-traceability.md
+---
+
+# Fortemi API Integration Requirements - v2026.7.1
+
+## Scope
+
+This requirements baseline covers HotM alignment with the current Fortemi server checkout at `/home/roctinam/dev/fortemi/fortemi`, commit `f6733252`, with latest release tag `v2026.7.1` dated 2026-07-13. The audit uses server route declarations in `crates/matric-api/src/main.rs`, release notes in `docs/releases/v2026.7.1-announcement.md`, and HotM client modules under `ui/src/api` plus `agent-proxy/src/tools.ts`.
+
+## Requirements
+
+| ID | Requirement | Priority | Verification |
+| --- | --- | --- | --- |
+| FORTEMI-2026-07-REQ-001 | HotM must maintain a generated or source-derived contract inventory for all Fortemi `GET/POST/PATCH/PUT/DELETE/HEAD/OPTIONS` routes and compare it with HotM API-client coverage before release. | P0 | Contract inventory test or script reports server routes, HotM client routes, intentional exclusions, and gaps. |
+| FORTEMI-2026-07-REQ-002 | HotM agent/chat UX must consume `POST /api/v1/chat/stream` with a POST-capable SSE parser, including `delta`, `done`, `error`, 503 GPU-busy handling, cancellation, and reconnect behavior. | P0 | Component tests and integration tests cover token streaming, terminal events, cancellation, and fallback to synchronous `/chat`. |
+| FORTEMI-2026-07-REQ-003 | HotM must expose streaming health and event health from `GET /api/v1/health/streaming`, including chat counters, ingest backpressure counters, connector lag/error counters, and client degraded states. | P1 | Admin/realtime panels render populated, missing, and degraded health blocks without crashing. |
+| FORTEMI-2026-07-REQ-004 | HotM must support operator-visible NDJSON ingest workflows for `POST /api/v1/ingest/stream`, `POST /api/v1/ingest/tokens`, and `DELETE /api/v1/ingest/tokens/{token_id}` where the UX needs bulk import or agent streaming. | P1 | Tests cover token mint/revoke, line ack/progress/error/done frames, 401/410/429 handling, and `X-Ingest-Cursor` resume guidance. |
+| FORTEMI-2026-07-REQ-005 | HotM Admin must distinguish outbound webhooks from incoming webhook receivers and support incoming receiver list/create/get/patch/delete plus payload validation where operators configure external callbacks. | P1 | Admin tests cover receiver lifecycle, HMAC/schema/idempotency help text, and validation failure display. |
+| FORTEMI-2026-07-REQ-006 | HotM Admin must surface inbound external event sources (`/api/v1/inbound-sources`) as opt-in connector controls with disabled-by-default posture when `INBOUND_EXTERNAL_SOURCES_ENABLED=false`. | P1 | Tests cover list/create/delete, disabled/cost-gated state, connector health, and DLQ/error messaging. |
+| FORTEMI-2026-07-REQ-007 | HotM attachment UX must continue to use TUS for large media and add explicit coverage for current TUS verbs (`POST`, `OPTIONS`, `GET`, `HEAD`, `PATCH`, `DELETE`) and server offset/checksum errors. | P1 | Upload tests cover resume offset, termination, checksum mismatch, and desktop adapter path. |
+| FORTEMI-2026-07-REQ-008 | HotM must support included ad-hoc media routes through attachment-safe actions and keep agent exposure gated. | P2 | ADR-011 and #259 evidence record image description and audio/video transcription as attachment preview actions with unsupported-media and redaction tests. |
+| FORTEMI-2026-07-REQ-009 | HotM must bound realtime call routes by exposing redacted REST call diagnostics and documenting Twilio live WebSocket diagnostics as excluded. | P2 | Admin API Surface tests cover `GET /api/v1/calls/{id}` lookup without raw transcript/provider ID rendering; route inventory records Twilio realtime as a documented exclusion. |
+| FORTEMI-2026-07-REQ-010 | HotM backup/archive UX must document and cover the full current backup family, including database download, memory-scoped download, knowledge archive download/upload, metadata update, and portable byte-sidecar limitations. | P1 | Backup tests and docs cover implemented endpoints and list unsupported reference-only shard boundaries. |
+| FORTEMI-2026-07-REQ-011 | HotM must preserve fail-closed auth/degraded-mode behavior: API keys, OAuth, compatibility metadata, and capability gates must not expose or enable production actions from unknown, preview, or unavailable states. | P0 | Existing compatibility tests plus new route coverage tests verify disabled-by-default behavior and redaction. |
+| FORTEMI-2026-07-REQ-012 | HotM agent-proxy tools must be reviewed against current Fortemi capabilities and either extended or explicitly bounded so the assistant can use supported notes/search/archive/attachment/inference/ingest tools without hallucinating unavailable operations. | P1 | Tool inventory maps agent tools to server endpoints and identifies next tool additions with tests. |
+
+## Current Coverage Summary
+
+HotM already has meaningful coverage for notes, search, archives/memories, jobs, events, inference config/audit/providers/test-connection, outbound webhooks, document types, attachments including TUS upload support, backup basics, concepts/SKOS, collections, templates, embedding sets/configs, health, and system compatibility.
+
+The original investigation open set was concentrated in full backup/download coverage, agent-tool gating, hosted auth parity, and automated end-to-end contract inventory. The current implementation baseline has local evidence for those P0/P1 slices, and tracker closeout comments are published. Final closure still depends on a live route-verifier CI receipt or accepted local-preflight-only decision.
+
+## Route Inventory Baseline
+
+The generated coverage inventory at `.aiwg/api/compatibility/fortemi-v2026-07-route-coverage.md` extracts 200 Fortemi route declarations from `crates/matric-api/src/main.rs` at commit `f6733252`.
+
+| Status | Count | Meaning |
+| --- | ---: | --- |
+| covered | 186 | HotM has API, UI, agent-tool, or compatibility evidence for the route family. |
+| partial | 0 | No current verifier rows remain partial; future drift must be issue-backed before closure. |
+| gap | 0 | No uncovered route family remains in the current generated verifier baseline. |
+| decision_needed | 0 | No current route requires an unresolved product/UX disposition before implementation or exclusion. |
+| documented_exclusion | 14 | Route family is currently excluded from HotM UX claims and must remain documented until a product slice is opened. |
+
+## Scope Boundary
+
+This artifact does not assert that every Fortemi server endpoint needs a primary navigation item. "Seamless integration" means every server capability is either represented in UX/API client/tests, exposed through agent tooling, or documented as intentionally not user-facing with a compatibility guard and traceable issue.
+
+The UX disposition for each v2026.7.1 covered and intentionally excluded route family is defined in `.aiwg/design/fortemi-v2026-07-ux-integration-addendum.md`; any future partial row must be added there with an issue-backed surface or exclusion path.
+
+The workflow-level actor, state, alternate-flow, and test-scenario acceptance baseline is defined in `.aiwg/requirements/fortemi-v2026-07-ux-workflow-scenarios.md`.
+
+The implementation order, dependencies, and route-family closeout rules are defined in `.aiwg/planning/fortemi-v2026-07-implementation-roadmap.md`.
+
+The route-family proof checklist for seamless integration is defined in `.aiwg/design/fortemi-v2026-07-capability-surface-matrix.md`.
+
+The accepted product/UX disposition for vision, audio, and realtime call routes is defined in `.aiwg/architecture/adr/ADR-011-fortemi-media-call-surface-disposition.md`.

@@ -55,7 +55,12 @@ function UploadEntryRow({ entry }: { entry: UploadFileEntry }) {
           </span>
         )}
         {isFailed && entry.error && (
-          <p className="text-xs text-red-500 truncate mt-0.5">{entry.error}</p>
+          <p className="text-xs text-red-500 mt-0.5">{entry.error}</p>
+        )}
+        {isFailed && entry.recoveryHint && (
+          <p className="text-xs text-muted-foreground mt-0.5" data-testid={`upload-recovery-${entry.id}`}>
+            {entry.recoveryHint}
+          </p>
         )}
       </div>
 
@@ -66,7 +71,7 @@ function UploadEntryRow({ entry }: { entry: UploadFileEntry }) {
             size="icon"
             className="h-6 w-6"
             onClick={() => uploadStore.retryFile(entry.id)}
-            aria-label="retry upload"
+            aria-label={`retry upload ${entry.file.name}`}
           >
             <RotateCcw className="h-3 w-3" />
           </Button>
@@ -77,7 +82,7 @@ function UploadEntryRow({ entry }: { entry: UploadFileEntry }) {
             size="icon"
             className="h-6 w-6"
             onClick={() => uploadStore.cancelFile(entry.id)}
-            aria-label="cancel upload"
+            aria-label={`cancel upload ${entry.file.name}`}
           >
             <X className="h-3 w-3" />
           </Button>

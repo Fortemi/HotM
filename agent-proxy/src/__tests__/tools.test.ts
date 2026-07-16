@@ -23,6 +23,9 @@ import {
   listNotesTool,
   getAttachmentsTool,
   agentTools,
+  deferredToolDecisions,
+  nonToolBoundaries,
+  toolMetadata,
 } from '../tools.js';
 
 // ---------------------------------------------------------------------------
@@ -103,6 +106,73 @@ describe('agentTools registry', () => {
     for (const [name, t] of Object.entries(agentTools)) {
       expect(t, `${name} missing description`).toHaveProperty('description');
       expect(t, `${name} missing execute`).toHaveProperty('execute');
+    }
+  });
+
+  it('maps every enabled tool to route families, endpoints, gates, and result policy', () => {
+    expect(Object.keys(toolMetadata)).toEqual(Object.keys(agentTools));
+
+    for (const [name, meta] of Object.entries(toolMetadata)) {
+      expect(meta.intentSets.length, `${name} missing intent sets`).toBeGreaterThan(0);
+      expect(meta.routeFamilies.length, `${name} missing route families`).toBeGreaterThan(0);
+      expect(meta.endpoints.length, `${name} missing endpoints`).toBeGreaterThan(0);
+      expect(['read', 'write']).toContain(meta.safety);
+      expect(meta.capabilityGate, `${name} missing capability gate`).toMatch(/capability/i);
+      expect(meta.roleScope, `${name} missing role/scope`).toBeTruthy();
+      expect(meta.resultPolicy, `${name} missing result policy`).toBeTruthy();
+    }
+  });
+
+  it('keeps exploratory tools read-only and reserves writes for knowledge-action intent', () => {
+    for (const [name, meta] of Object.entries(toolMetadata)) {
+      if (meta.intentSets.includes('exploratory')) {
+        expect(meta.safety, `${name} is exploratory but not read-only`).toBe('read');
+      }
+      if (meta.safety === 'write') {
+        expect(meta.intentSets, `${name} write tool missing knowledge-action intent`).toEqual(['knowledge-action']);
+      }
+    }
+  });
+
+  it('does not expose credential, PKE, Twilio, or destructive backup boundaries as executable tools', () => {
+    const enabledToolNames = Object.keys(agentTools);
+    const excludedFamilies = nonToolBoundaries.flatMap((decision) => decision.routeFamilies);
+
+    expect(excludedFamilies).toEqual(expect.arrayContaining([
+      'oauth',
+      'auth_api_keys',
+      'pke',
+      'rate_limit',
+      'realtime_calls',
+      'backup_archive',
+    ]));
+    expect(enabledToolNames).not.toContain('oauth_or_api_key_management');
+    expect(enabledToolNames).not.toContain('twilio_realtime_debug');
+    expect(enabledToolNames).not.toContain('destructive_backup_or_purge');
+  });
+
+  it('documents current diagnostic/UI-only candidates without enabling them', () => {
+    const enabledToolNames = Object.keys(agentTools);
+    const candidates = deferredToolDecisions.map((decision) => decision.candidate);
+
+    expect(candidates).toEqual(expect.arrayContaining([
+      'inspect_streaming_health',
+      'stream_ingest',
+      'inspect_backup_status',
+      'inspect_incoming_receivers',
+      'describe_attachment_image',
+      'transcribe_attachment_audio',
+      'inspect_call_session',
+    ]));
+    for (const candidate of candidates) {
+      expect(enabledToolNames, `${candidate} should remain gated`).not.toContain(candidate);
+    }
+  });
+
+  it('keeps enabled tool descriptions free of unsupported Fortemi MCP parity claims', () => {
+    for (const [name, t] of Object.entries(agentTools)) {
+      expect(t.description, `${name} should not claim all MCP tools`).not.toMatch(/205|43|all Fortemi|all MCP/i);
+      expect(t.description, `${name} should not mention secrets or credentials`).not.toMatch(/secret|credential|token/i);
     }
   });
 });

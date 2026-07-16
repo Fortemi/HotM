@@ -1,0 +1,70 @@
+{
+  "repository": "Fortemi/HotM",
+  "reader_approle": "ci-hotm",
+  "bootstrap_tracker_secrets": [
+    "VAULT_CI_ROLE_ID",
+    "VAULT_CI_SECRET_ID"
+  ],
+  "tracker_variables": [
+    "VAULT_ADDR",
+    "HOTM_VAULT_MOUNT",
+    "HOTM_VAULT_DATA_PREFIX",
+    "HOTM_VAULT_METADATA_PREFIX",
+    "BUILD_REPO_TOKEN_VAULT_PATH",
+    "BUILD_REPO_TOKEN_VAULT_FIELD",
+    "GH_PUBLISH_TOKEN_VAULT_PATH",
+    "GH_PUBLISH_TOKEN_VAULT_FIELD",
+    "GT_ACCESS_TOKEN_VAULT_PATH",
+    "GT_ACCESS_TOKEN_VAULT_FIELD",
+    "DEPLOY_SSH_KEY_VAULT_PATH",
+    "DEPLOY_SSH_KEY_VAULT_FIELD",
+    "MUTSU_SSH_KEY_VAULT_PATH",
+    "MUTSU_SSH_KEY_VAULT_FIELD",
+    "CLONE_TOKEN_VAULT_DATA_PATH",
+    "CLONE_TOKEN_VAULT_METADATA_PATH",
+    "DOCS_DEPLOY_KEY_VAULT_DATA_PATH",
+    "DOCS_DEPLOY_KEY_VAULT_METADATA_PATH",
+    "GH_PUBLISH_TOKEN_VAULT_DATA_PATH",
+    "GH_PUBLISH_TOKEN_VAULT_METADATA_PATH",
+    "MUTSU_SSH_KEY_VAULT_DATA_PATH",
+    "MUTSU_SSH_KEY_VAULT_METADATA_PATH",
+    "DOCSITE_DEPLOY_HOST",
+    "DOCSITE_DEPLOY_PORT",
+    "DOCSITE_DEPLOY_USER",
+    "DOCSITE_DEPLOY_PATH"
+  ],
+  "leaves": [
+    {
+      "path_variable": "BUILD_REPO_TOKEN_VAULT_PATH",
+      "field_variable": "BUILD_REPO_TOKEN_VAULT_FIELD",
+      "type": "api-token",
+      "service": "ci/hotm",
+      "owner": "itops",
+      "tenant": "internal",
+      "purpose": "Gitea package publish token for HotM container workflows",
+      "consumers": "gitea-actions:hotm:ui-ci,publish-hotm-ui-image",
+      "reader_approle": "ci-hotm",
+      "sensitivity": "high",
+      "rotation": "quarterly",
+      "sop": "itops/docs/security/ci-secret-migration.md"
+    }
+  ],
+  "shared_leaves": [
+    {
+      "path_variable": "GT_ACCESS_TOKEN_VAULT_PATH",
+      "field_variable": "GT_ACCESS_TOKEN_VAULT_FIELD"
+    },
+    {
+      "path_variable": "DEPLOY_SSH_KEY_VAULT_PATH",
+      "field_variable": "DEPLOY_SSH_KEY_VAULT_FIELD"
+    },
+    {
+      "path_variable": "GH_PUBLISH_TOKEN_VAULT_PATH",
+      "field_variable": "GH_PUBLISH_TOKEN_VAULT_FIELD"
+    },
+    {
+      "path_variable": "MUTSU_SSH_KEY_VAULT_PATH",
+      "field_variable": "MUTSU_SSH_KEY_VAULT_FIELD"
+    }
+  ]
+}
