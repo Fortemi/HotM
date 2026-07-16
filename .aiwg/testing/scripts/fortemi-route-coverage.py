@@ -208,7 +208,10 @@ def git_value(args: list[str], fallback: str) -> str:
 
 def fortemi_metadata() -> tuple[str, str]:
     commit = git_value(["rev-parse", "--short", "HEAD"], "unknown")
-    latest_tag = git_value(["describe", "--tags", "--abbrev=0"], "unknown")
+    latest_tag = git_value(
+        ["describe", "--tags", "--match", "v[0-9]*", "--abbrev=0"],
+        "unknown",
+    )
     return commit, latest_tag
 
 
