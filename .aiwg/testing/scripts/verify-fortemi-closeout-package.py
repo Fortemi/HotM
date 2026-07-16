@@ -13,6 +13,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[3]
 
 ROUTE_JSON = ROOT / ".aiwg/api/compatibility/fortemi-v2026-07-route-coverage.json"
+EVIDENCE_MAP = ROOT / ".aiwg/api/compatibility/fortemi-v2026-07-family-evidence-map.json"
 WORKFLOW = ROOT / ".gitea/workflows/sdlc-gates.yml"
 PUBLISHER = ROOT / ".aiwg/scripts/publish-fortemi-tracker-comments.py"
 
@@ -94,6 +95,7 @@ def assert_exists() -> None:
 
 def assert_route_inventory() -> None:
     data = json.loads(ROUTE_JSON.read_text())
+    baseline = json.loads(EVIDENCE_MAP.read_text())
     status_counts = data.get("status_counts", {})
     diagnostics = data.get("verifier_diagnostics", {})
     checks = {
@@ -108,10 +110,13 @@ def assert_route_inventory() -> None:
     for key, expected in EXPECTED_COUNTS.items():
         if checks.get(key) != expected:
             fail(f"route inventory {key} expected {expected}, got {checks.get(key)}")
-    if data.get("fortemi_commit") != "f6733252":
-        fail(f"unexpected Fortemi commit {data.get('fortemi_commit')}")
-    if data.get("fortemi_latest_tag") != "v2026.7.1":
-        fail(f"unexpected Fortemi tag {data.get('fortemi_latest_tag')}")
+    for field in ("fortemi_commit", "fortemi_latest_tag"):
+        expected = baseline.get(field)
+        actual = data.get(field)
+        if not expected:
+            fail(f"evidence map is missing pinned {field}")
+        if actual != expected:
+            fail(f"unexpected {field}: expected {expected}, got {actual}")
     for key, value in diagnostics.items():
         if value:
             fail(f"route verifier diagnostics not clean: {key}={value}")

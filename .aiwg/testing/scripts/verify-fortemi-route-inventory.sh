@@ -12,7 +12,7 @@ if ! command -v python3 >/dev/null 2>&1; then
   exit 127
 fi
 
-if [[ ! -d "$FORTEMI_ROOT/.git" ]]; then
+if [[ ! -e "$FORTEMI_ROOT/.git" ]]; then
   echo "error: expected Fortemi sibling checkout at $FORTEMI_ROOT" >&2
   echo "clone or mount Fortemi as ../fortemi before running this preflight" >&2
   exit 2
