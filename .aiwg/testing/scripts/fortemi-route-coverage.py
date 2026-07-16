@@ -410,7 +410,7 @@ def main() -> None:
         "",
         "# Fortemi v2026.7.1 Route Coverage Inventory",
         "",
-        f"- Fortemi source: `{FORTEMI_ROOT}`",
+        f"- Fortemi source: `{summary['fortemi_root']}`",
         f"- Fortemi commit: `{fortemi_commit}`",
         f"- Latest release tag: `{fortemi_latest_tag}`",
         f"- Extracted route declarations: `{len(routes)}`",
