@@ -388,7 +388,7 @@ def main() -> None:
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
     summary = {
         "generated_at": date.today().isoformat(),
-        "fortemi_root": str(FORTEMI_ROOT),
+        "fortemi_root": "../fortemi",
         "fortemi_commit": fortemi_commit,
         "fortemi_latest_tag": fortemi_latest_tag,
         "route_count": len(routes),

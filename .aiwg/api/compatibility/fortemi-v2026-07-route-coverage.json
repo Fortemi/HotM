@@ -1,6 +1,6 @@
 {
   "generated_at": "2026-07-16",
-  "fortemi_root": "/tmp/fortemi",
+  "fortemi_root": "../fortemi",
   "fortemi_commit": "98c9b29d",
   "fortemi_latest_tag": "v2026.7.1",
   "route_count": 200,
