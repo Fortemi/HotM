@@ -1,10 +1,10 @@
 {
   "schema_version": 1,
   "source_repository": "Fortemi/fortemi",
-  "release_tag": "sidecar-latest",
+  "release_tag": "sidecar-98c9b29deee4",
   "target_commitish": "98c9b29deee43b9c5bd96278f1f96837595882cd",
   "published_at": "2026-07-15T02:16:09-04:00",
-  "base_url": "https://git.integrolabs.net/Fortemi/fortemi/releases/download/sidecar-latest",
+  "base_url": "https://git.integrolabs.net/Fortemi/fortemi/releases/download/sidecar-98c9b29deee4",
   "assets": {
     "x86_64-unknown-linux-gnu": {
       "asset_name": "matric-api-x86_64-unknown-linux-gnu",
