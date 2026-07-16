@@ -24,9 +24,14 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          FORTEMI_COMMIT="$(
+            python3 -c \
+              'import json; print(json.load(open("release/sidecar-provenance.json"))["target_commitish"])'
+          )"
           git clone \
             "https://token:${{ github.token }}@git.integrolabs.net/${FORTEMI_REPOSITORY}" \
             ../fortemi
+          git -C ../fortemi checkout --detach "${FORTEMI_COMMIT}"
 
       - name: Verify Fortemi route inventory
         shell: bash
