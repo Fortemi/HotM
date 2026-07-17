@@ -5,9 +5,9 @@
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
 import { BackupManager } from '../BackupManager';
-import { api, BackupInfo } from '@/api';
+import { api, BackupInfo, KnowledgeShardManifest } from '@/api';
 
 // Mock the API
 vi.mock('@/api', () => ({
@@ -24,7 +24,9 @@ vi.mock('@/api', () => ({
       getBackupMetadata: vi.fn(),
       updateBackupMetadata: vi.fn(),
       exportKnowledgeShard: vi.fn(),
+      inspectKnowledgeShard: vi.fn(),
       importKnowledgeShard: vi.fn(),
+      uploadKnowledgeShard: vi.fn(),
       importBackup: vi.fn(),
     },
     notes: {
@@ -61,6 +63,33 @@ const mockBackups: BackupInfo[] = [
     type: 'database',
   },
 ];
+const coreManifest: KnowledgeShardManifest = {
+  version: '1.0.0',
+  profile: 'core-v1' as const,
+  producer: {
+    name: 'fortemi',
+    version: '2026.7.1',
+    revision: '2eb5c6b739b3bb6a042a35050a3ae89960dd3ed4',
+  },
+  format: 'matric-shard' as const,
+  created_at: '2026-07-17T20:00:00Z',
+  components: ['notes', 'collections', 'tags', 'templates', 'links'],
+  counts: {
+    notes: 1,
+    collections: 0,
+    tags: 0,
+    templates: 0,
+    links: 0,
+  },
+  checksums: {
+    'notes.jsonl': '0'.repeat(64),
+    'collections.json': '0'.repeat(64),
+    'tags.json': '0'.repeat(64),
+    'templates.json': '0'.repeat(64),
+    'links.jsonl': '0'.repeat(64),
+  },
+  min_reader_version: '1.0.0',
+};
 
 function getBackupImportFileInput(): HTMLInputElement {
   const input = document.querySelector('input[type="file"][accept=".json,.shard"]');
@@ -81,7 +110,15 @@ describe('BackupManager', () => {
     vi.mocked(api.backup.downloadBackup).mockResolvedValue(new Blob(['test']));
     vi.mocked(api.backup.downloadDatabaseBackup).mockResolvedValue(new Blob(['test']));
     vi.mocked(api.backup.downloadMemoryBackup).mockResolvedValue(new Blob(['memory']));
-    vi.mocked(api.backup.exportKnowledgeShard).mockResolvedValue(new Blob(['test']));
+    vi.mocked(api.backup.exportKnowledgeShard).mockResolvedValue({
+      blob: new Blob(['test']),
+      manifest: coreManifest,
+    });
+    vi.mocked(api.backup.inspectKnowledgeShard).mockResolvedValue(coreManifest);
+    vi.mocked(api.backup.uploadKnowledgeShard).mockResolvedValue({
+      manifest: coreManifest,
+      response: { status: 'success' },
+    });
     vi.mocked(api.backup.downloadKnowledgeArchive).mockResolvedValue(new Blob(['archive']));
     vi.mocked(api.backup.uploadKnowledgeArchive).mockResolvedValue(undefined);
     vi.mocked(api.backup.getBackupMetadata).mockResolvedValue({
@@ -259,6 +296,19 @@ describe('BackupManager', () => {
       await waitFor(() => {
         expect(screen.getByText('Knowledge Shard')).toBeInTheDocument();
         expect(screen.getByText('JSON Export')).toBeInTheDocument();
+        expect(screen.getByText(/core-v1 structured records/)).toBeInTheDocument();
+        expect(screen.getByText(/full recovery are not included/)).toBeInTheDocument();
+      });
+    });
+
+    it('exports the server default profile without unsupported query options', async () => {
+      render(<BackupManager />);
+      fireEvent.click(screen.getByText('Export'));
+      fireEvent.click(await screen.findByRole('button', { name: /^Export$/ }));
+
+      await waitFor(() => {
+        expect(api.backup.exportKnowledgeShard).toHaveBeenCalledWith();
+        expect(screen.getByText(/Exported core-v1 schema 1.0.0/)).toBeInTheDocument();
       });
     });
 
@@ -314,6 +364,76 @@ describe('BackupManager', () => {
         const fileInput = document.querySelector('input[type="file"][accept=".json,.shard"]');
         expect(fileInput).toBeInTheDocument();
       });
+    });
+
+    it('displays the declared shard profile and imports through multipart validation', async () => {
+      render(<BackupManager />);
+      fireEvent.click(screen.getByText('Import'));
+
+      const fileInput = getBackupImportFileInput();
+      const file = new File(['shard'], 'core-v1.shard', { type: 'application/gzip' });
+      Object.defineProperty(fileInput, 'files', { value: [file] });
+      fireEvent.change(fileInput);
+
+      expect(await screen.findByText('core-v1')).toBeInTheDocument();
+      expect(screen.getByText('schema 1.0.0')).toBeInTheDocument();
+      fireEvent.click(screen.getByRole('button', { name: /^Import$/ }));
+
+      await waitFor(() => {
+        expect(api.backup.uploadKnowledgeShard).toHaveBeenCalledWith(file);
+        expect(screen.getByText(/Imported core-v1 schema 1.0.0/)).toBeInTheDocument();
+      });
+      expect(api.backup.importKnowledgeShard).not.toHaveBeenCalled();
+    });
+
+    it('blocks unsupported shard profiles before upload', async () => {
+      vi.mocked(api.backup.inspectKnowledgeShard).mockRejectedValueOnce(
+        new Error('Knowledge shard profile full-v1 is not supported; HotM accepts core-v1 only.'),
+      );
+      render(<BackupManager />);
+      fireEvent.click(screen.getByText('Import'));
+
+      const fileInput = getBackupImportFileInput();
+      const file = new File(['shard'], 'full-v1.shard', { type: 'application/gzip' });
+      Object.defineProperty(fileInput, 'files', { value: [file] });
+      fireEvent.change(fileInput);
+
+      expect(await screen.findByRole('alert')).toHaveTextContent('profile full-v1 is not supported');
+      expect(screen.getByRole('button', { name: /^Import$/ })).toBeDisabled();
+      expect(api.backup.uploadKnowledgeShard).not.toHaveBeenCalled();
+    });
+
+    it('ignores a stale manifest result after another shard is selected', async () => {
+      let resolveFirstInspection!: (manifest: KnowledgeShardManifest) => void;
+      vi.mocked(api.backup.inspectKnowledgeShard)
+        .mockImplementationOnce(() => new Promise((resolve) => {
+          resolveFirstInspection = resolve;
+        }))
+        .mockRejectedValueOnce(
+          new Error('Knowledge shard profile full-v1 is not supported; HotM accepts core-v1 only.'),
+        );
+      render(<BackupManager />);
+      fireEvent.click(screen.getByText('Import'));
+
+      let fileInput = getBackupImportFileInput();
+      const firstFile = new File(['shard'], 'core-v1.shard', { type: 'application/gzip' });
+      Object.defineProperty(fileInput, 'files', { value: [firstFile] });
+      fireEvent.change(fileInput);
+      expect(await screen.findByText('Reading shard manifest...')).toBeInTheDocument();
+
+      fireEvent.click(screen.getByRole('button', { name: 'Choose different file' }));
+      fileInput = getBackupImportFileInput();
+      const secondFile = new File(['shard'], 'full-v1.shard', { type: 'application/gzip' });
+      Object.defineProperty(fileInput, 'files', { value: [secondFile] });
+      fireEvent.change(fileInput);
+      expect(await screen.findByRole('alert')).toHaveTextContent('profile full-v1 is not supported');
+
+      await act(async () => {
+        resolveFirstInspection(coreManifest);
+      });
+
+      expect(screen.queryByText('core-v1')).not.toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /^Import$/ })).toBeDisabled();
     });
 
     describe('Defer AI processing toggle (Fortemi v2026.5.6 #677)', () => {
@@ -607,7 +727,7 @@ describe('BackupManager', () => {
         expect(screen.getByText('Memory Backup')).toBeInTheDocument();
         expect(screen.getByText('Knowledge Archive')).toBeInTheDocument();
         expect(screen.getByText('Metadata Sidecar')).toBeInTheDocument();
-        expect(screen.getByText(/attachment records and attachment bytes are not restored/)).toBeInTheDocument();
+        expect(screen.getByText(/no full-recovery, embedding, attachment record, or attachment-byte receipt/)).toBeInTheDocument();
       });
     });
 

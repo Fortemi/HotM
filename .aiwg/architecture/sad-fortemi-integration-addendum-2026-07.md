@@ -170,6 +170,23 @@ then compares the exact set with the consumer fixture. The fixture also pins the
 AsyncAPI generator source and the reproducible canonical YAML digest
 `f6a6fbc39af52b713b6f5c40dbb6e46baeb8a1b352a19288e79073863766bdf4`.
 
+#### Knowledge Shard Consumer Implementation (HotM #269)
+
+`ui/src/api/knowledgeShard.ts` is the local fail-closed boundary for the
+Fortemi-owned `core-v1` schema `1.0.0`. It performs gzip/TAR manifest inspection
+with a 1 MiB manifest bound and validates exact format, profile, strict
+schema/minimum-reader versions, supported component inventory, counts, and
+checksum declarations before `ui/src/api/backup.ts` submits an upload. Export
+requests use only the delivered `include` parameter; the former consumer-only
+`format` and `include_deleted` parameters are not sent.
+
+Backup Manager displays the declared profile/schema and renders producer or
+local validation failures without claiming full recovery. The fixture is pinned
+to Fortemi commit `2eb5c6b739b3bb6a042a35050a3ae89960dd3ed4` with SHA-256
+`4ed7e3b7d4845122653c95bcf2508a7f440cf067fe64ca493f0785519b9300f1`.
+This implementation does not satisfy the cross-repository clean-server
+roundtrip or attachment-byte gates.
+
 ## 5. Data and State Impact
 
 | State | Impact |

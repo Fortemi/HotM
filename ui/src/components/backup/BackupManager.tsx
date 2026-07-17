@@ -3,7 +3,7 @@
  * Comprehensive backup, export, and restore functionality
  */
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import {
   Download,
   Upload,
@@ -41,7 +41,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { api } from '@/api';
-import type { BackupInfo } from '@/api/types-extended';
+import type { BackupInfo, KnowledgeShardManifest } from '@/api/types-extended';
 import type { IngestStreamEvent, StreamIngestSummary } from '@/api';
 
 interface BackupManagerProps {
@@ -107,7 +107,8 @@ function ExportDialog({ isOpen, onClose, onExport }: ExportDialogProps) {
                 <div>
                   <p className="font-medium">Knowledge Shard</p>
                   <p className="text-sm text-muted-foreground">
-                    Portable format with notes, tags, and links. Best for migration or backup.
+                    core-v1 structured records. Attachments, embeddings, and full recovery are
+                    not included in this profile.
                   </p>
                 </div>
                 {format === 'shard' && <Check className="w-5 h-5 text-primary ml-auto" />}
@@ -127,7 +128,7 @@ function ExportDialog({ isOpen, onClose, onExport }: ExportDialogProps) {
                 <div>
                   <p className="font-medium">JSON Export</p>
                   <p className="text-sm text-muted-foreground">
-                    Simple JSON format for notes only. Good for data portability.
+                    Legacy notes-only JSON export.
                   </p>
                 </div>
                 {format === 'json' && <Check className="w-5 h-5 text-primary ml-auto" />}
@@ -188,15 +189,54 @@ function writeDeferInferencePreference(value: boolean): void {
 function ImportDialog({ isOpen, onClose, onImport }: ImportDialogProps) {
   const [file, setFile] = useState<File | null>(null);
   const [isImporting, setIsImporting] = useState(false);
+  const [isInspecting, setIsInspecting] = useState(false);
   const [dragActive, setDragActive] = useState(false);
+  const [shardManifest, setShardManifest] = useState<KnowledgeShardManifest | null>(null);
+  const [fileError, setFileError] = useState<string | null>(null);
   const [deferInference, setDeferInference] = useState<boolean>(readDeferInferencePreference);
+  const inspectionId = useRef(0);
+
+  const selectFile = async (selected: File) => {
+    const selectedInspectionId = ++inspectionId.current;
+    setFile(selected);
+    setShardManifest(null);
+    setFileError(null);
+    if (!selected.name.endsWith('.shard')) {
+      setIsInspecting(false);
+      return;
+    }
+
+    setIsInspecting(true);
+    try {
+      const manifest = await api.backup.inspectKnowledgeShard(selected);
+      if (selectedInspectionId === inspectionId.current) {
+        setShardManifest(manifest);
+      }
+    } catch (error) {
+      if (selectedInspectionId === inspectionId.current) {
+        setFileError(error instanceof Error ? error.message : 'Knowledge shard validation failed.');
+      }
+    } finally {
+      if (selectedInspectionId === inspectionId.current) {
+        setIsInspecting(false);
+      }
+    }
+  };
+
+  const clearFile = () => {
+    inspectionId.current += 1;
+    setFile(null);
+    setShardManifest(null);
+    setFileError(null);
+    setIsInspecting(false);
+  };
 
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
     setDragActive(false);
     const droppedFile = e.dataTransfer.files[0];
     if (droppedFile && (droppedFile.name.endsWith('.json') || droppedFile.name.endsWith('.shard'))) {
-      setFile(droppedFile);
+      void selectFile(droppedFile);
     }
   };
 
@@ -241,7 +281,21 @@ function ImportDialog({ isOpen, onClose, onImport }: ImportDialogProps) {
                 <Check className="w-8 h-8 mx-auto text-green-500" />
                 <p className="font-medium">{file.name}</p>
                 <p className="text-sm text-muted-foreground">{formatBytes(file.size)}</p>
-                <Button variant="ghost" size="sm" onClick={() => setFile(null)}>
+                {isInspecting && (
+                  <p className="text-xs text-muted-foreground">Reading shard manifest...</p>
+                )}
+                {shardManifest && (
+                  <div className="flex justify-center gap-2 text-xs">
+                    <Badge variant="outline">{shardManifest.profile}</Badge>
+                    <Badge variant="outline">schema {shardManifest.version}</Badge>
+                  </div>
+                )}
+                {fileError && (
+                  <p className="text-sm text-red-700 dark:text-red-300" role="alert">
+                    {fileError}
+                  </p>
+                )}
+                <Button variant="ghost" size="sm" onClick={clearFile}>
                   Choose different file
                 </Button>
               </div>
@@ -256,7 +310,10 @@ function ImportDialog({ isOpen, onClose, onImport }: ImportDialogProps) {
                       type="file"
                       accept=".json,.shard"
                       className="hidden"
-                      onChange={(e) => e.target.files?.[0] && setFile(e.target.files[0])}
+                      onChange={(e) => {
+                        const selected = e.target.files?.[0];
+                        if (selected) void selectFile(selected);
+                      }}
                     />
                   </label>
                 </p>
@@ -298,7 +355,10 @@ function ImportDialog({ isOpen, onClose, onImport }: ImportDialogProps) {
           <Button variant="outline" onClick={onClose}>
             Cancel
           </Button>
-          <Button onClick={handleImport} disabled={!file || isImporting}>
+          <Button
+            onClick={handleImport}
+            disabled={!file || isImporting || isInspecting || (isShard && !shardManifest)}
+          >
             {isImporting ? (
               <>
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
@@ -463,6 +523,11 @@ function BackupCard({ backup, onRestore, onDownload }: BackupCardProps) {
           <Badge variant="outline" className="text-xs">
             {backup.type}
           </Badge>
+          {backup.manifest && (
+            <Badge variant="outline" className="text-xs">
+              {backup.manifest.profile} / {backup.manifest.version}
+            </Badge>
+          )}
         </div>
       </div>
 
@@ -564,18 +629,25 @@ export function BackupManager({ className }: BackupManagerProps) {
       let filename: string;
 
       if (format === 'shard') {
-        blob = await api.backup.exportKnowledgeShard({ format: 'json' });
+        const exported = await api.backup.exportKnowledgeShard();
+        blob = exported.blob;
         filename = `knowledge-export-${new Date().toISOString().split('T')[0]}.shard`;
+        setOperationStatus({
+          type: 'success',
+          message: `Exported ${exported.manifest.profile} schema ${exported.manifest.version} to ${filename}`,
+        });
       } else {
         blob = await api.backup.downloadBackup();
         filename = `notes-export-${new Date().toISOString().split('T')[0]}.json`;
+        setOperationStatus({ type: 'success', message: `Exported to ${filename}` });
       }
 
       downloadBlob(blob, filename);
-
-      setOperationStatus({ type: 'success', message: `Exported to ${filename}` });
     } catch (err) {
-      setOperationStatus({ type: 'error', message: 'Export failed' });
+      setOperationStatus({
+        type: 'error',
+        message: err instanceof Error ? err.message : 'Export failed',
+      });
       console.error(err);
     }
   };
@@ -690,8 +762,11 @@ export function BackupManager({ className }: BackupManagerProps) {
   const handleImport = async (file: File, options: { deferInference: boolean }) => {
     try {
       if (file.name.endsWith('.shard')) {
-        await api.backup.importKnowledgeShard(file);
-        setOperationStatus({ type: 'success', message: 'Import completed successfully' });
+        const result = await api.backup.uploadKnowledgeShard(file);
+        setOperationStatus({
+          type: 'success',
+          message: `Imported ${result.manifest.profile} schema ${result.manifest.version}; server validation passed.`,
+        });
       } else {
         await api.backup.importBackup(file, { deferInference: options.deferInference });
         if (options.deferInference) {
@@ -709,7 +784,10 @@ export function BackupManager({ className }: BackupManagerProps) {
         }
       }
     } catch (err) {
-      setOperationStatus({ type: 'error', message: 'Import failed' });
+      setOperationStatus({
+        type: 'error',
+        message: err instanceof Error ? err.message : 'Import failed',
+      });
       console.error(err);
     }
   };
@@ -1006,7 +1084,9 @@ export function BackupManager({ className }: BackupManagerProps) {
               Backup Route Groups
             </div>
             <p className="mt-1 text-xs text-muted-foreground">
-              Current Fortemi archive operations by route family. Portable shard imports restore note data; attachment records and attachment bytes are not restored by this server contract.
+              Current Fortemi archive operations by route family. core-v1 restores only its
+              declared structured records; this UI has no full-recovery, embedding, attachment
+              record, or attachment-byte receipt.
             </p>
           </div>
 

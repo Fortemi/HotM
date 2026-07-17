@@ -92,3 +92,18 @@ and exact-name normalization boundary. Unknown or missing event names remain
 `Unknown`; they are not converted to queue status. This receipt proves the pinned
 catalog, envelope fields, and HotM consumer behavior. It does not replace broader
 producer AsyncAPI schema-diff coverage.
+
+### Knowledge Shard Consumer Receipt (HotM #269)
+
+HotM consumes the Fortemi `core-v1` manifest fixture from producer commit
+`2eb5c6b739b3bb6a042a35050a3ae89960dd3ed4`. The vendored fixture at
+`ui/src/api/contracts/fortemi-core-v1-manifest.json` matches the producer fixture
+SHA-256 `4ed7e3b7d4845122653c95bcf2508a7f440cf067fe64ca493f0785519b9300f1`.
+The client sends only the producer-owned `include` query, reads `manifest.json`
+from the gzip/TAR archive, and rejects unsupported format, profile, schema,
+minimum-reader, components, counts, and checksum declarations before upload.
+
+This is a consumer/preflight receipt only. It does not establish clean-server
+semantic equality, historical migration support, attachment-byte recovery, or
+atomic `core-v1`/`full-v1` conformance; those release gates remain open in
+Fortemi #1057 and HotM #269.

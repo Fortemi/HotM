@@ -1,0 +1,42 @@
+metadata:
+  schema_version: "1.0.0"
+  created_at: "2026-07-17T20:47:53Z"
+  description: "Provenance for the HotM #269 Knowledge Shard contract tests"
+entity:
+  id: "urn:aiwg:artifact:ui/src/api/__tests__/knowledgeShard.test.ts"
+  type: test
+  created_at: "2026-07-17T20:47:53Z"
+  checksum: "sha256:3e7dd81d08f5beb471bdcc9de41c5c227eee27361be9fd895a3245a134273cbc"
+  size_bytes: 3610
+  attributes:
+    change_scope: "hotm-269-knowledge-shard-contract"
+    base_revision: "bba7ac05309bb8056c20fb7266255e6ba758ea2a"
+activity:
+  id: "urn:aiwg:activity:generation:knowledge-shard-test-ts:001"
+  type: generation
+  started_at: "2026-07-17T20:47:53Z"
+  ended_at: "2026-07-17T20:47:53Z"
+  description: "Test the pinned positive fixture and fail-closed profile/schema archive vectors"
+agent:
+  id: "urn:aiwg:agent:codex-gpt-5"
+  type: ai_assistant
+  name: "Codex"
+  version: "gpt-5"
+  tool: "codex"
+relationships:
+  wasGeneratedBy:
+    entity: "urn:aiwg:artifact:ui/src/api/__tests__/knowledgeShard.test.ts"
+    activity: "urn:aiwg:activity:generation:knowledge-shard-test-ts:001"
+    time: "2026-07-17T20:47:53Z"
+  wasDerivedFrom:
+    - entity: "urn:aiwg:artifact:ui/src/api/__tests__/knowledgeShard.test.ts"
+      source: "urn:aiwg:artifact:ui/src/api/knowledgeShard.ts"
+      derivation_type: "tests"
+      activity: "urn:aiwg:activity:generation:knowledge-shard-test-ts:001"
+  wasAssociatedWith:
+    activity: "urn:aiwg:activity:generation:knowledge-shard-test-ts:001"
+    agent: "urn:aiwg:agent:codex-gpt-5"
+    role: "primary_author"
+  wasAttributedTo:
+    entity: "urn:aiwg:artifact:ui/src/api/__tests__/knowledgeShard.test.ts"
+    agent: "urn:aiwg:agent:codex-gpt-5"

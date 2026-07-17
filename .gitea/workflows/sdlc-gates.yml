@@ -41,6 +41,10 @@ jobs:
         shell: bash
         run: node .aiwg/testing/scripts/verify-fortemi-event-catalog.mjs
 
+      - name: Verify Fortemi Knowledge Shard contract fixture
+        shell: bash
+        run: node .aiwg/testing/scripts/verify-fortemi-knowledge-shard-contract.mjs
+
       - name: Verify Fortemi closeout package
         shell: bash
         run: python3 .aiwg/testing/scripts/verify-fortemi-closeout-package.py

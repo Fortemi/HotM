@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { createBackupApi } from '../backup';
 import type { ApiClient } from '../client';
+import { createKnowledgeShardFile } from './knowledgeShardFixtures';
 
 vi.mock('@/lib/tauri', () => ({
   getTauriFetch: () => global.fetch,
@@ -132,40 +133,87 @@ describe('Backup API', () => {
 
   it('covers knowledge shard download, base64 import, and multipart upload routes', async () => {
     memoryState.activeMemory = 'research';
-    mockFetch.mockResolvedValueOnce(new Response('shard'));
+    const shard = createKnowledgeShardFile();
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      blob: () => Promise.resolve(shard),
+    } as unknown as Response);
 
-    await expectBlobSize(
-      backupApi.exportKnowledgeShard({ format: 'json', include_deleted: true }),
-      'shard',
-    );
+    const exported = await backupApi.exportKnowledgeShard({ include: ['notes', 'tags'] });
+    expect(exported.blob.size).toBeGreaterThan(0);
+    expect(exported.manifest).toMatchObject({ profile: 'core-v1', version: '1.0.0' });
     expect(mockFetch).toHaveBeenCalledWith(
-      'http://localhost:3000/backup/knowledge-shard?format=json&include_deleted=true',
+      'http://localhost:3000/backup/knowledge-shard?include=notes%2Ctags',
       { headers: { 'X-Fortemi-Memory': 'research' } },
     );
 
-    const shard = makeBinaryFile('abc', 'knowledge.tar.gz');
-    await backupApi.importKnowledgeShard(shard);
+    await expect(backupApi.importKnowledgeShard(shard)).resolves.toMatchObject({
+      manifest: { profile: 'core-v1', version: '1.0.0' },
+    });
     expect(mockClient.post).toHaveBeenCalledWith('/backup/knowledge-shard/import', {
-      shard_base64: 'YWJj',
+      shard_base64: expect.any(String),
     });
 
-    mockFetch.mockResolvedValueOnce(new Response(JSON.stringify({ status: 'ok' }), {
+    mockFetch.mockResolvedValueOnce(new Response(JSON.stringify({ status: 'success' }), {
       headers: { 'Content-Type': 'application/json' },
     }));
     await expect(
       backupApi.uploadKnowledgeShard(shard, {
-        include: 'notes,tags',
+        include: ['notes', 'tags'],
         dryRun: true,
         onConflict: 'replace',
         skipEmbeddingRegen: true,
       }),
-    ).resolves.toEqual({ status: 'ok' });
+    ).resolves.toEqual({
+      manifest: expect.objectContaining({ profile: 'core-v1', version: '1.0.0' }),
+      response: { status: 'success' },
+    });
     expect(mockFetch).toHaveBeenCalledWith(
       'http://localhost:3000/backup/knowledge-shard/upload?include=notes%2Ctags&dry_run=true&on_conflict=replace&skip_embedding_regen=true',
       expect.objectContaining({ method: 'POST', headers: { 'X-Fortemi-Memory': 'research' } }),
     );
     const formData = mockFetch.mock.calls[1][1].body as FormData;
     expect(formData.get('file')).toBe(shard);
+  });
+
+  it('blocks unsupported shard manifests before any import request', async () => {
+    const unsupported = createKnowledgeShardFile({
+      ...await backupApi.inspectKnowledgeShard(createKnowledgeShardFile()),
+      profile: 'full-v1',
+    });
+
+    await expect(backupApi.uploadKnowledgeShard(unsupported))
+      .rejects.toThrow('profile full-v1 is not supported');
+    expect(mockFetch).not.toHaveBeenCalled();
+    expect(mockClient.post).not.toHaveBeenCalled();
+  });
+
+  it('surfaces server validation failures without claiming import success', async () => {
+    const shard = createKnowledgeShardFile();
+    mockFetch.mockResolvedValueOnce(new Response(JSON.stringify({
+      status: 'partial',
+      errors: ['Knowledge shard component count validation failed.'],
+    }), {
+      headers: { 'Content-Type': 'application/json' },
+    }));
+
+    await expect(backupApi.uploadKnowledgeShard(shard))
+      .rejects.toThrow('Knowledge shard component count validation failed.');
+  });
+
+  it('uses Fortemi problem details for actionable upload errors', async () => {
+    const shard = createKnowledgeShardFile();
+    mockFetch.mockResolvedValueOnce(new Response(JSON.stringify({
+      title: 'Invalid Knowledge Shard',
+      detail: 'Knowledge shard checksum validation failed.',
+    }), {
+      status: 400,
+      statusText: 'Bad Request',
+      headers: { 'Content-Type': 'application/problem+json' },
+    }));
+
+    await expect(backupApi.uploadKnowledgeShard(shard))
+      .rejects.toThrow('Knowledge shard checksum validation failed.');
   });
 
   it('covers database backup download, snapshot, upload, and restore request shapes', async () => {

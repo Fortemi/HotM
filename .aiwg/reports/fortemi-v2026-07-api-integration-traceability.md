@@ -60,7 +60,7 @@ All `Covered` entries below refer to route/surface disposition only unless a sep
 | Outbound webhooks | `ui/src/api/webhooks.ts`; Admin WebhooksPanel | Covered |
 | Document types | `ui/src/api/documents.ts`; Admin DocumentTypesPanel | Covered |
 | Attachments and TUS upload | `ui/src/api/attachments.ts`, `ui/src/services/tusUploader.ts`, upload store, `JobQueueMonitor` | Covered; preserve TUS verb, resume, termination, degraded-state, and no checksum-extension tests |
-| Backup/import/export/status/list/snapshot/restore | `ui/src/api/backup.ts`; BackupManager and focused Backup/TUS tests | Covered; preserve archive/download/metadata route coverage and portable sidecar limitation copy |
+| Backup/import/export/status/list/snapshot/restore | `ui/src/api/backup.ts`, `knowledgeShard.ts`; pinned `core-v1` fixture; BackupManager and focused Backup/TUS tests | Route coverage plus `core-v1` profile/schema preflight; clean-server semantic roundtrip remains open |
 | System compatibility | `ui/src/api/systemCompatibility.ts`; ApiCapabilitiesPanel | Covered for compatibility guard |
 | Native Fortemi chat stream | `ui/src/api/chat.ts` native stream client and `ui/src/components/agent/useAgentChat.ts` Fortemi provider path cover `/chat/stream`. | Covered |
 | Streaming health counters | `ui/src/api/health.ts` and `ApiCapabilitiesPanel` cover `/health/streaming` telemetry blocks. | Covered |
@@ -89,7 +89,7 @@ All `Covered` entries below refer to route/surface disposition only unless a sep
 | FORTEMI-2026-07-REQ-012 | Agent tools are selective and now have route-family/capability metadata, intent-set tests, no-MCP-parity-copy tests, and explicit non-tool boundaries for credential, PKE, rate-limit, Twilio, destructive backup, and purge-style operations. | Preserve #258 metadata tests; add disabled-state/redaction fixtures before enabling any new diagnostic tools. |
 | FORTEMI-2026-07-REQ-013 | Route names are inventoried; canonical OpenAPI request/response diff and consumer schema receipt are not established by that inventory. | Add pinned OpenAPI diff and typed contract tests. |
 | FORTEMI-2026-07-REQ-014 | SSE/WS clients exist; canonical AsyncAPI envelope/catalog conformance is not established by route coverage. | Add producer-owned event fixtures and unknown-event non-coercion tests. |
-| FORTEMI-2026-07-REQ-015 | Backup/shard controls exist; lossless server-export -> HotM -> server-import behavior, attachment bytes, and profile negotiation are not proven. | Add cross-repository golden round trips and block portability claims until green. |
+| FORTEMI-2026-07-REQ-015 | Pinned Fortemi `core-v1` fixture, exact `include` serialization, local gzip/TAR manifest inspection, profile/schema UI, unsupported-contract rejection, and server-error tests are implemented. | Add clean-server semantic round trips, historical migration, atomicity, embeddings, and attachment-byte receipts before any lossless claim. |
 | FORTEMI-2026-07-REQ-016 | Compatibility display/normalization exists; contract-revision and minimum-client enforcement require a versioned fixture receipt. | Add negotiation matrix and fail-closed mutation tests. |
 | FORTEMI-2026-07-REQ-017 | A claim-contract document exists; Rust workspace/release and shared Rust/Node fixture receipts are not present. | Pin the contract version and run shared fixtures in both repositories. |
 

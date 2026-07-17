@@ -1,0 +1,41 @@
+metadata:
+  schema_version: "1.0.0"
+  created_at: "2026-07-17T20:47:53Z"
+  description: "Provenance for the HotM #269 Knowledge Shard fixture catalog update"
+entity:
+  id: "urn:aiwg:artifact:.aiwg/testing/fortemi-v2026-07-fixture-catalog.md"
+  type: document
+  created_at: "2026-07-17T20:47:53Z"
+  checksum: "sha256:a1cc6e874fbd8b77f04ddae7867a0413e8db8adff77ba697acbc039449c403aa"
+  size_bytes: 5808
+  attributes:
+    change_scope: "hotm-269-knowledge-shard-contract"
+    base_revision: "bba7ac05309bb8056c20fb7266255e6ba758ea2a"
+activity:
+  id: "urn:aiwg:activity:modification:fortemi-v2026-07-fixture-catalog-md:001"
+  type: modification
+  started_at: "2026-07-17T20:47:53Z"
+  ended_at: "2026-07-17T20:47:53Z"
+  description: "Register the pinned core-v1 positive and negative fixture set"
+agent:
+  id: "urn:aiwg:agent:codex-gpt-5"
+  type: ai_assistant
+  name: "Codex"
+  version: "gpt-5"
+  tool: "codex"
+relationships:
+  wasGeneratedBy:
+    entity: "urn:aiwg:artifact:.aiwg/testing/fortemi-v2026-07-fixture-catalog.md"
+    activity: "urn:aiwg:activity:modification:fortemi-v2026-07-fixture-catalog-md:001"
+    time: "2026-07-17T20:47:53Z"
+  used:
+    - activity: "urn:aiwg:activity:modification:fortemi-v2026-07-fixture-catalog-md:001"
+      entity: "urn:git:git@git.integrolabs.net:Fortemi/HotM.git:bba7ac05309bb8056c20fb7266255e6ba758ea2a:.aiwg/testing/fortemi-v2026-07-fixture-catalog.md"
+      role: "previous_revision"
+  wasAssociatedWith:
+    activity: "urn:aiwg:activity:modification:fortemi-v2026-07-fixture-catalog-md:001"
+    agent: "urn:aiwg:agent:codex-gpt-5"
+    role: "primary_author"
+  wasAttributedTo:
+    entity: "urn:aiwg:artifact:.aiwg/testing/fortemi-v2026-07-fixture-catalog.md"
+    agent: "urn:aiwg:agent:codex-gpt-5"

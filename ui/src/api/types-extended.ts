@@ -722,6 +722,7 @@ export interface BackupInfo {
   title?: string;
   description?: string;
   tags?: string[];
+  manifest?: KnowledgeShardManifest | null;
 }
 
 /**
@@ -769,16 +770,66 @@ export interface BackupStatus {
   error?: string;
 }
 
-/**
- * Knowledge shard export (application-level)
- */
-export interface KnowledgeShard {
+export type KnowledgeShardProfile = 'core-v1' | 'full-v1' | 'record-v1';
+export type KnowledgeShardComponent =
+  | 'notes'
+  | 'collections'
+  | 'tags'
+  | 'templates'
+  | 'links';
+
+export interface KnowledgeShardProducer {
+  name: string;
   version: string;
-  exported_at: string;
-  notes: unknown[];
-  concepts: unknown[];
-  collections: unknown[];
-  metadata: Record<string, unknown>;
+  revision?: string;
+}
+
+export interface KnowledgeShardCounts {
+  notes: number;
+  collections: number;
+  tags: number;
+  templates: number;
+  links: number;
+  embedding_sets?: number;
+  embedding_set_members?: number;
+  embeddings?: number;
+  embedding_configs?: number;
+}
+
+/**
+ * Canonical Fortemi Knowledge Shard manifest.
+ */
+export interface KnowledgeShardManifest {
+  version: string;
+  profile: KnowledgeShardProfile;
+  producer: KnowledgeShardProducer;
+  format: 'matric-shard';
+  created_at: string;
+  components: KnowledgeShardComponent[];
+  counts: KnowledgeShardCounts;
+  checksums: Record<string, string>;
+  min_reader_version: string;
+  migrated_from?: string;
+  migration_history?: unknown[];
+}
+
+export interface KnowledgeShardExport {
+  blob: Blob;
+  manifest: KnowledgeShardManifest;
+}
+
+export interface KnowledgeShardImportResponse {
+  status?: string;
+  imported?: Partial<KnowledgeShardCounts>;
+  skipped?: Partial<KnowledgeShardCounts>;
+  errors?: string[];
+  warnings?: string[];
+  dry_run?: boolean;
+}
+
+export interface KnowledgeShardImportResult {
+  manifest: KnowledgeShardManifest;
+  response: KnowledgeShardImportResponse | undefined;
 }
 
 /**

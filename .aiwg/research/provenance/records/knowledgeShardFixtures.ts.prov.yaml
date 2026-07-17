@@ -1,0 +1,42 @@
+metadata:
+  schema_version: "1.0.0"
+  created_at: "2026-07-17T20:47:53Z"
+  description: "Provenance for the HotM #269 real gzip/TAR fixture builder"
+entity:
+  id: "urn:aiwg:artifact:ui/src/api/__tests__/knowledgeShardFixtures.ts"
+  type: test_fixture
+  created_at: "2026-07-17T20:47:53Z"
+  checksum: "sha256:c84524262867422d7d1f65b4dac6a0a6453cc8132e41111bee9ae3d2761677d7"
+  size_bytes: 2128
+  attributes:
+    change_scope: "hotm-269-knowledge-shard-contract"
+    base_revision: "bba7ac05309bb8056c20fb7266255e6ba758ea2a"
+activity:
+  id: "urn:aiwg:activity:generation:knowledge-shard-fixtures-ts:001"
+  type: generation
+  started_at: "2026-07-17T20:47:53Z"
+  ended_at: "2026-07-17T20:47:53Z"
+  description: "Wrap the pinned producer manifest in a real gzip/TAR archive for tests"
+agent:
+  id: "urn:aiwg:agent:codex-gpt-5"
+  type: ai_assistant
+  name: "Codex"
+  version: "gpt-5"
+  tool: "codex"
+relationships:
+  wasGeneratedBy:
+    entity: "urn:aiwg:artifact:ui/src/api/__tests__/knowledgeShardFixtures.ts"
+    activity: "urn:aiwg:activity:generation:knowledge-shard-fixtures-ts:001"
+    time: "2026-07-17T20:47:53Z"
+  wasDerivedFrom:
+    - entity: "urn:aiwg:artifact:ui/src/api/__tests__/knowledgeShardFixtures.ts"
+      source: "urn:aiwg:artifact:ui/src/api/contracts/fortemi-core-v1-manifest.json"
+      derivation_type: "derives_from"
+      activity: "urn:aiwg:activity:generation:knowledge-shard-fixtures-ts:001"
+  wasAssociatedWith:
+    activity: "urn:aiwg:activity:generation:knowledge-shard-fixtures-ts:001"
+    agent: "urn:aiwg:agent:codex-gpt-5"
+    role: "primary_author"
+  wasAttributedTo:
+    entity: "urn:aiwg:artifact:ui/src/api/__tests__/knowledgeShardFixtures.ts"
+    agent: "urn:aiwg:agent:codex-gpt-5"

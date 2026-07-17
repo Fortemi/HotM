@@ -65,6 +65,20 @@ The delivered inference availability payload uses the producer field `available`
 the former consumer-only `reachable` and `provider_id` event fields are not part of
 this contract.
 
+## Knowledge Shard Requirement Receipt
+
+`FORTEMI-2026-07-REQ-015` is partially implemented for Fortemi commit
+`2eb5c6b739b3bb6a042a35050a3ae89960dd3ed4`. HotM vendors the exact producer
+`core-v1` manifest fixture at SHA-256
+`4ed7e3b7d4845122653c95bcf2508a7f440cf067fe64ca493f0785519b9300f1`,
+serializes only the supported `include` query, validates the declared
+profile/schema/minimum reader/components/counts/checksums before upload, and
+shows profile/schema plus actionable failures in Backup Manager.
+
+The lossless server-export -> HotM -> clean-server-import acceptance remains
+open. No current receipt proves full semantic equality, historical migrations,
+embeddings, attachment records/bytes, or atomic recovery.
+
 ## Current Coverage Summary
 
 HotM already has meaningful route and UI coverage for notes, search, archives/memories, jobs, events, inference config/audit/providers/test-connection, outbound webhooks, document types, attachments including TUS upload support, backup basics, concepts/SKOS, collections, templates, embedding sets/configs, health, and system compatibility. This statement is not a schema, semantic, losslessness, negotiation, or auth-parity claim.

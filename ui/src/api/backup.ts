@@ -11,10 +11,19 @@ import type {
   BackupMetadataResponse,
   BackupStatus,
   CreateSnapshotRequest,
+  KnowledgeShardComponent,
+  KnowledgeShardExport,
+  KnowledgeShardImportResponse,
+  KnowledgeShardImportResult,
+  KnowledgeShardManifest,
   RestoreDatabaseRequest,
   SwapBackupRequest,
 } from './types-extended';
 import { getActiveMemory, getMemoryRoutingHeaderName } from './memory-context';
+import {
+  inspectKnowledgeShard,
+  normalizeKnowledgeShardInclude,
+} from './knowledgeShard';
 import { getTauriFetch } from '@/lib/tauri';
 
 export function createBackupApi(client: ApiClient) {
@@ -42,11 +51,34 @@ export function createBackupApi(client: ApiClient) {
   const jsonErrorMessage = async (response: Response, fallback: string): Promise<string> => {
     const error = await response.json().catch(() => ({}));
     if (error && typeof error === 'object') {
-      const message = (error as { message?: unknown; error?: { message?: unknown } }).message
-        ?? (error as { error?: { message?: unknown } }).error?.message;
+      const message = (
+        error as {
+          message?: unknown;
+          detail?: unknown;
+          title?: unknown;
+          error?: { message?: unknown };
+        }
+      ).message
+        ?? (error as { detail?: unknown }).detail
+        ?? (error as { error?: { message?: unknown } }).error?.message
+        ?? (error as { title?: unknown }).title;
       if (typeof message === 'string' && message.trim()) return message;
     }
     return fallback;
+  };
+  const assertSuccessfulShardImport = (
+    response: KnowledgeShardImportResponse | undefined,
+  ): void => {
+    if (!response) return;
+    const errors = Array.isArray(response.errors)
+      ? response.errors.filter((error) => typeof error === 'string' && error.trim())
+      : [];
+    if ((response.status && response.status !== 'success') || errors.length > 0) {
+      throw new Error(
+        errors[0]
+        ?? `Knowledge shard import returned ${response.status ?? 'an unsuccessful result'}.`,
+      );
+    }
   };
 
   return {
@@ -124,25 +156,18 @@ export function createBackupApi(client: ApiClient) {
     },
 
     // ===========================
-    // Knowledge Shards (Portable)
+    // Knowledge Shards (Profile-gated)
     // ===========================
 
     /**
      * Export knowledge shard (application-level export)
      */
     async exportKnowledgeShard(options: {
-      format?: 'json' | 'yaml';
-      include_deleted?: boolean;
-    } = {}): Promise<Blob> {
+      include?: readonly KnowledgeShardComponent[];
+    } = {}): Promise<KnowledgeShardExport> {
       const params: Record<string, string> = {};
-
-      if (options.format) {
-        params.format = options.format;
-      }
-
-      if (options.include_deleted !== undefined) {
-        params.include_deleted = String(options.include_deleted);
-      }
+      const include = normalizeKnowledgeShardInclude(options.include);
+      if (include) params.include = include;
 
       const baseUrl = getBaseUrl();
       const queryString = new URLSearchParams(params).toString();
@@ -156,21 +181,38 @@ export function createBackupApi(client: ApiClient) {
         throw new Error(`Export failed: ${response.statusText}`);
       }
 
-      return response.blob();
+      const blob = await response.blob();
+      return {
+        blob,
+        manifest: await inspectKnowledgeShard(blob),
+      };
     },
 
     /**
-     * Import knowledge shard
+     * Inspect a Knowledge Shard locally before any upload.
      */
-    async importKnowledgeShard(file: File): Promise<void> {
+    async inspectKnowledgeShard(file: Blob): Promise<KnowledgeShardManifest> {
+      return inspectKnowledgeShard(file);
+    },
+
+    /**
+     * Import knowledge shard through the legacy base64 route.
+     */
+    async importKnowledgeShard(file: File): Promise<KnowledgeShardImportResult> {
       if (!file) {
         throw new Error('Knowledge shard file is required');
       }
 
+      const manifest = await inspectKnowledgeShard(file);
       const shardBase64 = await fileToBase64(file);
-      await client.post('/backup/knowledge-shard/import', {
-        shard_base64: shardBase64,
-      });
+      const response = await client.post<KnowledgeShardImportResponse | undefined>(
+        '/backup/knowledge-shard/import',
+        {
+          shard_base64: shardBase64,
+        },
+      );
+      assertSuccessfulShardImport(response);
+      return { manifest, response };
     },
 
     /**
@@ -179,18 +221,20 @@ export function createBackupApi(client: ApiClient) {
     async uploadKnowledgeShard(
       file: File,
       options: {
-        include?: string;
+        include?: readonly KnowledgeShardComponent[];
         dryRun?: boolean;
         onConflict?: 'skip' | 'replace' | 'merge';
         skipEmbeddingRegen?: boolean;
       } = {},
-    ): Promise<unknown> {
+    ): Promise<KnowledgeShardImportResult> {
       if (!file) {
         throw new Error('Knowledge shard file is required');
       }
 
+      const manifest = await inspectKnowledgeShard(file);
       const params: Record<string, string> = {};
-      if (options.include?.trim()) params.include = options.include.trim();
+      const include = normalizeKnowledgeShardInclude(options.include);
+      if (include) params.include = include;
       if (options.dryRun !== undefined) params.dry_run = String(options.dryRun);
       if (options.onConflict) params.on_conflict = options.onConflict;
       if (options.skipEmbeddingRegen !== undefined) {
@@ -212,7 +256,11 @@ export function createBackupApi(client: ApiClient) {
         throw new Error(await jsonErrorMessage(response, `Upload failed: ${response.statusText}`));
       }
 
-      return response.json().catch(() => undefined);
+      const result = await response
+        .json()
+        .catch(() => undefined) as KnowledgeShardImportResponse | undefined;
+      assertSuccessfulShardImport(result);
+      return { manifest, response: result };
     },
 
     // ===========================

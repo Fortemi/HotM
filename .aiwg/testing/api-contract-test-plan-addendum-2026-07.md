@@ -104,6 +104,22 @@ Required checks:
 - Compare stable identities, relationships, collection/template memberships, null/tombstone state, timestamps, and attachment references/bytes.
 - Fail the portability gate on silent skips, dangling references, unsupported default-export components, or missing attachment bytes; an explicit loss report is not a lossless pass.
 
+Implemented consumer checks for HotM #269:
+
+- Vendor the producer `core-v1` manifest fixture from Fortemi commit
+  `2eb5c6b739b3bb6a042a35050a3ae89960dd3ed4` and verify digest
+  `4ed7e3b7d4845122653c95bcf2508a7f440cf067fe64ca493f0785519b9300f1`.
+- Build a real gzip/TAR archive around that fixture in Vitest and exercise the
+  production manifest parser rather than a URL-only mock.
+- Reject unknown/unsupported profile, schema, minimum reader, component, count,
+  checksum, malformed gzip, TAR, and manifest states before upload.
+- Assert export sends only `include`, multipart upload reports server
+  validation failures, and Backup Manager displays profile/schema without a
+  lossless/full-recovery claim.
+
+These checks are a prerequisite, not a substitute, for the still-required live
+clean-server semantic roundtrip.
+
 ### 1D. Compatibility Negotiation
 
 Required checks:
@@ -225,7 +241,9 @@ Current route-inventory command:
 python3 .aiwg/testing/scripts/fortemi-route-coverage.py
 jq -e '.route_count == 200 and (.family_counts.unclassified == null) and .status_counts.gap == 0 and (.status_counts.decision_needed // 0) == 0' .aiwg/api/compatibility/fortemi-v2026-07-route-coverage.json
 node .aiwg/testing/scripts/verify-fortemi-event-catalog.mjs
+node .aiwg/testing/scripts/verify-fortemi-knowledge-shard-contract.mjs
 (cd ui && npm run test:realtime)
+(cd ui && npm test -- --run src/api/__tests__/knowledgeShard.test.ts src/api/__tests__/backup.test.ts src/components/backup/__tests__/BackupManager.test.tsx)
 ```
 
 Future implementation PRs should add focused Vitest/Playwright commands beside the issue they close.
