@@ -107,3 +107,28 @@ This is a consumer/preflight receipt only. It does not establish clean-server
 semantic equality, historical migration support, attachment-byte recovery, or
 atomic `core-v1`/`full-v1` conformance; those release gates remain open in
 Fortemi #1057 and HotM #269.
+
+### OpenAPI Consumer Receipt (HotM #270)
+
+HotM consumes the Fortemi-generated OpenAPI 3.1 artifact at producer commit
+`cb1899368d763920091dd2fd5c22066d27e9fad0`, stable path
+`contracts/openapi/openapi.yaml`, and SHA-256
+`654db79e541a1a9117acf599476eb8ef4559b7e8d8f3ac7c471034ee383e705a`.
+The `hotm-openapi-v1` semantic projection has SHA-256
+`b67ce9d3b557f435b85c533344a18b2c902df9e7d374200e21d9224791e4aaf8`
+and compares parameters, request bodies, responses/statuses, component schemas,
+nullability, enums, error metadata, and security requirements.
+
+The gate accepts contract revision `1`, exercises current-minus-one `2026.2.8`,
+current `2026.2.9`, and a rejected breaking `2027.0.0` fixture, and emits a CI
+receipt containing exact producer and consumer commits. The delivered call
+response schema exposed and corrected a real consumer mismatch: call transcript
+segments now use producer fields `id`, `call_id`, `text`, `sequence`,
+`created_at`, `speaker_label`, `start_ts`, `end_ts`, and `confidence`.
+
+This is partial OpenAPI evidence. The producer artifact has 191 paths and 249
+operations, but only 6 of 310 response entries currently include a response
+schema. Route presence and the semantic fingerprint cannot prove typed response
+compatibility for the remaining entries; Fortemi #1060 and HotM #270 stay open
+until producer schema coverage and corresponding consumer boundaries are
+complete.

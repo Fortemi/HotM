@@ -274,7 +274,6 @@ export type {
   CallQueryOptions,
   CallsApi,
   CallTranscriptSegment,
-  CallTranscriptWord,
 } from './calls';
 export type {
   InferenceConfig,

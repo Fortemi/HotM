@@ -110,3 +110,21 @@ The implementation order, dependencies, and route-family closeout rules are defi
 The route-family proof checklist for seamless integration is defined in `.aiwg/design/fortemi-v2026-07-capability-surface-matrix.md`.
 
 The accepted product/UX disposition for vision, audio, and realtime call routes is defined in `.aiwg/architecture/adr/ADR-011-fortemi-media-call-surface-disposition.md`.
+
+## OpenAPI Requirement Receipt
+
+`FORTEMI-2026-07-REQ-013` is partially implemented against Fortemi commit
+`cb1899368d763920091dd2fd5c22066d27e9fad0`. HotM vendors the exact generated
+OpenAPI artifact at SHA-256
+`654db79e541a1a9117acf599476eb8ef4559b7e8d8f3ac7c471034ee383e705a`
+and pins semantic fingerprint
+`b67ce9d3b557f435b85c533344a18b2c902df9e7d374200e21d9224791e4aaf8`.
+The verifier covers parameters, bodies, response/status declarations, component
+schemas, errors, nullability, enums, and security; skew fixtures accept
+`2026.2.8` and `2026.2.9` and reject breaking `2027.0.0`.
+
+The typed call boundary now matches the delivered `CallDetailResponse` and
+`TranscriptSegment` schemas and rejects malformed producer examples. CI emits
+exact producer and consumer commits. This receipt does not satisfy full
+`REQ-013`: only 6 of 310 response entries in the producer artifact have response
+schemas, so untyped responses remain a blocking producer/consumer coverage gap.

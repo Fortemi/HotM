@@ -598,9 +598,9 @@ function CallDiagnosticsPanel({
               </div>
               {segmentPreview.length > 0 ? (
                 <div className="mt-3 grid gap-2">
-                  {segmentPreview.map((segment, index) => (
-                    <div key={`${segment.start_secs}-${segment.end_secs}-${index}`} className="rounded border bg-muted/30 p-2 text-xs text-muted-foreground">
-                      Segment {index + 1}: {segment.start_secs}s-{segment.end_secs}s; text length {segment.text.length.toLocaleString()}; words {formatOptionalNumber(segment.words?.length)}
+                  {segmentPreview.map((segment) => (
+                    <div key={segment.id} className="rounded border bg-muted/30 p-2 text-xs text-muted-foreground">
+                      Segment {segment.sequence + 1}: {formatOptionalNumber(segment.start_ts)}s-{formatOptionalNumber(segment.end_ts)}s; text length {segment.text.length.toLocaleString()}; confidence {formatOptionalNumber(segment.confidence)}
                     </div>
                   ))}
                 </div>

@@ -252,3 +252,24 @@ This addendum is accepted when:
 - Route-family proof expectations stay aligned with `.aiwg/design/fortemi-v2026-07-capability-surface-matrix.md`.
 - OpenAPI, AsyncAPI/SSE, Knowledge Shard, compatibility negotiation, and auth fixture gates are reported independently and pass for the release pairing.
 - Documentation and UI never equate `covered` route status with schema compatibility, semantic compatibility, or lossless data portability.
+
+### OpenAPI Consumer Boundary
+
+`ui/src/api/contracts/fortemi-openapi.yaml` is an exact consumer copy of
+Fortemi commit `cb1899368d763920091dd2fd5c22066d27e9fad0`,
+`contracts/openapi/openapi.yaml`, SHA-256
+`654db79e541a1a9117acf599476eb8ef4559b7e8d8f3ac7c471034ee383e705a`.
+`.aiwg/testing/scripts/verify-fortemi-openapi-contract.mjs` compares the copy to
+the producer Git object, validates OpenAPI metadata and security, fingerprints
+all delivered operations and component schemas, runs focused breaking
+mutations, and writes an exact producer/consumer CI receipt.
+
+The executable UI boundary validates the typed call response and
+`ProblemDetails` error schema. It corrected `ui/src/api/calls.ts` from unrelated
+media transcript fields to the producer-owned `TranscriptSegment` shape. The
+gate fails closed on unaccepted contract versions or semantic drift and
+coordinates with the compatibility gate rather than replacing it.
+
+The current artifact contains response schemas for only 6 of 310 response
+entries. This component therefore supplies a pinned semantic drift boundary and
+focused typed coverage, not full response compatibility for every operation.

@@ -1,45 +1,40 @@
 metadata:
   schema_version: "1.0.0"
-  created_at: "2026-07-17T20:47:53Z"
-  description: "Provenance for HotM #269 Knowledge Shard consumer receipt"
+  created_at: "2026-07-17T21:46:51Z"
+  description: "Provenance for HotM #270 Fortemi OpenAPI consumer gate"
 entity:
   id: "urn:aiwg:artifact:.aiwg/testing/api-contract-test-plan-addendum-2026-07.md"
   type: document
-  created_at: "2026-07-17T20:47:53Z"
-  checksum: "sha256:ef4243ed674f18de5e5f26c2052412a96eccf913fd581f8caefdd118f9bb23eb"
-  size_bytes: 13777
+  created_at: "2026-07-17T21:46:51Z"
+  checksum: "sha256:d0ddcbca1979a6d4ea335d539f38fb3b2df6b3668aa74f98d32aaf48331f0277"
+  size_bytes: 15198
   attributes:
-    change_scope: "suite-integration-contract"
-    base_revision: "bba7ac05309bb8056c20fb7266255e6ba758ea2a"
+    change_scope: "fortemi-openapi-consumer-contract"
+    base_revision: "b394e5160780ac8a752ca0891d7a3686394d2bd0"
 activity:
   id: "urn:aiwg:activity:modification:aiwg-testing-api-contract-test-plan-addendum-2026-07-md:001"
   type: modification
-  started_at: "2026-07-17T20:47:53Z"
-  ended_at: "2026-07-17T20:47:53Z"
-  description: "Record the pinned Knowledge Shard profile consumer implementation"
+  started_at: "2026-07-17T21:46:51Z"
+  ended_at: "2026-07-17T21:46:51Z"
+  description: "Implement the pinned Fortemi OpenAPI semantic and typed consumer boundary"
 agent:
   id: "urn:aiwg:agent:codex-gpt-5"
   type: ai_assistant
   name: "Codex"
   version: "gpt-5"
   tool: "codex"
-  attributes:
-    delegated_roles:
-      - "architecture-documenter"
-      - "requirements-analyst"
-      - "test-architect"
 relationships:
   wasGeneratedBy:
     entity: "urn:aiwg:artifact:.aiwg/testing/api-contract-test-plan-addendum-2026-07.md"
     activity: "urn:aiwg:activity:modification:aiwg-testing-api-contract-test-plan-addendum-2026-07-md:001"
-    time: "2026-07-17T20:47:53Z"
+    time: "2026-07-17T21:46:51Z"
   used:
     - activity: "urn:aiwg:activity:modification:aiwg-testing-api-contract-test-plan-addendum-2026-07-md:001"
-      entity: "urn:git:git@git.integrolabs.net:Fortemi/HotM.git:bba7ac05309bb8056c20fb7266255e6ba758ea2a:.aiwg/testing/api-contract-test-plan-addendum-2026-07.md"
+      entity: "urn:git:git@git.integrolabs.net:Fortemi/HotM.git:b394e5160780ac8a752ca0891d7a3686394d2bd0:.aiwg/testing/api-contract-test-plan-addendum-2026-07.md"
       role: "previous_revision"
   wasDerivedFrom:
     - entity: "urn:aiwg:artifact:.aiwg/testing/api-contract-test-plan-addendum-2026-07.md"
-      source: "urn:git:git@git.integrolabs.net:Fortemi/HotM.git:bba7ac05309bb8056c20fb7266255e6ba758ea2a:.aiwg/testing/api-contract-test-plan-addendum-2026-07.md"
+      source: "urn:git:git@git.integrolabs.net:Fortemi/HotM.git:b394e5160780ac8a752ca0891d7a3686394d2bd0:.aiwg/testing/api-contract-test-plan-addendum-2026-07.md"
       derivation_type: "modifies"
       activity: "urn:aiwg:activity:modification:aiwg-testing-api-contract-test-plan-addendum-2026-07-md:001"
   wasAssociatedWith:

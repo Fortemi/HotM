@@ -1,0 +1,46 @@
+metadata:
+  schema_version: "1.0.0"
+  created_at: "2026-07-17T21:46:51Z"
+  description: "Provenance for HotM #270 Fortemi OpenAPI consumer gate"
+entity:
+  id: "urn:aiwg:artifact:ui/src/api/__tests__/calls.test.ts"
+  type: software
+  created_at: "2026-07-17T21:46:51Z"
+  checksum: "sha256:5675d279c475d45534e924fe33d24cf2a2fd9b36153d7e2907b1de89fc33a71f"
+  size_bytes: 2278
+  attributes:
+    change_scope: "fortemi-openapi-consumer-contract"
+    base_revision: "b394e5160780ac8a752ca0891d7a3686394d2bd0"
+activity:
+  id: "urn:aiwg:activity:modification:ui-src-api-tests-calls-test-ts:001"
+  type: modification
+  started_at: "2026-07-17T21:46:51Z"
+  ended_at: "2026-07-17T21:46:51Z"
+  description: "Implement the pinned Fortemi OpenAPI semantic and typed consumer boundary"
+agent:
+  id: "urn:aiwg:agent:codex-gpt-5"
+  type: ai_assistant
+  name: "Codex"
+  version: "gpt-5"
+  tool: "codex"
+relationships:
+  wasGeneratedBy:
+    entity: "urn:aiwg:artifact:ui/src/api/__tests__/calls.test.ts"
+    activity: "urn:aiwg:activity:modification:ui-src-api-tests-calls-test-ts:001"
+    time: "2026-07-17T21:46:51Z"
+  used:
+    - activity: "urn:aiwg:activity:modification:ui-src-api-tests-calls-test-ts:001"
+      entity: "urn:git:git@git.integrolabs.net:Fortemi/HotM.git:b394e5160780ac8a752ca0891d7a3686394d2bd0:ui/src/api/__tests__/calls.test.ts"
+      role: "previous_revision"
+  wasDerivedFrom:
+    - entity: "urn:aiwg:artifact:ui/src/api/__tests__/calls.test.ts"
+      source: "urn:git:git@git.integrolabs.net:Fortemi/HotM.git:b394e5160780ac8a752ca0891d7a3686394d2bd0:ui/src/api/__tests__/calls.test.ts"
+      derivation_type: "modifies"
+      activity: "urn:aiwg:activity:modification:ui-src-api-tests-calls-test-ts:001"
+  wasAssociatedWith:
+    activity: "urn:aiwg:activity:modification:ui-src-api-tests-calls-test-ts:001"
+    agent: "urn:aiwg:agent:codex-gpt-5"
+    role: "primary_author"
+  wasAttributedTo:
+    entity: "urn:aiwg:artifact:ui/src/api/__tests__/calls.test.ts"
+    agent: "urn:aiwg:agent:codex-gpt-5"

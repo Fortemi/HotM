@@ -1,6 +1,8 @@
 name: SDLC Gates
 
 on:
+  push:
+    branches: [main]
   pull_request:
     types: [opened, edited, synchronize]
 
@@ -45,11 +47,30 @@ jobs:
         shell: bash
         run: node .aiwg/testing/scripts/verify-fortemi-knowledge-shard-contract.mjs
 
+      - name: Install OpenAPI verifier dependency
+        shell: bash
+        run: npm ci --prefix ui --ignore-scripts
+
+      - name: Verify Fortemi OpenAPI consumer contract
+        shell: bash
+        run: node .aiwg/testing/scripts/verify-fortemi-openapi-contract.mjs ../fortemi --write-ci-receipt openapi-consumer-receipt.json
+
+      - name: Test delivered OpenAPI client boundary
+        shell: bash
+        run: npm --prefix ui test -- --run src/api/__tests__/calls.test.ts src/api/__tests__/delivered-openapi-contract.test.ts
+
+      - name: Upload OpenAPI consumer receipt
+        uses: actions/upload-artifact@ff15f0306b3f739f7b6fd43fb5d26cd321bd4de5
+        with:
+          name: fortemi-openapi-consumer-receipt
+          path: openapi-consumer-receipt.json
+
       - name: Verify Fortemi closeout package
         shell: bash
         run: python3 .aiwg/testing/scripts/verify-fortemi-closeout-package.py
 
   validate-pr:
+    if: github.event_name == 'pull_request'
     runs-on: node-20
     permissions:
       pull-requests: write

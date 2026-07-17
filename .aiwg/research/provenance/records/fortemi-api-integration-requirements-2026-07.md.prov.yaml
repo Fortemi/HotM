@@ -1,45 +1,40 @@
 metadata:
   schema_version: "1.0.0"
-  created_at: "2026-07-17T20:47:53Z"
-  description: "Provenance for HotM #269 Knowledge Shard consumer receipt"
+  created_at: "2026-07-17T21:46:51Z"
+  description: "Provenance for HotM #270 Fortemi OpenAPI consumer gate"
 entity:
   id: "urn:aiwg:artifact:.aiwg/requirements/fortemi-api-integration-requirements-2026-07.md"
   type: document
-  created_at: "2026-07-17T20:47:53Z"
-  checksum: "sha256:831ee404fe54b07440a44a406fab9c500007a7d85195be45b18d6fb8b6674aaf"
-  size_bytes: 12187
+  created_at: "2026-07-17T21:46:51Z"
+  checksum: "sha256:e6a1bc68ff2b5074dd4d63c5661c9b04a1db532c94b073111fe58ba2a985e0ff"
+  size_bytes: 13161
   attributes:
-    change_scope: "suite-integration-contract"
-    base_revision: "bba7ac05309bb8056c20fb7266255e6ba758ea2a"
+    change_scope: "fortemi-openapi-consumer-contract"
+    base_revision: "b394e5160780ac8a752ca0891d7a3686394d2bd0"
 activity:
   id: "urn:aiwg:activity:modification:aiwg-requirements-fortemi-api-integration-requirements-2026-07-md:001"
   type: modification
-  started_at: "2026-07-17T20:47:53Z"
-  ended_at: "2026-07-17T20:47:53Z"
-  description: "Record the pinned Knowledge Shard profile consumer implementation"
+  started_at: "2026-07-17T21:46:51Z"
+  ended_at: "2026-07-17T21:46:51Z"
+  description: "Implement the pinned Fortemi OpenAPI semantic and typed consumer boundary"
 agent:
   id: "urn:aiwg:agent:codex-gpt-5"
   type: ai_assistant
   name: "Codex"
   version: "gpt-5"
   tool: "codex"
-  attributes:
-    delegated_roles:
-      - "architecture-documenter"
-      - "requirements-analyst"
-      - "test-architect"
 relationships:
   wasGeneratedBy:
     entity: "urn:aiwg:artifact:.aiwg/requirements/fortemi-api-integration-requirements-2026-07.md"
     activity: "urn:aiwg:activity:modification:aiwg-requirements-fortemi-api-integration-requirements-2026-07-md:001"
-    time: "2026-07-17T20:47:53Z"
+    time: "2026-07-17T21:46:51Z"
   used:
     - activity: "urn:aiwg:activity:modification:aiwg-requirements-fortemi-api-integration-requirements-2026-07-md:001"
-      entity: "urn:git:git@git.integrolabs.net:Fortemi/HotM.git:bba7ac05309bb8056c20fb7266255e6ba758ea2a:.aiwg/requirements/fortemi-api-integration-requirements-2026-07.md"
+      entity: "urn:git:git@git.integrolabs.net:Fortemi/HotM.git:b394e5160780ac8a752ca0891d7a3686394d2bd0:.aiwg/requirements/fortemi-api-integration-requirements-2026-07.md"
       role: "previous_revision"
   wasDerivedFrom:
     - entity: "urn:aiwg:artifact:.aiwg/requirements/fortemi-api-integration-requirements-2026-07.md"
-      source: "urn:git:git@git.integrolabs.net:Fortemi/HotM.git:bba7ac05309bb8056c20fb7266255e6ba758ea2a:.aiwg/requirements/fortemi-api-integration-requirements-2026-07.md"
+      source: "urn:git:git@git.integrolabs.net:Fortemi/HotM.git:b394e5160780ac8a752ca0891d7a3686394d2bd0:.aiwg/requirements/fortemi-api-integration-requirements-2026-07.md"
       derivation_type: "modifies"
       activity: "urn:aiwg:activity:modification:aiwg-requirements-fortemi-api-integration-requirements-2026-07-md:001"
   wasAssociatedWith:

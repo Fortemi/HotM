@@ -1,45 +1,40 @@
 metadata:
   schema_version: "1.0.0"
-  created_at: "2026-07-17T20:47:53Z"
-  description: "Provenance for HotM #269 Knowledge Shard consumer receipt"
+  created_at: "2026-07-17T21:46:51Z"
+  description: "Provenance for HotM #270 Fortemi OpenAPI consumer gate"
 entity:
   id: "urn:aiwg:artifact:.aiwg/architecture/adr/ADR-010-fortemi-v2026-07-api-coverage.md"
   type: document
-  created_at: "2026-07-17T20:47:53Z"
-  checksum: "sha256:42d0896a9d9ec44d36ee559af7ea1202df2c3dc56041eb6472a9876a9e38f7de"
-  size_bytes: 7050
+  created_at: "2026-07-17T21:46:51Z"
+  checksum: "sha256:ad79877cec41e69debc5c3b6bf29bab0c896b577a3c0a4bb82ff03701824b3d4"
+  size_bytes: 8456
   attributes:
-    change_scope: "suite-integration-contract"
-    base_revision: "bba7ac05309bb8056c20fb7266255e6ba758ea2a"
+    change_scope: "fortemi-openapi-consumer-contract"
+    base_revision: "b394e5160780ac8a752ca0891d7a3686394d2bd0"
 activity:
   id: "urn:aiwg:activity:modification:aiwg-architecture-adr-ADR-010-fortemi-v2026-07-api-coverage-md:001"
   type: modification
-  started_at: "2026-07-17T20:47:53Z"
-  ended_at: "2026-07-17T20:47:53Z"
-  description: "Record the pinned Knowledge Shard profile consumer implementation"
+  started_at: "2026-07-17T21:46:51Z"
+  ended_at: "2026-07-17T21:46:51Z"
+  description: "Implement the pinned Fortemi OpenAPI semantic and typed consumer boundary"
 agent:
   id: "urn:aiwg:agent:codex-gpt-5"
   type: ai_assistant
   name: "Codex"
   version: "gpt-5"
   tool: "codex"
-  attributes:
-    delegated_roles:
-      - "architecture-documenter"
-      - "requirements-analyst"
-      - "test-architect"
 relationships:
   wasGeneratedBy:
     entity: "urn:aiwg:artifact:.aiwg/architecture/adr/ADR-010-fortemi-v2026-07-api-coverage.md"
     activity: "urn:aiwg:activity:modification:aiwg-architecture-adr-ADR-010-fortemi-v2026-07-api-coverage-md:001"
-    time: "2026-07-17T20:47:53Z"
+    time: "2026-07-17T21:46:51Z"
   used:
     - activity: "urn:aiwg:activity:modification:aiwg-architecture-adr-ADR-010-fortemi-v2026-07-api-coverage-md:001"
-      entity: "urn:git:git@git.integrolabs.net:Fortemi/HotM.git:bba7ac05309bb8056c20fb7266255e6ba758ea2a:.aiwg/architecture/adr/ADR-010-fortemi-v2026-07-api-coverage.md"
+      entity: "urn:git:git@git.integrolabs.net:Fortemi/HotM.git:b394e5160780ac8a752ca0891d7a3686394d2bd0:.aiwg/architecture/adr/ADR-010-fortemi-v2026-07-api-coverage.md"
       role: "previous_revision"
   wasDerivedFrom:
     - entity: "urn:aiwg:artifact:.aiwg/architecture/adr/ADR-010-fortemi-v2026-07-api-coverage.md"
-      source: "urn:git:git@git.integrolabs.net:Fortemi/HotM.git:bba7ac05309bb8056c20fb7266255e6ba758ea2a:.aiwg/architecture/adr/ADR-010-fortemi-v2026-07-api-coverage.md"
+      source: "urn:git:git@git.integrolabs.net:Fortemi/HotM.git:b394e5160780ac8a752ca0891d7a3686394d2bd0:.aiwg/architecture/adr/ADR-010-fortemi-v2026-07-api-coverage.md"
       derivation_type: "modifies"
       activity: "urn:aiwg:activity:modification:aiwg-architecture-adr-ADR-010-fortemi-v2026-07-api-coverage-md:001"
   wasAssociatedWith:

@@ -33,7 +33,17 @@ describe('Calls API', () => {
       metadata_class: 'object',
       metadata_len: 22,
       segment_count: 1,
-      segments: [{ start_secs: 0, end_secs: 2.5, text: 'hello' }],
+      segments: [{
+        id: '018f2d2d-bc00-7cc8-8ad2-f147d6a2e77b',
+        call_id: '018f2d2d-bc00-7cc8-8ad2-f147d6a2e77a',
+        text: 'hello',
+        sequence: 0,
+        created_at: '2026-07-14T12:00:01Z',
+        start_ts: 0,
+        end_ts: 2.5,
+        speaker_label: null,
+        confidence: 0.98,
+      }],
       pagination: { total: 1, limit: 1, offset: 0, has_more: false },
     };
     get.mockResolvedValueOnce(detail);

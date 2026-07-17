@@ -19,19 +19,16 @@ export interface CallProviderReference {
   [key: string]: unknown;
 }
 
-export interface CallTranscriptWord {
-  word: string;
-  start_secs: number;
-  end_secs: number;
-  confidence?: number | null;
-}
-
 export interface CallTranscriptSegment {
-  start_secs: number;
-  end_secs: number;
+  id: string;
+  call_id: string;
   text: string;
-  speaker_id?: string | null;
-  words?: CallTranscriptWord[] | null;
+  sequence: number;
+  created_at: string;
+  speaker_label?: string | null;
+  start_ts?: number | null;
+  end_ts?: number | null;
+  confidence?: number | null;
 }
 
 export interface CallPagination {

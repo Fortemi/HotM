@@ -489,14 +489,15 @@ describe('ApiCapabilitiesPanel', () => {
       segment_count: 2,
       segments: [
         {
-          start_secs: 0,
-          end_secs: 3,
+          id: '018f2d2d-bc00-7cc8-8ad2-f147d6a2e77b',
+          call_id: '018f2d2d-bc00-7cc8-8ad2-f147d6a2e77a',
           text: 'customer secret transcript',
-          speaker_id: 'speaker-secret',
-          words: [
-            { word: 'customer', start_secs: 0, end_secs: 1, confidence: 0.98 },
-            { word: 'secret', start_secs: 1, end_secs: 2, confidence: 0.9 },
-          ],
+          sequence: 0,
+          created_at: '2026-07-14T13:00:01Z',
+          start_ts: 0,
+          end_ts: 3,
+          speaker_label: 'speaker-secret',
+          confidence: 0.98,
         },
       ],
       pagination: {
@@ -521,7 +522,7 @@ describe('ApiCapabilitiesPanel', () => {
       expect(screen.getByText(/Remote party length: 14/i)).toBeInTheDocument();
       expect(screen.getByText(/Archive reference present: yes/i)).toBeInTheDocument();
       expect(screen.getByText(/2 segments; page 0 offset, 50 limit, 2 total/i)).toBeInTheDocument();
-      expect(screen.getByText(/Segment 1: 0s-3s; text length 26; words 2/i)).toBeInTheDocument();
+      expect(screen.getByText(/Segment 1: 0s-3s; text length 26; confidence 0.98/i)).toBeInTheDocument();
     });
     expect(screen.getByText(/Twilio realtime WebSocket diagnostics are not exposed in HotM/i)).toBeInTheDocument();
     expect(screen.queryByText(/customer secret transcript/i)).not.toBeInTheDocument();

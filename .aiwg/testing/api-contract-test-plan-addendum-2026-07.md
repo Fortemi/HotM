@@ -261,3 +261,32 @@ The #253 verifier should consume `.aiwg/api/compatibility/fortemi-v2026-07-famil
 The detailed verifier contract, pass/fail rules, and mixed-disposition requirement are defined in `.aiwg/testing/fortemi-route-verifier-spec-2026-07.md`.
 
 The scenario-level test ownership, fixture states, redaction assertions, and planned test-file targets are defined in `.aiwg/testing/fortemi-v2026-07-scenario-test-matrix.md`.
+
+### OpenAPI Contract Gate Receipt
+
+The #270 gate pins Fortemi commit
+`cb1899368d763920091dd2fd5c22066d27e9fad0`, artifact SHA-256
+`654db79e541a1a9117acf599476eb8ef4559b7e8d8f3ac7c471034ee383e705a`,
+and semantic SHA-256
+`b67ce9d3b557f435b85c533344a18b2c902df9e7d374200e21d9224791e4aaf8`.
+CI must compare exact producer bytes, validate its semantic fingerprint, run
+negative mutations for parameters, bodies, response schemas/statuses, errors,
+nullability, enums, and security, and publish a receipt with both exact commits.
+
+Focused Vitest coverage must run the real calls serializer against the delivered
+path/query definition, validate the returned `CallDetailResponse` recursively,
+validate `ProblemDetails`, and reject malformed transcript/error fixtures.
+Version-skew fixtures cover current-minus-one `2026.2.8`, current `2026.2.9`,
+and rejected breaking-next-major `2027.0.0`.
+
+Verification commands:
+
+```bash
+node .aiwg/testing/scripts/verify-fortemi-openapi-contract.mjs ../fortemi
+(cd ui && npm test -- --run src/api/__tests__/calls.test.ts src/api/__tests__/delivered-openapi-contract.test.ts src/components/admin/__tests__/ApiCapabilitiesPanel.test.tsx)
+```
+
+The current producer baseline has 191 paths, 249 operations, 310 response
+entries, and only 6 response schemas. The gate must report this ratio and remain
+partial; it cannot convert route or response-description presence into typed
+response coverage.

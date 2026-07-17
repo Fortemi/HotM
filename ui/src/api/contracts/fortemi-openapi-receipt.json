@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "producer": {
+    "repository": "Fortemi/fortemi",
+    "commit": "cb1899368d763920091dd2fd5c22066d27e9fad0",
+    "path": "contracts/openapi/openapi.yaml",
+    "sha256": "654db79e541a1a9117acf599476eb8ef4559b7e8d8f3ac7c471034ee383e705a",
+    "contractRevision": "1",
+    "contractVersion": "2026.2.9"
+  },
+  "consumer": {
+    "semanticProfile": "hotm-openapi-v1",
+    "acceptedContractRevisions": ["1"],
+    "acceptedContractVersions": ["2026.2.8", "2026.2.9"],
+    "semanticSha256": "b67ce9d3b557f435b85c533344a18b2c902df9e7d374200e21d9224791e4aaf8"
+  },
+  "statistics": {
+    "paths": 191,
+    "operations": 249,
+    "parameters": 168,
+    "requestBodies": 85,
+    "responses": 310,
+    "responseSchemas": 6,
+    "nullableSchemas": 507,
+    "enumSchemas": 22,
+    "publicOperations": 18,
+    "protectedOperations": 231
+  }
+}

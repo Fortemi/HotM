@@ -1,0 +1,46 @@
+metadata:
+  schema_version: "1.0.0"
+  created_at: "2026-07-17T21:46:51Z"
+  description: "Provenance for HotM #270 Fortemi OpenAPI consumer gate"
+entity:
+  id: "urn:aiwg:artifact:ui/src/api/index.ts"
+  type: software
+  created_at: "2026-07-17T21:46:51Z"
+  checksum: "sha256:5ef7da2cc87e7dbebd61b1893b9ad92078ddac8e5395750fc0cc9af634cd8a7c"
+  size_bytes: 14254
+  attributes:
+    change_scope: "fortemi-openapi-consumer-contract"
+    base_revision: "b394e5160780ac8a752ca0891d7a3686394d2bd0"
+activity:
+  id: "urn:aiwg:activity:modification:ui-src-api-index-ts:001"
+  type: modification
+  started_at: "2026-07-17T21:46:51Z"
+  ended_at: "2026-07-17T21:46:51Z"
+  description: "Implement the pinned Fortemi OpenAPI semantic and typed consumer boundary"
+agent:
+  id: "urn:aiwg:agent:codex-gpt-5"
+  type: ai_assistant
+  name: "Codex"
+  version: "gpt-5"
+  tool: "codex"
+relationships:
+  wasGeneratedBy:
+    entity: "urn:aiwg:artifact:ui/src/api/index.ts"
+    activity: "urn:aiwg:activity:modification:ui-src-api-index-ts:001"
+    time: "2026-07-17T21:46:51Z"
+  used:
+    - activity: "urn:aiwg:activity:modification:ui-src-api-index-ts:001"
+      entity: "urn:git:git@git.integrolabs.net:Fortemi/HotM.git:b394e5160780ac8a752ca0891d7a3686394d2bd0:ui/src/api/index.ts"
+      role: "previous_revision"
+  wasDerivedFrom:
+    - entity: "urn:aiwg:artifact:ui/src/api/index.ts"
+      source: "urn:git:git@git.integrolabs.net:Fortemi/HotM.git:b394e5160780ac8a752ca0891d7a3686394d2bd0:ui/src/api/index.ts"
+      derivation_type: "modifies"
+      activity: "urn:aiwg:activity:modification:ui-src-api-index-ts:001"
+  wasAssociatedWith:
+    activity: "urn:aiwg:activity:modification:ui-src-api-index-ts:001"
+    agent: "urn:aiwg:agent:codex-gpt-5"
+    role: "primary_author"
+  wasAttributedTo:
+    entity: "urn:aiwg:artifact:ui/src/api/index.ts"
+    agent: "urn:aiwg:agent:codex-gpt-5"

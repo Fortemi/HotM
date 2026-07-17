@@ -1,45 +1,40 @@
 metadata:
   schema_version: "1.0.0"
-  created_at: "2026-07-17T20:47:53Z"
-  description: "Provenance for HotM #269 Knowledge Shard traceability update"
+  created_at: "2026-07-17T21:46:51Z"
+  description: "Provenance for HotM #270 Fortemi OpenAPI consumer gate"
 entity:
   id: "urn:aiwg:artifact:.aiwg/reports/fortemi-v2026-07-api-integration-traceability.md"
   type: document
-  created_at: "2026-07-17T20:47:53Z"
-  checksum: "sha256:4f96c269b13a8a9b5c061d95b54927c482cf6ac0d308e66f4ff3a5df0a6f38c1"
-  size_bytes: 14229
+  created_at: "2026-07-17T21:46:51Z"
+  checksum: "sha256:e04a6c7f8ae20cfefb0038c68fa960c45d611911b348c09948a61cbb9806b15b"
+  size_bytes: 15305
   attributes:
-    change_scope: "suite-integration-contract"
-    base_revision: "bba7ac05309bb8056c20fb7266255e6ba758ea2a"
+    change_scope: "fortemi-openapi-consumer-contract"
+    base_revision: "b394e5160780ac8a752ca0891d7a3686394d2bd0"
 activity:
   id: "urn:aiwg:activity:modification:aiwg-reports-fortemi-v2026-07-api-integration-traceability-md:001"
   type: modification
-  started_at: "2026-07-17T20:47:53Z"
-  ended_at: "2026-07-17T20:47:53Z"
-  description: "Record the pinned Knowledge Shard profile consumer evidence"
+  started_at: "2026-07-17T21:46:51Z"
+  ended_at: "2026-07-17T21:46:51Z"
+  description: "Implement the pinned Fortemi OpenAPI semantic and typed consumer boundary"
 agent:
   id: "urn:aiwg:agent:codex-gpt-5"
   type: ai_assistant
   name: "Codex"
   version: "gpt-5"
   tool: "codex"
-  attributes:
-    delegated_roles:
-      - "architecture-documenter"
-      - "requirements-analyst"
-      - "test-architect"
 relationships:
   wasGeneratedBy:
     entity: "urn:aiwg:artifact:.aiwg/reports/fortemi-v2026-07-api-integration-traceability.md"
     activity: "urn:aiwg:activity:modification:aiwg-reports-fortemi-v2026-07-api-integration-traceability-md:001"
-    time: "2026-07-17T20:47:53Z"
+    time: "2026-07-17T21:46:51Z"
   used:
     - activity: "urn:aiwg:activity:modification:aiwg-reports-fortemi-v2026-07-api-integration-traceability-md:001"
-      entity: "urn:git:git@git.integrolabs.net:Fortemi/HotM.git:bba7ac05309bb8056c20fb7266255e6ba758ea2a:.aiwg/reports/fortemi-v2026-07-api-integration-traceability.md"
+      entity: "urn:git:git@git.integrolabs.net:Fortemi/HotM.git:b394e5160780ac8a752ca0891d7a3686394d2bd0:.aiwg/reports/fortemi-v2026-07-api-integration-traceability.md"
       role: "previous_revision"
   wasDerivedFrom:
     - entity: "urn:aiwg:artifact:.aiwg/reports/fortemi-v2026-07-api-integration-traceability.md"
-      source: "urn:git:git@git.integrolabs.net:Fortemi/HotM.git:bba7ac05309bb8056c20fb7266255e6ba758ea2a:.aiwg/reports/fortemi-v2026-07-api-integration-traceability.md"
+      source: "urn:git:git@git.integrolabs.net:Fortemi/HotM.git:b394e5160780ac8a752ca0891d7a3686394d2bd0:.aiwg/reports/fortemi-v2026-07-api-integration-traceability.md"
       derivation_type: "modifies"
       activity: "urn:aiwg:activity:modification:aiwg-reports-fortemi-v2026-07-api-integration-traceability-md:001"
   wasAssociatedWith:

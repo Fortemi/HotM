@@ -1,0 +1,49 @@
+metadata:
+  schema_version: "1.0.0"
+  created_at: "2026-07-17T21:46:51Z"
+  description: "Provenance for HotM #270 Fortemi OpenAPI consumer gate"
+entity:
+  id: "urn:aiwg:artifact:ui/src/api/__tests__/delivered-openapi-contract.test.ts"
+  type: software
+  created_at: "2026-07-17T21:46:51Z"
+  checksum: "sha256:a2fcae13b72ce0f2bcc9abb69700c0f71c2ca42ef7c0c08dd71004f976649a9c"
+  size_bytes: 5996
+  attributes:
+    change_scope: "fortemi-openapi-consumer-contract"
+    base_revision: "b394e5160780ac8a752ca0891d7a3686394d2bd0"
+activity:
+  id: "urn:aiwg:activity:generation:ui-src-api-tests-delivered-openapi-contract-test-ts:001"
+  type: generation
+  started_at: "2026-07-17T21:46:51Z"
+  ended_at: "2026-07-17T21:46:51Z"
+  description: "Implement the pinned Fortemi OpenAPI semantic and typed consumer boundary"
+agent:
+  id: "urn:aiwg:agent:codex-gpt-5"
+  type: ai_assistant
+  name: "Codex"
+  version: "gpt-5"
+  tool: "codex"
+relationships:
+  wasGeneratedBy:
+    entity: "urn:aiwg:artifact:ui/src/api/__tests__/delivered-openapi-contract.test.ts"
+    activity: "urn:aiwg:activity:generation:ui-src-api-tests-delivered-openapi-contract-test-ts:001"
+    time: "2026-07-17T21:46:51Z"
+  used:
+    - activity: "urn:aiwg:activity:generation:ui-src-api-tests-delivered-openapi-contract-test-ts:001"
+      entity: "urn:gitea:Fortemi/HotM:issue:270"
+      role: "requirement"
+    - activity: "urn:aiwg:activity:generation:ui-src-api-tests-delivered-openapi-contract-test-ts:001"
+      entity: "urn:git:git@git.integrolabs.net:Fortemi/fortemi.git:cb1899368d763920091dd2fd5c22066d27e9fad0:contracts/openapi/openapi.yaml"
+      role: "producer_contract"
+  wasDerivedFrom:
+    - entity: "urn:aiwg:artifact:ui/src/api/__tests__/delivered-openapi-contract.test.ts"
+      source: "urn:gitea:Fortemi/HotM:issue:270"
+      derivation_type: "implements"
+      activity: "urn:aiwg:activity:generation:ui-src-api-tests-delivered-openapi-contract-test-ts:001"
+  wasAssociatedWith:
+    activity: "urn:aiwg:activity:generation:ui-src-api-tests-delivered-openapi-contract-test-ts:001"
+    agent: "urn:aiwg:agent:codex-gpt-5"
+    role: "primary_author"
+  wasAttributedTo:
+    entity: "urn:aiwg:artifact:ui/src/api/__tests__/delivered-openapi-contract.test.ts"
+    agent: "urn:aiwg:agent:codex-gpt-5"

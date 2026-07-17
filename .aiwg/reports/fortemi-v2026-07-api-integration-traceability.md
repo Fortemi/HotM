@@ -87,7 +87,7 @@ All `Covered` entries below refer to route/surface disposition only unless a sep
 | FORTEMI-2026-07-REQ-010 | BackupManager and backup API tests cover backup/archive route parity, sidecar limitation copy, metadata, snapshots, downloads, uploads, restore, import, list/detail/swap, and route-group controls. | Preserve #257 backup/archive evidence. |
 | FORTEMI-2026-07-REQ-011 | Compatibility guard docs and tests exist. | Keep #244/#252/#253 active. |
 | FORTEMI-2026-07-REQ-012 | Agent tools are selective and now have route-family/capability metadata, intent-set tests, no-MCP-parity-copy tests, and explicit non-tool boundaries for credential, PKE, rate-limit, Twilio, destructive backup, and purge-style operations. | Preserve #258 metadata tests; add disabled-state/redaction fixtures before enabling any new diagnostic tools. |
-| FORTEMI-2026-07-REQ-013 | Route names are inventoried; canonical OpenAPI request/response diff and consumer schema receipt are not established by that inventory. | Add pinned OpenAPI diff and typed contract tests. |
+| FORTEMI-2026-07-REQ-013 | Exact Fortemi OpenAPI artifact and semantic fingerprint are pinned; negative semantic/skew fixtures and a typed call/error boundary pass. The delivered artifact has response schemas for only 6 of 310 response entries. | Keep Fortemi #1060 and HotM #270 open until producer response schemas and matching consumer boundaries cover the required API surface. |
 | FORTEMI-2026-07-REQ-014 | SSE/WS clients exist; canonical AsyncAPI envelope/catalog conformance is not established by route coverage. | Add producer-owned event fixtures and unknown-event non-coercion tests. |
 | FORTEMI-2026-07-REQ-015 | Pinned Fortemi `core-v1` fixture, exact `include` serialization, local gzip/TAR manifest inspection, profile/schema UI, unsupported-contract rejection, and server-error tests are implemented. | Add clean-server semantic round trips, historical migration, atomicity, embeddings, and attachment-byte receipts before any lossless claim. |
 | FORTEMI-2026-07-REQ-016 | Compatibility display/normalization exists; contract-revision and minimum-client enforcement require a versioned fixture receipt. | Add negotiation matrix and fail-closed mutation tests. |
@@ -124,3 +124,17 @@ All `Covered` entries below refer to route/surface disposition only unless a sep
 ## Completion Gate
 
 This traceability report records local route/surface evidence for the Fortemi v2026.7.1 baseline. Full integration closure requires live receipts for the route verifier and each independent OpenAPI, AsyncAPI/SSE, Knowledge Shard, compatibility-negotiation, and cross-language auth gate. A local-preflight-only decision for route inventory cannot waive the other gates.
+
+## OpenAPI Consumer Evidence
+
+| Artifact | Trace role | Status |
+| --- | --- | --- |
+| `ui/src/api/contracts/fortemi-openapi.yaml` | Exact Fortemi OpenAPI 3.1 artifact from commit `cb1899368d763920091dd2fd5c22066d27e9fad0`. | Generated producer receipt; partial response-schema coverage |
+| `.aiwg/testing/scripts/verify-fortemi-openapi-contract.mjs` | Byte, semantic, negative-mutation, version-skew, and exact CI receipt gate. | Implemented |
+| `ui/src/api/__tests__/delivered-openapi-contract.test.ts` | Typed calls serializer/response and `ProblemDetails` boundary against the delivered artifact. | Implemented |
+
+The exact artifact SHA-256 is
+`654db79e541a1a9117acf599476eb8ef4559b7e8d8f3ac7c471034ee383e705a`;
+the `hotm-openapi-v1` semantic SHA-256 is
+`b67ce9d3b557f435b85c533344a18b2c902df9e7d374200e21d9224791e4aaf8`.
+Only 6 of 310 response entries are schema-bearing, so this trace remains partial.
