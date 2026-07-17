@@ -33,19 +33,21 @@ related_artifacts:
 
 The generated inventory `.aiwg/api/compatibility/fortemi-v2026-07-route-coverage.md` extracts 200 route declarations from the latest Fortemi source checkout at commit `f6733252`.
 
-The evidence strength of current `covered` rows is audited in `.aiwg/reports/fortemi-v2026-07-coverage-evidence-audit.md`; the current audit has no weak covered-family rows.
+The evidence strength of current `covered` rows is audited in `.aiwg/reports/fortemi-v2026-07-coverage-evidence-audit.md`. Its result is limited to route-family evidence and must not be read as OpenAPI, AsyncAPI, Knowledge Shard, compatibility-negotiation, or auth-fixture conformance.
 
 The current machine-readable route-family evidence map is `.aiwg/api/compatibility/fortemi-v2026-07-family-evidence-map.json`.
 
 | Status | Count | Traceability disposition |
 | --- | ---: | --- |
-| covered | 186 | Existing HotM API/UI/agent evidence found. |
+| covered | 186 | Existing HotM API/UI/agent route-disposition evidence found. |
 | partial | 0 | No current verifier rows remain partial. |
-| gap | 0 | No uncovered route family remains in the current generated verifier baseline. |
+| gap | 0 | No undisposed route family remains in the current generated verifier baseline. |
 | decision_needed | 0 | No unresolved UX/product disposition remains in the current verifier baseline. |
 | documented_exclusion | 14 | Excluded from current HotM claims; must remain documented. |
 
 ## Coverage Snapshot
+
+All `Covered` entries below refer to route/surface disposition only unless a separate executable contract receipt is cited.
 
 | Server capability family | HotM evidence | Status |
 | --- | --- | --- |
@@ -85,6 +87,11 @@ The current machine-readable route-family evidence map is `.aiwg/api/compatibili
 | FORTEMI-2026-07-REQ-010 | BackupManager and backup API tests cover backup/archive route parity, sidecar limitation copy, metadata, snapshots, downloads, uploads, restore, import, list/detail/swap, and route-group controls. | Preserve #257 backup/archive evidence. |
 | FORTEMI-2026-07-REQ-011 | Compatibility guard docs and tests exist. | Keep #244/#252/#253 active. |
 | FORTEMI-2026-07-REQ-012 | Agent tools are selective and now have route-family/capability metadata, intent-set tests, no-MCP-parity-copy tests, and explicit non-tool boundaries for credential, PKE, rate-limit, Twilio, destructive backup, and purge-style operations. | Preserve #258 metadata tests; add disabled-state/redaction fixtures before enabling any new diagnostic tools. |
+| FORTEMI-2026-07-REQ-013 | Route names are inventoried; canonical OpenAPI request/response diff and consumer schema receipt are not established by that inventory. | Add pinned OpenAPI diff and typed contract tests. |
+| FORTEMI-2026-07-REQ-014 | SSE/WS clients exist; canonical AsyncAPI envelope/catalog conformance is not established by route coverage. | Add producer-owned event fixtures and unknown-event non-coercion tests. |
+| FORTEMI-2026-07-REQ-015 | Backup/shard controls exist; lossless server-export -> HotM -> server-import behavior, attachment bytes, and profile negotiation are not proven. | Add cross-repository golden round trips and block portability claims until green. |
+| FORTEMI-2026-07-REQ-016 | Compatibility display/normalization exists; contract-revision and minimum-client enforcement require a versioned fixture receipt. | Add negotiation matrix and fail-closed mutation tests. |
+| FORTEMI-2026-07-REQ-017 | A claim-contract document exists; Rust workspace/release and shared Rust/Node fixture receipts are not present. | Pin the contract version and run shared fixtures in both repositories. |
 
 ## Artifact Trace
 
@@ -116,4 +123,4 @@ The current machine-readable route-family evidence map is `.aiwg/api/compatibili
 
 ## Completion Gate
 
-This traceability report now records local implementation evidence for the current Fortemi v2026.7.1 route baseline, and tracker closeout comments are published. Final closure still requires a passing live CI receipt or accepted local-preflight-only decision for the route verifier.
+This traceability report records local route/surface evidence for the Fortemi v2026.7.1 baseline. Full integration closure requires live receipts for the route verifier and each independent OpenAPI, AsyncAPI/SSE, Knowledge Shard, compatibility-negotiation, and cross-language auth gate. A local-preflight-only decision for route inventory cannot waive the other gates.

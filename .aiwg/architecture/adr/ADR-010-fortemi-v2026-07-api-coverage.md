@@ -20,7 +20,7 @@ HotM previously integrated the Fortemi v2026.5.x surface. Fortemi now ships v202
 
 The current HotM API client is broad but not exhaustive. A seamless integration target requires a formal coverage model: each server capability must be implemented in UI/API client/agent tooling, or explicitly excluded with rationale and a tracker item.
 
-The route inventory generated from Fortemi commit `f6733252` extracts 200 Fortemi route declarations and currently classifies them as 186 covered, 0 partial, 0 gap, 0 decision-needed, and 14 documented exclusions.
+The route inventory generated from Fortemi commit `f6733252` extracts 200 Fortemi route declarations and currently classifies them as 186 covered, 0 partial, 0 gap, 0 decision-needed, and 14 documented exclusions. That classification establishes route disposition, not request/response, event, portable-data, compatibility-negotiation, or authentication conformance.
 
 The route-family proof checklist for moving those classifications to implementation evidence is maintained in `.aiwg/design/fortemi-v2026-07-capability-surface-matrix.md`.
 
@@ -33,6 +33,17 @@ HotM will adopt a three-tier Fortemi API coverage model:
 3. **Documented exclusion** for capabilities that are server-only, deployment-only, or not currently user-facing. Exclusions must have a reason, compatibility behavior, and issue reference.
 
 HotM will not use the local `docs/openapi.json` as the sole source of truth until it is normalized into a canonical OpenAPI object or replaced by upstream `/openapi.yaml` generation. Until then, route-source extraction from Fortemi plus focused contract tests is the control.
+
+HotM will maintain independent release gates for:
+
+1. route inventory and product disposition;
+2. canonical OpenAPI schema and HTTP semantics;
+3. canonical AsyncAPI event envelope and SSE/WS payload semantics;
+4. Knowledge Shard schema/profile negotiation and lossless golden round trips;
+5. compatibility contract revision, server API revision, and minimum-client enforcement; and
+6. versioned cross-language auth claim fixtures.
+
+A green route-inventory gate cannot satisfy any of gates 2-6. User-facing support and portability claims require the gate relevant to that claim.
 
 ## Consequences
 
@@ -48,6 +59,7 @@ HotM will not use the local `docs/openapi.json` as the sole source of truth unti
 - More CI/test maintenance is required when Fortemi changes route declarations.
 - Some server endpoints will remain intentionally non-UI until a product decision is made.
 - Generated OpenAPI parity remains a dependency if the team wants schema-level request/response diffing instead of route-level drift checks.
+- Release verification becomes multi-axis; a route may be classified `covered` while its schema or semantic gate remains blocked.
 
 ## Implementation Notes
 
@@ -57,3 +69,5 @@ HotM will not use the local `docs/openapi.json` as the sole source of truth unti
 - Keep local sidecar workflows usable when advanced server capabilities are unavailable.
 - Update the capability surface matrix whenever a route family changes coverage tier, UX disposition, or proof requirement.
 - Use ADR-011 for the proposed vision/audio/call/Twilio route dispositions until #259 lands implementation or exclusion evidence.
+- Consume Fortemi-owned OpenAPI, AsyncAPI, Knowledge Shard, and compatibility artifacts by pinned revision; HotM does not redefine producer semantics locally.
+- Treat `fortemi-auth` as a normative specification boundary until Rust workspace, CI, release, and shared downstream fixture evidence exist.

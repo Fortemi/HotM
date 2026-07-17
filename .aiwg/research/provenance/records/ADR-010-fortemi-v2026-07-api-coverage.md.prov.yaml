@@ -1,0 +1,51 @@
+metadata:
+  schema_version: "1.0.0"
+  created_at: "2026-07-17T19:16:22Z"
+  description: "Provenance for integration-contract documentation update"
+entity:
+  id: "urn:aiwg:artifact:.aiwg/architecture/adr/ADR-010-fortemi-v2026-07-api-coverage.md"
+  type: document
+  created_at: "2026-07-17T19:16:22Z"
+  checksum: "sha256:fef7ef9ed242ed420931a541216953db60772bdeac9eb5133fcd2b88f075cea6"
+  size_bytes: 5096
+  attributes:
+    change_scope: "suite-integration-contract"
+    base_revision: "7e331525ad222f848947ada45c44d8577a7a5dab"
+activity:
+  id: "urn:aiwg:activity:modification:aiwg-architecture-adr-ADR-010-fortemi-v2026-07-api-coverage-md:001"
+  type: modification
+  started_at: "2026-07-17T19:16:22Z"
+  ended_at: "2026-07-17T19:16:22Z"
+  description: "Align integration architecture, requirements, tests, and current-state claims"
+agent:
+  id: "urn:aiwg:agent:codex-gpt-5"
+  type: ai_assistant
+  name: "Codex"
+  version: "gpt-5"
+  tool: "codex"
+  attributes:
+    delegated_roles:
+      - "architecture-documenter"
+      - "requirements-analyst"
+      - "test-architect"
+relationships:
+  wasGeneratedBy:
+    entity: "urn:aiwg:artifact:.aiwg/architecture/adr/ADR-010-fortemi-v2026-07-api-coverage.md"
+    activity: "urn:aiwg:activity:modification:aiwg-architecture-adr-ADR-010-fortemi-v2026-07-api-coverage-md:001"
+    time: "2026-07-17T19:16:22Z"
+  used:
+    - activity: "urn:aiwg:activity:modification:aiwg-architecture-adr-ADR-010-fortemi-v2026-07-api-coverage-md:001"
+      entity: "urn:git:git@git.integrolabs.net:Fortemi/HotM.git:7e331525ad222f848947ada45c44d8577a7a5dab:.aiwg/architecture/adr/ADR-010-fortemi-v2026-07-api-coverage.md"
+      role: "previous_revision"
+  wasDerivedFrom:
+    - entity: "urn:aiwg:artifact:.aiwg/architecture/adr/ADR-010-fortemi-v2026-07-api-coverage.md"
+      source: "urn:git:git@git.integrolabs.net:Fortemi/HotM.git:7e331525ad222f848947ada45c44d8577a7a5dab:.aiwg/architecture/adr/ADR-010-fortemi-v2026-07-api-coverage.md"
+      derivation_type: "modifies"
+      activity: "urn:aiwg:activity:modification:aiwg-architecture-adr-ADR-010-fortemi-v2026-07-api-coverage-md:001"
+  wasAssociatedWith:
+    activity: "urn:aiwg:activity:modification:aiwg-architecture-adr-ADR-010-fortemi-v2026-07-api-coverage-md:001"
+    agent: "urn:aiwg:agent:codex-gpt-5"
+    role: "primary_author"
+  wasAttributedTo:
+    entity: "urn:aiwg:artifact:.aiwg/architecture/adr/ADR-010-fortemi-v2026-07-api-coverage.md"
+    agent: "urn:aiwg:agent:codex-gpt-5"

@@ -7,15 +7,28 @@ Define how HotM consumes Fortemi compatibility metadata for the enterprise UX de
 ## Client Flow
 
 1. On connection change, HotM requests `GET /api/v1/system/compatibility`.
-2. If the request fails, times out, or returns an incompatible shape, HotM keeps local workflows available and marks enterprise surfaces as unavailable.
-3. HotM normalizes every capability into one of: `available`, `degraded`, `preview`, `unavailable`, or `unknown`.
-4. HotM enables production controls only when deployment mode, API version, capability state, auth state, role/scope, and local feature flag all allow the surface.
-5. HotM treats `preview`, `unavailable`, and `unknown` as disabled for production-affecting actions.
+2. HotM validates the compatibility contract revision, server API revision, and declared minimum supported HotM client before interpreting capabilities.
+3. If the request fails, times out, has an unknown contract revision, requires a newer client, or returns an incompatible shape, HotM keeps local workflows available and marks affected server surfaces as unavailable.
+4. HotM normalizes every capability into one of: `available`, `degraded`, `preview`, `unavailable`, or `unknown`.
+5. HotM enables production controls only when contract revision, server API version, minimum-client constraint, deployment mode, capability state, auth state, role/scope, and local feature flag all allow the surface.
+6. HotM treats `preview`, `unavailable`, and `unknown` as disabled for production-affecting actions.
+
+## Contract Ownership
+
+Fortemi owns the compatibility response schema and its revision semantics. HotM may normalize the response for presentation, but must not invent support for unknown revisions or infer compatibility from route presence.
+
+The compatibility endpoint coordinates, but does not replace, the canonical contracts:
+
+- OpenAPI for HTTP request/response shapes and security requirements.
+- AsyncAPI for realtime event envelope and payload semantics.
+- Knowledge Shard schema/profile metadata for portable import/export.
+- `fortemi-auth` versioned claim fixtures for Rust/Node authentication behavior.
 
 ## Surface Mapping
 
 | Compatibility field | HotM surface | Enablement rule |
 |---|---|---|
+| `contract_revision`, `server_api_revision`, `min_client_version` | Connection and Compatibility Center | Unknown revision or unmet minimum client disables affected server mutations. |
 | `deployment.mode` | Connection and Compatibility Center | Display mode always; hosted production labels require `hosted_multi_tenant_ready: true`. |
 | `auth.mode`, `auth.tenant_context_available` | Hosted Auth Onboarding | Hosted controls require `hosted_oauth` and tenant context. |
 | `capabilities.realtime_activity` | Realtime Activity Drawer | `available` enables live connection; `preview` enables fixture/demo state only. |
@@ -51,6 +64,7 @@ Add these fields to the enterprise demo fixture family:
 
 ## Test Hooks
 
+- Compatibility revision tests cover supported, unknown, malformed, and minimum-client-not-met states.
 - Compatibility normalization unit tests cover every capability state.
 - Component tests cover the eight fixture families in `HotM/.aiwg/testing/enterprise-demo-test-plan-2026-07.md`.
 - E2E smoke tests start from the Connection and Compatibility Center before navigating to hosted auth, realtime, premium catalog, or backoffice preview.
@@ -58,7 +72,7 @@ Add these fields to the enterprise demo fixture family:
 
 ## 2026-07-06 Implementation Checkpoint
 
-Initial client consumption is implemented in `ui/src/api/systemCompatibility.ts` and exposed through `api.systemCompatibility.get()`.
+Initial route consumption is implemented in `ui/src/api/systemCompatibility.ts` and exposed through `api.systemCompatibility.get()`. The checkpoint proves request and presentation behavior for the observed response; it does not yet prove revision/minimum-client negotiation against a canonical versioned schema.
 
 - `ApiCapabilitiesPanel` now requests `GET /api/v1/system/compatibility` alongside legacy health metadata.
 - Compatibility capability states drive the advertised capability list when the endpoint is present.
@@ -75,3 +89,7 @@ Initial client consumption is implemented in `ui/src/api/systemCompatibility.ts`
 - Production-affecting actions remain represented as disabled unless the capability state is `available`.
 - Missing compatibility metadata and missing capability keys resolve to `unknown` and `production disabled`.
 - Focused verification passed with `npm run test -- src/api/__tests__/index.test.ts src/components/admin/__tests__/ApiCapabilitiesPanel.test.tsx src/components/admin/__tests__/AdminPanel.test.tsx --run` and `npm run typecheck`.
+
+## Target-State Release Gate
+
+Production compatibility is established only when a pinned Fortemi compatibility fixture matrix passes, the corresponding OpenAPI and AsyncAPI revisions are accepted, any Knowledge Shard profile used by Backup Manager passes cross-repository golden tests, and the auth claim-contract version is supported. Until then, the existing implementation is capability-display evidence, not full suite interoperability evidence.

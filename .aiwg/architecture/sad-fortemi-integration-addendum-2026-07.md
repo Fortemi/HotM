@@ -19,9 +19,21 @@ related_artifacts:
 
 ## 1. Purpose
 
-This addendum updates the HotM Software Architecture Document for the current Fortemi server API and capability surface as of Fortemi commit `f6733252`, latest release tag `v2026.7.1`.
+This addendum updates the HotM Software Architecture Document for the Fortemi server API and capability surface audited at Fortemi commit `f6733252`, release tag `v2026.7.1`.
 
-The original SAD remains the baseline for the local-first HotM architecture. This addendum defines the integration architecture needed for seamless Fortemi server alignment across API clients, UX surfaces, realtime streams, admin controls, agent tools, compatibility guards, and route coverage verification.
+The original SAD remains the baseline for the local-first HotM architecture. This addendum defines the target integration architecture across API clients, UX surfaces, realtime streams, admin controls, agent tools, compatibility guards, and route coverage verification. It does not assert that the target is implemented merely because a matching route or client method exists.
+
+### 1.1 Current-State Qualification
+
+The generated 200-route inventory proves route discovery and client/surface disposition only. It does not, by itself, prove:
+
+- OpenAPI request/response schema compatibility.
+- AsyncAPI event-envelope or event-payload compatibility.
+- Knowledge Shard import/export losslessness.
+- compatibility-revision or minimum-client negotiation.
+- cross-language JWT claim behavior.
+
+Those properties remain target-state gates until the executable controls in the API contract test addendum pass against a pinned Fortemi producer.
 
 ## 2. Architectural Drivers
 
@@ -47,14 +59,14 @@ HotM is a React/Tauri desktop and web UI consuming a Fortemi API base URL, with 
 
 ### 3.2 New Fortemi v2026.7.1 Integration Context
 
-The route inventory extracts 200 server route declarations and classifies them:
+The route inventory extracts 200 server route declarations and classifies their HotM disposition:
 
 | Status | Count | Architectural meaning |
 | --- | ---: | --- |
-| covered | 186 | Existing HotM architecture has a consuming module, surface, tool, or compatibility-bound implementation evidence. |
+| covered | 186 | Existing HotM architecture has a consuming module, surface, tool, or compatibility-bound route-disposition evidence. This is not schema or semantic conformance. |
 | partial | 0 | No current verifier rows remain partial; future partial rows must be issue-backed before closure. |
-| gap | 0 | No uncovered route family remains in the current verifier baseline. |
-| decision_needed | 0 | No current route requires a new product/UX architecture decision before implementation or exclusion. |
+| gap | 0 | No undisposed route family remains in the current verifier baseline; independent contract gates may still be open. |
+| decision_needed | 0 | No current route requires a new product/UX disposition before implementation or exclusion. |
 | documented_exclusion | 14 | Route family is outside current HotM UX claims and must remain explicitly excluded. |
 
 ## 4. Component Architecture Delta
@@ -122,6 +134,25 @@ The route coverage inventory becomes a standing architecture control:
 - Require every P0/P1 route family to be covered, partial with issue, or documented exclusion with rationale.
 - Keep `docs/openapi.json` from acting as sole source of truth until it is canonical OpenAPI object shape.
 
+Route inventory and interoperability are separate controls. HotM uses these conformance axes:
+
+| Axis | Producer authority | HotM obligation | Passing evidence |
+| --- | --- | --- | --- |
+| Route inventory | Fortemi router/OpenAPI paths | Classify every route as consumed, deferred, or excluded. | Generated inventory with no unclassified route. |
+| HTTP schema/semantics | Fortemi canonical OpenAPI | Pin the producer revision, detect breaking schema changes, and verify typed client serialization/deserialization. | OpenAPI diff plus consumer contract tests. |
+| Realtime semantics | Fortemi canonical AsyncAPI | Consume the declared top-level event envelope and payload catalog without reinterpreting unknown events. | AsyncAPI diff plus SSE/WS fixture tests. |
+| Portable data | Fortemi canonical Knowledge Shard schema and profile registry | Submit only declared profiles, validate version negotiation, and report unsupported or lossy imports. | Cross-repository golden round trips. |
+| Runtime compatibility | `GET /api/v1/system/compatibility` | Enforce contract revision, server API revision, and minimum supported client before enabling production actions. | Compatibility matrix tests. |
+| Authentication | `fortemi-auth` claim contract | Keep Rust and Node verifiers aligned to the same versioned fixtures; fail closed on unknown contract versions. | Cross-language fixture suite and downstream receipts. |
+
+### 4.6 Canonical Contract Consumption
+
+- **OpenAPI:** Fortemi owns the canonical generated document. HotM pins its checksum or source revision and treats route presence as only the first gate. Breaking request, response, status, security, or nullability changes block release until the client and fixtures are updated.
+- **AsyncAPI/SSE:** Fortemi owns the event envelope and catalog. HotM consumes the top-level `event_type`, event identifier, timestamp, subject/resource references, and `metadata` as declared. Unknown events are ignored with bounded diagnostics; they are not coerced into a known event such as `QueueStatus`.
+- **Knowledge Shard:** Fortemi owns shard schema versions, `min_reader_version`, profile identifiers, component rules, counts, checksums, and attachment sidecar rules. HotM must not label a backup portable or lossless until a server-export -> HotM -> server-import golden round trip preserves declared identities, relationships, null/tombstone semantics, timestamps, and attachment bytes.
+- **Compatibility:** a successful HTTP response is insufficient. HotM must compare compatibility contract revision, server API revision, declared minimum client, capability state, and auth requirements before enabling mutations.
+- **Auth:** `fortemi-auth` is currently the specification authority, not a proven runtime dependency. HotM's Node verifier remains independently implemented and cannot claim parity until both implementations pass the same versioned fixtures.
+
 ## 5. Data and State Impact
 
 | State | Impact |
@@ -131,7 +162,7 @@ The route coverage inventory becomes a standing architecture control:
 | Ingest cursor | Resume hint only; server remains authoritative. |
 | Incoming webhook secrets | Show once at creation or never show raw secret after registration. |
 | Inbound source credentials | Redacted in all UI and logs. |
-| Backup sidecar metadata | Display portable sidecar status without claiming byte restore support before server implements it. |
+| Knowledge Shard and sidecar metadata | Display declared profile/version and any loss report; do not claim portability, losslessness, or byte restoration until cross-repository golden tests pass. |
 
 ## 6. Security Architecture Delta
 
@@ -162,6 +193,9 @@ HotM must support at least these server profiles:
 | Advanced features break local-first workflows | Capability-gated disabled states; sync chat/core notes fallback. |
 | Secret leakage in Admin or agent tool output | Redaction tests and copy-once token/secret handling. |
 | Overstated portable shard support | Backup UX must state current reference-only import/export boundary. |
+| Route coverage mistaken for compatibility | Report route, OpenAPI, AsyncAPI, shard, compatibility, and auth gates independently. |
+| Event envelope drift | Pin AsyncAPI revision and exercise server-owned envelope fixtures over both SSE and WS paths. |
+| Auth contract drift | Pin claim-contract version and run the same fixture manifest in Rust and Node before release. |
 
 ## 9. Open Architecture Decisions
 
@@ -182,3 +216,5 @@ This addendum is accepted when:
 - Implementation PRs update this addendum or supersede it when route families move between statuses.
 - Implementation follows the roadmap dependency order so shared stream transport, capability guards, and redaction patterns are established before dependent UX and agent tools claim coverage.
 - Route-family proof expectations stay aligned with `.aiwg/design/fortemi-v2026-07-capability-surface-matrix.md`.
+- OpenAPI, AsyncAPI/SSE, Knowledge Shard, compatibility negotiation, and auth fixture gates are reported independently and pass for the release pairing.
+- Documentation and UI never equate `covered` route status with schema compatibility, semantic compatibility, or lossless data portability.

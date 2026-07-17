@@ -1,0 +1,51 @@
+metadata:
+  schema_version: "1.0.0"
+  created_at: "2026-07-17T19:16:22Z"
+  description: "Provenance for integration-contract documentation update"
+entity:
+  id: "urn:aiwg:artifact:.aiwg/requirements/fortemi-api-integration-requirements-2026-07.md"
+  type: document
+  created_at: "2026-07-17T19:16:22Z"
+  checksum: "sha256:0442edc30ece0353ab969153385dde5665692cc6159b50137dd65ef756f6c9cd"
+  size_bytes: 10455
+  attributes:
+    change_scope: "suite-integration-contract"
+    base_revision: "7e331525ad222f848947ada45c44d8577a7a5dab"
+activity:
+  id: "urn:aiwg:activity:modification:aiwg-requirements-fortemi-api-integration-requirements-2026-07-md:001"
+  type: modification
+  started_at: "2026-07-17T19:16:22Z"
+  ended_at: "2026-07-17T19:16:22Z"
+  description: "Align integration architecture, requirements, tests, and current-state claims"
+agent:
+  id: "urn:aiwg:agent:codex-gpt-5"
+  type: ai_assistant
+  name: "Codex"
+  version: "gpt-5"
+  tool: "codex"
+  attributes:
+    delegated_roles:
+      - "architecture-documenter"
+      - "requirements-analyst"
+      - "test-architect"
+relationships:
+  wasGeneratedBy:
+    entity: "urn:aiwg:artifact:.aiwg/requirements/fortemi-api-integration-requirements-2026-07.md"
+    activity: "urn:aiwg:activity:modification:aiwg-requirements-fortemi-api-integration-requirements-2026-07-md:001"
+    time: "2026-07-17T19:16:22Z"
+  used:
+    - activity: "urn:aiwg:activity:modification:aiwg-requirements-fortemi-api-integration-requirements-2026-07-md:001"
+      entity: "urn:git:git@git.integrolabs.net:Fortemi/HotM.git:7e331525ad222f848947ada45c44d8577a7a5dab:.aiwg/requirements/fortemi-api-integration-requirements-2026-07.md"
+      role: "previous_revision"
+  wasDerivedFrom:
+    - entity: "urn:aiwg:artifact:.aiwg/requirements/fortemi-api-integration-requirements-2026-07.md"
+      source: "urn:git:git@git.integrolabs.net:Fortemi/HotM.git:7e331525ad222f848947ada45c44d8577a7a5dab:.aiwg/requirements/fortemi-api-integration-requirements-2026-07.md"
+      derivation_type: "modifies"
+      activity: "urn:aiwg:activity:modification:aiwg-requirements-fortemi-api-integration-requirements-2026-07-md:001"
+  wasAssociatedWith:
+    activity: "urn:aiwg:activity:modification:aiwg-requirements-fortemi-api-integration-requirements-2026-07-md:001"
+    agent: "urn:aiwg:agent:codex-gpt-5"
+    role: "primary_author"
+  wasAttributedTo:
+    entity: "urn:aiwg:artifact:.aiwg/requirements/fortemi-api-integration-requirements-2026-07.md"
+    agent: "urn:aiwg:agent:codex-gpt-5"

@@ -24,7 +24,7 @@ related_artifacts:
 
 ## Objective
 
-Extend the May 2026 API contract checks so HotM can track and verify the current Fortemi v2026.7.1 server surface. The test strategy must cover route inventory drift, streaming endpoints, operator/admin surfaces, future partial parity regressions, newly discovered decision-needed endpoints, and documented exclusions.
+Extend the May 2026 API contract checks so HotM can track and verify the Fortemi v2026.7.1 server surface. The test strategy must cover route inventory drift, OpenAPI schemas, AsyncAPI event semantics, Knowledge Shard profiles and losslessness, compatibility negotiation, cross-language auth fixtures, streaming endpoints, operator/admin surfaces, future partial parity regressions, newly discovered decision-needed endpoints, and documented exclusions.
 
 ## Existing Guards To Preserve
 
@@ -52,6 +52,52 @@ Acceptance:
 - Produces `.aiwg/api/compatibility/fortemi-v2026-07-route-coverage.json`.
 - Produces zero `unclassified` route families.
 - Preserves or intentionally updates status counts when Fortemi changes.
+
+Passing this control proves only that every route has a disposition. It does not satisfy the following contract controls.
+
+### 1A. OpenAPI Schema and HTTP Semantics
+
+Required checks:
+
+- Fetch or generate the canonical Fortemi OpenAPI artifact and pin its producer revision/checksum.
+- Fail on unreviewed breaking changes to parameters, bodies, nullability, enums, success/error statuses, response schemas, or security requirements.
+- Exercise HotM serializers and parsers with producer-owned golden examples.
+- Reject a release pairing when only route names match.
+
+### 1B. AsyncAPI and Realtime Envelope Semantics
+
+Required checks:
+
+- Pin the canonical AsyncAPI artifact and exercise the same event fixtures through SSE and WebSocket parsers.
+- Preserve the top-level event envelope, including `event_type`, event identifier, timestamp, resource/subject references, and `metadata`.
+- Verify each subscribed event payload against the producer catalog.
+- Treat unknown events as unknown with bounded diagnostics; never coerce them into `QueueStatus` or another known event.
+
+### 1C. Knowledge Shard Interoperability
+
+Required checks:
+
+- Validate schema version, `min_reader_version`, profile, component manifest, counts, and checksums before mutation.
+- Run server-export -> HotM -> server-import golden round trips for every HotM-supported profile.
+- Compare stable identities, relationships, collection/template memberships, null/tombstone state, timestamps, and attachment references/bytes.
+- Fail the portability gate on silent skips, dangling references, unsupported default-export components, or missing attachment bytes; an explicit loss report is not a lossless pass.
+
+### 1D. Compatibility Negotiation
+
+Required checks:
+
+- Cover supported and unknown compatibility contract revisions.
+- Cover minimum-client satisfied, client-too-old, malformed, and absent metadata.
+- Keep local workflows available while disabling affected server mutations on negotiation failure.
+
+### 1E. Cross-Language Auth Fixtures
+
+Required checks:
+
+- Pin a versioned `fortemi-auth` fixture manifest.
+- Run identical positive and negative claim cases in Rust and HotM Node verification.
+- Compare tenant derivation, scopes, time validation, error codes, and redaction behavior.
+- Do not claim parity from documentation review alone.
 
 ### 2. Native Chat Stream Tests (#242)
 
@@ -137,6 +183,11 @@ If excluded:
 | Criterion | Required evidence |
 | --- | --- |
 | Route inventory current | Regenerated JSON/Markdown with zero unclassified families. |
+| OpenAPI compatible | Pinned canonical artifact, reviewed diff, and typed consumer tests pass. |
+| AsyncAPI compatible | Pinned event catalog and SSE/WS golden fixtures pass without event coercion. |
+| Knowledge Shard interoperable | Supported profiles pass lossless cross-repository round trips including attachment bytes. |
+| Compatibility negotiated | Contract revision and minimum-client fixture matrix passes fail-closed behavior. |
+| Auth behavior aligned | Rust and Node pass the same versioned claim fixture manifest. |
 | P0/P1 gaps issue-backed | Every future `gap` or `partial` P0/P1 row maps to an open issue; the current baseline has zero such rows. |
 | Implemented route families tested | Unit/component/integration tests cover serialization, success, degraded, and error states. |
 | Exclusions documented | Excluded route families have rationale and no user-facing support claim. |
@@ -146,7 +197,7 @@ If excluded:
 
 ## Verification Commands
 
-Current planning-slice command:
+Current route-inventory command:
 
 ```bash
 python3 .aiwg/testing/scripts/fortemi-route-coverage.py
@@ -154,6 +205,8 @@ jq -e '.route_count == 200 and (.family_counts.unclassified == null) and .status
 ```
 
 Future implementation PRs should add focused Vitest/Playwright commands beside the issue they close.
+
+The route-inventory command is not a release-level interoperability receipt. Release evidence must also identify and pass the pinned OpenAPI, AsyncAPI, Knowledge Shard, compatibility, and auth fixture revisions.
 
 The recommended issue order and prerequisite relationships are captured in `.aiwg/planning/fortemi-v2026-07-implementation-roadmap.md`; tests should land with the phase that introduces the covered capability.
 

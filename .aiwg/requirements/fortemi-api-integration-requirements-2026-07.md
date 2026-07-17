@@ -40,10 +40,15 @@ This requirements baseline covers HotM alignment with the current Fortemi server
 | FORTEMI-2026-07-REQ-010 | HotM backup/archive UX must document and cover the full current backup family, including database download, memory-scoped download, knowledge archive download/upload, metadata update, and portable byte-sidecar limitations. | P1 | Backup tests and docs cover implemented endpoints and list unsupported reference-only shard boundaries. |
 | FORTEMI-2026-07-REQ-011 | HotM must preserve fail-closed auth/degraded-mode behavior: API keys, OAuth, compatibility metadata, and capability gates must not expose or enable production actions from unknown, preview, or unavailable states. | P0 | Existing compatibility tests plus new route coverage tests verify disabled-by-default behavior and redaction. |
 | FORTEMI-2026-07-REQ-012 | HotM agent-proxy tools must be reviewed against current Fortemi capabilities and either extended or explicitly bounded so the assistant can use supported notes/search/archive/attachment/inference/ingest tools without hallucinating unavailable operations. | P1 | Tool inventory maps agent tools to server endpoints and identifies next tool additions with tests. |
+| FORTEMI-2026-07-REQ-013 | HotM must pin and validate the Fortemi-owned canonical OpenAPI contract; route presence must not be treated as request/response schema compatibility. | P0 | Breaking-diff control plus typed consumer tests cover bodies, parameters, nullability, statuses, errors, and security requirements. |
+| FORTEMI-2026-07-REQ-014 | HotM realtime consumers must conform to the Fortemi-owned AsyncAPI event envelope and payload catalog across SSE and WebSocket transports. | P0 | Golden event fixtures verify top-level `event_type`, identifiers, timestamps, resource references, and metadata; unknown events remain unknown and are not coerced to another event type. |
+| FORTEMI-2026-07-REQ-015 | HotM backup/shard workflows must negotiate canonical Knowledge Shard schema version, `min_reader_version`, and profile, and must not claim lossless portability before cross-repository round trips pass. | P0 | Server-export -> HotM -> server-import golden suites preserve declared identities, relationships, null/tombstone semantics, timestamps, counts/checksums, and attachment bytes or produce a blocking loss report. |
+| FORTEMI-2026-07-REQ-016 | HotM must enforce compatibility contract revision, server API revision, and minimum-client constraints before enabling server mutations. | P0 | Fixture matrix covers supported, unknown, malformed, and client-too-old responses with fail-closed production controls. |
+| FORTEMI-2026-07-REQ-017 | HotM's Node auth verifier must pin the `fortemi-auth` claim-contract version and pass the same versioned fixtures as the Rust implementation before parity is claimed. | P0 | Cross-language fixture receipt covers issuer/audience/algorithm validation, tenant derivation, scopes, time claims, error taxonomy, and redaction. |
 
 ## Current Coverage Summary
 
-HotM already has meaningful coverage for notes, search, archives/memories, jobs, events, inference config/audit/providers/test-connection, outbound webhooks, document types, attachments including TUS upload support, backup basics, concepts/SKOS, collections, templates, embedding sets/configs, health, and system compatibility.
+HotM already has meaningful route and UI coverage for notes, search, archives/memories, jobs, events, inference config/audit/providers/test-connection, outbound webhooks, document types, attachments including TUS upload support, backup basics, concepts/SKOS, collections, templates, embedding sets/configs, health, and system compatibility. This statement is not a schema, semantic, losslessness, negotiation, or auth-parity claim.
 
 The original investigation open set was concentrated in full backup/download coverage, agent-tool gating, hosted auth parity, and automated end-to-end contract inventory. The current implementation baseline has local evidence for those P0/P1 slices, and tracker closeout comments are published. Final closure still depends on a live route-verifier CI receipt or accepted local-preflight-only decision.
 
@@ -53,9 +58,9 @@ The generated coverage inventory at `.aiwg/api/compatibility/fortemi-v2026-07-ro
 
 | Status | Count | Meaning |
 | --- | ---: | --- |
-| covered | 186 | HotM has API, UI, agent-tool, or compatibility evidence for the route family. |
+| covered | 186 | HotM has API, UI, agent-tool, or compatibility route-disposition evidence for the route family. |
 | partial | 0 | No current verifier rows remain partial; future drift must be issue-backed before closure. |
-| gap | 0 | No uncovered route family remains in the current generated verifier baseline. |
+| gap | 0 | No undisposed route family remains in the generated verifier baseline; REQ-013 through REQ-017 remain independent gates. |
 | decision_needed | 0 | No current route requires an unresolved product/UX disposition before implementation or exclusion. |
 | documented_exclusion | 14 | Route family is currently excluded from HotM UX claims and must remain documented until a product slice is opened. |
 
