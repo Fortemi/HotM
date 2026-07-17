@@ -1,0 +1,51 @@
+name: OpenAPI Consumer Gate
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  fortemi-openapi:
+    name: Fortemi OpenAPI Consumer Contract
+    runs-on: ubuntu-latest
+    env:
+      FORTEMI_REPOSITORY: Fortemi/fortemi.git
+    steps:
+      - name: Checkout HotM
+        shell: bash
+        run: |
+          set -euo pipefail
+          git clone --depth 1 --branch main \
+            "https://token:${{ github.token }}@git.integrolabs.net/${GITHUB_REPOSITORY}.git" .
+          git checkout "${GITHUB_SHA}"
+
+      - name: Checkout Fortemi producer
+        shell: bash
+        run: |
+          set -euo pipefail
+          FORTEMI_COMMIT="$(
+            node -e \
+              'console.log(require("./ui/src/api/contracts/fortemi-openapi-receipt.json").producer.commit)'
+          )"
+          git clone \
+            "https://token:${{ github.token }}@git.integrolabs.net/${FORTEMI_REPOSITORY}" \
+            ../fortemi
+          git -C ../fortemi checkout --detach "${FORTEMI_COMMIT}"
+
+      - name: Install verifier dependencies
+        shell: bash
+        run: npm ci --prefix ui --ignore-scripts
+
+      - name: Verify producer and write exact receipt
+        shell: bash
+        run: node .aiwg/testing/scripts/verify-fortemi-openapi-contract.mjs ../fortemi --write-ci-receipt openapi-consumer-receipt.json
+
+      - name: Test delivered client boundary
+        shell: bash
+        run: npm --prefix ui test -- --run src/api/__tests__/calls.test.ts src/api/__tests__/delivered-openapi-contract.test.ts
+
+      - name: Upload OpenAPI consumer receipt
+        uses: actions/upload-artifact@ff15f0306b3f739f7b6fd43fb5d26cd321bd4de5
+        with:
+          name: fortemi-openapi-consumer-receipt
+          path: openapi-consumer-receipt.json
