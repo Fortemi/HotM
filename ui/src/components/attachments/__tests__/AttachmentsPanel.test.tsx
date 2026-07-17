@@ -200,7 +200,7 @@ describe('AttachmentsPanel', () => {
 
       act(() => {
         realtimeEventBus.publishFromTransport({
-          event_type: 'AttachmentUploaded',
+          event_type: 'AttachmentCreated',
           note_id: 'note-123',
           event_id: 'evt-attach-1',
         });

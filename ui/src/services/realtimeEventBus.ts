@@ -1,4 +1,10 @@
+import {
+  type EventActor,
+  unwrapServerEventEnvelope,
+} from '@/api/events';
+
 export type RealtimeEventType =
+  | 'Unknown'
   | 'QueueStatus'
   | 'JobQueued'
   | 'JobStarted'
@@ -49,10 +55,15 @@ export interface RealtimeEvent {
   has_ai_content?: boolean;
   has_links?: boolean;
   memory?: string;
+  tenant_id?: string;
   correlation_id?: string;
+  causation_id?: string;
+  entity_type?: string;
+  entity_id?: string;
+  payload_version?: number;
   scope?: string;
   // Envelope metadata (SSE EventEnvelope)
-  actor?: string;
+  actor?: EventActor | string;
   occurred_at?: string;
   // Step-level progress (job pipeline)
   step_name?: string;
@@ -79,17 +90,16 @@ export interface RealtimeEvent {
    * currently populated by the server. Treated as a no-op when absent.
    */
   archive_name?: string;
-  reachable?: boolean;
-  provider_id?: string;
+  available?: boolean;
 }
 
 type RealtimeEventHandler = (event: RealtimeEvent) => void;
 
-const DEFAULT_EVENT_TYPE: RealtimeEventType = 'QueueStatus';
 const DEDUP_TTL_MS = 60_000;
 const COALESCE_WINDOW_MS = 50;
 const COALESCE_TYPES = new Set<RealtimeEventType>(['QueueStatus', 'JobProgress']);
 const SUPPORTED_TYPES = new Set<RealtimeEventType>([
+  'Unknown',
   'QueueStatus',
   'JobQueued',
   'JobStarted',
@@ -115,26 +125,6 @@ const SUPPORTED_TYPES = new Set<RealtimeEventType>([
   'InferenceConfigChanged',
   'InferenceAvailabilityChanged',
 ]);
-const NOTE_UPDATE_ALIASES = new Set<string>([
-  'NoteArchived',
-  'NoteUnarchived',
-  'NoteStarred',
-  'NoteUnstarred',
-  'NoteTagged',
-  'NoteUntagged',
-  'NoteConceptTagged',
-  'NoteConceptUntagged',
-  'NoteConceptUpdated',
-  'NoteMetadataUpdated',
-  'NoteLinksUpdated',
-  'NoteProvenanceUpdated',
-  'NoteRevisionUpdated',
-  // v2 dot-notation aliases
-  'NoteTagsUpdated',
-  'NoteLinksUpdated',
-  'NoteRevisionCreated',
-]);
-
 function getStringField(input: Record<string, unknown>, key: string): string | undefined {
   const value = input[key];
   return typeof value === 'string' ? value : undefined;
@@ -155,57 +145,66 @@ function getStringArrayField(input: Record<string, unknown>, key: string): strin
   return Array.isArray(value) ? value.filter((item): item is string => typeof item === 'string') : undefined;
 }
 
-// Dot-notation (SSE v2) → PascalCase mapping
-const DOT_NOTATION_MAP: Record<string, string> = {
-  'note.created': 'NoteCreated',
-  'note.updated': 'NoteUpdated',
-  'note.deleted': 'NoteDeleted',
-  'note.archived': 'NoteArchived',
-  'note.unarchived': 'NoteUnarchived',
-  'note.starred': 'NoteStarred',
-  'note.unstarred': 'NoteUnstarred',
-  'note.tagged': 'NoteTagged',
-  'note.untagged': 'NoteUntagged',
-  'note.concept_tagged': 'NoteConceptTagged',
-  'note.concept_untagged': 'NoteConceptUntagged',
-  'note.concept_updated': 'NoteConceptUpdated',
-  'note.metadata_updated': 'NoteMetadataUpdated',
-  'note.links_updated': 'NoteLinksUpdated',
-  'note.provenance_updated': 'NoteProvenanceUpdated',
-  'note.revision_updated': 'NoteRevisionUpdated',
-  // v2 dot-notation note lifecycle events
-  'note.tags.updated': 'NoteTagsUpdated',
-  'note.links.updated': 'NoteLinksUpdated',
-  'note.revision.created': 'NoteRevisionCreated',
+function getActorField(
+  input: Record<string, unknown>,
+  key: string,
+): EventActor | string | undefined {
+  const value = input[key];
+  if (typeof value === 'string') return value;
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return undefined;
+  const candidate = value as Record<string, unknown>;
+  const kind = getStringField(candidate, 'kind');
+  if (!kind) return undefined;
+  return {
+    kind,
+    id: getStringField(candidate, 'id'),
+    name: getStringField(candidate, 'name'),
+  };
+}
+
+// Exact Fortemi EventEnvelope names plus transport-level synthetic events.
+const NAMESPACED_EVENT_MAP: Record<string, RealtimeEventType> = {
+  'queue.status': 'QueueStatus',
   'job.queued': 'JobQueued',
   'job.started': 'JobStarted',
   'job.progress': 'JobProgress',
   'job.completed': 'JobCompleted',
   'job.failed': 'JobFailed',
-  'jobs.paused': 'JobsPaused',
-  'jobs.resumed': 'JobsResumed',
-  'queue.status': 'QueueStatus',
+  'note.created': 'NoteCreated',
+  'note.updated': 'NoteUpdated',
+  'note.deleted': 'NoteDeleted',
+  'note.archived': 'NoteUpdated',
+  'note.restored': 'NoteUpdated',
+  'note.tags.updated': 'NoteUpdated',
+  'note.links.updated': 'NoteUpdated',
+  'note.revision.created': 'NoteUpdated',
+  'attachment.created': 'AttachmentUpdated',
+  'attachment.deleted': 'AttachmentUpdated',
+  'attachment.extraction.updated': 'ExtractionUpdated',
   'collection.created': 'CollectionUpdated',
   'collection.updated': 'CollectionUpdated',
   'collection.deleted': 'CollectionUpdated',
+  'collection.membership.changed': 'CollectionUpdated',
+  'archive.created': 'ArchiveUpdated',
   'archive.updated': 'ArchiveUpdated',
-  'attachment.updated': 'AttachmentUpdated',
-  'attachment.extraction.updated': 'ExtractionUpdated',
+  'archive.deleted': 'ArchiveUpdated',
+  'archive.default.changed': 'ArchiveUpdated',
+  'concept_scheme.created': 'ConceptUpdated',
+  'concept_scheme.updated': 'ConceptUpdated',
+  'concept_scheme.deleted': 'ConceptUpdated',
+  'concept.created': 'ConceptUpdated',
+  'concept.updated': 'ConceptUpdated',
+  'concept.deleted': 'ConceptUpdated',
+  'concept.relations.updated': 'ConceptUpdated',
+  'concept.scheme.changed': 'ConceptUpdated',
+  'concept.collection.membership.changed': 'ConceptUpdated',
   'tag.created': 'TagUpdated',
   'tag.renamed': 'TagUpdated',
   'tag.deleted': 'TagUpdated',
   'tag.merged': 'TagUpdated',
   'tag.stats.updated': 'TagStatsUpdated',
-  'concept.created': 'ConceptUpdated',
-  'concept.updated': 'ConceptUpdated',
-  'concept.deleted': 'ConceptUpdated',
-  'concept.scheme.created': 'ConceptUpdated',
-  'concept.scheme.updated': 'ConceptUpdated',
-  'concept.scheme.deleted': 'ConceptUpdated',
-  'concept.relations.updated': 'ConceptUpdated',
-  'concept.scheme.changed': 'ConceptUpdated',
-  'concept.collection.membership.changed': 'ConceptUpdated',
-  // Search/index materialization events
+  'jobs.paused': 'JobsPaused',
+  'jobs.resumed': 'JobsResumed',
   'index.embedding.updated': 'SearchIndexUpdated',
   'index.linking.updated': 'SearchIndexUpdated',
   'index.fts.updated': 'SearchIndexUpdated',
@@ -219,39 +218,68 @@ const DOT_NOTATION_MAP: Record<string, string> = {
   'inference.availability.changed': 'InferenceAvailabilityChanged',
 };
 
+// Exact legacy names emitted by ServerEvent::event_type for WebSocket compatibility.
+const LEGACY_EVENT_MAP: Record<string, RealtimeEventType> = {
+  QueueStatus: 'QueueStatus',
+  JobQueued: 'JobQueued',
+  JobStarted: 'JobStarted',
+  JobProgress: 'JobProgress',
+  JobCompleted: 'JobCompleted',
+  JobFailed: 'JobFailed',
+  NoteUpdated: 'NoteUpdated',
+  NoteCreated: 'NoteCreated',
+  NoteDeleted: 'NoteDeleted',
+  NoteArchived: 'NoteUpdated',
+  NoteRestored: 'NoteUpdated',
+  NoteTagsUpdated: 'NoteUpdated',
+  NoteLinksUpdated: 'NoteUpdated',
+  NoteRevisionCreated: 'NoteUpdated',
+  AttachmentCreated: 'AttachmentUpdated',
+  AttachmentDeleted: 'AttachmentUpdated',
+  AttachmentExtractionUpdated: 'ExtractionUpdated',
+  CollectionCreated: 'CollectionUpdated',
+  CollectionUpdated: 'CollectionUpdated',
+  CollectionDeleted: 'CollectionUpdated',
+  CollectionMembershipChanged: 'CollectionUpdated',
+  ArchiveCreated: 'ArchiveUpdated',
+  ArchiveUpdated: 'ArchiveUpdated',
+  ArchiveDeleted: 'ArchiveUpdated',
+  ArchiveDefaultChanged: 'ArchiveUpdated',
+  ConceptSchemeCreated: 'ConceptUpdated',
+  ConceptSchemeUpdated: 'ConceptUpdated',
+  ConceptSchemeDeleted: 'ConceptUpdated',
+  ConceptCreated: 'ConceptUpdated',
+  ConceptUpdated: 'ConceptUpdated',
+  ConceptDeleted: 'ConceptUpdated',
+  ConceptRelationsUpdated: 'ConceptUpdated',
+  ConceptSchemeChanged: 'ConceptUpdated',
+  ConceptCollectionMembershipChanged: 'ConceptUpdated',
+  TagCreated: 'TagUpdated',
+  TagRenamed: 'TagUpdated',
+  TagDeleted: 'TagUpdated',
+  TagMerged: 'TagUpdated',
+  TagStatsUpdated: 'TagStatsUpdated',
+  JobsPaused: 'JobsPaused',
+  JobsResumed: 'JobsResumed',
+  IndexEmbeddingUpdated: 'SearchIndexUpdated',
+  IndexLinkingUpdated: 'SearchIndexUpdated',
+  IndexFtsUpdated: 'SearchIndexUpdated',
+  ReadmodelGraphUpdated: 'GraphUpdated',
+  ReadmodelSearchReady: 'SearchIndexUpdated',
+  InferenceAvailabilityChanged: 'InferenceAvailabilityChanged',
+  InferenceConfigChanged: 'InferenceConfigChanged',
+  ResyncRequired: 'ResyncRequired',
+  EventsLagged: 'EventsLagged',
+};
+
 function normalizeEventType(input: Record<string, unknown>): RealtimeEventType {
   const rawType = getStringField(input, 'type') ?? getStringField(input, 'event_type');
-  if (!rawType) {
-    return DEFAULT_EVENT_TYPE;
-  }
-  // Map dot-notation to PascalCase, then normalize through existing logic
-  const mapped = DOT_NOTATION_MAP[rawType] ?? rawType;
-  if (NOTE_UPDATE_ALIASES.has(mapped)) {
-    return 'NoteUpdated';
-  }
-  // Check for exact SUPPORTED_TYPES match first (covers ExtractionUpdated, TagStatsUpdated, etc.)
-  if (SUPPORTED_TYPES.has(mapped as RealtimeEventType)) {
-    return mapped as RealtimeEventType;
-  }
-  // Fuzzy fallbacks for unmapped PascalCase variants
-  if (mapped.includes('Attachment')) {
-    return 'AttachmentUpdated';
-  }
-  if (mapped.includes('Collection')) {
-    return 'CollectionUpdated';
-  }
-  if (mapped.includes('Archive')) {
-    return 'ArchiveUpdated';
-  }
-  if (mapped.includes('Concept')) {
-    return 'ConceptUpdated';
-  }
-  if (mapped.includes('Tag')) {
-    return 'TagUpdated';
-  }
-  return SUPPORTED_TYPES.has(mapped as RealtimeEventType)
-    ? (mapped as RealtimeEventType)
-    : DEFAULT_EVENT_TYPE;
+  if (!rawType) return 'Unknown';
+  return NAMESPACED_EVENT_MAP[rawType]
+    ?? LEGACY_EVENT_MAP[rawType]
+    ?? (SUPPORTED_TYPES.has(rawType as RealtimeEventType)
+      ? rawType as RealtimeEventType
+      : 'Unknown');
 }
 
 function coalesceKey(event: RealtimeEvent): string {
@@ -259,7 +287,10 @@ function coalesceKey(event: RealtimeEvent): string {
 }
 
 export function normalizeTransportEvent(input: unknown): RealtimeEvent {
-  const normalizedInput = (input ?? {}) as Record<string, unknown>;
+  const record = (input && typeof input === 'object' && !Array.isArray(input))
+    ? input as Record<string, unknown>
+    : {};
+  const normalizedInput = unwrapServerEventEnvelope(record) as Record<string, unknown>;
   const rawType = getStringField(normalizedInput, 'type') ?? getStringField(normalizedInput, 'event_type');
 
   return {
@@ -287,14 +318,19 @@ export function normalizeTransportEvent(input: unknown): RealtimeEvent {
     has_ai_content: getBooleanField(normalizedInput, 'has_ai_content'),
     has_links: getBooleanField(normalizedInput, 'has_links'),
     memory: getStringField(normalizedInput, 'memory'),
+    tenant_id: getStringField(normalizedInput, 'tenant_id'),
     correlation_id: getStringField(normalizedInput, 'correlation_id'),
+    causation_id: getStringField(normalizedInput, 'causation_id'),
+    entity_type: getStringField(normalizedInput, 'entity_type'),
+    entity_id: getStringField(normalizedInput, 'entity_id'),
+    payload_version: getNumberField(normalizedInput, 'payload_version'),
     scope: getStringField(normalizedInput, 'scope'),
     // Step-level progress (job pipeline)
     step_name: getStringField(normalizedInput, 'step_name'),
     steps_total: getNumberField(normalizedInput, 'steps_total'),
     step_current: getNumberField(normalizedInput, 'step_current'),
     // Envelope metadata
-    actor: getStringField(normalizedInput, 'actor'),
+    actor: getActorField(normalizedInput, 'actor'),
     occurred_at: getStringField(normalizedInput, 'occurred_at'),
     // Extraction progress fields
     extraction_status: getStringField(normalizedInput, 'extraction_status'),
@@ -319,8 +355,7 @@ export function normalizeTransportEvent(input: unknown): RealtimeEvent {
     })(),
     changed_fields: getStringArrayField(normalizedInput, 'changed_fields'),
     archive_name: getStringField(normalizedInput, 'archive_name'),
-    reachable: getBooleanField(normalizedInput, 'reachable'),
-    provider_id: getStringField(normalizedInput, 'provider_id'),
+    available: getBooleanField(normalizedInput, 'available'),
   };
 }
 

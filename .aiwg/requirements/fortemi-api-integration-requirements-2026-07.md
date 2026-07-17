@@ -46,6 +46,25 @@ This requirements baseline covers HotM alignment with the current Fortemi server
 | FORTEMI-2026-07-REQ-016 | HotM must enforce compatibility contract revision, server API revision, and minimum-client constraints before enabling server mutations. | P0 | Fixture matrix covers supported, unknown, malformed, and client-too-old responses with fail-closed production controls. |
 | FORTEMI-2026-07-REQ-017 | HotM's Node auth verifier must pin the `fortemi-auth` claim-contract version and pass the same versioned fixtures as the Rust implementation before parity is claimed. | P0 | Cross-language fixture receipt covers issuer/audience/algorithm validation, tenant derivation, scopes, time claims, error taxonomy, and redaction. |
 
+## Realtime Requirement Receipt
+
+`FORTEMI-2026-07-REQ-014` is implemented for the sidecar-pinned producer commit
+`98c9b29deee43b9c5bd96278f1f96837595882cd` by:
+
+- `ui/src/api/contracts/fortemi-event-catalog.json`, which records the 48 exact
+  namespaced event types, default subscription prefixes, producer source path, and
+  source checksum, plus the reproducible generated AsyncAPI digest;
+- `ui/src/api/events.ts`, which registers the exact SSE catalog and preserves the
+  canonical top-level envelope fields;
+- `ui/src/services/realtimeEventBus.ts`, which applies the same envelope and exact
+  mapping to SSE and WebSocket input and retains unknown events as `Unknown`; and
+- `.aiwg/testing/scripts/verify-fortemi-event-catalog.mjs`, plus the realtime
+  Vitest suite, which gate source/catalog drift and both consumer paths.
+
+The delivered inference availability payload uses the producer field `available`;
+the former consumer-only `reachable` and `provider_id` event fields are not part of
+this contract.
+
 ## Current Coverage Summary
 
 HotM already has meaningful route and UI coverage for notes, search, archives/memories, jobs, events, inference config/audit/providers/test-connection, outbound webhooks, document types, attachments including TUS upload support, backup basics, concepts/SKOS, collections, templates, embedding sets/configs, health, and system compatibility. This statement is not a schema, semantic, losslessness, negotiation, or auth-parity claim.

@@ -37,6 +37,10 @@ jobs:
         shell: bash
         run: .aiwg/testing/scripts/verify-fortemi-route-inventory.sh
 
+      - name: Verify Fortemi realtime event catalog
+        shell: bash
+        run: node .aiwg/testing/scripts/verify-fortemi-event-catalog.mjs
+
       - name: Verify Fortemi closeout package
         shell: bash
         run: python3 .aiwg/testing/scripts/verify-fortemi-closeout-package.py

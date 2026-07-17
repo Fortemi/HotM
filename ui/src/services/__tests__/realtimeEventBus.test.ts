@@ -2,6 +2,7 @@ import {
   createRealtimeEventBus,
   normalizeTransportEvent,
 } from '@/services/realtimeEventBus';
+import eventCatalog from '@/api/contracts/fortemi-event-catalog.json';
 import { describe, expect, it, vi } from 'vitest';
 
 describe('realtimeEventBus', () => {
@@ -56,11 +57,18 @@ describe('realtimeEventBus', () => {
   });
 
   it('maps domain-specific raw event names to reactive view buckets', () => {
-    expect(normalizeTransportEvent({ event_type: 'AttachmentUploaded' }).type).toBe('AttachmentUpdated');
+    expect(normalizeTransportEvent({ event_type: 'AttachmentCreated' }).type).toBe('AttachmentUpdated');
     expect(normalizeTransportEvent({ event_type: 'TagRenamed' }).type).toBe('TagUpdated');
-    expect(normalizeTransportEvent({ event_type: 'CollectionNoteMoved' }).type).toBe('CollectionUpdated');
+    expect(normalizeTransportEvent({ event_type: 'CollectionMembershipChanged' }).type).toBe('CollectionUpdated');
     expect(normalizeTransportEvent({ event_type: 'ArchiveDefaultChanged' }).type).toBe('ArchiveUpdated');
     expect(normalizeTransportEvent({ event_type: 'ConceptSchemeUpdated' }).type).toBe('ConceptUpdated');
+  });
+
+  it('keeps missing and unknown event names unknown', () => {
+    expect(normalizeTransportEvent({}).type).toBe('Unknown');
+    const event = normalizeTransportEvent({ event_type: 'future.domain.changed' });
+    expect(event.type).toBe('Unknown');
+    expect(event.raw_event_type).toBe('future.domain.changed');
   });
 
   it('handles out-of-order note lifecycle fixtures with deterministic routing', () => {
@@ -138,17 +146,16 @@ describe('realtimeEventBus', () => {
 
     it('maps dot-notation note mutation aliases to NoteUpdated', () => {
       expect(normalizeTransportEvent({ type: 'note.archived' }).type).toBe('NoteUpdated');
-      expect(normalizeTransportEvent({ type: 'note.starred' }).type).toBe('NoteUpdated');
-      expect(normalizeTransportEvent({ type: 'note.tagged' }).type).toBe('NoteUpdated');
-      expect(normalizeTransportEvent({ type: 'note.metadata_updated' }).type).toBe('NoteUpdated');
-      expect(normalizeTransportEvent({ type: 'note.links_updated' }).type).toBe('NoteUpdated');
-      expect(normalizeTransportEvent({ type: 'note.revision_updated' }).type).toBe('NoteUpdated');
+      expect(normalizeTransportEvent({ type: 'note.restored' }).type).toBe('NoteUpdated');
+      expect(normalizeTransportEvent({ type: 'note.tags.updated' }).type).toBe('NoteUpdated');
+      expect(normalizeTransportEvent({ type: 'note.links.updated' }).type).toBe('NoteUpdated');
+      expect(normalizeTransportEvent({ type: 'note.revision.created' }).type).toBe('NoteUpdated');
     });
 
     it('maps dot-notation domain events to view buckets', () => {
       expect(normalizeTransportEvent({ type: 'tag.created' }).type).toBe('TagUpdated');
       expect(normalizeTransportEvent({ type: 'tag.merged' }).type).toBe('TagUpdated');
-      expect(normalizeTransportEvent({ type: 'concept.scheme.updated' }).type).toBe('ConceptUpdated');
+      expect(normalizeTransportEvent({ type: 'concept_scheme.updated' }).type).toBe('ConceptUpdated');
       expect(normalizeTransportEvent({ type: 'concept.relations.updated' }).type).toBe('ConceptUpdated');
       expect(normalizeTransportEvent({ type: 'collection.updated' }).type).toBe('CollectionUpdated');
       expect(normalizeTransportEvent({ type: 'attachment.extraction.updated' }).type).toBe('ExtractionUpdated');
@@ -160,6 +167,14 @@ describe('realtimeEventBus', () => {
       const event = normalizeTransportEvent({ type: 'note.created', note_id: 'n-1' });
       expect(event.raw_event_type).toBe('note.created');
       expect(event.type).toBe('NoteCreated');
+    });
+
+    it('maps every event in the pinned producer catalog', () => {
+      for (const type of eventCatalog.eventTypes) {
+        const event = normalizeTransportEvent({ event_type: type });
+        expect(event.type, type).not.toBe('Unknown');
+        expect(event.raw_event_type).toBe(type);
+      }
     });
   });
 
@@ -188,6 +203,43 @@ describe('realtimeEventBus', () => {
 
       expect(event.actor).toBeUndefined();
       expect(event.occurred_at).toBeUndefined();
+    });
+
+    it('unwraps canonical envelopes for the WebSocket normalization path', () => {
+      const event = normalizeTransportEvent({
+        event_id: 'evt-envelope',
+        event_type: 'note.created',
+        occurred_at: '2026-07-17T12:00:00Z',
+        memory: 'memory-1',
+        tenant_id: 'tenant-1',
+        actor: { kind: 'agent', name: 'indexer' },
+        entity_type: 'note',
+        entity_id: 'note-1',
+        correlation_id: 'corr-1',
+        causation_id: 'cause-1',
+        payload_version: 1,
+        payload: {
+          type: 'NoteCreated',
+          note_id: 'note-1',
+          title: 'Envelope note',
+        },
+      });
+
+      expect(event).toEqual(expect.objectContaining({
+        type: 'NoteCreated',
+        raw_event_type: 'note.created',
+        event_id: 'evt-envelope',
+        note_id: 'note-1',
+        actor: { kind: 'agent', name: 'indexer', id: undefined },
+        memory: 'memory-1',
+        tenant_id: 'tenant-1',
+        entity_type: 'note',
+        entity_id: 'note-1',
+        correlation_id: 'corr-1',
+        causation_id: 'cause-1',
+        occurred_at: '2026-07-17T12:00:00Z',
+        payload_version: 1,
+      }));
     });
   });
 
@@ -306,15 +358,13 @@ describe('realtimeEventBus', () => {
       expect(event.changed_fields).toContain('__reset__');
     });
 
-    it('maps inference.availability.changed → InferenceAvailabilityChanged with reachable flag', () => {
+    it('maps inference.availability.changed with the producer available flag', () => {
       const event = normalizeTransportEvent({
         type: 'inference.availability.changed',
-        provider_id: 'ollama',
-        reachable: false,
+        available: false,
       });
       expect(event.type).toBe('InferenceAvailabilityChanged');
-      expect(event.provider_id).toBe('ollama');
-      expect(event.reachable).toBe(false);
+      expect(event.available).toBe(false);
     });
   });
 });

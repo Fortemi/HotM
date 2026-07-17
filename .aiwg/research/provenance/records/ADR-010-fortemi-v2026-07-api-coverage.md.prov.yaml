@@ -1,22 +1,22 @@
 metadata:
   schema_version: "1.0.0"
-  created_at: "2026-07-17T19:16:22Z"
-  description: "Provenance for integration-contract documentation update"
+  created_at: "2026-07-17T20:15:02Z"
+  description: "Provenance for HotM #268 realtime contract receipt"
 entity:
   id: "urn:aiwg:artifact:.aiwg/architecture/adr/ADR-010-fortemi-v2026-07-api-coverage.md"
   type: document
-  created_at: "2026-07-17T19:16:22Z"
-  checksum: "sha256:fef7ef9ed242ed420931a541216953db60772bdeac9eb5133fcd2b88f075cea6"
-  size_bytes: 5096
+  created_at: "2026-07-17T20:15:02Z"
+  checksum: "sha256:8c16d0ec4fad3e3c0819af80c64335fd075e9f382cb57f46cefa0a93e2888e79"
+  size_bytes: 6205
   attributes:
     change_scope: "suite-integration-contract"
-    base_revision: "7e331525ad222f848947ada45c44d8577a7a5dab"
+    base_revision: "a46f0dab9fbb37f63da4ed7789031cb3fd3a43d2"
 activity:
   id: "urn:aiwg:activity:modification:aiwg-architecture-adr-ADR-010-fortemi-v2026-07-api-coverage-md:001"
   type: modification
-  started_at: "2026-07-17T19:16:22Z"
-  ended_at: "2026-07-17T19:16:22Z"
-  description: "Align integration architecture, requirements, tests, and current-state claims"
+  started_at: "2026-07-17T20:15:02Z"
+  ended_at: "2026-07-17T20:15:02Z"
+  description: "Record the pinned realtime event consumer implementation"
 agent:
   id: "urn:aiwg:agent:codex-gpt-5"
   type: ai_assistant
@@ -32,14 +32,14 @@ relationships:
   wasGeneratedBy:
     entity: "urn:aiwg:artifact:.aiwg/architecture/adr/ADR-010-fortemi-v2026-07-api-coverage.md"
     activity: "urn:aiwg:activity:modification:aiwg-architecture-adr-ADR-010-fortemi-v2026-07-api-coverage-md:001"
-    time: "2026-07-17T19:16:22Z"
+    time: "2026-07-17T20:15:02Z"
   used:
     - activity: "urn:aiwg:activity:modification:aiwg-architecture-adr-ADR-010-fortemi-v2026-07-api-coverage-md:001"
-      entity: "urn:git:git@git.integrolabs.net:Fortemi/HotM.git:7e331525ad222f848947ada45c44d8577a7a5dab:.aiwg/architecture/adr/ADR-010-fortemi-v2026-07-api-coverage.md"
+      entity: "urn:git:git@git.integrolabs.net:Fortemi/HotM.git:a46f0dab9fbb37f63da4ed7789031cb3fd3a43d2:.aiwg/architecture/adr/ADR-010-fortemi-v2026-07-api-coverage.md"
       role: "previous_revision"
   wasDerivedFrom:
     - entity: "urn:aiwg:artifact:.aiwg/architecture/adr/ADR-010-fortemi-v2026-07-api-coverage.md"
-      source: "urn:git:git@git.integrolabs.net:Fortemi/HotM.git:7e331525ad222f848947ada45c44d8577a7a5dab:.aiwg/architecture/adr/ADR-010-fortemi-v2026-07-api-coverage.md"
+      source: "urn:git:git@git.integrolabs.net:Fortemi/HotM.git:a46f0dab9fbb37f63da4ed7789031cb3fd3a43d2:.aiwg/architecture/adr/ADR-010-fortemi-v2026-07-api-coverage.md"
       derivation_type: "modifies"
       activity: "urn:aiwg:activity:modification:aiwg-architecture-adr-ADR-010-fortemi-v2026-07-api-coverage-md:001"
   wasAssociatedWith:

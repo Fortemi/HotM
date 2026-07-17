@@ -1,22 +1,22 @@
 metadata:
   schema_version: "1.0.0"
-  created_at: "2026-07-17T19:16:22Z"
-  description: "Provenance for integration-contract documentation update"
+  created_at: "2026-07-17T20:15:02Z"
+  description: "Provenance for HotM #268 realtime contract receipt"
 entity:
   id: "urn:aiwg:artifact:.aiwg/architecture/sad-fortemi-integration-addendum-2026-07.md"
   type: document
-  created_at: "2026-07-17T19:16:22Z"
-  checksum: "sha256:b954b7a30689adceb42b445ed450b35a7b9703edf7596eb970654b1eff6a9271"
-  size_bytes: 15393
+  created_at: "2026-07-17T20:15:02Z"
+  checksum: "sha256:df07699a6a4154fbe7144c98d7b203fd2aba7526f7797e47a8b2e5a7deb8ff53"
+  size_bytes: 16497
   attributes:
     change_scope: "suite-integration-contract"
-    base_revision: "7e331525ad222f848947ada45c44d8577a7a5dab"
+    base_revision: "a46f0dab9fbb37f63da4ed7789031cb3fd3a43d2"
 activity:
   id: "urn:aiwg:activity:modification:aiwg-architecture-sad-fortemi-integration-addendum-2026-07-md:001"
   type: modification
-  started_at: "2026-07-17T19:16:22Z"
-  ended_at: "2026-07-17T19:16:22Z"
-  description: "Align integration architecture, requirements, tests, and current-state claims"
+  started_at: "2026-07-17T20:15:02Z"
+  ended_at: "2026-07-17T20:15:02Z"
+  description: "Record the pinned realtime event consumer implementation"
 agent:
   id: "urn:aiwg:agent:codex-gpt-5"
   type: ai_assistant
@@ -32,14 +32,14 @@ relationships:
   wasGeneratedBy:
     entity: "urn:aiwg:artifact:.aiwg/architecture/sad-fortemi-integration-addendum-2026-07.md"
     activity: "urn:aiwg:activity:modification:aiwg-architecture-sad-fortemi-integration-addendum-2026-07-md:001"
-    time: "2026-07-17T19:16:22Z"
+    time: "2026-07-17T20:15:02Z"
   used:
     - activity: "urn:aiwg:activity:modification:aiwg-architecture-sad-fortemi-integration-addendum-2026-07-md:001"
-      entity: "urn:git:git@git.integrolabs.net:Fortemi/HotM.git:7e331525ad222f848947ada45c44d8577a7a5dab:.aiwg/architecture/sad-fortemi-integration-addendum-2026-07.md"
+      entity: "urn:git:git@git.integrolabs.net:Fortemi/HotM.git:a46f0dab9fbb37f63da4ed7789031cb3fd3a43d2:.aiwg/architecture/sad-fortemi-integration-addendum-2026-07.md"
       role: "previous_revision"
   wasDerivedFrom:
     - entity: "urn:aiwg:artifact:.aiwg/architecture/sad-fortemi-integration-addendum-2026-07.md"
-      source: "urn:git:git@git.integrolabs.net:Fortemi/HotM.git:7e331525ad222f848947ada45c44d8577a7a5dab:.aiwg/architecture/sad-fortemi-integration-addendum-2026-07.md"
+      source: "urn:git:git@git.integrolabs.net:Fortemi/HotM.git:a46f0dab9fbb37f63da4ed7789031cb3fd3a43d2:.aiwg/architecture/sad-fortemi-integration-addendum-2026-07.md"
       derivation_type: "modifies"
       activity: "urn:aiwg:activity:modification:aiwg-architecture-sad-fortemi-integration-addendum-2026-07-md:001"
   wasAssociatedWith:

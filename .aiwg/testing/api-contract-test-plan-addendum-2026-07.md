@@ -73,6 +73,28 @@ Required checks:
 - Verify each subscribed event payload against the producer catalog.
 - Treat unknown events as unknown with bounded diagnostics; never coerce them into `QueueStatus` or another known event.
 
+Delivered for HotM #268:
+
+- The source-derived fixture pins sidecar commit
+  `98c9b29deee43b9c5bd96278f1f96837595882cd`, the producer source path, source
+  SHA-256, all 48 namespaced event types, and the default subscription prefixes.
+- The pinned producer generator, invoked with version `2026.7.1` and canonical
+  server URL `https://example.invalid`, produces a 45,161-byte AsyncAPI 3.0 YAML
+  with SHA-256
+  `f6a6fbc39af52b713b6f5c40dbb6e46baeb8a1b352a19288e79073863766bdf4`.
+- SSE listener tests exercise every catalog name.
+- WebSocket normalization tests exercise every catalog name through the shared
+  envelope boundary.
+- Golden envelope tests preserve `event_id`, `event_type`, `occurred_at`,
+  `memory`, `tenant_id`, structured `actor`, entity references, correlation and
+  causation IDs, and `payload_version`.
+- Negative fixtures prove missing and future event names remain `Unknown`.
+- The source drift verifier runs after the sidecar-pinned Fortemi checkout in the
+  SDLC gate.
+
+This source-derived receipt covers the current producer event implementation while
+the broader generated AsyncAPI schema-diff control remains a separate gate.
+
 ### 1C. Knowledge Shard Interoperability
 
 Required checks:
@@ -202,6 +224,8 @@ Current route-inventory command:
 ```bash
 python3 .aiwg/testing/scripts/fortemi-route-coverage.py
 jq -e '.route_count == 200 and (.family_counts.unclassified == null) and .status_counts.gap == 0 and (.status_counts.decision_needed // 0) == 0' .aiwg/api/compatibility/fortemi-v2026-07-route-coverage.json
+node .aiwg/testing/scripts/verify-fortemi-event-catalog.mjs
+(cd ui && npm run test:realtime)
 ```
 
 Future implementation PRs should add focused Vitest/Playwright commands beside the issue they close.

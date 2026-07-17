@@ -85,7 +85,7 @@ function summaryForEvent(event: RealtimeEvent): string {
     case 'InferenceConfigChanged':
       return 'Inference routing changed; sensitive provider settings are hidden.';
     case 'InferenceAvailabilityChanged':
-      return `Provider availability changed${event.reachable === false ? ': unavailable' : ''}.`;
+      return `Provider availability changed${event.available === false ? ': unavailable' : ''}.`;
     default:
       return `${event.type} received.`;
   }

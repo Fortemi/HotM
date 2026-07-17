@@ -148,10 +148,27 @@ Route inventory and interoperability are separate controls. HotM uses these conf
 ### 4.6 Canonical Contract Consumption
 
 - **OpenAPI:** Fortemi owns the canonical generated document. HotM pins its checksum or source revision and treats route presence as only the first gate. Breaking request, response, status, security, or nullability changes block release until the client and fixtures are updated.
-- **AsyncAPI/SSE:** Fortemi owns the event envelope and catalog. HotM consumes the top-level `event_type`, event identifier, timestamp, subject/resource references, and `metadata` as declared. Unknown events are ignored with bounded diagnostics; they are not coerced into a known event such as `QueueStatus`.
+- **AsyncAPI/SSE:** Fortemi owns the event envelope and catalog. HotM consumes the top-level `event_type`, event identifier, timestamp, memory/tenant scope, structured actor, entity references, correlation/causation IDs, and payload version as declared. Unknown events remain explicitly unknown with bounded diagnostics; they are not coerced into a known event such as `QueueStatus`.
 - **Knowledge Shard:** Fortemi owns shard schema versions, `min_reader_version`, profile identifiers, component rules, counts, checksums, and attachment sidecar rules. HotM must not label a backup portable or lossless until a server-export -> HotM -> server-import golden round trip preserves declared identities, relationships, null/tombstone semantics, timestamps, and attachment bytes.
 - **Compatibility:** a successful HTTP response is insufficient. HotM must compare compatibility contract revision, server API revision, declared minimum client, capability state, and auth requirements before enabling mutations.
 - **Auth:** `fortemi-auth` is currently the specification authority, not a proven runtime dependency. HotM's Node verifier remains independently implemented and cannot claim parity until both implementations pass the same versioned fixtures.
+
+#### Realtime Consumer Implementation (HotM #268)
+
+HotM's shared realtime boundary is implemented in `ui/src/api/events.ts` and
+`ui/src/services/realtimeEventBus.ts`. It consumes the actual Fortemi
+`EventEnvelope` top-level fields, including structured actor, entity references,
+correlation/causation IDs, and payload version. Exact namespaced catalog entries
+map into bounded UI buckets; exact legacy `ServerEvent::event_type` values remain
+supported for WebSocket compatibility. No substring or fuzzy event matching is
+permitted, and unrecognized input remains `Unknown`.
+
+The catalog fixture and source verifier pin this behavior to sidecar commit
+`98c9b29deee43b9c5bd96278f1f96837595882cd`. The verifier extracts all 48 names
+from `ServerEvent::namespaced_event_type` after validating the source checksum,
+then compares the exact set with the consumer fixture. The fixture also pins the
+AsyncAPI generator source and the reproducible canonical YAML digest
+`f6a6fbc39af52b713b6f5c40dbb6e46baeb8a1b352a19288e79073863766bdf4`.
 
 ## 5. Data and State Impact
 

@@ -71,3 +71,24 @@ A green route-inventory gate cannot satisfy any of gates 2-6. User-facing suppor
 - Use ADR-011 for the proposed vision/audio/call/Twilio route dispositions until #259 lands implementation or exclusion evidence.
 - Consume Fortemi-owned OpenAPI, AsyncAPI, Knowledge Shard, and compatibility artifacts by pinned revision; HotM does not redefine producer semantics locally.
 - Treat `fortemi-auth` as a normative specification boundary until Rust workspace, CI, release, and shared downstream fixture evidence exist.
+
+### Realtime Contract Receipt (HotM #268)
+
+The realtime consumer gate is implemented against the sidecar-pinned Fortemi commit
+`98c9b29deee43b9c5bd96278f1f96837595882cd`. The source-derived catalog at
+`ui/src/api/contracts/fortemi-event-catalog.json` records all 48 names returned by
+`ServerEvent::namespaced_event_type` and the SHA-256 of
+`crates/matric-core/src/events.rs`. The CI verifier rejects revision, checksum, or
+catalog drift.
+
+The same fixture records the generated AsyncAPI 3.0 YAML receipt. At the pinned
+commit, `build_asyncapi_spec("2026.7.1", "https://example.invalid")` produces
+45,161 bytes with SHA-256
+`f6a6fbc39af52b713b6f5c40dbb6e46baeb8a1b352a19288e79073863766bdf4`;
+the generator source SHA-256 is pinned alongside it.
+
+Both SSE and WebSocket inputs pass through the same canonical envelope unwrapping
+and exact-name normalization boundary. Unknown or missing event names remain
+`Unknown`; they are not converted to queue status. This receipt proves the pinned
+catalog, envelope fields, and HotM consumer behavior. It does not replace broader
+producer AsyncAPI schema-diff coverage.

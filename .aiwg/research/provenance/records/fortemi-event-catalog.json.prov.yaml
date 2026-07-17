@@ -1,0 +1,42 @@
+metadata:
+  schema_version: "1.0.0"
+  created_at: "2026-07-17T20:15:02Z"
+  description: "Provenance for the HotM #268 Fortemi event catalog fixture"
+entity:
+  id: "urn:aiwg:artifact:ui/src/api/contracts/fortemi-event-catalog.json"
+  type: test_fixture
+  created_at: "2026-07-17T20:15:02Z"
+  checksum: "sha256:a62ac137eb46bbff63094dea0874f4f0d3f27c3a4115f6e4fe919c949ca41284"
+  size_bytes: 2223
+  attributes:
+    change_scope: "hotm-268-realtime-contract"
+    base_revision: "a46f0dab9fbb37f63da4ed7789031cb3fd3a43d2"
+activity:
+  id: "urn:aiwg:activity:generation:fortemi-event-catalog-json:001"
+  type: generation
+  started_at: "2026-07-17T20:15:02Z"
+  ended_at: "2026-07-17T20:15:02Z"
+  description: "Generate the exact sidecar-pinned Fortemi event catalog fixture"
+agent:
+  id: "urn:aiwg:agent:codex-gpt-5"
+  type: ai_assistant
+  name: "Codex"
+  version: "gpt-5"
+  tool: "codex"
+relationships:
+  wasGeneratedBy:
+    entity: "urn:aiwg:artifact:ui/src/api/contracts/fortemi-event-catalog.json"
+    activity: "urn:aiwg:activity:generation:fortemi-event-catalog-json:001"
+    time: "2026-07-17T20:15:02Z"
+  wasDerivedFrom:
+    - entity: "urn:aiwg:artifact:ui/src/api/contracts/fortemi-event-catalog.json"
+      source: "urn:git:git@git.integrolabs.net:Fortemi/fortemi.git:98c9b29deee43b9c5bd96278f1f96837595882cd:crates/matric-core/src/events.rs"
+      derivation_type: "derives_from"
+      activity: "urn:aiwg:activity:generation:fortemi-event-catalog-json:001"
+  wasAssociatedWith:
+    activity: "urn:aiwg:activity:generation:fortemi-event-catalog-json:001"
+    agent: "urn:aiwg:agent:codex-gpt-5"
+    role: "primary_author"
+  wasAttributedTo:
+    entity: "urn:aiwg:artifact:ui/src/api/contracts/fortemi-event-catalog.json"
+    agent: "urn:aiwg:agent:codex-gpt-5"

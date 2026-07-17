@@ -132,7 +132,7 @@ export function InferenceStatusIndicator({ onNavigateToSettings }: InferenceStat
   //   - inference.config.changed → full refetch so the dot+label reflect
   //     the new provider/backend without waiting 60s for the poll.
   //   - inference.availability.changed → flip just the reachable flag
-  //     using the event's `reachable` field. No GET round-trip needed.
+  //     using the event's `available` field. No GET round-trip needed.
   React.useEffect(() => {
     const handler = (event: RealtimeEvent) => {
       if (event.type === 'InferenceConfigChanged') {
@@ -140,8 +140,8 @@ export function InferenceStatusIndicator({ onNavigateToSettings }: InferenceStat
         return;
       }
       if (event.type === 'InferenceAvailabilityChanged') {
-        if (typeof event.reachable === 'boolean') {
-          setReachable(event.reachable);
+        if (typeof event.available === 'boolean') {
+          setReachable(event.available);
         } else {
           // Server didn't include the flag — fall back to a probe.
           void fetchStatus();

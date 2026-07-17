@@ -10,8 +10,15 @@
 
 import { isTauri, getTauriFetch, getHostAdapter } from '@/lib/tauri';
 
+export interface EventActor {
+  kind: string;
+  id?: string;
+  name?: string;
+}
+
 export interface ServerEvent {
   type: string;
+  event_type?: string;
   event_id?: string;
   job_id?: string;
   note_id?: string;
@@ -23,10 +30,15 @@ export interface ServerEvent {
   title?: string;
   tags?: string[];
   // Envelope metadata (SSE EventEnvelope format)
-  actor?: string;
+  actor?: EventActor | string;
   memory?: string;
+  tenant_id?: string;
+  entity_type?: string;
+  entity_id?: string;
   correlation_id?: string;
+  causation_id?: string;
   occurred_at?: string;
+  payload_version?: number;
   [key: string]: unknown;
 }
 
@@ -42,40 +54,81 @@ interface EventsClientOptions {
 /** Default type prefixes that cover all events the UI currently handles */
 export const DEFAULT_SSE_TYPE_PREFIXES = [
   'note', 'job', 'jobs', 'queue', 'collection', 'tag', 'concept',
-  'archive', 'attachment', 'events', 'resync_required',
-  'index', 'readmodel',
+  'concept_scheme', 'archive', 'attachment', 'events', 'resync_required',
+  'index', 'readmodel', 'inference',
+] as const;
+
+/** Exact names emitted by Fortemi's EventEnvelope catalog. */
+export const FORTEMI_SSE_EVENT_TYPES = [
+  'queue.status',
+  'job.queued', 'job.started', 'job.progress', 'job.completed', 'job.failed',
+  'note.updated', 'note.created', 'note.deleted', 'note.archived', 'note.restored',
+  'note.tags.updated', 'note.links.updated', 'note.revision.created',
+  'attachment.created', 'attachment.deleted', 'attachment.extraction.updated',
+  'collection.created', 'collection.updated', 'collection.deleted',
+  'collection.membership.changed',
+  'archive.created', 'archive.updated', 'archive.deleted', 'archive.default.changed',
+  'concept_scheme.created', 'concept_scheme.updated', 'concept_scheme.deleted',
+  'concept.created', 'concept.updated', 'concept.deleted',
+  'concept.relations.updated', 'concept.scheme.changed',
+  'concept.collection.membership.changed',
+  'tag.created', 'tag.renamed', 'tag.deleted', 'tag.merged', 'tag.stats.updated',
+  'jobs.paused', 'jobs.resumed',
+  'index.embedding.updated', 'index.linking.updated', 'index.fts.updated',
+  'readmodel.graph.updated', 'readmodel.search.ready',
+  'inference.config.changed', 'inference.availability.changed',
 ] as const;
 
 export const DEFAULT_SSE_EVENT_TYPES = [
-  // PascalCase (WebSocket legacy format)
-  'JobStarted', 'JobProgress', 'JobCompleted', 'JobFailed',
-  'JobQueued', 'NoteUpdated', 'NoteCreated', 'NoteDeleted',
-  'JobsPaused', 'JobsResumed',
-  'QueueStatus',
-  // Dot-notation (SSE EventEnvelope format)
-  'job.started', 'job.progress', 'job.completed', 'job.failed',
-  'job.queued', 'note.updated', 'note.created', 'note.deleted',
-  'jobs.paused', 'jobs.resumed',
-  'queue.status',
-  // SKOS concept events
-  'concept.created', 'concept.updated', 'concept.deleted',
-  'concept.scheme.created', 'concept.scheme.updated', 'concept.scheme.deleted',
-  'concept.relations.updated', 'concept.scheme.changed',
-  'concept.collection.membership.changed',
-  // Tag governance events
-  'tag.created', 'tag.renamed', 'tag.deleted', 'tag.merged', 'tag.stats.updated',
-  // Search/index materialization events
-  'index.embedding.updated', 'index.linking.updated', 'index.fts.updated',
-  'readmodel.search.ready', 'readmodel.graph.updated',
-  // Note lifecycle events (NLP pipeline)
-  'note.tags.updated', 'note.links.updated', 'note.revision.created',
-  // Attachment extraction
-  'attachment.extraction.updated',
-  // Synthetic SSE events (client resilience)
+  ...FORTEMI_SSE_EVENT_TYPES,
+  // Transport-level events emitted by the SSE endpoint.
   'resync_required', 'events.lagged',
-  // Inference config events (Fortemi #654/#657 — InferenceConfigChanged + InferenceAvailabilityChanged)
-  'inference.config.changed', 'inference.availability.changed',
 ] as const;
+
+export function unwrapServerEventEnvelope(data: Record<string, unknown>): ServerEvent {
+  const payload = data.payload;
+  if (payload && typeof payload === 'object' && !Array.isArray(payload)) {
+    const payloadObj = payload as Record<string, unknown>;
+    const legacyMetadata = data.metadata;
+    const legacyMetadataObj = (
+      legacyMetadata
+      && typeof legacyMetadata === 'object'
+      && !Array.isArray(legacyMetadata)
+    )
+      ? legacyMetadata as Record<string, unknown>
+      : {};
+
+    return {
+      ...payloadObj,
+      // The envelope/SSE event name is authoritative over the legacy payload tag.
+      type: (
+        data.event_type
+        ?? data.type
+        ?? payloadObj.type
+        ?? ''
+      ) as string,
+      event_type: data.event_type as string | undefined,
+      event_id: (data.event_id ?? payloadObj.event_id) as string | undefined,
+      occurred_at: (data.occurred_at ?? legacyMetadataObj.occurred_at) as string | undefined,
+      memory: (data.memory ?? legacyMetadataObj.memory) as string | undefined,
+      tenant_id: (data.tenant_id ?? legacyMetadataObj.tenant_id) as string | undefined,
+      actor: (data.actor ?? legacyMetadataObj.actor) as EventActor | string | undefined,
+      entity_type: (data.entity_type ?? legacyMetadataObj.entity_type) as string | undefined,
+      entity_id: (data.entity_id ?? legacyMetadataObj.entity_id) as string | undefined,
+      correlation_id: (
+        data.correlation_id
+        ?? legacyMetadataObj.correlation_id
+      ) as string | undefined,
+      causation_id: (data.causation_id ?? legacyMetadataObj.causation_id) as string | undefined,
+      payload_version: data.payload_version as number | undefined,
+    };
+  }
+
+  if (!data.type && typeof data.event_type === 'string') {
+    return { ...data, type: data.event_type } as ServerEvent;
+  }
+  return data as ServerEvent;
+}
 
 export function createEventsClient(baseUrl: string, options: EventsClientOptions = {}) {
   let eventSource: EventSource | null = null;
@@ -109,33 +162,8 @@ export function createEventsClient(baseUrl: string, options: EventsClientOptions
     return url.toString();
   }
 
-  function unwrapEnvelope(data: Record<string, unknown>): ServerEvent {
-    const payload = data.payload;
-    if (payload && typeof payload === 'object' && !Array.isArray(payload)) {
-      const payloadObj = payload as Record<string, unknown>;
-      const metadata = data.metadata;
-      const metadataObj = (metadata && typeof metadata === 'object' && !Array.isArray(metadata))
-        ? metadata as Record<string, unknown>
-        : {};
-
-      return {
-        ...payloadObj,
-        // Preserve type from outer data if payload doesn't have one
-        type: (payloadObj.type as string) ?? (data.type as string) ?? '',
-        // Preserve event_id from either level
-        event_id: (payloadObj.event_id as string) ?? (data.event_id as string),
-        // Flatten envelope metadata
-        actor: metadataObj.actor as string | undefined,
-        memory: metadataObj.memory as string | undefined,
-        correlation_id: metadataObj.correlation_id as string | undefined,
-        occurred_at: metadataObj.occurred_at as string | undefined,
-      } as ServerEvent;
-    }
-    return data as ServerEvent;
-  }
-
   function dispatchEvent(data: ServerEvent, eventId?: string): void {
-    const unwrapped = unwrapEnvelope(data as Record<string, unknown>);
+    const unwrapped = unwrapServerEventEnvelope(data as Record<string, unknown>);
     const replayCursor = typeof unwrapped.event_id === 'string' ? unwrapped.event_id : eventId;
     if (replayCursor) {
       lastEventId = replayCursor;

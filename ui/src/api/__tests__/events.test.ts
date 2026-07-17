@@ -1,5 +1,10 @@
 import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest';
-import { createEventsClient } from '@/api/events';
+import {
+  createEventsClient,
+  DEFAULT_SSE_TYPE_PREFIXES,
+  FORTEMI_SSE_EVENT_TYPES,
+} from '@/api/events';
+import eventCatalog from '@/api/contracts/fortemi-event-catalog.json';
 
 type Listener = (event: MessageEvent) => void;
 
@@ -77,20 +82,22 @@ describe('events client replay handling', () => {
     expect(first.url).not.toContain('/api/v1/api/v1/events');
   });
 
-  it('registers listeners for dot-notation event types', () => {
+  it('registers every exact Fortemi event type from the pinned catalog', () => {
     const handler = vi.fn();
     const client = createEventsClient('http://localhost:3000');
     client.subscribe(handler);
 
     const es = MockEventSource.instances[0];
-    // Emit a dot-notation event from the server
-    es.emitTyped('note.created', { note_id: 'n-1' });
-    expect(handler).toHaveBeenCalledWith(
-      expect.objectContaining({ type: 'note.created', note_id: 'n-1' })
+    expect([...FORTEMI_SSE_EVENT_TYPES].sort()).toEqual(
+      [...eventCatalog.eventTypes].sort(),
     );
+    eventCatalog.eventTypes.forEach((type) => {
+      es.emitTyped(type, { event_type: type, payload: { type: 'QueueStatus' } });
+    });
+    expect(handler).toHaveBeenCalledTimes(eventCatalog.eventTypes.length);
   });
 
-  it('unwraps EventEnvelope format preserving payload and metadata', () => {
+  it('unwraps the canonical EventEnvelope and preserves top-level metadata', () => {
     const handler = vi.fn();
     const client = createEventsClient('http://localhost:3000');
     client.subscribe(handler);
@@ -98,39 +105,55 @@ describe('events client replay handling', () => {
     const es = MockEventSource.instances[0];
     // Emit an envelope-wrapped event
     es.emitTyped('note.created', {
+      event_id: 'evt-1',
+      event_type: 'note.created',
+      occurred_at: '2026-07-17T12:00:00Z',
+      memory: 'mem-xyz',
+      tenant_id: 'tenant-1',
+      actor: { kind: 'user', id: 'user-abc', name: 'Ada' },
+      entity_type: 'note',
+      entity_id: 'n-1',
+      correlation_id: 'corr-123',
+      causation_id: 'cause-123',
+      payload_version: 1,
       payload: {
+        type: 'NoteCreated',
         note_id: 'n-1',
         title: 'Test Note',
-      },
-      metadata: {
-        actor: 'user-abc',
-        memory: 'mem-xyz',
-        correlation_id: 'corr-123',
-        occurred_at: '2026-02-21T12:00:00Z',
       },
     });
 
     expect(handler).toHaveBeenCalledWith(
       expect.objectContaining({
         type: 'note.created',
+        event_type: 'note.created',
+        event_id: 'evt-1',
         note_id: 'n-1',
         title: 'Test Note',
-        actor: 'user-abc',
+        actor: { kind: 'user', id: 'user-abc', name: 'Ada' },
         memory: 'mem-xyz',
+        tenant_id: 'tenant-1',
+        entity_type: 'note',
+        entity_id: 'n-1',
         correlation_id: 'corr-123',
-        occurred_at: '2026-02-21T12:00:00Z',
+        causation_id: 'cause-123',
+        occurred_at: '2026-07-17T12:00:00Z',
+        payload_version: 1,
       })
     );
   });
 
-  it('passes through flat (non-envelope) events unchanged', () => {
+  it('passes through flat legacy WebSocket events unchanged', () => {
     const handler = vi.fn();
     const client = createEventsClient('http://localhost:3000');
     client.subscribe(handler);
 
     const es = MockEventSource.instances[0];
     // Legacy flat format (WebSocket style)
-    es.emitTyped('NoteUpdated', { note_id: 'n-2', title: 'Flat' });
+    es.onmessage?.({
+      data: JSON.stringify({ type: 'NoteUpdated', note_id: 'n-2', title: 'Flat' }),
+      lastEventId: '',
+    } as MessageEvent);
     expect(handler).toHaveBeenCalledWith(
       expect.objectContaining({ type: 'NoteUpdated', note_id: 'n-2', title: 'Flat' })
     );
@@ -147,6 +170,9 @@ describe('events client replay handling', () => {
     expect(es.url).toContain('note');
     expect(es.url).toContain('job');
     expect(es.url).toContain('queue');
+    expect([...DEFAULT_SSE_TYPE_PREFIXES]).toEqual(eventCatalog.defaultTypePrefixes);
+    expect(es.url).toContain('concept_scheme');
+    expect(es.url).toContain('inference');
   });
 
   it('supports custom type prefixes', () => {
@@ -168,8 +194,9 @@ describe('events client replay handling', () => {
 
     const es = MockEventSource.instances[0];
     es.emitTyped('note.updated', {
-      payload: { note_id: 'n-3', event_id: 'evt-99' },
-      metadata: {},
+      event_id: 'evt-99',
+      event_type: 'note.updated',
+      payload: { type: 'NoteUpdated', note_id: 'n-3' },
     });
 
     expect(client.replayCursor).toBe('evt-99');
