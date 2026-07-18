@@ -256,9 +256,9 @@ This addendum is accepted when:
 ### OpenAPI Consumer Boundary
 
 `ui/src/api/contracts/fortemi-openapi.yaml` is an exact consumer copy of
-Fortemi commit `cb1899368d763920091dd2fd5c22066d27e9fad0`,
+Fortemi commit `ec14e0447711c45a8d5c5445ce47a35f26d4346a`,
 `contracts/openapi/openapi.yaml`, SHA-256
-`654db79e541a1a9117acf599476eb8ef4559b7e8d8f3ac7c471034ee383e705a`.
+`4d1f9655c60ed6f97f86c790cab64ea9826ac9ca61084250a3b242fd10a7e30c`.
 `.aiwg/testing/scripts/verify-fortemi-openapi-contract.mjs` compares the copy to
 the producer Git object, validates OpenAPI metadata and security, fingerprints
 all delivered operations and component schemas, runs focused breaking
@@ -270,6 +270,8 @@ media transcript fields to the producer-owned `TranscriptSegment` shape. The
 gate fails closed on unaccepted contract versions or semantic drift and
 coordinates with the compatibility gate rather than replacing it.
 
-The current artifact contains response schemas for only 6 of 310 response
-entries. This component therefore supplies a pinned semantic drift boundary and
-focused typed coverage, not full response compatibility for every operation.
+The current artifact has 255 schema-bearing responses across 559 entries and a
+schema-bearing shared RFC 9457 rate-limit response on all 249 operations. The
+verifier rejects any operation that loses this shared boundary. Focused typed
+success coverage remains limited to producer-declared schemas and does not
+infer payload types from response descriptions.

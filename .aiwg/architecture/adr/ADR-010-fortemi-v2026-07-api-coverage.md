@@ -111,11 +111,11 @@ Fortemi #1057 and HotM #269.
 ### OpenAPI Consumer Receipt (HotM #270)
 
 HotM consumes the Fortemi-generated OpenAPI 3.1 artifact at producer commit
-`cb1899368d763920091dd2fd5c22066d27e9fad0`, stable path
+`ec14e0447711c45a8d5c5445ce47a35f26d4346a`, stable path
 `contracts/openapi/openapi.yaml`, and SHA-256
-`654db79e541a1a9117acf599476eb8ef4559b7e8d8f3ac7c471034ee383e705a`.
+`4d1f9655c60ed6f97f86c790cab64ea9826ac9ca61084250a3b242fd10a7e30c`.
 The `hotm-openapi-v1` semantic projection has SHA-256
-`b67ce9d3b557f435b85c533344a18b2c902df9e7d374200e21d9224791e4aaf8`
+`52ea99780e621b2073e0fb4bd1f0166c1a343c81d548f9856b8b1bc6ca886535`
 and compares parameters, request bodies, responses/statuses, component schemas,
 nullability, enums, error metadata, and security requirements.
 
@@ -126,9 +126,9 @@ response schema exposed and corrected a real consumer mismatch: call transcript
 segments now use producer fields `id`, `call_id`, `text`, `sequence`,
 `created_at`, `speaker_label`, `start_ts`, `end_ts`, and `confidence`.
 
-This is partial OpenAPI evidence. The producer artifact has 191 paths and 249
-operations, but only 6 of 310 response entries currently include a response
-schema. Route presence and the semantic fingerprint cannot prove typed response
-compatibility for the remaining entries; Fortemi #1060 and HotM #270 stay open
-until producer schema coverage and corresponding consumer boundaries are
-complete.
+The producer artifact has 191 paths and 249 operations. All 249 operations now
+carry the global middleware's schema-bearing `429 application/problem+json`
+boundary, producing 255 schema-bearing responses across 559 response entries.
+The gate requires that shared boundary on every operation and preserves the six
+producer-declared typed success schemas. This does not claim typed success
+payloads where Fortemi has not declared them.

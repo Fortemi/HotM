@@ -1,22 +1,23 @@
 metadata:
   schema_version: "1.0.0"
   created_at: "2026-07-17T21:46:51Z"
-  description: "Provenance for HotM #270 Fortemi OpenAPI consumer gate"
+  description: "Provenance for HotM #270 operation-complete Fortemi OpenAPI consumer gate"
 entity:
   id: "urn:aiwg:artifact:.aiwg/testing/api-contract-test-plan-addendum-2026-07.md"
   type: document
   created_at: "2026-07-17T21:46:51Z"
-  checksum: "sha256:d0ddcbca1979a6d4ea335d539f38fb3b2df6b3668aa74f98d32aaf48331f0277"
-  size_bytes: 15198
+  updated_at: "2026-07-18T00:57:02Z"
+  checksum: "sha256:d37a5b452e99e0ff55c6266d50716647ae8b539ada85430c9dde2f0e0fa17903"
+  size_bytes: 15305
   attributes:
     change_scope: "fortemi-openapi-consumer-contract"
-    base_revision: "b394e5160780ac8a752ca0891d7a3686394d2bd0"
+    base_revision: "02b6d035eb36005b67a72860ea08a91b898ba3a1"
 activity:
   id: "urn:aiwg:activity:modification:aiwg-testing-api-contract-test-plan-addendum-2026-07-md:001"
   type: modification
   started_at: "2026-07-17T21:46:51Z"
-  ended_at: "2026-07-17T21:46:51Z"
-  description: "Implement the pinned Fortemi OpenAPI semantic and typed consumer boundary"
+  ended_at: "2026-07-18T00:57:02Z"
+  description: "Repin and enforce the shared schema-bearing response boundary for every Fortemi OpenAPI operation"
 agent:
   id: "urn:aiwg:agent:codex-gpt-5"
   type: ai_assistant
@@ -27,7 +28,7 @@ relationships:
   wasGeneratedBy:
     entity: "urn:aiwg:artifact:.aiwg/testing/api-contract-test-plan-addendum-2026-07.md"
     activity: "urn:aiwg:activity:modification:aiwg-testing-api-contract-test-plan-addendum-2026-07-md:001"
-    time: "2026-07-17T21:46:51Z"
+    time: "2026-07-18T00:57:02Z"
   used:
     - activity: "urn:aiwg:activity:modification:aiwg-testing-api-contract-test-plan-addendum-2026-07-md:001"
       entity: "urn:git:git@git.integrolabs.net:Fortemi/HotM.git:b394e5160780ac8a752ca0891d7a3686394d2bd0:.aiwg/testing/api-contract-test-plan-addendum-2026-07.md"

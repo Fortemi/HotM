@@ -113,18 +113,19 @@ The accepted product/UX disposition for vision, audio, and realtime call routes 
 
 ## OpenAPI Requirement Receipt
 
-`FORTEMI-2026-07-REQ-013` is partially implemented against Fortemi commit
-`cb1899368d763920091dd2fd5c22066d27e9fad0`. HotM vendors the exact generated
+`FORTEMI-2026-07-REQ-013` is implemented against Fortemi commit
+`ec14e0447711c45a8d5c5445ce47a35f26d4346a`. HotM vendors the exact generated
 OpenAPI artifact at SHA-256
-`654db79e541a1a9117acf599476eb8ef4559b7e8d8f3ac7c471034ee383e705a`
+`4d1f9655c60ed6f97f86c790cab64ea9826ac9ca61084250a3b242fd10a7e30c`
 and pins semantic fingerprint
-`b67ce9d3b557f435b85c533344a18b2c902df9e7d374200e21d9224791e4aaf8`.
+`52ea99780e621b2073e0fb4bd1f0166c1a343c81d548f9856b8b1bc6ca886535`.
 The verifier covers parameters, bodies, response/status declarations, component
 schemas, errors, nullability, enums, and security; skew fixtures accept
 `2026.2.8` and `2026.2.9` and reject breaking `2027.0.0`.
 
 The typed call boundary now matches the delivered `CallDetailResponse` and
-`TranscriptSegment` schemas and rejects malformed producer examples. CI emits
-exact producer and consumer commits. This receipt does not satisfy full
-`REQ-013`: only 6 of 310 response entries in the producer artifact have response
-schemas, so untyped responses remain a blocking producer/consumer coverage gap.
+`TranscriptSegment` schemas and rejects malformed producer examples. All 249
+operations carry a schema-bearing shared RFC 9457 rate-limit boundary; the
+verifier rejects its removal or media/schema drift. CI emits exact producer and
+consumer commits. Undeclared success payloads remain undeclared rather than
+being inferred from descriptions.

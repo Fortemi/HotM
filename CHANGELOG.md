@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased]
+
+### Changed
+
+- **Fortemi OpenAPI consumer gate (#270):** repinned the immutable producer
+  artifact and now requires every delivered operation to retain its
+  schema-bearing RFC 9457 rate-limit response.
+
 ## [2026.6.0] - 2026-06-02
 
 Installer and desktop capture reliability release. Linux fresh installs now provision local transcription by default, while desktop video attachment upload paths use the native host adapter and surface upload progress consistently.

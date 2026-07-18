@@ -1,22 +1,23 @@
 metadata:
   schema_version: "1.0.0"
   created_at: "2026-07-17T21:46:51Z"
-  description: "Provenance for HotM #270 Fortemi OpenAPI consumer gate"
+  description: "Provenance for HotM #270 operation-complete Fortemi OpenAPI consumer gate"
 entity:
   id: "urn:aiwg:artifact:.aiwg/testing/scripts/verify-fortemi-openapi-contract.mjs"
   type: software
   created_at: "2026-07-17T21:46:51Z"
-  checksum: "sha256:12b875f9a95b0ffe4209acc8e99cf9c1b10fe566839859329487e3c8f452812e"
-  size_bytes: 12982
+  updated_at: "2026-07-18T00:57:02Z"
+  checksum: "sha256:77424016339de4c5c7c174eb9ef159c1841d51669dfb975cd3a971b2e40895e1"
+  size_bytes: 14520
   attributes:
     change_scope: "fortemi-openapi-consumer-contract"
-    base_revision: "b394e5160780ac8a752ca0891d7a3686394d2bd0"
+    base_revision: "02b6d035eb36005b67a72860ea08a91b898ba3a1"
 activity:
   id: "urn:aiwg:activity:generation:aiwg-testing-scripts-verify-fortemi-openapi-contract-mjs:001"
-  type: generation
+  type: modification
   started_at: "2026-07-17T21:46:51Z"
-  ended_at: "2026-07-17T21:46:51Z"
-  description: "Implement the pinned Fortemi OpenAPI semantic and typed consumer boundary"
+  ended_at: "2026-07-18T00:57:02Z"
+  description: "Repin and enforce the shared schema-bearing response boundary for every Fortemi OpenAPI operation"
 agent:
   id: "urn:aiwg:agent:codex-gpt-5"
   type: ai_assistant
@@ -27,13 +28,13 @@ relationships:
   wasGeneratedBy:
     entity: "urn:aiwg:artifact:.aiwg/testing/scripts/verify-fortemi-openapi-contract.mjs"
     activity: "urn:aiwg:activity:generation:aiwg-testing-scripts-verify-fortemi-openapi-contract-mjs:001"
-    time: "2026-07-17T21:46:51Z"
+    time: "2026-07-18T00:57:02Z"
   used:
     - activity: "urn:aiwg:activity:generation:aiwg-testing-scripts-verify-fortemi-openapi-contract-mjs:001"
       entity: "urn:gitea:Fortemi/HotM:issue:270"
       role: "requirement"
     - activity: "urn:aiwg:activity:generation:aiwg-testing-scripts-verify-fortemi-openapi-contract-mjs:001"
-      entity: "urn:git:git@git.integrolabs.net:Fortemi/fortemi.git:cb1899368d763920091dd2fd5c22066d27e9fad0:contracts/openapi/openapi.yaml"
+      entity: "urn:git:git@git.integrolabs.net:Fortemi/fortemi.git:ec14e0447711c45a8d5c5445ce47a35f26d4346a:contracts/openapi/openapi.yaml"
       role: "producer_contract"
   wasDerivedFrom:
     - entity: "urn:aiwg:artifact:.aiwg/testing/scripts/verify-fortemi-openapi-contract.mjs"

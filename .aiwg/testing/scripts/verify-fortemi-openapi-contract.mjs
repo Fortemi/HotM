@@ -16,6 +16,7 @@ const require = createRequire(resolve(hotmRoot, 'ui/package.json'));
 const YAML = require('yaml');
 
 const HTTP_METHODS = ['get', 'put', 'post', 'delete', 'options', 'head', 'patch', 'trace'];
+const PROBLEM_SCHEMA_REF = '#/components/schemas/ProblemDetails';
 
 function sha256(value) {
   return createHash('sha256').update(value).digest('hex');
@@ -85,6 +86,8 @@ function contractStatistics(document) {
     requestBodies: 0,
     responses: 0,
     responseSchemas: 0,
+    schemaBearingOperations: 0,
+    problemResponses: 0,
     nullableSchemas: 0,
     enumSchemas: 0,
     publicOperations: 0,
@@ -99,10 +102,18 @@ function contractStatistics(document) {
       stats.parameters += (pathItem.parameters?.length ?? 0) + (operation.parameters?.length ?? 0);
       if (operation.requestBody) stats.requestBodies += 1;
       const responses = Object.values(operation.responses ?? {});
-      stats.responses += responses.length;
-      stats.responseSchemas += responses.filter((response) =>
+      const schemaResponses = responses.filter((response) =>
         Object.values(response?.content ?? {}).some((media) => media?.schema),
-      ).length;
+      );
+      stats.responses += responses.length;
+      stats.responseSchemas += schemaResponses.length;
+      if (schemaResponses.length > 0) stats.schemaBearingOperations += 1;
+      if (
+        operation.responses?.['429']?.content?.['application/problem+json']?.schema?.$ref ===
+        PROBLEM_SCHEMA_REF
+      ) {
+        stats.problemResponses += 1;
+      }
       if (Array.isArray(operation.security) && operation.security.length === 0) {
         stats.publicOperations += 1;
       } else {
@@ -141,6 +152,11 @@ function validateDocument(document, receipt) {
       if (!operation.operationId) throw new Error(`missing operationId: ${method} ${pathName}`);
       if (!operation.responses || Object.keys(operation.responses).length === 0) {
         throw new Error(`missing responses: ${method} ${pathName}`);
+      }
+      const rateLimitSchema =
+        operation.responses['429']?.content?.['application/problem+json']?.schema?.$ref;
+      if (rateLimitSchema !== PROBLEM_SCHEMA_REF) {
+        throw new Error(`missing shared 429 ProblemDetails response: ${method} ${pathName}`);
       }
       if (!Array.isArray(operation.security)) {
         throw new Error(`missing explicit security: ${method} ${pathName}`);
@@ -215,6 +231,18 @@ function assertSemanticMutationRejected(document, receipt, name, mutate) {
   }
 }
 
+function assertValidationMutationRejected(document, receipt, name, expectedMessage, mutate) {
+  const fixture = structuredClone(document);
+  mutate(fixture);
+  try {
+    validateDocument(fixture, receipt);
+  } catch (error) {
+    if (error instanceof Error && error.message === expectedMessage) return;
+    throw error;
+  }
+  throw new Error(`${name} negative fixture passed document validation`);
+}
+
 function runFocusedNegativeFixtures(document, receipt) {
   assertSemanticMutationRejected(document, receipt, 'parameter', (fixture) => {
     fixture.paths['/api/v1/calls/{id}'].get.parameters.pop();
@@ -228,6 +256,18 @@ function runFocusedNegativeFixtures(document, receipt) {
   assertSemanticMutationRejected(document, receipt, 'response status', (fixture) => {
     delete fixture.paths['/api/v1/calls/{id}'].get.responses['404'];
   });
+  assertSemanticMutationRejected(document, receipt, 'shared error response', (fixture) => {
+    delete fixture.paths['/health/live'].get.responses['429'].content;
+  });
+  assertValidationMutationRejected(
+    document,
+    receipt,
+    'shared error response',
+    'missing shared 429 ProblemDetails response: get /health/live',
+    (fixture) => {
+      delete fixture.paths['/health/live'].get.responses['429'].content;
+    },
+  );
   assertSemanticMutationRejected(document, receipt, 'error payload', (fixture) => {
     fixture['x-fortemi-error-contract'].problem_types.pop();
   });

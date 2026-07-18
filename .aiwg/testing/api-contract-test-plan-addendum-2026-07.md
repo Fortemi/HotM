@@ -265,10 +265,10 @@ The scenario-level test ownership, fixture states, redaction assertions, and pla
 ### OpenAPI Contract Gate Receipt
 
 The #270 gate pins Fortemi commit
-`cb1899368d763920091dd2fd5c22066d27e9fad0`, artifact SHA-256
-`654db79e541a1a9117acf599476eb8ef4559b7e8d8f3ac7c471034ee383e705a`,
+`ec14e0447711c45a8d5c5445ce47a35f26d4346a`, artifact SHA-256
+`4d1f9655c60ed6f97f86c790cab64ea9826ac9ca61084250a3b242fd10a7e30c`,
 and semantic SHA-256
-`b67ce9d3b557f435b85c533344a18b2c902df9e7d374200e21d9224791e4aaf8`.
+`52ea99780e621b2073e0fb4bd1f0166c1a343c81d548f9856b8b1bc6ca886535`.
 CI must compare exact producer bytes, validate its semantic fingerprint, run
 negative mutations for parameters, bodies, response schemas/statuses, errors,
 nullability, enums, and security, and publish a receipt with both exact commits.
@@ -286,7 +286,8 @@ node .aiwg/testing/scripts/verify-fortemi-openapi-contract.mjs ../fortemi
 (cd ui && npm test -- --run src/api/__tests__/calls.test.ts src/api/__tests__/delivered-openapi-contract.test.ts src/components/admin/__tests__/ApiCapabilitiesPanel.test.tsx)
 ```
 
-The current producer baseline has 191 paths, 249 operations, 310 response
-entries, and only 6 response schemas. The gate must report this ratio and remain
-partial; it cannot convert route or response-description presence into typed
-response coverage.
+The current producer baseline has 191 paths, 249 operations, 559 response
+entries, and 255 response schemas. Every operation must retain the shared
+schema-bearing RFC 9457 `429` boundary. The gate must report both
+schema-bearing-operation and response-schema counts and must not convert
+response-description presence into an undeclared success payload type.

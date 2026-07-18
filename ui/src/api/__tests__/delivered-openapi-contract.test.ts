@@ -122,6 +122,8 @@ const callDetail = {
 describe('delivered Fortemi OpenAPI boundary', () => {
   const operation = contract.paths['/api/v1/calls/{id}'].get;
   const responseSchema = operation.responses?.['200'].content?.['application/json'].schema;
+  const rateLimitSchema =
+    operation.responses?.['429'].content?.['application/problem+json'].schema;
 
   it('serializes the producer path and query parameters and accepts its response schema', async () => {
     expect(operation.parameters?.map(({ name, in: location, required }) => ({
@@ -155,17 +157,17 @@ describe('delivered Fortemi OpenAPI boundary', () => {
   });
 
   it('accepts the producer ProblemDetails error boundary and rejects malformed errors', () => {
-    const problemSchema = contract.components.schemas.ProblemDetails;
     const problem = {
-      type: 'https://fortemi.dev/problems/not-found',
-      title: 'Not Found',
-      status: 404,
-      detail: 'Call session not found',
+      type: 'https://fortemi.com/problems/rate-limit-exceeded',
+      title: 'Too Many Requests',
+      status: 429,
+      detail: 'Too many requests. Please wait before retrying.',
       instance: null,
     };
 
-    expect(() => validateSchema(problem, problemSchema)).not.toThrow();
-    expect(() => validateSchema({ ...problem, status: '404' }, problemSchema)).toThrow(
+    expect(rateLimitSchema?.$ref).toBe('#/components/schemas/ProblemDetails');
+    expect(() => validateSchema(problem, rateLimitSchema as Schema)).not.toThrow();
+    expect(() => validateSchema({ ...problem, status: '429' }, rateLimitSchema as Schema)).toThrow(
       '$.status must be integer',
     );
   });
