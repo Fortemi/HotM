@@ -762,7 +762,9 @@ export function BackupManager({ className }: BackupManagerProps) {
   const handleImport = async (file: File, options: { deferInference: boolean }) => {
     try {
       if (file.name.endsWith('.shard')) {
-        const result = await api.backup.uploadKnowledgeShard(file);
+        const result = await api.backup.uploadKnowledgeShard(file, {
+          skipEmbeddingRegen: true,
+        });
         setOperationStatus({
           type: 'success',
           message: `Imported ${result.manifest.profile} schema ${result.manifest.version}; server validation passed.`,

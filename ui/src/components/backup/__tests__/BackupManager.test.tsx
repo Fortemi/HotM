@@ -381,7 +381,9 @@ describe('BackupManager', () => {
       fireEvent.click(screen.getByRole('button', { name: /^Import$/ }));
 
       await waitFor(() => {
-        expect(api.backup.uploadKnowledgeShard).toHaveBeenCalledWith(file);
+        expect(api.backup.uploadKnowledgeShard).toHaveBeenCalledWith(file, {
+          skipEmbeddingRegen: true,
+        });
         expect(screen.getByText(/Imported core-v1 schema 1.0.0/)).toBeInTheDocument();
       });
       expect(api.backup.importKnowledgeShard).not.toHaveBeenCalled();

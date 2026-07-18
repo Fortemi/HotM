@@ -1,24 +1,24 @@
 metadata:
   schema_version: "1.0.0"
   created_at: "2026-07-18T01:50:07Z"
-  updated_at: "2026-07-18T01:50:07Z"
-  description: "Provenance for the HotM #271 Backup Manager test-isolation fix"
+  updated_at: "2026-07-18T02:04:18Z"
+  description: "Provenance for the HotM #271 test-isolation and #269 recovery-import regressions"
 entity:
   id: "urn:aiwg:artifact:ui/src/components/backup/__tests__/BackupManager.test.tsx"
   type: test
   created_at: "2026-07-18T01:50:07Z"
-  updated_at: "2026-07-18T01:50:07Z"
-  checksum: "sha256:73a60458e29343bd9afb6ce887c4e121adca9995771429c44d71aaefd5a2ffdd"
-  size_bytes: 36242
+  updated_at: "2026-07-18T02:04:18Z"
+  checksum: "sha256:c3a24da5156d56dc1ea14fd72fab9f2d8a115ffbac85f91478731cbbb5cfe256"
+  size_bytes: 36291
   attributes:
-    change_scope: "hotm-271-backup-manager-test-isolation"
-    base_revision: "b174b3a1b75129fdcaddc7be6afb612056433e53"
+    change_scope: "hotm-269-recovery-import-and-271-test-isolation"
+    base_revision: "f71710d04060587833dc743e4e9d07e846819731"
 activity:
-  id: "urn:aiwg:activity:modification:backup-manager-test-tsx:001"
+  id: "urn:aiwg:activity:modification:backup-manager-test-tsx:002"
   type: modification
-  started_at: "2026-07-18T01:48:00Z"
-  ended_at: "2026-07-18T01:50:07Z"
-  description: "Reset queued API mock implementations before each Backup Manager test"
+  started_at: "2026-07-18T02:03:30Z"
+  ended_at: "2026-07-18T02:04:18Z"
+  description: "Require recovery imports to suppress post-import inference"
 agent:
   id: "urn:aiwg:agent:codex-gpt-5"
   type: ai_assistant
@@ -28,15 +28,15 @@ agent:
 relationships:
   wasGeneratedBy:
     entity: "urn:aiwg:artifact:ui/src/components/backup/__tests__/BackupManager.test.tsx"
-    activity: "urn:aiwg:activity:modification:backup-manager-test-tsx:001"
-    time: "2026-07-18T01:50:07Z"
+    activity: "urn:aiwg:activity:modification:backup-manager-test-tsx:002"
+    time: "2026-07-18T02:04:18Z"
   wasDerivedFrom:
     - entity: "urn:aiwg:artifact:ui/src/components/backup/__tests__/BackupManager.test.tsx"
-      source: "https://git.integrolabs.net/Fortemi/HotM/issues/271"
+      source: "https://git.integrolabs.net/Fortemi/HotM/issues/269"
       derivation_type: "tests"
-      activity: "urn:aiwg:activity:modification:backup-manager-test-tsx:001"
+      activity: "urn:aiwg:activity:modification:backup-manager-test-tsx:002"
   wasAssociatedWith:
-    activity: "urn:aiwg:activity:modification:backup-manager-test-tsx:001"
+    activity: "urn:aiwg:activity:modification:backup-manager-test-tsx:002"
     agent: "urn:aiwg:agent:codex-gpt-5"
     role: "primary_author"
   wasAttributedTo:
