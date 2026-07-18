@@ -1,0 +1,44 @@
+metadata:
+  schema_version: "1.0.0"
+  created_at: "2026-07-18T01:50:07Z"
+  updated_at: "2026-07-18T01:50:07Z"
+  description: "Provenance for the HotM #271 Backup Manager test-isolation fix"
+entity:
+  id: "urn:aiwg:artifact:ui/src/components/backup/__tests__/BackupManager.test.tsx"
+  type: test
+  created_at: "2026-07-18T01:50:07Z"
+  updated_at: "2026-07-18T01:50:07Z"
+  checksum: "sha256:73a60458e29343bd9afb6ce887c4e121adca9995771429c44d71aaefd5a2ffdd"
+  size_bytes: 36242
+  attributes:
+    change_scope: "hotm-271-backup-manager-test-isolation"
+    base_revision: "b174b3a1b75129fdcaddc7be6afb612056433e53"
+activity:
+  id: "urn:aiwg:activity:modification:backup-manager-test-tsx:001"
+  type: modification
+  started_at: "2026-07-18T01:48:00Z"
+  ended_at: "2026-07-18T01:50:07Z"
+  description: "Reset queued API mock implementations before each Backup Manager test"
+agent:
+  id: "urn:aiwg:agent:codex-gpt-5"
+  type: ai_assistant
+  name: "Codex"
+  version: "gpt-5"
+  tool: "codex"
+relationships:
+  wasGeneratedBy:
+    entity: "urn:aiwg:artifact:ui/src/components/backup/__tests__/BackupManager.test.tsx"
+    activity: "urn:aiwg:activity:modification:backup-manager-test-tsx:001"
+    time: "2026-07-18T01:50:07Z"
+  wasDerivedFrom:
+    - entity: "urn:aiwg:artifact:ui/src/components/backup/__tests__/BackupManager.test.tsx"
+      source: "https://git.integrolabs.net/Fortemi/HotM/issues/271"
+      derivation_type: "tests"
+      activity: "urn:aiwg:activity:modification:backup-manager-test-tsx:001"
+  wasAssociatedWith:
+    activity: "urn:aiwg:activity:modification:backup-manager-test-tsx:001"
+    agent: "urn:aiwg:agent:codex-gpt-5"
+    role: "primary_author"
+  wasAttributedTo:
+    entity: "urn:aiwg:artifact:ui/src/components/backup/__tests__/BackupManager.test.tsx"
+    agent: "urn:aiwg:agent:codex-gpt-5"

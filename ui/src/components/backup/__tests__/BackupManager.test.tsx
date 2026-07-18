@@ -103,6 +103,7 @@ describe('BackupManager', () => {
   let anchorClickSpy: ReturnType<typeof vi.spyOn>;
 
   beforeEach(() => {
+    vi.resetAllMocks();
     anchorClickSpy = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
     vi.mocked(api.backup.listBackups).mockResolvedValue(mockBackups);
     vi.mocked(api.backup.triggerBackup).mockResolvedValue(undefined);

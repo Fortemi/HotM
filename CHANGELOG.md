@@ -6,6 +6,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Fixed
+
+- Reset Backup Manager API mock implementations between UI test cases so
+  queued one-shot results cannot make the quality gate order-dependent (#271).
+
 ### Changed
 
 - **Fortemi OpenAPI consumer gate (#270):** repinned the immutable producer
