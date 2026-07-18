@@ -76,6 +76,41 @@ describe('Knowledge Shard contract', () => {
     }))).rejects.toThrow('count for notes is invalid');
   });
 
+  it('rejects missing, tampered, and miscounted component contents before upload', async () => {
+    await expect(inspectKnowledgeShard(createKnowledgeShardFile(
+      canonicalManifest,
+      {},
+    ))).rejects.toThrow('component notes.jsonl is missing');
+
+    await expect(inspectKnowledgeShard(createKnowledgeShardFile(
+      canonicalManifest,
+      { 'notes.jsonl': new TextEncoder().encode('{"id":"tampered"}\n') },
+    ))).rejects.toThrow('checksum for notes.jsonl does not match its contents');
+
+    await expect(inspectKnowledgeShard(createKnowledgeShardFile({
+      ...canonicalManifest,
+      counts: { ...canonicalManifest.counts, notes: 1 },
+    }))).rejects.toThrow('count for notes does not match its contents');
+  });
+
+  it('rejects undeclared archive files and checksum inventory drift', async () => {
+    await expect(inspectKnowledgeShard(createKnowledgeShardFile(
+      canonicalManifest,
+      {
+        'notes.jsonl': new Uint8Array(),
+        'unexpected.json': new TextEncoder().encode('[]'),
+      },
+    ))).rejects.toThrow('contains undeclared file unexpected.json');
+
+    await expect(inspectKnowledgeShard(createKnowledgeShardFile({
+      ...canonicalManifest,
+      checksums: {
+        ...canonicalManifest.checksums,
+        'tags.json': 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
+      },
+    }))).rejects.toThrow('checksum inventory does not match declared components');
+  });
+
   it('rejects malformed gzip and TAR input', async () => {
     await expect(inspectKnowledgeShard(binaryFile(
       new TextEncoder().encode('not a gzip archive'),

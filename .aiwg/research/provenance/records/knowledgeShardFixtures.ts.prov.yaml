@@ -1,22 +1,24 @@
 metadata:
   schema_version: "1.0.0"
   created_at: "2026-07-17T20:47:53Z"
+  updated_at: "2026-07-18T01:32:50Z"
   description: "Provenance for the HotM #269 real gzip/TAR fixture builder"
 entity:
   id: "urn:aiwg:artifact:ui/src/api/__tests__/knowledgeShardFixtures.ts"
   type: test_fixture
   created_at: "2026-07-17T20:47:53Z"
-  checksum: "sha256:c84524262867422d7d1f65b4dac6a0a6453cc8132e41111bee9ae3d2761677d7"
-  size_bytes: 2128
+  updated_at: "2026-07-18T01:32:50Z"
+  checksum: "sha256:def97dd997535db90bfaaa2babdf4f4dd8b2e4ae206a6ab48d21b1558757cf3c"
+  size_bytes: 2979
   attributes:
     change_scope: "hotm-269-knowledge-shard-contract"
-    base_revision: "bba7ac05309bb8056c20fb7266255e6ba758ea2a"
+    base_revision: "25768c2eadf6109978d5541cd7d3b69f93a4742b"
 activity:
-  id: "urn:aiwg:activity:generation:knowledge-shard-fixtures-ts:001"
-  type: generation
-  started_at: "2026-07-17T20:47:53Z"
-  ended_at: "2026-07-17T20:47:53Z"
-  description: "Wrap the pinned producer manifest in a real gzip/TAR archive for tests"
+  id: "urn:aiwg:activity:modification:knowledge-shard-fixtures-ts:002"
+  type: modification
+  started_at: "2026-07-18T01:29:00Z"
+  ended_at: "2026-07-18T01:32:50Z"
+  description: "Build real multi-entry gzip/TAR fixtures with controllable component files for archive-integrity tests"
 agent:
   id: "urn:aiwg:agent:codex-gpt-5"
   type: ai_assistant
@@ -26,15 +28,15 @@ agent:
 relationships:
   wasGeneratedBy:
     entity: "urn:aiwg:artifact:ui/src/api/__tests__/knowledgeShardFixtures.ts"
-    activity: "urn:aiwg:activity:generation:knowledge-shard-fixtures-ts:001"
-    time: "2026-07-17T20:47:53Z"
+    activity: "urn:aiwg:activity:modification:knowledge-shard-fixtures-ts:002"
+    time: "2026-07-18T01:32:50Z"
   wasDerivedFrom:
     - entity: "urn:aiwg:artifact:ui/src/api/__tests__/knowledgeShardFixtures.ts"
       source: "urn:aiwg:artifact:ui/src/api/contracts/fortemi-core-v1-manifest.json"
       derivation_type: "derives_from"
-      activity: "urn:aiwg:activity:generation:knowledge-shard-fixtures-ts:001"
+      activity: "urn:aiwg:activity:modification:knowledge-shard-fixtures-ts:002"
   wasAssociatedWith:
-    activity: "urn:aiwg:activity:generation:knowledge-shard-fixtures-ts:001"
+    activity: "urn:aiwg:activity:modification:knowledge-shard-fixtures-ts:002"
     agent: "urn:aiwg:agent:codex-gpt-5"
     role: "primary_author"
   wasAttributedTo:

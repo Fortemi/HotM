@@ -27,6 +27,7 @@ const COMPONENT_FILENAMES: Record<KnowledgeShardComponent, string> = {
   templates: 'templates.json',
   links: 'links.jsonl',
 };
+const JSONL_COMPONENTS = new Set<KnowledgeShardComponent>(['notes', 'links']);
 const TAR_BLOCK_SIZE = 512;
 const MAX_MANIFEST_SIZE = 1024 * 1024;
 const textDecoder = new TextDecoder('utf-8', { fatal: true });
@@ -60,9 +61,9 @@ function validateTarHeaderChecksum(bytes: Uint8Array, offset: number): void {
   }
 }
 
-function extractManifestBytes(tarBytes: Uint8Array): Uint8Array {
+function extractTarEntries(tarBytes: Uint8Array): Map<string, Uint8Array> {
   let offset = 0;
-  let manifest: Uint8Array | undefined;
+  const entries = new Map<string, Uint8Array>();
 
   while (offset + TAR_BLOCK_SIZE <= tarBytes.length) {
     const header = tarBytes.subarray(offset, offset + TAR_BLOCK_SIZE);
@@ -79,23 +80,25 @@ function extractManifestBytes(tarBytes: Uint8Array): Uint8Array {
       throw new Error('Knowledge shard TAR entry extends beyond the archive.');
     }
 
-    if (path === 'manifest.json') {
-      if (manifest) {
-        throw new Error('Knowledge shard contains more than one manifest.json.');
-      }
-      if (size === 0 || size > MAX_MANIFEST_SIZE) {
-        throw new Error('Knowledge shard manifest.json size is invalid.');
-      }
-      manifest = tarBytes.slice(contentStart, contentEnd);
+    if (!path || path.startsWith('/') || path.split('/').includes('..')) {
+      throw new Error('Knowledge shard contains an unsafe TAR path.');
     }
+    if (entries.has(path)) {
+      throw new Error(`Knowledge shard contains duplicate TAR entry ${path}.`);
+    }
+    entries.set(path, tarBytes.slice(contentStart, contentEnd));
 
     offset = contentStart + Math.ceil(size / TAR_BLOCK_SIZE) * TAR_BLOCK_SIZE;
   }
 
+  const manifest = entries.get('manifest.json');
   if (!manifest) {
     throw new Error('Knowledge shard manifest.json is required.');
   }
-  return manifest;
+  if (manifest.byteLength === 0 || manifest.byteLength > MAX_MANIFEST_SIZE) {
+    throw new Error('Knowledge shard manifest.json size is invalid.');
+  }
+  return entries;
 }
 
 function parseStrictSemver(value: unknown, label: string): [number, number, number] {
@@ -201,6 +204,89 @@ function validateManifest(value: unknown): KnowledgeShardManifest {
   return manifest as unknown as KnowledgeShardManifest;
 }
 
+async function sha256Hex(bytes: Uint8Array): Promise<string> {
+  const digest = await globalThis.crypto.subtle.digest('SHA-256', bytes);
+  return Array.from(new Uint8Array(digest))
+    .map((value) => value.toString(16).padStart(2, '0'))
+    .join('');
+}
+
+function parseComponentCount(
+  component: KnowledgeShardComponent,
+  filename: string,
+  bytes: Uint8Array,
+): number {
+  let text: string;
+  try {
+    text = textDecoder.decode(bytes);
+  } catch {
+    throw new Error(`Knowledge shard component ${filename} is not valid UTF-8.`);
+  }
+
+  if (JSONL_COMPONENTS.has(component)) {
+    const records = text.split(/\r?\n/).filter((line) => line.trim());
+    for (const record of records) {
+      try {
+        JSON.parse(record);
+      } catch {
+        throw new Error(`Knowledge shard component ${filename} contains invalid JSON.`);
+      }
+    }
+    return records.length;
+  }
+
+  let records: unknown;
+  try {
+    records = JSON.parse(text);
+  } catch {
+    throw new Error(`Knowledge shard component ${filename} contains invalid JSON.`);
+  }
+  if (!Array.isArray(records)) {
+    throw new Error(`Knowledge shard component ${filename} must contain a JSON array.`);
+  }
+  return records.length;
+}
+
+async function validateArchiveContents(
+  manifest: KnowledgeShardManifest,
+  entries: Map<string, Uint8Array>,
+): Promise<void> {
+  const expectedFiles = new Set([
+    'manifest.json',
+    ...manifest.components.map((component) => COMPONENT_FILENAMES[component]),
+  ]);
+  for (const path of entries.keys()) {
+    if (!expectedFiles.has(path)) {
+      throw new Error(`Knowledge shard contains undeclared file ${path}.`);
+    }
+  }
+
+  const declaredChecksumFiles = Object.keys(manifest.checksums);
+  const componentFiles = [...expectedFiles].filter((path) => path !== 'manifest.json');
+  if (
+    declaredChecksumFiles.length !== componentFiles.length
+    || declaredChecksumFiles.some((path) => !componentFiles.includes(path))
+  ) {
+    throw new Error('Knowledge shard checksum inventory does not match declared components.');
+  }
+
+  for (const component of manifest.components) {
+    const filename = COMPONENT_FILENAMES[component];
+    const bytes = entries.get(filename);
+    if (!bytes) {
+      throw new Error(`Knowledge shard component ${filename} is missing.`);
+    }
+    const actualChecksum = await sha256Hex(bytes);
+    if (actualChecksum !== manifest.checksums[filename]) {
+      throw new Error(`Knowledge shard checksum for ${filename} does not match its contents.`);
+    }
+    const actualCount = parseComponentCount(component, filename, bytes);
+    if (actualCount !== manifest.counts[component]) {
+      throw new Error(`Knowledge shard count for ${component} does not match its contents.`);
+    }
+  }
+}
+
 export async function inspectKnowledgeShard(blob: Blob): Promise<KnowledgeShardManifest> {
   let tarBytes: Uint8Array;
   try {
@@ -209,16 +295,19 @@ export async function inspectKnowledgeShard(blob: Blob): Promise<KnowledgeShardM
     throw new Error('Knowledge shard is not a valid gzip archive.');
   }
 
+  const entries = extractTarEntries(tarBytes);
   let parsed: unknown;
   try {
-    parsed = JSON.parse(textDecoder.decode(extractManifestBytes(tarBytes)));
+    parsed = JSON.parse(textDecoder.decode(entries.get('manifest.json')));
   } catch (error) {
     if (error instanceof SyntaxError) {
       throw new Error('Knowledge shard manifest.json is not valid JSON.');
     }
     throw error;
   }
-  return validateManifest(parsed);
+  const manifest = validateManifest(parsed);
+  await validateArchiveContents(manifest, entries);
+  return manifest;
 }
 
 export function normalizeKnowledgeShardInclude(
