@@ -1,24 +1,24 @@
 metadata:
   schema_version: "1.0.0"
   created_at: "2026-07-17T20:47:53Z"
-  updated_at: "2026-07-18T01:32:50Z"
+  updated_at: "2026-07-20T20:03:43Z"
   description: "Provenance for the HotM #269 real gzip/TAR fixture builder"
 entity:
   id: "urn:aiwg:artifact:ui/src/api/__tests__/knowledgeShardFixtures.ts"
   type: test_fixture
   created_at: "2026-07-17T20:47:53Z"
-  updated_at: "2026-07-18T01:32:50Z"
-  checksum: "sha256:def97dd997535db90bfaaa2babdf4f4dd8b2e4ae206a6ab48d21b1558757cf3c"
-  size_bytes: 2979
+  updated_at: "2026-07-20T20:03:43Z"
+  checksum: "sha256:d065836a2924784ccd123ba4716202f3028843d4114f9c8af9513a94e1757c48"
+  size_bytes: 3959
   attributes:
     change_scope: "hotm-269-knowledge-shard-contract"
-    base_revision: "25768c2eadf6109978d5541cd7d3b69f93a4742b"
+    base_revision: "b35410c5c332a15e36cf84019f110100a7c9e8f1"
 activity:
   id: "urn:aiwg:activity:modification:knowledge-shard-fixtures-ts:002"
   type: modification
   started_at: "2026-07-18T01:29:00Z"
-  ended_at: "2026-07-18T01:32:50Z"
-  description: "Build real multi-entry gzip/TAR fixtures with controllable component files for archive-integrity tests"
+  ended_at: "2026-07-20T20:03:43Z"
+  description: "Build byte-exact current and historical core-v1 gzip/TAR fixtures from pinned Fortemi inputs"
 agent:
   id: "urn:aiwg:agent:codex-gpt-5"
   type: ai_assistant
@@ -29,7 +29,7 @@ relationships:
   wasGeneratedBy:
     entity: "urn:aiwg:artifact:ui/src/api/__tests__/knowledgeShardFixtures.ts"
     activity: "urn:aiwg:activity:modification:knowledge-shard-fixtures-ts:002"
-    time: "2026-07-18T01:32:50Z"
+    time: "2026-07-20T20:03:43Z"
   wasDerivedFrom:
     - entity: "urn:aiwg:artifact:ui/src/api/__tests__/knowledgeShardFixtures.ts"
       source: "urn:aiwg:artifact:ui/src/api/contracts/fortemi-core-v1-manifest.json"

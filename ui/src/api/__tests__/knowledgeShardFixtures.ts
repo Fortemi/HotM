@@ -1,5 +1,13 @@
 import { gzip } from 'pako';
 import canonicalManifestJson from '../contracts/fortemi-core-v1-manifest.json';
+import historicalV1ManifestJson from '../contracts/fortemi-core-v1-v1.0-manifest.json';
+import historicalV1_1ManifestJson from '../contracts/fortemi-core-v1-v1.1-manifest.json';
+import collectionsJson from '../contracts/fortemi-core-v1-current/collections.json?raw';
+import linksJsonl from '../contracts/fortemi-core-v1-current/links.jsonl?raw';
+import currentNotesJsonl from '../contracts/fortemi-core-v1-current/notes.jsonl?raw';
+import historicalNotesJsonl from '../contracts/fortemi-core-v1-current/notes-v1.0.jsonl?raw';
+import tagsJson from '../contracts/fortemi-core-v1-current/tags.json?raw';
+import templatesJson from '../contracts/fortemi-core-v1-current/templates.json?raw';
 import type { KnowledgeShardManifest } from '../types-extended';
 
 const encoder = new TextEncoder();
@@ -7,6 +15,26 @@ const TAR_BLOCK_SIZE = 512;
 
 export const canonicalManifest =
   canonicalManifestJson as unknown as KnowledgeShardManifest;
+export const historicalManifests = [
+  historicalV1ManifestJson,
+  historicalV1_1ManifestJson,
+] as unknown as KnowledgeShardManifest[];
+
+const sharedComponentFiles = {
+  'collections.json': encoder.encode(collectionsJson),
+  'tags.json': encoder.encode(tagsJson),
+  'templates.json': encoder.encode(templatesJson),
+  'links.jsonl': encoder.encode(linksJsonl),
+};
+
+function canonicalComponentFiles(version: string): Record<string, Uint8Array> {
+  return {
+    ...sharedComponentFiles,
+    'notes.jsonl': encoder.encode(
+      version === '1.0.0' ? historicalNotesJsonl : currentNotesJsonl,
+    ),
+  };
+}
 
 function writeText(target: Uint8Array, offset: number, length: number, value: string): void {
   const encoded = encoder.encode(value);
@@ -44,18 +72,7 @@ export function createKnowledgeShardFile(
   manifest: KnowledgeShardManifest = canonicalManifest,
   componentFiles?: Record<string, Uint8Array>,
 ): File {
-  const files = componentFiles ?? Object.fromEntries(
-    manifest.components.map((component) => [
-      {
-        notes: 'notes.jsonl',
-        collections: 'collections.json',
-        tags: 'tags.json',
-        templates: 'templates.json',
-        links: 'links.jsonl',
-      }[component],
-      encoder.encode(component === 'notes' || component === 'links' ? '' : '[]'),
-    ]),
-  );
+  const files = componentFiles ?? canonicalComponentFiles(manifest.version);
   const entries = [
     ...Object.entries(files).map(([name, contents]) => tarEntry(name, contents)),
     tarEntry('manifest.json', encoder.encode(JSON.stringify(manifest))),

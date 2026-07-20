@@ -7,6 +7,7 @@ import {
 import {
   canonicalManifest,
   createKnowledgeShardFile,
+  historicalManifests,
 } from './knowledgeShardFixtures';
 
 function binaryFile(bytes: Uint8Array, name: string): File {
@@ -20,13 +21,29 @@ function binaryFile(bytes: Uint8Array, name: string): File {
 }
 
 describe('Knowledge Shard contract', () => {
-  it('accepts the pinned Fortemi core-v1 manifest fixture', async () => {
+  it('accepts the pinned current Fortemi core-v1 manifest fixture', async () => {
     const manifest = await inspectKnowledgeShard(createKnowledgeShardFile());
 
     expect(manifest).toEqual(canonicalManifest);
     expect(manifest.profile).toBe('core-v1');
-    expect(manifest.version).toBe('1.0.0');
-    expect(manifest.min_reader_version).toBe('1.0.0');
+    expect(manifest.version).toBe('1.2.0');
+    expect(manifest.min_reader_version).toBe('1.2.0');
+  });
+
+  it.each(historicalManifests)(
+    'accepts the registered Fortemi core-v1 schema $version',
+    async (manifest) => {
+      const inspected = await inspectKnowledgeShard(createKnowledgeShardFile(manifest));
+      expect(inspected.version).toBe(manifest.version);
+      expect(inspected.min_reader_version).toBe(manifest.min_reader_version);
+    },
+  );
+
+  it('rejects an unregistered same-major schema', async () => {
+    await expect(inspectKnowledgeShard(createKnowledgeShardFile({
+      ...canonicalManifest,
+      version: '1.1.1',
+    }))).rejects.toThrow('schema 1.1.1 is unsupported');
   });
 
   it.each([
@@ -89,7 +106,7 @@ describe('Knowledge Shard contract', () => {
 
     await expect(inspectKnowledgeShard(createKnowledgeShardFile({
       ...canonicalManifest,
-      counts: { ...canonicalManifest.counts, notes: 1 },
+      counts: { ...canonicalManifest.counts, notes: 0 },
     }))).rejects.toThrow('count for notes does not match its contents');
   });
 
@@ -106,7 +123,7 @@ describe('Knowledge Shard contract', () => {
       ...canonicalManifest,
       checksums: {
         ...canonicalManifest.checksums,
-        'tags.json': 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
+        'unexpected.json': 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
       },
     }))).rejects.toThrow('checksum inventory does not match declared components');
   });

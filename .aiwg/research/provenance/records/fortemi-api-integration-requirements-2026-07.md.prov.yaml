@@ -1,23 +1,24 @@
 metadata:
   schema_version: "1.0.0"
   created_at: "2026-07-17T21:46:51Z"
-  description: "Provenance for HotM #270 operation-complete Fortemi OpenAPI consumer gate"
+  updated_at: "2026-07-20T20:03:43Z"
+  description: "Provenance for the HotM #269 Knowledge Shard migration-window update"
 entity:
   id: "urn:aiwg:artifact:.aiwg/requirements/fortemi-api-integration-requirements-2026-07.md"
   type: document
   created_at: "2026-07-17T21:46:51Z"
-  updated_at: "2026-07-18T00:57:02Z"
-  checksum: "sha256:653fb4fb216c269a0e99d7a5faa1ff18d3f8ea52f587aa3b403acec317a5b9c5"
-  size_bytes: 13182
+  updated_at: "2026-07-20T20:03:43Z"
+  checksum: "sha256:b237457de9784adb6e949c77c9f26e868de842f1103192c6276adc404dd7fc42"
+  size_bytes: 13208
   attributes:
-    change_scope: "fortemi-openapi-consumer-contract"
-    base_revision: "02b6d035eb36005b67a72860ea08a91b898ba3a1"
+    change_scope: "hotm-269-knowledge-shard-contract"
+    base_revision: "b35410c5c332a15e36cf84019f110100a7c9e8f1"
 activity:
   id: "urn:aiwg:activity:modification:aiwg-requirements-fortemi-api-integration-requirements-2026-07-md:001"
   type: modification
   started_at: "2026-07-17T21:46:51Z"
-  ended_at: "2026-07-18T00:57:02Z"
-  description: "Repin and enforce the shared schema-bearing response boundary for every Fortemi OpenAPI operation"
+  ended_at: "2026-07-20T20:03:43Z"
+  description: "Update the core-v1 requirement receipt through current schema 1.2.0"
 agent:
   id: "urn:aiwg:agent:codex-gpt-5"
   type: ai_assistant
@@ -28,7 +29,7 @@ relationships:
   wasGeneratedBy:
     entity: "urn:aiwg:artifact:.aiwg/requirements/fortemi-api-integration-requirements-2026-07.md"
     activity: "urn:aiwg:activity:modification:aiwg-requirements-fortemi-api-integration-requirements-2026-07-md:001"
-    time: "2026-07-18T00:57:02Z"
+    time: "2026-07-20T20:03:43Z"
   used:
     - activity: "urn:aiwg:activity:modification:aiwg-requirements-fortemi-api-integration-requirements-2026-07-md:001"
       entity: "urn:git:git@git.integrolabs.net:Fortemi/HotM.git:b394e5160780ac8a752ca0891d7a3686394d2bd0:.aiwg/requirements/fortemi-api-integration-requirements-2026-07.md"

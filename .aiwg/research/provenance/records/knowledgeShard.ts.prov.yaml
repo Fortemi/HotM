@@ -1,25 +1,25 @@
 metadata:
   schema_version: "1.0.0"
   created_at: "2026-07-17T20:47:53Z"
-  updated_at: "2026-07-18T01:32:50Z"
+  updated_at: "2026-07-20T20:03:43Z"
   description: "Provenance for the HotM #269 Knowledge Shard manifest consumer"
 entity:
   id: "urn:aiwg:artifact:ui/src/api/knowledgeShard.ts"
   type: source_code
   created_at: "2026-07-17T20:47:53Z"
-  updated_at: "2026-07-18T01:32:50Z"
-  checksum: "sha256:ac7cab821c0db456ee6cc26993e7cf6b03e995bc7afc1f52591c8654057ebc3e"
-  size_bytes: 11770
+  updated_at: "2026-07-20T20:03:43Z"
+  checksum: "sha256:20b7b6fe145a4731487a75e5a979f7e1ee0ff3629a0721295acf64674eb04240"
+  size_bytes: 12028
   attributes:
     change_scope: "hotm-269-knowledge-shard-contract"
-    base_revision: "25768c2eadf6109978d5541cd7d3b69f93a4742b"
-    producer_revision: "bb0d5146448ac595cfce6ac276916e63e91c8238"
+    base_revision: "b35410c5c332a15e36cf84019f110100a7c9e8f1"
+    producer_revision: "81fbeaf065df3818edd046ed8a744f10eeb00e6f"
 activity:
   id: "urn:aiwg:activity:modification:knowledge-shard-ts:002"
   type: modification
   started_at: "2026-07-18T01:29:00Z"
-  ended_at: "2026-07-18T01:32:50Z"
-  description: "Verify actual core-v1 TAR inventory, component SHA-256 digests, JSON syntax, and record counts before upload"
+  ended_at: "2026-07-20T20:03:43Z"
+  description: "Accept only the registered core-v1 schema migration window through current schema 1.2.0"
 agent:
   id: "urn:aiwg:agent:codex-gpt-5"
   type: ai_assistant
@@ -30,10 +30,10 @@ relationships:
   wasGeneratedBy:
     entity: "urn:aiwg:artifact:ui/src/api/knowledgeShard.ts"
     activity: "urn:aiwg:activity:modification:knowledge-shard-ts:002"
-    time: "2026-07-18T01:32:50Z"
+    time: "2026-07-20T20:03:43Z"
   wasDerivedFrom:
     - entity: "urn:aiwg:artifact:ui/src/api/knowledgeShard.ts"
-      source: "urn:git:git@git.integrolabs.net:Fortemi/fortemi.git:bb0d5146448ac595cfce6ac276916e63e91c8238:crates/matric-api/src/main.rs"
+      source: "urn:git:git@git.integrolabs.net:Fortemi/fortemi.git:81fbeaf065df3818edd046ed8a744f10eeb00e6f:contracts/knowledge-shard/contract.json"
       derivation_type: "implements"
       activity: "urn:aiwg:activity:modification:knowledge-shard-ts:002"
   wasAssociatedWith:

@@ -1,23 +1,24 @@
 metadata:
   schema_version: "1.0.0"
   created_at: "2026-07-17T21:46:51Z"
-  description: "Provenance for HotM #270 operation-complete Fortemi OpenAPI consumer gate"
+  updated_at: "2026-07-20T20:03:43Z"
+  description: "Provenance for the HotM #269 Knowledge Shard migration-window update"
 entity:
   id: "urn:aiwg:artifact:.aiwg/architecture/sad-fortemi-integration-addendum-2026-07.md"
   type: document
   created_at: "2026-07-17T21:46:51Z"
-  updated_at: "2026-07-18T00:57:02Z"
-  checksum: "sha256:7af6a397437778338b9e0845a015260ac65eb63b582569fbc436a2bffa884ca1"
-  size_bytes: 18761
+  updated_at: "2026-07-20T20:03:43Z"
+  checksum: "sha256:17e84fc0e24eef9ee1916381e819518384fc73d695e18ef6b56173f096f90ad4"
+  size_bytes: 19055
   attributes:
-    change_scope: "fortemi-openapi-consumer-contract"
-    base_revision: "02b6d035eb36005b67a72860ea08a91b898ba3a1"
+    change_scope: "hotm-269-knowledge-shard-contract"
+    base_revision: "b35410c5c332a15e36cf84019f110100a7c9e8f1"
 activity:
   id: "urn:aiwg:activity:modification:aiwg-architecture-sad-fortemi-integration-addendum-2026-07-md:001"
   type: modification
   started_at: "2026-07-17T21:46:51Z"
-  ended_at: "2026-07-18T00:57:02Z"
-  description: "Repin and enforce the shared schema-bearing response boundary for every Fortemi OpenAPI operation"
+  ended_at: "2026-07-20T20:03:43Z"
+  description: "Document the exact core-v1 1.0.0 through 1.2.0 migration window and current authority receipt"
 agent:
   id: "urn:aiwg:agent:codex-gpt-5"
   type: ai_assistant
@@ -28,7 +29,7 @@ relationships:
   wasGeneratedBy:
     entity: "urn:aiwg:artifact:.aiwg/architecture/sad-fortemi-integration-addendum-2026-07.md"
     activity: "urn:aiwg:activity:modification:aiwg-architecture-sad-fortemi-integration-addendum-2026-07-md:001"
-    time: "2026-07-18T00:57:02Z"
+    time: "2026-07-20T20:03:43Z"
   used:
     - activity: "urn:aiwg:activity:modification:aiwg-architecture-sad-fortemi-integration-addendum-2026-07-md:001"
       entity: "urn:git:git@git.integrolabs.net:Fortemi/HotM.git:b394e5160780ac8a752ca0891d7a3686394d2bd0:.aiwg/architecture/sad-fortemi-integration-addendum-2026-07.md"

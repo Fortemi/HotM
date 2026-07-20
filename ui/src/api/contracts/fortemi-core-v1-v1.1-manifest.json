@@ -1,5 +1,5 @@
 {
-  "version": "1.2.0",
+  "version": "1.1.0",
   "profile": "core-v1",
   "producer": {
     "name": "fortemi",
@@ -27,5 +27,5 @@
     "templates.json": "7d364d22cdfca298817620b81bffdbd716977535922e887c6b0bbc5bb1c11291",
     "links.jsonl": "1962da6f5ac3f43e54b7711ee91dc8867109bec9a0f89f95893bed2016b63125"
   },
-  "min_reader_version": "1.2.0"
+  "min_reader_version": "1.1.0"
 }

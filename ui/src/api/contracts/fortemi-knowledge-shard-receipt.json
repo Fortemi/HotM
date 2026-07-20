@@ -1,0 +1,89 @@
+{
+  "schemaVersion": 1,
+  "authority": {
+    "repository": "Fortemi/fortemi",
+    "commit": "81fbeaf065df3818edd046ed8a744f10eeb00e6f",
+    "contract": {
+      "path": "contracts/knowledge-shard/contract.json",
+      "sha256": "5debc14e0bc7eef403a75e8e063a10f53019e1d74857485d6eda3abaec9397e2",
+      "revision": "19"
+    }
+  },
+  "profile": "core-v1",
+  "currentSchemaVersion": "1.2.0",
+  "acceptedSchemaVersions": [
+    "1.0.0",
+    "1.1.0",
+    "1.2.0"
+  ],
+  "inputs": [
+    {
+      "kind": "manifest",
+      "version": "1.0.0",
+      "localPath": "ui/src/api/contracts/fortemi-core-v1-v1.0-manifest.json",
+      "producerPath": "tests/fixtures/shards/core-v1-valid/manifest.json",
+      "sha256": "fc9398a55f7afe66ad0e2fc94f6484c5312cc13b0b5e959071822a69b3f56214"
+    },
+    {
+      "kind": "manifest",
+      "version": "1.1.0",
+      "localPath": "ui/src/api/contracts/fortemi-core-v1-v1.1-manifest.json",
+      "producerPath": "tests/fixtures/shards/core-v1-v1.1-valid/manifest.json",
+      "sha256": "be5ace39d278e80964baa608be1f296af563634bab303d7d277e59e6983d4af1"
+    },
+    {
+      "kind": "manifest",
+      "version": "1.2.0",
+      "localPath": "ui/src/api/contracts/fortemi-core-v1-manifest.json",
+      "producerPath": "tests/fixtures/shards/core-v1-v1.2-valid/manifest.json",
+      "sha256": "246b89d6ca1d2e2c4a19b650e4cebe7825b69d39306280e281f4a94c80c2b008"
+    },
+    {
+      "kind": "component",
+      "version": "1.2.0",
+      "localPath": "ui/src/api/contracts/fortemi-core-v1-current/collections.json",
+      "producerPath": "tests/fixtures/shards/core-v1-v1.2-valid/collections.json",
+      "sha256": "463e593c963de97a4f676374da0dafd38d38433cbdecddf3b58632263dac5e43"
+    },
+    {
+      "kind": "component",
+      "version": "1.2.0",
+      "localPath": "ui/src/api/contracts/fortemi-core-v1-current/tags.json",
+      "producerPath": "tests/fixtures/shards/core-v1-v1.2-valid/tags.json",
+      "sha256": "36b794bb9dda00a6ac09653c0a68dab306b20cdc716eaf8fc25d85ccf7e28e42"
+    },
+    {
+      "kind": "component",
+      "version": "1.2.0",
+      "localPath": "ui/src/api/contracts/fortemi-core-v1-current/templates.json",
+      "producerPath": "tests/fixtures/shards/core-v1-v1.2-valid/templates.json",
+      "sha256": "7d364d22cdfca298817620b81bffdbd716977535922e887c6b0bbc5bb1c11291"
+    },
+    {
+      "kind": "component",
+      "version": "1.2.0",
+      "localPath": "ui/src/api/contracts/fortemi-core-v1-current/notes.jsonl",
+      "producerPath": "tests/fixtures/shards/core-v1-v1.2-valid/notes.jsonl",
+      "sha256": "bb20b7e173b1de22644d6175e4287f39cf1e3f9a67995009359988805b809b2f"
+    },
+    {
+      "kind": "component",
+      "version": "1.0.0",
+      "localPath": "ui/src/api/contracts/fortemi-core-v1-current/notes-v1.0.jsonl",
+      "producerPath": "tests/fixtures/shards/core-v1-valid/notes.jsonl",
+      "sha256": "6c21ab9bc21615619a303bcf3521709beeb83573b74d38c3df43cc737035b346"
+    },
+    {
+      "kind": "component",
+      "version": "1.2.0",
+      "localPath": "ui/src/api/contracts/fortemi-core-v1-current/links.jsonl",
+      "producerPath": "tests/fixtures/shards/core-v1-v1.2-valid/links.jsonl",
+      "sha256": "1962da6f5ac3f43e54b7711ee91dc8867109bec9a0f89f95893bed2016b63125"
+    }
+  ],
+  "claims": [
+    "HotM accepts only the core-v1 profile.",
+    "The accepted migration window is exact: 1.0.0, 1.1.0, and 1.2.0.",
+    "No full-v1, record-v1, attachment-byte, or lossless parity claim is made."
+  ]
+}

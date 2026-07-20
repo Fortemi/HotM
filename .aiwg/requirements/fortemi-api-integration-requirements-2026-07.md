@@ -67,17 +67,18 @@ this contract.
 
 ## Knowledge Shard Requirement Receipt
 
-`FORTEMI-2026-07-REQ-015` is partially implemented for Fortemi commit
-`2eb5c6b739b3bb6a042a35050a3ae89960dd3ed4`. HotM vendors the exact producer
-`core-v1` manifest fixture at SHA-256
-`4ed7e3b7d4845122653c95bcf2508a7f440cf067fe64ca493f0785519b9300f1`,
-serializes only the supported `include` query, validates the declared
-profile/schema/minimum reader/components/counts/checksums before upload, and
-shows profile/schema plus actionable failures in Backup Manager.
+`FORTEMI-2026-07-REQ-015` is implemented for the selected `core-v1` profile
+against Fortemi contract revision 19 at
+`81fbeaf065df3818edd046ed8a744f10eeb00e6f`. HotM vendors exact producer
+manifests for registered schemas `1.0.0`, `1.1.0`, and `1.2.0`, serializes only
+the supported `include` query, validates the declared profile/schema/minimum
+reader/components/counts/checksums before upload, and shows profile/schema plus
+actionable failures in Backup Manager.
 
-The lossless server-export -> HotM -> clean-server-import acceptance remains
-open. No current receipt proves full semantic equality, historical migrations,
-embeddings, attachment records/bytes, or atomic recovery.
+The visible server-export -> HotM -> clean-server-import and repeated-import
+receipt proves semantic equality for the selected byte-free `core-v1` profile.
+No receipt claims embeddings, attachment records/bytes, or richer-profile
+recovery.
 
 ## Current Coverage Summary
 

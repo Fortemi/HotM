@@ -95,18 +95,21 @@ producer AsyncAPI schema-diff coverage.
 
 ### Knowledge Shard Consumer Receipt (HotM #269)
 
-HotM consumes the Fortemi `core-v1` manifest fixture from producer commit
-`2eb5c6b739b3bb6a042a35050a3ae89960dd3ed4`. The vendored fixture at
-`ui/src/api/contracts/fortemi-core-v1-manifest.json` matches the producer fixture
-SHA-256 `4ed7e3b7d4845122653c95bcf2508a7f440cf067fe64ca493f0785519b9300f1`.
+HotM consumes the Fortemi `core-v1` authority at producer commit
+`81fbeaf065df3818edd046ed8a744f10eeb00e6f`, contract revision 19. The
+machine receipt pins exact producer fixtures for schemas `1.0.0`, `1.1.0`, and
+`1.2.0`; the current vendored manifest SHA-256 is
+`246b89d6ca1d2e2c4a19b650e4cebe7825b69d39306280e281f4a94c80c2b008`.
 The client sends only the producer-owned `include` query, reads `manifest.json`
-from the gzip/TAR archive, and rejects unsupported format, profile, schema,
-minimum-reader, components, counts, and checksum declarations before upload.
+from the gzip/TAR archive, and rejects unsupported format, profile,
+unregistered schema, minimum-reader, components, counts, and checksum
+declarations before upload.
 
-This is a consumer/preflight receipt only. It does not establish clean-server
-semantic equality, historical migration support, attachment-byte recovery, or
-atomic `core-v1`/`full-v1` conformance; those release gates remain open in
-Fortemi #1057 and HotM #269.
+The visible HotM -> clean-server and repeated-import receipt establishes
+semantic equality for the selected `core-v1` profile. The version gate now
+retains the registered historical window and consumes current schema 1.2. This
+does not establish attachment-byte recovery or `full-v1`/`record-v1`
+conformance.
 
 ### OpenAPI Consumer Receipt (HotM #270)
 

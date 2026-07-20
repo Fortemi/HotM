@@ -5,45 +5,71 @@ import { execFileSync } from 'node:child_process';
 import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 
-const PRODUCER_COMMIT = '2eb5c6b739b3bb6a042a35050a3ae89960dd3ed4';
-const PRODUCER_PATH = 'tests/fixtures/shards/v1.0.0-minimal.json';
-const EXPECTED_SHA256 = '4ed7e3b7d4845122653c95bcf2508a7f440cf067fe64ca493f0785519b9300f1';
-
 const hotmRoot = resolve(import.meta.dirname, '../../..');
 const fortemiRoot = resolve(process.argv[2] ?? resolve(hotmRoot, '../fortemi'));
-const fixturePath = resolve(
+const receiptPath = resolve(
   hotmRoot,
-  'ui/src/api/contracts/fortemi-core-v1-manifest.json',
+  'ui/src/api/contracts/fortemi-knowledge-shard-receipt.json',
 );
+const receipt = JSON.parse(await readFile(receiptPath, 'utf8'));
 
-const localFixture = await readFile(fixturePath);
-const producerFixture = execFileSync(
-  'git',
-  ['-C', fortemiRoot, 'show', `${PRODUCER_COMMIT}:${PRODUCER_PATH}`],
-);
-const localSha256 = createHash('sha256').update(localFixture).digest('hex');
-const producerSha256 = createHash('sha256').update(producerFixture).digest('hex');
-
-if (localSha256 !== EXPECTED_SHA256) {
-  throw new Error(`HotM fixture checksum mismatch: ${localSha256} != ${EXPECTED_SHA256}`);
-}
-if (producerSha256 !== EXPECTED_SHA256) {
-  throw new Error(`Fortemi fixture checksum mismatch: ${producerSha256} != ${EXPECTED_SHA256}`);
-}
-if (!localFixture.equals(producerFixture)) {
-  throw new Error('HotM Knowledge Shard fixture differs from the pinned Fortemi fixture');
+function sha256(bytes) {
+  return createHash('sha256').update(bytes).digest('hex');
 }
 
-const manifest = JSON.parse(localFixture.toString('utf8'));
+function readProducerFile(path) {
+  return execFileSync(
+    'git',
+    ['-C', fortemiRoot, 'show', `${receipt.authority.commit}:${path}`],
+  );
+}
+
+const contract = readProducerFile(receipt.authority.contract.path);
+if (sha256(contract) !== receipt.authority.contract.sha256) {
+  throw new Error('Fortemi Knowledge Shard contract checksum mismatch');
+}
+const parsedContract = JSON.parse(contract.toString('utf8'));
 if (
-  manifest.format !== 'matric-shard'
-  || manifest.profile !== 'core-v1'
-  || manifest.version !== '1.0.0'
-  || manifest.min_reader_version !== '1.0.0'
+  parsedContract.contractRevision !== receipt.authority.contract.revision
+  || parsedContract.knowledgeShard?.schemaVersion !== receipt.currentSchemaVersion
+  || parsedContract.profiles?.[receipt.profile]?.supported !== true
 ) {
-  throw new Error('Pinned Knowledge Shard fixture has an unexpected contract identity');
+  throw new Error('Fortemi Knowledge Shard contract identity is unexpected');
+}
+
+for (const input of receipt.inputs) {
+  const localFixture = await readFile(resolve(hotmRoot, input.localPath));
+  const producerFixture = readProducerFile(input.producerPath);
+  const localSha256 = sha256(localFixture);
+  const producerSha256 = sha256(producerFixture);
+
+  if (localSha256 !== input.sha256) {
+    throw new Error(
+      `HotM fixture checksum mismatch for ${input.localPath}: ${localSha256} != ${input.sha256}`,
+    );
+  }
+  if (producerSha256 !== input.sha256) {
+    throw new Error(
+      `Fortemi fixture checksum mismatch for ${input.producerPath}: ${producerSha256} != ${input.sha256}`,
+    );
+  }
+  if (!localFixture.equals(producerFixture)) {
+    throw new Error(`HotM fixture differs from Fortemi authority: ${input.localPath}`);
+  }
+}
+
+const manifestVersions = receipt.inputs
+  .filter((input) => input.kind === 'manifest')
+  .map((input) => input.version)
+  .sort();
+if (
+  JSON.stringify(manifestVersions)
+  !== JSON.stringify([...receipt.acceptedSchemaVersions].sort())
+) {
+  throw new Error('Pinned manifest versions do not match the accepted migration window');
 }
 
 console.log(
-  `Fortemi Knowledge Shard fixture verified at ${PRODUCER_COMMIT}: ${EXPECTED_SHA256}`,
+  `Fortemi Knowledge Shard ${receipt.profile} fixtures verified at ${receipt.authority.commit} `
+  + `(revision ${receipt.authority.contract.revision}, schemas ${receipt.acceptedSchemaVersions.join(', ')})`,
 );

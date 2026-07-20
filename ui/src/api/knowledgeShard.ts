@@ -6,7 +6,12 @@ import type {
 } from './types-extended';
 
 export const SUPPORTED_KNOWLEDGE_SHARD_PROFILE: KnowledgeShardProfile = 'core-v1';
-export const SUPPORTED_KNOWLEDGE_SHARD_SCHEMA = '1.0.0';
+export const SUPPORTED_KNOWLEDGE_SHARD_SCHEMA = '1.2.0';
+export const SUPPORTED_KNOWLEDGE_SHARD_SCHEMAS = [
+  '1.0.0',
+  '1.1.0',
+  '1.2.0',
+] as const;
 export const SUPPORTED_KNOWLEDGE_SHARD_COMPONENTS: readonly KnowledgeShardComponent[] = [
   'notes',
   'collections',
@@ -20,6 +25,9 @@ const REGISTERED_PROFILES = new Set<KnowledgeShardProfile>([
   'full-v1',
   'record-v1',
 ]);
+const REGISTERED_CORE_SCHEMA_VERSIONS = new Set<string>(
+  SUPPORTED_KNOWLEDGE_SHARD_SCHEMAS,
+);
 const COMPONENT_FILENAMES: Record<KnowledgeShardComponent, string> = {
   notes: 'notes.jsonl',
   collections: 'collections.json',
@@ -149,9 +157,12 @@ function validateManifest(value: unknown): KnowledgeShardManifest {
   }
 
   parseStrictSemver(manifest.version, 'Knowledge shard schema version');
-  if (manifest.version !== SUPPORTED_KNOWLEDGE_SHARD_SCHEMA) {
+  if (
+    typeof manifest.version !== 'string'
+    || !REGISTERED_CORE_SCHEMA_VERSIONS.has(manifest.version)
+  ) {
     throw new Error(
-      `Knowledge shard schema ${String(manifest.version)} is unsupported; HotM accepts ${SUPPORTED_KNOWLEDGE_SHARD_SCHEMA}.`,
+      `Knowledge shard schema ${String(manifest.version)} is unsupported; HotM accepts ${SUPPORTED_KNOWLEDGE_SHARD_SCHEMAS.join(', ')}.`,
     );
   }
   const minimumReader = parseStrictSemver(

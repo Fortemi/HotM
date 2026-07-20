@@ -1,0 +1,42 @@
+metadata:
+  schema_version: "1.0.0"
+  created_at: "2026-07-20T20:03:43Z"
+  description: "Provenance for the historical Fortemi core-v1 1.0.0 manifest"
+entity:
+  id: "urn:aiwg:artifact:ui/src/api/contracts/fortemi-core-v1-v1.0-manifest.json"
+  type: test_fixture
+  created_at: "2026-07-20T20:03:43Z"
+  checksum: "sha256:fc9398a55f7afe66ad0e2fc94f6484c5312cc13b0b5e959071822a69b3f56214"
+  size_bytes: 1009
+  attributes:
+    change_scope: "hotm-269-knowledge-shard-contract"
+    producer_revision: "81fbeaf065df3818edd046ed8a744f10eeb00e6f"
+activity:
+  id: "urn:aiwg:activity:generation:fortemi-core-v1-v1-0-manifest:001"
+  type: generation
+  started_at: "2026-07-20T20:03:43Z"
+  ended_at: "2026-07-20T20:03:43Z"
+  description: "Vendor the exact historical schema 1.0.0 manifest"
+agent:
+  id: "urn:aiwg:agent:codex-gpt-5"
+  type: ai_assistant
+  name: "Codex"
+  version: "gpt-5"
+  tool: "codex"
+relationships:
+  wasGeneratedBy:
+    entity: "urn:aiwg:artifact:ui/src/api/contracts/fortemi-core-v1-v1.0-manifest.json"
+    activity: "urn:aiwg:activity:generation:fortemi-core-v1-v1-0-manifest:001"
+    time: "2026-07-20T20:03:43Z"
+  wasDerivedFrom:
+    - entity: "urn:aiwg:artifact:ui/src/api/contracts/fortemi-core-v1-v1.0-manifest.json"
+      source: "urn:git:git@git.integrolabs.net:Fortemi/fortemi.git:81fbeaf065df3818edd046ed8a744f10eeb00e6f:tests/fixtures/shards/core-v1-valid/manifest.json"
+      derivation_type: "derives_from"
+      activity: "urn:aiwg:activity:generation:fortemi-core-v1-v1-0-manifest:001"
+  wasAssociatedWith:
+    activity: "urn:aiwg:activity:generation:fortemi-core-v1-v1-0-manifest:001"
+    agent: "urn:aiwg:agent:codex-gpt-5"
+    role: "primary_author"
+  wasAttributedTo:
+    entity: "urn:aiwg:artifact:ui/src/api/contracts/fortemi-core-v1-v1.0-manifest.json"
+    agent: "urn:aiwg:agent:codex-gpt-5"

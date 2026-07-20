@@ -106,19 +106,22 @@ Required checks:
 
 Implemented consumer checks for HotM #269:
 
-- Vendor the producer `core-v1` manifest fixture from Fortemi commit
-  `2eb5c6b739b3bb6a042a35050a3ae89960dd3ed4` and verify digest
-  `4ed7e3b7d4845122653c95bcf2508a7f440cf067fe64ca493f0785519b9300f1`.
+- Vendor the producer `core-v1` manifest fixtures for registered schemas
+  `1.0.0`, `1.1.0`, and `1.2.0` from Fortemi commit
+  `81fbeaf065df3818edd046ed8a744f10eeb00e6f`; verify contract revision 19
+  and every manifest/component digest from the machine receipt.
 - Build a real gzip/TAR archive around that fixture in Vitest and exercise the
   production manifest parser rather than a URL-only mock.
-- Reject unknown/unsupported profile, schema, minimum reader, component, count,
-  checksum, malformed gzip, TAR, and manifest states before upload.
+- Reject unknown/unsupported profile, unregistered same-major or next-major
+  schema, minimum reader, component, count, checksum, malformed gzip, TAR, and
+  manifest states before upload.
 - Assert export sends only `include`, multipart upload reports server
   validation failures, and Backup Manager displays profile/schema without a
   lossless/full-recovery claim.
 
-These checks are a prerequisite, not a substitute, for the still-required live
-clean-server semantic roundtrip.
+The existing live clean-server and repeated-import receipt remains the
+end-to-end semantic proof for `core-v1`; the authority fixture gate keeps its
+version boundary current without widening the supported profile.
 
 ### 1D. Compatibility Negotiation
 

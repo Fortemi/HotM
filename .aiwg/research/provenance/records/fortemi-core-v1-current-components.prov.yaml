@@ -1,0 +1,43 @@
+metadata:
+  schema_version: "1.0.0"
+  created_at: "2026-07-20T20:03:43Z"
+  description: "Provenance for the exact Fortemi core-v1 component fixture set"
+entity:
+  id: "urn:aiwg:artifact:ui/src/api/contracts/fortemi-core-v1-current"
+  type: test_fixture
+  created_at: "2026-07-20T20:03:43Z"
+  checksum: "sha256:3ba21a0b99dd47f5f0073f39bee29a998c53ff4a683b028f34435d6744c7682b"
+  size_bytes: 2330
+  attributes:
+    change_scope: "hotm-269-knowledge-shard-contract"
+    producer_revision: "81fbeaf065df3818edd046ed8a744f10eeb00e6f"
+    member_checksums: "Recorded individually in ui/src/api/contracts/fortemi-knowledge-shard-receipt.json"
+activity:
+  id: "urn:aiwg:activity:generation:fortemi-core-v1-components:001"
+  type: generation
+  started_at: "2026-07-20T20:03:43Z"
+  ended_at: "2026-07-20T20:03:43Z"
+  description: "Vendor exact current component bytes plus the historical 1.0 note record"
+agent:
+  id: "urn:aiwg:agent:codex-gpt-5"
+  type: ai_assistant
+  name: "Codex"
+  version: "gpt-5"
+  tool: "codex"
+relationships:
+  wasGeneratedBy:
+    entity: "urn:aiwg:artifact:ui/src/api/contracts/fortemi-core-v1-current"
+    activity: "urn:aiwg:activity:generation:fortemi-core-v1-components:001"
+    time: "2026-07-20T20:03:43Z"
+  wasDerivedFrom:
+    - entity: "urn:aiwg:artifact:ui/src/api/contracts/fortemi-core-v1-current"
+      source: "urn:git:git@git.integrolabs.net:Fortemi/fortemi.git:81fbeaf065df3818edd046ed8a744f10eeb00e6f:tests/fixtures/shards/core-v1-v1.2-valid"
+      derivation_type: "derives_from"
+      activity: "urn:aiwg:activity:generation:fortemi-core-v1-components:001"
+  wasAssociatedWith:
+    activity: "urn:aiwg:activity:generation:fortemi-core-v1-components:001"
+    agent: "urn:aiwg:agent:codex-gpt-5"
+    role: "primary_author"
+  wasAttributedTo:
+    entity: "urn:aiwg:artifact:ui/src/api/contracts/fortemi-core-v1-current"
+    agent: "urn:aiwg:agent:codex-gpt-5"

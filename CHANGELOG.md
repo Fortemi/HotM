@@ -18,8 +18,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   schema-bearing RFC 9457 rate-limit response.
 - **Knowledge Shard upload preflight (#269):** validates the actual TAR
   component inventory, SHA-256 digests, JSON records, and record counts before
-  sending a `core-v1` archive to Fortemi, and suppresses post-import inference
-  so the restored portable snapshot is not immediately mutated.
+  sending a `core-v1` archive to Fortemi, accepts the exact registered schema
+  migration window (`1.0.0`, `1.1.0`, and `1.2.0`), and suppresses post-import
+  inference so the restored portable snapshot is not immediately mutated.
 
 ## [2026.6.0] - 2026-06-02
 

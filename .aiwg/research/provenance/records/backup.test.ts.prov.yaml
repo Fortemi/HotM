@@ -1,0 +1,42 @@
+metadata:
+  schema_version: "1.0.0"
+  created_at: "2026-07-20T20:06:30Z"
+  description: "Provenance for the HotM #269 current Knowledge Shard API identity assertion"
+entity:
+  id: "urn:aiwg:artifact:ui/src/api/__tests__/backup.test.ts"
+  type: test
+  created_at: "2026-07-20T20:06:30Z"
+  checksum: "sha256:11e724d7561f7321bc6804df487f7da7e341c0b94274cb999b614d73b45f3b9c"
+  size_bytes: 14452
+  attributes:
+    change_scope: "hotm-269-knowledge-shard-contract"
+    base_revision: "b35410c5c332a15e36cf84019f110100a7c9e8f1"
+activity:
+  id: "urn:aiwg:activity:modification:backup-test-current-shard:001"
+  type: modification
+  started_at: "2026-07-20T20:06:30Z"
+  ended_at: "2026-07-20T20:06:30Z"
+  description: "Assert the current core-v1 schema 1.2.0 export and import identity"
+agent:
+  id: "urn:aiwg:agent:codex-gpt-5"
+  type: ai_assistant
+  name: "Codex"
+  version: "gpt-5"
+  tool: "codex"
+relationships:
+  wasGeneratedBy:
+    entity: "urn:aiwg:artifact:ui/src/api/__tests__/backup.test.ts"
+    activity: "urn:aiwg:activity:modification:backup-test-current-shard:001"
+    time: "2026-07-20T20:06:30Z"
+  wasDerivedFrom:
+    - entity: "urn:aiwg:artifact:ui/src/api/__tests__/backup.test.ts"
+      source: "urn:aiwg:artifact:ui/src/api/knowledgeShard.ts"
+      derivation_type: "tests"
+      activity: "urn:aiwg:activity:modification:backup-test-current-shard:001"
+  wasAssociatedWith:
+    activity: "urn:aiwg:activity:modification:backup-test-current-shard:001"
+    agent: "urn:aiwg:agent:codex-gpt-5"
+    role: "primary_author"
+  wasAttributedTo:
+    entity: "urn:aiwg:artifact:ui/src/api/__tests__/backup.test.ts"
+    agent: "urn:aiwg:agent:codex-gpt-5"

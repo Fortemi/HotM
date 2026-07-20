@@ -1,22 +1,24 @@
 metadata:
   schema_version: "1.0.0"
   created_at: "2026-07-17T20:47:53Z"
+  updated_at: "2026-07-20T20:03:43Z"
   description: "Provenance for the HotM #269 pinned Fortemi core-v1 manifest fixture"
 entity:
   id: "urn:aiwg:artifact:ui/src/api/contracts/fortemi-core-v1-manifest.json"
   type: test_fixture
   created_at: "2026-07-17T20:47:53Z"
-  checksum: "sha256:4ed7e3b7d4845122653c95bcf2508a7f440cf067fe64ca493f0785519b9300f1"
-  size_bytes: 619
+  updated_at: "2026-07-20T20:03:43Z"
+  checksum: "sha256:246b89d6ca1d2e2c4a19b650e4cebe7825b69d39306280e281f4a94c80c2b008"
+  size_bytes: 1014
   attributes:
     change_scope: "hotm-269-knowledge-shard-contract"
-    producer_revision: "2eb5c6b739b3bb6a042a35050a3ae89960dd3ed4"
+    producer_revision: "81fbeaf065df3818edd046ed8a744f10eeb00e6f"
 activity:
   id: "urn:aiwg:activity:generation:fortemi-core-v1-manifest-json:001"
   type: generation
   started_at: "2026-07-17T20:47:53Z"
-  ended_at: "2026-07-17T20:47:53Z"
-  description: "Vendor the exact Fortemi core-v1 current-schema manifest fixture"
+  ended_at: "2026-07-20T20:03:43Z"
+  description: "Vendor the exact Fortemi core-v1 schema 1.2.0 manifest fixture"
 agent:
   id: "urn:aiwg:agent:codex-gpt-5"
   type: ai_assistant
@@ -27,10 +29,10 @@ relationships:
   wasGeneratedBy:
     entity: "urn:aiwg:artifact:ui/src/api/contracts/fortemi-core-v1-manifest.json"
     activity: "urn:aiwg:activity:generation:fortemi-core-v1-manifest-json:001"
-    time: "2026-07-17T20:47:53Z"
+    time: "2026-07-20T20:03:43Z"
   wasDerivedFrom:
     - entity: "urn:aiwg:artifact:ui/src/api/contracts/fortemi-core-v1-manifest.json"
-      source: "urn:git:git@git.integrolabs.net:Fortemi/fortemi.git:2eb5c6b739b3bb6a042a35050a3ae89960dd3ed4:tests/fixtures/shards/v1.0.0-minimal.json"
+      source: "urn:git:git@git.integrolabs.net:Fortemi/fortemi.git:81fbeaf065df3818edd046ed8a744f10eeb00e6f:tests/fixtures/shards/core-v1-v1.2-valid/manifest.json"
       derivation_type: "derives_from"
       activity: "urn:aiwg:activity:generation:fortemi-core-v1-manifest-json:001"
   wasAssociatedWith:

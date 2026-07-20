@@ -141,14 +141,14 @@ describe('Backup API', () => {
 
     const exported = await backupApi.exportKnowledgeShard({ include: ['notes', 'tags'] });
     expect(exported.blob.size).toBeGreaterThan(0);
-    expect(exported.manifest).toMatchObject({ profile: 'core-v1', version: '1.0.0' });
+    expect(exported.manifest).toMatchObject({ profile: 'core-v1', version: '1.2.0' });
     expect(mockFetch).toHaveBeenCalledWith(
       'http://localhost:3000/backup/knowledge-shard?include=notes%2Ctags',
       { headers: { 'X-Fortemi-Memory': 'research' } },
     );
 
     await expect(backupApi.importKnowledgeShard(shard)).resolves.toMatchObject({
-      manifest: { profile: 'core-v1', version: '1.0.0' },
+      manifest: { profile: 'core-v1', version: '1.2.0' },
     });
     expect(mockClient.post).toHaveBeenCalledWith('/backup/knowledge-shard/import', {
       shard_base64: expect.any(String),
@@ -165,7 +165,7 @@ describe('Backup API', () => {
         skipEmbeddingRegen: true,
       }),
     ).resolves.toEqual({
-      manifest: expect.objectContaining({ profile: 'core-v1', version: '1.0.0' }),
+      manifest: expect.objectContaining({ profile: 'core-v1', version: '1.2.0' }),
       response: { status: 'success' },
     });
     expect(mockFetch).toHaveBeenCalledWith(
