@@ -8,11 +8,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Fixed
 
+- Preserve Fortemi's explicit `degraded` capability state in compatibility
+  normalization and both administrator status views instead of collapsing it
+  to `unknown`, retaining the server's reason code for operator diagnosis
+  (#252).
 - Reset Backup Manager API mock implementations between UI test cases so
   queued one-shot results cannot make the quality gate order-dependent (#271).
 
 ### Changed
 
+- **Vault-backed release authority:** ordinary commits and stable release tags
+  use distinct OpenBao-custodied GPG keys through TPM-sealed AppRoles. Private
+  material stays in tmpfs, exact fingerprints are verified, and desktop release
+  jobs reject tags not signed by the published release key.
 - **Fortemi OpenAPI consumer gate (#270):** repinned the immutable producer
   artifact and now requires every delivered operation to retain its
   schema-bearing RFC 9457 rate-limit response.

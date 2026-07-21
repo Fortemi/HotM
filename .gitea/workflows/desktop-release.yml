@@ -30,8 +30,39 @@ env:
 # Linux — AppImage + deb
 # ---------------------------------------------------------------------------
 jobs:
+  verify-tag:
+    name: Verify signed release tag
+    runs-on: ubuntu-22.04
+    timeout-minutes: 10
+    steps:
+      - name: Resolve release tag
+        shell: bash
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "RELEASE_TAG=${{ inputs.tag }}" >> "$GITHUB_ENV"
+          else
+            echo "RELEASE_TAG=${GITHUB_REF_NAME}" >> "$GITHUB_ENV"
+          fi
+
+      - name: Checkout tag object
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          REPO_URL="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}.git"
+          AUTH_URL="${REPO_URL/https:\/\//https:\/\/x-access-token:${GITHUB_TOKEN}@}"
+          git init . && git remote add origin "$AUTH_URL"
+          git fetch --depth=1 origin "refs/tags/${RELEASE_TAG}:refs/tags/${RELEASE_TAG}"
+          git checkout --force "${RELEASE_TAG}^{commit}"
+
+      - name: Verify release signature
+        shell: bash
+        run: tools/ci/verify-signed-tag.sh "$RELEASE_TAG"
+
   build-linux:
     name: Release Linux (AppImage + deb)
+    needs: verify-tag
     runs-on: ubuntu-22.04
     timeout-minutes: 60
 
@@ -211,6 +242,7 @@ jobs:
 # ---------------------------------------------------------------------------
   build-macos:
     name: Release macOS DMG (via mutsu)
+    needs: verify-tag
     runs-on: ubuntu-22.04
     timeout-minutes: 60
 
