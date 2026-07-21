@@ -4,6 +4,7 @@ import { getTauriFetch } from '@/lib/tauri';
 
 export type SystemCapabilityState =
   | 'available'
+  | 'degraded'
   | 'preview'
   | 'unavailable'
   | 'unknown';
@@ -50,7 +51,7 @@ function normalizeCapability(raw: unknown): SystemCapability {
 
   const value = raw as Record<string, unknown>;
   const state = typeof value.state === 'string' ? value.state : 'unknown';
-  const normalizedState: SystemCapabilityState = ['available', 'preview', 'unavailable', 'unknown'].includes(state)
+  const normalizedState: SystemCapabilityState = ['available', 'degraded', 'preview', 'unavailable', 'unknown'].includes(state)
     ? state as SystemCapabilityState
     : 'unknown';
   const reasonCode = typeof value.reason_code === 'string' ? value.reason_code : undefined;

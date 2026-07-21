@@ -247,7 +247,7 @@ function hostedAuthPreviewRows(compatibility: SystemCompatibilityResponse | null
   ];
 }
 
-type CatalogStatus = 'available' | 'unavailable' | 'license required' | 'admin required' | 'preview only' | 'unknown';
+type CatalogStatus = 'available' | 'degraded' | 'unavailable' | 'license required' | 'admin required' | 'preview only' | 'unknown';
 type BackofficePanelStatus = 'enabled' | 'disabled' | 'degraded' | 'preview-only' | 'unavailable' | 'unknown';
 
 function catalogVariant(status: CatalogStatus): 'default' | 'secondary' | 'destructive' | 'outline' {
@@ -265,6 +265,7 @@ function catalogStatusFromCapability(
   const capability = compatibility.capabilities[key];
   if (!capability) return 'unknown';
   if (capability.state === 'available') return 'available';
+  if (capability.state === 'degraded') return 'degraded';
   if (capability.state === 'preview') return 'preview only';
   if (capability.state === 'unavailable') return 'unavailable';
   return 'unknown';
@@ -353,6 +354,7 @@ function panelStatusFromCapability(
   const capability = compatibility.capabilities[key];
   if (!capability) return 'unknown';
   if (capability.state === 'available') return 'enabled';
+  if (capability.state === 'degraded') return 'degraded';
   if (capability.state === 'preview') return 'preview-only';
   if (capability.state === 'unavailable') return 'unavailable';
   return 'unknown';

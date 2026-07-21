@@ -171,6 +171,7 @@ describe('api.systemCompatibility', () => {
         },
         capabilities: {
           core_notes: { state: 'available' },
+          realtime_activity: { state: 'degraded', reason_code: 'streaming_health_degraded' },
           future_surface: { state: 'experimental' },
           malformed_surface: true,
         },
@@ -191,6 +192,10 @@ describe('api.systemCompatibility', () => {
       expect.objectContaining({ method: 'GET' })
     );
     expect(result.capabilities.core_notes).toEqual({ state: 'available' });
+    expect(result.capabilities.realtime_activity).toEqual({
+      state: 'degraded',
+      reason_code: 'streaming_health_degraded',
+    });
     expect(result.capabilities.future_surface).toEqual({ state: 'unknown' });
     expect(result.capabilities.malformed_surface).toEqual({ state: 'unknown' });
   });
