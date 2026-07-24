@@ -1,0 +1,47 @@
+metadata:
+  schema_version: "1.0.0"
+  created_at: "2026-07-24T23:15:41Z"
+  description: "Provenance for the HotM v2026.7.0 GitHub mirror repair receipt"
+entity:
+  id: "urn:aiwg:artifact:.aiwg/evidence/hotm-v2026.7.0-github-mirror-repair-2026-07-24.json"
+  type: data
+  created_at: "2026-07-24T23:15:41Z"
+  checksum: "sha256:789411338303bf38c2af966332b590bca3ff86d50b8218c01ccd3278b164c935"
+  size_bytes: 2228
+  attributes:
+    change_scope: "hotm-274-github-release-mirror"
+    authority_tag_object: "55fa684440aba637dd39c95c50319096482b40a7"
+    release_commit: "2bea7538b2b568309e317928768d497d09ddc8b5"
+activity:
+  id: "urn:aiwg:activity:generation:hotm-v2026.7.0-github-mirror-repair:001"
+  type: generation
+  started_at: "2026-07-24T23:15:00Z"
+  ended_at: "2026-07-24T23:15:41Z"
+  description: "Capture exact tag-object, release-metadata, asset-inventory, and asset-byte equivalence after the authorized GitHub mirror repair"
+agent: &agent
+  id: "urn:aiwg:agent:codex-gpt-5"
+  type: ai_assistant
+  name: "Codex"
+  version: "gpt-5"
+  tool: "codex"
+relationships:
+  wasGeneratedBy:
+    entity: "urn:aiwg:artifact:.aiwg/evidence/hotm-v2026.7.0-github-mirror-repair-2026-07-24.json"
+    activity: "urn:aiwg:activity:generation:hotm-v2026.7.0-github-mirror-repair:001"
+    time: "2026-07-24T23:15:41Z"
+  wasDerivedFrom:
+    - entity: "urn:aiwg:artifact:.aiwg/evidence/hotm-v2026.7.0-github-mirror-repair-2026-07-24.json"
+      source: "urn:git:git@git.integrolabs.net:Fortemi/HotM.git:55fa684440aba637dd39c95c50319096482b40a7"
+      derivation_type: "verifies"
+      activity: "urn:aiwg:activity:generation:hotm-v2026.7.0-github-mirror-repair:001"
+    - entity: "urn:aiwg:artifact:.aiwg/evidence/hotm-v2026.7.0-github-mirror-repair-2026-07-24.json"
+      source: "https://github.com/Fortemi/HotM/releases/tag/v2026.7.0"
+      derivation_type: "observes"
+      activity: "urn:aiwg:activity:generation:hotm-v2026.7.0-github-mirror-repair:001"
+  wasAssociatedWith:
+    activity: "urn:aiwg:activity:generation:hotm-v2026.7.0-github-mirror-repair:001"
+    agent: "urn:aiwg:agent:codex-gpt-5"
+    role: "primary_author"
+  wasAttributedTo:
+    entity: "urn:aiwg:artifact:.aiwg/evidence/hotm-v2026.7.0-github-mirror-repair-2026-07-24.json"
+    agent: "urn:aiwg:agent:codex-gpt-5"

@@ -1,0 +1,72 @@
+{
+  "schemaVersion": "1.0.0",
+  "capturedAt": "2026-07-24T23:15:41Z",
+  "issue": "https://git.integrolabs.net/Fortemi/HotM/issues/274",
+  "relatedIssues": [
+    "https://git.integrolabs.net/Fortemi/HotM/issues/273",
+    "https://git.integrolabs.net/Fortemi/fortemi/issues/1081"
+  ],
+  "authority": {
+    "provider": "Gitea",
+    "releaseUrl": "https://git.integrolabs.net/Fortemi/HotM/releases/tag/v2026.7.0"
+  },
+  "mirror": {
+    "provider": "GitHub",
+    "releaseUrl": "https://github.com/Fortemi/HotM/releases/tag/v2026.7.0"
+  },
+  "tag": {
+    "name": "v2026.7.0",
+    "objectType": "tag",
+    "objectSha": "55fa684440aba637dd39c95c50319096482b40a7",
+    "peeledCommitSha": "2bea7538b2b568309e317928768d497d09ddc8b5",
+    "signatureEnvelopePresent": true
+  },
+  "assets": [
+    {
+      "name": "HotM_2026.7.0_aarch64.dmg",
+      "sizeBytes": 28766124,
+      "sha256": "3a7ca504ddfd7a3a16448d967f167d579a6f285bd39b81b7503b55c7acbdd9c7"
+    },
+    {
+      "name": "HotM_2026.7.0_amd64.AppImage",
+      "sizeBytes": 118233592,
+      "sha256": "9ab3bbe387f056c949a351fd4d6e6f8e7cb98501d90368eb6a0db06fff68d7fc"
+    },
+    {
+      "name": "HotM_2026.7.0_amd64.deb",
+      "sizeBytes": 32336256,
+      "sha256": "d855c0bf658c8d0129edf46851b0f2006bf6e04de99cff71260fad26d8cf1c11"
+    },
+    {
+      "name": "SHA256SUMS-macos.txt",
+      "sizeBytes": 92,
+      "sha256": "763a4e93a754a92cf5c6a948474a03cb9fc3125cddec734308a7b71ebce87a86"
+    },
+    {
+      "name": "SHA256SUMS.txt",
+      "sizeBytes": 185,
+      "sha256": "3c4f09fad18e24e3d32f7468ffc032181ba8fe6ca84b952e286812bceff0c3a1"
+    },
+    {
+      "name": "hotm-ui-dist.tar.gz",
+      "sizeBytes": 3137249,
+      "sha256": "e3df8d4f7a8c9940690e7e6e26f4ae978e1303d7f4b5f7567c116051dd893b9b"
+    }
+  ],
+  "verification": {
+    "command": "tools/release/verify-release-mirror.sh v2026.7.0",
+    "result": "pass",
+    "assetCount": 6,
+    "metadataEquivalent": true,
+    "assetInventoryEquivalent": true,
+    "assetBytesEquivalent": true
+  },
+  "claimBoundary": {
+    "releaseMirrorEquivalent": true,
+    "signingAuthority": "Gitea",
+    "recoveryProfile": "core-v1",
+    "fullV1Interoperability": false,
+    "completeBackup": false,
+    "suiteWidePortability": false
+  }
+}

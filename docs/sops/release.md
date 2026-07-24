@@ -25,13 +25,26 @@
    - Web SPA: `cd ui && npm ci && npm run build`
    - Docker: `docker compose -f docker-compose.prod.yml build`
 7. Verify environment config for target backend (`VITE_API_BASE_URL`).
-8. Verify the Gitea release and GitHub release contain the same downloadable assets. The CI mirror path uses:
+8. Mirror the release only after the exact signed tag object and peeled commit
+   match between Gitea and GitHub:
 
    ```bash
    tools/release/mirror-gitea-release-to-github.sh v<YYYY.M.PATCH>
    ```
 
-   The script is idempotent and can be used to backfill historical releases from Gitea to GitHub.
+   The script is idempotent and can be used to backfill historical releases
+   from Gitea to GitHub. It synchronizes release metadata and assets, then
+   downloads both copies and requires identical SHA-256 values.
+9. Run the public, secret-free verification independently:
+
+   ```bash
+   tools/release/verify-release-mirror.sh v<YYYY.M.PATCH>
+   ```
+
+   The scheduled `Release Mirror Provenance` workflow runs the same check for
+   the latest Gitea release. A lightweight tag, a different annotated tag
+   object, a different peeled commit, metadata drift, an extra/missing asset,
+   or any asset-byte difference fails the workflow.
 
 ## Rollback
 - Use previous tag/build artifact.

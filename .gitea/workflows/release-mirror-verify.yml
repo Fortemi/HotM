@@ -1,0 +1,51 @@
+name: Release Mirror Provenance
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Optional release tag; defaults to the latest Gitea release
+        required: false
+        type: string
+  schedule:
+    - cron: '23 9 * * *'
+  push:
+    branches: [main]
+    paths:
+      - 'tools/release/mirror-gitea-release-to-github.sh'
+      - 'tools/release/verify-release-mirror.sh'
+      - '.gitea/workflows/release-mirror-verify.yml'
+
+jobs:
+  verify:
+    name: Verify exact tag and assets
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout
+        shell: bash
+        run: |
+          set -euo pipefail
+          git clone --depth 1 \
+            "https://token:${{ github.token }}@git.integrolabs.net/${GITHUB_REPOSITORY}.git" .
+          git checkout "${GITHUB_SHA:-HEAD}"
+
+      - name: Install verification dependencies
+        run: |
+          apt-get update -qq
+          apt-get install -y --no-install-recommends ca-certificates coreutils curl git jq
+
+      - name: Verify current release mirror
+        shell: bash
+        env:
+          REQUESTED_TAG: ${{ inputs.tag }}
+        run: |
+          set -euo pipefail
+          tag="${REQUESTED_TAG:-}"
+          if [[ -z "$tag" ]]; then
+            tag="$(
+              curl -fsSL \
+                https://git.integrolabs.net/api/v1/repos/Fortemi/HotM/releases/latest |
+                jq -er '.tag_name'
+            )"
+          fi
+          tools/release/verify-release-mirror.sh "$tag"

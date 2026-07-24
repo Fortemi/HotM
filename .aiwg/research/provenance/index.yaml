@@ -1,7 +1,7 @@
 metadata:
   schema_version: "1.0.0"
-  updated_at: "2026-07-24T09:57:24Z"
-  record_count: 39
+  updated_at: "2026-07-24T23:15:41Z"
+  record_count: 40
 records:
   - entity: "urn:aiwg:artifact:.aiwg/architecture/adr/ADR-010-fortemi-v2026-07-api-coverage.md"
     record: "records/ADR-010-fortemi-v2026-07-api-coverage.md.prov.yaml"
@@ -53,6 +53,8 @@ records:
     record: "records/fortemi-v2026-07-fixture-catalog.md.prov.yaml"
   - entity: "urn:aiwg:artifact:.aiwg/evidence/hotm-full-v1-clean-recovery-preflight-2026-07-24.json"
     record: "records/hotm-full-v1-clean-recovery-preflight-2026-07-24.json.prov.yaml"
+  - entity: "urn:aiwg:artifact:.aiwg/evidence/hotm-v2026.7.0-github-mirror-repair-2026-07-24.json"
+    record: "records/hotm-v2026.7.0-github-mirror-repair-2026-07-24.json.prov.yaml"
   - entity: "urn:aiwg:artifact:ui/src/api/index.ts"
     record: "records/index.ts.prov.yaml"
   - entity: "urn:aiwg:artifact:ui/src/api/__tests__/knowledgeShard.test.ts"
