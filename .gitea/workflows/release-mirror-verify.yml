@@ -29,11 +29,6 @@ jobs:
             "https://token:${{ github.token }}@git.integrolabs.net/${GITHUB_REPOSITORY}.git" .
           git checkout "${GITHUB_SHA:-HEAD}"
 
-      - name: Install verification dependencies
-        run: |
-          apt-get update -qq
-          apt-get install -y --no-install-recommends ca-certificates coreutils curl git jq
-
       - name: Verify current release mirror
         shell: bash
         env:
