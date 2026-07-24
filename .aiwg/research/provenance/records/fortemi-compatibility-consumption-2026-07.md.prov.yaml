@@ -1,22 +1,24 @@
 metadata:
   schema_version: "1.0.0"
   created_at: "2026-07-17T19:16:22Z"
-  description: "Provenance for integration-contract documentation update"
+  updated_at: "2026-07-24T08:10:00Z"
+  description: "Provenance for HotM #244 compatibility fail-closed documentation"
 entity:
   id: "urn:aiwg:artifact:.aiwg/architecture/fortemi-compatibility-consumption-2026-07.md"
   type: document
   created_at: "2026-07-17T19:16:22Z"
-  checksum: "sha256:557d94be9d19377073d405f61fc193413b65e2be79bb2a0825dc937fe752875f"
-  size_bytes: 7713
+  updated_at: "2026-07-24T08:10:00Z"
+  checksum: "sha256:a431acefa94d260f08f51059d0f1c915835afe272f9dc1bfa6d0b2340ab458ff"
+  size_bytes: 8540
   attributes:
-    change_scope: "suite-integration-contract"
+    change_scope: "hotm-244-compatibility-guard"
     base_revision: "7e331525ad222f848947ada45c44d8577a7a5dab"
 activity:
   id: "urn:aiwg:activity:modification:aiwg-architecture-fortemi-compatibility-consumption-2026-07-md:001"
   type: modification
   started_at: "2026-07-17T19:16:22Z"
-  ended_at: "2026-07-17T19:16:22Z"
-  description: "Align integration architecture, requirements, tests, and current-state claims"
+  ended_at: "2026-07-24T08:10:00Z"
+  description: "Document exact schema, revision, and minimum-client compatibility gates"
 agent:
   id: "urn:aiwg:agent:codex-gpt-5"
   type: ai_assistant
@@ -32,7 +34,7 @@ relationships:
   wasGeneratedBy:
     entity: "urn:aiwg:artifact:.aiwg/architecture/fortemi-compatibility-consumption-2026-07.md"
     activity: "urn:aiwg:activity:modification:aiwg-architecture-fortemi-compatibility-consumption-2026-07-md:001"
-    time: "2026-07-17T19:16:22Z"
+    time: "2026-07-24T08:10:00Z"
   used:
     - activity: "urn:aiwg:activity:modification:aiwg-architecture-fortemi-compatibility-consumption-2026-07-md:001"
       entity: "urn:git:git@git.integrolabs.net:Fortemi/HotM.git:7e331525ad222f848947ada45c44d8577a7a5dab:.aiwg/architecture/fortemi-compatibility-consumption-2026-07.md"

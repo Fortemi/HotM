@@ -1,0 +1,42 @@
+metadata:
+  schema_version: "1.0.0"
+  created_at: "2026-07-24T08:10:00Z"
+  description: "Provenance for the HotM #244 compatibility guard tests"
+entity:
+  id: "urn:aiwg:artifact:ui/src/api/__tests__/systemCompatibility.test.ts"
+  type: test
+  created_at: "2026-07-24T08:10:00Z"
+  checksum: "sha256:1c71d4e41de15727759584403cce45b61194ac0ab5a3ea27ae221dd75986d1d5"
+  size_bytes: 3574
+  attributes:
+    change_scope: "hotm-244-compatibility-guard"
+    base_revision: "cd344f019f5d31965b804f7f6714647994cdc9dd"
+activity:
+  id: "urn:aiwg:activity:generation:system-compatibility-test:001"
+  type: generation
+  started_at: "2026-07-24T08:10:00Z"
+  ended_at: "2026-07-24T08:10:00Z"
+  description: "Exercise accepted compatibility and fail-closed schema, revision, and client-version cases"
+agent: &agent
+  id: "urn:aiwg:agent:codex-gpt-5"
+  type: ai_assistant
+  name: "Codex"
+  version: "gpt-5"
+  tool: "codex"
+relationships:
+  wasGeneratedBy:
+    entity: "urn:aiwg:artifact:ui/src/api/__tests__/systemCompatibility.test.ts"
+    activity: "urn:aiwg:activity:generation:system-compatibility-test:001"
+    time: "2026-07-24T08:10:00Z"
+  wasDerivedFrom:
+    - entity: "urn:aiwg:artifact:ui/src/api/__tests__/systemCompatibility.test.ts"
+      source: "urn:aiwg:artifact:ui/src/api/systemCompatibility.ts"
+      derivation_type: "tests"
+      activity: "urn:aiwg:activity:generation:system-compatibility-test:001"
+  wasAssociatedWith:
+    activity: "urn:aiwg:activity:generation:system-compatibility-test:001"
+    agent: "urn:aiwg:agent:codex-gpt-5"
+    role: "primary_author"
+  wasAttributedTo:
+    entity: "urn:aiwg:artifact:ui/src/api/__tests__/systemCompatibility.test.ts"
+    agent: "urn:aiwg:agent:codex-gpt-5"

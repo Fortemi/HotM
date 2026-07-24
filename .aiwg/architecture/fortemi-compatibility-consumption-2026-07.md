@@ -93,3 +93,18 @@ Initial route consumption is implemented in `ui/src/api/systemCompatibility.ts` 
 ## Target-State Release Gate
 
 Production compatibility is established only when a pinned Fortemi compatibility fixture matrix passes, the corresponding OpenAPI and AsyncAPI revisions are accepted, any Knowledge Shard profile used by Backup Manager passes cross-repository golden tests, and the auth claim-contract version is supported. Until then, the existing implementation is capability-display evidence, not full suite interoperability evidence.
+
+## 2026-07-24 Contract Boundary Receipt
+
+The client now enforces compatibility schema `1`, contract revision
+`2026-07-06`, and `minimum_hotm_enterprise_client` before it normalizes any
+capability. The comparison uses the exact version from `ui/package.json`.
+Unsupported schema/revision, malformed minimum policy, and unmet minimum
+produce typed contract errors and therefore use the existing
+unavailable/degraded UI behavior; local workflows remain visible.
+
+`ui/src/api/__tests__/systemCompatibility.test.ts` covers supported, equal
+minimum, checkpoint prerelease, future revision, too-old client, malformed
+minimum, and unsupported schema. Existing API/panel tests retain the
+unreachable state. This is the HotM #244 consumer receipt; it does not collapse
+the independent OpenAPI, AsyncAPI, Knowledge Shard, or auth gates.

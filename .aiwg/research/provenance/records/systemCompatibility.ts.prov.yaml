@@ -1,0 +1,42 @@
+metadata:
+  schema_version: "1.0.0"
+  created_at: "2026-07-24T08:10:00Z"
+  description: "Provenance for the HotM #244 compatibility contract guard"
+entity:
+  id: "urn:aiwg:artifact:ui/src/api/systemCompatibility.ts"
+  type: source_code
+  created_at: "2026-07-24T08:10:00Z"
+  checksum: "sha256:ea78e456941e5d7c6c955667e2fef1c7e74ab20f805d056b9fcf58d262947405"
+  size_bytes: 6331
+  attributes:
+    change_scope: "hotm-244-compatibility-guard"
+    base_revision: "cd344f019f5d31965b804f7f6714647994cdc9dd"
+activity:
+  id: "urn:aiwg:activity:modification:system-compatibility-ts:001"
+  type: modification
+  started_at: "2026-07-24T08:10:00Z"
+  ended_at: "2026-07-24T08:10:00Z"
+  description: "Fail closed on unsupported schema, stale revision, or unsatisfied minimum client version"
+agent: &agent
+  id: "urn:aiwg:agent:codex-gpt-5"
+  type: ai_assistant
+  name: "Codex"
+  version: "gpt-5"
+  tool: "codex"
+relationships:
+  wasGeneratedBy:
+    entity: "urn:aiwg:artifact:ui/src/api/systemCompatibility.ts"
+    activity: "urn:aiwg:activity:modification:system-compatibility-ts:001"
+    time: "2026-07-24T08:10:00Z"
+  wasDerivedFrom:
+    - entity: "urn:aiwg:artifact:ui/src/api/systemCompatibility.ts"
+      source: "urn:git:git@git.integrolabs.net:Fortemi/HotM.git:cd344f019f5d31965b804f7f6714647994cdc9dd:ui/src/api/systemCompatibility.ts"
+      derivation_type: "modifies"
+      activity: "urn:aiwg:activity:modification:system-compatibility-ts:001"
+  wasAssociatedWith:
+    activity: "urn:aiwg:activity:modification:system-compatibility-ts:001"
+    agent: "urn:aiwg:agent:codex-gpt-5"
+    role: "primary_author"
+  wasAttributedTo:
+    entity: "urn:aiwg:artifact:ui/src/api/systemCompatibility.ts"
+    agent: "urn:aiwg:agent:codex-gpt-5"
