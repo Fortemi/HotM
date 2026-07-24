@@ -892,5 +892,5 @@ animation: slide-up 300ms ease-out;
 ## Related Specifications
 
 - [UX Design Document](../fortemi-integration-ux-design.md)
-- [Version History API](/mnt/dev-inbox/fortemi/fortemi/docs/content/api.md#version-endpoints)
+- [Version History API](https://git.integrolabs.net/Fortemi/fortemi/src/branch/main/docs/content/api.md#version-endpoints)
 - [Knowledge Health Dashboard](./04-knowledge-health-dashboard.md) (Version metrics)

@@ -912,5 +912,5 @@ transform: translateY(75%);   /* 25% preview */
 ## Related Specifications
 
 - [UX Design Document](../fortemi-integration-ux-design.md)
-- [Memory Search API](/mnt/dev-inbox/fortemi/fortemi/docs/content/api.md#memory-search)
+- [Memory Search API](https://git.integrolabs.net/Fortemi/fortemi/src/branch/main/docs/content/api.md#memory-search)
 - [File Attachments Wireframe](./02-file-attachments-panel.md) (GPS integration)

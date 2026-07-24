@@ -62,7 +62,7 @@ HotM (Hall of the Mind) is a React SPA that consumes the Fortemi API for note-ta
 
 ## Releases
 
-- [Changelog](../CHANGELOG.md) — version history
+- [Changelog](https://git.integrolabs.net/Fortemi/HotM/src/branch/main/CHANGELOG.md) — version history
 - [Release Notes](releases/) — detailed release announcements
 
 ## Scope Rules

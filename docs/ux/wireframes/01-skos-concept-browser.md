@@ -663,5 +663,5 @@ Opacity: 0 → 1 (open)
 ## Related Specifications
 
 - [UX Design Document](../fortemi-integration-ux-design.md)
-- [SKOS API Endpoints](/mnt/dev-inbox/fortemi/fortemi/docs/content/api.md#skos-endpoints)
+- [SKOS API Endpoints](https://git.integrolabs.net/Fortemi/fortemi/src/branch/main/docs/content/api.md#skos-endpoints)
 - [Accessibility Guidelines](https://www.w3.org/WAI/ARIA/apg/patterns/treeview/)

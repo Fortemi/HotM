@@ -1689,7 +1689,7 @@ Features accessible from multiple entry points:
 - **Icon Set**: Lucide React (https://lucide.dev)
 
 ### API Endpoints Reference
-See [Fortemi API Documentation](/mnt/dev-inbox/fortemi/fortemi/docs/content/api.md)
+See [Fortemi API Documentation](https://git.integrolabs.net/Fortemi/fortemi/src/branch/main/docs/content/api.md)
 
 ### Accessibility Guidelines
 - **WCAG 2.1 Level AA**: https://www.w3.org/WAI/WCAG21/quickref/

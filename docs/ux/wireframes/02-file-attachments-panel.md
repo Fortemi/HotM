@@ -870,5 +870,5 @@ transition: transform 250ms cubic-bezier(0.4, 0, 0.2, 1);
 ## Related Specifications
 
 - [UX Design Document](../fortemi-integration-ux-design.md)
-- [File Attachments API](/mnt/dev-inbox/fortemi/fortemi/docs/content/api.md#attachments)
+- [File Attachments API](https://git.integrolabs.net/Fortemi/fortemi/src/branch/main/docs/content/api.md#attachments)
 - [Memory Search Wireframe](./03-memory-search.md) (Location integration)

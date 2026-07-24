@@ -385,9 +385,9 @@ These wireframes assume **Radix UI** primitives + **TailwindCSS**:
 ## Related Documentation
 
 - [Parent UX Design Document](../fortemi-integration-ux-design.md)
-- [API Specification](/mnt/dev-inbox/fortemi/fortemi/docs/content/api.md)
+- [API Specification](https://git.integrolabs.net/Fortemi/fortemi/src/branch/main/docs/content/api.md)
 - [System Architecture](../../architecture/system-architecture.md)
-- [Implementation Guide](../../implementation/implementation-guide.md)
+- [Implementation Guide](../../implementation/development-guide.md)
 
 ---
 

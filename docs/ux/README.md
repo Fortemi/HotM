@@ -178,7 +178,7 @@ Features accessible from multiple locations:
 ## Resources
 
 ### External Links
-- **Fortemi API**: [/mnt/dev-inbox/fortemi/fortemi/docs/content/api.md](../../fortemi/fortemi/docs/content/api.md)
+- **Fortemi API**: [API documentation](https://git.integrolabs.net/Fortemi/fortemi/src/branch/main/docs/content/api.md)
 - **WCAG 2.1**: https://www.w3.org/WAI/WCAG21/quickref/
 - **ARIA Practices**: https://www.w3.org/WAI/ARIA/apg/
 - **Lucide Icons**: https://lucide.dev

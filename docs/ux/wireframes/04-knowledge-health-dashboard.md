@@ -985,5 +985,5 @@ animation: pulse 600ms ease-out;
 ## Related Specifications
 
 - [UX Design Document](../fortemi-integration-ux-design.md)
-- [Knowledge Health API](/mnt/dev-inbox/fortemi/fortemi/docs/content/api.md#health-endpoints)
+- [Knowledge Health API](https://git.integrolabs.net/Fortemi/fortemi/src/branch/main/docs/content/api.md#health-endpoints)
 - [SKOS Browser Wireframe](./01-skos-concept-browser.md) (Orphan concepts)

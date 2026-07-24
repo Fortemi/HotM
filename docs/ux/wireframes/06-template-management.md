@@ -1093,5 +1093,5 @@ animation: preview-update 300ms ease;
 ## Related Specifications
 
 - [UX Design Document](../fortemi-integration-ux-design.md)
-- [Templates API](/mnt/dev-inbox/fortemi/fortemi/docs/content/api.md#template-endpoints)
+- [Templates API](https://git.integrolabs.net/Fortemi/fortemi/src/branch/main/docs/content/api.md#template-endpoints)
 - [Knowledge Health Dashboard](./04-knowledge-health-dashboard.md) (Template usage metrics)
