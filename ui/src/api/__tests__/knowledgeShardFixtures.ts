@@ -9,6 +9,11 @@ import historicalNotesJsonl from '../contracts/fortemi-core-v1-current/notes-v1.
 import tagsJson from '../contracts/fortemi-core-v1-current/tags.json?raw';
 import templatesJson from '../contracts/fortemi-core-v1-current/templates.json?raw';
 import type { KnowledgeShardManifest } from '../types-extended';
+import {
+  KNOWLEDGE_SHARD_COMPONENT_FILENAMES,
+  SUPPORTED_FULL_V1_COUNT_FIELDS,
+  SUPPORTED_FULL_V1_COMPONENTS,
+} from '../knowledgeShard';
 
 const encoder = new TextEncoder();
 const TAR_BLOCK_SIZE = 512;
@@ -19,6 +24,22 @@ export const historicalManifests = [
   historicalV1ManifestJson,
   historicalV1_1ManifestJson,
 ] as unknown as KnowledgeShardManifest[];
+export const fullV1Manifest: KnowledgeShardManifest = {
+  ...canonicalManifest,
+  version: '2.0.0',
+  profile: 'full-v1',
+  min_reader_version: '2.0.0',
+  components: [...SUPPORTED_FULL_V1_COMPONENTS],
+  counts: Object.fromEntries(
+    SUPPORTED_FULL_V1_COUNT_FIELDS.map((component) => [component, 0]),
+  ) as KnowledgeShardManifest['counts'],
+  checksums: Object.fromEntries(
+    SUPPORTED_FULL_V1_COMPONENTS.map((component) => [
+      KNOWLEDGE_SHARD_COMPONENT_FILENAMES[component],
+      '0'.repeat(64),
+    ]),
+  ),
+};
 
 const sharedComponentFiles = {
   'collections.json': encoder.encode(collectionsJson),
@@ -72,7 +93,16 @@ export function createKnowledgeShardFile(
   manifest: KnowledgeShardManifest = canonicalManifest,
   componentFiles?: Record<string, Uint8Array>,
 ): File {
-  const files = componentFiles ?? canonicalComponentFiles(manifest.version);
+  const files = componentFiles ?? (
+    manifest.profile === 'full-v1'
+      ? Object.fromEntries(
+        SUPPORTED_FULL_V1_COMPONENTS.map((component) => [
+          KNOWLEDGE_SHARD_COMPONENT_FILENAMES[component],
+          encoder.encode(''),
+        ]),
+      )
+      : canonicalComponentFiles(manifest.version)
+  );
   const entries = [
     ...Object.entries(files).map(([name, contents]) => tarEntry(name, contents)),
     tarEntry('manifest.json', encoder.encode(JSON.stringify(manifest))),
@@ -90,12 +120,22 @@ export function createKnowledgeShardFile(
     type: 'application/gzip',
   });
   Object.defineProperty(file, 'arrayBuffer', {
+    configurable: true,
     value: () => Promise.resolve(
       archiveBytes.buffer.slice(
         archiveBytes.byteOffset,
         archiveBytes.byteOffset + archiveBytes.byteLength,
       ),
     ),
+  });
+  Object.defineProperty(file, 'stream', {
+    configurable: true,
+    value: () => new ReadableStream<Uint8Array>({
+      start(controller) {
+        controller.enqueue(archiveBytes);
+        controller.close();
+      },
+    }),
   });
   return file;
 }

@@ -1,12 +1,17 @@
 import { describe, expect, it } from 'vitest';
 import { gzip } from 'pako';
+import knowledgeShardReceipt from '../contracts/fortemi-knowledge-shard-receipt.json';
 import {
   inspectKnowledgeShard,
+  KNOWLEDGE_SHARD_COMPONENT_FILENAMES,
   normalizeKnowledgeShardInclude,
+  SUPPORTED_FULL_V1_COUNT_FIELDS,
+  SUPPORTED_FULL_V1_COMPONENTS,
 } from '../knowledgeShard';
 import {
   canonicalManifest,
   createKnowledgeShardFile,
+  fullV1Manifest,
   historicalManifests,
 } from './knowledgeShardFixtures';
 
@@ -21,6 +26,15 @@ function binaryFile(bytes: Uint8Array, name: string): File {
 }
 
 describe('Knowledge Shard contract', () => {
+  it('matches the pinned Fortemi 2.0.0/full-v1 authority inventory', () => {
+    expect(SUPPORTED_FULL_V1_COMPONENTS).toEqual(
+      knowledgeShardReceipt.fullV1.components,
+    );
+    expect(SUPPORTED_FULL_V1_COUNT_FIELDS).toEqual(
+      knowledgeShardReceipt.fullV1.countFields,
+    );
+  });
+
   it('accepts the pinned current Fortemi core-v1 manifest fixture', async () => {
     const manifest = await inspectKnowledgeShard(createKnowledgeShardFile());
 
@@ -46,12 +60,58 @@ describe('Knowledge Shard contract', () => {
     }))).rejects.toThrow('schema 1.1.1 is unsupported');
   });
 
-  it.each([
-    ['full-v1', 'profile full-v1 is not supported'],
-    ['record-v1', 'profile record-v1 is not supported'],
-  ] as const)('rejects unsupported profile %s before upload', async (profile, message) => {
-    const file = createKnowledgeShardFile({ ...canonicalManifest, profile });
-    await expect(inspectKnowledgeShard(file)).rejects.toThrow(message);
+  it('accepts exact 2.0.0/full-v1 through streaming inspection without reading an ArrayBuffer', async () => {
+    const file = createKnowledgeShardFile(fullV1Manifest);
+    Object.defineProperty(file, 'arrayBuffer', {
+      value: () => Promise.reject(new Error('full archive buffering is forbidden')),
+    });
+
+    await expect(inspectKnowledgeShard(file)).resolves.toMatchObject({
+      version: '2.0.0',
+      profile: 'full-v1',
+      min_reader_version: '2.0.0',
+    });
+  });
+
+  it('rejects non-exact full-v1 and record-v1 tuples before upload', async () => {
+    await expect(inspectKnowledgeShard(createKnowledgeShardFile({
+      ...canonicalManifest,
+      profile: 'full-v1',
+    }))).rejects.toThrow('tuple 1.2.0/full-v1 is unsupported');
+
+    await expect(inspectKnowledgeShard(createKnowledgeShardFile({
+      ...canonicalManifest,
+      profile: 'record-v1',
+    }))).rejects.toThrow('profile record-v1 is not supported');
+  });
+
+  it('requires the complete full-v1 component inventory', async () => {
+    await expect(inspectKnowledgeShard(createKnowledgeShardFile({
+      ...fullV1Manifest,
+      components: fullV1Manifest.components.slice(0, -1),
+    }, {}))).rejects.toThrow('complete 33-component inventory');
+  });
+
+  it('requires the complete 34-field full-v1 count inventory', async () => {
+    const { community_sets: _missing, ...counts } = fullV1Manifest.counts;
+    await expect(inspectKnowledgeShard(createKnowledgeShardFile({
+      ...fullV1Manifest,
+      counts,
+    }))).rejects.toThrow('complete 34-field count inventory');
+  });
+
+  it('requires every declared full-v1 component entry before upload', async () => {
+    await expect(inspectKnowledgeShard(createKnowledgeShardFile(
+      fullV1Manifest,
+      Object.fromEntries(
+        SUPPORTED_FULL_V1_COMPONENTS
+          .slice(1)
+          .map((component) => [
+            KNOWLEDGE_SHARD_COMPONENT_FILENAMES[component],
+            new Uint8Array(),
+          ]),
+      ),
+    ))).rejects.toThrow('component notes.jsonl is missing');
   });
 
   it('rejects unknown profiles', async () => {

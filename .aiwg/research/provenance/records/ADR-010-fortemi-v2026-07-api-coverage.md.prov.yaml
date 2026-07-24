@@ -1,24 +1,24 @@
 metadata:
   schema_version: "1.0.0"
   created_at: "2026-07-17T21:46:51Z"
-  updated_at: "2026-07-20T20:03:43Z"
-  description: "Provenance for the HotM #269 Knowledge Shard migration-window update"
+  updated_at: "2026-07-24T08:10:00Z"
+  description: "Provenance for the HotM #272 full-v1 recovery contract update"
 entity:
   id: "urn:aiwg:artifact:.aiwg/architecture/adr/ADR-010-fortemi-v2026-07-api-coverage.md"
   type: document
   created_at: "2026-07-17T21:46:51Z"
-  updated_at: "2026-07-20T20:03:43Z"
-  checksum: "sha256:7037727226fc1290d2e0af809562f266d47cbebd322bc6e0690ea4d67e335deb"
-  size_bytes: 8588
+  updated_at: "2026-07-24T08:10:00Z"
+  checksum: "sha256:c8d43ab5ef33c13812189f5ffaf90d3b6876b08708c11da7f807d67c01f29059"
+  size_bytes: 10868
   attributes:
-    change_scope: "hotm-269-knowledge-shard-contract"
+    change_scope: "hotm-272-full-v1-recovery"
     base_revision: "b35410c5c332a15e36cf84019f110100a7c9e8f1"
 activity:
   id: "urn:aiwg:activity:modification:aiwg-architecture-adr-ADR-010-fortemi-v2026-07-api-coverage-md:001"
   type: modification
   started_at: "2026-07-17T21:46:51Z"
-  ended_at: "2026-07-20T20:03:43Z"
-  description: "Record the exact registered core-v1 schema migration window and current authority"
+  ended_at: "2026-07-24T08:10:00Z"
+  description: "Record exact full-v1 authority, bounded recovery controls, and the blocked interoperability claim"
 agent:
   id: "urn:aiwg:agent:codex-gpt-5"
   type: ai_assistant
@@ -29,7 +29,7 @@ relationships:
   wasGeneratedBy:
     entity: "urn:aiwg:artifact:.aiwg/architecture/adr/ADR-010-fortemi-v2026-07-api-coverage.md"
     activity: "urn:aiwg:activity:modification:aiwg-architecture-adr-ADR-010-fortemi-v2026-07-api-coverage-md:001"
-    time: "2026-07-20T20:03:43Z"
+    time: "2026-07-24T08:10:00Z"
   used:
     - activity: "urn:aiwg:activity:modification:aiwg-architecture-adr-ADR-010-fortemi-v2026-07-api-coverage-md:001"
       entity: "urn:git:git@git.integrolabs.net:Fortemi/HotM.git:b394e5160780ac8a752ca0891d7a3686394d2bd0:.aiwg/architecture/adr/ADR-010-fortemi-v2026-07-api-coverage.md"

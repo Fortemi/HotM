@@ -1,24 +1,24 @@
 metadata:
   schema_version: "1.0.0"
   created_at: "2026-07-18T02:04:18Z"
-  updated_at: "2026-07-18T02:04:18Z"
-  description: "Provenance for the HotM #269 snapshot-preserving recovery import"
+  updated_at: "2026-07-24T08:10:00Z"
+  description: "Provenance for the HotM #272 full-v1 recovery user interface"
 entity:
   id: "urn:aiwg:artifact:ui/src/components/backup/BackupManager.tsx"
   type: implementation
   created_at: "2026-07-18T02:04:18Z"
-  updated_at: "2026-07-18T02:04:18Z"
-  checksum: "sha256:e634385380ddfbf5eb9bc469101b15f933aff06d65c1e1733c657d3a24681f82"
-  size_bytes: 47499
+  updated_at: "2026-07-24T08:10:00Z"
+  checksum: "sha256:546127f24e8d68f04156eedb2f2db5c484c84217d41ee0cdbc52f8bdd6cc4908"
+  size_bytes: 50113
   attributes:
-    change_scope: "hotm-269-recovery-import"
+    change_scope: "hotm-272-full-v1-recovery"
     base_revision: "f71710d04060587833dc743e4e9d07e846819731"
 activity:
   id: "urn:aiwg:activity:modification:backup-manager-tsx:001"
   type: modification
   started_at: "2026-07-18T02:03:30Z"
-  ended_at: "2026-07-18T02:04:18Z"
-  description: "Suppress post-import inference so a restored Knowledge Shard remains unchanged"
+  ended_at: "2026-07-24T08:10:00Z"
+  description: "Default to full recovery shards, direct-to-disk export, and verified import status"
 agent:
   id: "urn:aiwg:agent:codex-gpt-5"
   type: ai_assistant
@@ -29,7 +29,7 @@ relationships:
   wasGeneratedBy:
     entity: "urn:aiwg:artifact:ui/src/components/backup/BackupManager.tsx"
     activity: "urn:aiwg:activity:modification:backup-manager-tsx:001"
-    time: "2026-07-18T02:04:18Z"
+    time: "2026-07-24T08:10:00Z"
   wasDerivedFrom:
     - entity: "urn:aiwg:artifact:ui/src/components/backup/BackupManager.tsx"
       source: "https://git.integrolabs.net/Fortemi/HotM/issues/269"

@@ -1,0 +1,42 @@
+metadata:
+  schema_version: "1.0.0"
+  created_at: "2026-07-24T08:10:00Z"
+  description: "Provenance for the HotM #272 full-v1 API types"
+entity:
+  id: "urn:aiwg:artifact:ui/src/api/types-extended.ts"
+  type: source_code
+  created_at: "2026-07-24T08:10:00Z"
+  checksum: "sha256:61c8dacc996350134cc7237fe51427c2cf4d14704b4a40ce6a8211465b17f0a3"
+  size_bytes: 25984
+  attributes:
+    change_scope: "hotm-272-full-v1-recovery"
+    base_revision: "cd344f019f5d31965b804f7f6714647994cdc9dd"
+activity:
+  id: "urn:aiwg:activity:modification:types-extended-full-v1:001"
+  type: modification
+  started_at: "2026-07-24T08:10:00Z"
+  ended_at: "2026-07-24T08:10:00Z"
+  description: "Represent exact full-v1 manifest, component, checksum, and recovery request fields"
+agent: &agent
+  id: "urn:aiwg:agent:codex-gpt-5"
+  type: ai_assistant
+  name: "Codex"
+  version: "gpt-5"
+  tool: "codex"
+relationships:
+  wasGeneratedBy:
+    entity: "urn:aiwg:artifact:ui/src/api/types-extended.ts"
+    activity: "urn:aiwg:activity:modification:types-extended-full-v1:001"
+    time: "2026-07-24T08:10:00Z"
+  wasDerivedFrom:
+    - entity: "urn:aiwg:artifact:ui/src/api/types-extended.ts"
+      source: "urn:git:git@git.integrolabs.net:Fortemi/fortemi.git:6343bd899958445bbc7e7e87b0dc92a8429d5a06:contracts/knowledge-shard/schemas"
+      derivation_type: "implements"
+      activity: "urn:aiwg:activity:modification:types-extended-full-v1:001"
+  wasAssociatedWith:
+    activity: "urn:aiwg:activity:modification:types-extended-full-v1:001"
+    agent: "urn:aiwg:agent:codex-gpt-5"
+    role: "primary_author"
+  wasAttributedTo:
+    entity: "urn:aiwg:artifact:ui/src/api/types-extended.ts"
+    agent: "urn:aiwg:agent:codex-gpt-5"

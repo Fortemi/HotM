@@ -776,7 +776,35 @@ export type KnowledgeShardComponent =
   | 'collections'
   | 'tags'
   | 'templates'
-  | 'links';
+  | 'links'
+  | 'note_originals'
+  | 'note_original_history'
+  | 'note_revised_current'
+  | 'note_revisions'
+  | 'embedding_configs'
+  | 'embedding_sets'
+  | 'embedding_set_members'
+  | 'embeddings'
+  | 'provenance_edges'
+  | 'provenance_activities'
+  | 'named_locations'
+  | 'provenance_locations'
+  | 'provenance_devices'
+  | 'provenance_records'
+  | 'skos_schemes'
+  | 'skos_concepts'
+  | 'skos_labels'
+  | 'skos_notes'
+  | 'skos_relations'
+  | 'skos_mapping_relations'
+  | 'skos_scheme_memberships'
+  | 'note_skos_tags'
+  | 'skos_collections'
+  | 'skos_collection_members'
+  | 'graph_sources'
+  | 'graph_edges'
+  | 'communities'
+  | 'community_assignments';
 
 export interface KnowledgeShardProducer {
   name: string;
@@ -790,10 +818,7 @@ export interface KnowledgeShardCounts {
   tags: number;
   templates: number;
   links: number;
-  embedding_sets?: number;
-  embedding_set_members?: number;
-  embeddings?: number;
-  embedding_configs?: number;
+  [component: string]: number;
 }
 
 /**
@@ -830,6 +855,7 @@ export interface KnowledgeShardImportResponse {
 export interface KnowledgeShardImportResult {
   manifest: KnowledgeShardManifest;
   response: KnowledgeShardImportResponse | undefined;
+  preflight?: KnowledgeShardImportResponse | undefined;
 }
 
 /**

@@ -82,8 +82,128 @@
     }
   ],
   "claims": [
-    "HotM accepts only the core-v1 profile.",
-    "The accepted migration window is exact: 1.0.0, 1.1.0, and 1.2.0.",
-    "No full-v1, record-v1, attachment-byte, or lossless parity claim is made."
-  ]
+    "HotM retains the registered core-v1 migration window: exact 1.0.0, 1.1.0, and 1.2.0.",
+    "core-v1 does not establish attachment-byte recovery or full-v1 conformance."
+  ],
+  "fullV1": {
+    "tuple": {
+      "schemaVersion": "2.0.0",
+      "profile": "full-v1"
+    },
+    "authority": {
+      "repository": "Fortemi/fortemi",
+      "commit": "6343bd899958445bbc7e7e87b0dc92a8429d5a06",
+      "contract": {
+        "path": "contracts/knowledge-shard/2.0.0/contract.json",
+        "sha256": "5bf8d2fd8147d8df92599b1a3ce6b405ce022c83893f37547aefa7ca659f0783",
+        "revision": "20",
+        "schemaBundleSha256": "66dee80876c73fdc8756541c72e96ae189c098113a831c849d619381c4121c02",
+        "fieldSemanticsSha256": "43e5704bc8d805158aa67f33eef6d440fecfeb8385d4f622d79084be3424da09",
+        "fieldInventoryCount": 220
+      },
+      "manifestSchema": {
+        "path": "contracts/knowledge-shard/2.0.0/full-v1/manifest.schema.json",
+        "sha256": "ffad2eb31832eb611bdaed60e3dc51fc4d70be65110e477a03e298ed1e9fd3a8"
+      }
+    },
+    "runtimeReceipt": {
+      "commit": "2e812aa66ba108a824475a97b1ddba4d1412dec7",
+      "path": "tests/fixtures/shards/external/schema-2-runtime.implementation-receipt.json",
+      "sha256": "29f5e7cca66aec38baba0d7e58da1f5f6cc8520995f290831bc949bde1de1647",
+      "implementationCommit": "c93742d7c75b481621b821f4584304289eb364d5"
+    },
+    "pairedReceipt": {
+      "commit": "60d6540e9b9ea50699fa588e155a7033c0f5b512",
+      "path": "tests/fixtures/shards/external/schema-2-full-v1.interop-receipt.json",
+      "sha256": "e33f5898d780edfeacf6da7c0ca67b6e8649ea5bc2d571bfc120645cc59e16d6"
+    },
+    "components": [
+      "notes",
+      "collections",
+      "tags",
+      "templates",
+      "links",
+      "note_originals",
+      "note_original_history",
+      "note_revised_current",
+      "note_revisions",
+      "embedding_configs",
+      "embedding_sets",
+      "embedding_set_members",
+      "embeddings",
+      "provenance_edges",
+      "provenance_activities",
+      "named_locations",
+      "provenance_locations",
+      "provenance_devices",
+      "provenance_records",
+      "skos_schemes",
+      "skos_concepts",
+      "skos_labels",
+      "skos_notes",
+      "skos_relations",
+      "skos_mapping_relations",
+      "skos_scheme_memberships",
+      "note_skos_tags",
+      "skos_collections",
+      "skos_collection_members",
+      "graph_sources",
+      "graph_edges",
+      "communities",
+      "community_assignments"
+    ],
+    "countFields": [
+      "notes",
+      "collections",
+      "tags",
+      "templates",
+      "links",
+      "note_originals",
+      "note_original_history",
+      "note_revised_current",
+      "note_revisions",
+      "embedding_configs",
+      "embedding_sets",
+      "embedding_set_members",
+      "embeddings",
+      "provenance_edges",
+      "provenance_activities",
+      "named_locations",
+      "provenance_locations",
+      "provenance_devices",
+      "provenance_records",
+      "skos_schemes",
+      "skos_concepts",
+      "skos_labels",
+      "skos_notes",
+      "skos_relations",
+      "skos_mapping_relations",
+      "skos_scheme_memberships",
+      "note_skos_tags",
+      "skos_collections",
+      "skos_collection_members",
+      "graph_sources",
+      "graph_edges",
+      "community_sets",
+      "communities",
+      "community_assignments"
+    ],
+    "consumerBoundary": {
+      "export": "Response.body is piped directly to an operator-selected WritableStream; no complete archive Blob is constructed.",
+      "import": "The exact tuple and complete inventory are inspected locally, then Fortemi dry_run=true with verify_signature=require must pass before dry_run=false.",
+      "mutationPolicy": "Any local inspection, signature, digest, length, reference, limit, compatibility, or server preflight failure stops before the mutating request."
+    },
+    "livePreflight": {
+      "path": ".aiwg/evidence/hotm-full-v1-clean-recovery-preflight-2026-07-24.json",
+      "status": "blocked-before-mutation",
+      "producerIssue": "https://git.integrolabs.net/Fortemi/fortemi/issues/1088",
+      "reason": "The pinned production exporter emits no signature.json, so required publisher verification cannot pass on a clean destination."
+    },
+    "claims": {
+      "fullV1Interoperability": false,
+      "suiteWide": false,
+      "completeBackup": false,
+      "scope": "HotM implements the exact 2.0.0/full-v1 pass-through and fail-closed boundary. The live HotM recovery cell remains blocked on Fortemi#1088 and makes no interoperability-pass claim."
+    }
+  }
 }

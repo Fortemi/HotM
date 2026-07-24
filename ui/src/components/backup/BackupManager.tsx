@@ -62,11 +62,11 @@ function formatDate(date: string): string {
 interface ExportDialogProps {
   isOpen: boolean;
   onClose: () => void;
-  onExport: (format: 'json' | 'shard') => Promise<void>;
+  onExport: (format: 'json' | 'core-shard' | 'full-shard') => Promise<void>;
 }
 
 function ExportDialog({ isOpen, onClose, onExport }: ExportDialogProps) {
-  const [format, setFormat] = useState<'json' | 'shard'>('shard');
+  const [format, setFormat] = useState<'json' | 'core-shard' | 'full-shard'>('full-shard');
   const [isExporting, setIsExporting] = useState(false);
 
   const handleExport = async () => {
@@ -96,22 +96,43 @@ function ExportDialog({ isOpen, onClose, onExport }: ExportDialogProps) {
 
             <button
               type="button"
-              onClick={() => setFormat('shard')}
+              onClick={() => setFormat('full-shard')}
               className={cn(
                 'w-full p-4 border rounded-lg text-left transition-colors',
-                format === 'shard' ? 'border-primary bg-primary/5' : 'hover:border-primary/50'
+                format === 'full-shard' ? 'border-primary bg-primary/5' : 'hover:border-primary/50'
               )}
             >
               <div className="flex items-start gap-3">
                 <Package className="w-5 h-5 text-primary mt-0.5" />
                 <div>
-                  <p className="font-medium">Knowledge Shard</p>
+                  <p className="font-medium">Full Recovery Shard</p>
                   <p className="text-sm text-muted-foreground">
-                    core-v1 structured records. Attachments, embeddings, and full recovery are
-                    not included in this profile.
+                    Exact 2.0.0/full-v1 export with mandatory attachment bytes and the complete
+                    33-component inventory. Streamed directly to disk.
                   </p>
                 </div>
-                {format === 'shard' && <Check className="w-5 h-5 text-primary ml-auto" />}
+                {format === 'full-shard' && <Check className="w-5 h-5 text-primary ml-auto" />}
+              </div>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setFormat('core-shard')}
+              className={cn(
+                'w-full p-4 border rounded-lg text-left transition-colors',
+                format === 'core-shard' ? 'border-primary bg-primary/5' : 'hover:border-primary/50'
+              )}
+            >
+              <div className="flex items-start gap-3">
+                <Archive className="w-5 h-5 text-primary mt-0.5" />
+                <div>
+                  <p className="font-medium">Structured Records Shard</p>
+                  <p className="text-sm text-muted-foreground">
+                    core-v1 structured records. Attachment bytes and rich analytical components
+                    are not guaranteed by this profile.
+                  </p>
+                </div>
+                {format === 'core-shard' && <Check className="w-5 h-5 text-primary ml-auto" />}
               </div>
             </button>
 
@@ -623,13 +644,50 @@ export function BackupManager({ className }: BackupManagerProps) {
     }
   };
 
-  const handleExport = async (format: 'json' | 'shard') => {
+  const handleExport = async (format: 'json' | 'core-shard' | 'full-shard') => {
     try {
       let blob: Blob;
       let filename: string;
 
-      if (format === 'shard') {
-        const exported = await api.backup.exportKnowledgeShard();
+      if (format === 'full-shard') {
+        filename = `knowledge-full-v1-${new Date().toISOString().split('T')[0]}.shard`;
+        const picker = (
+          window as Window & {
+            showSaveFilePicker?: (options: {
+              suggestedName: string;
+              types: Array<{
+                description: string;
+                accept: Record<string, string[]>;
+              }>;
+            }) => Promise<{ createWritable(): Promise<WritableStream<Uint8Array>> }>;
+          }
+        ).showSaveFilePicker;
+        if (!picker) {
+          throw new Error(
+            'This client cannot stream a full-v1 archive directly to disk. Use a Chromium-based browser or the desktop build.',
+          );
+        }
+        const handle = await picker({
+          suggestedName: filename,
+          types: [{
+            description: 'Fortemi Knowledge Shard',
+            accept: { 'application/gzip': ['.shard'] },
+          }],
+        });
+        const writable = await handle.createWritable();
+        await api.backup.streamKnowledgeShardExport(writable, {
+          profile: 'full-v1',
+          schemaVersion: '2.0.0',
+        });
+        setOperationStatus({
+          type: 'success',
+          message: `Streamed exact 2.0.0/full-v1 recovery archive to ${filename}`,
+        });
+        return;
+      }
+
+      if (format === 'core-shard') {
+        const exported = await api.backup.exportKnowledgeShard({ profile: 'core-v1' });
         blob = exported.blob;
         filename = `knowledge-export-${new Date().toISOString().split('T')[0]}.shard`;
         setOperationStatus({
@@ -763,11 +821,14 @@ export function BackupManager({ className }: BackupManagerProps) {
     try {
       if (file.name.endsWith('.shard')) {
         const result = await api.backup.uploadKnowledgeShard(file, {
+          onConflict: 'replace',
           skipEmbeddingRegen: true,
         });
         setOperationStatus({
           type: 'success',
-          message: `Imported ${result.manifest.profile} schema ${result.manifest.version}; server validation passed.`,
+          message: result.manifest.profile === 'full-v1'
+            ? `Recovered exact ${result.manifest.version}/full-v1 after signed zero-mutation server preflight.`
+            : `Imported ${result.manifest.profile} schema ${result.manifest.version}; server validation passed.`,
         });
       } else {
         await api.backup.importBackup(file, { deferInference: options.deferInference });

@@ -1,7 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { createBackupApi } from '../backup';
 import type { ApiClient } from '../client';
-import { createKnowledgeShardFile } from './knowledgeShardFixtures';
+import {
+  createKnowledgeShardFile,
+  fullV1Manifest,
+} from './knowledgeShardFixtures';
 
 vi.mock('@/lib/tauri', () => ({
   getTauriFetch: () => global.fetch,
@@ -143,7 +146,7 @@ describe('Backup API', () => {
     expect(exported.blob.size).toBeGreaterThan(0);
     expect(exported.manifest).toMatchObject({ profile: 'core-v1', version: '1.2.0' });
     expect(mockFetch).toHaveBeenCalledWith(
-      'http://localhost:3000/backup/knowledge-shard?include=notes%2Ctags',
+      'http://localhost:3000/backup/knowledge-shard?include=notes%2Ctags&profile=core-v1',
       { headers: { 'X-Fortemi-Memory': 'research' } },
     );
 
@@ -183,9 +186,93 @@ describe('Backup API', () => {
     });
 
     await expect(backupApi.uploadKnowledgeShard(unsupported))
-      .rejects.toThrow('profile full-v1 is not supported');
+      .rejects.toThrow('tuple 1.2.0/full-v1 is unsupported');
     expect(mockFetch).not.toHaveBeenCalled();
     expect(mockClient.post).not.toHaveBeenCalled();
+  });
+
+  it('streams exact full-v1 exports directly into the provided sink', async () => {
+    const written: Uint8Array[] = [];
+    const sink = new WritableStream<Uint8Array>({
+      write(chunk) {
+        written.push(chunk);
+      },
+    });
+    mockFetch.mockResolvedValueOnce(new Response('streamed-full-v1'));
+
+    await expect(backupApi.streamKnowledgeShardExport(sink, {
+      profile: 'full-v1',
+      schemaVersion: '2.0.0',
+    })).resolves.toEqual({
+      profile: 'full-v1',
+      schemaVersion: '2.0.0',
+    });
+
+    expect(mockFetch).toHaveBeenCalledWith(
+      'http://localhost:3000/backup/knowledge-shard?profile=full-v1&schema_version=2.0.0&include_blobs=true',
+      { headers: {} },
+    );
+    expect(new TextDecoder().decode(written[0])).toBe('streamed-full-v1');
+  });
+
+  it('requires signed server dry-run preflight before mutating full-v1 recovery', async () => {
+    const shard = createKnowledgeShardFile(fullV1Manifest);
+    mockFetch
+      .mockResolvedValueOnce(new Response(JSON.stringify({
+        status: 'success',
+        dry_run: true,
+      }), { headers: { 'Content-Type': 'application/json' } }))
+      .mockResolvedValueOnce(new Response(JSON.stringify({
+        status: 'success',
+        dry_run: false,
+      }), { headers: { 'Content-Type': 'application/json' } }));
+
+    await expect(backupApi.uploadKnowledgeShard(shard, {
+      onConflict: 'replace',
+      skipEmbeddingRegen: true,
+    })).resolves.toMatchObject({
+      manifest: { version: '2.0.0', profile: 'full-v1' },
+      preflight: { status: 'success', dry_run: true },
+      response: { status: 'success', dry_run: false },
+    });
+
+    expect(mockFetch).toHaveBeenNthCalledWith(
+      1,
+      'http://localhost:3000/backup/knowledge-shard/upload?dry_run=true&on_conflict=replace&skip_embedding_regen=true&verify_signature=require',
+      expect.objectContaining({ method: 'POST' }),
+    );
+    expect(mockFetch).toHaveBeenNthCalledWith(
+      2,
+      'http://localhost:3000/backup/knowledge-shard/upload?dry_run=false&on_conflict=replace&skip_embedding_regen=true&verify_signature=require',
+      expect.objectContaining({ method: 'POST' }),
+    );
+  });
+
+  it.each([
+    'signature or component digest is tampered',
+    'mandatory attachment sidecar is missing',
+    'archive exceeds the configured resource limit',
+    'profile or component is unsupported',
+    'schema or minimum-reader tuple is skewed',
+  ])('does not send a mutating full-v1 request when preflight reports: %s', async (detail) => {
+    const shard = createKnowledgeShardFile(fullV1Manifest);
+    mockFetch.mockResolvedValueOnce(new Response(JSON.stringify({
+      title: 'Invalid Knowledge Shard',
+      detail,
+    }), {
+      status: 400,
+      statusText: 'Bad Request',
+      headers: { 'Content-Type': 'application/problem+json' },
+    }));
+
+    await expect(backupApi.uploadKnowledgeShard(shard, {
+      onConflict: 'replace',
+    })).rejects.toThrow(detail);
+    expect(mockFetch).toHaveBeenCalledTimes(1);
+    expect(mockFetch).toHaveBeenCalledWith(
+      expect.stringContaining('dry_run=true'),
+      expect.objectContaining({ method: 'POST' }),
+    );
   });
 
   it('surfaces server validation failures without claiming import success', async () => {

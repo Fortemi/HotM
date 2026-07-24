@@ -1,0 +1,42 @@
+metadata:
+  schema_version: "1.0.0"
+  created_at: "2026-07-24T08:10:00Z"
+  description: "Provenance for the HotM #272 clean-destination full-v1 preflight evidence"
+entity:
+  id: "urn:aiwg:artifact:.aiwg/evidence/hotm-full-v1-clean-recovery-preflight-2026-07-24.json"
+  type: evidence
+  created_at: "2026-07-24T08:10:00Z"
+  checksum: "sha256:fdc48cc0b9fb4a59347033e5e6e05ed935bbcd18a9c31d546e613edc37276128"
+  size_bytes: 1842
+  attributes:
+    change_scope: "hotm-272-full-v1-recovery"
+    producer_revision: "c93742d395c3a0cc73998dddabb002904052593d"
+activity:
+  id: "urn:aiwg:activity:generation:hotm-full-v1-clean-recovery-preflight:001"
+  type: generation
+  started_at: "2026-07-24T08:10:00Z"
+  ended_at: "2026-07-24T08:10:00Z"
+  description: "Capture fail-closed preflight and zero-mutation evidence for an unsigned upstream full-v1 export"
+agent: &agent
+  id: "urn:aiwg:agent:codex-gpt-5"
+  type: ai_assistant
+  name: "Codex"
+  version: "gpt-5"
+  tool: "codex"
+relationships:
+  wasGeneratedBy:
+    entity: "urn:aiwg:artifact:.aiwg/evidence/hotm-full-v1-clean-recovery-preflight-2026-07-24.json"
+    activity: "urn:aiwg:activity:generation:hotm-full-v1-clean-recovery-preflight:001"
+    time: "2026-07-24T08:10:00Z"
+  wasDerivedFrom:
+    - entity: "urn:aiwg:artifact:.aiwg/evidence/hotm-full-v1-clean-recovery-preflight-2026-07-24.json"
+      source: "urn:git:git@git.integrolabs.net:Fortemi/fortemi.git:c93742d395c3a0cc73998dddabb002904052593d"
+      derivation_type: "observes"
+      activity: "urn:aiwg:activity:generation:hotm-full-v1-clean-recovery-preflight:001"
+  wasAssociatedWith:
+    activity: "urn:aiwg:activity:generation:hotm-full-v1-clean-recovery-preflight:001"
+    agent: "urn:aiwg:agent:codex-gpt-5"
+    role: "primary_author"
+  wasAttributedTo:
+    entity: "urn:aiwg:artifact:.aiwg/evidence/hotm-full-v1-clean-recovery-preflight-2026-07-24.json"
+    agent: "urn:aiwg:agent:codex-gpt-5"

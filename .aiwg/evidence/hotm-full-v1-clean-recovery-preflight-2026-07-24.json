@@ -1,0 +1,56 @@
+{
+  "schemaVersion": "hotm.full-v1-clean-recovery-preflight.v1",
+  "observedAt": "2026-07-24T07:59:27Z",
+  "status": "blocked-before-mutation",
+  "hotmIssue": "https://git.integrolabs.net/Fortemi/HotM/issues/272",
+  "producerIssue": "https://git.integrolabs.net/Fortemi/fortemi/issues/1088",
+  "authority": {
+    "repository": "Fortemi/fortemi",
+    "commit": "6343bd899958445bbc7e7e87b0dc92a8429d5a06",
+    "contractRevision": "20",
+    "tuple": "2.0.0/full-v1"
+  },
+  "runtime": {
+    "releaseTag": "sidecar-45aff7e6f439",
+    "commit": "45aff7e6f4390c650c98f55c643b1dc95d818c86",
+    "target": "x86_64-unknown-linux-gnu",
+    "assetSha256": "0d19bc6513e8c0369525e837ce3c3870559ea0c0330a611c42e89c88a2389663"
+  },
+  "source": {
+    "cleanDatabase": true,
+    "seedArchive": {
+      "producer": "@fortemi/core@2026.7.13",
+      "sha256": "054da5528276806b9be69dcfff364a6969b72344045f05f9f6fcbeaca82a7a59"
+    },
+    "seedImportStatus": 200,
+    "exportRequest": {
+      "profile": "full-v1",
+      "schemaVersion": "2.0.0",
+      "includeBlobs": true
+    },
+    "exportStatus": 200,
+    "exportBytes": 6852,
+    "exportSha256": "5ee93c411fbeb1f4c06d548c8899adb71da0e70c6111c38cdc4966dfe4f0d7b9",
+    "componentCount": 33,
+    "attachmentBlobPresent": true,
+    "signatureEntryPresent": false
+  },
+  "destination": {
+    "cleanDatabase": true,
+    "preflight": {
+      "dryRun": true,
+      "verifySignature": "require",
+      "status": 400,
+      "problemType": "https://fortemi.com/problems/validation-error",
+      "detail": "Knowledge shard signature verification requires a configured trusted-key allowlist."
+    },
+    "mutatingRequestSent": false,
+    "notesAfterFailure": 0
+  },
+  "claims": {
+    "fullV1RecoveryPassed": false,
+    "zeroMutationOnSignatureGateFailure": true,
+    "suiteWide": false,
+    "completeBackup": false
+  }
+}

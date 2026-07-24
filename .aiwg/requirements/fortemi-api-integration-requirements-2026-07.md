@@ -67,7 +67,7 @@ this contract.
 
 ## Knowledge Shard Requirement Receipt
 
-`FORTEMI-2026-07-REQ-015` is implemented for the selected `core-v1` profile
+`FORTEMI-2026-07-REQ-015` retains the selected `core-v1` profile
 against Fortemi contract revision 19 at
 `81fbeaf065df3818edd046ed8a744f10eeb00e6f`. HotM vendors exact producer
 manifests for registered schemas `1.0.0`, `1.1.0`, and `1.2.0`, serializes only
@@ -77,8 +77,27 @@ actionable failures in Backup Manager.
 
 The visible server-export -> HotM -> clean-server-import and repeated-import
 receipt proves semantic equality for the selected byte-free `core-v1` profile.
-No receipt claims embeddings, attachment records/bytes, or richer-profile
-recovery.
+The separate HotM #272 recovery path consumes exact `2.0.0/full-v1` against
+authority commit `6343bd899958445bbc7e7e87b0dc92a8429d5a06`, revision 20.
+It streams export bytes without a complete archive buffer, requires all 33
+components and 34 count fields, and performs a signed Fortemi zero-mutation
+dry-run before any mutating upload. The pinned runtime and paired receipts
+cover component/blob digest, length, references, limits, repeated imports,
+presence states, and clean Fortemi recovery. The HotM receipt remains scoped:
+the named upstream cells pass, but the HotM cell remains blocked because the
+production export is unsigned. `fullV1Interoperability`, `suiteWide`, and
+`completeBackup` remain false in the HotM receipt pending Fortemi #1088.
+
+## Compatibility Requirement Receipt
+
+`FORTEMI-2026-07-REQ-016` is implemented at the HotM consumer boundary for
+schema `1` and revision `2026-07-06`. The exact package version is compared
+with `minimum_hotm_enterprise_client` before capability interpretation.
+Supported/equal/checkpoint, future revision, client-too-old, malformed
+minimum, unsupported schema, and unreachable/degraded presentation cases are
+covered by focused tests. This receipt proves HotM's fail-closed consumer
+behavior, not compatibility of any separate OpenAPI, AsyncAPI, shard, or auth
+contract.
 
 ## Current Coverage Summary
 

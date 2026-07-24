@@ -1,24 +1,24 @@
 metadata:
   schema_version: "1.0.0"
   created_at: "2026-07-18T01:50:07Z"
-  updated_at: "2026-07-18T02:04:18Z"
-  description: "Provenance for the HotM #271 test-isolation and #269 recovery-import regressions"
+  updated_at: "2026-07-24T08:10:00Z"
+  description: "Provenance for the HotM #272 full-v1 recovery UI regressions"
 entity:
   id: "urn:aiwg:artifact:ui/src/components/backup/__tests__/BackupManager.test.tsx"
   type: test
   created_at: "2026-07-18T01:50:07Z"
-  updated_at: "2026-07-18T02:04:18Z"
-  checksum: "sha256:c3a24da5156d56dc1ea14fd72fab9f2d8a115ffbac85f91478731cbbb5cfe256"
-  size_bytes: 36291
+  updated_at: "2026-07-24T08:10:00Z"
+  checksum: "sha256:f942a4442572713eeb1ca24a64bd9d35a6445639ea60e65598c5b095e61812ca"
+  size_bytes: 37857
   attributes:
-    change_scope: "hotm-269-recovery-import-and-271-test-isolation"
+    change_scope: "hotm-272-full-v1-recovery"
     base_revision: "f71710d04060587833dc743e4e9d07e846819731"
 activity:
   id: "urn:aiwg:activity:modification:backup-manager-test-tsx:002"
   type: modification
   started_at: "2026-07-18T02:03:30Z"
-  ended_at: "2026-07-18T02:04:18Z"
-  description: "Require recovery imports to suppress post-import inference"
+  ended_at: "2026-07-24T08:10:00Z"
+  description: "Verify full recovery defaults, streaming export selection, and gated import behavior"
 agent:
   id: "urn:aiwg:agent:codex-gpt-5"
   type: ai_assistant
@@ -29,7 +29,7 @@ relationships:
   wasGeneratedBy:
     entity: "urn:aiwg:artifact:ui/src/components/backup/__tests__/BackupManager.test.tsx"
     activity: "urn:aiwg:activity:modification:backup-manager-test-tsx:002"
-    time: "2026-07-18T02:04:18Z"
+    time: "2026-07-24T08:10:00Z"
   wasDerivedFrom:
     - entity: "urn:aiwg:artifact:ui/src/components/backup/__tests__/BackupManager.test.tsx"
       source: "https://git.integrolabs.net/Fortemi/HotM/issues/269"

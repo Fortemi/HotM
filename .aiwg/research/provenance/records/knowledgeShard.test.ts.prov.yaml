@@ -1,24 +1,24 @@
 metadata:
   schema_version: "1.0.0"
   created_at: "2026-07-17T20:47:53Z"
-  updated_at: "2026-07-20T20:03:43Z"
-  description: "Provenance for the HotM #269 Knowledge Shard contract tests"
+  updated_at: "2026-07-24T08:10:00Z"
+  description: "Provenance for the HotM #272 full-v1 Knowledge Shard contract tests"
 entity:
   id: "urn:aiwg:artifact:ui/src/api/__tests__/knowledgeShard.test.ts"
   type: test
   created_at: "2026-07-17T20:47:53Z"
-  updated_at: "2026-07-20T20:03:43Z"
-  checksum: "sha256:5c46f9546a3692b343917b8174ed58a56b3f021fb0129e6629eb1deb84b52d37"
-  size_bytes: 5687
+  updated_at: "2026-07-24T08:10:00Z"
+  checksum: "sha256:d5175bb9a5390227b238bc49aab8282279113c112e09fd024ecc8b4c1aaae4ca"
+  size_bytes: 7852
   attributes:
-    change_scope: "hotm-269-knowledge-shard-contract"
+    change_scope: "hotm-272-full-v1-recovery"
     base_revision: "b35410c5c332a15e36cf84019f110100a7c9e8f1"
 activity:
   id: "urn:aiwg:activity:modification:knowledge-shard-test-ts:002"
   type: modification
   started_at: "2026-07-18T01:29:00Z"
-  ended_at: "2026-07-20T20:03:43Z"
-  description: "Test current and historical registered schemas plus unregistered same-major and next-major rejection"
+  ended_at: "2026-07-24T08:10:00Z"
+  description: "Test full-v1 completeness, checksums, safe archive parsing, bounds, and profile rejection"
 agent:
   id: "urn:aiwg:agent:codex-gpt-5"
   type: ai_assistant
@@ -29,7 +29,7 @@ relationships:
   wasGeneratedBy:
     entity: "urn:aiwg:artifact:ui/src/api/__tests__/knowledgeShard.test.ts"
     activity: "urn:aiwg:activity:modification:knowledge-shard-test-ts:002"
-    time: "2026-07-20T20:03:43Z"
+    time: "2026-07-24T08:10:00Z"
   wasDerivedFrom:
     - entity: "urn:aiwg:artifact:ui/src/api/__tests__/knowledgeShard.test.ts"
       source: "urn:aiwg:artifact:ui/src/api/knowledgeShard.ts"

@@ -17,10 +17,10 @@ function sha256(bytes) {
   return createHash('sha256').update(bytes).digest('hex');
 }
 
-function readProducerFile(path) {
+function readProducerFile(path, commit = receipt.authority.commit) {
   return execFileSync(
     'git',
-    ['-C', fortemiRoot, 'show', `${receipt.authority.commit}:${path}`],
+    ['-C', fortemiRoot, 'show', `${commit}:${path}`],
   );
 }
 
@@ -69,7 +69,96 @@ if (
   throw new Error('Pinned manifest versions do not match the accepted migration window');
 }
 
+const fullV1 = receipt.fullV1;
+const fullContract = readProducerFile(
+  fullV1.authority.contract.path,
+  fullV1.authority.commit,
+);
+if (sha256(fullContract) !== fullV1.authority.contract.sha256) {
+  throw new Error('Fortemi Knowledge Shard 2.0.0 contract checksum mismatch');
+}
+const parsedFullContract = JSON.parse(fullContract.toString('utf8'));
+if (
+  parsedFullContract.contractRevision !== fullV1.authority.contract.revision
+  || parsedFullContract.knowledgeShard?.schemaVersion !== fullV1.tuple.schemaVersion
+  || parsedFullContract.schemaBundle?.sha256
+    !== fullV1.authority.contract.schemaBundleSha256
+  || parsedFullContract.presenceSemantics?.fieldCount
+    !== fullV1.authority.contract.fieldInventoryCount
+  || parsedFullContract.schemaBundle?.files?.[
+    'contracts/knowledge-shard/2.0.0/field-semantics.json'
+  ] !== fullV1.authority.contract.fieldSemanticsSha256
+) {
+  throw new Error('Fortemi Knowledge Shard 2.0.0 authority identity is unexpected');
+}
+
+const fullManifestSchema = readProducerFile(
+  fullV1.authority.manifestSchema.path,
+  fullV1.authority.commit,
+);
+if (sha256(fullManifestSchema) !== fullV1.authority.manifestSchema.sha256) {
+  throw new Error('Fortemi Knowledge Shard full-v1 manifest schema checksum mismatch');
+}
+const parsedFullManifest = JSON.parse(fullManifestSchema.toString('utf8'));
+if (
+  JSON.stringify(parsedFullManifest.properties?.components?.items?.enum)
+    !== JSON.stringify(fullV1.components)
+  || JSON.stringify(parsedFullManifest.$defs?.counts?.required)
+    !== JSON.stringify(fullV1.countFields)
+) {
+  throw new Error('HotM full-v1 component/count inventory differs from Fortemi authority');
+}
+
+const runtimeReceiptBytes = readProducerFile(
+  fullV1.runtimeReceipt.path,
+  fullV1.runtimeReceipt.commit,
+);
+if (sha256(runtimeReceiptBytes) !== fullV1.runtimeReceipt.sha256) {
+  throw new Error('Fortemi schema-2 runtime receipt checksum mismatch');
+}
+const runtimeReceipt = JSON.parse(runtimeReceiptBytes.toString('utf8'));
+if (
+  runtimeReceipt.status !== 'delivered-main-conformance-passed'
+  || runtimeReceipt.implementation?.commit !== fullV1.runtimeReceipt.implementationCommit
+  || runtimeReceipt.consumer?.zeroMutationOnFailure !== true
+  || runtimeReceipt.consumer?.exactAttachmentBlobReexport !== true
+) {
+  throw new Error('Fortemi schema-2 runtime receipt is missing required recovery evidence');
+}
+
+const pairedReceiptBytes = readProducerFile(
+  fullV1.pairedReceipt.path,
+  fullV1.pairedReceipt.commit,
+);
+if (sha256(pairedReceiptBytes) !== fullV1.pairedReceipt.sha256) {
+  throw new Error('Fortemi full-v1 paired receipt checksum mismatch');
+}
+const pairedReceipt = JSON.parse(pairedReceiptBytes.toString('utf8'));
+const requiredCoverage = [
+  'all-33-components',
+  'all-34-count-fields',
+  'attachment-bytes',
+  'signatures',
+  'tampered-input',
+  'resource-limits',
+  'repeated-imports',
+  'zero-mutation-on-rejection',
+];
+if (
+  pairedReceipt.status !== 'delivered-cross-repository-conformance-passed'
+  || pairedReceipt.tuple?.schemaVersion !== fullV1.tuple.schemaVersion
+  || pairedReceipt.tuple?.profile !== fullV1.tuple.profile
+  || pairedReceipt.claims?.fullV1Interoperability !== true
+  || pairedReceipt.claims?.suiteWide !== false
+  || pairedReceipt.claims?.completeBackup !== false
+  || requiredCoverage.some((item) => !pairedReceipt.coverage?.includes(item))
+) {
+  throw new Error('Fortemi full-v1 paired receipt is missing required scoped evidence');
+}
+
 console.log(
   `Fortemi Knowledge Shard ${receipt.profile} fixtures verified at ${receipt.authority.commit} `
-  + `(revision ${receipt.authority.contract.revision}, schemas ${receipt.acceptedSchemaVersions.join(', ')})`,
+  + `(revision ${receipt.authority.contract.revision}, schemas ${receipt.acceptedSchemaVersions.join(', ')}); `
+  + `${fullV1.tuple.schemaVersion}/${fullV1.tuple.profile} authority and paired receipt verified `
+  + `(revision ${fullV1.authority.contract.revision})`,
 );

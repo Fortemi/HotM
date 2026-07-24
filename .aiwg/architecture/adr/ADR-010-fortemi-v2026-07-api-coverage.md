@@ -111,6 +111,48 @@ retains the registered historical window and consumes current schema 1.2. This
 does not establish attachment-byte recovery or `full-v1`/`record-v1`
 conformance.
 
+### Full-v1 Recovery Consumer Receipt (HotM #272)
+
+HotM additionally consumes the exact `2.0.0/full-v1` tuple at Fortemi authority
+commit `6343bd899958445bbc7e7e87b0dc92a8429d5a06`, contract revision 20,
+contract SHA-256
+`5bf8d2fd8147d8df92599b1a3ce6b405ce022c83893f37547aefa7ca659f0783`.
+The machine receipt pins the 33 component identifiers, 34 count fields, schema
+bundle, 220-field presence inventory, runtime receipt, and paired
+cross-repository receipt.
+
+The export path requests `schema_version=2.0.0`, `profile=full-v1`, and
+`include_blobs=true`, then pipes `Response.body` directly to an
+operator-selected writable stream. The browser does not construct a complete
+archive `Blob`. Import locally validates the exact tuple, bounded gzip/TAR
+structure, complete component/count/checksum inventory, and resource limits.
+It then requires a Fortemi `dry_run=true&verify_signature=require` response
+before sending `dry_run=false`. Signature, component/blob digest, byte length,
+reference, presence-state, and database/blob mutation checks remain at the
+Fortemi authority boundary.
+
+The HotM pass-through boundary is implemented, but its live recovery cell is
+not yet passed. Sidecar `45aff7e6f439` exported the full archive without
+`signature.json`; the required-signature clean-destination dry-run failed
+before mutation. Fortemi issue #1088 owns production signing and trust
+configuration. The HotM receipt therefore keeps `fullV1Interoperability`,
+`suiteWide`, and `completeBackup` false. `record-v1` remains unsupported.
+
+### Compatibility Guard Receipt (HotM #244)
+
+`ui/src/api/systemCompatibility.ts` accepts only schema `1` and contract
+revision `2026-07-06`. It compares Fortemi's
+`minimum_hotm_enterprise_client` with the exact version from
+`ui/package.json` before capability normalization. Unsupported schemas,
+unknown revisions, malformed minimum-client policies, and client-too-old
+responses throw typed contract errors, preserving the existing
+unavailable/degraded UI path and leaving local workflows available.
+
+Focused fixtures cover compatible, exactly-equal minimum, checkpoint
+prerelease, current-plus-one revision, client-too-old, malformed minimum, and
+unsupported-schema states. Route presence and a successful HTTP response do
+not bypass this boundary.
+
 ### OpenAPI Consumer Receipt (HotM #270)
 
 HotM consumes the Fortemi-generated OpenAPI 3.1 artifact at producer commit

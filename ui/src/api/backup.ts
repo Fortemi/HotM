@@ -23,8 +23,18 @@ import { getActiveMemory, getMemoryRoutingHeaderName } from './memory-context';
 import {
   inspectKnowledgeShard,
   normalizeKnowledgeShardInclude,
+  SUPPORTED_FULL_V1_PROFILE,
+  SUPPORTED_FULL_V1_SCHEMA,
 } from './knowledgeShard';
 import { getTauriFetch } from '@/lib/tauri';
+
+type KnowledgeShardExportOptions = {
+  include?: readonly KnowledgeShardComponent[];
+  profile?: 'core-v1' | 'full-v1';
+  schemaVersion?: string;
+};
+
+type ShardSignaturePolicy = 'require' | 'prefer' | 'trusted-local-only';
 
 export function createBackupApi(client: ApiClient) {
   const getBaseUrl = (): string => client.baseUrl;
@@ -162,12 +172,23 @@ export function createBackupApi(client: ApiClient) {
     /**
      * Export knowledge shard (application-level export)
      */
-    async exportKnowledgeShard(options: {
-      include?: readonly KnowledgeShardComponent[];
-    } = {}): Promise<KnowledgeShardExport> {
+    async exportKnowledgeShard(
+      options: KnowledgeShardExportOptions = {},
+    ): Promise<KnowledgeShardExport> {
       const params: Record<string, string> = {};
-      const include = normalizeKnowledgeShardInclude(options.include);
+      const profile = options.profile ?? 'core-v1';
+      const schemaVersion = options.schemaVersion
+        ?? (profile === SUPPORTED_FULL_V1_PROFILE ? SUPPORTED_FULL_V1_SCHEMA : undefined);
+      if (profile === SUPPORTED_FULL_V1_PROFILE && options.include) {
+        throw new Error('Knowledge shard 2.0.0/full-v1 export requires the complete component inventory.');
+      }
+      const include = profile === 'core-v1'
+        ? normalizeKnowledgeShardInclude(options.include)
+        : undefined;
       if (include) params.include = include;
+      if (schemaVersion) params.schema_version = schemaVersion;
+      params.profile = profile;
+      if (profile === SUPPORTED_FULL_V1_PROFILE) params.include_blobs = 'true';
 
       const baseUrl = getBaseUrl();
       const queryString = new URLSearchParams(params).toString();
@@ -182,10 +203,59 @@ export function createBackupApi(client: ApiClient) {
       }
 
       const blob = await response.blob();
+      const manifest = await inspectKnowledgeShard(blob);
+      if (
+        manifest.profile !== profile
+        || (schemaVersion && manifest.version !== schemaVersion)
+      ) {
+        throw new Error(
+          `Fortemi exported ${manifest.version}/${manifest.profile} instead of the requested ${schemaVersion ?? 'default'}/${profile}.`,
+        );
+      }
       return {
         blob,
-        manifest: await inspectKnowledgeShard(blob),
+        manifest,
       };
+    },
+
+    /**
+     * Stream a server-generated shard directly to an operator-provided sink.
+     * This is the required browser path for full-v1 so attachment sidecars are
+     * never accumulated into a complete in-memory Blob.
+     */
+    async streamKnowledgeShardExport(
+      sink: WritableStream<Uint8Array>,
+      options: KnowledgeShardExportOptions,
+    ): Promise<{ profile: 'core-v1' | 'full-v1'; schemaVersion: string | undefined }> {
+      const profile = options.profile ?? 'core-v1';
+      const schemaVersion = options.schemaVersion
+        ?? (profile === SUPPORTED_FULL_V1_PROFILE ? SUPPORTED_FULL_V1_SCHEMA : undefined);
+      if (profile === SUPPORTED_FULL_V1_PROFILE && options.include) {
+        throw new Error('Knowledge shard 2.0.0/full-v1 export requires the complete component inventory.');
+      }
+
+      const params = new URLSearchParams();
+      params.set('profile', profile);
+      if (schemaVersion) params.set('schema_version', schemaVersion);
+      if (profile === SUPPORTED_FULL_V1_PROFILE) {
+        params.set('include_blobs', 'true');
+      } else {
+        const include = normalizeKnowledgeShardInclude(options.include);
+        if (include) params.set('include', include);
+      }
+
+      const response = await getTauriFetch()(
+        `${getBaseUrl()}/backup/knowledge-shard?${params.toString()}`,
+        { headers: getMemoryHeaders() },
+      );
+      if (!response.ok) {
+        throw new Error(`Export failed: ${response.statusText}`);
+      }
+      if (!response.body) {
+        throw new Error('Streaming shard export is unavailable in this client.');
+      }
+      await response.body.pipeTo(sink);
+      return { profile, schemaVersion };
     },
 
     /**
@@ -204,6 +274,9 @@ export function createBackupApi(client: ApiClient) {
       }
 
       const manifest = await inspectKnowledgeShard(file);
+      if (manifest.profile === SUPPORTED_FULL_V1_PROFILE) {
+        throw new Error('Knowledge shard 2.0.0/full-v1 import requires the streaming multipart recovery path.');
+      }
       const shardBase64 = await fileToBase64(file);
       const response = await client.post<KnowledgeShardImportResponse | undefined>(
         '/backup/knowledge-shard/import',
@@ -225,6 +298,7 @@ export function createBackupApi(client: ApiClient) {
         dryRun?: boolean;
         onConflict?: 'skip' | 'replace' | 'merge';
         skipEmbeddingRegen?: boolean;
+        verifySignature?: ShardSignaturePolicy;
       } = {},
     ): Promise<KnowledgeShardImportResult> {
       if (!file) {
@@ -232,34 +306,57 @@ export function createBackupApi(client: ApiClient) {
       }
 
       const manifest = await inspectKnowledgeShard(file);
-      const params: Record<string, string> = {};
-      const include = normalizeKnowledgeShardInclude(options.include);
-      if (include) params.include = include;
-      if (options.dryRun !== undefined) params.dry_run = String(options.dryRun);
-      if (options.onConflict) params.on_conflict = options.onConflict;
-      if (options.skipEmbeddingRegen !== undefined) {
-        params.skip_embedding_regen = String(options.skipEmbeddingRegen);
+      const isFullV1 = manifest.profile === SUPPORTED_FULL_V1_PROFILE;
+      if (isFullV1 && options.include) {
+        throw new Error('Knowledge shard 2.0.0/full-v1 import requires the complete component inventory.');
+      }
+      if (isFullV1 && options.verifySignature && options.verifySignature !== 'require') {
+        throw new Error('Knowledge shard 2.0.0/full-v1 recovery requires publisher signature verification.');
       }
 
-      const queryString = new URLSearchParams(params).toString();
-      const url = `${getBaseUrl()}/backup/knowledge-shard/upload${queryString ? `?${queryString}` : ''}`;
-      const formData = new FormData();
-      formData.append('file', file);
+      const uploadOnce = async (
+        dryRun: boolean | undefined,
+        verifySignature: ShardSignaturePolicy | undefined,
+      ): Promise<KnowledgeShardImportResponse | undefined> => {
+        const params: Record<string, string> = {};
+        const include = isFullV1 ? undefined : normalizeKnowledgeShardInclude(options.include);
+        if (include) params.include = include;
+        if (dryRun !== undefined) params.dry_run = String(dryRun);
+        if (options.onConflict) params.on_conflict = options.onConflict;
+        if (options.skipEmbeddingRegen !== undefined) {
+          params.skip_embedding_regen = String(options.skipEmbeddingRegen);
+        }
+        if (verifySignature) params.verify_signature = verifySignature;
 
-      const response = await getTauriFetch()(url, {
-        method: 'POST',
-        headers: getMemoryHeaders(),
-        body: formData,
-      });
+        const queryString = new URLSearchParams(params).toString();
+        const url = `${getBaseUrl()}/backup/knowledge-shard/upload${queryString ? `?${queryString}` : ''}`;
+        const formData = new FormData();
+        formData.append('file', file);
+        const response = await getTauriFetch()(url, {
+          method: 'POST',
+          headers: getMemoryHeaders(),
+          body: formData,
+        });
+        if (!response.ok) {
+          throw new Error(await jsonErrorMessage(response, `Upload failed: ${response.statusText}`));
+        }
+        const result = await response
+          .json()
+          .catch(() => undefined) as KnowledgeShardImportResponse | undefined;
+        assertSuccessfulShardImport(result);
+        return result;
+      };
 
-      if (!response.ok) {
-        throw new Error(await jsonErrorMessage(response, `Upload failed: ${response.statusText}`));
+      if (isFullV1) {
+        const preflight = await uploadOnce(true, 'require');
+        if (options.dryRun === true) {
+          return { manifest, response: preflight, preflight };
+        }
+        const result = await uploadOnce(false, 'require');
+        return { manifest, response: result, preflight };
       }
 
-      const result = await response
-        .json()
-        .catch(() => undefined) as KnowledgeShardImportResponse | undefined;
-      assertSuccessfulShardImport(result);
+      const result = await uploadOnce(options.dryRun, options.verifySignature);
       return { manifest, response: result };
     },
 

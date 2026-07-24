@@ -191,6 +191,38 @@ SHA-256 is
 The visible clean-server and repeated-import semantic receipt remains scoped to
 `core-v1`; it does not establish attachment-byte or richer-profile recovery.
 
+#### Exact full-v1 Recovery Extension (HotM #272)
+
+The `core-v1` migration window remains intact. A distinct recovery path now
+accepts only `2.0.0/full-v1`, pinned to Fortemi contract revision 20 and the
+delivered runtime/paired receipts. Its local streaming TAR inspector bounds
+compressed size (50 MiB), uncompressed size (200 MiB), entries (64), entry
+size (50 MiB), manifest size (1 MiB), and entry-name length (255 bytes), and
+requires the complete 33-component, 34-count-field, and 33-checksum inventory.
+
+Full export is a pass-through byte stream from Fortemi to an operator-selected
+file-system writable. Full import is a two-stage server transaction: signed
+zero-mutation dry-run first, then the same archive is submitted for mutation
+only after preflight succeeds. Fortemi remains responsible for signature
+trust, component/blob digest and length, sidecar reference, presence-semantic,
+and clean-destination transactional validation.
+
+The authoritative evidence is
+`ui/src/api/contracts/fortemi-knowledge-shard-receipt.json`; it explicitly
+keeps `fullV1Interoperability`, `suiteWide`, and `completeBackup` false. The
+2026-07-24 live preflight proved the zero-mutation signature gate but found
+that the production exporter emits no `signature.json`; Fortemi #1088 blocks
+the passing HotM clean-recovery cell.
+
+#### Compatibility Boundary Completion (HotM #244)
+
+The compatibility client validates schema `1`, contract revision
+`2026-07-06`, and the producer minimum-client requirement against the running
+HotM package version before capability normalization. Typed failures for
+unsupported schema/revision, malformed minimum policy, or client-too-old
+state feed the existing unavailable/degraded presentation and disable advanced
+server surfaces while local workflows remain visible.
+
 ## 5. Data and State Impact
 
 | State | Impact |

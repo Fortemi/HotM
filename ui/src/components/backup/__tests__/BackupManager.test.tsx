@@ -24,6 +24,7 @@ vi.mock('@/api', () => ({
       getBackupMetadata: vi.fn(),
       updateBackupMetadata: vi.fn(),
       exportKnowledgeShard: vi.fn(),
+      streamKnowledgeShardExport: vi.fn(),
       inspectKnowledgeShard: vi.fn(),
       importKnowledgeShard: vi.fn(),
       uploadKnowledgeShard: vi.fn(),
@@ -100,10 +101,14 @@ function getBackupImportFileInput(): HTMLInputElement {
 }
 
 describe('BackupManager', () => {
-  let anchorClickSpy: ReturnType<typeof vi.spyOn>;
+  let anchorClickSpy: { mockRestore(): void };
+  let originalShowSaveFilePicker: unknown;
 
   beforeEach(() => {
     vi.resetAllMocks();
+    originalShowSaveFilePicker = (
+      window as Window & { showSaveFilePicker?: unknown }
+    ).showSaveFilePicker;
     anchorClickSpy = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
     vi.mocked(api.backup.listBackups).mockResolvedValue(mockBackups);
     vi.mocked(api.backup.triggerBackup).mockResolvedValue(undefined);
@@ -114,6 +119,10 @@ describe('BackupManager', () => {
     vi.mocked(api.backup.exportKnowledgeShard).mockResolvedValue({
       blob: new Blob(['test']),
       manifest: coreManifest,
+    });
+    vi.mocked(api.backup.streamKnowledgeShardExport).mockResolvedValue({
+      profile: 'full-v1',
+      schemaVersion: '2.0.0',
     });
     vi.mocked(api.backup.inspectKnowledgeShard).mockResolvedValue(coreManifest);
     vi.mocked(api.backup.uploadKnowledgeShard).mockResolvedValue({
@@ -157,6 +166,10 @@ describe('BackupManager', () => {
   afterEach(() => {
     vi.clearAllMocks();
     anchorClickSpy.mockRestore();
+    Object.defineProperty(window, 'showSaveFilePicker', {
+      configurable: true,
+      value: originalShowSaveFilePicker,
+    });
   });
 
   describe('Rendering', () => {
@@ -295,22 +308,47 @@ describe('BackupManager', () => {
       fireEvent.click(screen.getByText('Export'));
 
       await waitFor(() => {
-        expect(screen.getByText('Knowledge Shard')).toBeInTheDocument();
+        expect(screen.getByText('Full Recovery Shard')).toBeInTheDocument();
+        expect(screen.getByText('Structured Records Shard')).toBeInTheDocument();
         expect(screen.getByText('JSON Export')).toBeInTheDocument();
-        expect(screen.getByText(/core-v1 structured records/)).toBeInTheDocument();
-        expect(screen.getByText(/full recovery are not included/)).toBeInTheDocument();
+        expect(screen.getByText(/Exact 2.0.0\/full-v1 export/)).toBeInTheDocument();
+        expect(screen.getByText(/Attachment bytes and rich analytical components/)).toBeInTheDocument();
       });
     });
 
-    it('exports the server default profile without unsupported query options', async () => {
+    it('exports the explicitly selected core-v1 profile', async () => {
+      render(<BackupManager />);
+      fireEvent.click(screen.getByText('Export'));
+      fireEvent.click(await screen.findByText('Structured Records Shard'));
+      fireEvent.click(await screen.findByRole('button', { name: /^Export$/ }));
+
+      await waitFor(() => {
+        expect(api.backup.exportKnowledgeShard).toHaveBeenCalledWith({ profile: 'core-v1' });
+        expect(screen.getByText(/Exported core-v1 schema 1.0.0/)).toBeInTheDocument();
+      });
+    });
+
+    it('streams exact 2.0.0/full-v1 directly to a file-system sink', async () => {
+      const writable = new WritableStream<Uint8Array>();
+      Object.defineProperty(window, 'showSaveFilePicker', {
+        configurable: true,
+        value: vi.fn().mockResolvedValue({
+          createWritable: vi.fn().mockResolvedValue(writable),
+        }),
+      });
+
       render(<BackupManager />);
       fireEvent.click(screen.getByText('Export'));
       fireEvent.click(await screen.findByRole('button', { name: /^Export$/ }));
 
       await waitFor(() => {
-        expect(api.backup.exportKnowledgeShard).toHaveBeenCalledWith();
-        expect(screen.getByText(/Exported core-v1 schema 1.0.0/)).toBeInTheDocument();
+        expect(api.backup.streamKnowledgeShardExport).toHaveBeenCalledWith(writable, {
+          profile: 'full-v1',
+          schemaVersion: '2.0.0',
+        });
+        expect(screen.getByText(/Streamed exact 2.0.0\/full-v1 recovery archive/)).toBeInTheDocument();
       });
+      expect(api.backup.exportKnowledgeShard).not.toHaveBeenCalled();
     });
 
     it('should close dialog on Cancel', async () => {
@@ -382,6 +420,7 @@ describe('BackupManager', () => {
 
       await waitFor(() => {
         expect(api.backup.uploadKnowledgeShard).toHaveBeenCalledWith(file, {
+          onConflict: 'replace',
           skipEmbeddingRegen: true,
         });
         expect(screen.getByText(/Imported core-v1 schema 1.0.0/)).toBeInTheDocument();
@@ -389,19 +428,19 @@ describe('BackupManager', () => {
       expect(api.backup.importKnowledgeShard).not.toHaveBeenCalled();
     });
 
-    it('blocks unsupported shard profiles before upload', async () => {
+    it('blocks record-v1 before upload', async () => {
       vi.mocked(api.backup.inspectKnowledgeShard).mockRejectedValueOnce(
-        new Error('Knowledge shard profile full-v1 is not supported; HotM accepts core-v1 only.'),
+        new Error('Knowledge shard profile record-v1 is not supported by HotM recovery.'),
       );
       render(<BackupManager />);
       fireEvent.click(screen.getByText('Import'));
 
       const fileInput = getBackupImportFileInput();
-      const file = new File(['shard'], 'full-v1.shard', { type: 'application/gzip' });
+      const file = new File(['shard'], 'record-v1.shard', { type: 'application/gzip' });
       Object.defineProperty(fileInput, 'files', { value: [file] });
       fireEvent.change(fileInput);
 
-      expect(await screen.findByRole('alert')).toHaveTextContent('profile full-v1 is not supported');
+      expect(await screen.findByRole('alert')).toHaveTextContent('profile record-v1 is not supported');
       expect(screen.getByRole('button', { name: /^Import$/ })).toBeDisabled();
       expect(api.backup.uploadKnowledgeShard).not.toHaveBeenCalled();
     });
@@ -413,7 +452,7 @@ describe('BackupManager', () => {
           resolveFirstInspection = resolve;
         }))
         .mockRejectedValueOnce(
-          new Error('Knowledge shard profile full-v1 is not supported; HotM accepts core-v1 only.'),
+          new Error('Knowledge shard profile record-v1 is not supported by HotM recovery.'),
         );
       render(<BackupManager />);
       fireEvent.click(screen.getByText('Import'));
@@ -426,10 +465,10 @@ describe('BackupManager', () => {
 
       fireEvent.click(screen.getByRole('button', { name: 'Choose different file' }));
       fileInput = getBackupImportFileInput();
-      const secondFile = new File(['shard'], 'full-v1.shard', { type: 'application/gzip' });
+      const secondFile = new File(['shard'], 'record-v1.shard', { type: 'application/gzip' });
       Object.defineProperty(fileInput, 'files', { value: [secondFile] });
       fireEvent.change(fileInput);
-      expect(await screen.findByRole('alert')).toHaveTextContent('profile full-v1 is not supported');
+      expect(await screen.findByRole('alert')).toHaveTextContent('profile record-v1 is not supported');
 
       await act(async () => {
         resolveFirstInspection(coreManifest);

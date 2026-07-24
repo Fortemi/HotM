@@ -123,6 +123,29 @@ The existing live clean-server and repeated-import receipt remains the
 end-to-end semantic proof for `core-v1`; the authority fixture gate keeps its
 version boundary current without widening the supported profile.
 
+Delivered extension for HotM #272:
+
+- Pin authority revision 20, schema bundle, field-semantics inventory, runtime
+  receipt, and paired receipt for exact `2.0.0/full-v1`.
+- Require 33 component files, 34 count fields, and a matching 33-file checksum
+  inventory during bounded streaming inspection.
+- Assert full export uses `schema_version=2.0.0`, `profile=full-v1`, and
+  `include_blobs=true`, piping response bytes directly to a writable sink.
+- Assert full import first submits `dry_run=true` and
+  `verify_signature=require`; no `dry_run=false` request is sent for tampered,
+  missing, oversized, unsupported, or skewed preflight failures.
+- Preserve exact archive bytes across the HotM pass-through boundary; rely on
+  the pinned Fortemi runtime and clean-destination receipt for signature,
+  digest, length, reference, presence-state, attachment-byte, and transaction
+  semantics.
+
+Live preflight on 2026-07-24 confirmed the response stream and attachment bytes,
+but the production archive contained no `signature.json`. The clean destination
+correctly returned 400 under `verify_signature=require` and remained empty.
+Fortemi #1088 blocks a passing HotM interoperability cell; this failure is
+recorded in
+`.aiwg/evidence/hotm-full-v1-clean-recovery-preflight-2026-07-24.json`.
+
 ### 1D. Compatibility Negotiation
 
 Required checks:
@@ -130,6 +153,16 @@ Required checks:
 - Cover supported and unknown compatibility contract revisions.
 - Cover minimum-client satisfied, client-too-old, malformed, and absent metadata.
 - Keep local workflows available while disabling affected server mutations on negotiation failure.
+
+Delivered for HotM #244:
+
+- Schema `1` and revision `2026-07-06` are the only accepted compatibility
+  boundary.
+- The minimum client is compared with `ui/package.json` before capability
+  normalization.
+- Fixtures cover supported, equal minimum, checkpoint prerelease, future
+  revision, client-too-old, malformed minimum, unsupported schema, and the
+  existing unreachable/degraded UI path.
 
 ### 1E. Cross-Language Auth Fixtures
 

@@ -1,22 +1,24 @@
 metadata:
   schema_version: "1.0.0"
   created_at: "2026-07-17T20:47:53Z"
-  description: "Provenance for the HotM #269 Knowledge Shard fixture catalog update"
+  updated_at: "2026-07-24T08:10:00Z"
+  description: "Provenance for the HotM #272 full-v1 fixture and evidence catalog update"
 entity:
   id: "urn:aiwg:artifact:.aiwg/testing/fortemi-v2026-07-fixture-catalog.md"
   type: document
   created_at: "2026-07-17T20:47:53Z"
-  checksum: "sha256:a1cc6e874fbd8b77f04ddae7867a0413e8db8adff77ba697acbc039449c403aa"
-  size_bytes: 5808
+  updated_at: "2026-07-24T08:10:00Z"
+  checksum: "sha256:697626d0e2ad28d858f8e4a97066fead17c27d0213c8b949eac8ce20306e221a"
+  size_bytes: 6449
   attributes:
-    change_scope: "hotm-269-knowledge-shard-contract"
+    change_scope: "hotm-272-full-v1-recovery"
     base_revision: "bba7ac05309bb8056c20fb7266255e6ba758ea2a"
 activity:
   id: "urn:aiwg:activity:modification:fortemi-v2026-07-fixture-catalog-md:001"
   type: modification
   started_at: "2026-07-17T20:47:53Z"
-  ended_at: "2026-07-17T20:47:53Z"
-  description: "Register the pinned core-v1 positive and negative fixture set"
+  ended_at: "2026-07-24T08:10:00Z"
+  description: "Register exact full-v1 authority inputs and clean-destination preflight evidence"
 agent:
   id: "urn:aiwg:agent:codex-gpt-5"
   type: ai_assistant
@@ -27,7 +29,7 @@ relationships:
   wasGeneratedBy:
     entity: "urn:aiwg:artifact:.aiwg/testing/fortemi-v2026-07-fixture-catalog.md"
     activity: "urn:aiwg:activity:modification:fortemi-v2026-07-fixture-catalog-md:001"
-    time: "2026-07-17T20:47:53Z"
+    time: "2026-07-24T08:10:00Z"
   used:
     - activity: "urn:aiwg:activity:modification:fortemi-v2026-07-fixture-catalog-md:001"
       entity: "urn:git:git@git.integrolabs.net:Fortemi/HotM.git:bba7ac05309bb8056c20fb7266255e6ba758ea2a:.aiwg/testing/fortemi-v2026-07-fixture-catalog.md"
