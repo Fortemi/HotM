@@ -96,13 +96,19 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          sed -i \
+            -e 's|http://archive.ubuntu.com|https://archive.ubuntu.com|g' \
+            -e 's|http://security.ubuntu.com|https://security.ubuntu.com|g' \
+            -e 's|http://azure.archive.ubuntu.com|https://archive.ubuntu.com|g' \
+            -e 's|http://us-east-1.ec2.archive.ubuntu.com|https://archive.ubuntu.com|g' \
+            /etc/apt/sources.list
           apt_update_strict() {
             local tries=0
             until apt-get update -qq; do
               tries=$((tries + 1))
               [ $tries -ge 3 ] && {
-                sed -i 's|http://azure.archive.ubuntu.com|http://archive.ubuntu.com|g' /etc/apt/sources.list || true
-                sed -i 's|http://us-east-1.ec2.archive.ubuntu.com|http://archive.ubuntu.com|g' /etc/apt/sources.list || true
+                sed -i 's|https://azure.archive.ubuntu.com|https://archive.ubuntu.com|g' /etc/apt/sources.list || true
+                sed -i 's|https://us-east-1.ec2.archive.ubuntu.com|https://archive.ubuntu.com|g' /etc/apt/sources.list || true
                 apt-get update -qq || true; return
               }
               echo "apt update failed (${tries}/3) — retrying in 5s"; sleep 5
@@ -258,12 +264,6 @@ jobs:
           VERSION="${TAG#v}"
           echo "RELEASE_TAG=${TAG}" >> $GITHUB_ENV
           echo "RELEASE_VERSION=${VERSION}" >> $GITHUB_ENV
-
-      - name: Install tools
-        shell: bash
-        run: |
-          apt-get update -qq
-          apt-get install -y --no-install-recommends curl jq openssh-client
 
       - name: Checkout vault helper
         uses: actions/checkout@v4
@@ -468,6 +468,10 @@ jobs:
       - name: Install tools
         shell: bash
         run: |
+          sed -i \
+            -e 's|http://archive.ubuntu.com|https://archive.ubuntu.com|g' \
+            -e 's|http://security.ubuntu.com|https://security.ubuntu.com|g' \
+            /etc/apt/sources.list
           apt-get update -qq
           apt-get install -y --no-install-recommends curl jq
           # Install gh CLI

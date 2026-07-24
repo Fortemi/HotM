@@ -54,6 +54,12 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          sed -i \
+            -e 's|http://archive.ubuntu.com|https://archive.ubuntu.com|g' \
+            -e 's|http://security.ubuntu.com|https://security.ubuntu.com|g' \
+            -e 's|http://azure.archive.ubuntu.com|https://archive.ubuntu.com|g' \
+            -e 's|http://us-east-1.ec2.archive.ubuntu.com|https://archive.ubuntu.com|g' \
+            /etc/apt/sources.list
 
           # Mirror resilience: retry up to 3 times; on failure swap to a known-good archive
           apt_update_strict() {
@@ -62,8 +68,8 @@ jobs:
               tries=$((tries + 1))
               if [ $tries -ge 3 ]; then
                 echo "apt-get update failed after 3 tries — switching to archive.ubuntu.com"
-                sed -i 's|http://azure.archive.ubuntu.com|http://archive.ubuntu.com|g' /etc/apt/sources.list || true
-                sed -i 's|http://us-east-1.ec2.archive.ubuntu.com|http://archive.ubuntu.com|g' /etc/apt/sources.list || true
+                sed -i 's|https://azure.archive.ubuntu.com|https://archive.ubuntu.com|g' /etc/apt/sources.list || true
+                sed -i 's|https://us-east-1.ec2.archive.ubuntu.com|https://archive.ubuntu.com|g' /etc/apt/sources.list || true
                 apt-get update -qq || true
                 return
               fi
@@ -224,12 +230,6 @@ jobs:
     timeout-minutes: 60
 
     steps:
-      - name: Install tools (curl, jq, openssh-client)
-        shell: bash
-        run: |
-          apt-get update -qq
-          apt-get install -y --no-install-recommends curl jq openssh-client
-
       - name: Checkout vault helper
         uses: actions/checkout@v4
 

@@ -46,12 +46,6 @@ jobs:
           git init . && git remote add origin "${AUTH_URL}"
           git fetch --depth=1 origin "${GITHUB_SHA}" && git checkout --force FETCH_HEAD
 
-      - name: Install dependencies
-        shell: bash
-        run: |
-          apt-get update -qq
-          apt-get install -y --no-install-recommends curl jq
-
       - name: Resolve image tags
         id: tags
         shell: bash

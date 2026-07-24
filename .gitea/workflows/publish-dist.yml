@@ -38,7 +38,10 @@ jobs:
       - name: Install system tools
         shell: bash
         run: |
-          apt-get update -qq && apt-get install -y -qq curl jq
+          sed -i 's|http://deb.debian.org|https://deb.debian.org|g' \
+            /etc/apt/sources.list.d/debian.sources
+          apt-get update -qq
+          apt-get install -y -qq curl jq
 
       - name: Install dependencies
         working-directory: ui
@@ -226,6 +229,8 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          sed -i 's|http://deb.debian.org|https://deb.debian.org|g' \
+            /etc/apt/sources.list.d/debian.sources
           apt-get update -qq
           apt-get install -y --no-install-recommends curl jq
           curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg \
