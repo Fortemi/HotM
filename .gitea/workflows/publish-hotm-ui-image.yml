@@ -1,8 +1,11 @@
-# Publish HotM UI Docker image
+# Publish HotM container images
 #
-# Builds a multi-stage Docker image (React SPA → nginx:alpine) and pushes to:
+# Publishes the backwards-compatible UI-only image and the supported all-in-one
+# HotM + Fortemi bundle to GHCR and the Gitea registry:
 #   - ghcr.io/fortemi/hotm-ui
+#   - ghcr.io/fortemi/hotm-bundle
 #   - git.integrolabs.net/fortemi/hotm-ui
+#   - git.integrolabs.net/fortemi/hotm-bundle
 #
 # Tags:
 #   main push → :latest + :sha-<7char>
@@ -12,26 +15,22 @@
 #   VAULT_CI_ROLE_ID    — vault AppRole role_id for this repo
 #   VAULT_CI_SECRET_ID  — vault AppRole secret_id for this repo
 #
-# Downstream: docker run -e VITE_API_BASE_URL=http://fortemi:3000 -p 8080:80 hotm-ui
+# Supported local bundle: publish 4180 (UI), 3000 (API), and optionally 3001
+# (MCP) on loopback. POSTGRES_PASSWORD is required.
 #
 # Tracking: Fortemi/HotM#179
 
-name: Publish HotM UI Image
+name: Publish HotM Container Images
 
 on:
   push:
     branches: [main]
-    paths:
-      - 'ui/**'
-      - 'docker/ui/**'
-      - '.gitea/workflows/publish-hotm-ui-image.yml'
-  create:
     tags: ['v*']
   workflow_dispatch:
 
 jobs:
   build-and-push:
-    name: Build & Push Docker image
+    name: Build & Push container images
     runs-on: ubuntu-22.04
     timeout-minutes: 30
 
@@ -59,20 +58,25 @@ jobs:
         run: |
           set -euo pipefail
           SHORT_SHA="${GITHUB_SHA:0:7}"
-          GHCR_BASE="ghcr.io/fortemi/hotm-ui"
-          GITEA_BASE="git.integrolabs.net/fortemi/hotm-ui"
+          GHCR_UI="ghcr.io/fortemi/hotm-ui"
+          GITEA_UI="git.integrolabs.net/fortemi/hotm-ui"
+          GHCR_BUNDLE="ghcr.io/fortemi/hotm-bundle"
+          GITEA_BUNDLE="git.integrolabs.net/fortemi/hotm-bundle"
 
           if [[ "${GITHUB_REF}" == refs/tags/v* ]]; then
             VERSION="${GITHUB_REF_NAME#v}"
-            TAGS="${GHCR_BASE}:latest,${GHCR_BASE}:${VERSION},${GITEA_BASE}:latest,${GITEA_BASE}:${VERSION}"
+            UI_TAGS="${GHCR_UI}:latest,${GHCR_UI}:${VERSION},${GITEA_UI}:latest,${GITEA_UI}:${VERSION}"
+            BUNDLE_TAGS="${GHCR_BUNDLE}:latest,${GHCR_BUNDLE}:${VERSION},${GITEA_BUNDLE}:latest,${GITEA_BUNDLE}:${VERSION}"
             echo "mode=release  version=${VERSION}"
           else
-            TAGS="${GHCR_BASE}:latest,${GHCR_BASE}:sha-${SHORT_SHA},${GITEA_BASE}:latest,${GITEA_BASE}:sha-${SHORT_SHA}"
+            UI_TAGS="${GHCR_UI}:latest,${GHCR_UI}:sha-${SHORT_SHA},${GITEA_UI}:latest,${GITEA_UI}:sha-${SHORT_SHA}"
+            BUNDLE_TAGS="${GHCR_BUNDLE}:latest,${GHCR_BUNDLE}:sha-${SHORT_SHA},${GITEA_BUNDLE}:latest,${GITEA_BUNDLE}:sha-${SHORT_SHA}"
             VERSION="${SHORT_SHA}"
             echo "mode=rolling  sha=${SHORT_SHA}"
           fi
 
-          echo "tags=${TAGS}" >> $GITHUB_OUTPUT
+          echo "ui_tags=${UI_TAGS}" >> "$GITHUB_OUTPUT"
+          echo "bundle_tags=${BUNDLE_TAGS}" >> "$GITHUB_OUTPUT"
           echo "version=${VERSION}" >> $GITHUB_OUTPUT
           echo "short_sha=${SHORT_SHA}" >> $GITHUB_OUTPUT
           echo "build_date=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> $GITHUB_OUTPUT
@@ -104,13 +108,12 @@ jobs:
         run: |
           printf '%s\n' "${BUILD_REPO_TOKEN:?BUILD_REPO_TOKEN is required}" | docker login git.integrolabs.net -u ${{ gitea.actor }} --password-stdin
 
-      - name: Build and push
+      - name: Build and push legacy UI image
         shell: bash
         run: |
           set -euo pipefail
-          TAGS="${{ steps.tags.outputs.tags }}"
+          TAGS="${{ steps.tags.outputs.ui_tags }}"
           VERSION="${{ steps.tags.outputs.version }}"
-          SHORT_SHA="${{ steps.tags.outputs.short_sha }}"
           BUILD_DATE="${{ steps.tags.outputs.build_date }}"
 
           # Build --tag args from comma-separated list
@@ -127,23 +130,89 @@ jobs:
             --build-arg "BUILD_DATE=${BUILD_DATE}" \
             --build-arg "VERSION=${VERSION}" \
             ${TAG_ARGS} \
+            --metadata-file /tmp/hotm-ui-image-metadata.json \
             --push \
             .
 
-          echo "=== Pushed images ==="
+          echo "=== Pushed legacy UI images ==="
           IFS=',' read -ra TAG_LIST <<< "$TAGS"
           for t in "${TAG_LIST[@]}"; do echo "  ${t}"; done
+
+      - name: Build and push HotM bundle image
+        shell: bash
+        run: |
+          set -euo pipefail
+          TAGS="${{ steps.tags.outputs.bundle_tags }}"
+          VERSION="${{ steps.tags.outputs.version }}"
+          BUILD_DATE="${{ steps.tags.outputs.build_date }}"
+
+          TAG_ARGS=""
+          IFS=',' read -ra TAG_LIST <<< "$TAGS"
+          for t in "${TAG_LIST[@]}"; do
+            TAG_ARGS="$TAG_ARGS --tag $t"
+          done
+
+          docker buildx build \
+            --platform linux/amd64 \
+            --file docker/bundle/Dockerfile \
+            --build-arg "GIT_SHA=${GITHUB_SHA}" \
+            --build-arg "BUILD_DATE=${BUILD_DATE}" \
+            --build-arg "VERSION=${VERSION}" \
+            ${TAG_ARGS} \
+            --metadata-file /tmp/hotm-bundle-image-metadata.json \
+            --push \
+            .
+
+          echo "=== Pushed bundled images ==="
+          IFS=',' read -ra TAG_LIST <<< "$TAGS"
+          for t in "${TAG_LIST[@]}"; do echo "  ${t}"; done
+
+      - name: Write image publication receipt
+        shell: bash
+        run: |
+          set -euo pipefail
+          jq -n \
+            --arg schemaVersion "hotm.container-publication-receipt.v1" \
+            --arg commit "${GITHUB_SHA}" \
+            --arg version "${{ steps.tags.outputs.version }}" \
+            --arg uiTags "${{ steps.tags.outputs.ui_tags }}" \
+            --arg bundleTags "${{ steps.tags.outputs.bundle_tags }}" \
+            --arg uiDigest "$(jq -r '."containerimage.digest"' /tmp/hotm-ui-image-metadata.json)" \
+            --arg bundleDigest "$(jq -r '."containerimage.digest"' /tmp/hotm-bundle-image-metadata.json)" \
+            --arg fortemiRevision "c93742d7c75b481621b821f4584304289eb364d5" \
+            --arg fortemiImage "ghcr.io/fortemi/fortemi@sha256:7d014c5580e62526069a0fc0d7ad994ed70fa73a8810d2b07476b1dfe5a99ae4" \
+            '{
+              schemaVersion: $schemaVersion,
+              commit: $commit,
+              version: $version,
+              ui: { tags: ($uiTags | split(",")), digest: $uiDigest },
+              bundle: {
+                tags: ($bundleTags | split(",")),
+                digest: $bundleDigest,
+                fortemiRevision: $fortemiRevision,
+                fortemiImage: $fortemiImage
+              }
+            }' > hotm-container-publication-receipt.json
+          jq . hotm-container-publication-receipt.json
+
+      - name: Upload image publication receipt
+        uses: actions/upload-artifact@ff15f0306b3f739f7b6fd43fb5d26cd321bd4de5
+        with:
+          name: hotm-container-publication-receipt
+          path: hotm-container-publication-receipt.json
+          if-no-files-found: error
 
       - name: Summary
         shell: bash
         run: |
           echo ""
           echo "============================================"
-          echo "  HotM UI image published"
+          echo "  HotM container images published"
           echo "============================================"
           echo "  SHA:     ${GITHUB_SHA:0:7}"
           echo "  Version: ${{ steps.tags.outputs.version }}"
           echo ""
           echo "Run with:"
-          echo "  docker run -e VITE_API_BASE_URL=http://fortemi:3000 \\"
-          echo "    -p 8080:80 ghcr.io/fortemi/hotm-ui:latest"
+          echo "  docker run --env-file .env \\"
+          echo "    -p 127.0.0.1:4180:4180 -p 127.0.0.1:3000:3000 \\"
+          echo "    ghcr.io/fortemi/hotm-bundle:latest"

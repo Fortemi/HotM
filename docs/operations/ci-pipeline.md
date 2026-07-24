@@ -103,6 +103,31 @@ Triggers on every push to `main` touching `ui/**`. Provides the built React SPA 
 
 **Downstream consumer**: A downstream CI pipeline downloads `hotm-ui-dist.tar.gz` from `hotm-latest` and extracts it. The `env-config.js` file is injected post-extract by the consumer; it is not included in the tarball.
 
+### Container images — `publish-hotm-ui-image.yml`
+
+Every main push and `v*` tag builds and publishes two images to GHCR and the
+Gitea registry:
+
+- `hotm-ui`: the backwards-compatible nginx static UI for external Fortemi
+  deployments.
+- `hotm-bundle`: the supported all-in-one HotM UI plus digest-pinned Fortemi
+  PostgreSQL/API/MCP runtime.
+
+Main publishes `latest` and `sha-<7char>`; release tags publish `latest` and the
+numbered version. Registry credentials are fetched through the existing Vault
+AppRole boundary. The job uploads
+`hotm-container-publication-receipt.json`, recording both pushed digests, the
+HotM commit/version, and the Fortemi image/revision embedded in the bundle.
+
+The bundle build uses `docker/bundle/Dockerfile`. CI must not replace its
+Fortemi digest with a mutable tag. Local smoke verification requires both
+`/healthz` on port 4180 and Fortemi `/livez` on port 3000.
+
+Backfill is shape-aware: the first numbered bundle release begins with the
+release containing this contract. Older versions are not relabeled as bundles.
+Any missing legacy `hotm-ui` tag must be rebuilt from its matching immutable Git
+tag and checked by digest before publication.
+
 ---
 
 ## Versioned Releases — `desktop-release.yml`
@@ -135,7 +160,12 @@ Triggers on every push to `main` touching `ui/**`. Provides the built React SPA 
 
 ## Docker Image Publishing — `publish-hotm-ui-image.yml`
 
-Builds a multi-stage Docker image (React SPA compiled into `nginx:alpine`) and pushes to two registries.
+Builds and publishes two image shapes to both registries:
+
+- `hotm-bundle`: the supported self-contained image. It combines the HotM
+  React UI with the digest-pinned Fortemi PostgreSQL/API/MCP bundle.
+- `hotm-ui`: the backwards-compatible UI-only nginx image for operators who
+  intentionally provide Fortemi separately.
 
 **Registries and tags**:
 
@@ -144,20 +174,38 @@ Builds a multi-stage Docker image (React SPA compiled into `nginx:alpine`) and p
 | Push to `main` | `:latest`, `:sha-<7char>` |
 | `v*` tag push | `:latest`, `:<version>` (e.g. `:2026.2.1`) |
 
-Both registries receive identical tags on each event.
+Both registries receive identical tags on each event. The workflow also
+uploads `hotm-container-publication-receipt`, which records the source commit,
+all published tags, both image digests, and the immutable Fortemi base image
+and runtime revision.
 
 **Registries**:
 - `ghcr.io/fortemi/hotm-ui`
+- `ghcr.io/fortemi/hotm-bundle`
 - `git.integrolabs.net/fortemi/hotm-ui`
+- `git.integrolabs.net/fortemi/hotm-bundle`
 
-**Runtime usage**:
+**Supported bundled runtime**:
 ```bash
-docker run -e VITE_API_BASE_URL=http://fortemi:3000 -p 8080:80 ghcr.io/fortemi/hotm-ui:latest
+docker run --env-file .env \
+  -p 127.0.0.1:4180:4180 \
+  -p 127.0.0.1:3000:3000 \
+  -p 127.0.0.1:3001:3001 \
+  -v hotm-postgres:/var/lib/postgresql/data \
+  -v hotm-files:/var/lib/matric/files \
+  -v hotm-backups:/var/backups/matric-memory \
+  ghcr.io/fortemi/hotm-bundle:latest
 ```
 
 **Secrets required**:
 - `GH_PUBLISH_TOKEN` — GitHub PAT with `write:packages` scope
 - `BUILD_REPO_TOKEN` — Gitea PAT with `write:package` scope
+
+The trigger is `push` for `main` and `v*` tags. A main push restores
+`:latest`; a numbered tag creates the matching immutable version tag.
+Historical versions predating the bundle contract are not relabeled as
+bundled releases. A legacy UI-only backfill must build from the corresponding
+immutable Git tag and be verified by digest before publication.
 
 **Agent-proxy image** (`fortemi/hotm-agent-proxy`): Published by `ui-ci.yml` (not this workflow). Dev images (`:main`, `:latest`, `:sha-<7char>`) go to Gitea only on main branch push. Release images additionally push to GHCR on tag.
 
