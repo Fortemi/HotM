@@ -118,7 +118,7 @@ Launch-boundary update, 2026-07: the `60 requests/minute` value remains provisio
   },
 
   "links": {
-    "support_url": "https://docs.fortemi.io/hotm/support",
+    "support_url": "https://docs.fortemi.com/hotm/support",
     "privacy_policy_url": "https://hotm.fortemi.io/privacy",
     "terms_url": "https://hotm.fortemi.io/terms"
   }

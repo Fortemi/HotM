@@ -4,6 +4,12 @@
   "brandSub": "M",
   "tagline": "House of the Memorian — the Fortémi desktop app.",
   "description": "Documentation for HotM: install, operate, and develop the first-party desktop client for Fortémi.",
+  "language": "en",
+  "domain": "docs.fortemi.com",
+  "seo": {
+    "siteUrl": "https://docs.fortemi.com/hotm",
+    "rootHtmlFallback": true
+  },
   "accentColor": "#2563EB",
   "welcome": {
     "eyebrow": "HotM",

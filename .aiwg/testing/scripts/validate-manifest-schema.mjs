@@ -28,7 +28,7 @@ const example = {
   tiers: { current_tier: 'free', limits: { max_notes: 5000, max_storage_bytes: 1073741824, max_inference_requests_per_day: 100 } },
   branding: { primary_color: '#1a1a1a', logo_url: null, app_name_override: null },
   telemetry: { enabled_by_default: false, endpoint: 'https://telemetry.hotm.fortemi.io/v1/events' },
-  links: { support_url: 'https://docs.fortemi.io/hotm/support', privacy_policy_url: 'https://hotm.fortemi.io/privacy', terms_url: 'https://hotm.fortemi.io/terms' },
+  links: { support_url: 'https://docs.fortemi.com/hotm/support', privacy_policy_url: 'https://hotm.fortemi.io/privacy', terms_url: 'https://hotm.fortemi.io/terms' },
 };
 
 const errors = [];

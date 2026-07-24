@@ -1,7 +1,7 @@
 metadata:
   schema_version: "1.0.0"
-  updated_at: "2026-07-24T08:10:00Z"
-  record_count: 36
+  updated_at: "2026-07-24T09:57:24Z"
+  record_count: 39
 records:
   - entity: "urn:aiwg:artifact:.aiwg/architecture/adr/ADR-010-fortemi-v2026-07-api-coverage.md"
     record: "records/ADR-010-fortemi-v2026-07-api-coverage.md.prov.yaml"
@@ -61,6 +61,10 @@ records:
     record: "records/knowledgeShard.ts.prov.yaml"
   - entity: "urn:aiwg:artifact:ui/src/api/__tests__/knowledgeShardFixtures.ts"
     record: "records/knowledgeShardFixtures.ts.prov.yaml"
+  - entity: "urn:aiwg:artifact:.aiwg/architecture/manifest-schema-v1.md"
+    record: "records/manifest-schema-v1.md.prov.yaml"
+  - entity: "urn:aiwg:artifact:.aiwg/research/findings/mobile-manifest-remote-config.md"
+    record: "records/mobile-manifest-remote-config.md.prov.yaml"
   - entity: "urn:aiwg:artifact:.aiwg/architecture/sad-fortemi-integration-addendum-2026-07.md"
     record: "records/sad-fortemi-integration-addendum-2026-07.md.prov.yaml"
   - entity: "urn:aiwg:artifact:ui/src/api/__tests__/systemCompatibility.test.ts"
@@ -69,6 +73,8 @@ records:
     record: "records/systemCompatibility.ts.prov.yaml"
   - entity: "urn:aiwg:artifact:ui/src/api/types-extended.ts"
     record: "records/types-extended.ts.prov.yaml"
+  - entity: "urn:aiwg:artifact:.aiwg/testing/scripts/validate-manifest-schema.mjs"
+    record: "records/validate-manifest-schema.mjs.prov.yaml"
   - entity: "urn:aiwg:artifact:.aiwg/testing/scripts/verify-fortemi-event-catalog.mjs"
     record: "records/verify-fortemi-event-catalog.mjs.prov.yaml"
   - entity: "urn:aiwg:artifact:.aiwg/testing/scripts/verify-fortemi-knowledge-shard-contract.mjs"

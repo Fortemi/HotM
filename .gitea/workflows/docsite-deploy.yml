@@ -1,7 +1,7 @@
 # Doc Site Deploy
 #
 # Builds and deploys the HotM documentation site on new release tags.
-# Deploys to docs.fortemi.io/hotm/ — a subpath of the Fortémi docs domain.
+# Deploys to docs.fortemi.com/hotm/ — a subpath of the canonical Fortémi docs domain.
 #
 # Required Gitea secrets:
 #   VAULT_CI_ROLE_ID   — vault AppRole role_id for this repo
@@ -111,7 +111,7 @@ jobs:
                   "type": "local",
                   "path": "${{ gitea.workspace }}/docs"
                 },
-                "domains": ["docs.fortemi.io"],
+                "domains": ["docs.fortemi.com"],
                 "strictLinks": false
               }
             ]
@@ -178,6 +178,6 @@ jobs:
       - name: Log deployment result
         if: success() && steps.precheck.outputs.skip != 'true'
         run: |
-          echo "Deployed docs.fortemi.io/hotm/"
+          echo "Deployed docs.fortemi.com/hotm/"
           echo "Tag: ${{ gitea.ref }}"
           echo "Commit: ${{ gitea.sha }}"

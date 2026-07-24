@@ -675,11 +675,18 @@ Green: #10b981, Red: #ef4444
   aria-label="Differences between version 2 and version 3"
 >
   <table role="table" aria-label="Side-by-side diff">
-    <tr role="row">
-      <td role="cell" aria-label="Line 6 added">
-        <ins>- Carol (Design)</ins>
-      </td>
-    </tr>
+    <thead>
+      <tr role="row">
+        <th scope="col">Change</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr role="row">
+        <td role="cell" aria-label="Line 6 added">
+          <ins>- Carol (Design)</ins>
+        </td>
+      </tr>
+    </tbody>
   </table>
 </div>
 ```

@@ -348,7 +348,7 @@ Rebuild against [Fortemi v2026.5.6](https://github.com/Fortemi/Fortemi/releases/
 
 ### Added
 
-- **Docsite build + deploy workflows** ([`.gitea/workflows/docsite-build.yml`](.gitea/workflows/docsite-build.yml), [`.gitea/workflows/docsite-deploy.yml`](.gitea/workflows/docsite-deploy.yml)). Mirrors the docsite CI pattern landed in [Fortemi v2026.5.1](https://github.com/Fortemi/Fortemi/releases/tag/v2026.5.1): PR-time build validation against `docs/`, plus a deploy-on-push pipeline targeting `docs.fortemi.io/hotm`. Docs config moved into `docs/config.json` so both runners build the site reproducibly.
+- **Docsite build + deploy workflows** ([`.gitea/workflows/docsite-build.yml`](.gitea/workflows/docsite-build.yml), [`.gitea/workflows/docsite-deploy.yml`](.gitea/workflows/docsite-deploy.yml)). Mirrors the docsite CI pattern landed in [Fortemi v2026.5.1](https://github.com/Fortemi/Fortemi/releases/tag/v2026.5.1): PR-time build validation against `docs/`, plus a deploy-on-push pipeline targeting `docs.fortemi.com/hotm`. Docs config moved into `docs/config.json` so both runners build the site reproducibly.
 
 ### Changed
 

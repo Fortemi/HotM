@@ -90,7 +90,7 @@ jobs:
                   "type": "local",
                   "path": "${{ gitea.workspace }}/docs"
                 },
-                "domains": ["docs.fortemi.io"],
+                "domains": ["docs.fortemi.com"],
                 "strictLinks": true
               }
             ]

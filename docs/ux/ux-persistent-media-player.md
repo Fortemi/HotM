@@ -454,7 +454,7 @@ A PDF cannot play in a true player sense. The floating panel for PDFs is a light
    360px wide × 480px tall (default)
 ```
 
-PDF rendering uses the existing PDF viewer (or browser `<iframe>` pointing to the attachment URL with a `#page=N` fragment). The floating panel does not implement a custom renderer — it wraps whatever the current preview uses.
+PDF rendering uses the existing PDF viewer (or an embedded browser frame pointing to the attachment URL with a `#page=N` fragment). The floating panel does not implement a custom renderer — it wraps whatever the current preview uses.
 
 Page position is persisted in `localStorage` key `hotm.player.pdf.{attachmentId}.page`.
 
