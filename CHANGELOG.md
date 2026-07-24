@@ -4,7 +4,28 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
-## [Unreleased]
+## [2026.7.0] - 2026-07-24
+
+This is a profile-scoped suite-contract baseline. It releases the proven
+`core-v1` recovery window and exact REST, event, and compatibility consumers.
+The guarded `2.0.0/full-v1` path is included, but live full-v1 recovery remains
+blocked on signed Fortemi exports and is not a release capability claim.
+
+### Added
+
+- **Fortemi compatibility guard (#244):** require compatibility schema `1`,
+  revision `2026-07-06`, and a satisfied minimum HotM client version before
+  capability normalization or advanced server flows.
+- **Guarded full-v1 recovery path (#272):** stream exact
+  `2.0.0/full-v1` exports directly to disk, validate the complete manifest
+  inventory within explicit archive bounds, and require a signed
+  zero-mutation Fortemi preflight before any recovery mutation. The path stays
+  fail-closed because current Fortemi exports omit `signature.json`
+  (Fortemi #1088).
+- **Self-contained container image (#241):** publish `hotm-bundle`, combining
+  the HotM UI with an immutable Fortemi PostgreSQL/API/MCP image, alongside
+  the backwards-compatible `hotm-ui` image. CI records both image digests in
+  an uploaded publication receipt.
 
 ### Fixed
 
@@ -29,6 +50,22 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   sending a `core-v1` archive to Fortemi, accepts the exact registered schema
   migration window (`1.0.0`, `1.1.0`, and `1.2.0`), and suppresses post-import
   inference so the restored portable snapshot is not immediately mutated.
+- **Exact event and API authorities:** the SSE consumer is pinned to the
+  delivered Fortemi event catalog and generated AsyncAPI receipt, while the
+  OpenAPI gate validates every delivered operation and its schema-bearing
+  rate-limit response.
+- **Pinned desktop runtime:** refresh the sidecar provenance manifest to
+  immutable release `sidecar-45aff7e6f439` with per-platform byte sizes and
+  SHA-256 checksums.
+
+### Compatibility
+
+- Released recovery scope is `core-v1`, accepting exact schemas `1.0.0`,
+  `1.1.0`, and `1.2.0`.
+- `record-v1` is rejected by HotM recovery.
+- `2.0.0/full-v1` is implemented only as a fail-closed boundary. This release
+  does not claim full-v1 interoperability, complete backup, suite-wide
+  portability, or schema parity.
 
 ## [2026.6.0] - 2026-06-02
 

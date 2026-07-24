@@ -12,7 +12,15 @@
    - Verify at least the Linux asset with `scripts/download-pinned-sidecar.sh x86_64-unknown-linux-gnu /tmp/hotm-sidecar-provenance-check`.
 3. Update `CHANGELOG.md` with all changes, breaking notes, sidecar pin, and manual steps.
 4. Create release notes in `docs/releases/v<version>.md`.
-5. Tag: `git tag v<YYYY.M.PATCH>[-channel] && git push --tags` (e.g., `v2026.2.3`).
+5. Create and verify the stable tag with the vaulted release key, then push
+   only that exact tag:
+
+   ```bash
+   tools/release/cut-tag.sh <YYYY.M.PATCH> -m "HotM <YYYY.M.PATCH>"
+   git push origin v<YYYY.M.PATCH>
+   ```
+
+   Do not create unsigned release tags or use a broad `git push --tags`.
 6. Build artifacts:
    - Web SPA: `cd ui && npm ci && npm run build`
    - Docker: `docker compose -f docker-compose.prod.yml build`
