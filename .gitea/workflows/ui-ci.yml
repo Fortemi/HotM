@@ -134,10 +134,10 @@ jobs:
             "https://token:${{ github.token }}@git.integrolabs.net/${GITHUB_REPOSITORY}.git" .
           git checkout "${GITHUB_SHA:-HEAD}"
 
-      - name: Install vault fetch dependencies
+      - name: Verify vault fetch dependencies
         run: |
-          apt-get update -qq
-          apt-get install -y --no-install-recommends curl jq
+          command -v curl
+          command -v jq
 
       - name: Fetch registry tokens from vault
         env:
@@ -225,10 +225,10 @@ jobs:
             "https://token:${{ github.token }}@git.integrolabs.net/${GITHUB_REPOSITORY}.git" .
           git checkout "${GITHUB_SHA:-HEAD}"
 
-      - name: Install vault fetch dependencies
+      - name: Verify vault fetch dependencies
         run: |
-          apt-get update -qq
-          apt-get install -y --no-install-recommends curl jq
+          command -v curl
+          command -v jq
 
       - name: Fetch registry tokens from vault
         env:
