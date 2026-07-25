@@ -107,15 +107,15 @@
       }
     },
     "runtimeReceipt": {
-      "commit": "2e812aa66ba108a824475a97b1ddba4d1412dec7",
+      "commit": "44db73dfeee8213972cbb43ada87fafe12615060",
       "path": "tests/fixtures/shards/external/schema-2-runtime.implementation-receipt.json",
-      "sha256": "29f5e7cca66aec38baba0d7e58da1f5f6cc8520995f290831bc949bde1de1647",
-      "implementationCommit": "c93742d7c75b481621b821f4584304289eb364d5"
+      "sha256": "88a11341f6cd120a937974babc83539d7837548fbceaf4bb2dd23c9e9f19fbca",
+      "implementationCommit": "336df3ed834be581d1a0f0a3d252fb48e723b987"
     },
     "pairedReceipt": {
-      "commit": "60d6540e9b9ea50699fa588e155a7033c0f5b512",
+      "commit": "7232b22c77f8e300c6820676909ba0e3d99c2c14",
       "path": "tests/fixtures/shards/external/schema-2-full-v1.interop-receipt.json",
-      "sha256": "e33f5898d780edfeacf6da7c0ca67b6e8649ea5bc2d571bfc120645cc59e16d6"
+      "sha256": "48f622afc02279b2360534af3aa542de96efea1e752f4a80a4cd6f3d6e2066cc"
     },
     "components": [
       "notes",
