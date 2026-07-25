@@ -1,15 +1,15 @@
 metadata:
   schema_version: "1.0.0"
   created_at: "2026-07-17T21:46:51Z"
-  updated_at: "2026-07-24T08:10:00Z"
+  updated_at: "2026-07-25T00:01:05Z"
   description: "Provenance for the HotM #272 full-v1 recovery test-plan update"
 entity:
   id: "urn:aiwg:artifact:.aiwg/testing/api-contract-test-plan-addendum-2026-07.md"
   type: document
   created_at: "2026-07-17T21:46:51Z"
-  updated_at: "2026-07-24T08:10:00Z"
-  checksum: "sha256:3d8f574f5c1dbbda4b5176e1c5d72ab015d160dbbf89edc11c752769e614e2d3"
-  size_bytes: 17189
+  updated_at: "2026-07-25T00:01:05Z"
+  checksum: "sha256:458c4473005dee70a3fb080c6b4e4192d6ab4c23ef7370ccf2e4902950165899"
+  size_bytes: 17657
   attributes:
     change_scope: "hotm-272-full-v1-recovery"
     base_revision: "b35410c5c332a15e36cf84019f110100a7c9e8f1"
@@ -17,8 +17,8 @@ activity:
   id: "urn:aiwg:activity:modification:aiwg-testing-api-contract-test-plan-addendum-2026-07-md:001"
   type: modification
   started_at: "2026-07-17T21:46:51Z"
-  ended_at: "2026-07-24T08:10:00Z"
-  description: "Add full-v1 streaming, archive-bound, verification-gate, and clean-destination coverage"
+  ended_at: "2026-07-25T00:01:05Z"
+  description: "Record passing full-v1 streaming, archive bounds, signature verification, repeated import, clean re-export, and zero-mutation coverage"
 agent:
   id: "urn:aiwg:agent:codex-gpt-5"
   type: ai_assistant

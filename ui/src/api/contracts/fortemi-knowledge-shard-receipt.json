@@ -197,13 +197,26 @@
       "path": ".aiwg/evidence/hotm-full-v1-clean-recovery-preflight-2026-07-24.json",
       "status": "blocked-before-mutation",
       "producerIssue": "https://git.integrolabs.net/Fortemi/fortemi/issues/1088",
-      "reason": "The pinned production exporter emits no signature.json, so required publisher verification cannot pass on a clean destination."
+      "reason": "Historical pre-#1088 receipt: the then-pinned production exporter emitted no signature.json, so required publisher verification stopped before mutation."
+    },
+    "liveRecovery": {
+      "path": ".aiwg/evidence/hotm-full-v1-clean-recovery-receipt-2026-07-24.json",
+      "status": "passed",
+      "producerCommit": "336df3ed834be581d1a0f0a3d252fb48e723b987",
+      "producerRelease": "sidecar-336df3ed834b",
+      "producerAssetSha256": "db89a3e52323e67f66e0c6b446667dce88349228882c4919a8f821c75bbfaad6",
+      "requiredSignatureDryRun": true,
+      "repeatedImports": 2,
+      "componentFilesIdentical": 33,
+      "countFieldsIdentical": 34,
+      "attachmentSidecarsIdentical": 1,
+      "zeroMutationRejections": 8
     },
     "claims": {
-      "fullV1Interoperability": false,
+      "fullV1Interoperability": true,
       "suiteWide": false,
       "completeBackup": false,
-      "scope": "HotM implements the exact 2.0.0/full-v1 pass-through and fail-closed boundary. The live HotM recovery cell remains blocked on Fortemi#1088 and makes no interoperability-pass claim."
+      "scope": "Exact 2.0.0/full-v1 React fixture to immutable Fortemi producer to released HotM pass-through to clean Fortemi destination only; this is not a suite-wide or complete-backup claim."
     }
   }
 }

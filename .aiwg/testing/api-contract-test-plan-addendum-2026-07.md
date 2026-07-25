@@ -139,12 +139,19 @@ Delivered extension for HotM #272:
   digest, length, reference, presence-state, attachment-byte, and transaction
   semantics.
 
-Live preflight on 2026-07-24 confirmed the response stream and attachment bytes,
-but the production archive contained no `signature.json`. The clean destination
-correctly returned 400 under `verify_signature=require` and remained empty.
-Fortemi #1088 blocks a passing HotM interoperability cell; this failure is
-recorded in
+The historical live preflight confirmed the response stream and attachment
+bytes but stopped before mutation when the older production archive lacked
+`signature.json`; that failure remains recorded in
 `.aiwg/evidence/hotm-full-v1-clean-recovery-preflight-2026-07-24.json`.
+
+The passing rerun used immutable sidecar `sidecar-336df3ed834b`. HotM's bounded
+streaming inspector accepted the signed archive, the public-key-only clean
+destination passed `dry_run=true&verify_signature=require`, two mutating
+imports converged, and all 33 component files, 34 count fields, and the
+attachment sidecar re-exported identically. Manifest, component, signature,
+attachment, missing, oversized, unsupported, and skewed cases returned 400
+with a whole-schema zero-mutation fingerprint. The scoped receipt is
+`.aiwg/evidence/hotm-full-v1-clean-recovery-receipt-2026-07-24.json`.
 
 ### 1D. Compatibility Negotiation
 

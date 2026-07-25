@@ -53,6 +53,8 @@ records:
     record: "records/fortemi-v2026-07-fixture-catalog.md.prov.yaml"
   - entity: "urn:aiwg:artifact:.aiwg/evidence/hotm-full-v1-clean-recovery-preflight-2026-07-24.json"
     record: "records/hotm-full-v1-clean-recovery-preflight-2026-07-24.json.prov.yaml"
+  - entity: "urn:aiwg:artifact:.aiwg/evidence/hotm-full-v1-clean-recovery-receipt-2026-07-24.json"
+    record: "records/hotm-full-v1-clean-recovery-receipt-2026-07-24.json.prov.yaml"
   - entity: "urn:aiwg:artifact:.aiwg/evidence/hotm-v2026.7.0-github-mirror-repair-2026-07-24.json"
     record: "records/hotm-v2026.7.0-github-mirror-repair-2026-07-24.json.prov.yaml"
   - entity: "urn:aiwg:artifact:ui/src/api/index.ts"

@@ -131,12 +131,21 @@ before sending `dry_run=false`. Signature, component/blob digest, byte length,
 reference, presence-state, and database/blob mutation checks remain at the
 Fortemi authority boundary.
 
-The HotM pass-through boundary is implemented, but its live recovery cell is
-not yet passed. Sidecar `45aff7e6f439` exported the full archive without
-`signature.json`; the required-signature clean-destination dry-run failed
-before mutation. Fortemi issue #1088 owns production signing and trust
-configuration. The HotM receipt therefore keeps `fullV1Interoperability`,
-`suiteWide`, and `completeBackup` false. `record-v1` remains unsupported.
+The live recovery cell now passes against immutable Fortemi sidecar
+`sidecar-336df3ed834b` at commit
+`336df3ed834be581d1a0f0a3d252fb48e723b987`. The released HotM consumer
+accepted the signed 7,086-byte archive through its bounded streaming
+inspector. A public-key-only clean Fortemi destination passed explicit
+required-signature dry-run before two mutating imports, then re-exported all
+33 component files, 34 count fields, and the attachment sidecar byte-for-byte.
+Manifest, component, signature, attachment, missing, oversized, unsupported,
+and skewed inputs all returned 400 without changing the destination.
+
+This establishes `fullV1Interoperability=true` only for the named exact
+React-fixture -> immutable Fortemi producer -> released HotM pass-through ->
+clean Fortemi destination cell. `suiteWide` and `completeBackup` remain false,
+and `record-v1` remains unsupported. The historical unsigned preflight receipt
+is retained separately from the passing receipt.
 
 ### Compatibility Guard Receipt (HotM #244)
 

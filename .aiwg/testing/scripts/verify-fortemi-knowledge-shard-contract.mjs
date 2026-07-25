@@ -156,9 +156,43 @@ if (
   throw new Error('Fortemi full-v1 paired receipt is missing required scoped evidence');
 }
 
+const liveRecoveryBytes = await readFile(resolve(hotmRoot, fullV1.liveRecovery.path));
+const liveRecovery = JSON.parse(liveRecoveryBytes.toString('utf8'));
+if (
+  liveRecovery.status !== 'passed'
+  || liveRecovery.runtime?.commit !== fullV1.liveRecovery.producerCommit
+  || liveRecovery.runtime?.releaseTag !== fullV1.liveRecovery.producerRelease
+  || liveRecovery.runtime?.assetSha256 !== fullV1.liveRecovery.producerAssetSha256
+  || liveRecovery.source?.signature?.entryPresent !== true
+  || liveRecovery.source?.signature?.privateMaterialPresentInArchive !== false
+  || liveRecovery.destination?.preflight?.verifySignature !== 'require'
+  || liveRecovery.destination?.preflight?.status !== 200
+  || liveRecovery.destination?.preflight?.destinationUnchanged !== true
+  || liveRecovery.destination?.mutation?.sentOnlyAfterPassingPreflight !== true
+  || liveRecovery.destination?.mutation?.repeatedImports !== fullV1.liveRecovery.repeatedImports
+  || liveRecovery.destination?.reexport?.componentFilesIdentical
+    !== fullV1.liveRecovery.componentFilesIdentical
+  || liveRecovery.destination?.reexport?.countFieldsIdentical
+    !== fullV1.liveRecovery.countFieldsIdentical
+  || liveRecovery.destination?.reexport?.attachmentSidecarsIdentical
+    !== fullV1.liveRecovery.attachmentSidecarsIdentical
+  || liveRecovery.rejections?.length !== fullV1.liveRecovery.zeroMutationRejections
+  || liveRecovery.rejections?.some(
+    (rejection) => rejection.status < 400 || rejection.destinationUnchanged !== true,
+  )
+  || liveRecovery.claims?.fullV1Interoperability !== true
+  || liveRecovery.claims?.suiteWide !== false
+  || liveRecovery.claims?.completeBackup !== false
+  || fullV1.claims?.fullV1Interoperability !== true
+  || fullV1.claims?.suiteWide !== false
+  || fullV1.claims?.completeBackup !== false
+) {
+  throw new Error('HotM full-v1 live recovery receipt is missing required scoped evidence');
+}
+
 console.log(
   `Fortemi Knowledge Shard ${receipt.profile} fixtures verified at ${receipt.authority.commit} `
   + `(revision ${receipt.authority.contract.revision}, schemas ${receipt.acceptedSchemaVersions.join(', ')}); `
-  + `${fullV1.tuple.schemaVersion}/${fullV1.tuple.profile} authority and paired receipt verified `
+  + `${fullV1.tuple.schemaVersion}/${fullV1.tuple.profile} authority, paired receipt, and live recovery verified `
   + `(revision ${fullV1.authority.contract.revision})`,
 );

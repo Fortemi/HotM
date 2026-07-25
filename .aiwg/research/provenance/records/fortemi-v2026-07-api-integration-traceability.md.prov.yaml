@@ -1,15 +1,15 @@
 metadata:
   schema_version: "1.0.0"
   created_at: "2026-07-17T21:46:51Z"
-  updated_at: "2026-07-24T08:10:00Z"
+  updated_at: "2026-07-25T00:01:05Z"
   description: "Provenance for the HotM #272 full-v1 recovery traceability update"
 entity:
   id: "urn:aiwg:artifact:.aiwg/reports/fortemi-v2026-07-api-integration-traceability.md"
   type: document
   created_at: "2026-07-17T21:46:51Z"
-  updated_at: "2026-07-24T08:10:00Z"
-  checksum: "sha256:81ddaf2383086ab4c7cd5bea4ef992ef5972489a21b1f7223f63a33b05423d1a"
-  size_bytes: 15831
+  updated_at: "2026-07-25T00:01:05Z"
+  checksum: "sha256:55af48511e56cb3067347022fc9528ea66cb36ec1e8c5252e16b850fa248e235"
+  size_bytes: 15930
   attributes:
     change_scope: "hotm-272-full-v1-recovery"
     base_revision: "b35410c5c332a15e36cf84019f110100a7c9e8f1"
@@ -17,8 +17,8 @@ activity:
   id: "urn:aiwg:activity:modification:aiwg-reports-fortemi-v2026-07-api-integration-traceability-md:001"
   type: modification
   started_at: "2026-07-17T21:46:51Z"
-  ended_at: "2026-07-24T08:10:00Z"
-  description: "Trace exact full-v1 authority, implementation, tests, clean-destination evidence, and blocker"
+  ended_at: "2026-07-25T00:01:05Z"
+  description: "Trace exact full-v1 authority, implementation, tests, passing clean-destination evidence, and scoped claim limits"
 agent:
   id: "urn:aiwg:agent:codex-gpt-5"
   type: ai_assistant

@@ -209,10 +209,14 @@ and clean-destination transactional validation.
 
 The authoritative evidence is
 `ui/src/api/contracts/fortemi-knowledge-shard-receipt.json`; it explicitly
-keeps `fullV1Interoperability`, `suiteWide`, and `completeBackup` false. The
-2026-07-24 live preflight proved the zero-mutation signature gate but found
-that the production exporter emits no `signature.json`; Fortemi #1088 blocks
-the passing HotM clean-recovery cell.
+sets `fullV1Interoperability=true` only for the named exact cell and keeps
+`suiteWide` and `completeBackup` false. Immutable sidecar
+`sidecar-336df3ed834b` emitted `signature.json`; the released HotM streaming
+consumer passed it unchanged to a public-key-only clean Fortemi destination.
+Required-signature dry-run, two imports, exact 33-component/34-count-field and
+attachment-byte re-export, plus eight zero-mutation rejection classes passed.
+The earlier unsigned preflight remains a historical receipt, not the current
+disposition.
 
 #### Compatibility Boundary Completion (HotM #244)
 

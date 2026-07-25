@@ -1,15 +1,15 @@
 metadata:
   schema_version: "1.0.0"
   created_at: "2026-07-17T21:46:51Z"
-  updated_at: "2026-07-24T08:10:00Z"
+  updated_at: "2026-07-25T00:01:05Z"
   description: "Provenance for the HotM #272 full-v1 recovery contract update"
 entity:
   id: "urn:aiwg:artifact:.aiwg/architecture/adr/ADR-010-fortemi-v2026-07-api-coverage.md"
   type: document
   created_at: "2026-07-17T21:46:51Z"
-  updated_at: "2026-07-24T08:10:00Z"
-  checksum: "sha256:c8d43ab5ef33c13812189f5ffaf90d3b6876b08708c11da7f807d67c01f29059"
-  size_bytes: 10868
+  updated_at: "2026-07-25T00:01:05Z"
+  checksum: "sha256:d95c0322d5c4829748a1d8642e10dd81bd38e18304468201d00c70a65fe7abe1"
+  size_bytes: 11396
   attributes:
     change_scope: "hotm-272-full-v1-recovery"
     base_revision: "b35410c5c332a15e36cf84019f110100a7c9e8f1"
@@ -17,8 +17,8 @@ activity:
   id: "urn:aiwg:activity:modification:aiwg-architecture-adr-ADR-010-fortemi-v2026-07-api-coverage-md:001"
   type: modification
   started_at: "2026-07-17T21:46:51Z"
-  ended_at: "2026-07-24T08:10:00Z"
-  description: "Record exact full-v1 authority, bounded recovery controls, and the blocked interoperability claim"
+  ended_at: "2026-07-25T00:01:05Z"
+  description: "Record exact full-v1 authority, bounded recovery controls, the passing named cell, and retained suite-wide claim limits"
 agent:
   id: "urn:aiwg:agent:codex-gpt-5"
   type: ai_assistant

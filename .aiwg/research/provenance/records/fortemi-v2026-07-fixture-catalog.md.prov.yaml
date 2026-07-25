@@ -1,15 +1,15 @@
 metadata:
   schema_version: "1.0.0"
   created_at: "2026-07-17T20:47:53Z"
-  updated_at: "2026-07-24T08:10:00Z"
+  updated_at: "2026-07-25T00:01:05Z"
   description: "Provenance for the HotM #272 full-v1 fixture and evidence catalog update"
 entity:
   id: "urn:aiwg:artifact:.aiwg/testing/fortemi-v2026-07-fixture-catalog.md"
   type: document
   created_at: "2026-07-17T20:47:53Z"
-  updated_at: "2026-07-24T08:10:00Z"
-  checksum: "sha256:697626d0e2ad28d858f8e4a97066fead17c27d0213c8b949eac8ce20306e221a"
-  size_bytes: 6449
+  updated_at: "2026-07-25T00:01:05Z"
+  checksum: "sha256:2cf787583cc0aa172fd481bd913d62bf20182effe311336fae8c3a9529639882"
+  size_bytes: 6566
   attributes:
     change_scope: "hotm-272-full-v1-recovery"
     base_revision: "bba7ac05309bb8056c20fb7266255e6ba758ea2a"
@@ -17,8 +17,8 @@ activity:
   id: "urn:aiwg:activity:modification:fortemi-v2026-07-fixture-catalog-md:001"
   type: modification
   started_at: "2026-07-17T20:47:53Z"
-  ended_at: "2026-07-24T08:10:00Z"
-  description: "Register exact full-v1 authority inputs and clean-destination preflight evidence"
+  ended_at: "2026-07-25T00:01:05Z"
+  description: "Register exact full-v1 authority inputs and the passing signed clean-destination recovery receipt"
 agent:
   id: "urn:aiwg:agent:codex-gpt-5"
   type: ai_assistant

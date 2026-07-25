@@ -84,9 +84,12 @@ components and 34 count fields, and performs a signed Fortemi zero-mutation
 dry-run before any mutating upload. The pinned runtime and paired receipts
 cover component/blob digest, length, references, limits, repeated imports,
 presence states, and clean Fortemi recovery. The HotM receipt remains scoped:
-the named upstream cells pass, but the HotM cell remains blocked because the
-production export is unsigned. `fullV1Interoperability`, `suiteWide`, and
-`completeBackup` remain false in the HotM receipt pending Fortemi #1088.
+immutable sidecar `sidecar-336df3ed834b` emitted a signed archive, the released
+HotM consumer passed bounded streaming inspection, and a public-key-only clean
+Fortemi destination passed required-signature dry-run, two imports, exact
+33-component/34-count-field/attachment-byte re-export, and eight zero-mutation
+rejections. `fullV1Interoperability` is true only for this named exact cell;
+`suiteWide` and `completeBackup` remain false.
 
 ## Compatibility Requirement Receipt
 

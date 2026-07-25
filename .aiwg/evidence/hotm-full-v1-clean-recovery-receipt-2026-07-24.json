@@ -1,0 +1,137 @@
+{
+  "schemaVersion": "hotm.full-v1-clean-recovery-receipt.v1",
+  "observedAt": "2026-07-25T00:01:05Z",
+  "status": "passed",
+  "hotmIssue": "https://git.integrolabs.net/Fortemi/HotM/issues/272",
+  "producerIssue": "https://git.integrolabs.net/Fortemi/fortemi/issues/1088",
+  "authority": {
+    "repository": "Fortemi/fortemi",
+    "commit": "6343bd899958445bbc7e7e87b0dc92a8429d5a06",
+    "contractRevision": "20",
+    "tuple": "2.0.0/full-v1"
+  },
+  "runtime": {
+    "releaseTag": "sidecar-336df3ed834b",
+    "commit": "336df3ed834be581d1a0f0a3d252fb48e723b987",
+    "target": "x86_64-unknown-linux-gnu",
+    "assetBytes": 69817696,
+    "assetSha256": "db89a3e52323e67f66e0c6b446667dce88349228882c4919a8f821c75bbfaad6",
+    "publicationCiUrl": "https://git.integrolabs.net/Fortemi/fortemi/actions/runs/5688",
+    "publicationConclusion": "success"
+  },
+  "source": {
+    "cleanDatabase": true,
+    "seedArchive": {
+      "producer": "@fortemi/core@2026.7.13",
+      "sha256": "054da5528276806b9be69dcfff364a6969b72344045f05f9f6fcbeaca82a7a59"
+    },
+    "seedSignaturePolicy": "trusted-local-only",
+    "seedDryRunStatus": 200,
+    "seedImportStatus": 200,
+    "exportRequest": {
+      "profile": "full-v1",
+      "schemaVersion": "2.0.0",
+      "includeBlobs": true
+    },
+    "exportStatus": 200,
+    "exportBytes": 7086,
+    "exportSha256": "eab559b15ef28ba7c060c6a7ce01a6a417c402333c936aa235f39cf487854ee9",
+    "componentCount": 33,
+    "countFieldCount": 34,
+    "attachmentSidecarCount": 1,
+    "signature": {
+      "entryPresent": true,
+      "formatVersion": "1",
+      "algorithm": "ed25519",
+      "keyId": "fortemi-live-1088-20260724",
+      "publicKeySha256": "d0190ff3517ec086e69de9721e4c459446bf1109e6679d2264a82940aee92c0e",
+      "manifestDigest": "ebedf9b52cabddefd813b4a1dba2e069f356704b588bfedc17e28f23be5249b7",
+      "privateMaterialPresentInArchive": false
+    }
+  },
+  "hotm": {
+    "consumerCommit": "b43c65f044381e5af7e4131f2d96ad02173f2db9",
+    "consumerRelease": "v2026.7.0",
+    "boundedStreamingInspection": "passed",
+    "passThroughBytes": 7086,
+    "passThroughSha256": "eab559b15ef28ba7c060c6a7ce01a6a417c402333c936aa235f39cf487854ee9",
+    "completeArchiveBufferedByExportClient": false
+  },
+  "destination": {
+    "cleanDatabase": true,
+    "trustBoundary": {
+      "policy": "public-key-allowlist-only",
+      "trustedKeyFileConfigured": true,
+      "signingKeyFileConfigured": false
+    },
+    "preflight": {
+      "dryRun": true,
+      "verifySignature": "require",
+      "status": 200,
+      "destinationUnchanged": true
+    },
+    "mutation": {
+      "sentOnlyAfterPassingPreflight": true,
+      "status": 200,
+      "repeatedImports": 2
+    },
+    "reexport": {
+      "bytes": 6787,
+      "sha256": "0ba72fc2b7fe5ff56fc86a751f4d4b9ab84abf370208cb98717a522c9d343c29",
+      "componentFilesIdentical": 33,
+      "countFieldsIdentical": 34,
+      "attachmentSidecarsIdentical": 1,
+      "attachmentSha256": "33359737320ef519a6f27dc290a69484badea6e7160815d99afb8d73a3280666"
+    }
+  },
+  "rejections": [
+    {
+      "variant": "manifest-tampered",
+      "status": 400,
+      "destinationUnchanged": true
+    },
+    {
+      "variant": "component-tampered",
+      "status": 400,
+      "destinationUnchanged": true
+    },
+    {
+      "variant": "signature-tampered",
+      "status": 400,
+      "destinationUnchanged": true
+    },
+    {
+      "variant": "attachment-tampered",
+      "status": 400,
+      "destinationUnchanged": true
+    },
+    {
+      "variant": "missing-component",
+      "status": 400,
+      "destinationUnchanged": true
+    },
+    {
+      "variant": "unsupported",
+      "status": 400,
+      "destinationUnchanged": true
+    },
+    {
+      "variant": "skewed",
+      "status": 400,
+      "destinationUnchanged": true
+    },
+    {
+      "variant": "oversized",
+      "status": 400,
+      "destinationUnchanged": true
+    }
+  ],
+  "claims": {
+    "fullV1RecoveryPassed": true,
+    "fullV1Interoperability": true,
+    "scope": "Exact 2.0.0/full-v1 React fixture to immutable Fortemi producer to released HotM pass-through to clean Fortemi destination only.",
+    "suiteWide": false,
+    "completeBackup": false,
+    "recordV1": false
+  }
+}
