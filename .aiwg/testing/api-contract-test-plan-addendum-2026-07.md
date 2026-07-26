@@ -76,12 +76,15 @@ Required checks:
 Delivered for HotM #268:
 
 - The source-derived fixture pins sidecar commit
-  `98c9b29deee43b9c5bd96278f1f96837595882cd`, the producer source path, source
+  `45aff7e6f4390c650c98f55c643b1dc95d818c86`, the producer source path, source
   SHA-256, all 48 namespaced event types, and the default subscription prefixes.
 - The pinned producer generator, invoked with version `2026.7.1` and canonical
   server URL `https://example.invalid`, produces a 45,161-byte AsyncAPI 3.0 YAML
   with SHA-256
   `f6a6fbc39af52b713b6f5c40dbb6e46baeb8a1b352a19288e79073863766bdf4`.
+- The event and AsyncAPI source checksums are byte-identical to the earlier
+  `98c9b29deee43b9c5bd96278f1f96837595882cd` receipt. The SDLC gate verifies
+  the pinned producer on pull requests and delivered `main` revisions.
 - SSE listener tests exercise every catalog name.
 - WebSocket normalization tests exercise every catalog name through the shared
   envelope boundary.

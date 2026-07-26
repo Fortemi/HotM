@@ -49,7 +49,7 @@ This requirements baseline covers HotM alignment with the current Fortemi server
 ## Realtime Requirement Receipt
 
 `FORTEMI-2026-07-REQ-014` is implemented for the sidecar-pinned producer commit
-`98c9b29deee43b9c5bd96278f1f96837595882cd` by:
+`45aff7e6f4390c650c98f55c643b1dc95d818c86` by:
 
 - `ui/src/api/contracts/fortemi-event-catalog.json`, which records the 48 exact
   namespaced event types, default subscription prefixes, producer source path, and
@@ -59,11 +59,13 @@ This requirements baseline covers HotM alignment with the current Fortemi server
 - `ui/src/services/realtimeEventBus.ts`, which applies the same envelope and exact
   mapping to SSE and WebSocket input and retains unknown events as `Unknown`; and
 - `.aiwg/testing/scripts/verify-fortemi-event-catalog.mjs`, plus the realtime
-  Vitest suite, which gate source/catalog drift and both consumer paths.
+  Vitest suite, which gate source/catalog drift and both consumer paths on pull
+  requests and delivered `main` revisions.
 
 The delivered inference availability payload uses the producer field `available`;
 the former consumer-only `reachable` and `provider_id` event fields are not part of
-this contract.
+this contract. Event and AsyncAPI source checksums are unchanged from the earlier
+`98c9b29deee43b9c5bd96278f1f96837595882cd` receipt.
 
 ## Knowledge Shard Requirement Receipt
 

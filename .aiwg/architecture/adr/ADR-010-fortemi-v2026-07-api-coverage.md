@@ -74,12 +74,14 @@ A green route-inventory gate cannot satisfy any of gates 2-6. User-facing suppor
 
 ### Realtime Contract Receipt (HotM #268)
 
-The realtime consumer gate is implemented against the sidecar-pinned Fortemi commit
-`98c9b29deee43b9c5bd96278f1f96837595882cd`. The source-derived catalog at
+The realtime consumer gate is implemented against the delivered sidecar-pinned Fortemi commit
+`45aff7e6f4390c650c98f55c643b1dc95d818c86`. The source-derived catalog at
 `ui/src/api/contracts/fortemi-event-catalog.json` records all 48 names returned by
 `ServerEvent::namespaced_event_type` and the SHA-256 of
 `crates/matric-core/src/events.rs`. The CI verifier rejects revision, checksum, or
-catalog drift.
+catalog drift. The event and AsyncAPI source bytes are unchanged from the earlier
+`98c9b29deee43b9c5bd96278f1f96837595882cd` receipt; the repin aligns this
+consumer fixture with `release/sidecar-provenance.json`.
 
 The same fixture records the generated AsyncAPI 3.0 YAML receipt. At the pinned
 commit, `build_asyncapi_spec("2026.7.1", "https://example.invalid")` produces

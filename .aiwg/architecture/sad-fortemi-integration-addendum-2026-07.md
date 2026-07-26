@@ -163,12 +163,15 @@ map into bounded UI buckets; exact legacy `ServerEvent::event_type` values remai
 supported for WebSocket compatibility. No substring or fuzzy event matching is
 permitted, and unrecognized input remains `Unknown`.
 
-The catalog fixture and source verifier pin this behavior to sidecar commit
-`98c9b29deee43b9c5bd96278f1f96837595882cd`. The verifier extracts all 48 names
+The catalog fixture and source verifier pin this behavior to delivered sidecar commit
+`45aff7e6f4390c650c98f55c643b1dc95d818c86`. The verifier extracts all 48 names
 from `ServerEvent::namespaced_event_type` after validating the source checksum,
 then compares the exact set with the consumer fixture. The fixture also pins the
 AsyncAPI generator source and the reproducible canonical YAML digest
 `f6a6fbc39af52b713b6f5c40dbb6e46baeb8a1b352a19288e79073863766bdf4`.
+Those source and generated-document digests are byte-identical to the earlier
+`98c9b29deee43b9c5bd96278f1f96837595882cd` receipt. The cross-repository
+verifier runs for pull requests and delivered `main` revisions.
 
 #### Knowledge Shard Consumer Implementation (HotM #269)
 

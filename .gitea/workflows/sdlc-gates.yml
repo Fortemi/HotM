@@ -1,6 +1,8 @@
 name: SDLC Gates
 
 on:
+  push:
+    branches: [main]
   pull_request:
     types: [opened, edited, synchronize]
 
@@ -68,6 +70,7 @@ jobs:
         run: python3 .aiwg/testing/scripts/verify-fortemi-closeout-package.py
 
   validate-pr:
+    if: github.event_name == 'pull_request'
     runs-on: node-20
     permissions:
       pull-requests: write

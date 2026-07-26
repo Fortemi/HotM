@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "producer": {
     "repository": "Fortemi/fortemi",
-    "commit": "98c9b29deee43b9c5bd96278f1f96837595882cd",
+    "commit": "45aff7e6f4390c650c98f55c643b1dc95d818c86",
     "sourcePath": "crates/matric-core/src/events.rs",
     "sourceSha256": "9828d2856f7aea057978b66bf113596dccbfcf9642303eeb9a4d1a1e228d84e7",
     "asyncApi": {
