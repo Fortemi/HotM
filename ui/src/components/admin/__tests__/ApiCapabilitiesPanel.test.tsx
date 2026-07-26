@@ -46,8 +46,8 @@ function compatibilityFixture(
       premium_components: { state: 'preview', reason_code: 'capability_catalog_preview_only' },
     },
     links: {
-      openapi: '/openapi.yaml',
-      asyncapi: '/asyncapi.yaml',
+      openapi: '/api/v1/operator/openapi.yaml',
+      asyncapi: '/api/v1/operator/asyncapi.yaml',
       health: '/health',
       streaming_health: '/api/v1/health/streaming',
     },
@@ -155,8 +155,8 @@ describe('ApiCapabilitiesPanel', () => {
     expect(await screen.findByText('http://localhost:3000/api/v1')).toBeInTheDocument();
     expect(screen.getByText('v2026.5.25')).toBeInTheDocument();
     expect(screen.getByText('2026-07-06')).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'OpenAPI' })).toHaveAttribute('href', '/openapi.yaml');
-    expect(screen.getByRole('link', { name: 'AsyncAPI' })).toHaveAttribute('href', '/asyncapi.yaml');
+    expect(screen.getByRole('link', { name: 'OpenAPI' })).toHaveAttribute('href', '/api/v1/operator/openapi.yaml');
+    expect(screen.getByRole('link', { name: 'AsyncAPI' })).toHaveAttribute('href', '/api/v1/operator/asyncapi.yaml');
     expect(screen.getByText(/one or more advertised capabilities are degraded/i)).toBeInTheDocument();
     expect(screen.getAllByText('Hosted Auth').length).toBeGreaterThan(0);
     expect(screen.getByText('Streaming Health')).toBeInTheDocument();

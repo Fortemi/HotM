@@ -1,0 +1,42 @@
+metadata:
+  schema_version: "1.0.0"
+  created_at: "2026-07-26T15:10:08Z"
+  description: "Provenance for the operator contract-document API client tests"
+entity:
+  id: "urn:aiwg:artifact:ui/src/api/__tests__/index.test.ts"
+  type: test
+  created_at: "2026-07-26T15:10:08Z"
+  checksum: "sha256:b17b03b2c9480498d1155209eb442e5abb22f37e9ac0a85824fa3a28017d6672"
+  size_bytes: 7026
+  attributes:
+    change_scope: "hotm-route-202-operator-contracts"
+    base_revision: "d9e1ce69340b7b9816149c75cfced2600d9b7a22"
+activity:
+  id: "urn:aiwg:activity:modification:index-api-test-ts:001"
+  type: modification
+  started_at: "2026-07-26T15:10:08Z"
+  ended_at: "2026-07-26T15:10:08Z"
+  description: "Exercise default operator OpenAPI and AsyncAPI fetch paths"
+agent: &agent
+  id: "urn:aiwg:agent:codex-gpt-5"
+  type: ai_assistant
+  name: "Codex"
+  version: "gpt-5"
+  tool: "codex"
+relationships:
+  wasGeneratedBy:
+    entity: "urn:aiwg:artifact:ui/src/api/__tests__/index.test.ts"
+    activity: "urn:aiwg:activity:modification:index-api-test-ts:001"
+    time: "2026-07-26T15:10:08Z"
+  wasDerivedFrom:
+    - entity: "urn:aiwg:artifact:ui/src/api/__tests__/index.test.ts"
+      source: "urn:git:git@git.integrolabs.net:Fortemi/HotM.git:d9e1ce69340b7b9816149c75cfced2600d9b7a22:ui/src/api/__tests__/index.test.ts"
+      derivation_type: "tests"
+      activity: "urn:aiwg:activity:modification:index-api-test-ts:001"
+  wasAssociatedWith:
+    activity: "urn:aiwg:activity:modification:index-api-test-ts:001"
+    agent: "urn:aiwg:agent:codex-gpt-5"
+    role: "primary_author"
+  wasAttributedTo:
+    entity: "urn:aiwg:artifact:ui/src/api/__tests__/index.test.ts"
+    agent: "urn:aiwg:agent:codex-gpt-5"

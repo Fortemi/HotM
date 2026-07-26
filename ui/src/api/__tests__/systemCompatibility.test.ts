@@ -46,8 +46,8 @@ function compatibilityFixture(
       core_notes: { state: 'available' },
     },
     links: {
-      openapi: '/openapi.yaml',
-      asyncapi: '/asyncapi.yaml',
+      openapi: '/api/v1/operator/openapi.yaml',
+      asyncapi: '/api/v1/operator/asyncapi.yaml',
       health: '/health',
       streaming_health: '/api/v1/streaming/health',
     },

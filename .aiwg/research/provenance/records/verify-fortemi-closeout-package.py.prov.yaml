@@ -1,0 +1,42 @@
+metadata:
+  schema_version: "1.0.0"
+  created_at: "2026-07-26T15:10:08Z"
+  description: "Provenance for the Fortemi closeout verifier baseline update"
+entity:
+  id: "urn:aiwg:artifact:.aiwg/testing/scripts/verify-fortemi-closeout-package.py"
+  type: test
+  created_at: "2026-07-26T15:10:08Z"
+  checksum: "sha256:51a2fc37c1cc864766b7e65b82a9ec246a92054206a3b7a240c7ce6f745fc8ce"
+  size_bytes: 10012
+  attributes:
+    change_scope: "hotm-route-202-operator-contracts"
+    base_revision: "d9e1ce69340b7b9816149c75cfced2600d9b7a22"
+activity:
+  id: "urn:aiwg:activity:modification:verify-fortemi-closeout-package-py:001"
+  type: modification
+  started_at: "2026-07-26T15:10:08Z"
+  ended_at: "2026-07-26T15:10:08Z"
+  description: "Require the delivered 202-route, 188-covered closeout baseline"
+agent: &agent
+  id: "urn:aiwg:agent:codex-gpt-5"
+  type: ai_assistant
+  name: "Codex"
+  version: "gpt-5"
+  tool: "codex"
+relationships:
+  wasGeneratedBy:
+    entity: "urn:aiwg:artifact:.aiwg/testing/scripts/verify-fortemi-closeout-package.py"
+    activity: "urn:aiwg:activity:modification:verify-fortemi-closeout-package-py:001"
+    time: "2026-07-26T15:10:08Z"
+  wasDerivedFrom:
+    - entity: "urn:aiwg:artifact:.aiwg/testing/scripts/verify-fortemi-closeout-package.py"
+      source: "urn:git:git@git.integrolabs.net:Fortemi/HotM.git:d9e1ce69340b7b9816149c75cfced2600d9b7a22:.aiwg/testing/scripts/verify-fortemi-closeout-package.py"
+      derivation_type: "modifies"
+      activity: "urn:aiwg:activity:modification:verify-fortemi-closeout-package-py:001"
+  wasAssociatedWith:
+    activity: "urn:aiwg:activity:modification:verify-fortemi-closeout-package-py:001"
+    agent: "urn:aiwg:agent:codex-gpt-5"
+    role: "primary_author"
+  wasAttributedTo:
+    entity: "urn:aiwg:artifact:.aiwg/testing/scripts/verify-fortemi-closeout-package.py"
+    agent: "urn:aiwg:agent:codex-gpt-5"

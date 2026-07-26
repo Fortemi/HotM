@@ -29,10 +29,10 @@ OUTPUT_DIR = HOTM_ROOT / ".aiwg/api/compatibility"
 JSON_OUT = OUTPUT_DIR / "fortemi-v2026-07-route-coverage.json"
 MD_OUT = OUTPUT_DIR / "fortemi-v2026-07-route-coverage.md"
 EVIDENCE_MAP = OUTPUT_DIR / "fortemi-v2026-07-family-evidence-map.json"
-EXPECTED_ROUTE_COUNT = 200
+EXPECTED_ROUTE_COUNT = 202
 EXPECTED_FAMILY_COUNT = 36
 EXPECTED_STATUS_COUNTS = {
-    "covered": 186,
+    "covered": 188,
     "documented_exclusion": 14,
 }
 ROUTE_LEVEL_OVERRIDES = {
@@ -127,7 +127,11 @@ FAMILY_RULES: list[tuple[str, str, str, str, str]] = [
     ("/api/v1/api-keys", "auth_api_keys", "covered", "ui/src/api/auth.ts", "#231"),
     ("/oauth/", "oauth", "covered", "ui/src/api/auth.ts and Admin auth diagnostics cover discovery, authorize, register, token, introspect, revoke, and redaction", "#247"),
     ("/.well-known/oauth", "oauth", "covered", "ui/src/api/auth.ts and Admin auth diagnostics cover OAuth discovery metadata and redaction", "#247"),
+    ("/livez", "health", "covered", "health checks in compat/core client", "#253"),
+    ("/readyz", "health", "covered", "health checks in compat/core client", "#253"),
     ("/health", "health", "covered", "health checks in compat/core client", "#253"),
+    ("/api/v1/operator/openapi.yaml", "contract_docs", "covered", "ui/src/api/systemCompatibility.ts fetches advertised OpenAPI and Admin API Surface links it", "#253"),
+    ("/api/v1/operator/asyncapi.yaml", "contract_docs", "covered", "ui/src/api/systemCompatibility.ts fetches advertised AsyncAPI and Admin API Surface links it", "#253"),
     ("/openapi.yaml", "contract_docs", "covered", "ui/src/api/systemCompatibility.ts fetches advertised OpenAPI and Admin API Surface links it", "#253"),
     ("/asyncapi.yaml", "contract_docs", "covered", "ui/src/api/systemCompatibility.ts fetches advertised AsyncAPI and Admin API Surface links it", "#253"),
 ]

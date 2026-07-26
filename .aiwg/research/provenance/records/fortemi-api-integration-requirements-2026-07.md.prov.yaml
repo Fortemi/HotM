@@ -1,24 +1,24 @@
 metadata:
   schema_version: "1.0.0"
   created_at: "2026-07-17T21:46:51Z"
-  updated_at: "2026-07-26T14:51:19Z"
-  description: "Provenance for the HotM event-catalog sidecar-receipt requirements update"
+  updated_at: "2026-07-26T15:10:08Z"
+  description: "Provenance for the delivered Fortemi route baseline requirements update"
 entity:
   id: "urn:aiwg:artifact:.aiwg/requirements/fortemi-api-integration-requirements-2026-07.md"
   type: document
   created_at: "2026-07-17T21:46:51Z"
-  updated_at: "2026-07-26T14:51:19Z"
-  checksum: "sha256:882ae49021bccb03f1bef417e83dcc7d7f9ab9416b7170c8b8a672ecbec96bf4"
-  size_bytes: 14819
+  updated_at: "2026-07-26T15:10:08Z"
+  checksum: "sha256:7699a5cd703281df81d250c4ae2801e3a92623cb9e524bd264c057c058e34def"
+  size_bytes: 14837
   attributes:
-    change_scope: "hotm-event-sidecar-receipt-repin"
-    base_revision: "c5ec449284f1a7dcd6f591833cb9e8cbeec0d415"
+    change_scope: "hotm-route-202-operator-contracts"
+    base_revision: "d9e1ce69340b7b9816149c75cfced2600d9b7a22"
 activity:
   id: "urn:aiwg:activity:modification:aiwg-requirements-fortemi-api-integration-requirements-2026-07-md:001"
   type: modification
   started_at: "2026-07-17T21:46:51Z"
-  ended_at: "2026-07-26T14:51:19Z"
-  description: "Align the realtime requirement receipt with the delivered Fortemi sidecar and delivered-main verification"
+  ended_at: "2026-07-26T15:10:08Z"
+  description: "Record the delivered 202-route and 188-covered requirements baseline"
 agent:
   id: "urn:aiwg:agent:codex-gpt-5"
   type: ai_assistant
@@ -29,14 +29,14 @@ relationships:
   wasGeneratedBy:
     entity: "urn:aiwg:artifact:.aiwg/requirements/fortemi-api-integration-requirements-2026-07.md"
     activity: "urn:aiwg:activity:modification:aiwg-requirements-fortemi-api-integration-requirements-2026-07-md:001"
-    time: "2026-07-26T14:51:19Z"
+    time: "2026-07-26T15:10:08Z"
   used:
     - activity: "urn:aiwg:activity:modification:aiwg-requirements-fortemi-api-integration-requirements-2026-07-md:001"
-      entity: "urn:git:git@git.integrolabs.net:Fortemi/HotM.git:c5ec449284f1a7dcd6f591833cb9e8cbeec0d415:.aiwg/requirements/fortemi-api-integration-requirements-2026-07.md"
+      entity: "urn:git:git@git.integrolabs.net:Fortemi/HotM.git:d9e1ce69340b7b9816149c75cfced2600d9b7a22:.aiwg/requirements/fortemi-api-integration-requirements-2026-07.md"
       role: "previous_revision"
   wasDerivedFrom:
     - entity: "urn:aiwg:artifact:.aiwg/requirements/fortemi-api-integration-requirements-2026-07.md"
-      source: "urn:git:git@git.integrolabs.net:Fortemi/HotM.git:c5ec449284f1a7dcd6f591833cb9e8cbeec0d415:.aiwg/requirements/fortemi-api-integration-requirements-2026-07.md"
+      source: "urn:git:git@git.integrolabs.net:Fortemi/HotM.git:d9e1ce69340b7b9816149c75cfced2600d9b7a22:.aiwg/requirements/fortemi-api-integration-requirements-2026-07.md"
       derivation_type: "modifies"
       activity: "urn:aiwg:activity:modification:aiwg-requirements-fortemi-api-integration-requirements-2026-07-md:001"
   wasAssociatedWith:

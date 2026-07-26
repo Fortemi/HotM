@@ -1,22 +1,24 @@
 metadata:
   schema_version: "1.0.0"
   created_at: "2026-07-24T08:10:00Z"
-  description: "Provenance for the HotM #244 compatibility guard tests"
+  updated_at: "2026-07-26T15:10:08Z"
+  description: "Provenance for the Fortemi operator contract-document fixture update"
 entity:
   id: "urn:aiwg:artifact:ui/src/api/__tests__/systemCompatibility.test.ts"
   type: test
   created_at: "2026-07-24T08:10:00Z"
-  checksum: "sha256:1c71d4e41de15727759584403cce45b61194ac0ab5a3ea27ae221dd75986d1d5"
-  size_bytes: 3574
+  updated_at: "2026-07-26T15:10:08Z"
+  checksum: "sha256:3dc2497520f478575e876d6c5fc498198e6cb60feffcf2aabbcd08f773a95c9b"
+  size_bytes: 3606
   attributes:
-    change_scope: "hotm-244-compatibility-guard"
-    base_revision: "cd344f019f5d31965b804f7f6714647994cdc9dd"
+    change_scope: "hotm-route-202-operator-contracts"
+    base_revision: "d9e1ce69340b7b9816149c75cfced2600d9b7a22"
 activity:
-  id: "urn:aiwg:activity:generation:system-compatibility-test:001"
-  type: generation
+  id: "urn:aiwg:activity:modification:system-compatibility-test:002"
+  type: modification
   started_at: "2026-07-24T08:10:00Z"
-  ended_at: "2026-07-24T08:10:00Z"
-  description: "Exercise accepted compatibility and fail-closed schema, revision, and client-version cases"
+  ended_at: "2026-07-26T15:10:08Z"
+  description: "Align compatibility fixtures with producer-advertised operator document paths"
 agent: &agent
   id: "urn:aiwg:agent:codex-gpt-5"
   type: ai_assistant
@@ -26,15 +28,15 @@ agent: &agent
 relationships:
   wasGeneratedBy:
     entity: "urn:aiwg:artifact:ui/src/api/__tests__/systemCompatibility.test.ts"
-    activity: "urn:aiwg:activity:generation:system-compatibility-test:001"
-    time: "2026-07-24T08:10:00Z"
+    activity: "urn:aiwg:activity:modification:system-compatibility-test:002"
+    time: "2026-07-26T15:10:08Z"
   wasDerivedFrom:
     - entity: "urn:aiwg:artifact:ui/src/api/__tests__/systemCompatibility.test.ts"
       source: "urn:aiwg:artifact:ui/src/api/systemCompatibility.ts"
       derivation_type: "tests"
-      activity: "urn:aiwg:activity:generation:system-compatibility-test:001"
+      activity: "urn:aiwg:activity:modification:system-compatibility-test:002"
   wasAssociatedWith:
-    activity: "urn:aiwg:activity:generation:system-compatibility-test:001"
+    activity: "urn:aiwg:activity:modification:system-compatibility-test:002"
     agent: "urn:aiwg:agent:codex-gpt-5"
     role: "primary_author"
   wasAttributedTo:

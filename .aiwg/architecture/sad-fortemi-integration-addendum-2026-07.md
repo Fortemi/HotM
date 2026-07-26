@@ -25,7 +25,7 @@ The original SAD remains the baseline for the local-first HotM architecture. Thi
 
 ### 1.1 Current-State Qualification
 
-The generated 200-route inventory proves route discovery and client/surface disposition only. It does not, by itself, prove:
+The generated 202-route inventory proves route discovery and client/surface disposition only. It does not, by itself, prove:
 
 - OpenAPI request/response schema compatibility.
 - AsyncAPI event-envelope or event-payload compatibility.
@@ -59,11 +59,11 @@ HotM is a React/Tauri desktop and web UI consuming a Fortemi API base URL, with 
 
 ### 3.2 New Fortemi v2026.7.1 Integration Context
 
-The route inventory extracts 200 server route declarations and classifies their HotM disposition:
+The route inventory extracts 202 server route declarations and classifies their HotM disposition:
 
 | Status | Count | Architectural meaning |
 | --- | ---: | --- |
-| covered | 186 | Existing HotM architecture has a consuming module, surface, tool, or compatibility-bound route-disposition evidence. This is not schema or semantic conformance. |
+| covered | 188 | Existing HotM architecture has a consuming module, surface, tool, or compatibility-bound route-disposition evidence. This is not schema or semantic conformance. |
 | partial | 0 | No current verifier rows remain partial; future partial rows must be issue-backed before closure. |
 | gap | 0 | No undisposed route family remains in the current verifier baseline; independent contract gates may still be open. |
 | decision_needed | 0 | No current route requires a new product/UX disposition before implementation or exclusion. |
@@ -129,7 +129,7 @@ Agent tools must be capability-aware:
 
 The route coverage inventory becomes a standing architecture control:
 
-- Regenerate inventory from Fortemi source or running `/openapi.yaml`.
+- Regenerate inventory from Fortemi source or running `/api/v1/operator/openapi.yaml`.
 - Reject unclassified route families in CI once the verifier is formalized.
 - Require every P0/P1 route family to be covered, partial with issue, or documented exclusion with rationale.
 - Keep `docs/openapi.json` from acting as sole source of truth until it is canonical OpenAPI object shape.
@@ -265,7 +265,7 @@ HotM must support at least these server profiles:
 
 | Risk | Mitigation |
 | --- | --- |
-| Route inventory drifts from Fortemi implementation | Regenerate inventory from source or `/openapi.yaml`; fail on unclassified families. |
+| Route inventory drifts from Fortemi implementation | Regenerate inventory from source or `/api/v1/operator/openapi.yaml`; fail on unclassified families. |
 | Streaming endpoints hang UI state | Shared stream reader with terminal-event and abort tests. |
 | Advanced features break local-first workflows | Capability-gated disabled states; sync chat/core notes fallback. |
 | Secret leakage in Admin or agent tool output | Redaction tests and copy-once token/secret handling. |
@@ -281,7 +281,7 @@ HotM must support at least these server profiles:
 | Implement or explicitly exclude ADR-011 proposed vision/audio/call dispositions | #259 |
 | Preserve route-level mixed-disposition support for covered call detail while Twilio realtime remains excluded | #253 |
 | Which new Fortemi operations become agent tools | #258 |
-| Whether route inventory is source-derived, live `/openapi.yaml` derived, or both in CI | #253 |
+| Whether route inventory is source-derived, live `/api/v1/operator/openapi.yaml` derived, or both in CI | #253 |
 
 ## 10. Acceptance
 

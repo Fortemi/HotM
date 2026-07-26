@@ -176,8 +176,8 @@ describe('api.systemCompatibility', () => {
           malformed_surface: true,
         },
         links: {
-          openapi: '/openapi.yaml',
-          asyncapi: '/asyncapi.yaml',
+          openapi: '/api/v1/operator/openapi.yaml',
+          asyncapi: '/api/v1/operator/asyncapi.yaml',
           health: '/health',
           streaming_health: '/api/v1/health/streaming',
         },
@@ -217,12 +217,12 @@ describe('api.systemCompatibility', () => {
 
     const api = createApi('http://localhost:3000/api/v1');
 
-    await expect(api.systemCompatibility.getOpenApi('/openapi.yaml')).resolves.toContain('openapi: 3.1.0');
-    await expect(api.systemCompatibility.getAsyncApi('/asyncapi.yaml')).resolves.toContain('asyncapi: 3.0.0');
+    await expect(api.systemCompatibility.getOpenApi()).resolves.toContain('openapi: 3.1.0');
+    await expect(api.systemCompatibility.getAsyncApi()).resolves.toContain('asyncapi: 3.0.0');
 
     expect(mockFetch).toHaveBeenNthCalledWith(
       1,
-      'http://localhost:3000/openapi.yaml',
+      'http://localhost:3000/api/v1/operator/openapi.yaml',
       expect.objectContaining({
         method: 'GET',
         headers: expect.objectContaining({ Accept: expect.stringContaining('application/yaml') }),
@@ -230,7 +230,7 @@ describe('api.systemCompatibility', () => {
     );
     expect(mockFetch).toHaveBeenNthCalledWith(
       2,
-      'http://localhost:3000/asyncapi.yaml',
+      'http://localhost:3000/api/v1/operator/asyncapi.yaml',
       expect.objectContaining({
         method: 'GET',
         headers: expect.objectContaining({ Accept: expect.stringContaining('application/yaml') }),

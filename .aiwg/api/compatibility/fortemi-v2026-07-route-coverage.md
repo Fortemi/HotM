@@ -1,22 +1,22 @@
 ---
 title: Fortemi v2026.7.1 Route Coverage Inventory
 status: generated
-date: 2026-07-16
+date: 2026-07-26
 artifact_type: api-coverage-inventory
 ---
 
 # Fortemi v2026.7.1 Route Coverage Inventory
 
 - Fortemi source: `../fortemi`
-- Fortemi commit: `98c9b29d`
-- Latest release tag: `v2026.7.1`
-- Extracted route declarations: `200`
+- Fortemi commit: `45aff7e6`
+- Latest release tag: `v2026.7.12`
+- Extracted route declarations: `202`
 
 ## Status Counts
 
 | Status | Count |
 | --- | ---: |
-| covered | 186 |
+| covered | 188 |
 | documented_exclusion | 14 |
 
 ## Family Counts
@@ -36,7 +36,7 @@ artifact_type: api-coverage-inventory
 | document_types | 3 |
 | embeddings | 8 |
 | graph | 11 |
-| health | 2 |
+| health | 4 |
 | inbound_sources | 2 |
 | incoming_webhook_receivers | 3 |
 | inference | 6 |
@@ -88,10 +88,12 @@ These entries are advisory planning metadata for mixed dispositions. They do not
 | --- | --- | --- | --- | --- | --- |
 | `GET` | `/health` | health | covered | health checks in compat/core client | #253 |
 | `GET` | `/health/live` | health | covered | health checks in compat/core client | #253 |
+| `GET` | `/livez` | health | covered | health checks in compat/core client | #253 |
+| `GET` | `/readyz` | health | covered | health checks in compat/core client | #253 |
 | `GET` | `/api/v1/health/streaming` | streaming_health | covered | ui/src/api/health.ts and ApiCapabilitiesPanel streaming health card | #254 |
 | `GET` | `/api/v1/system/compatibility` | system_compatibility | covered | ui/src/api/systemCompatibility.ts and ApiCapabilitiesPanel | #244 |
-| `GET` | `/openapi.yaml` | contract_docs | covered | ui/src/api/systemCompatibility.ts fetches advertised OpenAPI and Admin API Surface links it | #253 |
-| `GET` | `/asyncapi.yaml` | contract_docs | covered | ui/src/api/systemCompatibility.ts fetches advertised AsyncAPI and Admin API Surface links it | #253 |
+| `GET` | `/api/v1/operator/openapi.yaml` | contract_docs | covered | ui/src/api/systemCompatibility.ts fetches advertised OpenAPI and Admin API Surface links it | #253 |
+| `GET` | `/api/v1/operator/asyncapi.yaml` | contract_docs | covered | ui/src/api/systemCompatibility.ts fetches advertised AsyncAPI and Admin API Surface links it | #253 |
 | `GET, POST` | `/api/v1/notes` | notes | covered | ui/src/api/notes.ts, extended.ts, versions.ts, links.ts | #253 |
 | `POST` | `/api/v1/notes/bulk` | notes | covered | ui/src/api/notes.ts, extended.ts, versions.ts, links.ts | #253 |
 | `GET, PATCH, DELETE` | `/api/v1/notes/{id}` | notes | covered | ui/src/api/notes.ts, extended.ts, versions.ts, links.ts | #253 |

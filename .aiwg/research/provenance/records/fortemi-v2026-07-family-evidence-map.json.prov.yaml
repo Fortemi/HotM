@@ -1,0 +1,42 @@
+metadata:
+  schema_version: "1.0.0"
+  created_at: "2026-07-26T15:10:08Z"
+  description: "Provenance for the delivered Fortemi route-family evidence baseline"
+entity:
+  id: "urn:aiwg:artifact:.aiwg/api/compatibility/fortemi-v2026-07-family-evidence-map.json"
+  type: test_fixture
+  created_at: "2026-07-26T15:10:08Z"
+  checksum: "sha256:2e1f9edb568b99dbed5d7f173f2cd68d7c51939fe9383a451573ccdd93a54431"
+  size_bytes: 21613
+  attributes:
+    change_scope: "hotm-route-202-operator-contracts"
+    base_revision: "d9e1ce69340b7b9816149c75cfced2600d9b7a22"
+activity:
+  id: "urn:aiwg:activity:modification:fortemi-route-family-evidence-map:001"
+  type: modification
+  started_at: "2026-07-26T15:10:08Z"
+  ended_at: "2026-07-26T15:10:08Z"
+  description: "Pin route-family evidence to delivered sidecar commit 45aff7e6 and release v2026.7.12"
+agent: &agent
+  id: "urn:aiwg:agent:codex-gpt-5"
+  type: ai_assistant
+  name: "Codex"
+  version: "gpt-5"
+  tool: "codex"
+relationships:
+  wasGeneratedBy:
+    entity: "urn:aiwg:artifact:.aiwg/api/compatibility/fortemi-v2026-07-family-evidence-map.json"
+    activity: "urn:aiwg:activity:modification:fortemi-route-family-evidence-map:001"
+    time: "2026-07-26T15:10:08Z"
+  wasDerivedFrom:
+    - entity: "urn:aiwg:artifact:.aiwg/api/compatibility/fortemi-v2026-07-family-evidence-map.json"
+      source: "urn:git:git@git.integrolabs.net:Fortemi/HotM.git:d9e1ce69340b7b9816149c75cfced2600d9b7a22:.aiwg/api/compatibility/fortemi-v2026-07-family-evidence-map.json"
+      derivation_type: "modifies"
+      activity: "urn:aiwg:activity:modification:fortemi-route-family-evidence-map:001"
+  wasAssociatedWith:
+    activity: "urn:aiwg:activity:modification:fortemi-route-family-evidence-map:001"
+    agent: "urn:aiwg:agent:codex-gpt-5"
+    role: "primary_author"
+  wasAttributedTo:
+    entity: "urn:aiwg:artifact:.aiwg/api/compatibility/fortemi-v2026-07-family-evidence-map.json"
+    agent: "urn:aiwg:agent:codex-gpt-5"

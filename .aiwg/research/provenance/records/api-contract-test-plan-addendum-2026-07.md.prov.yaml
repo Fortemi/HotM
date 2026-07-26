@@ -1,24 +1,24 @@
 metadata:
   schema_version: "1.0.0"
   created_at: "2026-07-17T21:46:51Z"
-  updated_at: "2026-07-26T14:51:19Z"
-  description: "Provenance for the HotM event-catalog sidecar-receipt test-plan update"
+  updated_at: "2026-07-26T15:10:08Z"
+  description: "Provenance for the delivered Fortemi route baseline test-plan update"
 entity:
   id: "urn:aiwg:artifact:.aiwg/testing/api-contract-test-plan-addendum-2026-07.md"
   type: document
   created_at: "2026-07-17T21:46:51Z"
-  updated_at: "2026-07-26T14:51:19Z"
-  checksum: "sha256:016800c74a599a87797276dd2351e5f861dc46354a26c97a1021a066a1237d52"
-  size_bytes: 17881
+  updated_at: "2026-07-26T15:10:08Z"
+  checksum: "sha256:cd57274cbe96fa9069cfca3aa75a91972f7308feb5e2e5d3986c7af663a47811"
+  size_bytes: 17899
   attributes:
-    change_scope: "hotm-event-sidecar-receipt-repin"
-    base_revision: "c5ec449284f1a7dcd6f591833cb9e8cbeec0d415"
+    change_scope: "hotm-route-202-operator-contracts"
+    base_revision: "d9e1ce69340b7b9816149c75cfced2600d9b7a22"
 activity:
   id: "urn:aiwg:activity:modification:aiwg-testing-api-contract-test-plan-addendum-2026-07-md:001"
   type: modification
   started_at: "2026-07-17T21:46:51Z"
-  ended_at: "2026-07-26T14:51:19Z"
-  description: "Record the delivered sidecar pin, unchanged event digests, and pull-request plus main-branch verification"
+  ended_at: "2026-07-26T15:10:08Z"
+  description: "Update the executable route baseline and operator contract-document test command"
 agent:
   id: "urn:aiwg:agent:codex-gpt-5"
   type: ai_assistant
@@ -29,14 +29,14 @@ relationships:
   wasGeneratedBy:
     entity: "urn:aiwg:artifact:.aiwg/testing/api-contract-test-plan-addendum-2026-07.md"
     activity: "urn:aiwg:activity:modification:aiwg-testing-api-contract-test-plan-addendum-2026-07-md:001"
-    time: "2026-07-26T14:51:19Z"
+    time: "2026-07-26T15:10:08Z"
   used:
     - activity: "urn:aiwg:activity:modification:aiwg-testing-api-contract-test-plan-addendum-2026-07-md:001"
-      entity: "urn:git:git@git.integrolabs.net:Fortemi/HotM.git:c5ec449284f1a7dcd6f591833cb9e8cbeec0d415:.aiwg/testing/api-contract-test-plan-addendum-2026-07.md"
+      entity: "urn:git:git@git.integrolabs.net:Fortemi/HotM.git:d9e1ce69340b7b9816149c75cfced2600d9b7a22:.aiwg/testing/api-contract-test-plan-addendum-2026-07.md"
       role: "previous_revision"
   wasDerivedFrom:
     - entity: "urn:aiwg:artifact:.aiwg/testing/api-contract-test-plan-addendum-2026-07.md"
-      source: "urn:git:git@git.integrolabs.net:Fortemi/HotM.git:c5ec449284f1a7dcd6f591833cb9e8cbeec0d415:.aiwg/testing/api-contract-test-plan-addendum-2026-07.md"
+      source: "urn:git:git@git.integrolabs.net:Fortemi/HotM.git:d9e1ce69340b7b9816149c75cfced2600d9b7a22:.aiwg/testing/api-contract-test-plan-addendum-2026-07.md"
       derivation_type: "modifies"
       activity: "urn:aiwg:activity:modification:aiwg-testing-api-contract-test-plan-addendum-2026-07-md:001"
   wasAssociatedWith:

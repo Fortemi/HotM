@@ -112,11 +112,13 @@ The original investigation open set was concentrated in full backup/download cov
 
 ## Route Inventory Baseline
 
-The generated coverage inventory at `.aiwg/api/compatibility/fortemi-v2026-07-route-coverage.md` extracts 200 Fortemi route declarations from `crates/matric-api/src/main.rs` at commit `f6733252`.
+The generated coverage inventory at `.aiwg/api/compatibility/fortemi-v2026-07-route-coverage.md`
+extracts 202 Fortemi route declarations from `crates/matric-api/src/main.rs` at delivered sidecar
+commit `45aff7e6`.
 
 | Status | Count | Meaning |
 | --- | ---: | --- |
-| covered | 186 | HotM has API, UI, agent-tool, or compatibility route-disposition evidence for the route family. |
+| covered | 188 | HotM has API, UI, agent-tool, or compatibility route-disposition evidence for the route family. |
 | partial | 0 | No current verifier rows remain partial; future drift must be issue-backed before closure. |
 | gap | 0 | No undisposed route family remains in the generated verifier baseline; REQ-013 through REQ-017 remain independent gates. |
 | decision_needed | 0 | No current route requires an unresolved product/UX disposition before implementation or exclusion. |

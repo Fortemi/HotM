@@ -1,22 +1,24 @@
 metadata:
   schema_version: "1.0.0"
   created_at: "2026-07-24T08:10:00Z"
-  description: "Provenance for the HotM #244 compatibility contract guard"
+  updated_at: "2026-07-26T15:10:08Z"
+  description: "Provenance for the Fortemi operator contract-document client update"
 entity:
   id: "urn:aiwg:artifact:ui/src/api/systemCompatibility.ts"
   type: source_code
   created_at: "2026-07-24T08:10:00Z"
-  checksum: "sha256:ea78e456941e5d7c6c955667e2fef1c7e74ab20f805d056b9fcf58d262947405"
-  size_bytes: 6331
+  updated_at: "2026-07-26T15:10:08Z"
+  checksum: "sha256:6099e676e614046cf1c9209fde1b4901997c972dd8b2d135c3898b9f3d3380c5"
+  size_bytes: 6363
   attributes:
-    change_scope: "hotm-244-compatibility-guard"
-    base_revision: "cd344f019f5d31965b804f7f6714647994cdc9dd"
+    change_scope: "hotm-route-202-operator-contracts"
+    base_revision: "d9e1ce69340b7b9816149c75cfced2600d9b7a22"
 activity:
   id: "urn:aiwg:activity:modification:system-compatibility-ts:001"
   type: modification
   started_at: "2026-07-24T08:10:00Z"
-  ended_at: "2026-07-24T08:10:00Z"
-  description: "Fail closed on unsupported schema, stale revision, or unsatisfied minimum client version"
+  ended_at: "2026-07-26T15:10:08Z"
+  description: "Use the producer-advertised operator OpenAPI and AsyncAPI paths as defaults"
 agent: &agent
   id: "urn:aiwg:agent:codex-gpt-5"
   type: ai_assistant
@@ -27,10 +29,10 @@ relationships:
   wasGeneratedBy:
     entity: "urn:aiwg:artifact:ui/src/api/systemCompatibility.ts"
     activity: "urn:aiwg:activity:modification:system-compatibility-ts:001"
-    time: "2026-07-24T08:10:00Z"
+    time: "2026-07-26T15:10:08Z"
   wasDerivedFrom:
     - entity: "urn:aiwg:artifact:ui/src/api/systemCompatibility.ts"
-      source: "urn:git:git@git.integrolabs.net:Fortemi/HotM.git:cd344f019f5d31965b804f7f6714647994cdc9dd:ui/src/api/systemCompatibility.ts"
+      source: "urn:git:git@git.integrolabs.net:Fortemi/HotM.git:d9e1ce69340b7b9816149c75cfced2600d9b7a22:ui/src/api/systemCompatibility.ts"
       derivation_type: "modifies"
       activity: "urn:aiwg:activity:modification:system-compatibility-ts:001"
   wasAssociatedWith:

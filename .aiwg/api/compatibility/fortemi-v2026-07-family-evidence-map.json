@@ -1,7 +1,7 @@
 {
-  "generated_at": "2026-07-14",
-  "fortemi_commit": "98c9b29d",
-  "fortemi_latest_tag": "v2026.7.1",
+  "generated_at": "2026-07-26",
+  "fortemi_commit": "45aff7e6",
+  "fortemi_latest_tag": "v2026.7.12",
   "purpose": "Machine-readable route-family evidence map for the HotM Fortemi v2026.7.1 verifier planning path. This is SDLC planning evidence; implementation PRs should keep it aligned with the generated route inventory.",
   "evidence_levels": {
     "strong": "Current source and focused test evidence exist for the route family.",

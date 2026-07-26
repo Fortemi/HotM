@@ -1,7 +1,7 @@
 metadata:
   schema_version: "1.0.0"
-  updated_at: "2026-07-25T00:16:42Z"
-  record_count: 42
+  updated_at: "2026-07-26T15:19:45Z"
+  record_count: 50
 records:
   - entity: "urn:aiwg:artifact:.gitea/workflows/ui-ci.yml"
     record: "records/ui-ci-network-independent-vault-tools-272.prov.yaml"
@@ -87,3 +87,19 @@ records:
     record: "records/verify-fortemi-knowledge-shard-contract.mjs.prov.yaml"
   - entity: "urn:aiwg:artifact:.aiwg/testing/scripts/verify-fortemi-openapi-contract.mjs"
     record: "records/verify-fortemi-openapi-contract.mjs.prov.yaml"
+  - entity: "urn:aiwg:artifact:ui/src/components/admin/__tests__/AdminPanel.test.tsx"
+    record: "records/AdminPanel.test.tsx.prov.yaml"
+  - entity: "urn:aiwg:artifact:.aiwg/testing/scripts/fortemi-route-coverage.py"
+    record: "records/fortemi-route-coverage.py.prov.yaml"
+  - entity: "urn:aiwg:artifact:.aiwg/api/compatibility/fortemi-v2026-07-family-evidence-map.json"
+    record: "records/fortemi-v2026-07-family-evidence-map.json.prov.yaml"
+  - entity: "urn:aiwg:artifact:.aiwg/handoffs/fortemi-v2026-07-pr-closeout-package.md"
+    record: "records/fortemi-v2026-07-pr-closeout-package.md.prov.yaml"
+  - entity: "urn:aiwg:artifact:.aiwg/api/compatibility/fortemi-v2026-07-route-coverage.json"
+    record: "records/fortemi-v2026-07-route-coverage.json.prov.yaml"
+  - entity: "urn:aiwg:artifact:.aiwg/api/compatibility/fortemi-v2026-07-route-coverage.md"
+    record: "records/fortemi-v2026-07-route-coverage.md.prov.yaml"
+  - entity: "urn:aiwg:artifact:ui/src/api/__tests__/index.test.ts"
+    record: "records/index.test.ts.prov.yaml"
+  - entity: "urn:aiwg:artifact:.aiwg/testing/scripts/verify-fortemi-closeout-package.py"
+    record: "records/verify-fortemi-closeout-package.py.prov.yaml"

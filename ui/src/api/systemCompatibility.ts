@@ -187,11 +187,11 @@ export function createSystemCompatibilityApi(client: ApiClient) {
       return normalizeSystemCompatibility(response);
     },
 
-    async getOpenApi(path = '/openapi.yaml'): Promise<string> {
+    async getOpenApi(path = '/api/v1/operator/openapi.yaml'): Promise<string> {
       return fetchContract(path, 'OpenAPI');
     },
 
-    async getAsyncApi(path = '/asyncapi.yaml'): Promise<string> {
+    async getAsyncApi(path = '/api/v1/operator/asyncapi.yaml'): Promise<string> {
       return fetchContract(path, 'AsyncAPI');
     },
   };

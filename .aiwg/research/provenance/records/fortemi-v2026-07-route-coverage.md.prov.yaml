@@ -1,0 +1,42 @@
+metadata:
+  schema_version: "1.0.0"
+  created_at: "2026-07-26T15:10:08Z"
+  description: "Provenance for the rendered delivered Fortemi route inventory"
+entity:
+  id: "urn:aiwg:artifact:.aiwg/api/compatibility/fortemi-v2026-07-route-coverage.md"
+  type: document
+  created_at: "2026-07-26T15:10:08Z"
+  checksum: "sha256:954a6c98a0feb838b3e4b1701258452947ea3cc5955b7cf1cca21a36891bf930"
+  size_bytes: 29937
+  attributes:
+    change_scope: "hotm-route-202-operator-contracts"
+    producer_commit: "45aff7e6f4390c650c98f55c643b1dc95d818c86"
+activity:
+  id: "urn:aiwg:activity:generation:fortemi-route-coverage-md:001"
+  type: generation
+  started_at: "2026-07-26T15:10:08Z"
+  ended_at: "2026-07-26T15:10:08Z"
+  description: "Render the generated 202-route zero-gap inventory"
+agent: &agent
+  id: "urn:aiwg:agent:codex-gpt-5"
+  type: ai_assistant
+  name: "Codex"
+  version: "gpt-5"
+  tool: "codex"
+relationships:
+  wasGeneratedBy:
+    entity: "urn:aiwg:artifact:.aiwg/api/compatibility/fortemi-v2026-07-route-coverage.md"
+    activity: "urn:aiwg:activity:generation:fortemi-route-coverage-md:001"
+    time: "2026-07-26T15:10:08Z"
+  wasDerivedFrom:
+    - entity: "urn:aiwg:artifact:.aiwg/api/compatibility/fortemi-v2026-07-route-coverage.md"
+      source: "urn:aiwg:artifact:.aiwg/api/compatibility/fortemi-v2026-07-route-coverage.json"
+      derivation_type: "derives_from"
+      activity: "urn:aiwg:activity:generation:fortemi-route-coverage-md:001"
+  wasAssociatedWith:
+    activity: "urn:aiwg:activity:generation:fortemi-route-coverage-md:001"
+    agent: "urn:aiwg:agent:codex-gpt-5"
+    role: "primary_author"
+  wasAttributedTo:
+    entity: "urn:aiwg:artifact:.aiwg/api/compatibility/fortemi-v2026-07-route-coverage.md"
+    agent: "urn:aiwg:agent:codex-gpt-5"

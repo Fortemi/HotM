@@ -1,15 +1,15 @@
 {
-  "generated_at": "2026-07-16",
+  "generated_at": "2026-07-26",
   "fortemi_root": "../fortemi",
-  "fortemi_commit": "98c9b29d",
-  "fortemi_latest_tag": "v2026.7.1",
-  "route_count": 200,
+  "fortemi_commit": "45aff7e6",
+  "fortemi_latest_tag": "v2026.7.12",
+  "route_count": 202,
   "status_counts": {
-    "covered": 186,
+    "covered": 188,
     "documented_exclusion": 14
   },
   "family_counts": {
-    "health": 2,
+    "health": 4,
     "streaming_health": 1,
     "system_compatibility": 1,
     "contract_docs": 2,
@@ -123,6 +123,28 @@
       "methods": [
         "GET"
       ],
+      "path": "/livez",
+      "handler_expr": "get(liveness_probe)",
+      "family": "health",
+      "status": "covered",
+      "hotm_evidence": "health checks in compat/core client",
+      "tracker": "#253"
+    },
+    {
+      "methods": [
+        "GET"
+      ],
+      "path": "/readyz",
+      "handler_expr": "get(readiness_probe)",
+      "family": "health",
+      "status": "covered",
+      "hotm_evidence": "health checks in compat/core client",
+      "tracker": "#253"
+    },
+    {
+      "methods": [
+        "GET"
+      ],
       "path": "/api/v1/health/streaming",
       "handler_expr": "get(streaming_health_check)",
       "family": "streaming_health",
@@ -145,7 +167,7 @@
       "methods": [
         "GET"
       ],
-      "path": "/openapi.yaml",
+      "path": "/api/v1/operator/openapi.yaml",
       "handler_expr": "get(openapi_yaml)",
       "family": "contract_docs",
       "status": "covered",
@@ -156,7 +178,7 @@
       "methods": [
         "GET"
       ],
-      "path": "/asyncapi.yaml",
+      "path": "/api/v1/operator/asyncapi.yaml",
       "handler_expr": "get(asyncapi_yaml)",
       "family": "contract_docs",
       "status": "covered",
@@ -1374,7 +1396,7 @@
         "POST"
       ],
       "path": "/api/v1/notes/{id}/attachments",
-      "handler_expr": "get(list_attachments).post(upload_attachment),",
+      "handler_expr": "get(list_attachments) .post(upload_attachment) .layer(DefaultBodyLimit::max(attachment_json_body_limit)),",
       "family": "attachments",
       "status": "covered",
       "hotm_evidence": "ui/src/api/attachments.ts and upload store",
@@ -1385,7 +1407,7 @@
         "POST"
       ],
       "path": "/api/v1/notes/{id}/attachments/upload",
-      "handler_expr": "post(upload_attachment_multipart).layer(DefaultBodyLimit::max(max_upload_size)),",
+      "handler_expr": "post(upload_attachment_multipart) .layer(DefaultBodyLimit::max(attachment_multipart_body_limit)),",
       "family": "attachments",
       "status": "covered",
       "hotm_evidence": "ui/src/api/attachments.ts and upload store",
@@ -2058,7 +2080,7 @@
         "POST"
       ],
       "path": "/api/v1/backup/knowledge-shard/import",
-      "handler_expr": "post(knowledge_shard_import),",
+      "handler_expr": "post(knowledge_shard_import).layer(DefaultBodyLimit::max( shard_max_base64_bytes + SHARD_REQUEST_OVERHEAD_BYTES, )),",
       "family": "backup_archive",
       "status": "covered",
       "hotm_evidence": "ui/src/api/backup.ts and BackupManager cover backup/archive route shapes, UX groups, and portable sidecar limitation copy",
@@ -2069,7 +2091,7 @@
         "POST"
       ],
       "path": "/api/v1/backup/knowledge-shard/upload",
-      "handler_expr": "post(knowledge_shard_import_upload),",
+      "handler_expr": "post(knowledge_shard_import_upload).layer(DefaultBodyLimit::max( shard_max_compressed_bytes + SHARD_REQUEST_OVERHEAD_BYTES, )),",
       "family": "backup_archive",
       "status": "covered",
       "hotm_evidence": "ui/src/api/backup.ts and BackupManager cover backup/archive route shapes, UX groups, and portable sidecar limitation copy",

@@ -30,13 +30,14 @@ Sync HotM with Fortemi v2026.7.1 API surface
 ```markdown
 ## Summary
 
-This sync updates HotM for the current Fortemi source baseline at commit `f6733252` and release tag `v2026.7.1`.
+This sync updates HotM for the delivered Fortemi sidecar baseline at commit `45aff7e6` and latest
+release tag `v2026.7.12`.
 
 Route verifier result:
 
-- 200 Fortemi routes
+- 202 Fortemi routes
 - 36 route families
-- 186 covered routes
+- 188 covered routes
 - 14 documented exclusions
 - 0 gap routes
 - 0 partial routes

@@ -1,24 +1,24 @@
 metadata:
   schema_version: "1.0.0"
   created_at: "2026-07-17T21:46:51Z"
-  updated_at: "2026-07-26T14:51:19Z"
-  description: "Provenance for the HotM event-catalog sidecar-receipt contract update"
+  updated_at: "2026-07-26T15:19:45Z"
+  description: "Provenance for the delivered Fortemi route and operator-contract baseline update"
 entity:
   id: "urn:aiwg:artifact:.aiwg/architecture/adr/ADR-010-fortemi-v2026-07-api-coverage.md"
   type: document
   created_at: "2026-07-17T21:46:51Z"
-  updated_at: "2026-07-26T14:51:19Z"
-  checksum: "sha256:46222389b0a2146e527d25cb27c2a476c0611c7d7632ca792d2b0c83a3f68c5b"
-  size_bytes: 11604
+  updated_at: "2026-07-26T15:19:45Z"
+  checksum: "sha256:08bacdde6f8f7988f4ec2179bb3e1bfbbef3ea6ef4948d6402649bc9df980d68"
+  size_bytes: 11806
   attributes:
-    change_scope: "hotm-event-sidecar-receipt-repin"
-    base_revision: "c5ec449284f1a7dcd6f591833cb9e8cbeec0d415"
+    change_scope: "hotm-route-202-operator-contracts"
+    base_revision: "d9e1ce69340b7b9816149c75cfced2600d9b7a22"
 activity:
   id: "urn:aiwg:activity:modification:aiwg-architecture-adr-ADR-010-fortemi-v2026-07-api-coverage-md:001"
   type: modification
   started_at: "2026-07-17T21:46:51Z"
-  ended_at: "2026-07-26T14:51:19Z"
-  description: "Align the realtime contract receipt with the delivered Fortemi sidecar while preserving the unchanged source digests"
+  ended_at: "2026-07-26T15:19:45Z"
+  description: "Record the 202-route delivered baseline and operator contract-document paths"
 agent:
   id: "urn:aiwg:agent:codex-gpt-5"
   type: ai_assistant
@@ -29,14 +29,14 @@ relationships:
   wasGeneratedBy:
     entity: "urn:aiwg:artifact:.aiwg/architecture/adr/ADR-010-fortemi-v2026-07-api-coverage.md"
     activity: "urn:aiwg:activity:modification:aiwg-architecture-adr-ADR-010-fortemi-v2026-07-api-coverage-md:001"
-    time: "2026-07-26T14:51:19Z"
+    time: "2026-07-26T15:19:45Z"
   used:
     - activity: "urn:aiwg:activity:modification:aiwg-architecture-adr-ADR-010-fortemi-v2026-07-api-coverage-md:001"
-      entity: "urn:git:git@git.integrolabs.net:Fortemi/HotM.git:c5ec449284f1a7dcd6f591833cb9e8cbeec0d415:.aiwg/architecture/adr/ADR-010-fortemi-v2026-07-api-coverage.md"
+      entity: "urn:git:git@git.integrolabs.net:Fortemi/HotM.git:d9e1ce69340b7b9816149c75cfced2600d9b7a22:.aiwg/architecture/adr/ADR-010-fortemi-v2026-07-api-coverage.md"
       role: "previous_revision"
   wasDerivedFrom:
     - entity: "urn:aiwg:artifact:.aiwg/architecture/adr/ADR-010-fortemi-v2026-07-api-coverage.md"
-      source: "urn:git:git@git.integrolabs.net:Fortemi/HotM.git:c5ec449284f1a7dcd6f591833cb9e8cbeec0d415:.aiwg/architecture/adr/ADR-010-fortemi-v2026-07-api-coverage.md"
+      source: "urn:git:git@git.integrolabs.net:Fortemi/HotM.git:d9e1ce69340b7b9816149c75cfced2600d9b7a22:.aiwg/architecture/adr/ADR-010-fortemi-v2026-07-api-coverage.md"
       derivation_type: "modifies"
       activity: "urn:aiwg:activity:modification:aiwg-architecture-adr-ADR-010-fortemi-v2026-07-api-coverage-md:001"
   wasAssociatedWith:

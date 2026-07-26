@@ -20,7 +20,12 @@ HotM previously integrated the Fortemi v2026.5.x surface. Fortemi now ships v202
 
 The current HotM API client is broad but not exhaustive. A seamless integration target requires a formal coverage model: each server capability must be implemented in UI/API client/agent tooling, or explicitly excluded with rationale and a tracker item.
 
-The route inventory generated from Fortemi commit `f6733252` extracts 200 Fortemi route declarations and currently classifies them as 186 covered, 0 partial, 0 gap, 0 decision-needed, and 14 documented exclusions. That classification establishes route disposition, not request/response, event, portable-data, compatibility-negotiation, or authentication conformance.
+The current route inventory generated from delivered sidecar commit `45aff7e6` extracts 202
+Fortemi route declarations and classifies them as 188 covered, 0 partial, 0 gap,
+0 decision-needed, and 14 documented exclusions. The added `/livez` and `/readyz` probes are
+classified under health, while the operator OpenAPI and AsyncAPI paths replace the removed root
+document paths under `contract_docs`. That classification establishes route disposition, not
+request/response, event, portable-data, compatibility-negotiation, or authentication conformance.
 
 The route-family proof checklist for moving those classifications to implementation evidence is maintained in `.aiwg/design/fortemi-v2026-07-capability-surface-matrix.md`.
 
@@ -32,7 +37,7 @@ HotM will adopt a three-tier Fortemi API coverage model:
 2. **Agent/tool coverage** for server capabilities best used through the embedded assistant: search, note creation, retrieval, linking, attachments, archive selection, and future ingest/inference operations.
 3. **Documented exclusion** for capabilities that are server-only, deployment-only, or not currently user-facing. Exclusions must have a reason, compatibility behavior, and issue reference.
 
-HotM will not use the local `docs/openapi.json` as the sole source of truth until it is normalized into a canonical OpenAPI object or replaced by upstream `/openapi.yaml` generation. Until then, route-source extraction from Fortemi plus focused contract tests is the control.
+HotM will not use the local `docs/openapi.json` as the sole source of truth until it is normalized into a canonical OpenAPI object or replaced by upstream `/api/v1/operator/openapi.yaml` generation. Until then, route-source extraction from Fortemi plus focused contract tests is the control.
 
 HotM will maintain independent release gates for:
 

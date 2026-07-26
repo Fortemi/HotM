@@ -47,7 +47,7 @@ python3 .aiwg/testing/scripts/fortemi-route-coverage.py
 
 Acceptance:
 
-- Extracts 200 Fortemi route declarations for commit `f6733252`.
+- Extracts 202 Fortemi route declarations for delivered sidecar commit `45aff7e6`.
 - Produces `.aiwg/api/compatibility/fortemi-v2026-07-route-coverage.md`.
 - Produces `.aiwg/api/compatibility/fortemi-v2026-07-route-coverage.json`.
 - Produces zero `unclassified` route families.
@@ -285,7 +285,7 @@ Current route-inventory command:
 
 ```bash
 python3 .aiwg/testing/scripts/fortemi-route-coverage.py
-jq -e '.route_count == 200 and (.family_counts.unclassified == null) and .status_counts.gap == 0 and (.status_counts.decision_needed // 0) == 0' .aiwg/api/compatibility/fortemi-v2026-07-route-coverage.json
+jq -e '.route_count == 202 and (.family_counts.unclassified == null) and .status_counts.gap == 0 and (.status_counts.decision_needed // 0) == 0' .aiwg/api/compatibility/fortemi-v2026-07-route-coverage.json
 node .aiwg/testing/scripts/verify-fortemi-event-catalog.mjs
 node .aiwg/testing/scripts/verify-fortemi-knowledge-shard-contract.mjs
 (cd ui && npm run test:realtime)

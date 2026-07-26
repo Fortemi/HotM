@@ -1,0 +1,42 @@
+metadata:
+  schema_version: "1.0.0"
+  created_at: "2026-07-26T15:10:08Z"
+  description: "Provenance for the Fortemi integration closeout baseline update"
+entity:
+  id: "urn:aiwg:artifact:.aiwg/handoffs/fortemi-v2026-07-pr-closeout-package.md"
+  type: document
+  created_at: "2026-07-26T15:10:08Z"
+  checksum: "sha256:9a50c1cf593843597b82896ee6fc018406aef21ab8cc503526033a2a80e72f6c"
+  size_bytes: 5306
+  attributes:
+    change_scope: "hotm-route-202-operator-contracts"
+    base_revision: "d9e1ce69340b7b9816149c75cfced2600d9b7a22"
+activity:
+  id: "urn:aiwg:activity:modification:fortemi-pr-closeout-package:001"
+  type: modification
+  started_at: "2026-07-26T15:10:08Z"
+  ended_at: "2026-07-26T15:10:08Z"
+  description: "Update closeout evidence to 202 routes, 188 covered, and the delivered sidecar pin"
+agent: &agent
+  id: "urn:aiwg:agent:codex-gpt-5"
+  type: ai_assistant
+  name: "Codex"
+  version: "gpt-5"
+  tool: "codex"
+relationships:
+  wasGeneratedBy:
+    entity: "urn:aiwg:artifact:.aiwg/handoffs/fortemi-v2026-07-pr-closeout-package.md"
+    activity: "urn:aiwg:activity:modification:fortemi-pr-closeout-package:001"
+    time: "2026-07-26T15:10:08Z"
+  wasDerivedFrom:
+    - entity: "urn:aiwg:artifact:.aiwg/handoffs/fortemi-v2026-07-pr-closeout-package.md"
+      source: "urn:git:git@git.integrolabs.net:Fortemi/HotM.git:d9e1ce69340b7b9816149c75cfced2600d9b7a22:.aiwg/handoffs/fortemi-v2026-07-pr-closeout-package.md"
+      derivation_type: "modifies"
+      activity: "urn:aiwg:activity:modification:fortemi-pr-closeout-package:001"
+  wasAssociatedWith:
+    activity: "urn:aiwg:activity:modification:fortemi-pr-closeout-package:001"
+    agent: "urn:aiwg:agent:codex-gpt-5"
+    role: "primary_author"
+  wasAttributedTo:
+    entity: "urn:aiwg:artifact:.aiwg/handoffs/fortemi-v2026-07-pr-closeout-package.md"
+    agent: "urn:aiwg:agent:codex-gpt-5"

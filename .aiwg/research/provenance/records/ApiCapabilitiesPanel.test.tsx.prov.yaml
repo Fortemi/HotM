@@ -1,22 +1,24 @@
 metadata:
   schema_version: "1.0.0"
   created_at: "2026-07-17T21:46:51Z"
-  description: "Provenance for HotM #270 Fortemi OpenAPI consumer gate"
+  updated_at: "2026-07-26T15:10:08Z"
+  description: "Provenance for the operator contract-document link fixture update"
 entity:
   id: "urn:aiwg:artifact:ui/src/components/admin/__tests__/ApiCapabilitiesPanel.test.tsx"
   type: software
   created_at: "2026-07-17T21:46:51Z"
-  checksum: "sha256:dbd67e0241620e7db50f0ab16a6f8b6fa37a01cc4d63a9dc359703fb29162f73"
-  size_bytes: 24059
+  updated_at: "2026-07-26T15:10:08Z"
+  checksum: "sha256:c34c07481bb8387436887bd99fe9908c9a16564569b5f7604c9c804ff78a46c9"
+  size_bytes: 24123
   attributes:
-    change_scope: "fortemi-openapi-consumer-contract"
-    base_revision: "b394e5160780ac8a752ca0891d7a3686394d2bd0"
+    change_scope: "hotm-route-202-operator-contracts"
+    base_revision: "d9e1ce69340b7b9816149c75cfced2600d9b7a22"
 activity:
   id: "urn:aiwg:activity:modification:ui-src-components-admin-tests-ApiCapabilitiesPanel-test-tsx:001"
   type: modification
   started_at: "2026-07-17T21:46:51Z"
-  ended_at: "2026-07-17T21:46:51Z"
-  description: "Implement the pinned Fortemi OpenAPI semantic and typed consumer boundary"
+  ended_at: "2026-07-26T15:10:08Z"
+  description: "Assert the producer-advertised operator OpenAPI and AsyncAPI links"
 agent:
   id: "urn:aiwg:agent:codex-gpt-5"
   type: ai_assistant
@@ -27,14 +29,14 @@ relationships:
   wasGeneratedBy:
     entity: "urn:aiwg:artifact:ui/src/components/admin/__tests__/ApiCapabilitiesPanel.test.tsx"
     activity: "urn:aiwg:activity:modification:ui-src-components-admin-tests-ApiCapabilitiesPanel-test-tsx:001"
-    time: "2026-07-17T21:46:51Z"
+    time: "2026-07-26T15:10:08Z"
   used:
     - activity: "urn:aiwg:activity:modification:ui-src-components-admin-tests-ApiCapabilitiesPanel-test-tsx:001"
-      entity: "urn:git:git@git.integrolabs.net:Fortemi/HotM.git:b394e5160780ac8a752ca0891d7a3686394d2bd0:ui/src/components/admin/__tests__/ApiCapabilitiesPanel.test.tsx"
+      entity: "urn:git:git@git.integrolabs.net:Fortemi/HotM.git:d9e1ce69340b7b9816149c75cfced2600d9b7a22:ui/src/components/admin/__tests__/ApiCapabilitiesPanel.test.tsx"
       role: "previous_revision"
   wasDerivedFrom:
     - entity: "urn:aiwg:artifact:ui/src/components/admin/__tests__/ApiCapabilitiesPanel.test.tsx"
-      source: "urn:git:git@git.integrolabs.net:Fortemi/HotM.git:b394e5160780ac8a752ca0891d7a3686394d2bd0:ui/src/components/admin/__tests__/ApiCapabilitiesPanel.test.tsx"
+      source: "urn:git:git@git.integrolabs.net:Fortemi/HotM.git:d9e1ce69340b7b9816149c75cfced2600d9b7a22:ui/src/components/admin/__tests__/ApiCapabilitiesPanel.test.tsx"
       derivation_type: "modifies"
       activity: "urn:aiwg:activity:modification:ui-src-components-admin-tests-ApiCapabilitiesPanel-test-tsx:001"
   wasAssociatedWith:
