@@ -1,0 +1,43 @@
+metadata:
+  schema_version: "1.0.0"
+  created_at: "2026-07-26T23:42:02Z"
+  description: "Provenance for reconciled enterprise demo operator signoff"
+entity:
+  id: "urn:aiwg:artifact:.aiwg/testing/enterprise-demo-operator-signoff-2026-07-06.md"
+  type: test_evidence
+  created_at: "2026-07-26T23:42:02Z"
+  checksum: "sha256:be1e6b3d27ca542f121673a1a284a71ae584d0aa4bf263adee91f1593324a951"
+  size_bytes: 11424
+  attributes:
+    claim_scope: "fixture-backed-preview-only"
+activity:
+  id: "urn:aiwg:activity:modification:enterprise-demo-operator-signoff:001"
+  type: modification
+  started_at: "2026-07-26T23:42:02Z"
+  ended_at: "2026-07-26T23:42:02Z"
+  description: "Link accepted operator defaults and the dated fixture-only dry-run receipt"
+agent:
+  id: "urn:aiwg:agent:codex-gpt-5"
+  type: ai_assistant
+  name: "Codex"
+  version: "gpt-5.6"
+  tool: "codex"
+relationships:
+  wasGeneratedBy:
+    entity: "urn:aiwg:artifact:.aiwg/testing/enterprise-demo-operator-signoff-2026-07-06.md"
+    activity: "urn:aiwg:activity:modification:enterprise-demo-operator-signoff:001"
+    time: "2026-07-26T23:42:02Z"
+  used:
+    - activity: "urn:aiwg:activity:modification:enterprise-demo-operator-signoff:001"
+      entity: "urn:gitea:Fortemi/HotM:issue:251:comment:81345"
+      role: "operator_decision"
+    - activity: "urn:aiwg:activity:modification:enterprise-demo-operator-signoff:001"
+      entity: "urn:gitea:Fortemi/HotM:issue:250:comment:81346"
+      role: "evidence"
+  wasAssociatedWith:
+    activity: "urn:aiwg:activity:modification:enterprise-demo-operator-signoff:001"
+    agent: "urn:aiwg:agent:codex-gpt-5"
+    role: "primary_author"
+  wasAttributedTo:
+    entity: "urn:aiwg:artifact:.aiwg/testing/enterprise-demo-operator-signoff-2026-07-06.md"
+    agent: "urn:aiwg:agent:codex-gpt-5"

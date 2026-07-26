@@ -2,7 +2,7 @@
 title: HotM Manifest Endpoint v1 Specification
 type: api-specification
 created: 2026-05-17
-status: Proposed
+status: Accepted for planning
 version: 1.0.0
 related_artifacts:
   - .aiwg/architecture/adr-mobile-cloud-architecture.md
@@ -36,6 +36,8 @@ GET https://api.hotm.fortemi.io/v1/manifest
 | **TLS** | Required. HTTP redirects to HTTPS. HSTS preload eligibility once domain is stable. |
 
 Launch-boundary update, 2026-07: the `60 requests/minute` value remains provisional. `Fortemi/HotM#251` and `.aiwg/testing/manifest-launch-rate-limit-proof-plan-2026-07.md` must replace or justify the launch baseline, burst capacity, enforcement layer, identity key, `429`/`Retry-After` behavior, cache/ETag interaction, non-bypass proof, and telemetry evidence before hosted/mobile manifest discovery can support public production-readiness or backoffice claims. This does not block the current fixture-backed HotM enterprise preview.
+
+HMC update, 2026-07-09: HMC-2026-07-001 through HMC-2026-07-010 were accepted with recommended defaults for planning. For this manifest, that means Clerk is the hosted-preview auth planning default, `api.hotm.fortemi.io` remains provisional until DNS/CDN/cert evidence exists, telemetry remains off/opt-in until product/legal approval, tier/pricing values remain placeholders without public claim authority, and local/cloud mode switching still requires ADR-MOBILE-002 before Phase 2 acceptance. These accepted defaults do not close `Fortemi/HotM#251` or turn the local launch-rate fixture into hosted/gateway/CI proof.
 
 ## Schema (JSON)
 
@@ -439,15 +441,15 @@ Body:
 
 Client retries after `Retry-After` interval with exponential backoff.
 
-## Open questions
+## Accepted HMC Defaults And Remaining Evidence Gates
 
-These cannot be settled in this spec alone; they require operator/product input:
+These items were accepted as HMC planning defaults on 2026-07-09. They are no longer open strategic questions for planning, but they still require implementation, proof, or legal/product evidence before public production claims:
 
-1. **Auth provider final choice**. The schema lists `clerk` first, but the choice between Clerk, Auth0, Keycloak (self-hosted), and a roll-your-own depends on cost tolerance and lock-in posture. Settled in the phase plan, locked in the ADR.
-2. **Tier definitions**. Are there actually tiers at launch, or is there only a single `free` tier? Limit values are placeholders until the manifest launch proof records the accepted launch baseline and tier policy.
-3. **Telemetry endpoint**. Does HotM operate its own telemetry endpoint or use a vendor (PostHog, Plausible)? Affects the `telemetry.endpoint` URL.
-4. **Domain choice**. `api.hotm.fortemi.io` is suggestive but not confirmed. The exact domain affects DNS, CDN, and certificate setup.
+1. **Auth provider final choice**. Accepted planning default: Clerk for hosted preview, with Keycloak/self-host kept as a later enterprise option.
+2. **Tier definitions**. Accepted planning default: fixture-backed preview only; no public paid/free-tier claim until pricing and abuse limits are accepted. Limit values remain placeholders.
+3. **Telemetry endpoint**. Accepted planning default: telemetry remains off/opt-in until product/legal approves a backend and copy.
+4. **Domain choice**. Accepted planning default: `api.hotm.fortemi.io` remains provisional and must not be claimed until DNS/CDN/cert evidence exists.
 5. **Manifest update mechanism**. How does the operator actually change the served manifest? Direct git commit + redeploy? An admin UI? A CLI? Affects the operational story but not the contract.
-6. **Initial rate-limit numbers**. The 60/min figure is unjustified; `Fortemi/HotM#251` must replace or justify it with launch-rate proof before public launch.
+6. **Initial rate-limit numbers**. The 60/min figure remains provisional; `Fortemi/HotM#251` must replace or justify it with launch-rate proof before public launch.
 
-These should be tracked as line-items in the phase plan and resolved before the manifest endpoint goes to public production. The launch-rate items are specifically tracked by `Fortemi/HotM#251` and `.aiwg/testing/manifest-launch-rate-limit-proof-plan-2026-07.md`.
+These should be tracked as line-items in the phase plan and proven before the manifest endpoint goes to public production. The launch-rate items are specifically tracked by `Fortemi/HotM#251` and `.aiwg/testing/manifest-launch-rate-limit-proof-plan-2026-07.md`.

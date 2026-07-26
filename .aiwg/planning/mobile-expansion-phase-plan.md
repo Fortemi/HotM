@@ -2,7 +2,7 @@
 title: HotM Mobile Expansion Phase Plan
 type: phase-plan
 created: 2026-05-17
-status: Proposed
+status: Accepted for planning
 phase_count: 6
 related_artifacts:
   - .aiwg/architecture/adr-mobile-cloud-architecture.md
@@ -44,7 +44,7 @@ Phase 0 is essentially "this plan exists." The artifacts that land in Phase 0:
 - Phase plan (this document)
 - Three research findings under `.aiwg/research/findings/`
 
-**Gate**: All five artifacts exist, are reviewed, and the operator has explicitly accepted ADR-MOBILE-001 (status: Proposed → Accepted). Any open question in the ADR that affects Phase 1 work must be resolved before Phase 1 begins.
+**Gate**: All five artifacts exist, are reviewed, and the operator has explicitly accepted ADR-MOBILE-001 for planning. HMC-2026-07-001 through HMC-2026-07-010 were accepted with recommended defaults on 2026-07-09. Production proof remains gated: `Fortemi/HotM#251` must stay open until hosted/gateway/CI manifest launch-rate proof replaces the local fixture, and public hosted/mobile claims remain no-go until the relevant hosted, legal/product, and CI evidence exists.
 
 ## Phase 1 — Backend extraction (`matric-api` as a hosted multi-tenant service)
 
@@ -353,19 +353,22 @@ These are explicitly NOT in this plan and should not creep in:
 
 If any of these become priorities during the planned phases, file a new phase plan rather than expanding this one.
 
-## Open questions
+## Accepted HMC Defaults And Remaining Evidence Gates
 
-These must be answered by the operator before the relevant phase can complete:
+These HMC questions were answered with the recommended defaults on 2026-07-09. They can guide planning, but the evidence gates below still control phase completion and public claims:
 
-1. **Auth provider choice (Phase 2)**. Clerk, Auth0, Keycloak self-host, or roll-your-own? Cost vs. lock-in vs. operational simplicity.
-2. **Hosting provider for `matric-api` (Phase 1)**. Fly.io, Render, Railway, Hetzner, self-host? The research finding cites $50-150/mo at launch scale across most of these.
-3. **Free tier vs paid-only (Phase 2, recurring)**. If free tier exists, what are the limits? If paid-only, what is the price?
-4. **Domain (Phases 1-2)**. Is `api.hotm.fortemi.io` the right authority? Affects DNS, CDN, certificate.
-5. **Telemetry stance (Phase 5)**. Yes/no, opt-in vs. opt-out, what backend.
-6. **Self-hosted `matric-api` option for privacy-focused users**. Is this a launch feature, a Phase 6 follow-up, or never?
+1. **Auth provider choice (Phase 2)**. Accepted planning default: Clerk for hosted preview; Keycloak/self-host remains a later enterprise option.
+2. **Hosting provider for `matric-api` (Phase 1)**. Accepted planning default: managed preview host; exact provider remains evidence-gated before production. The research finding cites $50-150/mo at launch scale across most candidates.
+3. **Free tier vs paid-only (Phase 2, recurring)**. Accepted planning default: fixture-backed preview plus no public paid/free-tier claim until pricing and abuse limits are accepted.
+4. **Domain (Phases 1-2)**. Accepted planning default: `api.hotm.fortemi.io` remains provisional and must not be claimed until DNS, CDN, and certificate evidence exists.
+5. **Telemetry stance (Phase 5)**. Accepted planning default: off/opt-in until product/legal approves a backend and copy.
+6. **Self-hosted `matric-api` option for privacy-focused users**. Accepted planning default: post-launch follow-up, not a first demo or launch commitment.
 7. **App Store description and screenshots (Phase 5)**. Visual style, target user description, key feature highlights.
+8. **Compliance and pricing copy**. Accepted planning default: do not claim HIPAA or SOC2; keep GDPR data-subject rights in hosted planning; pricing remains undecided with no public plan, quota, or paid-tier claim from placeholder values.
+9. **i18n launch posture**. Accepted planning default: deferred from the first enterprise demo and represented as a later planning item if launch scope changes.
+10. **Local/cloud data semantics**. Accepted planning default: local-to-cloud mode switching requires ADR-MOBILE-002 before Phase 2 acceptance.
 
-Each of these is non-blocking until its phase reaches the gate where it matters. Tracking them here so they're not surprises.
+Each of these is non-blocking until its phase reaches the gate where it matters. Accepted planning defaults do not close hosted/mobile production readiness or the `Fortemi/HotM#251` manifest launch-rate proof gate.
 
 ## Maintenance note
 

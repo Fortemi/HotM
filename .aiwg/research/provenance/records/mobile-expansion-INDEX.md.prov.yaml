@@ -1,0 +1,43 @@
+metadata:
+  schema_version: "1.0.0"
+  created_at: "2026-07-26T23:42:02Z"
+  description: "Provenance for reconciled mobile expansion index"
+entity:
+  id: "urn:aiwg:artifact:.aiwg/planning/mobile-expansion-INDEX.md"
+  type: planning
+  created_at: "2026-07-26T23:42:02Z"
+  checksum: "sha256:730ab16ea727e94e0ca0c4ac7d274ac667e567649b82bce77c6c6102a2c5d037"
+  size_bytes: 7735
+  attributes:
+    change_scope: "accepted-hmc-defaults-and-dry-run-receipt"
+activity:
+  id: "urn:aiwg:activity:modification:mobile-expansion-index:001"
+  type: modification
+  started_at: "2026-07-26T23:42:02Z"
+  ended_at: "2026-07-26T23:42:02Z"
+  description: "Index accepted planning defaults and fixture-backed evidence"
+agent:
+  id: "urn:aiwg:agent:codex-gpt-5"
+  type: ai_assistant
+  name: "Codex"
+  version: "gpt-5.6"
+  tool: "codex"
+relationships:
+  wasGeneratedBy:
+    entity: "urn:aiwg:artifact:.aiwg/planning/mobile-expansion-INDEX.md"
+    activity: "urn:aiwg:activity:modification:mobile-expansion-index:001"
+    time: "2026-07-26T23:42:02Z"
+  used:
+    - activity: "urn:aiwg:activity:modification:mobile-expansion-index:001"
+      entity: "urn:gitea:Fortemi/HotM:issue:251:comment:81345"
+      role: "operator_decision"
+    - activity: "urn:aiwg:activity:modification:mobile-expansion-index:001"
+      entity: "urn:gitea:Fortemi/HotM:issue:250:comment:81346"
+      role: "evidence"
+  wasAssociatedWith:
+    activity: "urn:aiwg:activity:modification:mobile-expansion-index:001"
+    agent: "urn:aiwg:agent:codex-gpt-5"
+    role: "primary_author"
+  wasAttributedTo:
+    entity: "urn:aiwg:artifact:.aiwg/planning/mobile-expansion-INDEX.md"
+    agent: "urn:aiwg:agent:codex-gpt-5"

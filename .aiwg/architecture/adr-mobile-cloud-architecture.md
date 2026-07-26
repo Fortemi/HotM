@@ -1,7 +1,7 @@
 ---
 adr_id: ADR-MOBILE-001
 title: Mobile expansion uses Tauri 2 mobile with cloud-only backend
-status: Proposed
+status: Accepted for planning
 date: 2026-05-17
 decision_drivers:
   - Existing Tauri 2.10.2 + React 19 + Vite + Tailwind investment
@@ -32,7 +32,9 @@ related_issues:
 
 ## Status
 
-**Proposed (revision 1, post-Wave-3 review)**. Strategic intent confirmed by the operator on 2026-05-17. Reviewed in a Wave-3 multi-agent pass: Security Architect, Test Architect, Requirements Analyst, Technical Writer all returned APPROVED_WITH_CHANGES. The required changes were merged into this revision; see `.aiwg/working/mobile-planning/review-synthesis.md` for the consolidated finding list and which findings remain as follow-up artifacts.
+**Accepted for planning (revision 2, HMC defaults accepted)**. Strategic intent confirmed by the operator on 2026-05-17. Reviewed in a Wave-3 multi-agent pass: Security Architect, Test Architect, Requirements Analyst, Technical Writer all returned APPROVED_WITH_CHANGES. The required changes were merged into revision 1; see `.aiwg/working/mobile-planning/review-synthesis.md` for the consolidated finding list and which findings remain as follow-up artifacts. On 2026-07-09, HMC-2026-07-001 through HMC-2026-07-010 were accepted with the recommended defaults for mobile/cloud planning.
+
+Accepted HMC defaults are planning authorization only. They do not close `Fortemi/HotM#251`, do not authorize hosted/mobile production claims, and do not replace hosted/gateway/CI proof for manifest launch-rate enforcement.
 
 This ADR documents the decision so downstream planning artifacts (the phase plan, the manifest schema doc, and `matric-api` migration tickets) can proceed against a stable reference.
 
@@ -42,6 +44,7 @@ This ADR documents the decision so downstream planning artifacts (the phase plan
 |---|---|---|---|
 | 0 | 2026-05-17 | Initial draft by Architecture Designer agent. | Wave-2 multi-agent orchestration. |
 | 1 | 2026-05-17 | Decision 4 hardened: KMS at launch (not "later"); explicit reference to `cryptographic-decisions.md`. Decision 5 sharpened: only API base URL is baked in; manifest is version-controlled. Decision 6 hardened: RLS invariants (NOBYPASSRLS role, FORCE RLS, CI gate, transaction discipline, schema-per-tenant escalation trigger). Decision 7 hardened: App Links / Universal Links over custom URL schemes; refresh token in platform-native secure storage. | Wave-3 reviews (Security 1.1/1.2/2.1/2.2/4.1, Technical Writer 4/5). |
+| 2 | 2026-07-09 | HMC-2026-07-001 through HMC-2026-07-010 accepted with recommended defaults: Clerk planning default, managed preview host, fixture-backed/no-public-tier claim, provisional domain, telemetry off/opt-in, self-hosted multi-tenant post-launch, no HIPAA/SOC2 claims, pricing undecided, i18n deferred, ADR-MOBILE-002 required for local/cloud switching. | `.aiwg/decisions/hotm-mobile-cloud-operator-questions-2026-07-07.md`; `Fortemi/HotM#251` comment `#81345`. |
 
 ## Context
 
@@ -202,15 +205,15 @@ Scope, dependencies, and ordering are the phase plan's job — not this ADR's.
 
 **Supersedes:** none. This ADR adds the mobile track; it does not retire any existing ADR.
 
-## Open questions
+## Accepted HMC Defaults And Remaining Evidence Gates
 
-These are genuinely unsettled and need product input — they are not architectural gaps to fill in implementation.
+These questions were accepted as planning defaults through HMC-2026-07-001 through HMC-2026-07-010 on 2026-07-09. They are no longer open strategic questions for planning, but the production evidence gates below still apply.
 
-1. **Free tier yes/no, and what does it include?** The decision affects abuse-prevention sizing, signup friction, and the business model. Without a free tier, signup gating is simpler but discovery suffers. Resolved in product planning, not this ADR.
-2. **Self-hosted multi-tenant mode for advanced users?** A household or homelab user might want to run `matric-api`'s multi-tenant mode themselves and have their family connect to it. This is technically possible but adds documentation, distribution, and support cost. Not in launch scope; flag for revisit.
-3. **Compliance posture at launch.** HIPAA, SOC2, GDPR — the explicit operator position at launch should be "we do not claim HIPAA or SOC2; we follow GDPR data-subject rights." Confirm with product/legal before launch copy.
-4. **Telemetry default.** The manifest schema (`.aiwg/architecture/manifest-schema-v1.md`) has telemetry default off. Confirm this is the launch posture.
-5. **Pricing model if any.** Free with BYO-LLM, or paid tiers with quotas? Decision affects tier limit shape in the manifest. Not architectural — but the manifest schema needs to absorb whatever the answer is without breaking changes.
-6. **Cloud-mode desktop privacy disclosure.** Desktop users who flip to cloud mode are now in a different privacy posture than ADR-007 described. The transition needs a clear consent moment, not a silent migration.
+1. **Free tier yes/no, and what does it include?** Accepted planning default: fixture-backed preview only; no public paid/free-tier claim until pricing and abuse limits are accepted.
+2. **Self-hosted multi-tenant mode for advanced users?** Accepted planning default: post-launch follow-up, not first demo or launch commitment.
+3. **Compliance posture at launch.** Accepted planning default: do not claim HIPAA or SOC2; GDPR data-subject rights stay in scope for hosted planning.
+4. **Telemetry default.** Accepted planning default: off/opt-in until product/legal approves a backend and copy.
+5. **Pricing model if any.** Accepted planning default: undecided; no public plan, quota, or paid-tier claim can depend on placeholder values.
+6. **Cloud-mode desktop privacy disclosure and local/cloud semantics.** Accepted planning default: local-to-cloud mode switching requires ADR-MOBILE-002 before Phase 2 acceptance.
 
-These do not block ADR acceptance; they block specific implementation tickets downstream.
+These accepted defaults do not block ADR planning acceptance. They still block specific implementation tickets and public/production claims until their implementation, legal/product, hosted, and tracker evidence exists.

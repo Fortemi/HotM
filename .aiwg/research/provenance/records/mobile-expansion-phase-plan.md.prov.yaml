@@ -1,0 +1,40 @@
+metadata:
+  schema_version: "1.0.0"
+  created_at: "2026-07-26T23:42:02Z"
+  description: "Provenance for reconciled mobile expansion phase plan"
+entity:
+  id: "urn:aiwg:artifact:.aiwg/planning/mobile-expansion-phase-plan.md"
+  type: planning
+  created_at: "2026-07-26T23:42:02Z"
+  checksum: "sha256:aaa36c3fc8c052440617207ed717c702a37dc9528ace60bbb58882ccb1b7f0eb"
+  size_bytes: 34525
+  attributes:
+    change_scope: "accepted-hmc-defaults"
+activity:
+  id: "urn:aiwg:activity:modification:mobile-expansion-phase-plan:001"
+  type: modification
+  started_at: "2026-07-26T23:42:02Z"
+  ended_at: "2026-07-26T23:42:02Z"
+  description: "Replace open planning questions with accepted defaults and retained evidence gates"
+agent:
+  id: "urn:aiwg:agent:codex-gpt-5"
+  type: ai_assistant
+  name: "Codex"
+  version: "gpt-5.6"
+  tool: "codex"
+relationships:
+  wasGeneratedBy:
+    entity: "urn:aiwg:artifact:.aiwg/planning/mobile-expansion-phase-plan.md"
+    activity: "urn:aiwg:activity:modification:mobile-expansion-phase-plan:001"
+    time: "2026-07-26T23:42:02Z"
+  used:
+    - activity: "urn:aiwg:activity:modification:mobile-expansion-phase-plan:001"
+      entity: "urn:gitea:Fortemi/HotM:issue:251:comment:81345"
+      role: "operator_decision"
+  wasAssociatedWith:
+    activity: "urn:aiwg:activity:modification:mobile-expansion-phase-plan:001"
+    agent: "urn:aiwg:agent:codex-gpt-5"
+    role: "primary_author"
+  wasAttributedTo:
+    entity: "urn:aiwg:artifact:.aiwg/planning/mobile-expansion-phase-plan.md"
+    agent: "urn:aiwg:agent:codex-gpt-5"

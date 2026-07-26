@@ -2,7 +2,7 @@
 title: Mobile Expansion Planning — Artifact Index
 type: index
 created: 2026-05-17
-status: Phase 0 (decisions locked)
+status: Phase 0 (HMC planning defaults accepted)
 ---
 
 # Mobile Expansion Planning — Artifact Index
@@ -13,14 +13,14 @@ Single entry-point for the SDLC + research artifacts produced for HotM's mobile 
 
 | Artifact | Status | Notes |
 |---|---|---|
-| [ADR-MOBILE-001 — Mobile cloud architecture](../architecture/adr-mobile-cloud-architecture.md) | Proposed (rev 1) | Seven decisions. Reviewed by 4 agents; revisions merged. |
-| [Manifest schema v1](../architecture/manifest-schema-v1.md) | Proposed | The `GET /v1/manifest` API contract. Machine-readable JSON Schema companion exists at `../architecture/manifest-schema-v1.json` and is validated by `../testing/scripts/validate-manifest-schema.mjs`. |
+| [ADR-MOBILE-001 — Mobile cloud architecture](../architecture/adr-mobile-cloud-architecture.md) | Accepted for planning (rev 2) | Seven decisions plus HMC accepted defaults. Reviewed by 4 agents; revisions merged. Hosted/mobile production proof remains gated. |
+| [Manifest schema v1](../architecture/manifest-schema-v1.md) | Accepted for planning | The `GET /v1/manifest` API contract. Machine-readable JSON Schema companion exists at `../architecture/manifest-schema-v1.json` and is validated by `../testing/scripts/validate-manifest-schema.mjs`. |
 
 ## Plan
 
 | Artifact | Status | Notes |
 |---|---|---|
-| [Mobile expansion phase plan](mobile-expansion-phase-plan.md) | Proposed (rev 1) | Six phases. Agent-oriented units throughout (no time estimates). |
+| [Mobile expansion phase plan](mobile-expansion-phase-plan.md) | Accepted for planning | Six phases. Agent-oriented units throughout (no time estimates). HMC planning defaults accepted on 2026-07-09. |
 
 ## Research
 
@@ -53,22 +53,24 @@ These artifacts are referenced by the ADR and phase plan. Some are authored as d
 | `nfr-modules/mobile-accessibility.md` | Phase 3 | UX Lead | VoiceOver/TalkBack/WCAG/dynamic-type. |
 | `mobile-launch-readiness-checklist.md` | Phase 5 | Project Manager | Already embedded in phase plan §Phase 5; promote to standalone if it grows. |
 
-## Open strategic questions (for operator)
+## Accepted HMC Defaults And Remaining Evidence Gates
 
-These were captured in the ADR (§Open questions) and the phase plan (§Open questions). Pinned here so they don't get lost:
+These were captured in the ADR and the phase plan. They were accepted as recommended HMC planning defaults on 2026-07-09. Pinned here so the defaults stay synchronized with the root decision record and the production proof gates do not get lost.
 
-Checkpoint consolidation exists at suite-root `.aiwg/decisions/hotm-mobile-cloud-operator-questions-2026-07-07.md` as the operator response surface for these questions. Keep this list and that root decision artifact synchronized until the rows are answered.
+Checkpoint consolidation exists at suite-root `.aiwg/decisions/hotm-mobile-cloud-operator-questions-2026-07-07.md` as the operator response surface for these questions. Keep this list and that root decision artifact synchronized now that the rows are answered.
 
-1. Auth provider final choice (Clerk vs Auth0 vs Keycloak vs roll-your-own).
-2. Hosting provider for `matric-api` (Fly.io vs Render vs Railway vs Hetzner vs self-host).
-3. Free tier vs paid-only at launch.
-4. Domain authority (`api.hotm.fortemi.io` confirmed?).
-5. Telemetry stance.
-6. Self-hosted multi-tenant option for privacy-focused users — launch feature, Phase 6, or never?
-7. Compliance posture (HIPAA/SOC2 claims at launch — no by default; GDPR data-subject rights are required).
-8. Pricing model if any.
-9. i18n posture at launch (Wave-3 Requirements Finding 6).
-10. Local↔cloud mode-switch data semantics (Wave-3 Test Architect 4 + Requirements 3 — gates Phase 2 acceptance via ADR-MOBILE-002).
+1. Auth provider final choice: Clerk for hosted preview; Keycloak/self-host later enterprise option.
+2. Hosting provider for `matric-api`: managed preview host; exact provider remains evidence-gated before production.
+3. Free tier vs paid-only at launch: fixture-backed preview only; no public paid/free-tier claim until pricing and abuse limits are accepted.
+4. Domain authority: `api.hotm.fortemi.io` remains provisional until DNS/CDN/cert evidence exists.
+5. Telemetry stance: off/opt-in until product/legal approves a backend and copy.
+6. Self-hosted multi-tenant option for privacy-focused users: post-launch follow-up, not first demo or launch commitment.
+7. Compliance posture: no HIPAA or SOC2 claims; GDPR data-subject rights stay in hosted planning.
+8. Pricing model: undecided; no public plan, quota, or paid-tier claim can depend on placeholder values.
+9. i18n posture at launch: deferred from first enterprise demo and represented as a later planning item if launch scope changes.
+10. Local↔cloud mode-switch data semantics: ADR-MOBILE-002 required before Phase 2 acceptance.
+
+Accepted HMC defaults do not close `Fortemi/HotM#251`, do not authorize hosted/mobile production claims, and do not replace hosted/gateway/CI manifest launch-rate proof.
 
 ## Cross-linked HotM issues
 

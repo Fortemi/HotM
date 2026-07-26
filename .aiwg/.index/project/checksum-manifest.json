@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generated": "2026-07-08T03:57:20.144Z",
+  "generated": "2026-07-26T23:44:05.913Z",
   "entries": {
     ".aiwg/.milestones.json": {
       "checksum": "f4ef5c1e93af8038",
@@ -11,6 +11,21 @@
       "checksum": "6cbe9a7a99e69a00",
       "mtime": "2026-07-07T19:32:55.173Z",
       "size": 2837
+    },
+    ".aiwg/api/compatibility/fortemi-v2026-07-family-evidence-map.json": {
+      "checksum": "2e1f9edb568b99db",
+      "mtime": "2026-07-26T23:39:19.346Z",
+      "size": 21613
+    },
+    ".aiwg/api/compatibility/fortemi-v2026-07-route-coverage.json": {
+      "checksum": "2471d82e0d0c2b53",
+      "mtime": "2026-07-26T23:39:19.346Z",
+      "size": 70132
+    },
+    ".aiwg/api/compatibility/fortemi-v2026-07-route-coverage.md": {
+      "checksum": "954a6c98a0feb838",
+      "mtime": "2026-07-26T23:39:19.347Z",
+      "size": 29937
     },
     ".aiwg/api/compatibility/report-2026-05-25.md": {
       "checksum": "7abe8d7656d4f866",
@@ -52,15 +67,25 @@
       "mtime": "2026-07-06T21:41:58.517Z",
       "size": 6292
     },
+    ".aiwg/architecture/adr/ADR-010-fortemi-v2026-07-api-coverage.md": {
+      "checksum": "08bacdde6f8f7988",
+      "mtime": "2026-07-26T23:39:19.347Z",
+      "size": 11806
+    },
+    ".aiwg/architecture/adr/ADR-011-fortemi-media-call-surface-disposition.md": {
+      "checksum": "bb3f27ed5ec201af",
+      "mtime": "2026-07-26T23:39:19.347Z",
+      "size": 7813
+    },
     ".aiwg/architecture/adr-auth-shared-crate.md": {
       "checksum": "66893c3dcf781293",
       "mtime": "2026-07-04T19:56:08.109Z",
       "size": 2146
     },
     ".aiwg/architecture/adr-mobile-cloud-architecture.md": {
-      "checksum": "88fd802ef5edc4f7",
-      "mtime": "2026-07-07T06:34:18.021Z",
-      "size": 26688
+      "checksum": "8bc2ffcb2d9eed0b",
+      "mtime": "2026-07-26T23:39:25.680Z",
+      "size": 27340
     },
     ".aiwg/architecture/cryptographic-decisions.md": {
       "checksum": "d61f11fb3e66f8c0",
@@ -68,14 +93,19 @@
       "size": 3294
     },
     ".aiwg/architecture/fortemi-compatibility-consumption-2026-07.md": {
-      "checksum": "1d90b83ae7a7e2b9",
-      "mtime": "2026-07-06T22:36:08.406Z",
-      "size": 5910
+      "checksum": "a431acefa94d260f",
+      "mtime": "2026-07-26T23:39:19.347Z",
+      "size": 8540
     },
     ".aiwg/architecture/impact/fortemi-api-contract-drift-2026-05.md": {
       "checksum": "8ebfc384b64095e7",
       "mtime": "2026-07-04T19:56:08.109Z",
       "size": 5595
+    },
+    ".aiwg/architecture/impact/fortemi-api-contract-drift-2026-07.md": {
+      "checksum": "07134bb7342017ae",
+      "mtime": "2026-07-26T23:39:19.347Z",
+      "size": 5146
     },
     ".aiwg/architecture/manifest-schema-v1.json": {
       "checksum": "999d96240c395eea",
@@ -83,9 +113,14 @@
       "size": 8524
     },
     ".aiwg/architecture/manifest-schema-v1.md": {
-      "checksum": "97565d05632ebfac",
-      "mtime": "2026-07-07T22:57:19.095Z",
-      "size": 23447
+      "checksum": "ef40f49a337151ac",
+      "mtime": "2026-07-26T23:39:25.680Z",
+      "size": 24150
+    },
+    ".aiwg/architecture/sad-fortemi-integration-addendum-2026-07.md": {
+      "checksum": "5a571489063d5166",
+      "mtime": "2026-07-26T23:39:19.347Z",
+      "size": 21388
     },
     ".aiwg/architecture/software-architecture-doc.md": {
       "checksum": "e26727a077515113",
@@ -213,14 +248,34 @@
       "size": 17894
     },
     ".aiwg/design/enterprise-demo-screen-state-blueprint-2026-07.md": {
-      "checksum": "0bccfab37a8dd1cd",
-      "mtime": "2026-07-07T21:21:05.803Z",
-      "size": 15912
+      "checksum": "4ebfcb9857acc9dc",
+      "mtime": "2026-07-08T09:06:14.159Z",
+      "size": 16037
     },
     ".aiwg/design/fortemi-feature-ui-integration-plan-2026-05.md": {
       "checksum": "cf27d37f59fb5511",
       "mtime": "2026-07-04T19:56:08.112Z",
       "size": 11172
+    },
+    ".aiwg/design/fortemi-v2026-07-agent-tool-coverage-matrix.md": {
+      "checksum": "5c0233d704831039",
+      "mtime": "2026-07-26T23:39:19.348Z",
+      "size": 11213
+    },
+    ".aiwg/design/fortemi-v2026-07-api-client-implementation-blueprint.md": {
+      "checksum": "beda13dc7d197d69",
+      "mtime": "2026-07-26T23:39:19.348Z",
+      "size": 6883
+    },
+    ".aiwg/design/fortemi-v2026-07-capability-surface-matrix.md": {
+      "checksum": "5b00acb83f5ed9a8",
+      "mtime": "2026-07-26T23:39:19.348Z",
+      "size": 10489
+    },
+    ".aiwg/design/fortemi-v2026-07-ux-integration-addendum.md": {
+      "checksum": "3109d75157ba9d53",
+      "mtime": "2026-07-26T23:39:19.348Z",
+      "size": 12814
     },
     ".aiwg/discovery/fortemi-integration-gap-analysis.md": {
       "checksum": "9aa671ba58910b87",
@@ -242,10 +297,30 @@
       "mtime": "2026-07-04T19:56:08.112Z",
       "size": 58197
     },
+    ".aiwg/evidence/hotm-enterprise-demo-dry-run-2026-07-09.md": {
+      "checksum": "e821412c2d9bf1e4",
+      "mtime": "2026-07-26T23:39:25.711Z",
+      "size": 7054
+    },
     ".aiwg/evidence/hotm-enterprise-preview-evidence-2026-07-06.md": {
-      "checksum": "ff487f786e7bdcfa",
-      "mtime": "2026-07-07T18:50:26.016Z",
-      "size": 2184
+      "checksum": "097da32bfe2dc4be",
+      "mtime": "2026-07-08T09:06:20.532Z",
+      "size": 2267
+    },
+    ".aiwg/evidence/hotm-full-v1-clean-recovery-preflight-2026-07-24.json": {
+      "checksum": "fdc48cc0b9fb4a59",
+      "mtime": "2026-07-26T23:39:19.348Z",
+      "size": 1842
+    },
+    ".aiwg/evidence/hotm-full-v1-clean-recovery-receipt-2026-07-24.json": {
+      "checksum": "efd8516925f7c5fe",
+      "mtime": "2026-07-26T23:39:19.348Z",
+      "size": 4193
+    },
+    ".aiwg/evidence/hotm-v2026.7.0-github-mirror-repair-2026-07-24.json": {
+      "checksum": "789411338303bf38",
+      "mtime": "2026-07-26T23:39:19.348Z",
+      "size": 2228
     },
     ".aiwg/forensics/chain-of-custody.md": {
       "checksum": "a5b333337ae3400f",
@@ -276,6 +351,11 @@
       "checksum": "aea3d71501397633",
       "mtime": "2026-07-04T19:56:08.113Z",
       "size": 3455
+    },
+    ".aiwg/gates/fortemi-api-integration-gate-2026-07-14.md": {
+      "checksum": "103ff9ec99205d65",
+      "mtime": "2026-07-26T23:39:19.349Z",
+      "size": 9303
     },
     ".aiwg/gates/lom-gate-revalidation-2026-01.md": {
       "checksum": "8bcff2c3a4f18065",
@@ -322,6 +402,21 @@
       "mtime": "2026-07-04T19:56:08.113Z",
       "size": 2701
     },
+    ".aiwg/handoffs/fortemi-v2026-07-discovery-to-delivery-handoff.md": {
+      "checksum": "bbaebac1bc670bfb",
+      "mtime": "2026-07-26T23:39:19.349Z",
+      "size": 8233
+    },
+    ".aiwg/handoffs/fortemi-v2026-07-pr-closeout-package.md": {
+      "checksum": "9a50c1cf59384359",
+      "mtime": "2026-07-26T23:39:19.350Z",
+      "size": 5306
+    },
+    ".aiwg/handoffs/fortemi-v2026-07-tracker-publication-backlog.md": {
+      "checksum": "be79fd88aa244c6e",
+      "mtime": "2026-07-26T23:39:19.350Z",
+      "size": 9422
+    },
     ".aiwg/inception/ui-redesign-requirements.md": {
       "checksum": "c9194ebdb27f3b4b",
       "mtime": "2026-07-04T19:56:08.113Z",
@@ -358,9 +453,9 @@
       "size": 11057
     },
     ".aiwg/issues/checkpoint-issue-drafts-2026-07.md": {
-      "checksum": "10dcf9defe4d1c16",
-      "mtime": "2026-07-07T20:13:21.226Z",
-      "size": 8401
+      "checksum": "3f1ae546cb6ca12b",
+      "mtime": "2026-07-26T23:39:19.350Z",
+      "size": 25117
     },
     ".aiwg/kb/index.md": {
       "checksum": "eb9ab63dc04b9099",
@@ -408,9 +503,24 @@
       "size": 35577
     },
     ".aiwg/planning/enterprise-demo-scenarios-2026-07.md": {
-      "checksum": "e106b0e454bed1fb",
-      "mtime": "2026-07-07T00:45:42.084Z",
-      "size": 6802
+      "checksum": "d9432e2724b4380e",
+      "mtime": "2026-07-09T13:51:37.759Z",
+      "size": 6636
+    },
+    ".aiwg/planning/fortemi-v2026-07-hotm-integration-plan.md": {
+      "checksum": "8fc9b4b1dd28f774",
+      "mtime": "2026-07-26T23:39:19.350Z",
+      "size": 5615
+    },
+    ".aiwg/planning/fortemi-v2026-07-implementation-roadmap.md": {
+      "checksum": "8a0d3584e7dfbff7",
+      "mtime": "2026-07-26T23:39:19.350Z",
+      "size": 9507
+    },
+    ".aiwg/planning/fortemi-v2026-07-issue-dependency-map.md": {
+      "checksum": "fef0fbdd0156ae23",
+      "mtime": "2026-07-26T23:39:19.350Z",
+      "size": 7867
     },
     ".aiwg/planning/iteration-plan-001.md": {
       "checksum": "5d48073e21a1668b",
@@ -423,14 +533,14 @@
       "size": 31702
     },
     ".aiwg/planning/mobile-expansion-INDEX.md": {
-      "checksum": "3b7add80a3d665b8",
-      "mtime": "2026-07-08T00:22:02.310Z",
-      "size": 6888
+      "checksum": "730ab16ea727e94e",
+      "mtime": "2026-07-26T23:39:25.711Z",
+      "size": 7735
     },
     ".aiwg/planning/mobile-expansion-phase-plan.md": {
-      "checksum": "7b9836dfe91f5007",
-      "mtime": "2026-07-04T19:56:08.115Z",
-      "size": 33231
+      "checksum": "aaa36c3fc8c05244",
+      "mtime": "2026-07-26T23:39:25.711Z",
+      "size": 34525
     },
     ".aiwg/planning/phase-plan-elaboration.md": {
       "checksum": "cd0774bf516ce421",
@@ -502,6 +612,46 @@
       "mtime": "2026-07-04T19:56:08.116Z",
       "size": 5193
     },
+    ".aiwg/reports/fortemi-v2026-07-api-integration-traceability.md": {
+      "checksum": "55af48511e56cb30",
+      "mtime": "2026-07-26T23:39:19.350Z",
+      "size": 15930
+    },
+    ".aiwg/reports/fortemi-v2026-07-artifact-index.md": {
+      "checksum": "1a10f10f3d2d31a3",
+      "mtime": "2026-07-26T23:39:19.350Z",
+      "size": 10505
+    },
+    ".aiwg/reports/fortemi-v2026-07-completion-audit.md": {
+      "checksum": "ae09a72923a16f64",
+      "mtime": "2026-07-26T23:39:19.350Z",
+      "size": 5740
+    },
+    ".aiwg/reports/fortemi-v2026-07-coverage-evidence-audit.md": {
+      "checksum": "53b1a5ac39b69781",
+      "mtime": "2026-07-26T23:39:19.350Z",
+      "size": 13300
+    },
+    ".aiwg/reports/fortemi-v2026-07-delivery-evidence-ledger.md": {
+      "checksum": "59102dd1322de2ee",
+      "mtime": "2026-07-26T23:39:19.350Z",
+      "size": 10305
+    },
+    ".aiwg/reports/fortemi-v2026-07-mcp-tool-surface-audit.md": {
+      "checksum": "1bf18d6558864484",
+      "mtime": "2026-07-26T23:39:19.350Z",
+      "size": 5849
+    },
+    ".aiwg/reports/fortemi-v2026-07-remote-baseline-revalidation.md": {
+      "checksum": "9f45414935133d4d",
+      "mtime": "2026-07-26T23:39:19.350Z",
+      "size": 2801
+    },
+    ".aiwg/reports/fortemi-v2026-07-tracker-publication-receipts.md": {
+      "checksum": "e6ebfd16d47ab4d2",
+      "mtime": "2026-07-26T23:39:19.350Z",
+      "size": 2564
+    },
     ".aiwg/reports/gate-validation-inception-2025-12-04.md": {
       "checksum": "64013752d88626a4",
       "mtime": "2026-07-04T19:56:08.116Z",
@@ -518,9 +668,9 @@
       "size": 31666
     },
     ".aiwg/reports/sdlc-checkpoint-2026-07.md": {
-      "checksum": "028ff98f19b12ed1",
-      "mtime": "2026-07-08T03:06:16.065Z",
-      "size": 9173
+      "checksum": "71bff811c19d37fe",
+      "mtime": "2026-07-26T23:39:25.711Z",
+      "size": 10072
     },
     ".aiwg/reports/tauri-v2-research-2026-02.md": {
       "checksum": "59f980ed8db2fae0",
@@ -533,14 +683,24 @@
       "size": 7646
     },
     ".aiwg/requirements/enterprise-demo-requirements-2026-07.md": {
-      "checksum": "70597c1c3469144a",
-      "mtime": "2026-07-07T21:45:40.971Z",
-      "size": 9347
+      "checksum": "c42e9837434df65e",
+      "mtime": "2026-07-08T09:00:20.967Z",
+      "size": 10950
     },
     ".aiwg/requirements/fortemi-api-integration-requirements-2026-05.md": {
       "checksum": "2e39f0a19f248cef",
       "mtime": "2026-07-04T19:56:08.117Z",
       "size": 2628
+    },
+    ".aiwg/requirements/fortemi-api-integration-requirements-2026-07.md": {
+      "checksum": "7699a5cd703281df",
+      "mtime": "2026-07-26T23:39:19.350Z",
+      "size": 14837
+    },
+    ".aiwg/requirements/fortemi-v2026-07-ux-workflow-scenarios.md": {
+      "checksum": "ed73fe42fbf2afec",
+      "mtime": "2026-07-26T23:39:19.350Z",
+      "size": 12055
     },
     ".aiwg/requirements/mvp-acceptance-criteria-v2.md": {
       "checksum": "f29d8a7c8cbc4f3f",
@@ -558,9 +718,9 @@
       "size": 23433
     },
     ".aiwg/research/findings/mobile-manifest-remote-config.md": {
-      "checksum": "5c6a8e3126d95e92",
-      "mtime": "2026-07-04T19:56:08.117Z",
-      "size": 15114
+      "checksum": "9cf6059ee88204db",
+      "mtime": "2026-07-26T23:39:19.350Z",
+      "size": 15115
     },
     ".aiwg/research/findings/mobile-multitenant-byo-llm.md": {
       "checksum": "7f4bcb99f24c627e",
@@ -571,6 +731,296 @@
       "checksum": "cd35fdc42fd8e33b",
       "mtime": "2026-07-04T19:56:08.117Z",
       "size": 13726
+    },
+    ".aiwg/research/provenance/index.yaml": {
+      "checksum": "8ef5d5e8bfecf34a",
+      "mtime": "2026-07-26T23:43:42.177Z",
+      "size": 8268
+    },
+    ".aiwg/research/provenance/records/ADR-010-fortemi-v2026-07-api-coverage.md.prov.yaml": {
+      "checksum": "9d41055e48261253",
+      "mtime": "2026-07-26T23:39:19.351Z",
+      "size": 2445
+    },
+    ".aiwg/research/provenance/records/AdminPanel.test.tsx.prov.yaml": {
+      "checksum": "4e67020e173d1dd4",
+      "mtime": "2026-07-26T23:39:19.351Z",
+      "size": 1814
+    },
+    ".aiwg/research/provenance/records/ApiCapabilitiesPanel.test.tsx.prov.yaml": {
+      "checksum": "7c6e7325fceff23d",
+      "mtime": "2026-07-26T23:39:19.351Z",
+      "size": 2405
+    },
+    ".aiwg/research/provenance/records/ApiCapabilitiesPanel.tsx.prov.yaml": {
+      "checksum": "3fa7612afff902c3",
+      "mtime": "2026-07-26T23:39:19.351Z",
+      "size": 2182
+    },
+    ".aiwg/research/provenance/records/BackupManager.test.tsx.prov.yaml": {
+      "checksum": "f8eebef6f4b25ae7",
+      "mtime": "2026-07-26T23:39:19.351Z",
+      "size": 1810
+    },
+    ".aiwg/research/provenance/records/BackupManager.tsx.prov.yaml": {
+      "checksum": "d7193c0eb3de1a58",
+      "mtime": "2026-07-26T23:39:19.351Z",
+      "size": 1743
+    },
+    ".aiwg/research/provenance/records/adr-mobile-cloud-architecture.md.prov.yaml": {
+      "checksum": "a4e71a17d2c91638",
+      "mtime": "2026-07-26T23:43:42.175Z",
+      "size": 1948
+    },
+    ".aiwg/research/provenance/records/api-contract-test-plan-addendum-2026-07.md.prov.yaml": {
+      "checksum": "94f415d869a6b7b7",
+      "mtime": "2026-07-26T23:39:19.351Z",
+      "size": 2360
+    },
+    ".aiwg/research/provenance/records/backup.test.ts.prov.yaml": {
+      "checksum": "16d0fe25db05da9c",
+      "mtime": "2026-07-26T23:39:19.351Z",
+      "size": 1711
+    },
+    ".aiwg/research/provenance/records/backup.ts.prov.yaml": {
+      "checksum": "98197db301699788",
+      "mtime": "2026-07-26T23:39:19.351Z",
+      "size": 1687
+    },
+    ".aiwg/research/provenance/records/calls.test.ts.prov.yaml": {
+      "checksum": "39e913bdb3528772",
+      "mtime": "2026-07-26T23:39:19.351Z",
+      "size": 2007
+    },
+    ".aiwg/research/provenance/records/calls.ts.prov.yaml": {
+      "checksum": "aeb6be30623e3945",
+      "mtime": "2026-07-26T23:39:19.351Z",
+      "size": 1862
+    },
+    ".aiwg/research/provenance/records/delivered-openapi-contract.test.ts.prov.yaml": {
+      "checksum": "8e83eca5639eb787",
+      "mtime": "2026-07-26T23:39:19.351Z",
+      "size": 2353
+    },
+    ".aiwg/research/provenance/records/enterprise-demo-operator-signoff-2026-07-06.md.prov.yaml": {
+      "checksum": "c5550fdb84d0e543",
+      "mtime": "2026-07-26T23:43:42.176Z",
+      "size": 1785
+    },
+    ".aiwg/research/provenance/records/fortemi-api-integration-requirements-2026-07.md.prov.yaml": {
+      "checksum": "43cea7b4e2b91122",
+      "mtime": "2026-07-26T23:39:19.351Z",
+      "size": 2461
+    },
+    ".aiwg/research/provenance/records/fortemi-compatibility-consumption-2026-07.md.prov.yaml": {
+      "checksum": "8c5ca05801d131af",
+      "mtime": "2026-07-26T23:39:19.351Z",
+      "size": 2543
+    },
+    ".aiwg/research/provenance/records/fortemi-core-v1-current-components.prov.yaml": {
+      "checksum": "7088457b8755300d",
+      "mtime": "2026-07-26T23:39:19.351Z",
+      "size": 1891
+    },
+    ".aiwg/research/provenance/records/fortemi-core-v1-manifest.json.prov.yaml": {
+      "checksum": "53f39aa18127d8b9",
+      "mtime": "2026-07-26T23:39:19.351Z",
+      "size": 1904
+    },
+    ".aiwg/research/provenance/records/fortemi-core-v1-v1.0-manifest.json.prov.yaml": {
+      "checksum": "cad3f5a6a0140809",
+      "mtime": "2026-07-26T23:39:19.351Z",
+      "size": 1824
+    },
+    ".aiwg/research/provenance/records/fortemi-core-v1-v1.1-manifest.json.prov.yaml": {
+      "checksum": "0bd16f3cdc65286c",
+      "mtime": "2026-07-26T23:39:19.351Z",
+      "size": 1829
+    },
+    ".aiwg/research/provenance/records/fortemi-event-catalog.json.prov.yaml": {
+      "checksum": "da48949a5c60b618",
+      "mtime": "2026-07-26T23:39:19.351Z",
+      "size": 2167
+    },
+    ".aiwg/research/provenance/records/fortemi-knowledge-shard-receipt.json.prov.yaml": {
+      "checksum": "aa70083726b49637",
+      "mtime": "2026-07-26T23:39:19.351Z",
+      "size": 1970
+    },
+    ".aiwg/research/provenance/records/fortemi-openapi-receipt.json.prov.yaml": {
+      "checksum": "4d004c79ea8c1630",
+      "mtime": "2026-07-26T23:39:19.351Z",
+      "size": 2316
+    },
+    ".aiwg/research/provenance/records/fortemi-openapi-skew-fixtures.json.prov.yaml": {
+      "checksum": "d44c465e994c42c3",
+      "mtime": "2026-07-26T23:39:19.351Z",
+      "size": 2294
+    },
+    ".aiwg/research/provenance/records/fortemi-openapi.yaml.prov.yaml": {
+      "checksum": "cec4a2a598fca82c",
+      "mtime": "2026-07-26T23:39:19.351Z",
+      "size": 2239
+    },
+    ".aiwg/research/provenance/records/fortemi-route-coverage.py.prov.yaml": {
+      "checksum": "28d4cc120cfd6f99",
+      "mtime": "2026-07-26T23:39:19.351Z",
+      "size": 1801
+    },
+    ".aiwg/research/provenance/records/fortemi-v2026-07-api-integration-traceability.md.prov.yaml": {
+      "checksum": "3db9f97d99bd7fc4",
+      "mtime": "2026-07-26T23:39:19.351Z",
+      "size": 2448
+    },
+    ".aiwg/research/provenance/records/fortemi-v2026-07-family-evidence-map.json.prov.yaml": {
+      "checksum": "54402ebb247b6c0e",
+      "mtime": "2026-07-26T23:39:19.351Z",
+      "size": 1946
+    },
+    ".aiwg/research/provenance/records/fortemi-v2026-07-fixture-catalog.md.prov.yaml": {
+      "checksum": "1d5878a5eff6c0df",
+      "mtime": "2026-07-26T23:39:19.351Z",
+      "size": 1849
+    },
+    ".aiwg/research/provenance/records/fortemi-v2026-07-pr-closeout-package.md.prov.yaml": {
+      "checksum": "687598143855d795",
+      "mtime": "2026-07-26T23:39:19.351Z",
+      "size": 1855
+    },
+    ".aiwg/research/provenance/records/fortemi-v2026-07-route-coverage.json.prov.yaml": {
+      "checksum": "cf86f05a942419ab",
+      "mtime": "2026-07-26T23:39:19.351Z",
+      "size": 1849
+    },
+    ".aiwg/research/provenance/records/fortemi-v2026-07-route-coverage.md.prov.yaml": {
+      "checksum": "0ae1befd42a1a61e",
+      "mtime": "2026-07-26T23:39:19.351Z",
+      "size": 1759
+    },
+    ".aiwg/research/provenance/records/hotm-enterprise-demo-dry-run-2026-07-09.md.prov.yaml": {
+      "checksum": "489677345a391152",
+      "mtime": "2026-07-26T23:43:42.176Z",
+      "size": 1980
+    },
+    ".aiwg/research/provenance/records/hotm-full-v1-clean-recovery-preflight-2026-07-24.json.prov.yaml": {
+      "checksum": "57538ffe0d27888f",
+      "mtime": "2026-07-26T23:39:19.351Z",
+      "size": 1909
+    },
+    ".aiwg/research/provenance/records/hotm-full-v1-clean-recovery-receipt-2026-07-24.json.prov.yaml": {
+      "checksum": "3c626b9613fcfd55",
+      "mtime": "2026-07-26T23:39:19.351Z",
+      "size": 2278
+    },
+    ".aiwg/research/provenance/records/hotm-v2026.7.0-github-mirror-repair-2026-07-24.json.prov.yaml": {
+      "checksum": "e1d6abc69a276bac",
+      "mtime": "2026-07-26T23:39:19.351Z",
+      "size": 2272
+    },
+    ".aiwg/research/provenance/records/index.test.ts.prov.yaml": {
+      "checksum": "58837dcb2cee9e7e",
+      "mtime": "2026-07-26T23:39:19.351Z",
+      "size": 1683
+    },
+    ".aiwg/research/provenance/records/index.ts.prov.yaml": {
+      "checksum": "f475c7350fcf1ba2",
+      "mtime": "2026-07-26T23:39:19.352Z",
+      "size": 1863
+    },
+    ".aiwg/research/provenance/records/knowledgeShard.test.ts.prov.yaml": {
+      "checksum": "35842083f442871d",
+      "mtime": "2026-07-26T23:39:19.352Z",
+      "size": 1760
+    },
+    ".aiwg/research/provenance/records/knowledgeShard.ts.prov.yaml": {
+      "checksum": "b55b877c3a1242a1",
+      "mtime": "2026-07-26T23:39:19.352Z",
+      "size": 1847
+    },
+    ".aiwg/research/provenance/records/knowledgeShardFixtures.ts.prov.yaml": {
+      "checksum": "c00b0d4f09865294",
+      "mtime": "2026-07-26T23:39:19.352Z",
+      "size": 1806
+    },
+    ".aiwg/research/provenance/records/manifest-schema-v1.md.prov.yaml": {
+      "checksum": "4ab23f52884a6afe",
+      "mtime": "2026-07-26T23:43:42.175Z",
+      "size": 2052
+    },
+    ".aiwg/research/provenance/records/mobile-expansion-INDEX.md.prov.yaml": {
+      "checksum": "9f227cb5b6e6174a",
+      "mtime": "2026-07-26T23:43:42.176Z",
+      "size": 1660
+    },
+    ".aiwg/research/provenance/records/mobile-expansion-phase-plan.md.prov.yaml": {
+      "checksum": "595a11dab29d7ede",
+      "mtime": "2026-07-26T23:43:42.176Z",
+      "size": 1541
+    },
+    ".aiwg/research/provenance/records/mobile-manifest-remote-config.md.prov.yaml": {
+      "checksum": "f4fdcde4e25386b8",
+      "mtime": "2026-07-26T23:39:19.352Z",
+      "size": 2145
+    },
+    ".aiwg/research/provenance/records/sad-fortemi-integration-addendum-2026-07.md.prov.yaml": {
+      "checksum": "f8a48ed9c78a098b",
+      "mtime": "2026-07-26T23:39:19.352Z",
+      "size": 2425
+    },
+    ".aiwg/research/provenance/records/sdlc-checkpoint-2026-07.md.prov.yaml": {
+      "checksum": "50bfbddf3056d44f",
+      "mtime": "2026-07-26T23:43:42.176Z",
+      "size": 1499
+    },
+    ".aiwg/research/provenance/records/systemCompatibility.test.ts.prov.yaml": {
+      "checksum": "70f28fc8b00a472d",
+      "mtime": "2026-07-26T23:39:19.353Z",
+      "size": 1797
+    },
+    ".aiwg/research/provenance/records/systemCompatibility.ts.prov.yaml": {
+      "checksum": "f59b136652c470ab",
+      "mtime": "2026-07-26T23:39:19.353Z",
+      "size": 1808
+    },
+    ".aiwg/research/provenance/records/types-extended.ts.prov.yaml": {
+      "checksum": "1a7258f56830d30c",
+      "mtime": "2026-07-26T23:39:19.353Z",
+      "size": 1694
+    },
+    ".aiwg/research/provenance/records/ui-ci-network-independent-vault-tools-272.prov.yaml": {
+      "checksum": "d81d30aa85fb8865",
+      "mtime": "2026-07-26T23:39:19.353Z",
+      "size": 1661
+    },
+    ".aiwg/research/provenance/records/validate-manifest-schema.mjs.prov.yaml": {
+      "checksum": "fe8209a4ff0361b7",
+      "mtime": "2026-07-26T23:39:19.353Z",
+      "size": 2094
+    },
+    ".aiwg/research/provenance/records/verify-fortemi-closeout-package.py.prov.yaml": {
+      "checksum": "5ebb411039c22c2a",
+      "mtime": "2026-07-26T23:39:19.353Z",
+      "size": 1867
+    },
+    ".aiwg/research/provenance/records/verify-fortemi-event-catalog.mjs.prov.yaml": {
+      "checksum": "7d76b909336d6c29",
+      "mtime": "2026-07-26T23:39:19.353Z",
+      "size": 1811
+    },
+    ".aiwg/research/provenance/records/verify-fortemi-knowledge-shard-contract.mjs.prov.yaml": {
+      "checksum": "873a32ac619cacb3",
+      "mtime": "2026-07-26T23:39:19.353Z",
+      "size": 2031
+    },
+    ".aiwg/research/provenance/records/verify-fortemi-openapi-contract.mjs.prov.yaml": {
+      "checksum": "a47a3d1bb93a86b7",
+      "mtime": "2026-07-26T23:39:19.353Z",
+      "size": 2392
+    },
+    ".aiwg/risks/fortemi-v2026-07-integration-risk-register.md": {
+      "checksum": "d88944b3ed0c9a89",
+      "mtime": "2026-07-26T23:39:19.353Z",
+      "size": 12872
     },
     ".aiwg/risks/risk-list-v2.md": {
       "checksum": "a49b12d14493cd02",
@@ -586,6 +1036,11 @@
       "checksum": "43bf7895e48e6ded",
       "mtime": "2026-07-04T19:56:08.117Z",
       "size": 9372
+    },
+    ".aiwg/security/fortemi-v2026-07-security-redaction-controls.md": {
+      "checksum": "c706441c84196498",
+      "mtime": "2026-07-26T23:39:19.353Z",
+      "size": 8615
     },
     ".aiwg/security/migration-security-assessment.md": {
       "checksum": "21a4e02bff81e8f5",
@@ -632,40 +1087,65 @@
       "mtime": "2026-07-04T19:56:08.117Z",
       "size": 4706
     },
+    ".aiwg/testing/api-contract-test-plan-addendum-2026-07.md": {
+      "checksum": "cd57274cbe96fa90",
+      "mtime": "2026-07-26T23:39:19.353Z",
+      "size": 17899
+    },
     ".aiwg/testing/coverage-baseline.md": {
       "checksum": "95444cdfd5b1a980",
       "mtime": "2026-07-04T19:56:08.118Z",
       "size": 29873
     },
     ".aiwg/testing/enterprise-demo-dry-run-receipt-template-2026-07.md": {
-      "checksum": "fe1d760f493fd22e",
-      "mtime": "2026-07-07T21:21:05.802Z",
-      "size": 6103
+      "checksum": "ded36fc898e78dff",
+      "mtime": "2026-07-08T07:06:15.504Z",
+      "size": 7985
     },
     ".aiwg/testing/enterprise-demo-operator-signoff-2026-07-06.md": {
-      "checksum": "65744a0a21f9f4c1",
-      "mtime": "2026-07-07T21:49:10.720Z",
-      "size": 9472
+      "checksum": "be1e6b3d27ca542f",
+      "mtime": "2026-07-26T23:39:25.711Z",
+      "size": 11424
     },
     ".aiwg/testing/enterprise-demo-readiness-matrix-2026-07.md": {
-      "checksum": "f817107890b53e35",
-      "mtime": "2026-07-08T03:57:10.994Z",
-      "size": 6495
+      "checksum": "ae77cc66b88a00d9",
+      "mtime": "2026-07-08T09:01:57.550Z",
+      "size": 7475
     },
     ".aiwg/testing/enterprise-demo-runbook-2026-07.md": {
-      "checksum": "14adba6e3b2e9a6c",
-      "mtime": "2026-07-07T21:49:59.674Z",
-      "size": 21290
+      "checksum": "b41add68a87cf056",
+      "mtime": "2026-07-09T13:51:37.761Z",
+      "size": 24672
     },
     ".aiwg/testing/enterprise-demo-test-plan-2026-07.md": {
-      "checksum": "163ac9763cecb2ac",
-      "mtime": "2026-07-07T21:47:25.932Z",
-      "size": 14202
+      "checksum": "efad6391199ab1b2",
+      "mtime": "2026-07-08T09:00:45.161Z",
+      "size": 15382
     },
     ".aiwg/testing/feature-test-plan-regenerate.md": {
       "checksum": "1df95951d7b00b44",
       "mtime": "2026-07-04T19:56:08.118Z",
       "size": 3218
+    },
+    ".aiwg/testing/fortemi-route-verifier-ci-adoption-2026-07.md": {
+      "checksum": "ce665ddcfcdd9678",
+      "mtime": "2026-07-26T23:39:19.353Z",
+      "size": 5979
+    },
+    ".aiwg/testing/fortemi-route-verifier-spec-2026-07.md": {
+      "checksum": "a29ace43ed7a7215",
+      "mtime": "2026-07-26T23:39:19.353Z",
+      "size": 8062
+    },
+    ".aiwg/testing/fortemi-v2026-07-fixture-catalog.md": {
+      "checksum": "2cf787583cc0aa17",
+      "mtime": "2026-07-26T23:39:19.353Z",
+      "size": 6566
+    },
+    ".aiwg/testing/fortemi-v2026-07-scenario-test-matrix.md": {
+      "checksum": "441f58264b45ab4f",
+      "mtime": "2026-07-26T23:39:19.353Z",
+      "size": 9928
     },
     ".aiwg/testing/manifest-launch-rate-limit-proof-plan-2026-07.md": {
       "checksum": "a2a29450d04eb1f9",

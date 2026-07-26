@@ -1,0 +1,46 @@
+metadata:
+  schema_version: "1.0.0"
+  created_at: "2026-07-26T23:42:02Z"
+  description: "Provenance for the fixture-backed enterprise demo dry-run receipt"
+entity:
+  id: "urn:aiwg:artifact:.aiwg/evidence/hotm-enterprise-demo-dry-run-2026-07-09.md"
+  type: evidence
+  created_at: "2026-07-26T23:42:02Z"
+  checksum: "sha256:e821412c2d9bf1e44e018d0d6ff0aa25f36ffc415399b8e510c7888aebfae2ba"
+  size_bytes: 7054
+  attributes:
+    claim_scope: "fixture-backed-preview-only"
+    base_revision: "0321bc1c33ad661d02bac5ed0b0f4de7ea57d97a"
+activity:
+  id: "urn:aiwg:activity:generation:hotm-enterprise-demo-dry-run-2026-07-09:001"
+  type: generation
+  started_at: "2026-07-26T23:42:02Z"
+  ended_at: "2026-07-26T23:42:02Z"
+  description: "Preserve the dated fixture-backed preview receipt and its explicit exclusions"
+agent:
+  id: "urn:aiwg:agent:codex-gpt-5"
+  type: ai_assistant
+  name: "Codex"
+  version: "gpt-5.6"
+  tool: "codex"
+relationships:
+  wasGeneratedBy:
+    entity: "urn:aiwg:artifact:.aiwg/evidence/hotm-enterprise-demo-dry-run-2026-07-09.md"
+    activity: "urn:aiwg:activity:generation:hotm-enterprise-demo-dry-run-2026-07-09:001"
+    time: "2026-07-26T23:42:02Z"
+  used:
+    - activity: "urn:aiwg:activity:generation:hotm-enterprise-demo-dry-run-2026-07-09:001"
+      entity: "urn:gitea:Fortemi/HotM:issue:250:comment:81346"
+      role: "receipt"
+  wasDerivedFrom:
+    - entity: "urn:aiwg:artifact:.aiwg/evidence/hotm-enterprise-demo-dry-run-2026-07-09.md"
+      source: "urn:gitea:Fortemi/HotM:issue:250:comment:81346"
+      derivation_type: "evidence_for"
+      activity: "urn:aiwg:activity:generation:hotm-enterprise-demo-dry-run-2026-07-09:001"
+  wasAssociatedWith:
+    activity: "urn:aiwg:activity:generation:hotm-enterprise-demo-dry-run-2026-07-09:001"
+    agent: "urn:aiwg:agent:codex-gpt-5"
+    role: "primary_author"
+  wasAttributedTo:
+    entity: "urn:aiwg:artifact:.aiwg/evidence/hotm-enterprise-demo-dry-run-2026-07-09.md"
+    agent: "urn:aiwg:agent:codex-gpt-5"

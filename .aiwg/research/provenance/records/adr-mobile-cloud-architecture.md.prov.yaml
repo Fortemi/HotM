@@ -1,0 +1,46 @@
+metadata:
+  schema_version: "1.0.0"
+  created_at: "2026-07-26T23:42:02Z"
+  description: "Provenance for accepted mobile/cloud planning defaults"
+entity:
+  id: "urn:aiwg:artifact:.aiwg/architecture/adr-mobile-cloud-architecture.md"
+  type: architecture
+  created_at: "2026-07-26T23:42:02Z"
+  checksum: "sha256:8bc2ffcb2d9eed0bc007f86906637b3e12e12ff060af3d95367f68508d31e0c4"
+  size_bytes: 27340
+  attributes:
+    change_scope: "hotm-251-accepted-hmc-planning-defaults"
+    base_revision: "0321bc1c33ad661d02bac5ed0b0f4de7ea57d97a"
+activity:
+  id: "urn:aiwg:activity:modification:adr-mobile-cloud-architecture:001"
+  type: modification
+  started_at: "2026-07-26T23:42:02Z"
+  ended_at: "2026-07-26T23:42:02Z"
+  description: "Apply accepted HMC planning defaults without asserting hosted or mobile production readiness"
+agent:
+  id: "urn:aiwg:agent:codex-gpt-5"
+  type: ai_assistant
+  name: "Codex"
+  version: "gpt-5.6"
+  tool: "codex"
+relationships:
+  wasGeneratedBy:
+    entity: "urn:aiwg:artifact:.aiwg/architecture/adr-mobile-cloud-architecture.md"
+    activity: "urn:aiwg:activity:modification:adr-mobile-cloud-architecture:001"
+    time: "2026-07-26T23:42:02Z"
+  used:
+    - activity: "urn:aiwg:activity:modification:adr-mobile-cloud-architecture:001"
+      entity: "urn:gitea:Fortemi/HotM:issue:251:comment:81345"
+      role: "operator_decision"
+  wasDerivedFrom:
+    - entity: "urn:aiwg:artifact:.aiwg/architecture/adr-mobile-cloud-architecture.md"
+      source: "urn:gitea:Fortemi/HotM:issue:251:comment:81345"
+      derivation_type: "implements"
+      activity: "urn:aiwg:activity:modification:adr-mobile-cloud-architecture:001"
+  wasAssociatedWith:
+    activity: "urn:aiwg:activity:modification:adr-mobile-cloud-architecture:001"
+    agent: "urn:aiwg:agent:codex-gpt-5"
+    role: "primary_author"
+  wasAttributedTo:
+    entity: "urn:aiwg:artifact:.aiwg/architecture/adr-mobile-cloud-architecture.md"
+    agent: "urn:aiwg:agent:codex-gpt-5"

@@ -1,36 +1,36 @@
 {
   "version": "1.0.0",
-  "builtAt": "2026-07-08T03:57:20.145Z",
-  "buildTimeMs": 4,
-  "totalArtifacts": 148,
+  "builtAt": "2026-07-26T23:44:05.913Z",
+  "buildTimeMs": 13,
+  "totalArtifacts": 244,
   "byPhase": {
-    "other": 78,
-    "architecture": 15,
+    "other": 150,
+    "architecture": 19,
     "intake": 4,
-    "planning": 11,
-    "reports": 14,
-    "requirements": 6,
-    "risks": 3,
-    "security": 5,
-    "testing": 12
+    "planning": 14,
+    "reports": 22,
+    "requirements": 8,
+    "risks": 4,
+    "security": 6,
+    "testing": 17
   },
   "byType": {
-    "document": 116,
-    "adr": 10,
+    "document": 203,
+    "adr": 14,
     "api-specification": 1,
-    "architecture": 6,
+    "architecture": 8,
     "deployment": 1,
     "index": 1,
     "phase-plan": 1,
     "research-finding": 3,
-    "risk": 4,
-    "test-plan": 4,
+    "test-plan": 6,
+    "risk": 5,
     "use-case": 1
   },
   "tagDistribution": {},
   "graphMetrics": {
     "totalEdges": 6,
-    "orphanedArtifacts": 141,
+    "orphanedArtifacts": 237,
     "mostReferenced": {
       "path": ".aiwg/architecture/ADR-001-client-server-architecture.md",
       "count": 1

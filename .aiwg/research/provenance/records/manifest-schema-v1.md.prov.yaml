@@ -1,43 +1,43 @@
 metadata:
   schema_version: "1.0.0"
-  created_at: "2026-07-24T09:57:24Z"
-  description: "Provenance for the canonical HotM public-support documentation authority"
+  created_at: "2026-07-26T23:42:02Z"
+  description: "Provenance for the HotM manifest planning authority after operator-default reconciliation"
 entity:
   id: "urn:aiwg:artifact:.aiwg/architecture/manifest-schema-v1.md"
   type: architecture
-  created_at: "2026-07-24T09:57:24Z"
-  checksum: "sha256:0730f20e057cd48dabc0ff6cadb75be5a33908f4f29756f861d677555a2e19a4"
-  size_bytes: 23448
+  created_at: "2026-07-26T23:42:02Z"
+  checksum: "sha256:ef40f49a337151ac17a8668395a41b80e7cf20f59f1789f2ae99dbc937bb1edb"
+  size_bytes: 24150
   attributes:
-    change_scope: "hotm-275-canonical-docsite-authority"
-    base_revision: "6840035d42b8b2e67c273f12710ab70eab4eaf7a"
+    change_scope: "hotm-251-accepted-hmc-planning-defaults"
+    base_revision: "0321bc1c33ad661d02bac5ed0b0f4de7ea57d97a"
 activity:
   id: "urn:aiwg:activity:modification:manifest-schema-v1-md:001"
   type: modification
-  started_at: "2026-07-24T09:57:24Z"
-  ended_at: "2026-07-24T09:57:24Z"
-  description: "Replace the unregistered legacy support URL with the canonical docs.fortemi.com HotM subpath"
+  started_at: "2026-07-26T23:42:02Z"
+  ended_at: "2026-07-26T23:42:02Z"
+  description: "Reconcile accepted HMC planning defaults while retaining hosted and production evidence gates"
 agent:
   id: "urn:aiwg:agent:codex-gpt-5"
   type: ai_assistant
   name: "Codex"
-  version: "gpt-5"
+    version: "gpt-5.6"
   tool: "codex"
 relationships:
   wasGeneratedBy:
     entity: "urn:aiwg:artifact:.aiwg/architecture/manifest-schema-v1.md"
     activity: "urn:aiwg:activity:modification:manifest-schema-v1-md:001"
-    time: "2026-07-24T09:57:24Z"
+    time: "2026-07-26T23:42:02Z"
   used:
     - activity: "urn:aiwg:activity:modification:manifest-schema-v1-md:001"
-      entity: "urn:gitea:Fortemi/HotM:issue:275"
+      entity: "urn:gitea:Fortemi/HotM:issue:251"
       role: "requirement"
     - activity: "urn:aiwg:activity:modification:manifest-schema-v1-md:001"
-      entity: "urn:aiwg:artifact:../fortemi/docs/content/docsite-publishing.md"
-      role: "authority"
+      entity: "urn:gitea:Fortemi/HotM:issue:251:comment:81345"
+      role: "operator_decision"
   wasDerivedFrom:
     - entity: "urn:aiwg:artifact:.aiwg/architecture/manifest-schema-v1.md"
-      source: "urn:gitea:Fortemi/HotM:issue:275"
+      source: "urn:gitea:Fortemi/HotM:issue:251:comment:81345"
       derivation_type: "implements"
       activity: "urn:aiwg:activity:modification:manifest-schema-v1-md:001"
   wasAssociatedWith:

@@ -7,6 +7,18 @@
     "upstream": [],
     "downstream": []
   },
+  ".aiwg/api/compatibility/fortemi-v2026-07-family-evidence-map.json": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/api/compatibility/fortemi-v2026-07-route-coverage.json": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/api/compatibility/fortemi-v2026-07-route-coverage.md": {
+    "upstream": [],
+    "downstream": []
+  },
   ".aiwg/api/compatibility/report-2026-05-25.md": {
     "upstream": [],
     "downstream": []
@@ -51,6 +63,14 @@
     "downstream": []
   },
   ".aiwg/architecture/adr/ADR-009-enterprise-capability-driven-ux.md": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/architecture/adr/ADR-010-fortemi-v2026-07-api-coverage.md": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/architecture/adr/ADR-011-fortemi-media-call-surface-disposition.md": {
     "upstream": [],
     "downstream": []
   },
@@ -126,11 +146,19 @@
     "upstream": [],
     "downstream": []
   },
+  ".aiwg/architecture/impact/fortemi-api-contract-drift-2026-07.md": {
+    "upstream": [],
+    "downstream": []
+  },
   ".aiwg/architecture/manifest-schema-v1.json": {
     "upstream": [],
     "downstream": []
   },
   ".aiwg/architecture/manifest-schema-v1.md": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/architecture/sad-fortemi-integration-addendum-2026-07.md": {
     "upstream": [],
     "downstream": []
   },
@@ -242,6 +270,22 @@
     "upstream": [],
     "downstream": []
   },
+  ".aiwg/design/fortemi-v2026-07-agent-tool-coverage-matrix.md": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/design/fortemi-v2026-07-api-client-implementation-blueprint.md": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/design/fortemi-v2026-07-capability-surface-matrix.md": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/design/fortemi-v2026-07-ux-integration-addendum.md": {
+    "upstream": [],
+    "downstream": []
+  },
   ".aiwg/discovery/fortemi-integration-gap-analysis.md": {
     "upstream": [],
     "downstream": []
@@ -258,7 +302,23 @@
     "upstream": [],
     "downstream": []
   },
+  ".aiwg/evidence/hotm-enterprise-demo-dry-run-2026-07-09.md": {
+    "upstream": [],
+    "downstream": []
+  },
   ".aiwg/evidence/hotm-enterprise-preview-evidence-2026-07-06.md": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/evidence/hotm-full-v1-clean-recovery-preflight-2026-07-24.json": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/evidence/hotm-full-v1-clean-recovery-receipt-2026-07-24.json": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/evidence/hotm-v2026.7.0-github-mirror-repair-2026-07-24.json": {
     "upstream": [],
     "downstream": []
   },
@@ -283,6 +343,10 @@
     "downstream": []
   },
   ".aiwg/gates/fortemi-api-integration-gate-2026-05-25.md": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/gates/fortemi-api-integration-gate-2026-07-14.md": {
     "upstream": [],
     "downstream": []
   },
@@ -319,6 +383,18 @@
     "downstream": []
   },
   ".aiwg/gates/ui-redesign-lom-validation.md": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/handoffs/fortemi-v2026-07-discovery-to-delivery-handoff.md": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/handoffs/fortemi-v2026-07-pr-closeout-package.md": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/handoffs/fortemi-v2026-07-tracker-publication-backlog.md": {
     "upstream": [],
     "downstream": []
   },
@@ -394,6 +470,18 @@
     "upstream": [],
     "downstream": []
   },
+  ".aiwg/planning/fortemi-v2026-07-hotm-integration-plan.md": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/planning/fortemi-v2026-07-implementation-roadmap.md": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/planning/fortemi-v2026-07-issue-dependency-map.md": {
+    "upstream": [],
+    "downstream": []
+  },
   ".aiwg/planning/iteration-plan-001.md": {
     "upstream": [],
     "downstream": []
@@ -466,6 +554,38 @@
     "upstream": [],
     "downstream": []
   },
+  ".aiwg/reports/fortemi-v2026-07-api-integration-traceability.md": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/reports/fortemi-v2026-07-artifact-index.md": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/reports/fortemi-v2026-07-completion-audit.md": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/reports/fortemi-v2026-07-coverage-evidence-audit.md": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/reports/fortemi-v2026-07-delivery-evidence-ledger.md": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/reports/fortemi-v2026-07-mcp-tool-surface-audit.md": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/reports/fortemi-v2026-07-remote-baseline-revalidation.md": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/reports/fortemi-v2026-07-tracker-publication-receipts.md": {
+    "upstream": [],
+    "downstream": []
+  },
   ".aiwg/reports/gate-validation-inception-2025-12-04.md": {
     "upstream": [],
     "downstream": []
@@ -498,6 +618,14 @@
     "upstream": [],
     "downstream": []
   },
+  ".aiwg/requirements/fortemi-api-integration-requirements-2026-07.md": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/requirements/fortemi-v2026-07-ux-workflow-scenarios.md": {
+    "upstream": [],
+    "downstream": []
+  },
   ".aiwg/requirements/mvp-acceptance-criteria-v2.md": {
     "upstream": [],
     "downstream": []
@@ -510,6 +638,238 @@
     "upstream": [],
     "downstream": []
   },
+  ".aiwg/research/provenance/index.yaml": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/research/provenance/records/ADR-010-fortemi-v2026-07-api-coverage.md.prov.yaml": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/research/provenance/records/AdminPanel.test.tsx.prov.yaml": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/research/provenance/records/ApiCapabilitiesPanel.test.tsx.prov.yaml": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/research/provenance/records/ApiCapabilitiesPanel.tsx.prov.yaml": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/research/provenance/records/BackupManager.test.tsx.prov.yaml": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/research/provenance/records/BackupManager.tsx.prov.yaml": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/research/provenance/records/adr-mobile-cloud-architecture.md.prov.yaml": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/research/provenance/records/api-contract-test-plan-addendum-2026-07.md.prov.yaml": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/research/provenance/records/backup.test.ts.prov.yaml": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/research/provenance/records/backup.ts.prov.yaml": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/research/provenance/records/calls.test.ts.prov.yaml": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/research/provenance/records/calls.ts.prov.yaml": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/research/provenance/records/delivered-openapi-contract.test.ts.prov.yaml": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/research/provenance/records/enterprise-demo-operator-signoff-2026-07-06.md.prov.yaml": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/research/provenance/records/fortemi-api-integration-requirements-2026-07.md.prov.yaml": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/research/provenance/records/fortemi-compatibility-consumption-2026-07.md.prov.yaml": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/research/provenance/records/fortemi-core-v1-current-components.prov.yaml": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/research/provenance/records/fortemi-core-v1-manifest.json.prov.yaml": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/research/provenance/records/fortemi-core-v1-v1.0-manifest.json.prov.yaml": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/research/provenance/records/fortemi-core-v1-v1.1-manifest.json.prov.yaml": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/research/provenance/records/fortemi-event-catalog.json.prov.yaml": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/research/provenance/records/fortemi-knowledge-shard-receipt.json.prov.yaml": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/research/provenance/records/fortemi-openapi-receipt.json.prov.yaml": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/research/provenance/records/fortemi-openapi-skew-fixtures.json.prov.yaml": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/research/provenance/records/fortemi-openapi.yaml.prov.yaml": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/research/provenance/records/fortemi-route-coverage.py.prov.yaml": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/research/provenance/records/fortemi-v2026-07-api-integration-traceability.md.prov.yaml": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/research/provenance/records/fortemi-v2026-07-family-evidence-map.json.prov.yaml": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/research/provenance/records/fortemi-v2026-07-fixture-catalog.md.prov.yaml": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/research/provenance/records/fortemi-v2026-07-pr-closeout-package.md.prov.yaml": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/research/provenance/records/fortemi-v2026-07-route-coverage.json.prov.yaml": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/research/provenance/records/fortemi-v2026-07-route-coverage.md.prov.yaml": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/research/provenance/records/hotm-enterprise-demo-dry-run-2026-07-09.md.prov.yaml": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/research/provenance/records/hotm-full-v1-clean-recovery-preflight-2026-07-24.json.prov.yaml": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/research/provenance/records/hotm-full-v1-clean-recovery-receipt-2026-07-24.json.prov.yaml": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/research/provenance/records/hotm-v2026.7.0-github-mirror-repair-2026-07-24.json.prov.yaml": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/research/provenance/records/index.test.ts.prov.yaml": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/research/provenance/records/index.ts.prov.yaml": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/research/provenance/records/knowledgeShard.test.ts.prov.yaml": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/research/provenance/records/knowledgeShard.ts.prov.yaml": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/research/provenance/records/knowledgeShardFixtures.ts.prov.yaml": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/research/provenance/records/manifest-schema-v1.md.prov.yaml": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/research/provenance/records/mobile-expansion-INDEX.md.prov.yaml": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/research/provenance/records/mobile-expansion-phase-plan.md.prov.yaml": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/research/provenance/records/mobile-manifest-remote-config.md.prov.yaml": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/research/provenance/records/sad-fortemi-integration-addendum-2026-07.md.prov.yaml": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/research/provenance/records/sdlc-checkpoint-2026-07.md.prov.yaml": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/research/provenance/records/systemCompatibility.test.ts.prov.yaml": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/research/provenance/records/systemCompatibility.ts.prov.yaml": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/research/provenance/records/types-extended.ts.prov.yaml": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/research/provenance/records/ui-ci-network-independent-vault-tools-272.prov.yaml": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/research/provenance/records/validate-manifest-schema.mjs.prov.yaml": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/research/provenance/records/verify-fortemi-closeout-package.py.prov.yaml": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/research/provenance/records/verify-fortemi-event-catalog.mjs.prov.yaml": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/research/provenance/records/verify-fortemi-knowledge-shard-contract.mjs.prov.yaml": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/research/provenance/records/verify-fortemi-openapi-contract.mjs.prov.yaml": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/risks/fortemi-v2026-07-integration-risk-register.md": {
+    "upstream": [],
+    "downstream": []
+  },
   ".aiwg/risks/risk-list-v2.md": {
     "upstream": [],
     "downstream": []
@@ -519,6 +879,10 @@
     "downstream": []
   },
   ".aiwg/risks/ui-redesign-risk-register.md": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/security/fortemi-v2026-07-security-redaction-controls.md": {
     "upstream": [],
     "downstream": []
   },
@@ -558,6 +922,10 @@
     "upstream": [],
     "downstream": []
   },
+  ".aiwg/testing/api-contract-test-plan-addendum-2026-07.md": {
+    "upstream": [],
+    "downstream": []
+  },
   ".aiwg/testing/coverage-baseline.md": {
     "upstream": [],
     "downstream": []
@@ -583,6 +951,22 @@
     "downstream": []
   },
   ".aiwg/testing/feature-test-plan-regenerate.md": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/testing/fortemi-route-verifier-ci-adoption-2026-07.md": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/testing/fortemi-route-verifier-spec-2026-07.md": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/testing/fortemi-v2026-07-fixture-catalog.md": {
+    "upstream": [],
+    "downstream": []
+  },
+  ".aiwg/testing/fortemi-v2026-07-scenario-test-matrix.md": {
     "upstream": [],
     "downstream": []
   },

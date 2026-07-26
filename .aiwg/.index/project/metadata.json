@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
-  "builtAt": "2026-07-08T03:57:20.144Z",
-  "buildTimeMs": 4,
+  "builtAt": "2026-07-26T23:44:05.911Z",
+  "buildTimeMs": 13,
   "entries": {
     ".aiwg/.milestones.json": {
       "path": ".aiwg/.milestones.json",
@@ -26,6 +26,45 @@
       "updated": "2026-07-07T19:32:55.173Z",
       "checksum": "6cbe9a7a99e69a00",
       "summary": "<!-- aiwg-managed --> <!-- Normalized project-local AIWG context. Operator notes may live outside AIWG-managed blocks. --> This file is the stable `.aiwg/AIWG.md` entry point for AIWG skills, rules, and generated provider context. <!-- aiwg-context-finalization:START --> This section is synthesized after template emission from the current workspace state. Preserve operator-authored content outside AIWG-managed blocks; rerun `aiwg regenerate` to refresh this section after provider, framework, or",
+      "dependencies": [],
+      "dependents": []
+    },
+    ".aiwg/api/compatibility/fortemi-v2026-07-family-evidence-map.json": {
+      "path": ".aiwg/api/compatibility/fortemi-v2026-07-family-evidence-map.json",
+      "type": "document",
+      "phase": "other",
+      "title": "Untitled",
+      "tags": [],
+      "created": "2026-07-26T23:39:19.346Z",
+      "updated": "2026-07-26T23:39:19.346Z",
+      "checksum": "2e1f9edb568b99db",
+      "summary": "{   \"generated_at\": \"2026-07-26\",   \"fortemi_commit\": \"45aff7e6\",   \"fortemi_latest_tag\": \"v2026.7.12\",   \"purpose\": \"Machine-readable route-family evidence map for the HotM Fortemi v2026.7.1 verifier planning path. This is SDLC planning evidence; implementation PRs should keep it aligned with the generated route inventory.\",",
+      "dependencies": [],
+      "dependents": []
+    },
+    ".aiwg/api/compatibility/fortemi-v2026-07-route-coverage.json": {
+      "path": ".aiwg/api/compatibility/fortemi-v2026-07-route-coverage.json",
+      "type": "document",
+      "phase": "other",
+      "title": "Untitled",
+      "tags": [],
+      "created": "2026-07-26T23:39:19.346Z",
+      "updated": "2026-07-26T23:39:19.346Z",
+      "checksum": "2471d82e0d0c2b53",
+      "summary": "{   \"generated_at\": \"2026-07-26\",   \"fortemi_root\": \"../fortemi\",   \"fortemi_commit\": \"45aff7e6\",   \"fortemi_latest_tag\": \"v2026.7.12\",",
+      "dependencies": [],
+      "dependents": []
+    },
+    ".aiwg/api/compatibility/fortemi-v2026-07-route-coverage.md": {
+      "path": ".aiwg/api/compatibility/fortemi-v2026-07-route-coverage.md",
+      "type": "document",
+      "phase": "other",
+      "title": "Fortemi v2026.7.1 Route Coverage Inventory",
+      "tags": [],
+      "created": "2026-07-26T23:39:19.346Z",
+      "updated": "2026-07-26T23:39:19.347Z",
+      "checksum": "954a6c98a0feb838",
+      "summary": "- Fortemi source: `../fortemi` - Fortemi commit: `45aff7e6` - Latest release tag: `v2026.7.12` - Extracted route declarations: `202` | Status | Count |",
       "dependencies": [],
       "dependents": []
     },
@@ -139,6 +178,32 @@
       "dependencies": [],
       "dependents": []
     },
+    ".aiwg/architecture/adr/ADR-010-fortemi-v2026-07-api-coverage.md": {
+      "path": ".aiwg/architecture/adr/ADR-010-fortemi-v2026-07-api-coverage.md",
+      "type": "adr",
+      "phase": "architecture",
+      "title": "ADR-010: Fortemi v2026.7.1 API Coverage Strategy",
+      "tags": [],
+      "created": "2026-07-26T23:39:19.347Z",
+      "updated": "2026-07-26T23:39:19.347Z",
+      "checksum": "08bacdde6f8f7988",
+      "summary": "HotM previously integrated the Fortemi v2026.5.x surface. Fortemi now ships v2026.7.1, with major additions in streaming chat, streaming ingest, incoming webhook receivers, inbound event-source connectors, TUS uploads, upgrade safety, and Intel/vLLM deployment support. HotM also has an existing compatibility guard path and enterprise capability-gated UX plan. The current HotM API client is broad but not exhaustive. A seamless integration target requires a formal coverage model: each server capab",
+      "dependencies": [],
+      "dependents": []
+    },
+    ".aiwg/architecture/adr/ADR-011-fortemi-media-call-surface-disposition.md": {
+      "path": ".aiwg/architecture/adr/ADR-011-fortemi-media-call-surface-disposition.md",
+      "type": "adr",
+      "phase": "architecture",
+      "title": "ADR-011: Fortemi Media and Realtime Call Surface Disposition",
+      "tags": [],
+      "created": "2026-07-26T23:39:19.347Z",
+      "updated": "2026-07-26T23:39:19.347Z",
+      "checksum": "bb3f27ed5ec201af",
+      "summary": "The Fortemi v2026.7.1 route inventory originally left four media/call routes in `decision_needed` state. The accepted disposition now has attachment-safe vision/audio coverage, redacted Admin REST call diagnostics, and a documented exclusion for Twilio realtime WebSocket diagnostics: | Route | Family | Current status | Current tracker | | --- | --- | --- | --- | | `POST /api/v1/vision/describe` | vision_tools | covered | #259 | | `POST /api/v1/audio/transcribe` | audio_tools | covered | #259 |",
+      "dependencies": [],
+      "dependents": []
+    },
     ".aiwg/architecture/adr-auth-shared-crate.md": {
       "path": ".aiwg/architecture/adr-auth-shared-crate.md",
       "type": "adr",
@@ -158,10 +223,10 @@
       "phase": "architecture",
       "title": "Mobile expansion uses Tauri 2 mobile with cloud-only backend",
       "tags": [],
-      "created": "2026-07-04T19:56:08.109Z",
-      "updated": "2026-07-07T06:34:18.021Z",
-      "checksum": "88fd802ef5edc4f7",
-      "summary": "**Proposed (revision 1, post-Wave-3 review)**. Strategic intent confirmed by the operator on 2026-05-17. Reviewed in a Wave-3 multi-agent pass: Security Architect, Test Architect, Requirements Analyst, Technical Writer all returned APPROVED_WITH_CHANGES. The required changes were merged into this revision; see `.aiwg/working/mobile-planning/review-synthesis.md` for the consolidated finding list and which findings remain as follow-up artifacts. This ADR documents the decision so downstream planni",
+      "created": "2026-07-26T23:39:25.679Z",
+      "updated": "2026-07-26T23:39:25.680Z",
+      "checksum": "8bc2ffcb2d9eed0b",
+      "summary": "**Accepted for planning (revision 2, HMC defaults accepted)**. Strategic intent confirmed by the operator on 2026-05-17. Reviewed in a Wave-3 multi-agent pass: Security Architect, Test Architect, Requirements Analyst, Technical Writer all returned APPROVED_WITH_CHANGES. The required changes were merged into revision 1; see `.aiwg/working/mobile-planning/review-synthesis.md` for the consolidated finding list and which findings remain as follow-up artifacts. On 2026-07-09, HMC-2026-07-001 through",
       "dependencies": [
         ".aiwg/research/findings/mobile-tauri2-production-patterns.md",
         ".aiwg/research/findings/mobile-multitenant-byo-llm.md",
@@ -191,10 +256,10 @@
       "phase": "architecture",
       "title": "Fortemi Compatibility Consumption - 2026-07",
       "tags": [],
-      "created": "2026-07-06T22:21:22.542Z",
-      "updated": "2026-07-06T22:36:08.406Z",
-      "checksum": "1d90b83ae7a7e2b9",
-      "summary": "Define how HotM consumes Fortemi compatibility metadata for the enterprise UX demo. This artifact supports `Fortemi/HotM#244` and pairs with `fortemi/.aiwg/architecture/api-compatibility-discovery-contract-2026-07.md`. 1. On connection change, HotM requests `GET /api/v1/system/compatibility`. 2. If the request fails, times out, or returns an incompatible shape, HotM keeps local workflows available and marks enterprise surfaces as unavailable. 3. HotM normalizes every capability into one of: `ava",
+      "created": "2026-07-26T23:39:19.347Z",
+      "updated": "2026-07-26T23:39:19.347Z",
+      "checksum": "a431acefa94d260f",
+      "summary": "Define how HotM consumes Fortemi compatibility metadata for the enterprise UX demo. This artifact supports `Fortemi/HotM#244` and pairs with `fortemi/.aiwg/architecture/api-compatibility-discovery-contract-2026-07.md`. 1. On connection change, HotM requests `GET /api/v1/system/compatibility`. 2. HotM validates the compatibility contract revision, server API revision, and declared minimum supported HotM client before interpreting capabilities. 3. If the request fails, times out, has an unknown co",
       "dependencies": [],
       "dependents": []
     },
@@ -208,6 +273,19 @@
       "updated": "2026-07-04T19:56:08.109Z",
       "checksum": "8ebfc384b64095e7",
       "summary": "This assessment covers the current HotM integration surface for the latest local Fortemi sidecar updates, with emphasis on documented API contracts, UI client behavior, and test coverage. The immediate concern is that `docs/openapi.json` is older than the TypeScript API client and tests, so generated clients, review workflows, or downstream integrations could miss newer request fields and endpoints. | Area | Current evidence | Impact | | --- | --- | --- | | API base URL | `ui/src/api/index.ts` d",
+      "dependencies": [],
+      "dependents": []
+    },
+    ".aiwg/architecture/impact/fortemi-api-contract-drift-2026-07.md": {
+      "path": ".aiwg/architecture/impact/fortemi-api-contract-drift-2026-07.md",
+      "type": "document",
+      "phase": "architecture",
+      "title": "Fortemi v2026.7.1 API Contract Drift Impact Analysis",
+      "tags": [],
+      "created": "2026-07-26T23:39:19.347Z",
+      "updated": "2026-07-26T23:39:19.347Z",
+      "checksum": "07134bb7342017ae",
+      "summary": "Fortemi has advanced beyond the HotM v2026.5.x integration baseline. The latest server checkout exposes roughly 200 route declarations and the 2026.6/2026.7 releases add streaming chat, streaming ingest, incoming webhook receivers, inbound event sources, finished TUS resumable uploads, Intel/vLLM routing support, hardened upgrades, and portable attachment-shard contract boundaries. The generated route inventory confirms 200 extracted route declarations: 186 covered, 0 partial, 0 gap, 0 decision-",
       "dependencies": [],
       "dependents": []
     },
@@ -230,10 +308,23 @@
       "phase": "architecture",
       "title": "HotM Manifest Endpoint v1 Specification",
       "tags": [],
-      "created": "2026-07-04T19:56:08.109Z",
-      "updated": "2026-07-07T22:57:19.095Z",
-      "checksum": "97565d05632ebfac",
+      "created": "2026-07-26T23:39:25.680Z",
+      "updated": "2026-07-26T23:39:25.680Z",
+      "checksum": "ef40f49a337151ac",
       "summary": "The manifest endpoint is the **first network call any HotM mobile client makes** and the integration contract between the mobile binary (released through Apple App Store and Google Play) and the hosted backend (`matric-api` in multi-tenant deployment). It delivers everything the client cannot hardcode: which auth provider to talk to, what models are available, which features are enabled for this tier, whether the binary needs to force an update, and whether the service is currently operational.",
+      "dependencies": [],
+      "dependents": []
+    },
+    ".aiwg/architecture/sad-fortemi-integration-addendum-2026-07.md": {
+      "path": ".aiwg/architecture/sad-fortemi-integration-addendum-2026-07.md",
+      "type": "architecture",
+      "phase": "architecture",
+      "title": "SAD Addendum - Fortemi v2026.7.1 Integration Architecture",
+      "tags": [],
+      "created": "2026-07-26T23:39:19.347Z",
+      "updated": "2026-07-26T23:39:19.347Z",
+      "checksum": "5a571489063d5166",
+      "summary": "This addendum updates the HotM Software Architecture Document for the Fortemi server API and capability surface audited at Fortemi commit `f6733252`, release tag `v2026.7.1`. The original SAD remains the baseline for the local-first HotM architecture. This addendum defines the target integration architecture across API clients, UX surfaces, realtime streams, admin controls, agent tools, compatibility guards, and route coverage verification. It does not assert that the target is implemented merel",
       "dependencies": [],
       "dependents": []
     },
@@ -569,8 +660,8 @@
       "title": "HotM Enterprise Demo Screen-State Blueprint - 2026-07",
       "tags": [],
       "created": "2026-07-06T21:55:32.943Z",
-      "updated": "2026-07-07T21:21:05.803Z",
-      "checksum": "0bccfab37a8dd1cd",
+      "updated": "2026-07-08T09:06:14.159Z",
+      "checksum": "4ebfcb9857acc9dc",
       "summary": "Translate the July 2026 enterprise demo scenarios into implementable HotM screen states. This artifact bridges the SDLC requirements and the React SPA structure so `Fortemi/HotM#243` through `#250` can be implemented without overstating backend readiness. | Existing anchor | Current role | Enterprise-demo extension | |---|---|---| | `ui/src/components/HallOfMind.tsx` | Primary application shell and navigation host. | Add entry points for compatibility, activity, premium, and backoffice surfaces",
       "dependencies": [],
       "dependents": []
@@ -585,6 +676,58 @@
       "updated": "2026-07-04T19:56:08.112Z",
       "checksum": "cf27d37f59fb5511",
       "summary": "Integrate the latest Fortemi API additions into HotM without duplicating controls, hiding expensive inference behavior, or weakening the local-first privacy posture. This plan separates implemented UI surfaces from remaining gaps and defines the next implementation slices. | Feature area | Current surface | Evidence | Status | | --- | --- | --- | --- | | Create-note title handling | Leading Markdown H1 is extracted as explicit title in sidebar Quick Note. | `ui/src/components/HallOfMind.tsx` | I",
+      "dependencies": [],
+      "dependents": []
+    },
+    ".aiwg/design/fortemi-v2026-07-agent-tool-coverage-matrix.md": {
+      "path": ".aiwg/design/fortemi-v2026-07-agent-tool-coverage-matrix.md",
+      "type": "document",
+      "phase": "other",
+      "title": "Fortemi v2026.7.1 Agent Tool Coverage Matrix",
+      "tags": [],
+      "created": "2026-07-26T23:39:19.347Z",
+      "updated": "2026-07-26T23:39:19.348Z",
+      "checksum": "5c0233d704831039",
+      "summary": "Define the #258 agent-tool refresh baseline for current Fortemi server capabilities. The assistant must only expose tools that are supported by the connected Fortemi server, current user context, and HotM API/client layer. Unsupported, unsafe, or product-ambiguous capabilities must be disabled with reason text or remain out of the tool registry. Current implementation source: - `agent-proxy/src/tools.ts` - `agent-proxy/src/agent/tool-sets.ts` - `agent-proxy/src/__tests__/tools.test.ts`",
+      "dependencies": [],
+      "dependents": []
+    },
+    ".aiwg/design/fortemi-v2026-07-api-client-implementation-blueprint.md": {
+      "path": ".aiwg/design/fortemi-v2026-07-api-client-implementation-blueprint.md",
+      "type": "document",
+      "phase": "other",
+      "title": "Fortemi v2026.7.1 API Client Implementation Blueprint",
+      "tags": [],
+      "created": "2026-07-26T23:39:19.348Z",
+      "updated": "2026-07-26T23:39:19.348Z",
+      "checksum": "beda13dc7d197d69",
+      "summary": "Map the Fortemi v2026.7.1 route-family implementation slices to concrete HotM API modules, UI/component surfaces, agent-proxy boundaries, and test files. This blueprint is the historical implementation aid for #242, #254, #255, #256, #257, #258, and #259; the current verifier baseline now has zero gap and zero partial route rows. Fixture naming and minimum payload sketches for those tests are maintained in `.aiwg/testing/fortemi-v2026-07-fixture-catalog.md`. | Area | Existing anchor files | | --",
+      "dependencies": [],
+      "dependents": []
+    },
+    ".aiwg/design/fortemi-v2026-07-capability-surface-matrix.md": {
+      "path": ".aiwg/design/fortemi-v2026-07-capability-surface-matrix.md",
+      "type": "document",
+      "phase": "other",
+      "title": "Fortemi v2026.7.1 Capability Surface Matrix",
+      "tags": [],
+      "created": "2026-07-26T23:39:19.348Z",
+      "updated": "2026-07-26T23:39:19.348Z",
+      "checksum": "5b00acb83f5ed9a8",
+      "summary": "This matrix is the implementation-facing checklist for seamless HotM integration with the current Fortemi server surface. It condenses the generated route inventory into route-family capabilities, assigns each family to a HotM surface or exclusion, and states the evidence needed before the family can be claimed as integrated. Evidence strength for the current baseline is audited in `.aiwg/reports/fortemi-v2026-07-coverage-evidence-audit.md`. Machine-readable source/test/UI evidence metadata is t",
+      "dependencies": [],
+      "dependents": []
+    },
+    ".aiwg/design/fortemi-v2026-07-ux-integration-addendum.md": {
+      "path": ".aiwg/design/fortemi-v2026-07-ux-integration-addendum.md",
+      "type": "document",
+      "phase": "other",
+      "title": "Fortemi v2026.7.1 UX Integration Addendum",
+      "tags": [],
+      "created": "2026-07-26T23:39:19.348Z",
+      "updated": "2026-07-26T23:39:19.348Z",
+      "checksum": "3109d75157ba9d53",
+      "summary": "Define how HotM should expose the latest Fortemi server capabilities without turning the UI into a raw endpoint browser. This addendum maps the v2026.7.1 route inventory to existing HotM surfaces, identifies new panels/workflows, and records UX decisions needed before implementation. The route-family completion checklist is maintained in `.aiwg/design/fortemi-v2026-07-capability-surface-matrix.md`. Workflow-level actor, degraded-state, and test-scenario acceptance details are maintained in `.aiw",
       "dependencies": [],
       "dependents": []
     },
@@ -640,6 +783,19 @@
       "dependencies": [],
       "dependents": []
     },
+    ".aiwg/evidence/hotm-enterprise-demo-dry-run-2026-07-09.md": {
+      "path": ".aiwg/evidence/hotm-enterprise-demo-dry-run-2026-07-09.md",
+      "type": "document",
+      "phase": "other",
+      "title": "HotM Enterprise Demo Dry-Run Receipt",
+      "tags": [],
+      "created": "2026-07-26T23:39:25.711Z",
+      "updated": "2026-07-26T23:39:25.711Z",
+      "checksum": "e821412c2d9bf1e4",
+      "summary": "| Field | Value | |---|---| | Dry-run date/time | 2026-07-09 12:14 EDT | | Runner | Codex agent | | HotM commit/build | `7265cb7a814b1be6986248b60b2ea329fc481d36` |",
+      "dependencies": [],
+      "dependents": []
+    },
     ".aiwg/evidence/hotm-enterprise-preview-evidence-2026-07-06.md": {
       "path": ".aiwg/evidence/hotm-enterprise-preview-evidence-2026-07-06.md",
       "type": "document",
@@ -647,9 +803,48 @@
       "title": "HotM Enterprise Preview Evidence - 2026-07-06",
       "tags": [],
       "created": "2026-07-06T22:42:55.190Z",
-      "updated": "2026-07-07T18:50:26.016Z",
-      "checksum": "ff487f786e7bdcfa",
+      "updated": "2026-07-08T09:06:20.532Z",
+      "checksum": "097da32bfe2dc4be",
       "summary": "Browser-backed smoke verification for the compatibility-driven enterprise demo surfaces in the Admin Panel API Surface tab. | Viewport | Screenshot | |---|---| | Desktop, 1440x1000 | `.aiwg/evidence/hotm-enterprise-preview-desktop.png` | | Mobile, 390x900 | `.aiwg/evidence/hotm-enterprise-preview-mobile.png` |",
+      "dependencies": [],
+      "dependents": []
+    },
+    ".aiwg/evidence/hotm-full-v1-clean-recovery-preflight-2026-07-24.json": {
+      "path": ".aiwg/evidence/hotm-full-v1-clean-recovery-preflight-2026-07-24.json",
+      "type": "document",
+      "phase": "other",
+      "title": "Untitled",
+      "tags": [],
+      "created": "2026-07-26T23:39:19.348Z",
+      "updated": "2026-07-26T23:39:19.348Z",
+      "checksum": "fdc48cc0b9fb4a59",
+      "summary": "{   \"schemaVersion\": \"hotm.full-v1-clean-recovery-preflight.v1\",   \"observedAt\": \"2026-07-24T07:59:27Z\",   \"status\": \"blocked-before-mutation\",   \"hotmIssue\": \"https://git.integrolabs.net/Fortemi/HotM/issues/272\",",
+      "dependencies": [],
+      "dependents": []
+    },
+    ".aiwg/evidence/hotm-full-v1-clean-recovery-receipt-2026-07-24.json": {
+      "path": ".aiwg/evidence/hotm-full-v1-clean-recovery-receipt-2026-07-24.json",
+      "type": "document",
+      "phase": "other",
+      "title": "Untitled",
+      "tags": [],
+      "created": "2026-07-26T23:39:19.348Z",
+      "updated": "2026-07-26T23:39:19.348Z",
+      "checksum": "efd8516925f7c5fe",
+      "summary": "{   \"schemaVersion\": \"hotm.full-v1-clean-recovery-receipt.v1\",   \"observedAt\": \"2026-07-25T00:01:05Z\",   \"status\": \"passed\",   \"hotmIssue\": \"https://git.integrolabs.net/Fortemi/HotM/issues/272\",",
+      "dependencies": [],
+      "dependents": []
+    },
+    ".aiwg/evidence/hotm-v2026.7.0-github-mirror-repair-2026-07-24.json": {
+      "path": ".aiwg/evidence/hotm-v2026.7.0-github-mirror-repair-2026-07-24.json",
+      "type": "document",
+      "phase": "other",
+      "title": "Untitled",
+      "tags": [],
+      "created": "2026-07-26T23:39:19.348Z",
+      "updated": "2026-07-26T23:39:19.348Z",
+      "checksum": "789411338303bf38",
+      "summary": "{   \"schemaVersion\": \"1.0.0\",   \"capturedAt\": \"2026-07-24T23:15:41Z\",   \"issue\": \"https://git.integrolabs.net/Fortemi/HotM/issues/274\",   \"relatedIssues\": [",
       "dependencies": [],
       "dependents": []
     },
@@ -728,6 +923,19 @@
       "updated": "2026-07-04T19:56:08.113Z",
       "checksum": "aea3d71501397633",
       "summary": "CONDITIONAL PASS for the HotM-side Fortemi API integration plan and implemented UI slices. The gate is conditional only because no canonical generated upstream Fortemi OpenAPI artifact was available in the local latest source checkout. The implementation is verified against the local HotM compatibility snapshot and Fortemi v2026.5.13 source routes. | Criterion | Result | Evidence | | --- | --- | --- | | Latest-source review performed | PASS | /home/roctinam/dev/fortemi/fortemi at 7f74632, tag v2",
+      "dependencies": [],
+      "dependents": []
+    },
+    ".aiwg/gates/fortemi-api-integration-gate-2026-07-14.md": {
+      "path": ".aiwg/gates/fortemi-api-integration-gate-2026-07-14.md",
+      "type": "document",
+      "phase": "other",
+      "title": "Fortemi API Integration Gate Report - v2026.7.1 Local Implementation Evidence",
+      "tags": [],
+      "created": "2026-07-26T23:39:19.348Z",
+      "updated": "2026-07-26T23:39:19.349Z",
+      "checksum": "103ff9ec99205d65",
+      "summary": "LOCAL IMPLEMENTATION EVIDENCE PASS / CI PUBLICATION OPEN. The current HotM worktree has local implementation and verification evidence for the Fortemi `v2026.7.1` route inventory. The generated inventory has no `gap`, `partial`, `decision_needed`, or weak covered-family rows, and local UI/API/agent tests pass. Tracker closeout comments are published in Gitea. The route verifier is wired into `.gitea/workflows/sdlc-gates.yml`; the gate is not promoted to final seamless-integration closure because",
       "dependencies": [],
       "dependents": []
     },
@@ -848,6 +1056,45 @@
       "dependencies": [],
       "dependents": []
     },
+    ".aiwg/handoffs/fortemi-v2026-07-discovery-to-delivery-handoff.md": {
+      "path": ".aiwg/handoffs/fortemi-v2026-07-discovery-to-delivery-handoff.md",
+      "type": "document",
+      "phase": "other",
+      "title": "Fortemi v2026.7.1 Discovery-to-Delivery Handoff",
+      "tags": [],
+      "created": "2026-07-26T23:39:19.349Z",
+      "updated": "2026-07-26T23:39:19.349Z",
+      "checksum": "bbaebac1bc670bfb",
+      "summary": "LOCAL IMPLEMENTATION EVIDENCE HANDOFF. Discovery, local implementation evidence, and tracker closeout publication are sufficient for PR packaging and review. The handoff remains CI-pending because a live CI receipt is not yet available for the current worktree. This handoff transfers the Fortemi `v2026.7.1` HotM integration work into final publication and review. It covers the current Fortemi checkout at commit `f6733252` and the current HotM worktree evidence. | Artifact category | Status | Evi",
+      "dependencies": [],
+      "dependents": []
+    },
+    ".aiwg/handoffs/fortemi-v2026-07-pr-closeout-package.md": {
+      "path": ".aiwg/handoffs/fortemi-v2026-07-pr-closeout-package.md",
+      "type": "document",
+      "phase": "other",
+      "title": "Fortemi v2026.7.1 PR Closeout Package",
+      "tags": [],
+      "created": "2026-07-26T23:39:19.349Z",
+      "updated": "2026-07-26T23:39:19.350Z",
+      "checksum": "9a50c1cf59384359",
+      "summary": "Provide the PR publication fallback for the Fortemi v2026.7.1 HotM sync when authenticated Gitea issue comments cannot be posted from the current environment. This package is equivalent closeout text for #242, #243, #247, #253, #254, #255, #256, #257, #258, and #259. ```text Sync HotM with Fortemi v2026.7.1 API surface ``` ```markdown",
+      "dependencies": [],
+      "dependents": []
+    },
+    ".aiwg/handoffs/fortemi-v2026-07-tracker-publication-backlog.md": {
+      "path": ".aiwg/handoffs/fortemi-v2026-07-tracker-publication-backlog.md",
+      "type": "document",
+      "phase": "other",
+      "title": "Fortemi v2026.7.1 Tracker Publication Backlog",
+      "tags": [],
+      "created": "2026-07-26T23:39:19.350Z",
+      "updated": "2026-07-26T23:39:19.350Z",
+      "checksum": "be79fd88aa244c6e",
+      "summary": "The comments in this backlog were published to Gitea on 2026-07-15 through the `mcp__git_gitea.issue_write` connector. Published receipt IDs are recorded in `.aiwg/reports/fortemi-v2026-07-tracker-publication-receipts.md`. This backlog remains the replay/source text for future publication refreshes. Tracker comments could not be published from the current environment: - `tea comment 253 ...` failed with `Error: no available login`. - `tea logins list` returned no configured Gitea login rows.",
+      "dependencies": [],
+      "dependents": []
+    },
     ".aiwg/inception/ui-redesign-requirements.md": {
       "path": ".aiwg/inception/ui-redesign-requirements.md",
       "type": "document",
@@ -945,10 +1192,10 @@
       "phase": "other",
       "title": "HotM Issue Drafts - SDLC Checkpoint 2026-07",
       "tags": [],
-      "created": "2026-07-06T21:23:36.335Z",
-      "updated": "2026-07-07T20:13:21.226Z",
-      "checksum": "10dcf9defe4d1c16",
-      "summary": "**Filed:** `Fortemi/HotM#243` **Labels:** `hotm-ux`, `sdlc/checkpoint`, `phase/enterprise`, `planning` The current UX design set predates the latest streaming/security work and does not describe how HotM will demonstrate hosted auth, realtime state, premium components, or backoffice tooling. - Adopt `.aiwg/planning/hotm-ux-enterprise-update-plan-2026-07.md` or a repo-local equivalent. - Define the demo persona, target, priority, claim boundary, HUX-REQ-010 live CI caveat handling, and private re",
+      "created": "2026-07-26T23:39:19.350Z",
+      "updated": "2026-07-26T23:39:19.350Z",
+      "checksum": "3f1ae546cb6ca12b",
+      "summary": "**Artifact:** `.aiwg/planning/fortemi-v2026-07-implementation-roadmap.md` **Issue dependency map:** `.aiwg/planning/fortemi-v2026-07-issue-dependency-map.md` **Workflow scenarios:** `.aiwg/requirements/fortemi-v2026-07-ux-workflow-scenarios.md` **Capability matrix:** `.aiwg/design/fortemi-v2026-07-capability-surface-matrix.md` **API/client blueprint:** `.aiwg/design/fortemi-v2026-07-api-client-implementation-blueprint.md`",
       "dependencies": [],
       "dependents": []
     },
@@ -1083,9 +1330,48 @@
       "title": "HotM Enterprise Demo Scenarios - 2026-07",
       "tags": [],
       "created": "2026-07-06T21:32:44.938Z",
-      "updated": "2026-07-07T00:45:42.084Z",
-      "checksum": "e106b0e454bed1fb",
-      "summary": "Define the first demonstrable HotM UX slice for recent Fortemi streaming/security work and the upcoming enterprise/backoffice phase. **Tenant admin** is the recommended first persona. Reasoning: - It exercises the enterprise/backoffice surfaces the objective asks for: tenant health, audit posture, quota, KMS/licensing state, premium components, and support diagnostics. - It requires the same compatibility/auth/capability model that end users and operators also need.",
+      "updated": "2026-07-09T13:51:37.759Z",
+      "checksum": "d9432e2724b4380e",
+      "summary": "Define the first demonstrable HotM UX slice for recent Fortemi streaming/security work and the upcoming enterprise/backoffice phase. **Tenant admin** is the accepted first persona for the HotM desktop-plus-enterprise product sequence. Reasoning: - It exercises the enterprise/backoffice surfaces the objective asks for: tenant health, audit posture, quota, KMS/licensing state, premium components, and support diagnostics. - It requires the same compatibility/auth/capability model that end users and",
+      "dependencies": [],
+      "dependents": []
+    },
+    ".aiwg/planning/fortemi-v2026-07-hotm-integration-plan.md": {
+      "path": ".aiwg/planning/fortemi-v2026-07-hotm-integration-plan.md",
+      "type": "document",
+      "phase": "planning",
+      "title": "HotM Plan for Fortemi v2026.7.1 Integration",
+      "tags": [],
+      "created": "2026-07-26T23:39:19.350Z",
+      "updated": "2026-07-26T23:39:19.350Z",
+      "checksum": "8fc9b4b1dd28f774",
+      "summary": "- Fortemi latest local commit: `f6733252`. - Fortemi latest release tag: `v2026.7.1`. - Server route source: `fortemi/crates/matric-api/src/main.rs`. - HotM client source: `HotM/ui/src/api`, `HotM/ui/src/services`, `HotM/agent-proxy/src/tools.ts`. - Generated coverage inventory: `.aiwg/api/compatibility/fortemi-v2026-07-route-coverage.md` and `.json`.",
+      "dependencies": [],
+      "dependents": []
+    },
+    ".aiwg/planning/fortemi-v2026-07-implementation-roadmap.md": {
+      "path": ".aiwg/planning/fortemi-v2026-07-implementation-roadmap.md",
+      "type": "document",
+      "phase": "planning",
+      "title": "Fortemi v2026.7.1 Implementation Roadmap",
+      "tags": [],
+      "created": "2026-07-26T23:39:19.350Z",
+      "updated": "2026-07-26T23:39:19.350Z",
+      "checksum": "8a0d3584e7dfbff7",
+      "summary": "Sequence the remaining publication work after the HotM implementation evidence for Fortemi v2026.7.1. This roadmap uses the generated route inventory at Fortemi commit `f6733252`, latest release tag `v2026.7.1`, and the route-family proof checklist in `.aiwg/design/fortemi-v2026-07-capability-surface-matrix.md`. The evidence-strength baseline for existing coverage is recorded in `.aiwg/reports/fortemi-v2026-07-coverage-evidence-audit.md`. The verifier evidence-map seed is `.aiwg/api/compatibilit",
+      "dependencies": [],
+      "dependents": []
+    },
+    ".aiwg/planning/fortemi-v2026-07-issue-dependency-map.md": {
+      "path": ".aiwg/planning/fortemi-v2026-07-issue-dependency-map.md",
+      "type": "document",
+      "phase": "planning",
+      "title": "Fortemi v2026.7.1 Issue Dependency Map",
+      "tags": [],
+      "created": "2026-07-26T23:39:19.350Z",
+      "updated": "2026-07-26T23:39:19.350Z",
+      "checksum": "fef0fbdd0156ae23",
+      "summary": "Record the issue-level critical path for moving HotM from the Fortemi v2026.7.1 planning baseline to implementation evidence. This map complements the implementation roadmap by making tracker dependencies, parallelization windows, and gate blockers explicit for #242, #253, #254, #255, #256, #257, #258, and #259. Current validation baseline: | Item | Count | | --- | ---: | | Fortemi routes | 200 |",
       "dependencies": [],
       "dependents": []
     },
@@ -1121,10 +1407,10 @@
       "phase": "planning",
       "title": "Mobile Expansion Planning — Artifact Index",
       "tags": [],
-      "created": "2026-07-04T19:56:08.115Z",
-      "updated": "2026-07-08T00:22:02.310Z",
-      "checksum": "3b7add80a3d665b8",
-      "summary": "Single entry-point for the SDLC + research artifacts produced for HotM's mobile expansion. All artifacts produced via a four-wave multi-agent orchestration on 2026-05-17. | Artifact | Status | Notes | |---|---|---| | [ADR-MOBILE-001 — Mobile cloud architecture](../architecture/adr-mobile-cloud-architecture.md) | Proposed (rev 1) | Seven decisions. Reviewed by 4 agents; revisions merged. | | [Manifest schema v1](../architecture/manifest-schema-v1.md) | Proposed | The `GET /v1/manifest` API contra",
+      "created": "2026-07-26T23:39:25.711Z",
+      "updated": "2026-07-26T23:39:25.711Z",
+      "checksum": "730ab16ea727e94e",
+      "summary": "Single entry-point for the SDLC + research artifacts produced for HotM's mobile expansion. All artifacts produced via a four-wave multi-agent orchestration on 2026-05-17. | Artifact | Status | Notes | |---|---|---| | [ADR-MOBILE-001 — Mobile cloud architecture](../architecture/adr-mobile-cloud-architecture.md) | Accepted for planning (rev 2) | Seven decisions plus HMC accepted defaults. Reviewed by 4 agents; revisions merged. Hosted/mobile production proof remains gated. | | [Manifest schema v1]",
       "dependencies": [],
       "dependents": []
     },
@@ -1134,9 +1420,9 @@
       "phase": "planning",
       "title": "HotM Mobile Expansion Phase Plan",
       "tags": [],
-      "created": "2026-07-04T19:56:08.115Z",
-      "updated": "2026-07-04T19:56:08.115Z",
-      "checksum": "7b9836dfe91f5007",
+      "created": "2026-07-26T23:39:25.711Z",
+      "updated": "2026-07-26T23:39:25.711Z",
+      "checksum": "aaa36c3fc8c05244",
       "summary": "This plan sequences the work to take HotM from a Tauri 2 desktop-only application to a multi-platform product shipping in Apple App Store and Google Play. The shape of the work is dictated by the ADR (`adr-mobile-cloud-architecture.md`): - Mobile is **cloud-only**: the local `matric-api` sidecar does not ship to mobile; mobile clients talk to a hosted multi-tenant deployment. - Desktop remains **hybrid**: local-install stays the default, with optional cloud mode added. - Inference is **BYO-LLM**",
       "dependencies": [],
       "dependents": []
@@ -1323,6 +1609,110 @@
       "dependencies": [],
       "dependents": []
     },
+    ".aiwg/reports/fortemi-v2026-07-api-integration-traceability.md": {
+      "path": ".aiwg/reports/fortemi-v2026-07-api-integration-traceability.md",
+      "type": "document",
+      "phase": "reports",
+      "title": "Fortemi v2026.7.1 API Integration Traceability",
+      "tags": [],
+      "created": "2026-07-26T23:39:19.350Z",
+      "updated": "2026-07-26T23:39:19.350Z",
+      "checksum": "55af48511e56cb30",
+      "summary": "The generated inventory `.aiwg/api/compatibility/fortemi-v2026-07-route-coverage.md` extracts 200 route declarations from the latest Fortemi source checkout at commit `f6733252`. The evidence strength of current `covered` rows is audited in `.aiwg/reports/fortemi-v2026-07-coverage-evidence-audit.md`. Its result is limited to route-family evidence and must not be read as OpenAPI, AsyncAPI, Knowledge Shard, compatibility-negotiation, or auth-fixture conformance. The current machine-readable route-",
+      "dependencies": [],
+      "dependents": []
+    },
+    ".aiwg/reports/fortemi-v2026-07-artifact-index.md": {
+      "path": ".aiwg/reports/fortemi-v2026-07-artifact-index.md",
+      "type": "document",
+      "phase": "reports",
+      "title": "Fortemi v2026.7.1 HotM Integration Artifact Index",
+      "tags": [],
+      "created": "2026-07-26T23:39:19.350Z",
+      "updated": "2026-07-26T23:39:19.350Z",
+      "checksum": "1a10f10f3d2d31a3",
+      "summary": "Provide a single navigation surface for the Fortemi v2026.7.1 HotM integration evidence package. Use this index when reviewing local implementation evidence, publishing tracker closeout comments, or revalidating the baseline after Fortemi changes. | Item | Value | | --- | --- | | Fortemi commit | `f6733252` | | Fortemi release tag | `v2026.7.1` |",
+      "dependencies": [],
+      "dependents": []
+    },
+    ".aiwg/reports/fortemi-v2026-07-completion-audit.md": {
+      "path": ".aiwg/reports/fortemi-v2026-07-completion-audit.md",
+      "type": "document",
+      "phase": "reports",
+      "title": "Fortemi v2026.7.1 HotM Completion Audit",
+      "tags": [],
+      "created": "2026-07-26T23:39:19.350Z",
+      "updated": "2026-07-26T23:39:19.350Z",
+      "checksum": "ae09a72923a16f64",
+      "summary": "LOCAL IMPLEMENTATION COMPLETE / TRACKER PUBLISHED / CI CLOSURE PENDING. The current HotM worktree satisfies the local implementation, SDLC planning, verifier, test-evidence, and tracker-publication requirements for the Fortemi `v2026.7.1` route baseline. The full goal is not marked complete because one external proof requirement remains unverified in the current environment: 1. Passing live Gitea Actions receipt for `fortemi-route-inventory`, or an accepted local-preflight-only decision. | Requi",
+      "dependencies": [],
+      "dependents": []
+    },
+    ".aiwg/reports/fortemi-v2026-07-coverage-evidence-audit.md": {
+      "path": ".aiwg/reports/fortemi-v2026-07-coverage-evidence-audit.md",
+      "type": "document",
+      "phase": "reports",
+      "title": "Fortemi v2026.7.1 Coverage Evidence Audit",
+      "tags": [],
+      "created": "2026-07-26T23:39:19.350Z",
+      "updated": "2026-07-26T23:39:19.350Z",
+      "checksum": "53b1a5ac39b69781",
+      "summary": "This audit applies the SDLC traceability-check model to the Fortemi v2026.7.1 route inventory. The generated route inventory is useful planning evidence, but it is not the same as implementation proof. This report separates route-family status from evidence strength so #253 can turn the current baseline into a reliable CI/local verifier. The machine-readable evidence map for #253 verifier work is `.aiwg/api/compatibility/fortemi-v2026-07-family-evidence-map.json`. Source baseline: - Fortemi comm",
+      "dependencies": [],
+      "dependents": []
+    },
+    ".aiwg/reports/fortemi-v2026-07-delivery-evidence-ledger.md": {
+      "path": ".aiwg/reports/fortemi-v2026-07-delivery-evidence-ledger.md",
+      "type": "document",
+      "phase": "reports",
+      "title": "Fortemi v2026.7.1 Delivery Evidence Ledger",
+      "tags": [],
+      "created": "2026-07-26T23:39:19.350Z",
+      "updated": "2026-07-26T23:39:19.350Z",
+      "checksum": "59102dd1322de2ee",
+      "summary": "Define the evidence each implementation issue must attach before HotM can move the Fortemi v2026.7.1 gate from local implementation evidence and published tracker receipts to final CI/local-preflight policy closure. This ledger converts the route inventory, scenario matrix, security controls, and risk register into closeout proof requirements. | Evidence area | Current state | Gate impact | | --- | --- | --- | | Route inventory | Generated and locally passing with 200 routes, 36 families, 186 co",
+      "dependencies": [],
+      "dependents": []
+    },
+    ".aiwg/reports/fortemi-v2026-07-mcp-tool-surface-audit.md": {
+      "path": ".aiwg/reports/fortemi-v2026-07-mcp-tool-surface-audit.md",
+      "type": "document",
+      "phase": "reports",
+      "title": "Fortemi v2026.7.1 MCP Tool Surface Audit",
+      "tags": [],
+      "created": "2026-07-26T23:39:19.350Z",
+      "updated": "2026-07-26T23:39:19.350Z",
+      "checksum": "1bf18d6558864484",
+      "summary": "Compare the latest Fortemi MCP tool surface with HotM's embedded agent tool registry and record the #258 tool strategy. The current HotM worktree implements the metadata/gating scaffold for enabled tools and explicit dispositions for deferred or excluded MCP capability areas; new diagnostic tools remain deferred until disabled-state and redaction fixtures are accepted. | Source | Evidence | | --- | --- | | Fortemi MCP core registry | `../fortemi/mcp-server/constants/core-tools.js` exports 43 `CO",
+      "dependencies": [],
+      "dependents": []
+    },
+    ".aiwg/reports/fortemi-v2026-07-remote-baseline-revalidation.md": {
+      "path": ".aiwg/reports/fortemi-v2026-07-remote-baseline-revalidation.md",
+      "type": "document",
+      "phase": "reports",
+      "title": "Fortemi v2026.7.1 Remote Baseline Revalidation",
+      "tags": [],
+      "created": "2026-07-26T23:39:19.350Z",
+      "updated": "2026-07-26T23:39:19.350Z",
+      "checksum": "9f45414935133d4d",
+      "summary": "CURRENT BASELINE CONFIRMED. As of 2026-07-15, the Fortemi source baseline used by the HotM integration packet remains current against both configured remotes. The latest release tag remains `v2026.7.1`, and local `main`, `origin/main`, and `github/main` all point to Fortemi commit `f6733252`. | Check | Result | | --- | --- | | Fortemi local `HEAD` | `f6733252` |",
+      "dependencies": [],
+      "dependents": []
+    },
+    ".aiwg/reports/fortemi-v2026-07-tracker-publication-receipts.md": {
+      "path": ".aiwg/reports/fortemi-v2026-07-tracker-publication-receipts.md",
+      "type": "document",
+      "phase": "reports",
+      "title": "Fortemi v2026.7.1 Tracker Publication Receipts",
+      "tags": [],
+      "created": "2026-07-26T23:39:19.350Z",
+      "updated": "2026-07-26T23:39:19.350Z",
+      "checksum": "e6ebfd16d47ab4d2",
+      "summary": "PUBLISHED. The Fortemi v2026.7.1 HotM closeout comments were published to the Gitea tracker through the `mcp__git_gitea.issue_write` connector. These comments satisfy the tracker-publication path for #242, #243, #247, #253, #254, #255, #256, #257, #258, and #259. | Issue | Comment ID | URL | | --- | ---: | --- | | #242 | 85222 | https://git.integrolabs.net/Fortemi/HotM/issues/242#issuecomment-85222 |",
+      "dependencies": [],
+      "dependents": []
+    },
     ".aiwg/reports/gate-validation-inception-2025-12-04.md": {
       "path": ".aiwg/reports/gate-validation-inception-2025-12-04.md",
       "type": "document",
@@ -1368,9 +1758,9 @@
       "phase": "reports",
       "title": "HotM SDLC Checkpoint - 2026-07",
       "tags": [],
-      "created": "2026-07-07T05:02:07.941Z",
-      "updated": "2026-07-08T03:06:16.065Z",
-      "checksum": "028ff98f19b12ed1",
+      "created": "2026-07-26T23:39:25.711Z",
+      "updated": "2026-07-26T23:39:25.711Z",
+      "checksum": "71bff811c19d37fe",
       "summary": "HotM is entering an enterprise demo planning phase. The existing SDLC corpus is strong for earlier Fortemi integration and UI redesign work, but the product now needs a focused UX update for hosted auth, realtime/streaming visibility, premium components, and backoffice tooling. - `docs/ux/fortemi-integration-ux-design.md` covers six API feature integrations from February 2026, before the current hosted/enterprise push. - `.aiwg/api/compatibility/` and `.aiwg/architecture/impact/` already show Ho",
       "dependencies": [],
       "dependents": []
@@ -1410,8 +1800,8 @@
       "title": "HotM Enterprise Demo Requirements",
       "tags": [],
       "created": "2026-07-06T21:41:58.516Z",
-      "updated": "2026-07-07T21:45:40.971Z",
-      "checksum": "70597c1c3469144a",
+      "updated": "2026-07-08T09:00:20.967Z",
+      "checksum": "c42e9837434df65e",
       "summary": "These requirements scope the tenant-admin enterprise demo slice for HotM. Until the operator chooses otherwise through `.aiwg/decisions/operator-decision-ballot-2026-07-06.md`, the demo target is local sidecar plus hosted preview metadata and the claim boundary is fixture-backed preview only. The requirements are intentionally capability-driven: HotM may implement preview and degraded states before backend enterprise contracts are production-ready, but it must not imply unavailable backend capab",
       "dependencies": [],
       "dependents": []
@@ -1426,6 +1816,32 @@
       "updated": "2026-07-04T19:56:08.117Z",
       "checksum": "2e39f0a19f248cef",
       "summary": "These requirements scope the HotM integration response to the Fortemi v2026.5.13 local sidecar updates reviewed on 2026-05-25. | ID | Requirement | Priority | Verification | | --- | --- | --- | --- | | FORTEMI-REQ-001 | The compatibility API snapshot documents UI-used Fortemi create-note fields, response aliases, reprocess, backup import, document type, webhook, and capability-health surfaces. | P0 | OpenAPI contract test and source-route audit. | | FORTEMI-REQ-002 | Advanced note creation must",
+      "dependencies": [],
+      "dependents": []
+    },
+    ".aiwg/requirements/fortemi-api-integration-requirements-2026-07.md": {
+      "path": ".aiwg/requirements/fortemi-api-integration-requirements-2026-07.md",
+      "type": "document",
+      "phase": "requirements",
+      "title": "Fortemi API Integration Requirements - v2026.7.1",
+      "tags": [],
+      "created": "2026-07-26T23:39:19.350Z",
+      "updated": "2026-07-26T23:39:19.350Z",
+      "checksum": "7699a5cd703281df",
+      "summary": "This requirements baseline covers HotM alignment with the current Fortemi server checkout at `/home/roctinam/dev/fortemi/fortemi`, commit `f6733252`, with latest release tag `v2026.7.1` dated 2026-07-13. The audit uses server route declarations in `crates/matric-api/src/main.rs`, release notes in `docs/releases/v2026.7.1-announcement.md`, and HotM client modules under `ui/src/api` plus `agent-proxy/src/tools.ts`. | ID | Requirement | Priority | Verification | | --- | --- | --- | --- | | FORTEMI-",
+      "dependencies": [],
+      "dependents": []
+    },
+    ".aiwg/requirements/fortemi-v2026-07-ux-workflow-scenarios.md": {
+      "path": ".aiwg/requirements/fortemi-v2026-07-ux-workflow-scenarios.md",
+      "type": "document",
+      "phase": "requirements",
+      "title": "Fortemi v2026.7.1 HotM UX Workflow Scenarios",
+      "tags": [],
+      "created": "2026-07-26T23:39:19.350Z",
+      "updated": "2026-07-26T23:39:19.350Z",
+      "checksum": "ed73fe42fbf2afec",
+      "summary": "Define workflow-level acceptance scenarios for the HotM UX updates required by the current Fortemi server surface. This artifact translates route-family gaps into actor-visible behavior, degraded states, and test hooks so implementation issues do not close with API clients alone. | Actor | Role in these scenarios | | --- | --- | | Knowledge user | Uses notes, search, attachments, and the agent in day-to-day workflows. | | Operator/Admin | Configures server-facing workflows: health, ingest, recei",
       "dependencies": [],
       "dependents": []
     },
@@ -1474,9 +1890,9 @@
       "phase": "other",
       "title": "Mobile remote-config and manifest delivery patterns (May 2026)",
       "tags": [],
-      "created": "2026-07-04T19:56:08.117Z",
-      "updated": "2026-07-04T19:56:08.117Z",
-      "checksum": "5c6a8e3126d95e92",
+      "created": "2026-07-26T23:39:19.350Z",
+      "updated": "2026-07-26T23:39:19.350Z",
+      "checksum": "9cf6059ee88204db",
       "summary": "The cloud-only mobile HotM architecture needs a runtime configuration endpoint. The app ships from the store with a baked-in API base URL; everything else (auth provider details, available models, feature flags, branding, kill switches, minimum-supported-version) flows from a server-side manifest. This research documents the well-known patterns, recommends a schema for HotM, and surfaces anti-patterns to avoid. Mobile apps go through app-store review (days to weeks). If a flag, model name, auth-",
       "dependencies": [],
       "dependents": [
@@ -1512,6 +1928,838 @@
       "dependents": [
         ".aiwg/architecture/adr-mobile-cloud-architecture.md"
       ]
+    },
+    ".aiwg/research/provenance/index.yaml": {
+      "path": ".aiwg/research/provenance/index.yaml",
+      "type": "document",
+      "phase": "other",
+      "title": "Untitled",
+      "tags": [],
+      "created": "2026-07-26T23:39:19.350Z",
+      "updated": "2026-07-26T23:43:42.177Z",
+      "checksum": "8ef5d5e8bfecf34a",
+      "summary": "metadata:   schema_version: \"1.0.0\"   updated_at: \"2026-07-26T23:42:02Z\"   record_count: 56 records:",
+      "dependencies": [],
+      "dependents": []
+    },
+    ".aiwg/research/provenance/records/ADR-010-fortemi-v2026-07-api-coverage.md.prov.yaml": {
+      "path": ".aiwg/research/provenance/records/ADR-010-fortemi-v2026-07-api-coverage.md.prov.yaml",
+      "type": "adr",
+      "phase": "other",
+      "title": "Untitled",
+      "tags": [],
+      "created": "2026-07-26T23:39:19.351Z",
+      "updated": "2026-07-26T23:39:19.351Z",
+      "checksum": "9d41055e48261253",
+      "summary": "metadata:   schema_version: \"1.0.0\"   created_at: \"2026-07-17T21:46:51Z\"   updated_at: \"2026-07-26T15:19:45Z\"   description: \"Provenance for the delivered Fortemi route and operator-contract baseline update\"",
+      "dependencies": [
+        "git.integrolabs.net"
+      ],
+      "dependents": []
+    },
+    ".aiwg/research/provenance/records/AdminPanel.test.tsx.prov.yaml": {
+      "path": ".aiwg/research/provenance/records/AdminPanel.test.tsx.prov.yaml",
+      "type": "document",
+      "phase": "other",
+      "title": "Untitled",
+      "tags": [],
+      "created": "2026-07-26T23:39:19.351Z",
+      "updated": "2026-07-26T23:39:19.351Z",
+      "checksum": "4e67020e173d1dd4",
+      "summary": "metadata:   schema_version: \"1.0.0\"   created_at: \"2026-07-26T15:10:08Z\"   description: \"Provenance for the Admin operator contract-document fixture update\" entity:",
+      "dependencies": [
+        "git.integrolabs.net"
+      ],
+      "dependents": []
+    },
+    ".aiwg/research/provenance/records/ApiCapabilitiesPanel.test.tsx.prov.yaml": {
+      "path": ".aiwg/research/provenance/records/ApiCapabilitiesPanel.test.tsx.prov.yaml",
+      "type": "document",
+      "phase": "other",
+      "title": "Untitled",
+      "tags": [],
+      "created": "2026-07-26T23:39:19.351Z",
+      "updated": "2026-07-26T23:39:19.351Z",
+      "checksum": "7c6e7325fceff23d",
+      "summary": "metadata:   schema_version: \"1.0.0\"   created_at: \"2026-07-17T21:46:51Z\"   updated_at: \"2026-07-26T15:10:08Z\"   description: \"Provenance for the operator contract-document link fixture update\"",
+      "dependencies": [
+        "git.integrolabs.net"
+      ],
+      "dependents": []
+    },
+    ".aiwg/research/provenance/records/ApiCapabilitiesPanel.tsx.prov.yaml": {
+      "path": ".aiwg/research/provenance/records/ApiCapabilitiesPanel.tsx.prov.yaml",
+      "type": "document",
+      "phase": "other",
+      "title": "Untitled",
+      "tags": [],
+      "created": "2026-07-26T23:39:19.351Z",
+      "updated": "2026-07-26T23:39:19.351Z",
+      "checksum": "3fa7612afff902c3",
+      "summary": "metadata:   schema_version: \"1.0.0\"   created_at: \"2026-07-17T21:46:51Z\"   description: \"Provenance for HotM #270 Fortemi OpenAPI consumer gate\" entity:",
+      "dependencies": [
+        "git.integrolabs.net"
+      ],
+      "dependents": []
+    },
+    ".aiwg/research/provenance/records/BackupManager.test.tsx.prov.yaml": {
+      "path": ".aiwg/research/provenance/records/BackupManager.test.tsx.prov.yaml",
+      "type": "document",
+      "phase": "other",
+      "title": "Untitled",
+      "tags": [],
+      "created": "2026-07-26T23:39:19.351Z",
+      "updated": "2026-07-26T23:39:19.351Z",
+      "checksum": "f8eebef6f4b25ae7",
+      "summary": "metadata:   schema_version: \"1.0.0\"   created_at: \"2026-07-18T01:50:07Z\"   updated_at: \"2026-07-24T08:10:00Z\"   description: \"Provenance for the HotM #272 full-v1 recovery UI regressions\"",
+      "dependencies": [],
+      "dependents": []
+    },
+    ".aiwg/research/provenance/records/BackupManager.tsx.prov.yaml": {
+      "path": ".aiwg/research/provenance/records/BackupManager.tsx.prov.yaml",
+      "type": "document",
+      "phase": "other",
+      "title": "Untitled",
+      "tags": [],
+      "created": "2026-07-26T23:39:19.351Z",
+      "updated": "2026-07-26T23:39:19.351Z",
+      "checksum": "d7193c0eb3de1a58",
+      "summary": "metadata:   schema_version: \"1.0.0\"   created_at: \"2026-07-18T02:04:18Z\"   updated_at: \"2026-07-24T08:10:00Z\"   description: \"Provenance for the HotM #272 full-v1 recovery user interface\"",
+      "dependencies": [],
+      "dependents": []
+    },
+    ".aiwg/research/provenance/records/adr-mobile-cloud-architecture.md.prov.yaml": {
+      "path": ".aiwg/research/provenance/records/adr-mobile-cloud-architecture.md.prov.yaml",
+      "type": "adr",
+      "phase": "other",
+      "title": "Untitled",
+      "tags": [],
+      "created": "2026-07-26T23:43:42.175Z",
+      "updated": "2026-07-26T23:43:42.175Z",
+      "checksum": "a4e71a17d2c91638",
+      "summary": "metadata:   schema_version: \"1.0.0\"   created_at: \"2026-07-26T23:42:02Z\"   description: \"Provenance for accepted mobile/cloud planning defaults\" entity:",
+      "dependencies": [],
+      "dependents": []
+    },
+    ".aiwg/research/provenance/records/api-contract-test-plan-addendum-2026-07.md.prov.yaml": {
+      "path": ".aiwg/research/provenance/records/api-contract-test-plan-addendum-2026-07.md.prov.yaml",
+      "type": "test-plan",
+      "phase": "other",
+      "title": "Untitled",
+      "tags": [],
+      "created": "2026-07-26T23:39:19.351Z",
+      "updated": "2026-07-26T23:39:19.351Z",
+      "checksum": "94f415d869a6b7b7",
+      "summary": "metadata:   schema_version: \"1.0.0\"   created_at: \"2026-07-17T21:46:51Z\"   updated_at: \"2026-07-26T15:10:08Z\"   description: \"Provenance for the delivered Fortemi route baseline test-plan update\"",
+      "dependencies": [
+        "git.integrolabs.net"
+      ],
+      "dependents": []
+    },
+    ".aiwg/research/provenance/records/backup.test.ts.prov.yaml": {
+      "path": ".aiwg/research/provenance/records/backup.test.ts.prov.yaml",
+      "type": "document",
+      "phase": "other",
+      "title": "Untitled",
+      "tags": [],
+      "created": "2026-07-26T23:39:19.351Z",
+      "updated": "2026-07-26T23:39:19.351Z",
+      "checksum": "16d0fe25db05da9c",
+      "summary": "metadata:   schema_version: \"1.0.0\"   created_at: \"2026-07-20T20:06:30Z\"   updated_at: \"2026-07-24T08:10:00Z\"   description: \"Provenance for the HotM #272 full-v1 recovery API tests\"",
+      "dependencies": [],
+      "dependents": []
+    },
+    ".aiwg/research/provenance/records/backup.ts.prov.yaml": {
+      "path": ".aiwg/research/provenance/records/backup.ts.prov.yaml",
+      "type": "document",
+      "phase": "other",
+      "title": "Untitled",
+      "tags": [],
+      "created": "2026-07-26T23:39:19.351Z",
+      "updated": "2026-07-26T23:39:19.351Z",
+      "checksum": "98197db301699788",
+      "summary": "metadata:   schema_version: \"1.0.0\"   created_at: \"2026-07-24T08:10:00Z\"   description: \"Provenance for the HotM #272 full-v1 recovery transport\" entity:",
+      "dependencies": [
+        "git.integrolabs.net"
+      ],
+      "dependents": []
+    },
+    ".aiwg/research/provenance/records/calls.test.ts.prov.yaml": {
+      "path": ".aiwg/research/provenance/records/calls.test.ts.prov.yaml",
+      "type": "document",
+      "phase": "other",
+      "title": "Untitled",
+      "tags": [],
+      "created": "2026-07-26T23:39:19.351Z",
+      "updated": "2026-07-26T23:39:19.351Z",
+      "checksum": "39e913bdb3528772",
+      "summary": "metadata:   schema_version: \"1.0.0\"   created_at: \"2026-07-17T21:46:51Z\"   description: \"Provenance for HotM #270 Fortemi OpenAPI consumer gate\" entity:",
+      "dependencies": [
+        "git.integrolabs.net"
+      ],
+      "dependents": []
+    },
+    ".aiwg/research/provenance/records/calls.ts.prov.yaml": {
+      "path": ".aiwg/research/provenance/records/calls.ts.prov.yaml",
+      "type": "document",
+      "phase": "other",
+      "title": "Untitled",
+      "tags": [],
+      "created": "2026-07-26T23:39:19.351Z",
+      "updated": "2026-07-26T23:39:19.351Z",
+      "checksum": "aeb6be30623e3945",
+      "summary": "metadata:   schema_version: \"1.0.0\"   created_at: \"2026-07-17T21:46:51Z\"   description: \"Provenance for HotM #270 Fortemi OpenAPI consumer gate\" entity:",
+      "dependencies": [
+        "git.integrolabs.net"
+      ],
+      "dependents": []
+    },
+    ".aiwg/research/provenance/records/delivered-openapi-contract.test.ts.prov.yaml": {
+      "path": ".aiwg/research/provenance/records/delivered-openapi-contract.test.ts.prov.yaml",
+      "type": "document",
+      "phase": "other",
+      "title": "Untitled",
+      "tags": [],
+      "created": "2026-07-26T23:39:19.351Z",
+      "updated": "2026-07-26T23:39:19.351Z",
+      "checksum": "8e83eca5639eb787",
+      "summary": "metadata:   schema_version: \"1.0.0\"   created_at: \"2026-07-17T21:46:51Z\"   description: \"Provenance for HotM #270 operation-complete Fortemi OpenAPI consumer gate\" entity:",
+      "dependencies": [
+        "git.integrolabs.net"
+      ],
+      "dependents": []
+    },
+    ".aiwg/research/provenance/records/enterprise-demo-operator-signoff-2026-07-06.md.prov.yaml": {
+      "path": ".aiwg/research/provenance/records/enterprise-demo-operator-signoff-2026-07-06.md.prov.yaml",
+      "type": "document",
+      "phase": "other",
+      "title": "Untitled",
+      "tags": [],
+      "created": "2026-07-26T23:43:42.176Z",
+      "updated": "2026-07-26T23:43:42.176Z",
+      "checksum": "c5550fdb84d0e543",
+      "summary": "metadata:   schema_version: \"1.0.0\"   created_at: \"2026-07-26T23:42:02Z\"   description: \"Provenance for reconciled enterprise demo operator signoff\" entity:",
+      "dependencies": [],
+      "dependents": []
+    },
+    ".aiwg/research/provenance/records/fortemi-api-integration-requirements-2026-07.md.prov.yaml": {
+      "path": ".aiwg/research/provenance/records/fortemi-api-integration-requirements-2026-07.md.prov.yaml",
+      "type": "document",
+      "phase": "other",
+      "title": "Untitled",
+      "tags": [],
+      "created": "2026-07-26T23:39:19.351Z",
+      "updated": "2026-07-26T23:39:19.351Z",
+      "checksum": "43cea7b4e2b91122",
+      "summary": "metadata:   schema_version: \"1.0.0\"   created_at: \"2026-07-17T21:46:51Z\"   updated_at: \"2026-07-26T15:10:08Z\"   description: \"Provenance for the delivered Fortemi route baseline requirements update\"",
+      "dependencies": [
+        "git.integrolabs.net"
+      ],
+      "dependents": []
+    },
+    ".aiwg/research/provenance/records/fortemi-compatibility-consumption-2026-07.md.prov.yaml": {
+      "path": ".aiwg/research/provenance/records/fortemi-compatibility-consumption-2026-07.md.prov.yaml",
+      "type": "document",
+      "phase": "other",
+      "title": "Untitled",
+      "tags": [],
+      "created": "2026-07-26T23:39:19.351Z",
+      "updated": "2026-07-26T23:39:19.351Z",
+      "checksum": "8c5ca05801d131af",
+      "summary": "metadata:   schema_version: \"1.0.0\"   created_at: \"2026-07-17T19:16:22Z\"   updated_at: \"2026-07-24T08:10:00Z\"   description: \"Provenance for HotM #244 compatibility fail-closed documentation\"",
+      "dependencies": [
+        "git.integrolabs.net"
+      ],
+      "dependents": []
+    },
+    ".aiwg/research/provenance/records/fortemi-core-v1-current-components.prov.yaml": {
+      "path": ".aiwg/research/provenance/records/fortemi-core-v1-current-components.prov.yaml",
+      "type": "document",
+      "phase": "other",
+      "title": "Untitled",
+      "tags": [],
+      "created": "2026-07-26T23:39:19.351Z",
+      "updated": "2026-07-26T23:39:19.351Z",
+      "checksum": "7088457b8755300d",
+      "summary": "metadata:   schema_version: \"1.0.0\"   created_at: \"2026-07-20T20:03:43Z\"   description: \"Provenance for the exact Fortemi core-v1 component fixture set\" entity:",
+      "dependencies": [
+        "git.integrolabs.net"
+      ],
+      "dependents": []
+    },
+    ".aiwg/research/provenance/records/fortemi-core-v1-manifest.json.prov.yaml": {
+      "path": ".aiwg/research/provenance/records/fortemi-core-v1-manifest.json.prov.yaml",
+      "type": "document",
+      "phase": "other",
+      "title": "Untitled",
+      "tags": [],
+      "created": "2026-07-26T23:39:19.351Z",
+      "updated": "2026-07-26T23:39:19.351Z",
+      "checksum": "53f39aa18127d8b9",
+      "summary": "metadata:   schema_version: \"1.0.0\"   created_at: \"2026-07-17T20:47:53Z\"   updated_at: \"2026-07-20T20:03:43Z\"   description: \"Provenance for the HotM #269 pinned Fortemi core-v1 manifest fixture\"",
+      "dependencies": [
+        "git.integrolabs.net"
+      ],
+      "dependents": []
+    },
+    ".aiwg/research/provenance/records/fortemi-core-v1-v1.0-manifest.json.prov.yaml": {
+      "path": ".aiwg/research/provenance/records/fortemi-core-v1-v1.0-manifest.json.prov.yaml",
+      "type": "document",
+      "phase": "other",
+      "title": "Untitled",
+      "tags": [],
+      "created": "2026-07-26T23:39:19.351Z",
+      "updated": "2026-07-26T23:39:19.351Z",
+      "checksum": "cad3f5a6a0140809",
+      "summary": "metadata:   schema_version: \"1.0.0\"   created_at: \"2026-07-20T20:03:43Z\"   description: \"Provenance for the historical Fortemi core-v1 1.0.0 manifest\" entity:",
+      "dependencies": [
+        "git.integrolabs.net"
+      ],
+      "dependents": []
+    },
+    ".aiwg/research/provenance/records/fortemi-core-v1-v1.1-manifest.json.prov.yaml": {
+      "path": ".aiwg/research/provenance/records/fortemi-core-v1-v1.1-manifest.json.prov.yaml",
+      "type": "document",
+      "phase": "other",
+      "title": "Untitled",
+      "tags": [],
+      "created": "2026-07-26T23:39:19.351Z",
+      "updated": "2026-07-26T23:39:19.351Z",
+      "checksum": "0bd16f3cdc65286c",
+      "summary": "metadata:   schema_version: \"1.0.0\"   created_at: \"2026-07-20T20:03:43Z\"   description: \"Provenance for the historical Fortemi core-v1 1.1.0 manifest\" entity:",
+      "dependencies": [
+        "git.integrolabs.net"
+      ],
+      "dependents": []
+    },
+    ".aiwg/research/provenance/records/fortemi-event-catalog.json.prov.yaml": {
+      "path": ".aiwg/research/provenance/records/fortemi-event-catalog.json.prov.yaml",
+      "type": "document",
+      "phase": "other",
+      "title": "Untitled",
+      "tags": [],
+      "created": "2026-07-26T23:39:19.351Z",
+      "updated": "2026-07-26T23:39:19.351Z",
+      "checksum": "da48949a5c60b618",
+      "summary": "metadata:   schema_version: \"1.0.0\"   created_at: \"2026-07-17T20:15:02Z\"   updated_at: \"2026-07-26T14:51:19Z\"   description: \"Provenance for the HotM Fortemi event catalog sidecar-receipt repin\"",
+      "dependencies": [
+        "git.integrolabs.net"
+      ],
+      "dependents": []
+    },
+    ".aiwg/research/provenance/records/fortemi-knowledge-shard-receipt.json.prov.yaml": {
+      "path": ".aiwg/research/provenance/records/fortemi-knowledge-shard-receipt.json.prov.yaml",
+      "type": "document",
+      "phase": "other",
+      "title": "Untitled",
+      "tags": [],
+      "created": "2026-07-26T23:39:19.351Z",
+      "updated": "2026-07-26T23:39:19.351Z",
+      "checksum": "aa70083726b49637",
+      "summary": "metadata:   schema_version: \"1.0.0\"   created_at: \"2026-07-20T20:03:43Z\"   updated_at: \"2026-07-25T00:01:05Z\"   description: \"Provenance for the HotM #272 full-v1 authority and implementation receipt\"",
+      "dependencies": [
+        "git.integrolabs.net"
+      ],
+      "dependents": []
+    },
+    ".aiwg/research/provenance/records/fortemi-openapi-receipt.json.prov.yaml": {
+      "path": ".aiwg/research/provenance/records/fortemi-openapi-receipt.json.prov.yaml",
+      "type": "document",
+      "phase": "other",
+      "title": "Untitled",
+      "tags": [],
+      "created": "2026-07-26T23:39:19.351Z",
+      "updated": "2026-07-26T23:39:19.351Z",
+      "checksum": "4d004c79ea8c1630",
+      "summary": "metadata:   schema_version: \"1.0.0\"   created_at: \"2026-07-17T21:46:51Z\"   description: \"Provenance for HotM #270 operation-complete Fortemi OpenAPI consumer gate\" entity:",
+      "dependencies": [
+        "git.integrolabs.net"
+      ],
+      "dependents": []
+    },
+    ".aiwg/research/provenance/records/fortemi-openapi-skew-fixtures.json.prov.yaml": {
+      "path": ".aiwg/research/provenance/records/fortemi-openapi-skew-fixtures.json.prov.yaml",
+      "type": "document",
+      "phase": "other",
+      "title": "Untitled",
+      "tags": [],
+      "created": "2026-07-26T23:39:19.351Z",
+      "updated": "2026-07-26T23:39:19.351Z",
+      "checksum": "d44c465e994c42c3",
+      "summary": "metadata:   schema_version: \"1.0.0\"   created_at: \"2026-07-17T21:46:51Z\"   description: \"Provenance for HotM #270 Fortemi OpenAPI consumer gate\" entity:",
+      "dependencies": [
+        "git.integrolabs.net"
+      ],
+      "dependents": []
+    },
+    ".aiwg/research/provenance/records/fortemi-openapi.yaml.prov.yaml": {
+      "path": ".aiwg/research/provenance/records/fortemi-openapi.yaml.prov.yaml",
+      "type": "document",
+      "phase": "other",
+      "title": "Untitled",
+      "tags": [],
+      "created": "2026-07-26T23:39:19.351Z",
+      "updated": "2026-07-26T23:39:19.351Z",
+      "checksum": "cec4a2a598fca82c",
+      "summary": "metadata:   schema_version: \"1.0.0\"   created_at: \"2026-07-17T21:46:51Z\"   description: \"Provenance for HotM #270 operation-complete Fortemi OpenAPI consumer gate\" entity:",
+      "dependencies": [
+        "git.integrolabs.net"
+      ],
+      "dependents": []
+    },
+    ".aiwg/research/provenance/records/fortemi-route-coverage.py.prov.yaml": {
+      "path": ".aiwg/research/provenance/records/fortemi-route-coverage.py.prov.yaml",
+      "type": "document",
+      "phase": "other",
+      "title": "Untitled",
+      "tags": [],
+      "created": "2026-07-26T23:39:19.351Z",
+      "updated": "2026-07-26T23:39:19.351Z",
+      "checksum": "28d4cc120cfd6f99",
+      "summary": "metadata:   schema_version: \"1.0.0\"   created_at: \"2026-07-26T15:10:08Z\"   description: \"Provenance for the Fortemi route coverage verifier update\" entity:",
+      "dependencies": [
+        "git.integrolabs.net"
+      ],
+      "dependents": []
+    },
+    ".aiwg/research/provenance/records/fortemi-v2026-07-api-integration-traceability.md.prov.yaml": {
+      "path": ".aiwg/research/provenance/records/fortemi-v2026-07-api-integration-traceability.md.prov.yaml",
+      "type": "document",
+      "phase": "other",
+      "title": "Untitled",
+      "tags": [],
+      "created": "2026-07-26T23:39:19.351Z",
+      "updated": "2026-07-26T23:39:19.351Z",
+      "checksum": "3db9f97d99bd7fc4",
+      "summary": "metadata:   schema_version: \"1.0.0\"   created_at: \"2026-07-17T21:46:51Z\"   updated_at: \"2026-07-25T00:01:05Z\"   description: \"Provenance for the HotM #272 full-v1 recovery traceability update\"",
+      "dependencies": [
+        "git.integrolabs.net"
+      ],
+      "dependents": []
+    },
+    ".aiwg/research/provenance/records/fortemi-v2026-07-family-evidence-map.json.prov.yaml": {
+      "path": ".aiwg/research/provenance/records/fortemi-v2026-07-family-evidence-map.json.prov.yaml",
+      "type": "document",
+      "phase": "other",
+      "title": "Untitled",
+      "tags": [],
+      "created": "2026-07-26T23:39:19.351Z",
+      "updated": "2026-07-26T23:39:19.351Z",
+      "checksum": "54402ebb247b6c0e",
+      "summary": "metadata:   schema_version: \"1.0.0\"   created_at: \"2026-07-26T15:10:08Z\"   description: \"Provenance for the delivered Fortemi route-family evidence baseline\" entity:",
+      "dependencies": [
+        "git.integrolabs.net"
+      ],
+      "dependents": []
+    },
+    ".aiwg/research/provenance/records/fortemi-v2026-07-fixture-catalog.md.prov.yaml": {
+      "path": ".aiwg/research/provenance/records/fortemi-v2026-07-fixture-catalog.md.prov.yaml",
+      "type": "document",
+      "phase": "other",
+      "title": "Untitled",
+      "tags": [],
+      "created": "2026-07-26T23:39:19.351Z",
+      "updated": "2026-07-26T23:39:19.351Z",
+      "checksum": "1d5878a5eff6c0df",
+      "summary": "metadata:   schema_version: \"1.0.0\"   created_at: \"2026-07-17T20:47:53Z\"   updated_at: \"2026-07-25T00:01:05Z\"   description: \"Provenance for the HotM #272 full-v1 fixture and evidence catalog update\"",
+      "dependencies": [
+        "git.integrolabs.net"
+      ],
+      "dependents": []
+    },
+    ".aiwg/research/provenance/records/fortemi-v2026-07-pr-closeout-package.md.prov.yaml": {
+      "path": ".aiwg/research/provenance/records/fortemi-v2026-07-pr-closeout-package.md.prov.yaml",
+      "type": "document",
+      "phase": "other",
+      "title": "Untitled",
+      "tags": [],
+      "created": "2026-07-26T23:39:19.351Z",
+      "updated": "2026-07-26T23:39:19.351Z",
+      "checksum": "687598143855d795",
+      "summary": "metadata:   schema_version: \"1.0.0\"   created_at: \"2026-07-26T15:10:08Z\"   description: \"Provenance for the Fortemi integration closeout baseline update\" entity:",
+      "dependencies": [
+        "git.integrolabs.net"
+      ],
+      "dependents": []
+    },
+    ".aiwg/research/provenance/records/fortemi-v2026-07-route-coverage.json.prov.yaml": {
+      "path": ".aiwg/research/provenance/records/fortemi-v2026-07-route-coverage.json.prov.yaml",
+      "type": "document",
+      "phase": "other",
+      "title": "Untitled",
+      "tags": [],
+      "created": "2026-07-26T23:39:19.351Z",
+      "updated": "2026-07-26T23:39:19.351Z",
+      "checksum": "cf86f05a942419ab",
+      "summary": "metadata:   schema_version: \"1.0.0\"   created_at: \"2026-07-26T15:10:08Z\"   description: \"Provenance for the generated delivered Fortemi route inventory\" entity:",
+      "dependencies": [
+        "git.integrolabs.net"
+      ],
+      "dependents": []
+    },
+    ".aiwg/research/provenance/records/fortemi-v2026-07-route-coverage.md.prov.yaml": {
+      "path": ".aiwg/research/provenance/records/fortemi-v2026-07-route-coverage.md.prov.yaml",
+      "type": "document",
+      "phase": "other",
+      "title": "Untitled",
+      "tags": [],
+      "created": "2026-07-26T23:39:19.351Z",
+      "updated": "2026-07-26T23:39:19.351Z",
+      "checksum": "0ae1befd42a1a61e",
+      "summary": "metadata:   schema_version: \"1.0.0\"   created_at: \"2026-07-26T15:10:08Z\"   description: \"Provenance for the rendered delivered Fortemi route inventory\" entity:",
+      "dependencies": [],
+      "dependents": []
+    },
+    ".aiwg/research/provenance/records/hotm-enterprise-demo-dry-run-2026-07-09.md.prov.yaml": {
+      "path": ".aiwg/research/provenance/records/hotm-enterprise-demo-dry-run-2026-07-09.md.prov.yaml",
+      "type": "document",
+      "phase": "other",
+      "title": "Untitled",
+      "tags": [],
+      "created": "2026-07-26T23:43:42.176Z",
+      "updated": "2026-07-26T23:43:42.176Z",
+      "checksum": "489677345a391152",
+      "summary": "metadata:   schema_version: \"1.0.0\"   created_at: \"2026-07-26T23:42:02Z\"   description: \"Provenance for the fixture-backed enterprise demo dry-run receipt\" entity:",
+      "dependencies": [],
+      "dependents": []
+    },
+    ".aiwg/research/provenance/records/hotm-full-v1-clean-recovery-preflight-2026-07-24.json.prov.yaml": {
+      "path": ".aiwg/research/provenance/records/hotm-full-v1-clean-recovery-preflight-2026-07-24.json.prov.yaml",
+      "type": "document",
+      "phase": "other",
+      "title": "Untitled",
+      "tags": [],
+      "created": "2026-07-26T23:39:19.351Z",
+      "updated": "2026-07-26T23:39:19.351Z",
+      "checksum": "57538ffe0d27888f",
+      "summary": "metadata:   schema_version: \"1.0.0\"   created_at: \"2026-07-24T08:10:00Z\"   description: \"Provenance for the HotM #272 clean-destination full-v1 preflight evidence\" entity:",
+      "dependencies": [
+        "git.integrolabs.net"
+      ],
+      "dependents": []
+    },
+    ".aiwg/research/provenance/records/hotm-full-v1-clean-recovery-receipt-2026-07-24.json.prov.yaml": {
+      "path": ".aiwg/research/provenance/records/hotm-full-v1-clean-recovery-receipt-2026-07-24.json.prov.yaml",
+      "type": "document",
+      "phase": "other",
+      "title": "Untitled",
+      "tags": [],
+      "created": "2026-07-26T23:39:19.351Z",
+      "updated": "2026-07-26T23:39:19.351Z",
+      "checksum": "3c626b9613fcfd55",
+      "summary": "metadata:   schema_version: \"1.0.0\"   created_at: \"2026-07-25T00:01:05Z\"   description: \"Provenance for the passing HotM #272 signed full-v1 clean-recovery receipt\" entity:",
+      "dependencies": [
+        "git.integrolabs.net"
+      ],
+      "dependents": []
+    },
+    ".aiwg/research/provenance/records/hotm-v2026.7.0-github-mirror-repair-2026-07-24.json.prov.yaml": {
+      "path": ".aiwg/research/provenance/records/hotm-v2026.7.0-github-mirror-repair-2026-07-24.json.prov.yaml",
+      "type": "document",
+      "phase": "other",
+      "title": "Untitled",
+      "tags": [],
+      "created": "2026-07-26T23:39:19.351Z",
+      "updated": "2026-07-26T23:39:19.351Z",
+      "checksum": "e1d6abc69a276bac",
+      "summary": "metadata:   schema_version: \"1.0.0\"   created_at: \"2026-07-24T23:15:41Z\"   description: \"Provenance for the HotM v2026.7.0 GitHub mirror repair receipt\" entity:",
+      "dependencies": [
+        "git.integrolabs.net"
+      ],
+      "dependents": []
+    },
+    ".aiwg/research/provenance/records/index.test.ts.prov.yaml": {
+      "path": ".aiwg/research/provenance/records/index.test.ts.prov.yaml",
+      "type": "document",
+      "phase": "other",
+      "title": "Untitled",
+      "tags": [],
+      "created": "2026-07-26T23:39:19.351Z",
+      "updated": "2026-07-26T23:39:19.351Z",
+      "checksum": "58837dcb2cee9e7e",
+      "summary": "metadata:   schema_version: \"1.0.0\"   created_at: \"2026-07-26T15:10:08Z\"   description: \"Provenance for the operator contract-document API client tests\" entity:",
+      "dependencies": [
+        "git.integrolabs.net"
+      ],
+      "dependents": []
+    },
+    ".aiwg/research/provenance/records/index.ts.prov.yaml": {
+      "path": ".aiwg/research/provenance/records/index.ts.prov.yaml",
+      "type": "document",
+      "phase": "other",
+      "title": "Untitled",
+      "tags": [],
+      "created": "2026-07-26T23:39:19.351Z",
+      "updated": "2026-07-26T23:39:19.352Z",
+      "checksum": "f475c7350fcf1ba2",
+      "summary": "metadata:   schema_version: \"1.0.0\"   created_at: \"2026-07-17T21:46:51Z\"   description: \"Provenance for HotM #270 Fortemi OpenAPI consumer gate\" entity:",
+      "dependencies": [
+        "git.integrolabs.net"
+      ],
+      "dependents": []
+    },
+    ".aiwg/research/provenance/records/knowledgeShard.test.ts.prov.yaml": {
+      "path": ".aiwg/research/provenance/records/knowledgeShard.test.ts.prov.yaml",
+      "type": "document",
+      "phase": "other",
+      "title": "Untitled",
+      "tags": [],
+      "created": "2026-07-26T23:39:19.352Z",
+      "updated": "2026-07-26T23:39:19.352Z",
+      "checksum": "35842083f442871d",
+      "summary": "metadata:   schema_version: \"1.0.0\"   created_at: \"2026-07-17T20:47:53Z\"   updated_at: \"2026-07-24T08:10:00Z\"   description: \"Provenance for the HotM #272 full-v1 Knowledge Shard contract tests\"",
+      "dependencies": [],
+      "dependents": []
+    },
+    ".aiwg/research/provenance/records/knowledgeShard.ts.prov.yaml": {
+      "path": ".aiwg/research/provenance/records/knowledgeShard.ts.prov.yaml",
+      "type": "document",
+      "phase": "other",
+      "title": "Untitled",
+      "tags": [],
+      "created": "2026-07-26T23:39:19.352Z",
+      "updated": "2026-07-26T23:39:19.352Z",
+      "checksum": "b55b877c3a1242a1",
+      "summary": "metadata:   schema_version: \"1.0.0\"   created_at: \"2026-07-17T20:47:53Z\"   updated_at: \"2026-07-24T08:10:00Z\"   description: \"Provenance for the HotM #272 full-v1 Knowledge Shard manifest consumer\"",
+      "dependencies": [
+        "git.integrolabs.net"
+      ],
+      "dependents": []
+    },
+    ".aiwg/research/provenance/records/knowledgeShardFixtures.ts.prov.yaml": {
+      "path": ".aiwg/research/provenance/records/knowledgeShardFixtures.ts.prov.yaml",
+      "type": "document",
+      "phase": "other",
+      "title": "Untitled",
+      "tags": [],
+      "created": "2026-07-26T23:39:19.352Z",
+      "updated": "2026-07-26T23:39:19.352Z",
+      "checksum": "c00b0d4f09865294",
+      "summary": "metadata:   schema_version: \"1.0.0\"   created_at: \"2026-07-17T20:47:53Z\"   updated_at: \"2026-07-24T08:10:00Z\"   description: \"Provenance for the HotM #272 real full-v1 gzip/TAR fixture builder\"",
+      "dependencies": [],
+      "dependents": []
+    },
+    ".aiwg/research/provenance/records/manifest-schema-v1.md.prov.yaml": {
+      "path": ".aiwg/research/provenance/records/manifest-schema-v1.md.prov.yaml",
+      "type": "document",
+      "phase": "other",
+      "title": "Untitled",
+      "tags": [],
+      "created": "2026-07-26T23:39:19.352Z",
+      "updated": "2026-07-26T23:43:42.175Z",
+      "checksum": "4ab23f52884a6afe",
+      "summary": "metadata:   schema_version: \"1.0.0\"   created_at: \"2026-07-26T23:42:02Z\"   description: \"Provenance for the HotM manifest planning authority after operator-default reconciliation\" entity:",
+      "dependencies": [],
+      "dependents": []
+    },
+    ".aiwg/research/provenance/records/mobile-expansion-INDEX.md.prov.yaml": {
+      "path": ".aiwg/research/provenance/records/mobile-expansion-INDEX.md.prov.yaml",
+      "type": "document",
+      "phase": "other",
+      "title": "Untitled",
+      "tags": [],
+      "created": "2026-07-26T23:43:42.176Z",
+      "updated": "2026-07-26T23:43:42.176Z",
+      "checksum": "9f227cb5b6e6174a",
+      "summary": "metadata:   schema_version: \"1.0.0\"   created_at: \"2026-07-26T23:42:02Z\"   description: \"Provenance for reconciled mobile expansion index\" entity:",
+      "dependencies": [],
+      "dependents": []
+    },
+    ".aiwg/research/provenance/records/mobile-expansion-phase-plan.md.prov.yaml": {
+      "path": ".aiwg/research/provenance/records/mobile-expansion-phase-plan.md.prov.yaml",
+      "type": "document",
+      "phase": "other",
+      "title": "Untitled",
+      "tags": [],
+      "created": "2026-07-26T23:43:42.176Z",
+      "updated": "2026-07-26T23:43:42.176Z",
+      "checksum": "595a11dab29d7ede",
+      "summary": "metadata:   schema_version: \"1.0.0\"   created_at: \"2026-07-26T23:42:02Z\"   description: \"Provenance for reconciled mobile expansion phase plan\" entity:",
+      "dependencies": [],
+      "dependents": []
+    },
+    ".aiwg/research/provenance/records/mobile-manifest-remote-config.md.prov.yaml": {
+      "path": ".aiwg/research/provenance/records/mobile-manifest-remote-config.md.prov.yaml",
+      "type": "document",
+      "phase": "other",
+      "title": "Untitled",
+      "tags": [],
+      "created": "2026-07-26T23:39:19.352Z",
+      "updated": "2026-07-26T23:39:19.352Z",
+      "checksum": "f4fdcde4e25386b8",
+      "summary": "metadata:   schema_version: \"1.0.0\"   created_at: \"2026-07-24T09:57:24Z\"   description: \"Provenance for the HotM mobile manifest support-URL authority correction\" entity:",
+      "dependencies": [],
+      "dependents": []
+    },
+    ".aiwg/research/provenance/records/sad-fortemi-integration-addendum-2026-07.md.prov.yaml": {
+      "path": ".aiwg/research/provenance/records/sad-fortemi-integration-addendum-2026-07.md.prov.yaml",
+      "type": "architecture",
+      "phase": "other",
+      "title": "Untitled",
+      "tags": [],
+      "created": "2026-07-26T23:39:19.352Z",
+      "updated": "2026-07-26T23:39:19.352Z",
+      "checksum": "f8a48ed9c78a098b",
+      "summary": "metadata:   schema_version: \"1.0.0\"   created_at: \"2026-07-17T21:46:51Z\"   updated_at: \"2026-07-26T15:19:45Z\"   description: \"Provenance for the delivered Fortemi route baseline design update\"",
+      "dependencies": [
+        "git.integrolabs.net"
+      ],
+      "dependents": []
+    },
+    ".aiwg/research/provenance/records/sdlc-checkpoint-2026-07.md.prov.yaml": {
+      "path": ".aiwg/research/provenance/records/sdlc-checkpoint-2026-07.md.prov.yaml",
+      "type": "document",
+      "phase": "other",
+      "title": "Untitled",
+      "tags": [],
+      "created": "2026-07-26T23:43:42.176Z",
+      "updated": "2026-07-26T23:43:42.176Z",
+      "checksum": "50bfbddf3056d44f",
+      "summary": "metadata:   schema_version: \"1.0.0\"   created_at: \"2026-07-26T23:42:02Z\"   description: \"Provenance for reconciled July SDLC checkpoint\" entity:",
+      "dependencies": [],
+      "dependents": []
+    },
+    ".aiwg/research/provenance/records/systemCompatibility.test.ts.prov.yaml": {
+      "path": ".aiwg/research/provenance/records/systemCompatibility.test.ts.prov.yaml",
+      "type": "document",
+      "phase": "other",
+      "title": "Untitled",
+      "tags": [],
+      "created": "2026-07-26T23:39:19.352Z",
+      "updated": "2026-07-26T23:39:19.353Z",
+      "checksum": "70f28fc8b00a472d",
+      "summary": "metadata:   schema_version: \"1.0.0\"   created_at: \"2026-07-24T08:10:00Z\"   updated_at: \"2026-07-26T15:10:08Z\"   description: \"Provenance for the Fortemi operator contract-document fixture update\"",
+      "dependencies": [],
+      "dependents": []
+    },
+    ".aiwg/research/provenance/records/systemCompatibility.ts.prov.yaml": {
+      "path": ".aiwg/research/provenance/records/systemCompatibility.ts.prov.yaml",
+      "type": "document",
+      "phase": "other",
+      "title": "Untitled",
+      "tags": [],
+      "created": "2026-07-26T23:39:19.353Z",
+      "updated": "2026-07-26T23:39:19.353Z",
+      "checksum": "f59b136652c470ab",
+      "summary": "metadata:   schema_version: \"1.0.0\"   created_at: \"2026-07-24T08:10:00Z\"   updated_at: \"2026-07-26T15:10:08Z\"   description: \"Provenance for the Fortemi operator contract-document client update\"",
+      "dependencies": [
+        "git.integrolabs.net"
+      ],
+      "dependents": []
+    },
+    ".aiwg/research/provenance/records/types-extended.ts.prov.yaml": {
+      "path": ".aiwg/research/provenance/records/types-extended.ts.prov.yaml",
+      "type": "document",
+      "phase": "other",
+      "title": "Untitled",
+      "tags": [],
+      "created": "2026-07-26T23:39:19.353Z",
+      "updated": "2026-07-26T23:39:19.353Z",
+      "checksum": "1a7258f56830d30c",
+      "summary": "metadata:   schema_version: \"1.0.0\"   created_at: \"2026-07-24T08:10:00Z\"   description: \"Provenance for the HotM #272 full-v1 API types\" entity:",
+      "dependencies": [
+        "git.integrolabs.net"
+      ],
+      "dependents": []
+    },
+    ".aiwg/research/provenance/records/ui-ci-network-independent-vault-tools-272.prov.yaml": {
+      "path": ".aiwg/research/provenance/records/ui-ci-network-independent-vault-tools-272.prov.yaml",
+      "type": "document",
+      "phase": "other",
+      "title": "Untitled",
+      "tags": [],
+      "created": "2026-07-26T23:39:19.353Z",
+      "updated": "2026-07-26T23:39:19.353Z",
+      "checksum": "d81d30aa85fb8865",
+      "summary": "metadata:   schema_version: \"1.0.0\"   created_at: \"2026-07-25T00:15:00Z\"   description: \"Provenance for the HotM CI network-independent vault-tool preflight\" entity:",
+      "dependencies": [],
+      "dependents": []
+    },
+    ".aiwg/research/provenance/records/validate-manifest-schema.mjs.prov.yaml": {
+      "path": ".aiwg/research/provenance/records/validate-manifest-schema.mjs.prov.yaml",
+      "type": "document",
+      "phase": "other",
+      "title": "Untitled",
+      "tags": [],
+      "created": "2026-07-26T23:39:19.353Z",
+      "updated": "2026-07-26T23:39:19.353Z",
+      "checksum": "fe8209a4ff0361b7",
+      "summary": "metadata:   schema_version: \"1.0.0\"   created_at: \"2026-07-24T09:57:24Z\"   description: \"Provenance for the executable HotM manifest support-URL fixture correction\" entity:",
+      "dependencies": [],
+      "dependents": []
+    },
+    ".aiwg/research/provenance/records/verify-fortemi-closeout-package.py.prov.yaml": {
+      "path": ".aiwg/research/provenance/records/verify-fortemi-closeout-package.py.prov.yaml",
+      "type": "document",
+      "phase": "other",
+      "title": "Untitled",
+      "tags": [],
+      "created": "2026-07-26T23:39:19.353Z",
+      "updated": "2026-07-26T23:39:19.353Z",
+      "checksum": "5ebb411039c22c2a",
+      "summary": "metadata:   schema_version: \"1.0.0\"   created_at: \"2026-07-26T15:10:08Z\"   description: \"Provenance for the Fortemi closeout verifier baseline update\" entity:",
+      "dependencies": [
+        "git.integrolabs.net"
+      ],
+      "dependents": []
+    },
+    ".aiwg/research/provenance/records/verify-fortemi-event-catalog.mjs.prov.yaml": {
+      "path": ".aiwg/research/provenance/records/verify-fortemi-event-catalog.mjs.prov.yaml",
+      "type": "document",
+      "phase": "other",
+      "title": "Untitled",
+      "tags": [],
+      "created": "2026-07-26T23:39:19.353Z",
+      "updated": "2026-07-26T23:39:19.353Z",
+      "checksum": "7d76b909336d6c29",
+      "summary": "metadata:   schema_version: \"1.0.0\"   created_at: \"2026-07-17T20:15:02Z\"   description: \"Provenance for the HotM #268 Fortemi event catalog verifier\" entity:",
+      "dependencies": [
+        "git.integrolabs.net"
+      ],
+      "dependents": []
+    },
+    ".aiwg/research/provenance/records/verify-fortemi-knowledge-shard-contract.mjs.prov.yaml": {
+      "path": ".aiwg/research/provenance/records/verify-fortemi-knowledge-shard-contract.mjs.prov.yaml",
+      "type": "document",
+      "phase": "other",
+      "title": "Untitled",
+      "tags": [],
+      "created": "2026-07-26T23:39:19.353Z",
+      "updated": "2026-07-26T23:39:19.353Z",
+      "checksum": "873a32ac619cacb3",
+      "summary": "metadata:   schema_version: \"1.0.0\"   created_at: \"2026-07-17T20:47:53Z\"   updated_at: \"2026-07-25T00:01:05Z\"   description: \"Provenance for the HotM #272 pinned full-v1 Knowledge Shard verifier\"",
+      "dependencies": [
+        "git.integrolabs.net"
+      ],
+      "dependents": []
+    },
+    ".aiwg/research/provenance/records/verify-fortemi-openapi-contract.mjs.prov.yaml": {
+      "path": ".aiwg/research/provenance/records/verify-fortemi-openapi-contract.mjs.prov.yaml",
+      "type": "document",
+      "phase": "other",
+      "title": "Untitled",
+      "tags": [],
+      "created": "2026-07-26T23:39:19.353Z",
+      "updated": "2026-07-26T23:39:19.353Z",
+      "checksum": "a47a3d1bb93a86b7",
+      "summary": "metadata:   schema_version: \"1.0.0\"   created_at: \"2026-07-17T21:46:51Z\"   description: \"Provenance for HotM #270 operation-complete Fortemi OpenAPI consumer gate\" entity:",
+      "dependencies": [
+        "git.integrolabs.net"
+      ],
+      "dependents": []
+    },
+    ".aiwg/risks/fortemi-v2026-07-integration-risk-register.md": {
+      "path": ".aiwg/risks/fortemi-v2026-07-integration-risk-register.md",
+      "type": "risk",
+      "phase": "risks",
+      "title": "Fortemi v2026.7.1 HotM Integration Risk Register",
+      "tags": [],
+      "created": "2026-07-26T23:39:19.353Z",
+      "updated": "2026-07-26T23:39:19.353Z",
+      "checksum": "d88944b3ed0c9a89",
+      "summary": "Track risks that can prevent HotM from reaching seamless integration with the current Fortemi server API, feature, and tool surface. This register is scoped to the Fortemi `v2026.7.1` audit baseline at commit `f6733252` and the HotM planning baseline at commit `ce42f9d`. Risk scoring follows the SDLC risk-management cycle: | Priority | Score | Meaning | | --- | ---: | --- | | P0 Show Stopper | 21-25 | Project cannot proceed without resolution. |",
+      "dependencies": [],
+      "dependents": []
     },
     ".aiwg/risks/risk-list-v2.md": {
       "path": ".aiwg/risks/risk-list-v2.md",
@@ -1549,6 +2797,19 @@
       "updated": "2026-07-04T19:56:08.117Z",
       "checksum": "43bf7895e48e6ded",
       "summary": "**Project**: HotM UI Redesign (HOTM-013) **Phase**: Elaboration **Version**: 1.0 **Last Updated**: 2026-02-05 **Status**: BASELINED",
+      "dependencies": [],
+      "dependents": []
+    },
+    ".aiwg/security/fortemi-v2026-07-security-redaction-controls.md": {
+      "path": ".aiwg/security/fortemi-v2026-07-security-redaction-controls.md",
+      "type": "document",
+      "phase": "security",
+      "title": "Fortemi v2026.7.1 HotM Security and Redaction Controls",
+      "tags": [],
+      "created": "2026-07-26T23:39:19.353Z",
+      "updated": "2026-07-26T23:39:19.353Z",
+      "checksum": "c706441c84196498",
+      "summary": "Define the Fortemi v2026.7.1-specific security and redaction controls that implementation issues must satisfy before HotM can claim seamless current-server integration. This addendum narrows the project-wide secrets policy to the new stream, ingest, webhook, inbound connector, backup, media, realtime call, and agent-tool surfaces. | Default | Rule | | --- | --- | | Fail closed | Unknown, preview, unavailable, malformed, insufficient-role, or unsupported capability state disables production-affec",
       "dependencies": [],
       "dependents": []
     },
@@ -1671,6 +2932,19 @@
       "dependencies": [],
       "dependents": []
     },
+    ".aiwg/testing/api-contract-test-plan-addendum-2026-07.md": {
+      "path": ".aiwg/testing/api-contract-test-plan-addendum-2026-07.md",
+      "type": "test-plan",
+      "phase": "testing",
+      "title": "API Contract Test Plan Addendum - Fortemi v2026.7.1",
+      "tags": [],
+      "created": "2026-07-26T23:39:19.353Z",
+      "updated": "2026-07-26T23:39:19.353Z",
+      "checksum": "cd57274cbe96fa90",
+      "summary": "Extend the May 2026 API contract checks so HotM can track and verify the Fortemi v2026.7.1 server surface. The test strategy must cover route inventory drift, OpenAPI schemas, AsyncAPI event semantics, Knowledge Shard profiles and losslessness, compatibility negotiation, cross-language auth fixtures, streaming endpoints, operator/admin surfaces, future partial parity regressions, newly discovered decision-needed endpoints, and documented exclusions. | Guard | Keep / extend | | --- | --- | | `ui/",
+      "dependencies": [],
+      "dependents": []
+    },
     ".aiwg/testing/coverage-baseline.md": {
       "path": ".aiwg/testing/coverage-baseline.md",
       "type": "document",
@@ -1691,9 +2965,9 @@
       "title": "HotM Enterprise Demo Dry-Run Receipt Template",
       "tags": [],
       "created": "2026-07-07T21:21:05.802Z",
-      "updated": "2026-07-07T21:21:05.802Z",
-      "checksum": "fe1d760f493fd22e",
-      "summary": "Capture one repeatable fixture-backed HotM enterprise demo dry run without converting preview evidence into hosted production readiness. This template is the receipt shape for HUX-REQ-012 and should be copied into a dated receipt under `.aiwg/evidence/` after each operator or reviewer dry run. | Field | Value | |---|---| | Dry-run date/time | `YYYY-MM-DD HH:MM TZ` | | Runner | `name or role` |",
+      "updated": "2026-07-08T07:06:15.504Z",
+      "checksum": "ded36fc898e78dff",
+      "summary": "Capture one repeatable fixture-backed HotM enterprise demo dry run without converting preview evidence into hosted production readiness. This template is the receipt shape for HUX-REQ-012 and should be copied into a dated receipt under `.aiwg/evidence/` after each operator or reviewer dry run. A completed receipt can support HUX-REQ-012 acceptance only when all of the following are true: - OP-2026-07-001 through OP-2026-07-006 have accepted rows in the suite operator ballot and are mirrored into",
       "dependencies": [],
       "dependents": []
     },
@@ -1703,10 +2977,10 @@
       "phase": "testing",
       "title": "HotM Enterprise Demo Operator Signoff Packet - 2026-07-06",
       "tags": [],
-      "created": "2026-07-07T05:02:18.782Z",
-      "updated": "2026-07-07T21:49:10.720Z",
-      "checksum": "65744a0a21f9f4c1",
-      "summary": "Make HUX-REQ-012 closeable by giving the operator one concrete signoff surface for the first HotM enterprise demo path. This packet does not approve the defaults by itself; it records the current recommended path, evidence already collected, the exact decisions needed, and the completed dated dry-run receipt requirement before the runbook can move from draft to accepted demo baseline. The suite-level answer surface is `.aiwg/decisions/operator-decision-ballot-2026-07-06.md`. Use `.aiwg/traceabil",
+      "created": "2026-07-26T23:39:25.711Z",
+      "updated": "2026-07-26T23:39:25.711Z",
+      "checksum": "be1e6b3d27ca542f",
+      "summary": "Make HUX-REQ-012 closeable by giving the operator one concrete signoff surface for the first HotM enterprise demo path. This packet does not approve the defaults by itself; it records the current recommended path, evidence already collected, the exact decisions needed, and the completed dated dry-run receipt requirement before the runbook can move from draft to accepted demo baseline. The suite-level answer surface is `../.aiwg/decisions/operator-decision-ballot-2026-07-06.md` from the HotM chec",
       "dependencies": [],
       "dependents": []
     },
@@ -1717,8 +2991,8 @@
       "title": "HotM Enterprise Demo Readiness Matrix",
       "tags": [],
       "created": "2026-07-08T03:56:30.699Z",
-      "updated": "2026-07-08T03:57:10.994Z",
-      "checksum": "f817107890b53e35",
+      "updated": "2026-07-08T09:01:57.550Z",
+      "checksum": "ae77cc66b88a00d9",
       "summary": "Give the operator and next implementation pass a compact view of what can be demonstrated now, what remains fixture-backed only, and what must stay blocked until external proof or operator acceptance exists. This matrix does not replace the runbook or test plan. It is a checkpoint entry point for deciding whether the current HotM UX is ready for a fixture-backed demo dry run. | State | Meaning | |---|---| | Demo-ready fixture | May be shown in a local or mocked preview with the named fixtures an",
       "dependencies": [],
       "dependents": []
@@ -1730,9 +3004,9 @@
       "title": "HotM Enterprise Demo Runbook - 2026-07",
       "tags": [],
       "created": "2026-07-06T21:57:28.779Z",
-      "updated": "2026-07-07T21:49:59.674Z",
-      "checksum": "14adba6e3b2e9a6c",
-      "summary": "Provide a reproducible manual and fixture-backed runbook for the HotM enterprise demo path. This runbook covers HUX-DEMO-001 through HUX-DEMO-005 and keeps backend blockers explicit instead of letting missing enterprise services appear as ambiguous demo failures. - Status: draft - Primary tracker: `Fortemi/HotM#250` - Parent plan: `Fortemi/HotM#243` - Persona default: tenant admin until the operator decides otherwise.",
+      "updated": "2026-07-09T13:51:37.761Z",
+      "checksum": "b41add68a87cf056",
+      "summary": "Provide a reproducible manual and fixture-backed runbook for the HotM enterprise demo path. This runbook covers HUX-DEMO-001 through HUX-DEMO-005 and keeps backend blockers explicit instead of letting missing enterprise services appear as ambiguous demo failures. - Status: accepted OP baseline; dry-run receipt still required - Primary tracker: `Fortemi/HotM#250` - Parent plan: `Fortemi/HotM#243` - Persona: tenant admin, accepted via OP-2026-07-001 on 2026-07-09.",
       "dependencies": [],
       "dependents": []
     },
@@ -1743,8 +3017,8 @@
       "title": "HotM Enterprise Demo Test Plan",
       "tags": [],
       "created": "2026-07-06T21:41:58.516Z",
-      "updated": "2026-07-07T21:47:25.932Z",
-      "checksum": "163ac9763cecb2ac",
+      "updated": "2026-07-08T09:00:45.161Z",
+      "checksum": "efad6391199ab1b2",
       "summary": "Verify that the HotM tenant-admin enterprise demo can be designed and implemented without overstating backend readiness. The test strategy focuses on capability metadata, disabled/degraded states, redaction, and reproducible demo behavior. The fixture matrix in `.aiwg/design/enterprise-demo-screen-state-blueprint-2026-07.md` is authoritative for cross-surface expectations. This test plan adds the coverage expectations for those fixtures. | Fixture | Purpose | |---|---| | `local-sidecar-compatibl",
       "dependencies": [],
       "dependents": []
@@ -1759,6 +3033,58 @@
       "updated": "2026-07-04T19:56:08.118Z",
       "checksum": "1df95951d7b00b44",
       "summary": "**Document Type**: Test Plan **Date**: 2026-04-01 **Project**: HotM — Regenerate AI Overhaul (Issue #165) --- This test plan covers the unit, integration, and quality gate requirements for the Regenerate AI Overhaul feature (parent issue #165). The overhaul introduces a `RegeneratePanel` component, a `NoteJobProgress` component, `ContextFilterInputs`, and an extended API method. All tests must be written before implementation per project TDD standards.",
+      "dependencies": [],
+      "dependents": []
+    },
+    ".aiwg/testing/fortemi-route-verifier-ci-adoption-2026-07.md": {
+      "path": ".aiwg/testing/fortemi-route-verifier-ci-adoption-2026-07.md",
+      "type": "document",
+      "phase": "testing",
+      "title": "Fortemi Route Verifier CI Adoption Runbook - v2026.7.1",
+      "tags": [],
+      "created": "2026-07-26T23:39:19.353Z",
+      "updated": "2026-07-26T23:39:19.353Z",
+      "checksum": "ce665ddcfcdd9678",
+      "summary": "Define how #253 moves the Fortemi route inventory verifier from local evidence into a repeatable CI control. The current HotM worktree wires the verifier into `.gitea/workflows/sdlc-gates.yml`; a live Gitea run receipt is still required before final tracker closure. | Requirement | Expected state | | --- | --- | | Fortemi checkout | Sibling repo at `../fortemi`, synced to the audited commit. | | HotM checkout | Current working tree contains the route inventory generator and evidence map. |",
+      "dependencies": [],
+      "dependents": []
+    },
+    ".aiwg/testing/fortemi-route-verifier-spec-2026-07.md": {
+      "path": ".aiwg/testing/fortemi-route-verifier-spec-2026-07.md",
+      "type": "document",
+      "phase": "testing",
+      "title": "Fortemi Route Verifier Specification - v2026.7.1",
+      "tags": [],
+      "created": "2026-07-26T23:39:19.353Z",
+      "updated": "2026-07-26T23:39:19.353Z",
+      "checksum": "a29ace43ed7a7215",
+      "summary": "Define the #253 verifier behavior needed to turn the current Fortemi v2026.7.1 planning inventory into a repeatable compatibility control. The current script extracts Fortemi routes and classifies families. The implementation verifier must also prove that route-family status, evidence metadata, and issue-backed dispositions stay coherent as Fortemi and HotM change. | Input | Role | | --- | --- | | Fortemi route source: `../fortemi/crates/matric-api/src/main.rs` | Canonical route extraction sourc",
+      "dependencies": [],
+      "dependents": []
+    },
+    ".aiwg/testing/fortemi-v2026-07-fixture-catalog.md": {
+      "path": ".aiwg/testing/fortemi-v2026-07-fixture-catalog.md",
+      "type": "document",
+      "phase": "testing",
+      "title": "Fortemi v2026.7.1 Test Fixture Catalog",
+      "tags": [],
+      "created": "2026-07-26T23:39:19.353Z",
+      "updated": "2026-07-26T23:39:19.353Z",
+      "checksum": "2cf787583cc0aa17",
+      "summary": "Define canonical fixture names and required data shapes for the Fortemi v2026.7.1 HotM integration tests. Implementation PRs should use this catalog when adding Vitest, component, e2e, or agent fixtures so success, degraded, unsupported, and redaction states stay consistent across issues. - Fixtures must never contain real tokens, API keys, webhook secrets, connector credentials, private endpoints, provider call IDs, archive paths, or media transcripts. - Secret-like values must use obvious plac",
+      "dependencies": [],
+      "dependents": []
+    },
+    ".aiwg/testing/fortemi-v2026-07-scenario-test-matrix.md": {
+      "path": ".aiwg/testing/fortemi-v2026-07-scenario-test-matrix.md",
+      "type": "document",
+      "phase": "testing",
+      "title": "Fortemi v2026.7.1 Scenario Test Matrix",
+      "tags": [],
+      "created": "2026-07-26T23:39:19.353Z",
+      "updated": "2026-07-26T23:39:19.353Z",
+      "checksum": "441f58264b45ab4f",
+      "summary": "Define the test evidence needed to close the Fortemi v2026.7.1 UX workflow scenarios. This matrix complements the API contract addendum by mapping each scenario to test files, test levels, fixtures, redaction checks, and route-family status updates required before the integration gate can move from local implementation evidence and published tracker receipts to final CI/local-preflight policy closure. Canonical fixture names and minimum data shapes are maintained in `.aiwg/testing/fortemi-v2026-",
       "dependencies": [],
       "dependents": []
     },

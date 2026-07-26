@@ -18,7 +18,7 @@ HotM is entering an enterprise demo planning phase. The existing SDLC corpus is 
 - Use `HotM/.aiwg/requirements/enterprise-demo-requirements-2026-07.md` and `HotM/.aiwg/testing/enterprise-demo-test-plan-2026-07.md` for implementation acceptance criteria and verification.
 - Use filed issues `Fortemi/HotM#243` through `#250` as the enterprise UX tracker set.
 - Keep enterprise surfaces gated by backend capability discovery until Fortemi contracts are stable.
-- Keep the fixture-backed product sequence constrained by the accepted OP-2026-07-001 through OP-2026-07-006 defaults while HUX-REQ-012 waits for the dated dry-run receipt and while live CI, private registry, hosted production, public/legal, HMC, binary parity/export, and suite graph gates remain open.
+- Keep the fixture-backed product sequence constrained by the accepted OP-2026-07-001 through OP-2026-07-006 defaults. HUX-REQ-012 dry-run evidence is recorded in `HotM/.aiwg/evidence/hotm-enterprise-demo-dry-run-2026-07-09.md` and `Fortemi/HotM#250` comment `#81346` for fixture-backed preview only. HMC defaults are accepted for planning through `Fortemi/HotM#251` comment `#81345`, while live CI, private registry, hosted production, public/legal, binary parity/export, suite graph gates, and hosted/mobile production readiness remain open.
 
 ## Implementation Progress
 

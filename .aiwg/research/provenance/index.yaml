@@ -1,8 +1,20 @@
 metadata:
   schema_version: "1.0.0"
-  updated_at: "2026-07-26T15:19:45Z"
-  record_count: 50
+  updated_at: "2026-07-26T23:42:02Z"
+  record_count: 56
 records:
+  - entity: "urn:aiwg:artifact:.aiwg/architecture/adr-mobile-cloud-architecture.md"
+    record: "records/adr-mobile-cloud-architecture.md.prov.yaml"
+  - entity: "urn:aiwg:artifact:.aiwg/testing/enterprise-demo-operator-signoff-2026-07-06.md"
+    record: "records/enterprise-demo-operator-signoff-2026-07-06.md.prov.yaml"
+  - entity: "urn:aiwg:artifact:.aiwg/evidence/hotm-enterprise-demo-dry-run-2026-07-09.md"
+    record: "records/hotm-enterprise-demo-dry-run-2026-07-09.md.prov.yaml"
+  - entity: "urn:aiwg:artifact:.aiwg/planning/mobile-expansion-INDEX.md"
+    record: "records/mobile-expansion-INDEX.md.prov.yaml"
+  - entity: "urn:aiwg:artifact:.aiwg/planning/mobile-expansion-phase-plan.md"
+    record: "records/mobile-expansion-phase-plan.md.prov.yaml"
+  - entity: "urn:aiwg:artifact:.aiwg/reports/sdlc-checkpoint-2026-07.md"
+    record: "records/sdlc-checkpoint-2026-07.md.prov.yaml"
   - entity: "urn:aiwg:artifact:.gitea/workflows/ui-ci.yml"
     record: "records/ui-ci-network-independent-vault-tools-272.prov.yaml"
   - entity: "urn:aiwg:artifact:.aiwg/architecture/adr/ADR-010-fortemi-v2026-07-api-coverage.md"
