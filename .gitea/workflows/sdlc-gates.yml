@@ -53,7 +53,11 @@ jobs:
 
       - name: Verify Fortemi OpenAPI consumer contract
         shell: bash
-        run: node .aiwg/testing/scripts/verify-fortemi-openapi-contract.mjs ../fortemi --write-ci-receipt openapi-consumer-receipt.json
+        run: |
+          GITHUB_SHA="$(git rev-parse HEAD)" \
+            node .aiwg/testing/scripts/verify-fortemi-openapi-contract.mjs \
+              ../fortemi \
+              --write-ci-receipt openapi-consumer-receipt.json
 
       - name: Test delivered OpenAPI client boundary
         shell: bash
