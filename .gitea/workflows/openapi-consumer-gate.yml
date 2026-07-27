@@ -8,6 +8,7 @@ jobs:
   fortemi-openapi:
     name: Fortemi OpenAPI Consumer Contract
     runs-on: ubuntu-latest
+    container: node:20@sha256:8f693eaa7e0a8e71560c9a82b55fd54c2ae920a2ba5d2cde28bac7d1c01c9ba5
     env:
       FORTEMI_REPOSITORY: Fortemi/fortemi.git
     steps:
@@ -27,9 +28,7 @@ jobs:
             node -e \
               'console.log(require("./ui/src/api/contracts/fortemi-openapi-receipt.json").producer.commit)'
           )"
-          git clone \
-            "https://token:${{ github.token }}@git.integrolabs.net/${FORTEMI_REPOSITORY}" \
-            ../fortemi
+          git clone "https://git.integrolabs.net/${FORTEMI_REPOSITORY}" ../fortemi
           git -C ../fortemi checkout --detach "${FORTEMI_COMMIT}"
 
       - name: Install verifier dependencies
