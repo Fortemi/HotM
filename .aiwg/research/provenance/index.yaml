@@ -1,7 +1,7 @@
 metadata:
   schema_version: "1.0.0"
-  updated_at: "2026-07-27T00:27:15Z"
-  record_count: 62
+  updated_at: "2026-07-27T12:55:23Z"
+  record_count: 63
 records:
   - entity: "urn:aiwg:artifact:.aiwg/architecture/adr-mobile-cloud-architecture.md"
     record: "records/adr-mobile-cloud-architecture.md.prov.yaml"
@@ -123,6 +123,8 @@ records:
     record: "records/agent-proxy-auth-verify.test.ts.prov.yaml"
   - entity: "urn:aiwg:artifact:agent-proxy/src/auth/fixtures/fortemi-auth-v1.json"
     record: "records/fortemi-auth-v1.json.prov.yaml"
+  - entity: "urn:aiwg:artifact:agent-proxy/src/auth/fixtures/fortemi-auth-release-policy-v1.json"
+    record: "records/fortemi-auth-release-policy-v1.json.prov.yaml"
   - entity: "urn:aiwg:artifact:.aiwg/architecture/adr-auth-shared-crate.md"
     record: "records/adr-auth-shared-crate.md.prov.yaml"
   - entity: "urn:aiwg:artifact:.aiwg/reports/fortemi-auth-node-conformance-receipt-2026-07-26.md"

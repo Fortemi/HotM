@@ -5,8 +5,11 @@ date: 2026-07-26
 profile: rust-node-jwt-v1
 contract_version: 1.0.0
 authority_repository: https://git.integrolabs.net/Fortemi/fortemi-auth
-authority_commit: 656d44fe3f16ef9b0c8c71cf394d06455f86e2b5
+authority_release: v2026.7.0
+authority_tag_object: e4eb45370d49c65fd04ce8e5bebb8cb904c0c168
+authority_commit: 130919cc01a29a1360c5f110ad8e2f8277e66c0a
 manifest_sha256: dbd7fff6370d8a0c55d2c7e4ad311d3ddd1796815e2caff6dc05501cdf417a38
+release_policy_sha256: c8c6e2fd9237ddf238f74376aad841c53fce86885f95c982befdcbcd24880e5b
 related_issues:
   - HotM/HotM#231
   - Fortemi/fortemi#1081
@@ -24,17 +27,22 @@ provider support, OAuth route integration, or suite-wide authentication parity.
 
 - Implementation: `agent-proxy/src/auth/verify.ts`
 - Fixture: `agent-proxy/src/auth/fixtures/fortemi-auth-v1.json`
+- Release policy: `agent-proxy/src/auth/fixtures/fortemi-auth-release-policy-v1.json`
 - Runtime: Node.js with `jose`
 - Allowed JOSE algorithm: `RS256`
 
 ## Executed controls
 
 - Verified the vendored manifest's exact SHA-256 before executing cases.
+- Verified the vendored release policy's exact SHA-256.
 - Executed all 13 authority cases, including expiry, future `iat`, `nbf`,
   signature tampering, issuer/audience mismatch, algorithm rejection, tenant
   extraction, exact scope matching, malformed input, and JWKS rotation.
 - Compared accepted identity, tenant, scopes, and `kid` values.
 - Compared every rejection to the authority's stable redacted error code.
+- Executed all eight CalVer release-policy cases. Only the exact current
+  release/contract/profile/manifest tuple passed; bootstrap, previous/future
+  trains, next year, contract/profile drift, and manifest drift failed closed.
 - Ran TypeScript type checking and the complete `agent-proxy` Vitest suite.
 
 ## Result

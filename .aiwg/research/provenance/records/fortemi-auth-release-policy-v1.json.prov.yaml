@@ -1,0 +1,45 @@
+metadata:
+  schema_version: "1.0.0"
+  created_at: "2026-07-27T12:55:23Z"
+  updated_at: "2026-07-27T12:55:23Z"
+  description: "Provenance for the exact vendored Fortemi auth CalVer release policy"
+entity:
+  id: "urn:aiwg:artifact:agent-proxy/src/auth/fixtures/fortemi-auth-release-policy-v1.json"
+  type: test_fixture
+  created_at: "2026-07-27T12:55:23Z"
+  updated_at: "2026-07-27T12:55:23Z"
+  checksum: "sha256:c8c6e2fd9237ddf238f74376aad841c53fce86885f95c982befdcbcd24880e5b"
+  size_bytes: 3369
+  attributes:
+    change_scope: "hotm-231-auth-calver-conformance"
+    authority_release: "v2026.7.0"
+    authority_revision: "130919cc01a29a1360c5f110ad8e2f8277e66c0a"
+activity:
+  id: "urn:aiwg:activity:import:fortemi-auth-release-policy-v1-json:001"
+  type: import
+  started_at: "2026-07-27T12:50:00Z"
+  ended_at: "2026-07-27T12:55:23Z"
+  description: "Vendor the exact public authority release policy for independent Node execution"
+agent:
+  id: "urn:aiwg:agent:codex-gpt-5"
+  type: ai_assistant
+  name: "Codex"
+  version: "gpt-5"
+  tool: "codex"
+relationships:
+  wasGeneratedBy:
+    entity: "urn:aiwg:artifact:agent-proxy/src/auth/fixtures/fortemi-auth-release-policy-v1.json"
+    activity: "urn:aiwg:activity:import:fortemi-auth-release-policy-v1-json:001"
+    time: "2026-07-27T12:55:23Z"
+  wasDerivedFrom:
+    - entity: "urn:aiwg:artifact:agent-proxy/src/auth/fixtures/fortemi-auth-release-policy-v1.json"
+      source: "urn:git:https://git.integrolabs.net/Fortemi/fortemi-auth.git:v2026.7.0:conformance/v1/release-policy.json"
+      derivation_type: "exact_copy"
+      activity: "urn:aiwg:activity:import:fortemi-auth-release-policy-v1-json:001"
+  wasAssociatedWith:
+    activity: "urn:aiwg:activity:import:fortemi-auth-release-policy-v1-json:001"
+    agent: "urn:aiwg:agent:codex-gpt-5"
+    role: "primary_author"
+  wasAttributedTo:
+    entity: "urn:aiwg:artifact:agent-proxy/src/auth/fixtures/fortemi-auth-release-policy-v1.json"
+    agent: "urn:aiwg:agent:codex-gpt-5"

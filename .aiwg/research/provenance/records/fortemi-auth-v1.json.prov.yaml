@@ -1,7 +1,7 @@
 metadata:
   schema_version: "1.0.0"
   created_at: "2026-07-27T00:27:15Z"
-  updated_at: "2026-07-27T00:27:15Z"
+  updated_at: "2026-07-27T12:55:23Z"
   description: "Provenance for the exact vendored Fortemi auth v1 fixture manifest"
 entity:
   id: "urn:aiwg:artifact:agent-proxy/src/auth/fixtures/fortemi-auth-v1.json"
@@ -32,7 +32,7 @@ relationships:
     time: "2026-07-27T00:27:15Z"
   wasDerivedFrom:
     - entity: "urn:aiwg:artifact:agent-proxy/src/auth/fixtures/fortemi-auth-v1.json"
-      source: "urn:git:https://git.integrolabs.net/Fortemi/fortemi-auth.git:656d44fe3f16ef9b0c8c71cf394d06455f86e2b5:conformance/v1/manifest.json"
+      source: "urn:git:https://git.integrolabs.net/Fortemi/fortemi-auth.git:v2026.7.0:conformance/v1/manifest.json"
       derivation_type: "exact_copy"
       activity: "urn:aiwg:activity:generation:fortemi-auth-v1-json:001"
   wasAssociatedWith:

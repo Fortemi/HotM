@@ -1,15 +1,15 @@
 metadata:
   schema_version: "1.0.0"
   created_at: "2026-07-27T00:27:15Z"
-  updated_at: "2026-07-27T00:27:15Z"
+  updated_at: "2026-07-27T12:55:23Z"
   description: "Provenance for the public Fortemi authentication authority decision"
 entity:
   id: "urn:aiwg:artifact:.aiwg/architecture/adr-auth-shared-crate.md"
   type: document
   created_at: "2026-07-27T00:27:15Z"
-  updated_at: "2026-07-27T00:27:15Z"
-  checksum: "sha256:039be52d984bf8e06136f217d1a55b6029bb4b7c4049808d6c8d12eea3920b60"
-  size_bytes: 2384
+  updated_at: "2026-07-27T12:55:23Z"
+  checksum: "sha256:bb4c9f6ba330ea17a82e76adf65e54fe554fa2582a4529a5aec4cd830d7363e2"
+  size_bytes: 2802
   attributes:
     change_scope: "hotm-231-rust-node-jwt-v1"
     base_revision: "8a570e983ba208bb09752250524d796e3e79bcc1"
@@ -17,8 +17,8 @@ activity:
   id: "urn:aiwg:activity:modification:adr-auth-shared-crate-md:001"
   type: modification
   started_at: "2026-07-27T00:20:00Z"
-  ended_at: "2026-07-27T00:27:15Z"
-  description: "Replace the obsolete private-crate posture with the public contract and native-consumer decision"
+  ended_at: "2026-07-27T12:55:23Z"
+  description: "Bind the public native-consumer decision to the signed CalVer release policy"
 agent:
   id: "urn:aiwg:agent:codex-gpt-5"
   type: ai_assistant
@@ -36,7 +36,7 @@ relationships:
       derivation_type: "modifies"
       activity: "urn:aiwg:activity:modification:adr-auth-shared-crate-md:001"
     - entity: "urn:aiwg:artifact:.aiwg/architecture/adr-auth-shared-crate.md"
-      source: "urn:git:https://git.integrolabs.net/Fortemi/fortemi-auth.git:656d44fe3f16ef9b0c8c71cf394d06455f86e2b5:docs/adr/ADR-AUTH-002-public-core-private-enterprise-providers.md"
+      source: "urn:git:https://git.integrolabs.net/Fortemi/fortemi-auth.git:v2026.7.0:docs/adr/adr-003-calver-release-and-contract-versioning.md"
       derivation_type: "implements"
       activity: "urn:aiwg:activity:modification:adr-auth-shared-crate-md:001"
   wasAssociatedWith:

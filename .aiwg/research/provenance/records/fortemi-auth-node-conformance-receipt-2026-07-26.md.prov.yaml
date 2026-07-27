@@ -1,15 +1,15 @@
 metadata:
   schema_version: "1.0.0"
   created_at: "2026-07-27T00:27:15Z"
-  updated_at: "2026-07-27T00:27:15Z"
+  updated_at: "2026-07-27T12:55:23Z"
   description: "Provenance for the HotM rust-node-jwt-v1 conformance receipt"
 entity:
   id: "urn:aiwg:artifact:.aiwg/reports/fortemi-auth-node-conformance-receipt-2026-07-26.md"
   type: test_evidence
   created_at: "2026-07-27T00:27:15Z"
-  updated_at: "2026-07-27T00:27:15Z"
-  checksum: "sha256:85f49d9546949446198b798258b33bde7591d2f73a5f9dbcd0a8eb0d61136da3"
-  size_bytes: 1630
+  updated_at: "2026-07-27T12:55:23Z"
+  checksum: "sha256:7e23d9fe2e422e0780ee77714cec6c71680cf92381d0551bdd0d12c42b6b0542"
+  size_bytes: 2181
   attributes:
     change_scope: "hotm-231-rust-node-jwt-v1"
     result: "passed"
@@ -17,8 +17,8 @@ activity:
   id: "urn:aiwg:activity:generation:fortemi-auth-node-conformance-receipt:001"
   type: generation
   started_at: "2026-07-27T00:20:00Z"
-  ended_at: "2026-07-27T00:27:15Z"
-  description: "Record exact-profile Node conformance without broad parity claims"
+  ended_at: "2026-07-27T12:55:23Z"
+  description: "Record exact-profile and CalVer Node conformance without broad parity claims"
 agent:
   id: "urn:aiwg:agent:codex-gpt-5"
   type: ai_assistant
@@ -34,6 +34,10 @@ relationships:
     - entity: "urn:aiwg:artifact:.aiwg/reports/fortemi-auth-node-conformance-receipt-2026-07-26.md"
       source: "urn:aiwg:artifact:agent-proxy/src/auth/verify.test.ts"
       derivation_type: "records"
+      activity: "urn:aiwg:activity:generation:fortemi-auth-node-conformance-receipt:001"
+    - entity: "urn:aiwg:artifact:.aiwg/reports/fortemi-auth-node-conformance-receipt-2026-07-26.md"
+      source: "urn:git:https://git.integrolabs.net/Fortemi/fortemi-auth.git:v2026.7.0:conformance/v1/release-policy.json"
+      derivation_type: "verifies"
       activity: "urn:aiwg:activity:generation:fortemi-auth-node-conformance-receipt:001"
   wasAssociatedWith:
     activity: "urn:aiwg:activity:generation:fortemi-auth-node-conformance-receipt:001"
