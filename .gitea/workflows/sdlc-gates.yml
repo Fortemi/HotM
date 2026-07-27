@@ -17,10 +17,11 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          BRANCH="${GITHUB_HEAD_REF:-${GITHUB_REF_NAME:-main}}"
-          git clone --depth 1 --branch "${BRANCH}" \
-            "https://token:${{ github.token }}@git.integrolabs.net/${GITHUB_REPOSITORY}.git" .
-          git checkout "${GITHUB_SHA:-HEAD}"
+          git init .
+          git remote add origin \
+            "https://token:${{ github.token }}@git.integrolabs.net/${GITHUB_REPOSITORY}.git"
+          git fetch --depth 1 origin "${GITHUB_SHA:-main}"
+          git checkout --detach FETCH_HEAD
 
       - name: Checkout Fortemi sibling
         shell: bash
