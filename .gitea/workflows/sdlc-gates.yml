@@ -17,10 +17,27 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          PR_HEAD_REF="$(
+            python3 - <<'PY'
+          import json
+          import os
+
+          event_path = os.environ.get("GITHUB_EVENT_PATH")
+          if event_path:
+              with open(event_path, encoding="utf-8") as event_file:
+                  print(
+                      json.load(event_file)
+                      .get("pull_request", {})
+                      .get("head", {})
+                      .get("ref", "")
+                  )
+          PY
+          )"
+          FETCH_REF="${PR_HEAD_REF:-${GITHUB_REF:-${GITHUB_SHA:-main}}}"
           git init .
           git remote add origin \
             "https://token:${{ github.token }}@git.integrolabs.net/${GITHUB_REPOSITORY}.git"
-          git fetch --depth 1 origin "${GITHUB_REF:-${GITHUB_SHA:-main}}" ||
+          git fetch --depth 1 origin "${FETCH_REF}" ||
             git fetch --depth 1 origin "${GITHUB_SHA:-main}"
           git checkout --detach FETCH_HEAD
 
