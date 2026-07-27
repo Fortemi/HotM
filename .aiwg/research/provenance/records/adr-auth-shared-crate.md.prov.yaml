@@ -1,0 +1,48 @@
+metadata:
+  schema_version: "1.0.0"
+  created_at: "2026-07-27T00:27:15Z"
+  updated_at: "2026-07-27T00:27:15Z"
+  description: "Provenance for the public Fortemi authentication authority decision"
+entity:
+  id: "urn:aiwg:artifact:.aiwg/architecture/adr-auth-shared-crate.md"
+  type: document
+  created_at: "2026-07-27T00:27:15Z"
+  updated_at: "2026-07-27T00:27:15Z"
+  checksum: "sha256:039be52d984bf8e06136f217d1a55b6029bb4b7c4049808d6c8d12eea3920b60"
+  size_bytes: 2384
+  attributes:
+    change_scope: "hotm-231-rust-node-jwt-v1"
+    base_revision: "8a570e983ba208bb09752250524d796e3e79bcc1"
+activity:
+  id: "urn:aiwg:activity:modification:adr-auth-shared-crate-md:001"
+  type: modification
+  started_at: "2026-07-27T00:20:00Z"
+  ended_at: "2026-07-27T00:27:15Z"
+  description: "Replace the obsolete private-crate posture with the public contract and native-consumer decision"
+agent:
+  id: "urn:aiwg:agent:codex-gpt-5"
+  type: ai_assistant
+  name: "Codex"
+  version: "gpt-5"
+  tool: "codex"
+relationships:
+  wasGeneratedBy:
+    entity: "urn:aiwg:artifact:.aiwg/architecture/adr-auth-shared-crate.md"
+    activity: "urn:aiwg:activity:modification:adr-auth-shared-crate-md:001"
+    time: "2026-07-27T00:27:15Z"
+  wasDerivedFrom:
+    - entity: "urn:aiwg:artifact:.aiwg/architecture/adr-auth-shared-crate.md"
+      source: "urn:git:https://git.integrolabs.net/Fortemi/HotM.git:8a570e983ba208bb09752250524d796e3e79bcc1:.aiwg/architecture/adr-auth-shared-crate.md"
+      derivation_type: "modifies"
+      activity: "urn:aiwg:activity:modification:adr-auth-shared-crate-md:001"
+    - entity: "urn:aiwg:artifact:.aiwg/architecture/adr-auth-shared-crate.md"
+      source: "urn:git:https://git.integrolabs.net/Fortemi/fortemi-auth.git:656d44fe3f16ef9b0c8c71cf394d06455f86e2b5:docs/adr/ADR-AUTH-002-public-core-private-enterprise-providers.md"
+      derivation_type: "implements"
+      activity: "urn:aiwg:activity:modification:adr-auth-shared-crate-md:001"
+  wasAssociatedWith:
+    activity: "urn:aiwg:activity:modification:adr-auth-shared-crate-md:001"
+    agent: "urn:aiwg:agent:codex-gpt-5"
+    role: "primary_author"
+  wasAttributedTo:
+    entity: "urn:aiwg:artifact:.aiwg/architecture/adr-auth-shared-crate.md"
+    agent: "urn:aiwg:agent:codex-gpt-5"

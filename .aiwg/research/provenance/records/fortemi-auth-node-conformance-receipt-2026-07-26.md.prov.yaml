@@ -1,0 +1,44 @@
+metadata:
+  schema_version: "1.0.0"
+  created_at: "2026-07-27T00:27:15Z"
+  updated_at: "2026-07-27T00:27:15Z"
+  description: "Provenance for the HotM rust-node-jwt-v1 conformance receipt"
+entity:
+  id: "urn:aiwg:artifact:.aiwg/reports/fortemi-auth-node-conformance-receipt-2026-07-26.md"
+  type: test_evidence
+  created_at: "2026-07-27T00:27:15Z"
+  updated_at: "2026-07-27T00:27:15Z"
+  checksum: "sha256:85f49d9546949446198b798258b33bde7591d2f73a5f9dbcd0a8eb0d61136da3"
+  size_bytes: 1630
+  attributes:
+    change_scope: "hotm-231-rust-node-jwt-v1"
+    result: "passed"
+activity:
+  id: "urn:aiwg:activity:generation:fortemi-auth-node-conformance-receipt:001"
+  type: generation
+  started_at: "2026-07-27T00:20:00Z"
+  ended_at: "2026-07-27T00:27:15Z"
+  description: "Record exact-profile Node conformance without broad parity claims"
+agent:
+  id: "urn:aiwg:agent:codex-gpt-5"
+  type: ai_assistant
+  name: "Codex"
+  version: "gpt-5"
+  tool: "codex"
+relationships:
+  wasGeneratedBy:
+    entity: "urn:aiwg:artifact:.aiwg/reports/fortemi-auth-node-conformance-receipt-2026-07-26.md"
+    activity: "urn:aiwg:activity:generation:fortemi-auth-node-conformance-receipt:001"
+    time: "2026-07-27T00:27:15Z"
+  wasDerivedFrom:
+    - entity: "urn:aiwg:artifact:.aiwg/reports/fortemi-auth-node-conformance-receipt-2026-07-26.md"
+      source: "urn:aiwg:artifact:agent-proxy/src/auth/verify.test.ts"
+      derivation_type: "records"
+      activity: "urn:aiwg:activity:generation:fortemi-auth-node-conformance-receipt:001"
+  wasAssociatedWith:
+    activity: "urn:aiwg:activity:generation:fortemi-auth-node-conformance-receipt:001"
+    agent: "urn:aiwg:agent:codex-gpt-5"
+    role: "primary_author"
+  wasAttributedTo:
+    entity: "urn:aiwg:artifact:.aiwg/reports/fortemi-auth-node-conformance-receipt-2026-07-26.md"
+    agent: "urn:aiwg:agent:codex-gpt-5"

@@ -1,7 +1,7 @@
 metadata:
   schema_version: "1.0.0"
-  updated_at: "2026-07-26T23:42:02Z"
-  record_count: 56
+  updated_at: "2026-07-27T00:27:15Z"
+  record_count: 62
 records:
   - entity: "urn:aiwg:artifact:.aiwg/architecture/adr-mobile-cloud-architecture.md"
     record: "records/adr-mobile-cloud-architecture.md.prov.yaml"
@@ -115,3 +115,15 @@ records:
     record: "records/index.test.ts.prov.yaml"
   - entity: "urn:aiwg:artifact:.aiwg/testing/scripts/verify-fortemi-closeout-package.py"
     record: "records/verify-fortemi-closeout-package.py.prov.yaml"
+  - entity: "urn:aiwg:artifact:agent-proxy/src/auth/verify.ts"
+    record: "records/agent-proxy-auth-verify.ts.prov.yaml"
+  - entity: "urn:aiwg:artifact:agent-proxy/src/auth/index.ts"
+    record: "records/agent-proxy-auth-index.ts.prov.yaml"
+  - entity: "urn:aiwg:artifact:agent-proxy/src/auth/verify.test.ts"
+    record: "records/agent-proxy-auth-verify.test.ts.prov.yaml"
+  - entity: "urn:aiwg:artifact:agent-proxy/src/auth/fixtures/fortemi-auth-v1.json"
+    record: "records/fortemi-auth-v1.json.prov.yaml"
+  - entity: "urn:aiwg:artifact:.aiwg/architecture/adr-auth-shared-crate.md"
+    record: "records/adr-auth-shared-crate.md.prov.yaml"
+  - entity: "urn:aiwg:artifact:.aiwg/reports/fortemi-auth-node-conformance-receipt-2026-07-26.md"
+    record: "records/fortemi-auth-node-conformance-receipt-2026-07-26.md.prov.yaml"

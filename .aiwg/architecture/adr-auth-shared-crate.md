@@ -1,41 +1,55 @@
 ---
 adr_id: ADR-AUTH-001
-title: OAuth via shared private Rust crate (canonical source private)
-status: Migrated to private repo
-date: 2026-05-17
-canonical_source: "Fortemi/fortemi-auth (private — Gitea)"
+title: Public Fortemi authentication contract with native consumer implementations
+status: accepted
+date: 2026-07-26
+canonical_source: "Fortemi/fortemi-auth (public MIT repository)"
 related_artifacts:
-  - .aiwg/architecture/adr-mobile-cloud-architecture.md
-  - .aiwg/architecture/manifest-schema-v1.md
-  - .aiwg/planning/mobile-expansion-phase-plan.md
+  - .aiwg/architecture/sad-fortemi-integration-addendum-2026-07.md
+  - .aiwg/reports/fortemi-auth-node-conformance-receipt-2026-07-26.md
 related_issues:
   - "#2 OAuth2/API Key Authentication"
   - "#224 Mobile expansion epic"
-  - "#1 Fortemi Integration epic"
-  - "#116 Embedded AI Assistant epic"
+  - "#231 Native auth corpus conformance"
+  - "Fortemi/fortemi#707"
 ---
 
-# ADR-AUTH-001 — migrated to private repo
+# ADR-AUTH-001 - Public authentication contract
 
-The canonical specification, decision rationale, alternatives considered, and implementation outline for this ADR have been moved to the private `Fortemi/fortemi-auth` repository:
+## Decision
 
-- `docs/adr/adr-001-shared-crate-architecture.md` (private)
+`Fortemi/fortemi-auth` is the public MIT-licensed authority for provider-neutral
+authentication behavior, stable error codes, tenant extraction, exact scope
+matching, and the versioned cross-language fixture corpus.
 
-This stub exists in the public repo only because other public artifacts (ADR-MOBILE-001, the manifest schema doc, the mobile expansion phase plan, and the comment thread on issue #2) reference `ADR-AUTH-001` by ID and path. Leaving those references resolvable matters; the implementation details do not need to be public.
+Rust services consume the public `fortemi-auth-core`, `fortemi-auth-clerk`, and
+`fortemi-auth-axum` crates. HotM's Node boundary remains independently
+implemented with `jose`; it must pass the exact authority corpus rather than
+claiming compatibility from matching type names or route presence. Future
+enterprise-only identity providers may remain private, but may not redefine the
+public core contract.
 
-## Public summary
+## Current disposition
 
-OAuth 2.0 + PKCE authentication is implemented as a shared Rust crate. The crate is consumed by `matric-api` via Cargo `git = "..."` dependency. Provider abstraction enables future IdP swaps without changes to consuming code.
+The Node verifier supports the named `rust-node-jwt-v1` profile from contract
+`1.0.0`, with RS256 only. Its fixture is byte-identical to the authority
+manifest and tests accepted, rejected, and key-rotation cases.
 
-All other detail — provider choice, claim contracts, tenant extraction logic, CI deploy-key setup, KMS posture, scopes model — lives in the private repo and is gated by Gitea collaborator access.
+The verifier is not yet installed as `agent-proxy` route middleware. The proxy
+remains localhost-only; hosted and enterprise authentication are planned
+deployment work and are not shipped by this ADR.
 
-## Why this is private
+## Consequences
 
-The detailed ADR contains IdP-specific configuration shape, tenant-claim mapping logic, and operational specifics that benefit from access control. Re-evaluate post-launch — if the contents become purely-glue, consider open-sourcing.
+- Consumers fail closed on unknown contract versions and unsupported JOSE algorithms.
+- Error responses use stable redacted codes rather than provider diagnostics.
+- Tenant existence remains a consumer-owned lookup after cryptographic verification.
+- A corpus receipt is compatibility evidence only for its named profile and pinned digest.
+- Provider configuration and live keys remain runtime secrets and never enter fixtures.
 
-## Cross-references
+## Authority
 
-- `Fortemi/fortemi-auth` — private repo (Gitea)
-- HotM #2 — original P0 OAuth umbrella issue; the comment thread links here and to the private repo
-- HotM #224 — mobile expansion epic; Phase 2 consumes this crate
-- Fortemi/#707 — matric-api integration epic
+- Repository: `https://git.integrolabs.net/Fortemi/fortemi-auth`
+- Public ADR: `docs/adr/ADR-AUTH-002-public-core-private-enterprise-providers.md`
+- Corpus: `conformance/v1/manifest.json`
+- Manifest SHA-256: `dbd7fff6370d8a0c55d2c7e4ad311d3ddd1796815e2caff6dc05501cdf417a38`

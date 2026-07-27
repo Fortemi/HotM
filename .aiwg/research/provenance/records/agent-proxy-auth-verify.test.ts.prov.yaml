@@ -1,0 +1,48 @@
+metadata:
+  schema_version: "1.0.0"
+  created_at: "2026-07-27T00:27:15Z"
+  updated_at: "2026-07-27T00:27:15Z"
+  description: "Provenance for the HotM Node auth corpus tests"
+entity:
+  id: "urn:aiwg:artifact:agent-proxy/src/auth/verify.test.ts"
+  type: test_code
+  created_at: "2026-07-27T00:27:15Z"
+  updated_at: "2026-07-27T00:27:15Z"
+  checksum: "sha256:5ba5d9fa06d0d45ba692c6c87a4285e9ed9b9d3fa7b69379ed65df55954392e1"
+  size_bytes: 2000
+  attributes:
+    change_scope: "hotm-231-rust-node-jwt-v1"
+    manifest_sha256: "dbd7fff6370d8a0c55d2c7e4ad311d3ddd1796815e2caff6dc05501cdf417a38"
+activity:
+  id: "urn:aiwg:activity:generation:agent-proxy-auth-verify-test-ts:001"
+  type: generation
+  started_at: "2026-07-27T00:20:00Z"
+  ended_at: "2026-07-27T00:27:15Z"
+  description: "Execute every rust-node-jwt-v1 authority case and verify fixture identity"
+agent:
+  id: "urn:aiwg:agent:codex-gpt-5"
+  type: ai_assistant
+  name: "Codex"
+  version: "gpt-5"
+  tool: "codex"
+relationships:
+  wasGeneratedBy:
+    entity: "urn:aiwg:artifact:agent-proxy/src/auth/verify.test.ts"
+    activity: "urn:aiwg:activity:generation:agent-proxy-auth-verify-test-ts:001"
+    time: "2026-07-27T00:27:15Z"
+  wasDerivedFrom:
+    - entity: "urn:aiwg:artifact:agent-proxy/src/auth/verify.test.ts"
+      source: "urn:aiwg:artifact:agent-proxy/src/auth/verify.ts"
+      derivation_type: "tests"
+      activity: "urn:aiwg:activity:generation:agent-proxy-auth-verify-test-ts:001"
+    - entity: "urn:aiwg:artifact:agent-proxy/src/auth/verify.test.ts"
+      source: "urn:git:https://git.integrolabs.net/Fortemi/fortemi-auth.git:656d44fe3f16ef9b0c8c71cf394d06455f86e2b5:conformance/v1/manifest.json"
+      derivation_type: "tests"
+      activity: "urn:aiwg:activity:generation:agent-proxy-auth-verify-test-ts:001"
+  wasAssociatedWith:
+    activity: "urn:aiwg:activity:generation:agent-proxy-auth-verify-test-ts:001"
+    agent: "urn:aiwg:agent:codex-gpt-5"
+    role: "primary_author"
+  wasAttributedTo:
+    entity: "urn:aiwg:artifact:agent-proxy/src/auth/verify.test.ts"
+    agent: "urn:aiwg:agent:codex-gpt-5"

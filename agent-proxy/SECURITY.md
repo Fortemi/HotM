@@ -38,12 +38,14 @@ requests on behalf of the local user.
 
 ## Network Exposure
 
-`agent-proxy` does **not** currently implement client authentication. The default
-binding to `127.0.0.1` is the primary control preventing remote use of the
-embedded API keys. Setting `BIND_ADDR=0.0.0.0` (or any non-loopback address)
+`agent-proxy` does **not** currently enforce client authentication on its routes.
+The default binding to `127.0.0.1` is the primary control preventing remote use
+of the embedded API keys. The reusable Node verifier in `src/auth/` passes the
+public `fortemi-auth` `rust-node-jwt-v1` fixture profile, but it is not installed
+as route middleware. Setting `BIND_ADDR=0.0.0.0` (or any non-loopback address)
 without additionally introducing an authentication layer is **not supported**
-and effectively publishes your LLM provider credentials to anyone who can
-reach the listening port.
+and effectively publishes your LLM provider credentials to anyone who can reach
+the listening port.
 
 If a network-exposed deployment is needed:
 

@@ -1,0 +1,43 @@
+metadata:
+  schema_version: "1.0.0"
+  created_at: "2026-07-27T00:27:15Z"
+  updated_at: "2026-07-27T00:27:15Z"
+  description: "Provenance for the HotM Node authentication public module surface"
+entity:
+  id: "urn:aiwg:artifact:agent-proxy/src/auth/index.ts"
+  type: source_code
+  created_at: "2026-07-27T00:27:15Z"
+  updated_at: "2026-07-27T00:27:15Z"
+  checksum: "sha256:a282cb5161bc607264b13fa0c239c9dc45eddd3c9cdd246eb9b39496fb8c3c89"
+  size_bytes: 149
+  attributes:
+    change_scope: "hotm-231-rust-node-jwt-v1"
+activity:
+  id: "urn:aiwg:activity:generation:agent-proxy-auth-index-ts:001"
+  type: generation
+  started_at: "2026-07-27T00:20:00Z"
+  ended_at: "2026-07-27T00:27:15Z"
+  description: "Expose the reusable Node authentication contract"
+agent:
+  id: "urn:aiwg:agent:codex-gpt-5"
+  type: ai_assistant
+  name: "Codex"
+  version: "gpt-5"
+  tool: "codex"
+relationships:
+  wasGeneratedBy:
+    entity: "urn:aiwg:artifact:agent-proxy/src/auth/index.ts"
+    activity: "urn:aiwg:activity:generation:agent-proxy-auth-index-ts:001"
+    time: "2026-07-27T00:27:15Z"
+  wasDerivedFrom:
+    - entity: "urn:aiwg:artifact:agent-proxy/src/auth/index.ts"
+      source: "urn:aiwg:artifact:agent-proxy/src/auth/verify.ts"
+      derivation_type: "exports"
+      activity: "urn:aiwg:activity:generation:agent-proxy-auth-index-ts:001"
+  wasAssociatedWith:
+    activity: "urn:aiwg:activity:generation:agent-proxy-auth-index-ts:001"
+    agent: "urn:aiwg:agent:codex-gpt-5"
+    role: "primary_author"
+  wasAttributedTo:
+    entity: "urn:aiwg:artifact:agent-proxy/src/auth/index.ts"
+    agent: "urn:aiwg:agent:codex-gpt-5"
