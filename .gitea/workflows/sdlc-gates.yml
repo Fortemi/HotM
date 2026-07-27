@@ -20,7 +20,8 @@ jobs:
           git init .
           git remote add origin \
             "https://token:${{ github.token }}@git.integrolabs.net/${GITHUB_REPOSITORY}.git"
-          git fetch --depth 1 origin "${GITHUB_SHA:-main}"
+          git fetch --depth 1 origin "${GITHUB_REF:-${GITHUB_SHA:-main}}" ||
+            git fetch --depth 1 origin "${GITHUB_SHA:-main}"
           git checkout --detach FETCH_HEAD
 
       - name: Checkout Fortemi sibling

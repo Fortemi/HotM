@@ -49,12 +49,12 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          # Hardcoded host so this also works under local `act_runner exec`,
-          # where ${GITHUB_SERVER_URL} is empty. Mirrors Fortemi/fortemi/test.yml.
-          BRANCH="${GITHUB_HEAD_REF:-${GITHUB_REF_NAME:-main}}"
-          git clone --depth 1 --branch "${BRANCH}" \
-            "https://token:${{ github.token }}@git.integrolabs.net/${GITHUB_REPOSITORY}.git" .
-          git checkout "${GITHUB_SHA:-HEAD}"
+          git init .
+          git remote add origin \
+            "https://token:${{ github.token }}@git.integrolabs.net/${GITHUB_REPOSITORY}.git"
+          git fetch --depth 1 origin "${GITHUB_REF:-${GITHUB_SHA:-main}}" ||
+            git fetch --depth 1 origin "${GITHUB_SHA:-main}"
+          git checkout --detach FETCH_HEAD
 
       - name: Install dependencies
         working-directory: ui
@@ -93,12 +93,12 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          # Hardcoded host so this also works under local `act_runner exec`,
-          # where ${GITHUB_SERVER_URL} is empty. Mirrors Fortemi/fortemi/test.yml.
-          BRANCH="${GITHUB_HEAD_REF:-${GITHUB_REF_NAME:-main}}"
-          git clone --depth 1 --branch "${BRANCH}" \
-            "https://token:${{ github.token }}@git.integrolabs.net/${GITHUB_REPOSITORY}.git" .
-          git checkout "${GITHUB_SHA:-HEAD}"
+          git init .
+          git remote add origin \
+            "https://token:${{ github.token }}@git.integrolabs.net/${GITHUB_REPOSITORY}.git"
+          git fetch --depth 1 origin "${GITHUB_REF:-${GITHUB_SHA:-main}}" ||
+            git fetch --depth 1 origin "${GITHUB_SHA:-main}"
+          git checkout --detach FETCH_HEAD
 
       - name: Install dependencies
         working-directory: agent-proxy
@@ -127,12 +127,12 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          # Hardcoded host so this also works under local `act_runner exec`,
-          # where ${GITHUB_SERVER_URL} is empty. Mirrors Fortemi/fortemi/test.yml.
-          BRANCH="${GITHUB_HEAD_REF:-${GITHUB_REF_NAME:-main}}"
-          git clone --depth 1 --branch "${BRANCH}" \
-            "https://token:${{ github.token }}@git.integrolabs.net/${GITHUB_REPOSITORY}.git" .
-          git checkout "${GITHUB_SHA:-HEAD}"
+          git init .
+          git remote add origin \
+            "https://token:${{ github.token }}@git.integrolabs.net/${GITHUB_REPOSITORY}.git"
+          git fetch --depth 1 origin "${GITHUB_REF:-${GITHUB_SHA:-main}}" ||
+            git fetch --depth 1 origin "${GITHUB_SHA:-main}"
+          git checkout --detach FETCH_HEAD
 
       - name: Verify vault fetch dependencies
         run: |
@@ -218,12 +218,12 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          # Hardcoded host so this also works under local `act_runner exec`,
-          # where ${GITHUB_SERVER_URL} is empty. Mirrors Fortemi/fortemi/test.yml.
-          BRANCH="${GITHUB_HEAD_REF:-${GITHUB_REF_NAME:-main}}"
-          git clone --depth 1 --branch "${BRANCH}" \
-            "https://token:${{ github.token }}@git.integrolabs.net/${GITHUB_REPOSITORY}.git" .
-          git checkout "${GITHUB_SHA:-HEAD}"
+          git init .
+          git remote add origin \
+            "https://token:${{ github.token }}@git.integrolabs.net/${GITHUB_REPOSITORY}.git"
+          git fetch --depth 1 origin "${GITHUB_REF:-${GITHUB_SHA:-main}}" ||
+            git fetch --depth 1 origin "${GITHUB_SHA:-main}"
+          git checkout --detach FETCH_HEAD
 
       - name: Verify vault fetch dependencies
         run: |
