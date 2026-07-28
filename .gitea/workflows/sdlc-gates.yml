@@ -56,6 +56,12 @@ jobs:
         shell: bash
         run: .aiwg/testing/scripts/verify-fortemi-route-inventory.sh
 
+      - name: Install Node.js and npm
+        shell: bash
+        run: |
+          apt-get update
+          apt-get install --no-install-recommends -y nodejs npm
+
       - name: Verify Fortemi realtime event catalog
         shell: bash
         run: node .aiwg/testing/scripts/verify-fortemi-event-catalog.mjs
