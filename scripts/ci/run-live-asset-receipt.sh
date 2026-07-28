@@ -4,7 +4,7 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 OUTPUT_DIR="${ROOT_DIR}/ui/test-results/live-asset-ci-receipt"
 TAURI_RECEIPT_DIR="${ROOT_DIR}/ui/test-results/live-tauri-full-v1-receipt"
-PROVENANCE="${ROOT_DIR}/release/sidecar-provenance.json"
+PROVENANCE="${ROOT_DIR}/release/live-asset-receipt-sidecar-provenance.json"
 RUN_KEY="${GITHUB_RUN_ID:-local}-$$"
 SAFE_RUN_KEY="$(printf '%s' "${RUN_KEY}" | tr -cd '[:alnum:]_-' | cut -c1-36)"
 WORK_DIR="$(mktemp -d)"
@@ -83,7 +83,8 @@ for _ in $(seq 1 60); do
 done
 [[ "${db_ready}" == "true" ]]
 
-"${ROOT_DIR}/scripts/download-pinned-sidecar.sh" \
+SIDECAR_PROVENANCE_MANIFEST="${PROVENANCE}" \
+  "${ROOT_DIR}/scripts/download-pinned-sidecar.sh" \
   x86_64-unknown-linux-gnu "${API_BINARY}" >/dev/null
 
 node - "${WORK_DIR}/signing-key.json" "${WORK_DIR}/trusted-keys.json" <<'NODE'
@@ -288,6 +289,7 @@ const receipt = {
     browserTusMultiOffsetResumePassed: Number(process.env.BROWSER_STATUS) === 0,
     browserSavedDownloadPassed: Number(process.env.BROWSER_STATUS) === 0,
     tauriLocalFileCoreAgainstLiveFortemiPassed: Number(process.env.TAURI_STATUS) === 0,
+    sourceRetiredBeforeCleanRecoveryPassed: Number(process.env.TAURI_STATUS) === 0,
     signedFullV1CleanRecoveryPassed: passed,
     exactBytesDigestAndLengthPassed: passed,
     authenticatedBoundaryPassed: passed,

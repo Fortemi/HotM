@@ -42,6 +42,7 @@ function validReceipt() {
       bytes: 262144,
       sha256: 'd'.repeat(64),
       contentHash,
+      deletedBeforeRecovery: true,
     },
     recovery: {
       memory: 'hotm_live_recovery',

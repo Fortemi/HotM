@@ -4,6 +4,7 @@ const fs = require('node:fs');
 
 const REQUIRED_TRUE_CLAIMS = [
   'tauriLocalFileCoreAgainstLiveFortemiPassed',
+  'sourceMemoryDeletedBeforeRecoveryPassed',
   'trustRequiredSignedFullV1RecoveryPassed',
   'sourceServerRecoveryBytesPassed',
   'desktopDownloadCoreSavedAndReopenedPassed',
@@ -94,6 +95,9 @@ function validateLiveTauriFullV1Receipt(receipt, { expectClean = true } = {}) {
   }
   if (!/^[0-9a-f-]{36}$/.test(receipt.source?.noteId || '')) {
     failures.push('source.noteId invalid');
+  }
+  if (receipt.source?.deletedBeforeRecovery !== true) {
+    failures.push('source must be deleted before clean recovery');
   }
   if (receipt.source?.bytes !== receipt.recovery?.bytes) {
     failures.push('source and recovery byte counts differ');

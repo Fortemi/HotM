@@ -9,7 +9,7 @@ on:
       - 'ui/src-tauri/src/lib.rs'
       - 'ui/scripts/verify-live-asset-*.cjs'
       - 'ui/scripts/verify-live-asset-*.test.js'
-      - 'release/sidecar-provenance.json'
+      - 'release/live-asset-receipt-sidecar-provenance.json'
       - 'scripts/ci/run-live-asset-receipt.sh'
       - '.gitea/workflows/live-asset-receipt.yml'
   pull_request:
@@ -20,7 +20,7 @@ on:
       - 'ui/src-tauri/src/lib.rs'
       - 'ui/scripts/verify-live-asset-*.cjs'
       - 'ui/scripts/verify-live-asset-*.test.js'
-      - 'release/sidecar-provenance.json'
+      - 'release/live-asset-receipt-sidecar-provenance.json'
       - 'scripts/ci/run-live-asset-receipt.sh'
       - '.gitea/workflows/live-asset-receipt.yml'
   workflow_dispatch: {}

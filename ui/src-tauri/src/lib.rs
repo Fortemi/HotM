@@ -1724,6 +1724,9 @@ mod tests {
         }
         let export_millis = export_started.elapsed().as_millis() as u64;
 
+        delete_live_memory(client, api_base_url, source_memory, token).await?;
+        assert_live_memory_absent(client, api_base_url, source_memory, token).await?;
+
         let import_started = std::time::Instant::now();
         let import_response = live_request(
             client.post(format!("{api_base_url}/backup/knowledge-shard/import")),
@@ -1856,7 +1859,8 @@ mod tests {
                 "filename": "desktop-live-full-v1.bin",
                 "bytes": source_bytes.len(),
                 "sha256": source_sha256,
-                "contentHash": source_content_hash
+                "contentHash": source_content_hash,
+                "deletedBeforeRecovery": true
             },
             "recovery": {
                 "memory": recovery_memory,
@@ -1878,6 +1882,7 @@ mod tests {
             "archiveBytes": shard.len(),
             "claims": {
                 "tauriLocalFileCoreAgainstLiveFortemiPassed": true,
+                "sourceMemoryDeletedBeforeRecoveryPassed": true,
                 "trustRequiredSignedFullV1RecoveryPassed": true,
                 "sourceServerRecoveryBytesPassed": true,
                 "desktopDownloadCoreSavedAndReopenedPassed": true,
@@ -1991,6 +1996,29 @@ mod tests {
         Ok(())
     }
 
+    async fn assert_live_memory_absent(
+        client: &reqwest::Client,
+        api_base_url: &str,
+        memory: &str,
+        token: Option<&str>,
+    ) -> Result<(), String> {
+        let mut request = client.get(format!("{api_base_url}/archives/{memory}"));
+        if let Some(token) = token {
+            request = request.header(AUTHORIZATION, format!("Bearer {token}"));
+        }
+        let status = request
+            .send()
+            .await
+            .map_err(|error| error.to_string())?
+            .status();
+        if status != reqwest::StatusCode::NOT_FOUND {
+            return Err(format!(
+                "deleted source memory remained available before recovery ({status})"
+            ));
+        }
+        Ok(())
+    }
+
     async fn assert_live_auth_mode(
         client: &reqwest::Client,
         api_base_url: &str,
@@ -2029,7 +2057,7 @@ mod tests {
         .send()
         .await
         .map_err(|error| error.to_string())?;
-        if !response.status().is_success() {
+        if !response.status().is_success() && response.status() != reqwest::StatusCode::NOT_FOUND {
             return Err(format!(
                 "delete isolated memory {memory} failed ({})",
                 response.status()

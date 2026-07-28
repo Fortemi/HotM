@@ -7,6 +7,7 @@ const REQUIRED_TRUE_CLAIMS = [
   'browserTusMultiOffsetResumePassed',
   'browserSavedDownloadPassed',
   'tauriLocalFileCoreAgainstLiveFortemiPassed',
+  'sourceRetiredBeforeCleanRecoveryPassed',
   'signedFullV1CleanRecoveryPassed',
   'exactBytesDigestAndLengthPassed',
   'authenticatedBoundaryPassed',

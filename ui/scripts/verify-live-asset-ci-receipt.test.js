@@ -35,6 +35,7 @@ function validReceipt() {
       browserTusMultiOffsetResumePassed: true,
       browserSavedDownloadPassed: true,
       tauriLocalFileCoreAgainstLiveFortemiPassed: true,
+      sourceRetiredBeforeCleanRecoveryPassed: true,
       signedFullV1CleanRecoveryPassed: true,
       exactBytesDigestAndLengthPassed: true,
       authenticatedBoundaryPassed: true,
