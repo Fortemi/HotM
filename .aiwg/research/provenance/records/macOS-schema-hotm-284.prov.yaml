@@ -1,0 +1,51 @@
+metadata:
+  schema_version: "1.0.0"
+  created_at: "2026-07-28T23:02:15Z"
+  updated_at: "2026-07-28T23:02:15Z"
+  description: "Provenance for the HotM #284 generated macOS Tauri capability schema"
+entity:
+  id: "urn:aiwg:artifact:ui/src-tauri/gen/schemas/macOS-schema.json"
+  type: generated_schema
+  created_at: "2026-07-28T23:02:15Z"
+  updated_at: "2026-07-28T23:02:15Z"
+  checksum: "sha256:c00de3027e88acf932a1431905224b490e6ba9cb6343a4ee1ffb4c438173c172"
+  size_bytes: 175938
+  attributes:
+    change_scope: "hotm-284-macos-tauri-generated-schema-baseline"
+    base_revision: "d9b33459f95d12a49e19dd2fd16fee180f49e74b"
+activity:
+  id: "urn:aiwg:activity:generation:macOS-schema-hotm-284:001"
+  type: generation
+  started_at: "2026-07-28T23:02:15Z"
+  ended_at: "2026-07-28T23:02:15Z"
+  description: "Track the deterministic macOS capability schema emitted by the pinned Tauri build"
+agent:
+  id: "urn:aiwg:agent:codex-gpt-5"
+  type: ai_assistant
+  name: "Codex"
+  version: "gpt-5"
+  tool: "codex"
+relationships:
+  wasGeneratedBy:
+    entity: "urn:aiwg:artifact:ui/src-tauri/gen/schemas/macOS-schema.json"
+    activity: "urn:aiwg:activity:generation:macOS-schema-hotm-284:001"
+    time: "2026-07-28T23:02:15Z"
+  used:
+    - activity: "urn:aiwg:activity:generation:macOS-schema-hotm-284:001"
+      entity: "urn:gitea:Fortemi/HotM:issue:284"
+      role: "requirement"
+    - activity: "urn:aiwg:activity:generation:macOS-schema-hotm-284:001"
+      entity: "urn:aiwg:artifact:ui/src-tauri/gen/schemas/desktop-schema.json"
+      role: "generated_desktop_baseline"
+  wasDerivedFrom:
+    - entity: "urn:aiwg:artifact:ui/src-tauri/gen/schemas/macOS-schema.json"
+      source: "urn:git:git@git.integrolabs.net:Fortemi/HotM.git:d9b33459f95d12a49e19dd2fd16fee180f49e74b:ui/src-tauri/gen/schemas/desktop-schema.json"
+      derivation_type: "generated_platform_variant"
+      activity: "urn:aiwg:activity:generation:macOS-schema-hotm-284:001"
+  wasAssociatedWith:
+    activity: "urn:aiwg:activity:generation:macOS-schema-hotm-284:001"
+    agent: "urn:aiwg:agent:codex-gpt-5"
+    role: "primary_author"
+  wasAttributedTo:
+    entity: "urn:aiwg:artifact:ui/src-tauri/gen/schemas/macOS-schema.json"
+    agent: "urn:aiwg:agent:codex-gpt-5"

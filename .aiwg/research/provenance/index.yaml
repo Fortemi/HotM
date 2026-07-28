@@ -1,7 +1,7 @@
 metadata:
   schema_version: "1.0.0"
-  updated_at: "2026-07-28T21:14:06Z"
-  record_count: 79
+  updated_at: "2026-07-28T23:02:15Z"
+  record_count: 81
 records:
   - entity: "urn:aiwg:artifact:release/live-asset-receipt-sidecar-provenance.json"
     record: "records/live-asset-receipt-sidecar-provenance-284.prov.yaml"
@@ -161,3 +161,7 @@ records:
     record: "records/download-blob.test.ts.prov.yaml"
   - entity: "urn:aiwg:artifact:ui/e2e/live/asset-lifecycle-live.spec.ts"
     record: "records/asset-lifecycle-live.spec.ts.prov.yaml"
+  - entity: "urn:aiwg:artifact:scripts/ci/run-live-asset-receipt.sh"
+    record: "records/run-live-asset-receipt-hotm-284.prov.yaml"
+  - entity: "urn:aiwg:artifact:ui/src-tauri/gen/schemas/macOS-schema.json"
+    record: "records/macOS-schema-hotm-284.prov.yaml"

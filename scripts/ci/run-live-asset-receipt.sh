@@ -274,7 +274,7 @@ mkdir -p "${TAURI_RECEIPT_DIR}"
   HOTM_LIVE_TAURI_API_TOKEN="${api_token}" \
   HOTM_LIVE_TAURI_RECEIPT_PATH="../test-results/live-tauri-full-v1-receipt/receipt.json" \
   TAURI_CONFIG='{"bundle":{"externalBin":[]}}' \
-  cargo test tests::live_fortemi_tauri_local_file_full_v1_recovery_receipt \
+  cargo test --locked tests::live_fortemi_tauri_local_file_full_v1_recovery_receipt \
     -- --ignored --exact --nocapture
 ) || tauri_status=$?
 
