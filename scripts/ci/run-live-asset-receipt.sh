@@ -44,6 +44,7 @@ esac
 RUN_KEY="${GITHUB_RUN_ID:-local}-$$"
 SAFE_RUN_KEY="$(printf '%s' "${RUN_KEY}" | tr -cd '[:alnum:]_-' | cut -c1-36)"
 WORK_DIR="$(mktemp -d)"
+EVIDENCE_DIR="${WORK_DIR}/evidence"
 FORTEMI_DIR="${WORK_DIR}/fortemi"
 CONTRACT_FORTEMI_DIR="${WORK_DIR}/fortemi-contracts"
 API_BINARY="${WORK_DIR}/matric-api"
@@ -101,7 +102,7 @@ DB_PASSWORD=""
 EXTERNAL_DB_PASSWORD=""
 
 rm -rf "${OUTPUT_DIR}" "${TAURI_RECEIPT_DIR}"
-mkdir -p "${OUTPUT_DIR}" "${TAURI_RECEIPT_DIR}"
+mkdir -p "${OUTPUT_DIR}" "${TAURI_RECEIPT_DIR}" "${EVIDENCE_DIR}"
 
 git init -q "${FORTEMI_DIR}"
 git -C "${FORTEMI_DIR}" remote add origin https://git.integrolabs.net/Fortemi/fortemi.git
@@ -256,6 +257,7 @@ if [[ "${browser_status}" -eq 0 && -n "${browser_metrics}" ]]; then
   ) || browser_status=$?
   mkdir -p "${OUTPUT_DIR}"
   cp "${browser_metrics}" "${OUTPUT_DIR}/browser-metrics.json"
+  cp "${browser_metrics}" "${EVIDENCE_DIR}/browser-metrics.json"
 fi
 
 tauri_status=0
@@ -280,6 +282,8 @@ if [[ "${tauri_status}" -eq 0 ]]; then
       test-results/live-tauri-full-v1-receipt/receipt.json
   ) >"${OUTPUT_DIR}/tauri-validation.json" || tauri_status=$?
   cp "${TAURI_RECEIPT_DIR}/receipt.json" "${OUTPUT_DIR}/tauri-receipt.json"
+  cp "${OUTPUT_DIR}/tauri-validation.json" "${EVIDENCE_DIR}/tauri-validation.json"
+  cp "${TAURI_RECEIPT_DIR}/receipt.json" "${EVIDENCE_DIR}/tauri-receipt.json"
 fi
 
 HOTM_COMMIT="$(git -C "${ROOT_DIR}" rev-parse HEAD)"
@@ -332,6 +336,13 @@ authority_contract_status=0
 if [[ "${event_catalog_status}" -ne 0 || "${openapi_contract_status}" -ne 0 \
   || "${contract_consumer_status}" -ne 0 ]]; then
   authority_contract_status=1
+fi
+
+mkdir -p "${OUTPUT_DIR}"
+cp "${EVIDENCE_DIR}/browser-metrics.json" "${OUTPUT_DIR}/browser-metrics.json"
+if [[ "${tauri_status}" -eq 0 ]]; then
+  cp "${EVIDENCE_DIR}/tauri-validation.json" "${OUTPUT_DIR}/tauri-validation.json"
+  cp "${EVIDENCE_DIR}/tauri-receipt.json" "${OUTPUT_DIR}/tauri-receipt.json"
 fi
 
 ROOT_DIR="${ROOT_DIR}" \
