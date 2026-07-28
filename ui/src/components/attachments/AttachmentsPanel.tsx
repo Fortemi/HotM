@@ -59,6 +59,7 @@ import { useBlobUrl } from '@/lib/tauri';
 import type { DescribeImageResponse, TranscribeAudioResponse } from '@/api';
 import type { Attachment, AttachmentMetadata, ExtractionStatus, AttachmentStatus } from '@/api/types-extended';
 import { getPreviewMode, shouldDownloadBlob, getDocTypeLabel, getLanguageFromType } from './preview-utils';
+import { downloadBlob } from './download-blob';
 import type { PreviewMode } from './preview-utils';
 import { StreamingVideoPlayer, StreamingAudioPlayer } from './StreamingMedia';
 import { getMediaType, extractMediaInfo, formatMediaDuration, getThumbnailUrl, getPreferredVariant, getAttachmentDedupeKey } from './media-utils';
@@ -1372,12 +1373,7 @@ export function AttachmentsPanel({ noteId, className, extractionProgress }: Atta
       if (savedToLocalFile) return;
 
       const blob = await api.attachments.downloadAttachment(attachment.id);
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = attachment.filename;
-      a.click();
-      URL.revokeObjectURL(url);
+      downloadBlob(blob, attachment.filename);
     } catch (err) {
       console.error('Download failed:', err);
     }
