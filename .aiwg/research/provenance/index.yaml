@@ -1,8 +1,12 @@
 metadata:
   schema_version: "1.0.0"
-  updated_at: "2026-07-28T20:11:02Z"
-  record_count: 77
+  updated_at: "2026-07-28T21:14:06Z"
+  record_count: 79
 records:
+  - entity: "urn:aiwg:artifact:release/live-asset-receipt-sidecar-provenance.json"
+    record: "records/live-asset-receipt-sidecar-provenance-284.prov.yaml"
+  - entity: "urn:aiwg:artifact:release/sidecar-provenance.json"
+    record: "records/sidecar-provenance-284.prov.yaml"
   - entity: "urn:aiwg:artifact:.aiwg/architecture/adr-mobile-cloud-architecture.md"
     record: "records/adr-mobile-cloud-architecture.md.prov.yaml"
   - entity: "urn:aiwg:artifact:.aiwg/testing/enterprise-demo-operator-signoff-2026-07-06.md"
