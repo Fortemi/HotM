@@ -259,6 +259,10 @@ if [[ "${browser_status}" -eq 0 && -n "${browser_metrics}" ]]; then
   cp "${browser_metrics}" "${OUTPUT_DIR}/browser-metrics.json"
   cp "${browser_metrics}" "${EVIDENCE_DIR}/browser-metrics.json"
 fi
+if [[ "${browser_status}" -ne 0 || ! -f "${EVIDENCE_DIR}/browser-metrics.json" ]]; then
+  echo "Live browser receipt failed or did not produce browser metrics" >&2
+  exit 1
+fi
 
 tauri_status=0
 mkdir -p "${TAURI_RECEIPT_DIR}"

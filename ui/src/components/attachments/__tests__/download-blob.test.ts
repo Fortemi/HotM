@@ -23,9 +23,10 @@ describe('downloadBlob', () => {
 
     expect(createObjectURL).toHaveBeenCalledOnce();
     expect(click).toHaveBeenCalledOnce();
+    expect(document.querySelector('a[download="attachment.txt"]')).not.toBeNull();
     expect(revokeObjectURL).not.toHaveBeenCalled();
 
-    vi.advanceTimersByTime(1000);
+    vi.advanceTimersByTime(30_000);
     expect(revokeObjectURL).toHaveBeenCalledWith('blob:attachment');
     expect(document.querySelector('a[download="attachment.txt"]')).toBeNull();
   });

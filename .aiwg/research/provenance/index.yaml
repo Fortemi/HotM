@@ -1,7 +1,7 @@
 metadata:
   schema_version: "1.0.0"
-  updated_at: "2026-07-28T17:11:09Z"
-  record_count: 74
+  updated_at: "2026-07-28T19:52:36Z"
+  record_count: 76
 records:
   - entity: "urn:aiwg:artifact:.aiwg/architecture/adr-mobile-cloud-architecture.md"
     record: "records/adr-mobile-cloud-architecture.md.prov.yaml"
@@ -151,3 +151,7 @@ records:
     record: "records/verify-live-tauri-full-v1-receipt.test.js.prov.yaml"
   - entity: "urn:aiwg:artifact:.aiwg/evidence/hotm-live-tauri-full-v1-recovery-receipt-2026-07-28.json"
     record: "records/hotm-live-tauri-full-v1-recovery-receipt-2026-07-28.json.prov.yaml"
+  - entity: "urn:aiwg:artifact:ui/src/components/attachments/download-blob.ts"
+    record: "records/download-blob.ts.prov.yaml"
+  - entity: "urn:aiwg:artifact:ui/src/components/attachments/__tests__/download-blob.test.ts"
+    record: "records/download-blob.test.ts.prov.yaml"

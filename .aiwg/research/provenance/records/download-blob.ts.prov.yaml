@@ -1,0 +1,47 @@
+metadata:
+  schema_version: "1.0.0"
+  created_at: "2026-07-28T19:52:36Z"
+  updated_at: "2026-07-28T19:52:36Z"
+  description: "Provenance for the browser attachment download lifecycle helper"
+entity:
+  id: "urn:aiwg:artifact:ui/src/components/attachments/download-blob.ts"
+  type: source_code
+  created_at: "2026-07-28T19:52:36Z"
+  updated_at: "2026-07-28T19:52:36Z"
+  checksum: "sha256:bd19c1e8c4991fcf47d6d3b823e0e2513b83db2b23e98ecf903fe6209153ed3f"
+  size_bytes: 434
+  attributes:
+    change_scope: "hotm-consumer-platform-proof-284"
+    base_revision: "3d7e15b653a31d4c862bdaaf0ceccf9bada6c059"
+activity:
+  id: "urn:aiwg:activity:modification:download-blob-ts:001"
+  type: modification
+  started_at: "2026-07-28T19:52:36Z"
+  ended_at: "2026-07-28T19:52:36Z"
+  description: "Retain the browser anchor and blob URL until the download has consumed them"
+agent: &agent
+  id: "urn:aiwg:agent:codex-gpt-5"
+  type: ai_assistant
+  name: "Codex"
+  version: "gpt-5"
+  tool: "codex"
+relationships:
+  wasGeneratedBy:
+    entity: "urn:aiwg:artifact:ui/src/components/attachments/download-blob.ts"
+    activity: "urn:aiwg:activity:modification:download-blob-ts:001"
+    time: "2026-07-28T19:52:36Z"
+  wasDerivedFrom:
+    - entity: "urn:aiwg:artifact:ui/src/components/attachments/download-blob.ts"
+      source: "urn:git:git@git.integrolabs.net:Fortemi/HotM.git:3d7e15b653a31d4c862bdaaf0ceccf9bada6c059:ui/src/components/attachments/download-blob.ts"
+      derivation_type: "modifies"
+      activity: "urn:aiwg:activity:modification:download-blob-ts:001"
+    - entity: "urn:aiwg:issue:Fortemi/HotM:284"
+      derivation_type: "implements"
+      activity: "urn:aiwg:activity:modification:download-blob-ts:001"
+  wasAssociatedWith:
+    activity: "urn:aiwg:activity:modification:download-blob-ts:001"
+    agent: "urn:aiwg:agent:codex-gpt-5"
+    role: "primary_author"
+  wasAttributedTo:
+    entity: "urn:aiwg:artifact:ui/src/components/attachments/download-blob.ts"
+    agent: "urn:aiwg:agent:codex-gpt-5"
