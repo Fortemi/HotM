@@ -57,6 +57,10 @@ function completeMetrics(overrides = {}) {
       interruptedOffset: 384,
       resumeOffset: 384,
       finalOffset: 1024,
+      checkpoints: [
+        { interruptedOffset: 384, resumeOffset: 384 },
+        { interruptedOffset: 768, resumeOffset: 768 },
+      ],
     },
     claims: {
       browserBoundaryBytesPreserved: true,
@@ -168,11 +172,32 @@ describe('verifyLiveAssetMetrics', () => {
         'tusDisconnectResume interruptedOffset missing or invalid',
         'tusDisconnectResume resumeOffset must match interruptedOffset',
         'tusDisconnectResume finalOffset must match browserTusBytes',
+        'tusDisconnectResume must contain at least two increasing confirmed checkpoints',
         'claim browserBoundaryBytesPreserved must be true',
         'claim browserTusResumePassed must be true',
         'claim browserTusDisconnectResumePassed must be true',
         'claim signedFullV1RecoveryPassed must be true',
       ]),
+    );
+  });
+
+  test('rejects credential, path, manifest, and payload-shaped metrics', () => {
+    const root = makeTempDir();
+    const resultsDir = path.join(root, 'test-results');
+    const receiptDir = path.join(resultsDir, 'live-asset-receipt');
+    const metrics = completeMetrics({
+      leak: {
+        storage_path: '/tmp/private',
+        shard_base64: `mm_at_${'x'.repeat(24)}`,
+        manifest: { payload: [1, 2, 3] },
+      },
+    });
+    writeMetrics(resultsDir, 'live-asset-lifecycle', metrics);
+
+    const validation = verifyLiveAssetMetrics({ resultsDir, receiptDir });
+
+    expect(validation.failures).toContain(
+      'metrics contain a credential, local/storage path, manifest body, or payload bytes',
     );
   });
 });

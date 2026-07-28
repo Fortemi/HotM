@@ -23,7 +23,9 @@ import {
 } from './asset-lifecycle-receipt';
 
 const LIVE_ASSET_E2E = process.env.HOTM_LIVE_ASSET_E2E === '1';
-const LIVE_REQUIRE_AUTH = process.env.HOTM_LIVE_REQUIRE_AUTH === '1';
+const LIVE_REQUIRE_AUTH = ['1', 'true'].includes(
+  process.env.HOTM_LIVE_REQUIRE_AUTH?.toLowerCase() ?? '',
+);
 
 test.describe('live asset lifecycle', () => {
   test.skip(!LIVE_ASSET_E2E, 'Set HOTM_LIVE_ASSET_E2E=1 and HOTM_API_URL to run live Fortemi browser-boundary asset tests.');
@@ -182,6 +184,7 @@ test.describe('live asset lifecycle', () => {
         interruptedOffset: disconnectedAttachment.interruptedOffset,
         resumeOffset: disconnectedAttachment.resumeOffset,
         finalOffset: disconnectedAttachment.finalOffset,
+        checkpoints: disconnectedAttachment.checkpoints,
       };
       receipt.claims.browserTusDisconnectResumePassed = true;
 
@@ -424,6 +427,10 @@ async function runBrowserTusDisconnectResumeRoundTrip(
   finalOffset: number;
   interruptedOffset: number;
   resumeOffset: number;
+  checkpoints: Array<{
+    interruptedOffset: number;
+    resumeOffset: number;
+  }>;
   sha256: string;
 }> {
   return page.evaluate(
@@ -447,6 +454,7 @@ async function runBrowserTusDisconnectResumeRoundTrip(
       if (!location) throw new Error('TUS create did not return Location');
       const uploadUrl = new URL(location, apiBaseUrl).toString();
       const interruptedOffset = Math.floor(bytes.length / 3);
+      const secondInterruptedOffset = Math.floor((bytes.length * 2) / 3);
 
       const partial = await fetch(uploadUrl, {
         method: 'PATCH',
@@ -468,7 +476,7 @@ async function runBrowserTusDisconnectResumeRoundTrip(
       if (head.status !== 200) throw new Error(`reconnect HEAD failed ${head.status}`);
       const resumeOffset = Number(head.headers.get('Upload-Offset'));
 
-      const final = await fetch(uploadUrl, {
+      const secondPartial = await fetch(uploadUrl, {
         method: 'PATCH',
         headers: {
           ...authHeaders,
@@ -477,7 +485,29 @@ async function runBrowserTusDisconnectResumeRoundTrip(
           'Content-Type': 'application/offset+octet-stream',
           'Upload-Offset': String(resumeOffset),
         },
-        body: bytes.slice(resumeOffset),
+        body: bytes.slice(resumeOffset, secondInterruptedOffset),
+      });
+      if (secondPartial.status !== 204) {
+        throw new Error(`second partial PATCH failed ${secondPartial.status}: ${await secondPartial.text()}`);
+      }
+
+      const secondHead = await fetch(uploadUrl, {
+        method: 'HEAD',
+        headers: { ...authHeaders, ...routingHeaders, 'Tus-Resumable': '1.0.0' },
+      });
+      if (secondHead.status !== 200) throw new Error(`second reconnect HEAD failed ${secondHead.status}`);
+      const secondResumeOffset = Number(secondHead.headers.get('Upload-Offset'));
+
+      const final = await fetch(uploadUrl, {
+        method: 'PATCH',
+        headers: {
+          ...authHeaders,
+          ...routingHeaders,
+          'Tus-Resumable': '1.0.0',
+          'Content-Type': 'application/offset+octet-stream',
+          'Upload-Offset': String(secondResumeOffset),
+        },
+        body: bytes.slice(secondResumeOffset),
       });
       if (final.status !== 200) throw new Error(`resumed PATCH failed ${final.status}: ${await final.text()}`);
       const attachment = await final.json();
@@ -491,6 +521,13 @@ async function runBrowserTusDisconnectResumeRoundTrip(
         finalOffset: Number(final.headers.get('Upload-Offset')),
         interruptedOffset,
         resumeOffset,
+        checkpoints: [
+          { interruptedOffset, resumeOffset },
+          {
+            interruptedOffset: secondInterruptedOffset,
+            resumeOffset: secondResumeOffset,
+          },
+        ],
         sha256,
       };
     },

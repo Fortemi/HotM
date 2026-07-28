@@ -32,7 +32,7 @@ const TIMING_FIELDS = [
   'recoveryRtoImportAndDownload',
 ];
 
-function validateLiveTauriFullV1Receipt(receipt) {
+function validateLiveTauriFullV1Receipt(receipt, { expectClean = true } = {}) {
   const failures = [];
   if (receipt.schemaVersion !== 'hotm.desktop-live-full-v1-recovery-receipt.v1') {
     failures.push('schemaVersion mismatch');
@@ -49,7 +49,7 @@ function validateLiveTauriFullV1Receipt(receipt) {
       failures.push(`identity.${field} must be an exact commit`);
     }
   }
-  if (receipt.identity?.hotmWorktreeDirty !== false) {
+  if (expectClean && receipt.identity?.hotmWorktreeDirty !== false) {
     failures.push('identity.hotmWorktreeDirty must be false');
   }
   if (typeof receipt.identity?.fortemiVersion !== 'string' || !receipt.identity.fortemiVersion) {
@@ -150,7 +150,7 @@ function validateLiveTauriFullV1Receipt(receipt) {
   return failures;
 }
 
-function verifyLiveTauriFullV1Receipt(receiptPath) {
+function verifyLiveTauriFullV1Receipt(receiptPath, options = {}) {
   const failures = [];
   let receipt = null;
   try {
@@ -158,7 +158,7 @@ function verifyLiveTauriFullV1Receipt(receiptPath) {
   } catch (error) {
     failures.push(`could not read receipt: ${error instanceof Error ? error.message : String(error)}`);
   }
-  if (receipt) failures.push(...validateLiveTauriFullV1Receipt(receipt));
+  if (receipt) failures.push(...validateLiveTauriFullV1Receipt(receipt, options));
   return {
     receipt: 'hotm-desktop-live-full-v1-recovery-validation',
     issue: 'Fortemi/HotM#283',
@@ -174,7 +174,9 @@ if (require.main === module) {
     console.error('usage: verify-live-tauri-full-v1-receipt.cjs <receipt.json>');
     process.exit(2);
   }
-  const validation = verifyLiveTauriFullV1Receipt(receiptPath);
+  const validation = verifyLiveTauriFullV1Receipt(receiptPath, {
+    expectClean: process.env.HOTM_LIVE_EXPECT_CLEAN !== '0',
+  });
   console.log(JSON.stringify(validation, null, 2));
   if (validation.failures.length > 0) process.exit(1);
 }

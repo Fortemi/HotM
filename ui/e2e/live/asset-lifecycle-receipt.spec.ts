@@ -85,6 +85,7 @@ test.describe('live asset metrics receipt schema', () => {
         'tusDisconnectResume interruptedOffset missing or invalid',
         'tusDisconnectResume resumeOffset missing or invalid',
         'tusDisconnectResume finalOffset must match browserTusBytes',
+        'tusDisconnectResume must contain at least two increasing confirmed checkpoints',
         'claim browserBoundaryBytesPreserved must be true',
         'claim browserTusResumePassed must be true',
         'claim browserTusDisconnectResumePassed must be true',
@@ -120,6 +121,10 @@ test.describe('live asset metrics receipt schema', () => {
       interruptedOffset: 384,
       resumeOffset: 384,
       finalOffset: 1024,
+      checkpoints: [
+        { interruptedOffset: 384, resumeOffset: 384 },
+        { interruptedOffset: 768, resumeOffset: 768 },
+      ],
     };
     receipt.claims.browserBoundaryBytesPreserved = true;
     receipt.claims.browserTusResumePassed = true;

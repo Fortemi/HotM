@@ -80,6 +80,17 @@ function validateMetrics(metrics) {
   if (metrics.tusDisconnectResume?.finalOffset !== metrics.corpus?.browserTusBytes) {
     failures.push('tusDisconnectResume finalOffset must match browserTusBytes');
   }
+  const checkpoints = metrics.tusDisconnectResume?.checkpoints;
+  if (
+    !Array.isArray(checkpoints)
+    || checkpoints.length < 2
+    || checkpoints.some((checkpoint, index) =>
+      checkpoint?.resumeOffset !== checkpoint?.interruptedOffset
+      || !integerAtLeast(checkpoint?.interruptedOffset, 1)
+      || checkpoint.interruptedOffset <= (checkpoints[index - 1]?.interruptedOffset ?? 0))
+  ) {
+    failures.push('tusDisconnectResume must contain at least two increasing confirmed checkpoints');
+  }
   for (const key of [
     'browserBoundaryBytesPreserved',
     'browserTusResumePassed',
@@ -90,6 +101,13 @@ function validateMetrics(metrics) {
   }
   if (metrics.claims?.hotmDesktopGuiPassed !== false) failures.push('hotmDesktopGuiPassed must remain false');
   if (metrics.claims?.suiteWidePortability !== false) failures.push('suiteWidePortability must remain false');
+  const serialized = JSON.stringify(metrics);
+  if (
+    /mm_at_[A-Za-z0-9_-]{16,}|\/tmp\/|\/home\/|storage_path|private_key|shard_base64|authorization["']?\s*:|"manifest"\s*:/i
+      .test(serialized)
+  ) {
+    failures.push('metrics contain a credential, local/storage path, manifest body, or payload bytes');
+  }
   return failures;
 }
 

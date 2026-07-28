@@ -1,25 +1,25 @@
 {
   "schema_version": 1,
   "source_repository": "Fortemi/fortemi",
-  "release_tag": "sidecar-45aff7e6f439",
-  "target_commitish": "45aff7e6f4390c650c98f55c643b1dc95d818c86",
-  "published_at": "2026-07-24T02:38:54-04:00",
-  "base_url": "https://git.integrolabs.net/Fortemi/fortemi/releases/download/sidecar-45aff7e6f439",
+  "release_tag": "sidecar-51a0e6c4ed33",
+  "target_commitish": "51a0e6c4ed33874ce34a5ae799a41801b81f431d",
+  "published_at": "2026-07-28T01:49:26-04:00",
+  "base_url": "https://git.integrolabs.net/Fortemi/fortemi/releases/download/sidecar-51a0e6c4ed33",
   "assets": {
     "x86_64-unknown-linux-gnu": {
       "asset_name": "matric-api-x86_64-unknown-linux-gnu",
-      "sha256": "0d19bc6513e8c0369525e837ce3c3870559ea0c0330a611c42e89c88a2389663",
-      "size": 69814272
+      "sha256": "6ba091f9ab7151cfa81407cf1a9c3983f1640a41dca91a59b0ae02998747fce3",
+      "size": 70530504
     },
     "aarch64-apple-darwin": {
       "asset_name": "matric-api-aarch64-apple-darwin",
-      "sha256": "eda9e07443a63bf2996b40f42ed33919b6efe82f3a31477060c739964102de41",
-      "size": 58337568
+      "sha256": "872afff091e58d7a5df471eb50eb5df0181000dbf3b26f4934f6814424742a8e",
+      "size": 58982576
     },
     "x86_64-apple-darwin": {
       "asset_name": "matric-api-x86_64-apple-darwin",
-      "sha256": "c97322debd5a3ca933901ec0cdadf388aeafa95a960dd55404d779d1ece1379f",
-      "size": 62391232
+      "sha256": "5a60bd1c2f8b6131dcf20b8eb86a06b922c589adf2db5c00be6cf1eac33316e3",
+      "size": 63090912
     }
   }
 }

@@ -27,6 +27,10 @@ export type LiveAssetBrowserReceipt = {
     interruptedOffset?: number;
     resumeOffset?: number;
     finalOffset?: number;
+    checkpoints?: Array<{
+      interruptedOffset: number;
+      resumeOffset: number;
+    }>;
   };
   claims: {
     browserBoundaryBytesPreserved: boolean;
@@ -117,11 +121,33 @@ export function validateLiveAssetBrowserReceipt(receipt: LiveAssetBrowserReceipt
       failures.push(`tusDisconnectResume ${key} invalid`);
     }
   }
+  if (receipt.tusDisconnectResume.checkpoints !== undefined) {
+    if (!Array.isArray(receipt.tusDisconnectResume.checkpoints)) {
+      failures.push('tusDisconnectResume checkpoints invalid');
+    } else {
+      for (const [index, checkpoint] of receipt.tusDisconnectResume.checkpoints.entries()) {
+        if (
+          !Number.isInteger(checkpoint.interruptedOffset)
+          || checkpoint.interruptedOffset <= 0
+          || checkpoint.resumeOffset !== checkpoint.interruptedOffset
+        ) {
+          failures.push(`tusDisconnectResume checkpoint ${index} invalid`);
+        }
+      }
+    }
+  }
   if (receipt.claims.hotmDesktopGuiPassed !== false) {
     failures.push('hotmDesktopGuiPassed must remain false');
   }
   if (receipt.claims.suiteWidePortability !== false) {
     failures.push('suiteWidePortability must remain false');
+  }
+  const serialized = JSON.stringify(receipt);
+  if (
+    /mm_at_[A-Za-z0-9_-]{16,}|\/tmp\/|\/home\/|storage_path|private_key|shard_base64|authorization["']?\s*:|"manifest"\s*:/i
+      .test(serialized)
+  ) {
+    failures.push('receipt contains a credential, local/storage path, manifest body, or payload bytes');
   }
   return failures;
 }
@@ -172,6 +198,16 @@ export function validateCompletedLiveAssetBrowserReceipt(receipt: LiveAssetBrows
   }
   if (receipt.tusDisconnectResume.finalOffset !== receipt.corpus.browserTusBytes) {
     failures.push('tusDisconnectResume finalOffset must match browserTusBytes');
+  }
+  const checkpoints = receipt.tusDisconnectResume.checkpoints;
+  if (
+    !Array.isArray(checkpoints)
+    || checkpoints.length < 2
+    || checkpoints.some((checkpoint, index) =>
+      checkpoint.resumeOffset !== checkpoint.interruptedOffset
+      || checkpoint.interruptedOffset <= (checkpoints[index - 1]?.interruptedOffset ?? 0))
+  ) {
+    failures.push('tusDisconnectResume must contain at least two increasing confirmed checkpoints');
   }
   for (const key of [
     'browserBoundaryBytesPreserved',
