@@ -1,14 +1,14 @@
 ---
 title: Fortemi v2026.7.1 Route Coverage Inventory
 status: generated
-date: 2026-07-26
+date: 2026-07-28
 artifact_type: api-coverage-inventory
 ---
 
 # Fortemi v2026.7.1 Route Coverage Inventory
 
 - Fortemi source: `../fortemi`
-- Fortemi commit: `45aff7e6`
+- Fortemi commit: `447fd514`
 - Latest release tag: `v2026.7.12`
 - Extracted route declarations: `202`
 

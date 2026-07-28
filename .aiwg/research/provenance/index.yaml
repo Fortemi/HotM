@@ -1,6 +1,6 @@
 metadata:
   schema_version: "1.0.0"
-  updated_at: "2026-07-28T23:02:15Z"
+  updated_at: "2026-07-28T23:14:27Z"
   record_count: 81
 records:
   - entity: "urn:aiwg:artifact:release/live-asset-receipt-sidecar-provenance.json"
