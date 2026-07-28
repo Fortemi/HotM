@@ -9,7 +9,7 @@ on:
 jobs:
   fortemi-route-inventory:
     name: Fortemi Route Inventory
-    runs-on: ubuntu-latest
+    runs-on: node-20
     env:
       FORTEMI_REPOSITORY: Fortemi/fortemi.git
     steps:
@@ -55,12 +55,6 @@ jobs:
       - name: Verify Fortemi route inventory
         shell: bash
         run: .aiwg/testing/scripts/verify-fortemi-route-inventory.sh
-
-      - name: Install Node.js and npm
-        shell: bash
-        run: |
-          apt-get update
-          apt-get install --no-install-recommends -y nodejs npm
 
       - name: Verify Fortemi realtime event catalog
         shell: bash
