@@ -1,22 +1,27 @@
 metadata:
   schema_version: "1.0.0"
   created_at: "2026-07-28T02:13:36Z"
-  description: "Provenance for the HotM SDLC contract-gate Node bootstrap correction"
+  description: "Provenance for the HotM SDLC contract-gate runner compatibility correction"
 entity:
   id: "urn:aiwg:artifact:.gitea/workflows/sdlc-gates.yml"
   type: workflow
   created_at: "2026-07-28T02:13:36Z"
-  checksum: "sha256:1ed56e593adc53f30d1824deb830075d40e28d63bfb20766b9be53e9447e8e81"
-  size_bytes: 4552
+  updated_at: "2026-07-28T02:30:23Z"
+  checksum: "sha256:c6ad4896d04d575b3e53c3f3b8e631c1123054566f52185b55147c956cae568a"
+  size_bytes: 4558
   attributes:
-    change_scope: "gitea-node20-contract-runner"
-    base_revision: "8abb331028f558c1fa22b58868e6e09f11240727"
+    change_scope: "gitea-ubuntu-contract-runner"
+    base_revision: "0cb7a2576059df7870a07eb841e0d654a551a442"
 activity:
   id: "urn:aiwg:activity:modification:sdlc-gates-node-bootstrap:001"
   type: modification
   started_at: "2026-07-28T02:11:52Z"
-  ended_at: "2026-07-28T02:13:36Z"
-  description: "Run the Python and JavaScript contract verifiers in the configured Node 20 image"
+  ended_at: "2026-07-28T02:30:23Z"
+  description: "Run the Python and JavaScript contract verifiers on the Gitea ubuntu-latest runner image proven by action 1124"
+  attributes:
+    verification:
+      - "Gitea action 1124: passed"
+      - "Gitea action 1129: established node-20 maps to an image without python3"
 agent:
   id: "urn:aiwg:agent:codex-gpt-5"
   type: ai_assistant
@@ -27,10 +32,10 @@ relationships:
   wasGeneratedBy:
     entity: "urn:aiwg:artifact:.gitea/workflows/sdlc-gates.yml"
     activity: "urn:aiwg:activity:modification:sdlc-gates-node-bootstrap:001"
-    time: "2026-07-28T02:13:36Z"
+    time: "2026-07-28T02:30:23Z"
   wasDerivedFrom:
     - entity: "urn:aiwg:artifact:.gitea/workflows/sdlc-gates.yml"
-      source: "urn:gitea:actions:Fortemi/HotM:1121"
+      source: "urn:gitea:actions:Fortemi/HotM:1129"
       derivation_type: "remediates"
       activity: "urn:aiwg:activity:modification:sdlc-gates-node-bootstrap:001"
   wasAssociatedWith:

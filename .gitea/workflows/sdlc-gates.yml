@@ -9,7 +9,7 @@ on:
 jobs:
   fortemi-route-inventory:
     name: Fortemi Route Inventory
-    runs-on: node-20
+    runs-on: ubuntu-latest
     env:
       FORTEMI_REPOSITORY: Fortemi/fortemi.git
     steps:
