@@ -2,7 +2,10 @@ import { createRequire } from 'node:module';
 import { describe, expect, test } from 'vitest';
 
 const require = createRequire(import.meta.url);
-const { validateLiveAssetCiReceipt } = require('./verify-live-asset-ci-receipt.cjs');
+const {
+  createLiveAssetCiReceiptPair,
+  validateLiveAssetCiReceiptPair,
+} = require('./verify-live-asset-ci-receipt-pair.cjs');
 const provenance = require('../../release/live-asset-receipt-sidecar-provenance.json');
 
 const PLATFORMS = {
@@ -22,9 +25,9 @@ const PLATFORMS = {
   },
 };
 
-function validReceipt(platformName = 'linux') {
-  const fortemiCommit = provenance.target_commitish;
+function receipt(platformName) {
   const platform = PLATFORMS[platformName];
+  const fortemiCommit = provenance.target_commitish;
   return {
     schemaVersion: 'hotm.live-asset-ci-receipt.v1',
     issue: 'Fortemi/HotM#284',
@@ -42,12 +45,12 @@ function validReceipt(platformName = 'linux') {
       os: platform.os,
       arch: platform.arch,
       target: platform.target,
+      desktopTarget: platform.desktopTarget,
       headless: true,
       authenticationRequired: true,
       storageBackend: 'filesystem',
       databaseProvisioning: platformName === 'linux' ? 'managed-docker' : 'external',
       browserTarget: 'playwright-chromium',
-      desktopTarget: platform.desktopTarget,
     },
     children: {
       browser: { status: 'passed', sha256: 'b'.repeat(64) },
@@ -79,52 +82,41 @@ function validReceipt(platformName = 'linux') {
   };
 }
 
-describe('live asset CI receipt verifier', () => {
-  test.each([
-    ['Linux x86_64', 'linux'],
-    ['Darwin arm64', 'darwin'],
-  ])('accepts the bounded headless authenticated receipt on %s', (_label, platform) => {
-    expect(validateLiveAssetCiReceipt(validReceipt(platform))).toEqual([]);
+describe('live asset CI receipt pair verifier', () => {
+  test('emits a bounded aggregate for one Linux and one Darwin receipt', () => {
+    const aggregate = createLiveAssetCiReceiptPair([
+      { receipt: receipt('darwin'), sha256: 'e'.repeat(64) },
+      { receipt: receipt('linux'), sha256: 'f'.repeat(64) },
+    ]);
+
+    expect(aggregate.status).toBe('passed');
+    expect(aggregate.failures).toEqual([]);
+    expect(aggregate.claims).toMatchObject({
+      exactLinuxDarwinPairPassed: true,
+      launchedDesktopGui: false,
+      interactiveNativeDialogs: false,
+      suiteWidePortability: false,
+    });
+    expect(aggregate.children['linux-x86_64'].receiptSha256).toBe('f'.repeat(64));
+    expect(aggregate.children['darwin-arm64'].receiptSha256).toBe('e'.repeat(64));
   });
 
-  test('rejects an unsupported target even when the OS and architecture are supported', () => {
-    const receipt = validReceipt('darwin');
-    receipt.execution.target = 'x86_64-apple-darwin';
-    expect(validateLiveAssetCiReceipt(receipt)).toContain(
-      'execution platform must be Linux x86_64 or Darwin arm64',
-    );
-  });
-
-  test.each([
-    ['credential', (receipt) => { receipt.leak = `mm_at_${'x'.repeat(24)}`; }],
-    ['local path', (receipt) => { receipt.leak = '/tmp/private'; }],
-    ['macOS local path', (receipt) => { receipt.leak = '/Users/runner/private'; }],
-    ['storage path', (receipt) => { receipt.storage_path = 'secret'; }],
-    ['manifest payload', (receipt) => { receipt.shard_base64 = 'payload'; }],
-  ])('rejects a %s leak', (_name, mutate) => {
-    const receipt = validReceipt();
-    mutate(receipt);
-    expect(validateLiveAssetCiReceipt(receipt)).toContain(
-      'receipt contains a credential, local/storage path, manifest payload, or payload bytes',
-    );
-  });
-
-  test('rejects producer identity drift and unsupported broad claims', () => {
-    const receipt = validReceipt();
-    receipt.identity.fortemiHealthCommit = 'd'.repeat(40);
-    receipt.claims.suiteWidePortability = true;
-    expect(validateLiveAssetCiReceipt(receipt)).toEqual(expect.arrayContaining([
-      'Fortemi health commit does not match the pinned producer commit',
-      'claim suiteWidePortability must be false',
+  test('rejects a duplicate Linux receipt and missing Darwin evidence', () => {
+    const failures = validateLiveAssetCiReceiptPair([
+      receipt('linux'),
+      receipt('linux'),
+    ]);
+    expect(failures).toEqual(expect.arrayContaining([
+      'duplicate platform receipt: linux/x86_64/x86_64-unknown-linux-gnu',
+      'missing required platform receipt: darwin/arm64/aarch64-apple-darwin',
     ]));
   });
 
-  test('rejects a producer revision that differs from pinned provenance', () => {
-    const receipt = validReceipt();
-    receipt.identity.fortemiCommit = 'e'.repeat(40);
-    receipt.identity.fortemiHealthCommit = receipt.identity.fortemiCommit;
-    expect(validateLiveAssetCiReceipt(receipt)).toContain(
-      'identity.fortemiCommit does not match pinned sidecar provenance',
+  test('rejects revision drift between otherwise valid platform receipts', () => {
+    const darwin = receipt('darwin');
+    darwin.identity.hotmCommit = '9'.repeat(40);
+    expect(validateLiveAssetCiReceiptPair([receipt('linux'), darwin])).toContain(
+      'HotM commit differs between platform receipts',
     );
   });
 });

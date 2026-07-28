@@ -1,23 +1,24 @@
 metadata:
   schema_version: "1.0.0"
   created_at: "2026-07-17T21:46:51Z"
-  description: "Provenance for HotM #270 operation-complete Fortemi OpenAPI consumer gate"
+  updated_at: "2026-07-28T16:38:35Z"
+  description: "Provenance for the HotM two-platform Fortemi OpenAPI receipt refresh"
 entity:
   id: "urn:aiwg:artifact:ui/src/api/contracts/fortemi-openapi-receipt.json"
   type: software
   created_at: "2026-07-17T21:46:51Z"
-  updated_at: "2026-07-18T00:57:02Z"
-  checksum: "sha256:2575b41174a311d2f0386164744af8f24276290f768decf6b72aeba32e17ff96"
-  size_bytes: 919
+  updated_at: "2026-07-28T16:38:35Z"
+  checksum: "sha256:59a23dbea25becea97d8cd795c4ff80cccacdfd83c8d455f02abb5799426f668"
+  size_bytes: 949
   attributes:
-    change_scope: "fortemi-openapi-consumer-contract"
-    base_revision: "02b6d035eb36005b67a72860ea08a91b898ba3a1"
+    change_scope: "hotm-284-two-platform-contract"
+    producer_revision: "01df081bac0759363f7d6bff7e9a055ae929861f"
 activity:
-  id: "urn:aiwg:activity:generation:ui-src-api-contracts-fortemi-openapi-receipt-json:001"
+  id: "urn:aiwg:activity:modification:ui-src-api-contracts-fortemi-openapi-receipt-json:002"
   type: modification
-  started_at: "2026-07-17T21:46:51Z"
-  ended_at: "2026-07-18T00:57:02Z"
-  description: "Repin and enforce the shared schema-bearing response boundary for every Fortemi OpenAPI operation"
+  started_at: "2026-07-28T16:38:35Z"
+  ended_at: "2026-07-28T16:38:35Z"
+  description: "Refresh the OpenAPI receipt from the immutable Fortemi authority and preserve semantic route coverage"
 agent:
   id: "urn:aiwg:agent:codex-gpt-5"
   type: ai_assistant
@@ -27,22 +28,22 @@ agent:
 relationships:
   wasGeneratedBy:
     entity: "urn:aiwg:artifact:ui/src/api/contracts/fortemi-openapi-receipt.json"
-    activity: "urn:aiwg:activity:generation:ui-src-api-contracts-fortemi-openapi-receipt-json:001"
-    time: "2026-07-18T00:57:02Z"
+    activity: "urn:aiwg:activity:modification:ui-src-api-contracts-fortemi-openapi-receipt-json:002"
+    time: "2026-07-28T16:38:35Z"
   used:
-    - activity: "urn:aiwg:activity:generation:ui-src-api-contracts-fortemi-openapi-receipt-json:001"
-      entity: "urn:gitea:Fortemi/HotM:issue:270"
+    - activity: "urn:aiwg:activity:modification:ui-src-api-contracts-fortemi-openapi-receipt-json:002"
+      entity: "urn:gitea:Fortemi/HotM:issue:284"
       role: "requirement"
-    - activity: "urn:aiwg:activity:generation:ui-src-api-contracts-fortemi-openapi-receipt-json:001"
-      entity: "urn:git:git@git.integrolabs.net:Fortemi/fortemi.git:ec14e0447711c45a8d5c5445ce47a35f26d4346a:contracts/openapi/openapi.yaml"
+    - activity: "urn:aiwg:activity:modification:ui-src-api-contracts-fortemi-openapi-receipt-json:002"
+      entity: "urn:git:git@git.integrolabs.net:Fortemi/fortemi.git:01df081bac0759363f7d6bff7e9a055ae929861f:contracts/openapi/openapi.yaml"
       role: "producer_contract"
   wasDerivedFrom:
     - entity: "urn:aiwg:artifact:ui/src/api/contracts/fortemi-openapi-receipt.json"
-      source: "urn:gitea:Fortemi/HotM:issue:270"
+      source: "urn:git:git@git.integrolabs.net:Fortemi/fortemi.git:01df081bac0759363f7d6bff7e9a055ae929861f:contracts/openapi/openapi.yaml"
       derivation_type: "implements"
-      activity: "urn:aiwg:activity:generation:ui-src-api-contracts-fortemi-openapi-receipt-json:001"
+      activity: "urn:aiwg:activity:modification:ui-src-api-contracts-fortemi-openapi-receipt-json:002"
   wasAssociatedWith:
-    activity: "urn:aiwg:activity:generation:ui-src-api-contracts-fortemi-openapi-receipt-json:001"
+    activity: "urn:aiwg:activity:modification:ui-src-api-contracts-fortemi-openapi-receipt-json:002"
     agent: "urn:aiwg:agent:codex-gpt-5"
     role: "primary_author"
   wasAttributedTo:

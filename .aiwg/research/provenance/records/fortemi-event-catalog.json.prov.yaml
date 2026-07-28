@@ -1,24 +1,24 @@
 metadata:
   schema_version: "1.0.0"
   created_at: "2026-07-17T20:15:02Z"
-  updated_at: "2026-07-26T14:51:19Z"
-  description: "Provenance for the HotM Fortemi event catalog sidecar-receipt repin"
+  updated_at: "2026-07-28T16:38:35Z"
+  description: "Provenance for the HotM two-platform Fortemi event contract refresh"
 entity:
   id: "urn:aiwg:artifact:ui/src/api/contracts/fortemi-event-catalog.json"
   type: test_fixture
   created_at: "2026-07-17T20:15:02Z"
-  updated_at: "2026-07-26T14:51:19Z"
-  checksum: "sha256:e4c36dd69f6a2ecf9f744a28ba0f2d5463a55fd8225daa6aac6f669898ebccae"
-  size_bytes: 2223
+  updated_at: "2026-07-28T16:38:35Z"
+  checksum: "sha256:768a85887ac2be0014339fd34381bd49d2cdd6864c57e0a65466ef591d6fa095"
+  size_bytes: 2280
   attributes:
-    change_scope: "hotm-event-sidecar-receipt-repin"
-    base_revision: "c5ec449284f1a7dcd6f591833cb9e8cbeec0d415"
+    change_scope: "hotm-284-two-platform-contract"
+    producer_revision: "01df081bac0759363f7d6bff7e9a055ae929861f"
 activity:
-  id: "urn:aiwg:activity:modification:fortemi-event-catalog-json:002"
+  id: "urn:aiwg:activity:modification:fortemi-event-catalog-json:003"
   type: modification
-  started_at: "2026-07-26T14:51:19Z"
-  ended_at: "2026-07-26T14:51:19Z"
-  description: "Repin the unchanged event and AsyncAPI source receipt to the delivered Fortemi sidecar commit"
+  started_at: "2026-07-28T16:38:35Z"
+  ended_at: "2026-07-28T16:38:35Z"
+  description: "Refresh the committed event catalog from the immutable Fortemi AsyncAPI authority"
 agent:
   id: "urn:aiwg:agent:codex-gpt-5"
   type: ai_assistant
@@ -28,19 +28,22 @@ agent:
 relationships:
   wasGeneratedBy:
     entity: "urn:aiwg:artifact:ui/src/api/contracts/fortemi-event-catalog.json"
-    activity: "urn:aiwg:activity:modification:fortemi-event-catalog-json:002"
-    time: "2026-07-26T14:51:19Z"
+    activity: "urn:aiwg:activity:modification:fortemi-event-catalog-json:003"
+    time: "2026-07-28T16:38:35Z"
   used:
-    - activity: "urn:aiwg:activity:modification:fortemi-event-catalog-json:002"
-      entity: "urn:git:git@git.integrolabs.net:Fortemi/HotM.git:c5ec449284f1a7dcd6f591833cb9e8cbeec0d415:ui/src/api/contracts/fortemi-event-catalog.json"
-      role: "previous_revision"
+    - activity: "urn:aiwg:activity:modification:fortemi-event-catalog-json:003"
+      entity: "urn:gitea:Fortemi/HotM:issue:284"
+      role: "requirement"
+    - activity: "urn:aiwg:activity:modification:fortemi-event-catalog-json:003"
+      entity: "urn:git:git@git.integrolabs.net:Fortemi/fortemi.git:01df081bac0759363f7d6bff7e9a055ae929861f:contracts/asyncapi/asyncapi.yaml"
+      role: "producer_contract"
   wasDerivedFrom:
     - entity: "urn:aiwg:artifact:ui/src/api/contracts/fortemi-event-catalog.json"
-      source: "urn:git:git@git.integrolabs.net:Fortemi/fortemi.git:45aff7e6f4390c650c98f55c643b1dc95d818c86:crates/matric-core/src/events.rs"
+      source: "urn:git:git@git.integrolabs.net:Fortemi/fortemi.git:01df081bac0759363f7d6bff7e9a055ae929861f:contracts/asyncapi/asyncapi.yaml"
       derivation_type: "derives_from"
-      activity: "urn:aiwg:activity:modification:fortemi-event-catalog-json:002"
+      activity: "urn:aiwg:activity:modification:fortemi-event-catalog-json:003"
   wasAssociatedWith:
-    activity: "urn:aiwg:activity:modification:fortemi-event-catalog-json:002"
+    activity: "urn:aiwg:activity:modification:fortemi-event-catalog-json:003"
     agent: "urn:aiwg:agent:codex-gpt-5"
     role: "primary_author"
   wasAttributedTo:

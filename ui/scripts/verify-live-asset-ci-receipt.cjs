@@ -1,6 +1,12 @@
 #!/usr/bin/env node
 
 const fs = require('node:fs');
+const path = require('node:path');
+
+const SIDECAR_PROVENANCE = JSON.parse(fs.readFileSync(
+  path.resolve(__dirname, '../../release/live-asset-receipt-sidecar-provenance.json'),
+  'utf8',
+));
 
 const REQUIRED_TRUE_CLAIMS = [
   'browserSetInputFilesAgainstLiveFortemiPassed',
@@ -14,6 +20,7 @@ const REQUIRED_TRUE_CLAIMS = [
   'signedFullV1CleanRecoveryPassed',
   'exactBytesDigestAndLengthPassed',
   'authenticatedBoundaryPassed',
+  'authorityContractGatesPassed',
   'redactionScanPassed',
 ];
 
@@ -22,6 +29,21 @@ const REQUIRED_FALSE_CLAIMS = [
   'interactiveNativeDialogs',
   'suiteWidePortability',
 ];
+
+const SUPPORTED_PLATFORMS = Object.freeze({
+  'linux/x86_64/x86_64-unknown-linux-gnu': Object.freeze({
+    os: 'linux',
+    arch: 'x86_64',
+    target: 'x86_64-unknown-linux-gnu',
+    desktopTarget: 'tauri-command-core-linux-x86_64',
+  }),
+  'darwin/arm64/aarch64-apple-darwin': Object.freeze({
+    os: 'darwin',
+    arch: 'arm64',
+    target: 'aarch64-apple-darwin',
+    desktopTarget: 'tauri-command-core-darwin-arm64',
+  }),
+});
 
 function sha256(value) {
   return typeof value === 'string' && /^[0-9a-f]{64}$/.test(value);
@@ -36,7 +58,7 @@ function validateLiveAssetCiReceipt(receipt, { expectClean = true } = {}) {
   if (receipt.schemaVersion !== 'hotm.live-asset-ci-receipt.v1') {
     failures.push('schemaVersion mismatch');
   }
-  if (receipt.issue !== 'Fortemi/HotM#283') failures.push('issue mismatch');
+  if (receipt.issue !== 'Fortemi/HotM#284') failures.push('issue mismatch');
   if (receipt.status !== 'passed') failures.push('status must be passed');
   if (receipt.profile !== '2.0.0/full-v1') failures.push('profile mismatch');
 
@@ -46,19 +68,36 @@ function validateLiveAssetCiReceipt(receipt, { expectClean = true } = {}) {
   if (!exactCommit(receipt.identity?.fortemiCommit)) {
     failures.push('identity.fortemiCommit must be an exact commit');
   }
+  if (receipt.identity?.fortemiCommit !== SIDECAR_PROVENANCE.target_commitish) {
+    failures.push('identity.fortemiCommit does not match pinned sidecar provenance');
+  }
   if (expectClean && receipt.identity?.hotmWorktreeDirty !== false) {
     failures.push('identity.hotmWorktreeDirty must be false');
   }
   if (receipt.identity?.fortemiHealthCommit !== receipt.identity?.fortemiCommit) {
     failures.push('Fortemi health commit does not match the pinned producer commit');
   }
-  if (receipt.identity?.sidecarRelease !== `sidecar-${receipt.identity?.fortemiCommit?.slice(0, 12)}`) {
-    failures.push('sidecar release does not match the pinned producer commit');
+  if (receipt.identity?.sidecarRelease !== SIDECAR_PROVENANCE.release_tag) {
+    failures.push('sidecar release does not match pinned sidecar provenance');
   }
   if (!sha256(receipt.identity?.sidecarSha256)) {
     failures.push('identity.sidecarSha256 invalid');
   }
 
+  const platformKey = [
+    receipt.execution?.os,
+    receipt.execution?.arch,
+    receipt.execution?.target,
+  ].join('/');
+  const platform = SUPPORTED_PLATFORMS[platformKey];
+  if (!platform) {
+    failures.push('execution platform must be Linux x86_64 or Darwin arm64');
+  } else if (
+    receipt.identity?.sidecarSha256
+      !== SIDECAR_PROVENANCE.assets?.[platform.target]?.sha256
+  ) {
+    failures.push('identity.sidecarSha256 does not match the pinned platform asset');
+  }
   if (receipt.execution?.headless !== true) failures.push('execution.headless must be true');
   if (receipt.execution?.authenticationRequired !== true) {
     failures.push('execution.authenticationRequired must be true');
@@ -66,14 +105,17 @@ function validateLiveAssetCiReceipt(receipt, { expectClean = true } = {}) {
   if (receipt.execution?.storageBackend !== 'filesystem') {
     failures.push('execution.storageBackend must be filesystem');
   }
+  if (!['managed-docker', 'external'].includes(receipt.execution?.databaseProvisioning)) {
+    failures.push('execution.databaseProvisioning invalid');
+  }
   if (receipt.execution?.browserTarget !== 'playwright-chromium') {
     failures.push('execution.browserTarget mismatch');
   }
-  if (receipt.execution?.desktopTarget !== 'tauri-command-core-linux-x86_64') {
+  if (platform && receipt.execution?.desktopTarget !== platform.desktopTarget) {
     failures.push('execution.desktopTarget mismatch');
   }
 
-  for (const child of ['browser', 'tauri']) {
+  for (const child of ['browser', 'tauri', 'authorityContracts']) {
     if (receipt.children?.[child]?.status !== 'passed') {
       failures.push(`children.${child}.status must be passed`);
     }
@@ -97,7 +139,7 @@ function validateLiveAssetCiReceipt(receipt, { expectClean = true } = {}) {
 
   const serialized = JSON.stringify(receipt);
   if (
-    /mm_at_[A-Za-z0-9_-]{16,}|\/tmp\/|\/home\/|storage_path|private_key|shard_base64|authorization["']?\s*:/i
+    /mm_at_[A-Za-z0-9_-]{16,}|\/tmp\/|\/home\/|\/Users\/|\/private\/(?:tmp|var)\/|storage_path|private_key|shard_base64|authorization["']?\s*:/i
       .test(serialized)
   ) {
     failures.push('receipt contains a credential, local/storage path, manifest payload, or payload bytes');
@@ -116,7 +158,7 @@ function verifyLiveAssetCiReceipt(receiptPath, options = {}) {
   if (receipt) failures.push(...validateLiveAssetCiReceipt(receipt, options));
   return {
     receipt: 'hotm-live-asset-ci-receipt-validation',
-    issue: 'Fortemi/HotM#283',
+    issue: 'Fortemi/HotM#284',
     status: failures.length === 0 ? 'passed' : 'failed',
     failures,
   };
@@ -138,6 +180,7 @@ if (require.main === module) {
 module.exports = {
   REQUIRED_FALSE_CLAIMS,
   REQUIRED_TRUE_CLAIMS,
+  SUPPORTED_PLATFORMS,
   validateLiveAssetCiReceipt,
   verifyLiveAssetCiReceipt,
 };

@@ -35,9 +35,14 @@ const asyncApiSourcePath = resolve(
   fortemiRoot,
   fixture.producer.asyncApi.sourcePath,
 );
-const [source, asyncApiSource] = await Promise.all([
+const asyncApiArtifactPath = resolve(
+  fortemiRoot,
+  fixture.producer.asyncApi.artifactPath,
+);
+const [source, asyncApiSource, asyncApiArtifact] = await Promise.all([
   readFile(sourcePath, 'utf8'),
   readFile(asyncApiSourcePath, 'utf8'),
+  readFile(asyncApiArtifactPath),
 ]);
 const sourceSha256 = createHash('sha256').update(source).digest('hex');
 if (sourceSha256 !== fixture.producer.sourceSha256) {
@@ -53,9 +58,18 @@ if (asyncApiSourceSha256 !== fixture.producer.asyncApi.sourceSha256) {
     `producer AsyncAPI source checksum mismatch: ${asyncApiSourceSha256} != ${fixture.producer.asyncApi.sourceSha256}`,
   );
 }
+const asyncApiArtifactSha256 = createHash('sha256')
+  .update(asyncApiArtifact)
+  .digest('hex');
+if (
+  asyncApiArtifactSha256 !== fixture.producer.asyncApi.sha256
+  || asyncApiArtifact.byteLength !== fixture.producer.asyncApi.sizeBytes
+) {
+  throw new Error('producer AsyncAPI artifact checksum or byte length mismatch');
+}
 if (
   fixture.producer.asyncApi.asyncApiVersion !== '3.0.0'
-  || fixture.producer.asyncApi.generatorVersion !== '2026.7.1'
+  || !/^\d{4}\.\d+\.\d+$/.test(fixture.producer.asyncApi.generatorVersion)
 ) {
   throw new Error('unexpected pinned AsyncAPI generator version');
 }

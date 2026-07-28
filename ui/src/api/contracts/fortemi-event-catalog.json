@@ -2,18 +2,19 @@
   "schemaVersion": 1,
   "producer": {
     "repository": "Fortemi/fortemi",
-    "commit": "45aff7e6f4390c650c98f55c643b1dc95d818c86",
+    "commit": "01df081bac0759363f7d6bff7e9a055ae929861f",
     "sourcePath": "crates/matric-core/src/events.rs",
     "sourceSha256": "9828d2856f7aea057978b66bf113596dccbfcf9642303eeb9a4d1a1e228d84e7",
     "asyncApi": {
       "sourcePath": "crates/matric-core/src/asyncapi.rs",
       "sourceSha256": "7be3732aa01cd40e7761b78ce56c7b3199494cd76c8d06f3ccfb78b6070f1da8",
+      "artifactPath": "contracts/asyncapi/asyncapi.yaml",
       "format": "yaml",
       "asyncApiVersion": "3.0.0",
-      "generatorVersion": "2026.7.1",
-      "canonicalServerUrl": "https://example.invalid",
-      "sha256": "f6a6fbc39af52b713b6f5c40dbb6e46baeb8a1b352a19288e79073863766bdf4",
-      "sizeBytes": 45161
+      "generatorVersion": "2026.7.12",
+      "canonicalServerUrl": "http://localhost:3000",
+      "sha256": "adc4d9da3d6cb000b281494ed51160fd81d220c29a9a2a0be676bcfb5ccdd548",
+      "sizeBytes": 45160
     }
   },
   "eventTypes": [
@@ -28,8 +29,8 @@
     "collection.deleted",
     "collection.membership.changed",
     "collection.updated",
-    "concept.created",
     "concept.collection.membership.changed",
+    "concept.created",
     "concept.deleted",
     "concept.relations.updated",
     "concept.scheme.changed",

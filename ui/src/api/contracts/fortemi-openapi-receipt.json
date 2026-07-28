@@ -2,30 +2,35 @@
   "schemaVersion": 1,
   "producer": {
     "repository": "Fortemi/fortemi",
-    "commit": "ec14e0447711c45a8d5c5445ce47a35f26d4346a",
+    "commit": "01df081bac0759363f7d6bff7e9a055ae929861f",
     "path": "contracts/openapi/openapi.yaml",
-    "sha256": "4d1f9655c60ed6f97f86c790cab64ea9826ac9ca61084250a3b242fd10a7e30c",
+    "sha256": "9d2d5ea05f21a71d416d713a5cadd2c4f76086a3494105280d50ec328c4056fd",
     "contractRevision": "1",
     "contractVersion": "2026.2.9"
   },
   "consumer": {
     "semanticProfile": "hotm-openapi-v1",
-    "acceptedContractRevisions": ["1"],
-    "acceptedContractVersions": ["2026.2.8", "2026.2.9"],
-    "semanticSha256": "52ea99780e621b2073e0fb4bd1f0166c1a343c81d548f9856b8b1bc6ca886535"
+    "acceptedContractRevisions": [
+      "1"
+    ],
+    "acceptedContractVersions": [
+      "2026.2.8",
+      "2026.2.9"
+    ],
+    "semanticSha256": "6e84af14c4f0aebb885123b19dfa639ddfda5e73ef08d0ebbb9ca7ca8db9e633"
   },
   "statistics": {
-    "paths": 191,
-    "operations": 249,
-    "parameters": 168,
+    "paths": 193,
+    "operations": 251,
+    "parameters": 177,
     "requestBodies": 85,
-    "responses": 559,
-    "responseSchemas": 255,
-    "schemaBearingOperations": 249,
-    "problemResponses": 249,
-    "nullableSchemas": 507,
-    "enumSchemas": 22,
-    "publicOperations": 18,
+    "responses": 563,
+    "responseSchemas": 257,
+    "schemaBearingOperations": 251,
+    "problemResponses": 251,
+    "nullableSchemas": 514,
+    "enumSchemas": 24,
+    "publicOperations": 20,
     "protectedOperations": 231
   }
 }
