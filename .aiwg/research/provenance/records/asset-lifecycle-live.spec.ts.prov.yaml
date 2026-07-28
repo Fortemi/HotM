@@ -1,0 +1,46 @@
+metadata:
+  schema_version: "1.0.0"
+  created_at: "2026-07-28T20:11:02Z"
+  updated_at: "2026-07-28T20:11:02Z"
+  description: "Provenance for the live browser asset lifecycle receipt"
+entity:
+  id: "urn:aiwg:artifact:ui/e2e/live/asset-lifecycle-live.spec.ts"
+  type: test_source
+  created_at: "2026-07-28T20:11:02Z"
+  updated_at: "2026-07-28T20:11:02Z"
+  checksum: "sha256:40d05b8eecc22ca20dc4dd89fc15cf13fa5ffe5dd3cd1f66179976d10f0b1249"
+  size_bytes: 29705
+  attributes:
+    change_scope: "hotm-consumer-platform-proof-284"
+    base_revision: "d5063261d8a3be94ee3f9695bff579252b1188a4"
+activity:
+  id: "urn:aiwg:activity:modification:asset-lifecycle-live-spec-ts:001"
+  type: modification
+  started_at: "2026-07-28T20:11:02Z"
+  ended_at: "2026-07-28T20:11:02Z"
+  description: "Verify browser download bytes in the page blob and filename at the browser event boundary"
+agent: &agent
+  id: "urn:aiwg:agent:codex-gpt-5"
+  type: ai_assistant
+  name: "Codex"
+  version: "gpt-5"
+  tool: "codex"
+relationships:
+  wasGeneratedBy:
+    entity: "urn:aiwg:artifact:ui/e2e/live/asset-lifecycle-live.spec.ts"
+    activity: "urn:aiwg:activity:modification:asset-lifecycle-live-spec-ts:001"
+    time: "2026-07-28T20:11:02Z"
+  wasDerivedFrom:
+    - entity: "urn:aiwg:artifact:ui/src/components/attachments/download-blob.ts"
+      derivation_type: "tests"
+      activity: "urn:aiwg:activity:modification:asset-lifecycle-live-spec-ts:001"
+    - entity: "urn:aiwg:issue:Fortemi/HotM:284"
+      derivation_type: "tests"
+      activity: "urn:aiwg:activity:modification:asset-lifecycle-live-spec-ts:001"
+  wasAssociatedWith:
+    activity: "urn:aiwg:activity:modification:asset-lifecycle-live-spec-ts:001"
+    agent: "urn:aiwg:agent:codex-gpt-5"
+    role: "primary_author"
+  wasAttributedTo:
+    entity: "urn:aiwg:artifact:ui/e2e/live/asset-lifecycle-live.spec.ts"
+    agent: "urn:aiwg:agent:codex-gpt-5"

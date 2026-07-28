@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto';
-import { readFileSync, writeFileSync } from 'node:fs';
+import { writeFileSync } from 'node:fs';
 import { gunzipSync } from 'node:zlib';
 import { expect, test, type Page, type TestInfo } from '@playwright/test';
 import {
@@ -132,7 +132,6 @@ test.describe('live asset lifecycle', () => {
       await timeReceipt(receipt, 'uiSavedFileDownloadMillis', () =>
         downloadAttachmentViaUiAndVerifyFile(
           page,
-          testInfo,
           uiAttachment.id,
           uiFilename,
           uiSha256,
@@ -666,7 +665,6 @@ async function uploadViaAttachmentsPanel(
 
 async function downloadAttachmentViaUiAndVerifyFile(
   page: Page,
-  testInfo: TestInfo,
   attachmentId: string,
   expectedFilename: string,
   expectedSha256: string,
@@ -677,6 +675,18 @@ async function downloadAttachmentViaUiAndVerifyFile(
   await expect(attachmentCard).toBeVisible({ timeout: 20000 });
   await attachmentCard.hover();
   await attachmentCard.locator('button').first().click();
+  await page.evaluate(() => {
+    const downloadWindow = window as Window & {
+      __hotmDownloadBlobUrl?: string;
+      __hotmOriginalCreateObjectURL?: typeof URL.createObjectURL;
+    };
+    downloadWindow.__hotmOriginalCreateObjectURL ??= URL.createObjectURL.bind(URL);
+    URL.createObjectURL = (object: Blob | MediaSource): string => {
+      const url = downloadWindow.__hotmOriginalCreateObjectURL!(object);
+      downloadWindow.__hotmDownloadBlobUrl = url;
+      return url;
+    };
+  });
 
   const download = await Promise.all([
     page.waitForEvent('download'),
@@ -684,9 +694,14 @@ async function downloadAttachmentViaUiAndVerifyFile(
   ]).then(([download]) => download);
 
   expect(download.suggestedFilename()).toBe(expectedFilename);
-  const savedPath = testInfo.outputPath(`saved-${expectedFilename}`);
-  await download.saveAs(savedPath);
-  const savedBytes = readFileSync(savedPath);
+  const savedBytes = Uint8Array.from(await page.evaluate(async () => {
+    const url = (window as Window & { __hotmDownloadBlobUrl?: string })
+      .__hotmDownloadBlobUrl;
+    if (!url) throw new Error('Download did not create a blob URL');
+    const response = await fetch(url);
+    if (!response.ok) throw new Error(`Blob URL fetch failed: ${response.status}`);
+    return Array.from(new Uint8Array(await response.arrayBuffer()));
+  }));
   expect(sha256Hex(savedBytes)).toBe(expectedSha256);
 }
 
