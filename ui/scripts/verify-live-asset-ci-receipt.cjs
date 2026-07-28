@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 
+const crypto = require('node:crypto');
 const fs = require('node:fs');
 const path = require('node:path');
 
@@ -22,7 +23,16 @@ const REQUIRED_TRUE_CLAIMS = [
   'authenticatedBoundaryPassed',
   'authorityContractGatesPassed',
   'redactionScanPassed',
+  'productionShardConsumerPassed',
 ];
+
+const FIXTURE_IDENTITY = Object.freeze({
+  id: 'hotm-live-assets-v1',
+  browserTusBytes: 196608,
+  browserTusSha256: 'd6ab0c60a307941a1d9793753bf0cbbb90008e89812869453b25e236ef56231f',
+  uiUploadBytes: 131072,
+  uiUploadSha256: '7298685ff5a1933017d78acb3d5d42f2a872bd1a38e0b152c4fb8bceebd47ea4',
+});
 
 const REQUIRED_FALSE_CLAIMS = [
   'launchedDesktopGui',
@@ -79,6 +89,9 @@ function validateLiveAssetCiReceipt(receipt, { expectClean = true } = {}) {
   }
   if (receipt.identity?.sidecarRelease !== SIDECAR_PROVENANCE.release_tag) {
     failures.push('sidecar release does not match pinned sidecar provenance');
+  }
+  if (JSON.stringify(receipt.identity?.fixture) !== JSON.stringify(FIXTURE_IDENTITY)) {
+    failures.push('identity.fixture does not match the deterministic live corpus');
   }
   if (!sha256(receipt.identity?.sidecarSha256)) {
     failures.push('identity.sidecarSha256 invalid');
@@ -155,7 +168,30 @@ function verifyLiveAssetCiReceipt(receiptPath, options = {}) {
   } catch (error) {
     failures.push(`could not read receipt: ${error instanceof Error ? error.message : String(error)}`);
   }
-  if (receipt) failures.push(...validateLiveAssetCiReceipt(receipt, options));
+  if (receipt) {
+    failures.push(...validateLiveAssetCiReceipt(receipt, options));
+    if (options.verifyChildFiles !== false) {
+      const directory = path.dirname(receiptPath);
+      const childFiles = {
+        browser: 'browser-metrics.json',
+        tauri: 'tauri-receipt.json',
+        authorityContracts: 'authority-contract-gates.json',
+      };
+      for (const [name, filename] of Object.entries(childFiles)) {
+        const childPath = path.join(directory, filename);
+        if (!fs.existsSync(childPath)) {
+          failures.push(`children.${name} evidence file is missing`);
+          continue;
+        }
+        const digest = crypto.createHash('sha256')
+          .update(fs.readFileSync(childPath))
+          .digest('hex');
+        if (digest !== receipt.children?.[name]?.sha256) {
+          failures.push(`children.${name} evidence digest mismatch`);
+        }
+      }
+    }
+  }
   return {
     receipt: 'hotm-live-asset-ci-receipt-validation',
     issue: 'Fortemi/HotM#284',
@@ -178,6 +214,7 @@ if (require.main === module) {
 }
 
 module.exports = {
+  FIXTURE_IDENTITY,
   REQUIRED_FALSE_CLAIMS,
   REQUIRED_TRUE_CLAIMS,
   SUPPORTED_PLATFORMS,

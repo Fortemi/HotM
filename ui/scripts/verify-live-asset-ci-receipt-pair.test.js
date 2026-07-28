@@ -6,6 +6,7 @@ const {
   createLiveAssetCiReceiptPair,
   validateLiveAssetCiReceiptPair,
 } = require('./verify-live-asset-ci-receipt-pair.cjs');
+const { FIXTURE_IDENTITY } = require('./verify-live-asset-ci-receipt.cjs');
 const provenance = require('../../release/live-asset-receipt-sidecar-provenance.json');
 
 const PLATFORMS = {
@@ -40,6 +41,7 @@ function receipt(platformName) {
       fortemiHealthCommit: fortemiCommit,
       sidecarRelease: provenance.release_tag,
       sidecarSha256: platform.sidecarSha256,
+      fixture: FIXTURE_IDENTITY,
     },
     execution: {
       os: platform.os,
@@ -71,6 +73,7 @@ function receipt(platformName) {
       authenticatedBoundaryPassed: true,
       authorityContractGatesPassed: true,
       redactionScanPassed: true,
+      productionShardConsumerPassed: true,
       launchedDesktopGui: false,
       interactiveNativeDialogs: false,
       suiteWidePortability: false,

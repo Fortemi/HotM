@@ -432,6 +432,9 @@ const crypto = require('node:crypto');
 const fs = require('node:fs');
 const path = require('node:path');
 const outputDir = process.env.OUTPUT_DIR;
+const browserMetrics = JSON.parse(
+  fs.readFileSync(path.join(outputDir, 'browser-metrics.json'), 'utf8'),
+);
 const sha256File = (name) => {
   const file = path.join(outputDir, name);
   return fs.existsSync(file)
@@ -455,6 +458,13 @@ const receipt = {
     fortemiCommitAuthority: 'immutable-sidecar-release-provenance-and-configured-health',
     sidecarRelease: process.env.FORTEMI_RELEASE,
     sidecarSha256: process.env.FORTEMI_SHA256,
+    fixture: {
+      id: browserMetrics.corpus.fixtureId,
+      browserTusBytes: browserMetrics.corpus.browserTusBytes,
+      browserTusSha256: browserMetrics.corpus.browserTusSha256,
+      uiUploadBytes: browserMetrics.corpus.uiUploadBytes,
+      uiUploadSha256: browserMetrics.corpus.uiUploadSha256,
+    },
   },
   execution: {
     os: process.env.NORMALIZED_OS,
@@ -497,6 +507,7 @@ const receipt = {
     authenticatedBoundaryPassed: passed,
     authorityContractGatesPassed: Number(process.env.AUTHORITY_CONTRACT_STATUS) === 0,
     redactionScanPassed: Number(process.env.REDACTION_STATUS) === 0,
+    productionShardConsumerPassed: Number(process.env.BROWSER_STATUS) === 0,
     launchedDesktopGui: false,
     interactiveNativeDialogs: false,
     suiteWidePortability: false,

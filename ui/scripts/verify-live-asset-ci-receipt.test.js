@@ -1,8 +1,16 @@
+import { createHash } from 'node:crypto';
+import { mkdtempSync, writeFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { describe, expect, test } from 'vitest';
 
 const require = createRequire(import.meta.url);
-const { validateLiveAssetCiReceipt } = require('./verify-live-asset-ci-receipt.cjs');
+const {
+  FIXTURE_IDENTITY,
+  validateLiveAssetCiReceipt,
+  verifyLiveAssetCiReceipt,
+} = require('./verify-live-asset-ci-receipt.cjs');
 const provenance = require('../../release/live-asset-receipt-sidecar-provenance.json');
 
 const PLATFORMS = {
@@ -37,6 +45,7 @@ function validReceipt(platformName = 'linux') {
       fortemiHealthCommit: fortemiCommit,
       sidecarRelease: provenance.release_tag,
       sidecarSha256: platform.sidecarSha256,
+      fixture: FIXTURE_IDENTITY,
     },
     execution: {
       os: platform.os,
@@ -68,6 +77,7 @@ function validReceipt(platformName = 'linux') {
       authenticatedBoundaryPassed: true,
       authorityContractGatesPassed: true,
       redactionScanPassed: true,
+      productionShardConsumerPassed: true,
       launchedDesktopGui: false,
       interactiveNativeDialogs: false,
       suiteWidePortability: false,
@@ -125,6 +135,29 @@ describe('live asset CI receipt verifier', () => {
     receipt.identity.fortemiHealthCommit = receipt.identity.fortemiCommit;
     expect(validateLiveAssetCiReceipt(receipt)).toContain(
       'identity.fortemiCommit does not match pinned sidecar provenance',
+    );
+  });
+
+  test('recomputes every child digest from sibling evidence files', () => {
+    const directory = mkdtempSync(join(tmpdir(), 'hotm-live-receipt-'));
+    const receipt = validReceipt();
+    const children = {
+      browser: 'browser-metrics.json',
+      tauri: 'tauri-receipt.json',
+      authorityContracts: 'authority-contract-gates.json',
+    };
+    for (const [name, filename] of Object.entries(children)) {
+      const bytes = Buffer.from(`${name}\n`);
+      writeFileSync(join(directory, filename), bytes);
+      receipt.children[name].sha256 = createHash('sha256').update(bytes).digest('hex');
+    }
+    const receiptPath = join(directory, 'receipt.json');
+    writeFileSync(receiptPath, JSON.stringify(receipt));
+    expect(verifyLiveAssetCiReceipt(receiptPath).failures).toEqual([]);
+
+    writeFileSync(join(directory, 'browser-metrics.json'), 'tampered\n');
+    expect(verifyLiveAssetCiReceipt(receiptPath).failures).toContain(
+      'children.browser evidence digest mismatch',
     );
   });
 });

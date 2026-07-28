@@ -1,24 +1,24 @@
 metadata:
   schema_version: "1.0.0"
   created_at: "2026-07-20T20:06:30Z"
-  updated_at: "2026-07-24T08:10:00Z"
-  description: "Provenance for the HotM #272 full-v1 recovery API tests"
+  updated_at: "2026-07-28T17:11:09Z"
+  description: "Provenance for authenticated HotM full-v1 recovery API tests"
 entity:
   id: "urn:aiwg:artifact:ui/src/api/__tests__/backup.test.ts"
   type: test
   created_at: "2026-07-20T20:06:30Z"
-  updated_at: "2026-07-24T08:10:00Z"
-  checksum: "sha256:13a475f292c0f09a9d646075daec23cbfeaf7c722273e1e64c9314dca634f9f5"
-  size_bytes: 17637
+  updated_at: "2026-07-28T17:11:09Z"
+  checksum: "sha256:1fbe327bf73c5aa04159ff1d2b5957f638c4e8a3986c4569343a2c102bd5f833"
+  size_bytes: 20844
   attributes:
-    change_scope: "hotm-272-full-v1-recovery"
-    base_revision: "b35410c5c332a15e36cf84019f110100a7c9e8f1"
+    change_scope: "hotm-284-authenticated-full-v1-consumer"
+    base_revision: "937db9940d3113b1a45f14a2a4832f0ed36f937e"
 activity:
   id: "urn:aiwg:activity:modification:backup-test-current-shard:001"
   type: modification
   started_at: "2026-07-20T20:06:30Z"
-  ended_at: "2026-07-24T08:10:00Z"
-  description: "Assert full-v1 streaming export and verified dry-run-before-mutation import"
+  ended_at: "2026-07-28T17:11:09Z"
+  description: "Assert bearer authorization reaches direct backup and multipart full-v1 requests"
 agent:
   id: "urn:aiwg:agent:codex-gpt-5"
   type: ai_assistant
@@ -29,7 +29,7 @@ relationships:
   wasGeneratedBy:
     entity: "urn:aiwg:artifact:ui/src/api/__tests__/backup.test.ts"
     activity: "urn:aiwg:activity:modification:backup-test-current-shard:001"
-    time: "2026-07-24T08:10:00Z"
+    time: "2026-07-28T17:11:09Z"
   wasDerivedFrom:
     - entity: "urn:aiwg:artifact:ui/src/api/__tests__/backup.test.ts"
       source: "urn:aiwg:artifact:ui/src/api/knowledgeShard.ts"

@@ -260,10 +260,11 @@ export async function listNoteAttachments(noteId: string, memoryName?: string | 
   return data.attachments ?? (Array.isArray(data) ? data : []);
 }
 
-export async function exportFullV1Shard(): Promise<Uint8Array> {
+export async function exportFullV1Shard(memoryName?: string | null): Promise<Uint8Array> {
   const res = await apiFetch(
     '/backup/knowledge-shard?schema_version=2.0.0&profile=full-v1&include_blobs=true',
     { headers: {} },
+    memoryName,
   );
   if (!res.ok) {
     const text = await res.text().catch(() => '');

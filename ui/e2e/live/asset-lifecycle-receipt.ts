@@ -11,6 +11,7 @@ export type LiveAssetBrowserReceipt = {
   authRequired: boolean;
   bearerTokenSupplied: boolean;
   corpus: {
+    fixtureId: 'hotm-live-assets-v1';
     browserTusBytes: number;
     browserTusSha256: string;
     uiUploadBytes: number;
@@ -39,6 +40,7 @@ export type LiveAssetBrowserReceipt = {
     browserTusExactlyOneAttachmentPassed: boolean;
     reuploadAndShardMetadataRelationshipsPassed: boolean;
     signedFullV1RecoveryPassed: boolean;
+    productionShardConsumerPassed: boolean;
     hotmDesktopGuiPassed: false;
     suiteWidePortability: false;
   };
@@ -65,6 +67,7 @@ export function createLiveAssetBrowserReceipt(args: {
     authRequired: args.liveRequireAuth,
     bearerTokenSupplied: Boolean(args.liveApiToken),
     corpus: {
+      fixtureId: 'hotm-live-assets-v1',
       browserTusBytes: args.browserTusBytes,
       browserTusSha256: args.browserTusSha256,
       uiUploadBytes: args.uiUploadBytes,
@@ -80,6 +83,7 @@ export function createLiveAssetBrowserReceipt(args: {
       browserTusExactlyOneAttachmentPassed: false,
       reuploadAndShardMetadataRelationshipsPassed: false,
       signedFullV1RecoveryPassed: false,
+      productionShardConsumerPassed: false,
       hotmDesktopGuiPassed: false,
       suiteWidePortability: false,
     },
@@ -104,6 +108,9 @@ export function validateLiveAssetBrowserReceipt(receipt: LiveAssetBrowserReceipt
     if (!Number.isInteger(receipt.corpus[key]) || receipt.corpus[key] <= 0) {
       failures.push(`corpus ${key} missing or invalid`);
     }
+  }
+  if (receipt.corpus.fixtureId !== 'hotm-live-assets-v1') {
+    failures.push('corpus fixtureId mismatch');
   }
   for (const key of ['browserTusSha256', 'uiUploadSha256'] as const) {
     if (!/^[0-9a-f]{64}$/.test(receipt.corpus[key])) {
@@ -220,6 +227,7 @@ export function validateCompletedLiveAssetBrowserReceipt(receipt: LiveAssetBrows
     'browserTusExactlyOneAttachmentPassed',
     'reuploadAndShardMetadataRelationshipsPassed',
     'signedFullV1RecoveryPassed',
+    'productionShardConsumerPassed',
   ] as const) {
     if (receipt.claims[key] !== true) failures.push(`claim ${key} must be true`);
   }

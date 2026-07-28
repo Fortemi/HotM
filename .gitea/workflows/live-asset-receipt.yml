@@ -6,17 +6,7 @@ on:
     paths:
       - 'ui/e2e/live/**'
       - 'ui/e2e/fixtures/live-api-helpers.ts'
-      - 'ui/src-tauri/src/lib.rs'
-      - 'ui/scripts/verify-live-asset-*.cjs'
-      - 'ui/scripts/verify-live-asset-*.test.js'
-      - 'release/live-asset-receipt-sidecar-provenance.json'
-      - 'scripts/ci/run-live-asset-receipt.sh'
-      - '.gitea/workflows/live-asset-receipt.yml'
-  pull_request:
-    branches: [main]
-    paths:
-      - 'ui/e2e/live/**'
-      - 'ui/e2e/fixtures/live-api-helpers.ts'
+      - 'ui/src/api/backup.ts'
       - 'ui/src-tauri/src/lib.rs'
       - 'ui/scripts/verify-live-asset-*.cjs'
       - 'ui/scripts/verify-live-asset-*.test.js'
@@ -37,7 +27,7 @@ jobs:
           set -euo pipefail
           git init -q .
           git remote add origin \
-            "https://token:${{ github.token }}@git.integrolabs.net/${GITHUB_REPOSITORY}.git"
+            "https://git.integrolabs.net/${GITHUB_REPOSITORY}.git"
           git fetch --quiet --no-tags --depth 1 origin "${GITHUB_SHA}"
           git checkout --quiet --detach FETCH_HEAD
 

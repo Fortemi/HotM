@@ -1,23 +1,25 @@
 metadata:
   schema_version: "1.0.0"
   created_at: "2026-07-24T08:10:00Z"
-  description: "Provenance for the HotM #272 full-v1 recovery transport"
+  updated_at: "2026-07-28T17:11:09Z"
+  description: "Provenance for the authenticated HotM full-v1 recovery transport"
 entity:
   id: "urn:aiwg:artifact:ui/src/api/backup.ts"
   type: source_code
   created_at: "2026-07-24T08:10:00Z"
-  checksum: "sha256:e6eac33b4a6844993f244abb7bfaa4cc80c4dd9b8de536b8e048e2d27e7f722d"
-  size_bytes: 19074
+  updated_at: "2026-07-28T17:11:09Z"
+  checksum: "sha256:418de3cc44ed540cfda7f6c60e9a0432494537bd01f223801f5a318cf8e4e5a0"
+  size_bytes: 20315
   attributes:
-    change_scope: "hotm-272-full-v1-recovery"
-    base_revision: "cd344f019f5d31965b804f7f6714647994cdc9dd"
+    change_scope: "hotm-284-authenticated-full-v1-consumer"
+    base_revision: "937db9940d3113b1a45f14a2a4832f0ed36f937e"
     producer_revision: "c93742d395c3a0cc73998dddabb002904052593d"
 activity:
   id: "urn:aiwg:activity:modification:backup-ts-full-v1:001"
   type: modification
   started_at: "2026-07-24T08:10:00Z"
-  ended_at: "2026-07-24T08:10:00Z"
-  description: "Stream full-v1 exports and require verified dry-run preflight before recovery mutation"
+  ended_at: "2026-07-28T17:11:09Z"
+  description: "Forward browser bearer authorization on direct backup and full-v1 transport requests"
 agent: &agent
   id: "urn:aiwg:agent:codex-gpt-5"
   type: ai_assistant
@@ -28,7 +30,7 @@ relationships:
   wasGeneratedBy:
     entity: "urn:aiwg:artifact:ui/src/api/backup.ts"
     activity: "urn:aiwg:activity:modification:backup-ts-full-v1:001"
-    time: "2026-07-24T08:10:00Z"
+    time: "2026-07-28T17:11:09Z"
   wasDerivedFrom:
     - entity: "urn:aiwg:artifact:ui/src/api/backup.ts"
       source: "urn:git:git@git.integrolabs.net:Fortemi/fortemi.git:c93742d395c3a0cc73998dddabb002904052593d"

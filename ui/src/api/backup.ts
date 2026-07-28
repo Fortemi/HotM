@@ -4,6 +4,7 @@
  */
 
 import type { ApiClient } from './client';
+import { getAuthorizationHeader } from './auth-context';
 import type {
   BackupInfo,
   BackupListResponse,
@@ -57,10 +58,12 @@ export function createBackupApi(client: ApiClient) {
   const getBaseUrl = (): string => client.baseUrl;
   const getMemoryHeaders = (): Record<string, string> => {
     const activeMemory = getActiveMemory();
-    if (!activeMemory) {
-      return {};
-    }
-    return { [getMemoryRoutingHeaderName()]: activeMemory };
+    return {
+      ...getAuthorizationHeader(),
+      ...(activeMemory
+        ? { [getMemoryRoutingHeaderName()]: activeMemory }
+        : {}),
+    };
   };
 
   const fileToBase64 = async (file: File): Promise<string> => {

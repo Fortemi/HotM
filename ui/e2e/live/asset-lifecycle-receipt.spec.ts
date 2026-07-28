@@ -134,6 +134,7 @@ test.describe('live asset metrics receipt schema', () => {
     receipt.claims.browserTusExactlyOneAttachmentPassed = true;
     receipt.claims.reuploadAndShardMetadataRelationshipsPassed = true;
     receipt.claims.signedFullV1RecoveryPassed = true;
+    receipt.claims.productionShardConsumerPassed = true;
 
     expect(validateCompletedLiveAssetBrowserReceipt(receipt)).toEqual([]);
   });

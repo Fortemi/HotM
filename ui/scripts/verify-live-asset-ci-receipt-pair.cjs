@@ -63,6 +63,7 @@ function validateLiveAssetCiReceiptPair(entries, options = {}) {
     ['Fortemi commit', (receipt) => receipt.identity?.fortemiCommit],
     ['Fortemi health commit', (receipt) => receipt.identity?.fortemiHealthCommit],
     ['sidecar release', (receipt) => receipt.identity?.sidecarRelease],
+    ['fixture identity', (receipt) => JSON.stringify(receipt.identity?.fixture)],
     ['profile', (receipt) => receipt.profile],
   ];
   for (const [label, read] of identityFields) {
@@ -104,6 +105,7 @@ function createLiveAssetCiReceiptPair(entries, options = {}) {
       hotmCommit: passed ? first.identity.hotmCommit : null,
       fortemiCommit: passed ? first.identity.fortemiCommit : null,
       sidecarRelease: passed ? first.identity.sidecarRelease : null,
+      fixture: passed ? first.identity.fixture : null,
       profile: passed ? first.profile : null,
     },
     children: childEntries,

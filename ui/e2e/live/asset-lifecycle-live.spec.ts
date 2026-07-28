@@ -14,7 +14,6 @@ import {
   getApiBaseUrl,
   getLiveApiToken,
   getLiveMemoryName,
-  importFullV1Shard,
   listNoteAttachments,
 } from '../fixtures/live-api-helpers';
 import {
@@ -50,12 +49,12 @@ test.describe('live asset lifecycle', () => {
     await ensureLiveMemory(recoveryMemory);
     const sourceNote = await createTestNote('HotM live asset source', 'HotM live asset source');
     const destinationNote = await createTestNote('HotM live asset destination', 'HotM live asset destination');
-    const runSeed = Date.now() % 251;
+    const runSeed = 47;
     const bytes = deterministicBytes(192 * 1024, runSeed);
     const expectedSha256 = sha256Hex(bytes);
     const uiBytes = deterministicBytes(128 * 1024, runSeed + 29);
     const uiSha256 = sha256Hex(uiBytes);
-    const uiFilename = `hotm-live-ui-${Date.now()}.bin`;
+    const uiFilename = 'hotm-live-ui-fixture.bin';
     const receipt = createLiveAssetBrowserReceipt({
       apiBaseUrl,
       liveMemory,
@@ -263,10 +262,66 @@ test.describe('live asset lifecycle', () => {
       expect(entries.has('signature.json')).toBe(true);
       expect([...entries.keys()].some((name) => /^blobs\/[0-9a-f]{64}$/.test(name))).toBe(true);
 
+      const cleanRecoveryShard = await exportFullV1Shard(recoveryMemory);
+      const cleanRecoveryEntries = readTarEntries(maybeGunzip(cleanRecoveryShard));
+      const cleanRecoveryManifestBytes = cleanRecoveryEntries.get('manifest.json');
+      expect(cleanRecoveryManifestBytes).toBeDefined();
+      const cleanRecoveryManifest = JSON.parse(
+        new TextDecoder().decode(cleanRecoveryManifestBytes),
+      );
+      const cleanRecoveryDefaults: Record<string, number> = {
+        embedding_configs: 8,
+        embedding_sets: 1,
+        skos_schemes: 1,
+      };
+      expect(
+        Object.entries(cleanRecoveryManifest.counts).filter(
+          ([name, count]) => count !== (cleanRecoveryDefaults[name] ?? 0),
+        ),
+        `clean recovery counts: ${JSON.stringify(cleanRecoveryManifest.counts)}`,
+      ).toEqual([]);
+      expect(
+        [...cleanRecoveryEntries.keys()].filter(
+          (name) => /^blobs\/[0-9a-f]{64}$/.test(name),
+        ),
+      ).toEqual([]);
+
       const importResult = await timeReceipt(receipt, 'fullV1ImportMillis', () =>
-        importFullV1Shard(shard, recoveryMemory),
+        page.evaluate(
+          async ({ apiBaseUrl, recoveryMemory, shardBytes }) => {
+            const [{ createApiClient }, { createBackupApi }, { setActiveMemory }] =
+              await Promise.all([
+                import('/src/api/client.ts'),
+                import('/src/api/backup.ts'),
+                import('/src/api/memory-context.ts'),
+              ]);
+            setActiveMemory(recoveryMemory);
+            const client = createApiClient(apiBaseUrl);
+            const backup = createBackupApi(client);
+            const file = new File(
+              [Uint8Array.from(shardBytes)],
+              'hotm-live-full-v1.shard',
+              { type: 'application/gzip' },
+            );
+            return backup.uploadKnowledgeShard(file, {
+              onConflict: 'replace',
+              skipEmbeddingRegen: true,
+              verifySignature: 'require',
+              trustedPublisherKeyIds: ['hotm-live-ci-1'],
+            });
+          },
+          {
+            apiBaseUrl,
+            recoveryMemory,
+            shardBytes: Array.from(shard),
+          },
+        ),
       );
       expect(importResult.manifest).toBeDefined();
+      expect(importResult.preflight?.status).toBe('success');
+      expect(importResult.preflight?.dry_run).toBe(true);
+      expect(importResult.response?.status).toBe('success');
+      expect(importResult.response?.dry_run).toBe(false);
       const recoveredAttachment = await timeReceipt(receipt, 'recoveryPollMillis', () =>
         pollForDownloadableAttachment(
           sourceNote.id,
@@ -299,6 +354,7 @@ test.describe('live asset lifecycle', () => {
         sourceReturnEvidence.contentDisposition,
       );
       receipt.claims.signedFullV1RecoveryPassed = true;
+      receipt.claims.productionShardConsumerPassed = true;
       receipt.claims.reuploadAndShardMetadataRelationshipsPassed = true;
       receipt.timingsMillis.fullV1RtoImportPollAndDownloadMillis =
         (receipt.timingsMillis.fullV1ImportMillis ?? 0) +

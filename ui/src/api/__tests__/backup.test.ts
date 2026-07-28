@@ -138,6 +138,7 @@ describe('Backup API', () => {
 
   it('covers knowledge shard download, base64 import, and multipart upload routes', async () => {
     memoryState.activeMemory = 'research';
+    window.localStorage.setItem('hotm_api_bearer_token', 'test-token');
     const shard = createKnowledgeShardFile();
     mockFetch.mockResolvedValueOnce({
       ok: true,
@@ -149,7 +150,12 @@ describe('Backup API', () => {
     expect(exported.manifest).toMatchObject({ profile: 'core-v1', version: '1.2.0' });
     expect(mockFetch).toHaveBeenCalledWith(
       'http://localhost:3000/backup/knowledge-shard?include=notes%2Ctags&profile=core-v1',
-      { headers: { 'X-Fortemi-Memory': 'research' } },
+      {
+        headers: {
+          Authorization: 'Bearer test-token',
+          'X-Fortemi-Memory': 'research',
+        },
+      },
     );
 
     await expect(backupApi.importKnowledgeShard(shard)).resolves.toMatchObject({
@@ -175,7 +181,13 @@ describe('Backup API', () => {
     });
     expect(mockFetch).toHaveBeenCalledWith(
       'http://localhost:3000/backup/knowledge-shard/upload?include=notes%2Ctags&dry_run=true&on_conflict=replace&skip_embedding_regen=true',
-      expect.objectContaining({ method: 'POST', headers: { 'X-Fortemi-Memory': 'research' } }),
+      expect.objectContaining({
+        method: 'POST',
+        headers: {
+          Authorization: 'Bearer test-token',
+          'X-Fortemi-Memory': 'research',
+        },
+      }),
     );
     const formData = mockFetch.mock.calls[1][1].body as FormData;
     expect(formData.get('file')).toBe(shard);
