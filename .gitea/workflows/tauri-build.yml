@@ -150,7 +150,7 @@ jobs:
 
       - name: Upload Tauri command-core receipt
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v3
         with:
           name: hotm-tauri-command-core-receipt
           path: ui/test-results/tauri-command-core-receipt/*.json

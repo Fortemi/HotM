@@ -1,7 +1,7 @@
 metadata:
   schema_version: "1.0.0"
-  updated_at: "2026-07-28T02:00:55Z"
-  record_count: 70
+  updated_at: "2026-07-28T02:13:36Z"
+  record_count: 71
 records:
   - entity: "urn:aiwg:artifact:.aiwg/architecture/adr-mobile-cloud-architecture.md"
     record: "records/adr-mobile-cloud-architecture.md.prov.yaml"
@@ -143,3 +143,5 @@ records:
     record: "records/verify-desktop-live-asset-receipt.cjs.prov.yaml"
   - entity: "urn:aiwg:artifact:ui/scripts/verify-desktop-live-asset-receipt.test.js"
     record: "records/verify-desktop-live-asset-receipt.test.js.prov.yaml"
+  - entity: "urn:aiwg:artifact:.gitea/workflows/sdlc-gates.yml"
+    record: "records/sdlc-gates-node-bootstrap.prov.yaml"

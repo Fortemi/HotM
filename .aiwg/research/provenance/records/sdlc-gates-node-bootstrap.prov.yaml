@@ -1,0 +1,42 @@
+metadata:
+  schema_version: "1.0.0"
+  created_at: "2026-07-28T02:13:36Z"
+  description: "Provenance for the HotM SDLC contract-gate Node bootstrap correction"
+entity:
+  id: "urn:aiwg:artifact:.gitea/workflows/sdlc-gates.yml"
+  type: workflow
+  created_at: "2026-07-28T02:13:36Z"
+  checksum: "sha256:6d6ab82df5bd966492d4779e8a70d1a7e17b48beaa18cfe2dc1bbaee661f8ce4"
+  size_bytes: 4721
+  attributes:
+    change_scope: "gitea-rust-container-node-bootstrap"
+    base_revision: "8abb331028f558c1fa22b58868e6e09f11240727"
+activity:
+  id: "urn:aiwg:activity:modification:sdlc-gates-node-bootstrap:001"
+  type: modification
+  started_at: "2026-07-28T02:11:52Z"
+  ended_at: "2026-07-28T02:13:36Z"
+  description: "Install Node.js and npm inside the rust container before running JavaScript contract verifiers"
+agent:
+  id: "urn:aiwg:agent:codex-gpt-5"
+  type: ai_assistant
+  name: "Codex"
+  version: "gpt-5"
+  tool: "codex"
+relationships:
+  wasGeneratedBy:
+    entity: "urn:aiwg:artifact:.gitea/workflows/sdlc-gates.yml"
+    activity: "urn:aiwg:activity:modification:sdlc-gates-node-bootstrap:001"
+    time: "2026-07-28T02:13:36Z"
+  wasDerivedFrom:
+    - entity: "urn:aiwg:artifact:.gitea/workflows/sdlc-gates.yml"
+      source: "urn:gitea:actions:Fortemi/HotM:1121"
+      derivation_type: "remediates"
+      activity: "urn:aiwg:activity:modification:sdlc-gates-node-bootstrap:001"
+  wasAssociatedWith:
+    activity: "urn:aiwg:activity:modification:sdlc-gates-node-bootstrap:001"
+    agent: "urn:aiwg:agent:codex-gpt-5"
+    role: "primary_author"
+  wasAttributedTo:
+    entity: "urn:aiwg:artifact:.gitea/workflows/sdlc-gates.yml"
+    agent: "urn:aiwg:agent:codex-gpt-5"

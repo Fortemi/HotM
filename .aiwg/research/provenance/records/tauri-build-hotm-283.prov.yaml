@@ -1,12 +1,14 @@
 metadata:
   schema_version: "1.0.0"
   created_at: "2026-07-28T02:00:55Z"
+  updated_at: "2026-07-28T02:13:36Z"
   description: "Provenance for the HotM #283 Tauri receipt workflow"
 entity:
   id: "urn:aiwg:artifact:.gitea/workflows/tauri-build.yml"
   type: workflow
   created_at: "2026-07-28T02:00:55Z"
-  checksum: "sha256:80d21e3961328699408dbd43647767954130c027b723c77acad52e452884e110"
+  updated_at: "2026-07-28T02:13:36Z"
+  checksum: "sha256:50f7bd30c4d09df4bebd8a531bc70e3aab5503c27c6117a0ccdd1b5e24015b93"
   size_bytes: 7495
   attributes:
     change_scope: "hotm-283-tauri-receipts"
@@ -15,8 +17,8 @@ activity:
   id: "urn:aiwg:activity:modification:tauri-build-hotm-283:001"
   type: modification
   started_at: "2026-07-28T02:00:55Z"
-  ended_at: "2026-07-28T02:00:55Z"
-  description: "Run native command-core tests and publish validated command and observational receipts"
+  ended_at: "2026-07-28T02:13:36Z"
+  description: "Run native command-core tests and publish validated command and observational receipts through the Gitea-supported artifact action"
 agent:
   id: "urn:aiwg:agent:codex-gpt-5"
   type: ai_assistant
@@ -27,7 +29,7 @@ relationships:
   wasGeneratedBy:
     entity: "urn:aiwg:artifact:.gitea/workflows/tauri-build.yml"
     activity: "urn:aiwg:activity:modification:tauri-build-hotm-283:001"
-    time: "2026-07-28T02:00:55Z"
+    time: "2026-07-28T02:13:36Z"
   used:
     - activity: "urn:aiwg:activity:modification:tauri-build-hotm-283:001"
       entity: "urn:gitea:Fortemi/HotM:issue:283"
@@ -36,6 +38,10 @@ relationships:
     - entity: "urn:aiwg:artifact:.gitea/workflows/tauri-build.yml"
       source: "urn:git:git@git.integrolabs.net:Fortemi/HotM.git:932fcaad24ccc8b9374dbc46b1c9db41419ab6bf:.gitea/workflows/tauri-build.yml"
       derivation_type: "modifies"
+      activity: "urn:aiwg:activity:modification:tauri-build-hotm-283:001"
+    - entity: "urn:aiwg:artifact:.gitea/workflows/tauri-build.yml"
+      source: "urn:gitea:actions:Fortemi/HotM:1117"
+      derivation_type: "remediates"
       activity: "urn:aiwg:activity:modification:tauri-build-hotm-283:001"
   wasAssociatedWith:
     activity: "urn:aiwg:activity:modification:tauri-build-hotm-283:001"

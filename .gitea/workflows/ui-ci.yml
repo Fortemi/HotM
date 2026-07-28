@@ -245,7 +245,7 @@ jobs:
 
       - name: Upload live asset browser receipt
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v3
         with:
           name: hotm-live-asset-browser-receipt
           path: |
