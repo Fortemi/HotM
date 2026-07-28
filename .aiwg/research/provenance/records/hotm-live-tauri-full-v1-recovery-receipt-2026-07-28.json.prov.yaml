@@ -1,0 +1,59 @@
+metadata:
+  schema_version: "1.0.0"
+  created_at: "2026-07-28T03:44:03Z"
+  description: "Provenance for the HotM #283 clean-worktree live Tauri signed full-v1 recovery receipt"
+entity:
+  id: "urn:aiwg:artifact:.aiwg/evidence/hotm-live-tauri-full-v1-recovery-receipt-2026-07-28.json"
+  type: evidence
+  created_at: "2026-07-28T03:44:03Z"
+  checksum: "sha256:6efae6e12c68c42adb78c099a9f07b5b39492c35164422cbb919fde6c92eef2a"
+  size_bytes: 2338
+  attributes:
+    issue: "Fortemi/HotM#283"
+    profile: "2.0.0/full-v1"
+    hotm_revision: "6950658a2de62c5084c74f98454d9bcfcf80fae7"
+    fortemi_revision: "0ef4eccc21affe0ed4efe7b3da41ccb8b5e67f86"
+    status: "passed"
+activity:
+  id: "urn:aiwg:activity:validation:hotm-live-tauri-full-v1-recovery:001"
+  type: validation
+  started_at: "2026-07-28T03:42:47Z"
+  ended_at: "2026-07-28T03:44:03Z"
+  description: "Run production Tauri local-file command cores against live signed Fortemi, trust-required clean-memory recovery, exact digest verification, and cleanup"
+agent:
+  id: "urn:aiwg:agent:codex-gpt-5"
+  type: ai_assistant
+  name: "Codex"
+  version: "gpt-5"
+  tool: "codex"
+relationships:
+  wasGeneratedBy:
+    entity: "urn:aiwg:artifact:.aiwg/evidence/hotm-live-tauri-full-v1-recovery-receipt-2026-07-28.json"
+    activity: "urn:aiwg:activity:validation:hotm-live-tauri-full-v1-recovery:001"
+    time: "2026-07-28T03:44:03Z"
+  used:
+    - activity: "urn:aiwg:activity:validation:hotm-live-tauri-full-v1-recovery:001"
+      entity: "urn:gitea:Fortemi/HotM:issue:283"
+      role: "requirement"
+    - activity: "urn:aiwg:activity:validation:hotm-live-tauri-full-v1-recovery:001"
+      entity: "urn:git:git@git.integrolabs.net:Fortemi/HotM.git:6950658a2de62c5084c74f98454d9bcfcf80fae7"
+      role: "consumer implementation"
+    - activity: "urn:aiwg:activity:validation:hotm-live-tauri-full-v1-recovery:001"
+      entity: "urn:git:git@git.integrolabs.net:Fortemi/fortemi.git:0ef4eccc21affe0ed4efe7b3da41ccb8b5e67f86"
+      role: "producer implementation"
+  wasDerivedFrom:
+    - entity: "urn:aiwg:artifact:.aiwg/evidence/hotm-live-tauri-full-v1-recovery-receipt-2026-07-28.json"
+      source: "urn:aiwg:artifact:ui/src-tauri/src/lib.rs"
+      derivation_type: "validates"
+      activity: "urn:aiwg:activity:validation:hotm-live-tauri-full-v1-recovery:001"
+    - entity: "urn:aiwg:artifact:.aiwg/evidence/hotm-live-tauri-full-v1-recovery-receipt-2026-07-28.json"
+      source: "urn:aiwg:artifact:ui/scripts/verify-live-tauri-full-v1-receipt.cjs"
+      derivation_type: "validated_by"
+      activity: "urn:aiwg:activity:validation:hotm-live-tauri-full-v1-recovery:001"
+  wasAssociatedWith:
+    activity: "urn:aiwg:activity:validation:hotm-live-tauri-full-v1-recovery:001"
+    agent: "urn:aiwg:agent:codex-gpt-5"
+    role: "test_operator"
+  wasAttributedTo:
+    entity: "urn:aiwg:artifact:.aiwg/evidence/hotm-live-tauri-full-v1-recovery-receipt-2026-07-28.json"
+    agent: "urn:aiwg:agent:codex-gpt-5"

@@ -1,0 +1,60 @@
+{
+  "archiveBytes": 11509,
+  "claims": {
+    "desktopDownloadCoreSavedAndReopenedPassed": true,
+    "immutableCiArtifactPublished": false,
+    "interactiveNativeDialogsInThisRunPassed": false,
+    "launchedTauriGuiInThisRunPassed": false,
+    "sourceServerRecoveryBytesPassed": true,
+    "suiteWidePortability": false,
+    "tauriLocalFileCoreAgainstLiveFortemiPassed": true,
+    "trustRequiredSignedFullV1RecoveryPassed": true
+  },
+  "identity": {
+    "authenticationRequired": false,
+    "bearerTokenSupplied": false,
+    "fortemiGitCommit": "0ef4eccc21affe0ed4efe7b3da41ccb8b5e67f86",
+    "fortemiVersion": "2026.7.12",
+    "hotmGitCommit": "6950658a2de62c5084c74f98454d9bcfcf80fae7",
+    "hotmWorktreeDirty": false,
+    "storageBackend": "filesystem"
+  },
+  "issue": "Fortemi/HotM#283",
+  "notClaimed": [
+    "launched Tauri GUI operation in this command-core run",
+    "interactive native picker or save dialog in this command-core run",
+    "immutable CI artifact publication before upload completes",
+    "non-Linux desktop platforms",
+    "suite-wide portability or complete backup"
+  ],
+  "profile": "2.0.0/full-v1",
+  "receipt": "hotm-desktop-live-full-v1-recovery",
+  "recovery": {
+    "attachmentId": "019fa6d1-6294-73d3-9bc3-cbc1ca31b9d7",
+    "bytes": 262144,
+    "contentHash": "blake3:4953d70c098d98a51d314a53e9feefea876b7e2a20dfaa88689dc2e77aa3d306",
+    "filename": "desktop-live-full-v1.bin",
+    "memory": "hotm_live_tauri_clean_6950658_recovery",
+    "savedFileReopened": true,
+    "sha256": "71a5f7dcf8bc2f8b11e3b88f0a5ec957594b04269568b46709201acb58280a8c",
+    "signaturePolicy": "require"
+  },
+  "schemaVersion": "hotm.desktop-live-full-v1-recovery-receipt.v1",
+  "source": {
+    "attachmentId": "019fa6d1-6294-73d3-9bc3-cbc1ca31b9d7",
+    "bytes": 262144,
+    "contentHash": "blake3:4953d70c098d98a51d314a53e9feefea876b7e2a20dfaa88689dc2e77aa3d306",
+    "filename": "desktop-live-full-v1.bin",
+    "memory": "hotm_live_tauri_clean_6950658_source",
+    "noteId": "019fa6d1-6254-7230-b2be-25c64941a448",
+    "sha256": "71a5f7dcf8bc2f8b11e3b88f0a5ec957594b04269568b46709201acb58280a8c"
+  },
+  "status": "passed",
+  "timingsMillis": {
+    "recoveryRtoImportAndDownload": 92,
+    "signedFullV1Export": 38,
+    "tauriLocalFileUpload": 36,
+    "tauriRecoveredFileDownload": 26,
+    "trustRequiredFullV1Import": 66
+  }
+}

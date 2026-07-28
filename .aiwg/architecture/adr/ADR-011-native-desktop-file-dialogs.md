@@ -5,6 +5,7 @@ date: 2026-07-27
 issue: Fortemi/HotM#283
 derived_from:
   - "@.aiwg/evidence/hotm-desktop-live-asset-receipt-2026-07-27.json"
+  - "@.aiwg/evidence/hotm-live-tauri-full-v1-recovery-receipt-2026-07-28.json"
   - "@ui/scripts/verify-live-tauri-full-v1-receipt.cjs"
   - "@ui/src-tauri/src/lib.rs"
 ---
@@ -69,3 +70,4 @@ The JavaScript command names and payload contracts remain unchanged.
 - `npm run verify:live-tauri-full-v1-receipt -- <receipt.json>`
 - `npm run verify:desktop-live-asset-receipt`
 - `.aiwg/evidence/hotm-desktop-live-asset-receipt-2026-07-27.json`
+- `.aiwg/evidence/hotm-live-tauri-full-v1-recovery-receipt-2026-07-28.json`

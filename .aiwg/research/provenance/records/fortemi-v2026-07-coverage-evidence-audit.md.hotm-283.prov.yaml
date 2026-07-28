@@ -1,24 +1,24 @@
 metadata:
   schema_version: "1.0.0"
   created_at: "2026-07-28T02:00:55Z"
-  updated_at: "2026-07-28T03:38:02Z"
+  updated_at: "2026-07-28T03:44:03Z"
   description: "Provenance for the HotM #283 desktop evidence audit update"
 entity:
   id: "urn:aiwg:artifact:.aiwg/reports/fortemi-v2026-07-coverage-evidence-audit.md"
   type: report
   created_at: "2026-07-28T02:00:55Z"
-  updated_at: "2026-07-28T03:38:02Z"
-  checksum: "sha256:b66afe717ffd47817d3f71ce6a9cf986189665532354e3a29f657b083a6e64b2"
-  size_bytes: 13618
+  updated_at: "2026-07-28T03:44:03Z"
+  checksum: "sha256:ad18cb7800bb2ce7bebb2d14805925b4a8095b8ca433b84f52ecb8a55fdc35b4"
+  size_bytes: 13680
   attributes:
     change_scope: "hotm-283-live-tauri-signed-recovery"
-    base_revision: "57b500a209d255b1643bbb47e8493f16407b2f1b"
+    base_revision: "6950658a2de62c5084c74f98454d9bcfcf80fae7"
 activity:
-  id: "urn:aiwg:activity:modification:fortemi-v2026-07-coverage-evidence-audit-hotm-283:002"
+  id: "urn:aiwg:activity:modification:fortemi-v2026-07-coverage-evidence-audit-hotm-283:003"
   type: modification
-  started_at: "2026-07-28T02:00:55Z"
-  ended_at: "2026-07-28T03:38:02Z"
-  description: "Add the separate live Tauri command-core signed full-v1 recovery cell and bounded claims"
+  started_at: "2026-07-28T03:43:00Z"
+  ended_at: "2026-07-28T03:44:03Z"
+  description: "Bind the clean live Tauri command-core signed full-v1 recovery receipt and bounded claims"
 agent:
   id: "urn:aiwg:agent:codex-gpt-5"
   type: ai_assistant
@@ -28,19 +28,19 @@ agent:
 relationships:
   wasGeneratedBy:
     entity: "urn:aiwg:artifact:.aiwg/reports/fortemi-v2026-07-coverage-evidence-audit.md"
-    activity: "urn:aiwg:activity:modification:fortemi-v2026-07-coverage-evidence-audit-hotm-283:002"
-    time: "2026-07-28T03:38:02Z"
+    activity: "urn:aiwg:activity:modification:fortemi-v2026-07-coverage-evidence-audit-hotm-283:003"
+    time: "2026-07-28T03:44:03Z"
   wasDerivedFrom:
     - entity: "urn:aiwg:artifact:.aiwg/reports/fortemi-v2026-07-coverage-evidence-audit.md"
-      source: "urn:git:git@git.integrolabs.net:Fortemi/HotM.git:57b500a209d255b1643bbb47e8493f16407b2f1b:.aiwg/reports/fortemi-v2026-07-coverage-evidence-audit.md"
+      source: "urn:git:git@git.integrolabs.net:Fortemi/HotM.git:6950658a2de62c5084c74f98454d9bcfcf80fae7:.aiwg/reports/fortemi-v2026-07-coverage-evidence-audit.md"
       derivation_type: "modifies"
-      activity: "urn:aiwg:activity:modification:fortemi-v2026-07-coverage-evidence-audit-hotm-283:002"
+      activity: "urn:aiwg:activity:modification:fortemi-v2026-07-coverage-evidence-audit-hotm-283:003"
     - entity: "urn:aiwg:artifact:.aiwg/reports/fortemi-v2026-07-coverage-evidence-audit.md"
       source: "urn:aiwg:artifact:ui/src-tauri/src/lib.rs"
       derivation_type: "summarizes"
-      activity: "urn:aiwg:activity:modification:fortemi-v2026-07-coverage-evidence-audit-hotm-283:002"
+      activity: "urn:aiwg:activity:modification:fortemi-v2026-07-coverage-evidence-audit-hotm-283:003"
   wasAssociatedWith:
-    activity: "urn:aiwg:activity:modification:fortemi-v2026-07-coverage-evidence-audit-hotm-283:002"
+    activity: "urn:aiwg:activity:modification:fortemi-v2026-07-coverage-evidence-audit-hotm-283:003"
     agent: "urn:aiwg:agent:codex-gpt-5"
     role: "primary_author"
   wasAttributedTo:
