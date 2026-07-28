@@ -1,0 +1,46 @@
+metadata:
+  schema_version: "1.0.0"
+  created_at: "2026-07-28T03:38:02Z"
+  description: "Provenance for the HotM #283 live Tauri receipt verifier tests"
+entity:
+  id: "urn:aiwg:artifact:ui/scripts/verify-live-tauri-full-v1-receipt.test.js"
+  type: test
+  created_at: "2026-07-28T03:38:02Z"
+  checksum: "sha256:29f56d362bee0a58063023d730f4cfd8b82274d8c4cbeddc8c7a71795abb9fd0"
+  size_bytes: 4030
+  attributes:
+    change_scope: "hotm-283-live-tauri-receipt-verifier-tests"
+    base_revision: "57b500a209d255b1643bbb47e8493f16407b2f1b"
+activity:
+  id: "urn:aiwg:activity:generation:verify-live-tauri-full-v1-receipt-tests:001"
+  type: generation
+  started_at: "2026-07-28T03:38:02Z"
+  ended_at: "2026-07-28T03:38:02Z"
+  description: "Cover valid evidence plus revision, memory, digest, signature, claim, path, and credential rejection"
+agent:
+  id: "urn:aiwg:agent:codex-gpt-5"
+  type: ai_assistant
+  name: "Codex"
+  version: "gpt-5"
+  tool: "codex"
+relationships:
+  wasGeneratedBy:
+    entity: "urn:aiwg:artifact:ui/scripts/verify-live-tauri-full-v1-receipt.test.js"
+    activity: "urn:aiwg:activity:generation:verify-live-tauri-full-v1-receipt-tests:001"
+    time: "2026-07-28T03:38:02Z"
+  used:
+    - activity: "urn:aiwg:activity:generation:verify-live-tauri-full-v1-receipt-tests:001"
+      entity: "urn:gitea:Fortemi/HotM:issue:283"
+      role: "requirement"
+  wasDerivedFrom:
+    - entity: "urn:aiwg:artifact:ui/scripts/verify-live-tauri-full-v1-receipt.test.js"
+      source: "urn:aiwg:artifact:ui/scripts/verify-live-tauri-full-v1-receipt.cjs"
+      derivation_type: "tests"
+      activity: "urn:aiwg:activity:generation:verify-live-tauri-full-v1-receipt-tests:001"
+  wasAssociatedWith:
+    activity: "urn:aiwg:activity:generation:verify-live-tauri-full-v1-receipt-tests:001"
+    agent: "urn:aiwg:agent:codex-gpt-5"
+    role: "primary_author"
+  wasAttributedTo:
+    entity: "urn:aiwg:artifact:ui/scripts/verify-live-tauri-full-v1-receipt.test.js"
+    agent: "urn:aiwg:agent:codex-gpt-5"

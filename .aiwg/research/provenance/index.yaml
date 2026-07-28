@@ -1,7 +1,7 @@
 metadata:
   schema_version: "1.0.0"
-  updated_at: "2026-07-28T02:30:23Z"
-  record_count: 71
+  updated_at: "2026-07-28T03:38:02Z"
+  record_count: 73
 records:
   - entity: "urn:aiwg:artifact:.aiwg/architecture/adr-mobile-cloud-architecture.md"
     record: "records/adr-mobile-cloud-architecture.md.prov.yaml"
@@ -145,3 +145,7 @@ records:
     record: "records/verify-desktop-live-asset-receipt.test.js.prov.yaml"
   - entity: "urn:aiwg:artifact:.gitea/workflows/sdlc-gates.yml"
     record: "records/sdlc-gates-node-bootstrap.prov.yaml"
+  - entity: "urn:aiwg:artifact:ui/scripts/verify-live-tauri-full-v1-receipt.cjs"
+    record: "records/verify-live-tauri-full-v1-receipt.cjs.prov.yaml"
+  - entity: "urn:aiwg:artifact:ui/scripts/verify-live-tauri-full-v1-receipt.test.js"
+    record: "records/verify-live-tauri-full-v1-receipt.test.js.prov.yaml"

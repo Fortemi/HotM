@@ -21,6 +21,24 @@ on:
       - 'scripts/download-pinned-sidecar.sh'
       - '.gitea/workflows/tauri-build.yml'
   workflow_dispatch:
+    inputs:
+      live_tauri_receipt:
+        description: 'Run the real Tauri command path against a signed live Fortemi API'
+        required: false
+        default: 'false'
+        type: boolean
+      live_tauri_api_url:
+        description: 'Fortemi API base URL ending in /api/v1'
+        required: false
+        default: 'http://localhost:3000/api/v1'
+      live_tauri_source_memory:
+        description: 'Clean source memory using the hotm_live_ prefix'
+        required: false
+        default: ''
+      live_tauri_recovery_memory:
+        description: 'Distinct clean recovery memory using the hotm_live_ prefix'
+        required: false
+        default: ''
 
 jobs:
   build-tauri:
@@ -155,6 +173,48 @@ jobs:
           name: hotm-tauri-command-core-receipt
           path: ui/test-results/tauri-command-core-receipt/*.json
           if-no-files-found: warn
+          retention-days: 30
+
+      - name: Run live Tauri signed full-v1 recovery receipt
+        if: github.event_name == 'workflow_dispatch' && inputs.live_tauri_receipt == 'true'
+        shell: bash
+        working-directory: ui/src-tauri
+        env:
+          HOTM_LIVE_TAURI_API_URL: ${{ inputs.live_tauri_api_url }}
+          HOTM_LIVE_TAURI_SOURCE_MEMORY: ${{ inputs.live_tauri_source_memory }}
+          HOTM_LIVE_TAURI_RECOVERY_MEMORY: ${{ inputs.live_tauri_recovery_memory }}
+          HOTM_LIVE_TAURI_API_TOKEN: ${{ secrets.HOTM_LIVE_ASSET_TOKEN }}
+          HOTM_LIVE_TAURI_RECEIPT_PATH: ../test-results/live-tauri-full-v1-receipt/receipt.json
+        run: |
+          set -euo pipefail
+          export PATH="$HOME/.cargo/bin:$PATH"
+          if [ -z "${HOTM_LIVE_TAURI_SOURCE_MEMORY}" ] \
+            || [ -z "${HOTM_LIVE_TAURI_RECOVERY_MEMORY}" ]; then
+            echo "both live Tauri memory inputs are required" >&2
+            exit 2
+          fi
+          mkdir -p ../test-results/live-tauri-full-v1-receipt
+          TAURI_CONFIG='{"bundle":{"externalBin":[]}}' \
+            cargo test \
+              tests::live_fortemi_tauri_local_file_full_v1_recovery_receipt \
+              -- --ignored --exact --nocapture
+          (cd .. && npm run verify:live-tauri-full-v1-receipt -- \
+            test-results/live-tauri-full-v1-receipt/receipt.json) \
+            > ../test-results/live-tauri-full-v1-receipt/validation.json
+          node ../scripts/write-receipt-artifact-manifest.cjs \
+            ../test-results/live-tauri-full-v1-receipt/artifact-manifest.json \
+            hotm-live-tauri-full-v1-recovery-receipt \
+            ../test-results/live-tauri-full-v1-receipt
+          node ../scripts/write-receipt-artifact-manifest.cjs --verify \
+            ../test-results/live-tauri-full-v1-receipt/artifact-manifest.json
+
+      - name: Upload live Tauri signed full-v1 recovery receipt
+        if: always() && github.event_name == 'workflow_dispatch' && inputs.live_tauri_receipt == 'true'
+        uses: actions/upload-artifact@v3
+        with:
+          name: hotm-live-tauri-full-v1-recovery-receipt
+          path: ui/test-results/live-tauri-full-v1-receipt/*.json
+          if-no-files-found: error
           retention-days: 30
 
       - name: Download pinned Fortemi sidecar (Linux x86_64)

@@ -1,22 +1,24 @@
 metadata:
   schema_version: "1.0.0"
   created_at: "2026-07-28T02:00:55Z"
+  updated_at: "2026-07-28T03:38:02Z"
   description: "Provenance for HotM #283 native asset command implementation"
 entity:
   id: "urn:aiwg:artifact:ui/src-tauri/src/lib.rs"
   type: software
   created_at: "2026-07-28T02:00:55Z"
-  checksum: "sha256:02ab5aaf2f8255f0de7b81090e325e5c8516aab5638a4f91c98fb0b65e91ef23"
-  size_bytes: 60432
+  updated_at: "2026-07-28T03:38:02Z"
+  checksum: "sha256:534e76da18f99590a7d44aad8cf2e3f3518b2b41ca0dafaf29156a26ad78316c"
+  size_bytes: 80194
   attributes:
-    change_scope: "hotm-283-native-asset-commands"
-    base_revision: "932fcaad24ccc8b9374dbc46b1c9db41419ab6bf"
+    change_scope: "hotm-283-live-tauri-signed-full-v1-recovery"
+    base_revision: "57b500a209d255b1643bbb47e8493f16407b2f1b"
 activity:
-  id: "urn:aiwg:activity:modification:tauri-lib-hotm-283:001"
+  id: "urn:aiwg:activity:modification:tauri-lib-hotm-283:002"
   type: modification
   started_at: "2026-07-28T02:00:55Z"
-  ended_at: "2026-07-28T02:00:55Z"
-  description: "Implement parented native dialogs, resumable TUS upload, and bounded atomic download"
+  ended_at: "2026-07-28T03:38:02Z"
+  description: "Add a headless live receipt through production Tauri upload/download cores, signed full-v1 clean-memory recovery, strict auth mode, digest equality, and cleanup"
 agent:
   id: "urn:aiwg:agent:codex-gpt-5"
   type: ai_assistant
@@ -26,19 +28,19 @@ agent:
 relationships:
   wasGeneratedBy:
     entity: "urn:aiwg:artifact:ui/src-tauri/src/lib.rs"
-    activity: "urn:aiwg:activity:modification:tauri-lib-hotm-283:001"
-    time: "2026-07-28T02:00:55Z"
+    activity: "urn:aiwg:activity:modification:tauri-lib-hotm-283:002"
+    time: "2026-07-28T03:38:02Z"
   used:
-    - activity: "urn:aiwg:activity:modification:tauri-lib-hotm-283:001"
+    - activity: "urn:aiwg:activity:modification:tauri-lib-hotm-283:002"
       entity: "urn:gitea:Fortemi/HotM:issue:283"
       role: "requirement"
   wasDerivedFrom:
     - entity: "urn:aiwg:artifact:ui/src-tauri/src/lib.rs"
-      source: "urn:git:git@git.integrolabs.net:Fortemi/HotM.git:932fcaad24ccc8b9374dbc46b1c9db41419ab6bf:ui/src-tauri/src/lib.rs"
+      source: "urn:git:git@git.integrolabs.net:Fortemi/HotM.git:57b500a209d255b1643bbb47e8493f16407b2f1b:ui/src-tauri/src/lib.rs"
       derivation_type: "modifies"
-      activity: "urn:aiwg:activity:modification:tauri-lib-hotm-283:001"
+      activity: "urn:aiwg:activity:modification:tauri-lib-hotm-283:002"
   wasAssociatedWith:
-    activity: "urn:aiwg:activity:modification:tauri-lib-hotm-283:001"
+    activity: "urn:aiwg:activity:modification:tauri-lib-hotm-283:002"
     agent: "urn:aiwg:agent:codex-gpt-5"
     role: "primary_author"
   wasAttributedTo:

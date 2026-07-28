@@ -1104,9 +1104,13 @@ mod tests {
     use super::{
         describe_local_files, download_attachment_to_file_core, sha256_hex, upload_local_file_core,
     };
+    use base64::{engine::general_purpose::STANDARD as B64, Engine};
+    use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION};
+    use serde_json::{json, Value};
     use std::collections::HashMap;
     use std::io::{Read, Write};
     use std::net::{TcpListener, TcpStream};
+    use std::path::Path;
     use std::sync::{Arc, Mutex};
 
     #[derive(Debug, Default)]
@@ -1555,6 +1559,510 @@ mod tests {
             receipt.get("x-fortemi-memory").map(String::as_str),
             Some("hotm_desktop_download_receipt")
         );
+    }
+
+    #[tokio::test]
+    #[ignore = "requires HOTM_LIVE_TAURI_API_URL and a signed live Fortemi server"]
+    async fn live_fortemi_tauri_local_file_full_v1_recovery_receipt() {
+        let api_base_url =
+            std::env::var("HOTM_LIVE_TAURI_API_URL").expect("HOTM_LIVE_TAURI_API_URL is required");
+        let source_memory = live_receipt_memory("HOTM_LIVE_TAURI_SOURCE_MEMORY");
+        let recovery_memory = live_receipt_memory("HOTM_LIVE_TAURI_RECOVERY_MEMORY");
+        assert_ne!(
+            source_memory, recovery_memory,
+            "source and recovery memories must differ"
+        );
+        let token = std::env::var("HOTM_LIVE_TAURI_API_TOKEN")
+            .ok()
+            .filter(|value| !value.trim().is_empty());
+        let receipt_path = std::env::var("HOTM_LIVE_TAURI_RECEIPT_PATH")
+            .expect("HOTM_LIVE_TAURI_RECEIPT_PATH is required");
+        let client = reqwest::Client::builder()
+            .timeout(std::time::Duration::from_secs(120))
+            .build()
+            .expect("build live receipt client");
+
+        let result = run_live_tauri_full_v1_recovery(
+            &client,
+            &api_base_url,
+            &source_memory,
+            &recovery_memory,
+            token.as_deref(),
+        )
+        .await;
+
+        let source_cleanup =
+            delete_live_memory(&client, &api_base_url, &source_memory, token.as_deref()).await;
+        let recovery_cleanup =
+            delete_live_memory(&client, &api_base_url, &recovery_memory, token.as_deref()).await;
+
+        let receipt = result.expect("live Tauri full-v1 recovery receipt");
+        source_cleanup.expect("delete live source memory");
+        recovery_cleanup.expect("delete live recovery memory");
+        let parent = Path::new(&receipt_path)
+            .parent()
+            .expect("receipt path has parent");
+        std::fs::create_dir_all(parent).expect("create receipt directory");
+        std::fs::write(
+            &receipt_path,
+            serde_json::to_vec_pretty(&receipt).expect("serialize receipt"),
+        )
+        .expect("write live Tauri receipt");
+    }
+
+    async fn run_live_tauri_full_v1_recovery(
+        client: &reqwest::Client,
+        api_base_url: &str,
+        source_memory: &str,
+        recovery_memory: &str,
+        token: Option<&str>,
+    ) -> Result<Value, String> {
+        create_live_memory(client, api_base_url, source_memory, token).await?;
+        create_live_memory(client, api_base_url, recovery_memory, token).await?;
+        assert_live_auth_mode(client, api_base_url, source_memory, token).await?;
+        assert_empty_memory(client, api_base_url, recovery_memory, token).await?;
+
+        let note_response = live_request(
+            client.post(format!("{api_base_url}/notes")),
+            source_memory,
+            token,
+        )
+        .json(&json!({
+            "content": "HotM live Tauri full-v1 recovery receipt",
+            "format": "markdown",
+            "source": "hotm-desktop-live-receipt",
+            "title": "HotM live Tauri full-v1 recovery receipt",
+            "tags": ["_hotm_uat"]
+        }))
+        .send()
+        .await
+        .map_err(|error| error.to_string())?;
+        let note_status = note_response.status();
+        let note_body: Value = note_response
+            .json()
+            .await
+            .map_err(|error| error.to_string())?;
+        if !note_status.is_success() {
+            return Err(format!(
+                "create source note failed ({note_status}): {note_body}"
+            ));
+        }
+        let note_id = note_body
+            .get("note_id")
+            .or_else(|| note_body.get("id"))
+            .and_then(Value::as_str)
+            .ok_or_else(|| "create source note response omitted note id".to_string())?;
+
+        let tempdir = tempfile::tempdir().map_err(|error| error.to_string())?;
+        let source_path = tempdir.path().join("desktop-live-full-v1.bin");
+        let source_bytes = deterministic_live_bytes(256 * 1024);
+        std::fs::write(&source_path, &source_bytes).map_err(|error| error.to_string())?;
+        let source_sha256 = sha256_hex(&source_bytes);
+        let source_content_hash = blake3_content_hash(&source_bytes);
+        let desktop_headers = live_desktop_headers(source_memory, token);
+        let mut progress = Vec::new();
+        let upload_started = std::time::Instant::now();
+        let attachment = upload_local_file_core(
+            api_base_url,
+            note_id,
+            source_path
+                .to_str()
+                .ok_or_else(|| "source path is not UTF-8".to_string())?,
+            Some("application/octet-stream".to_string()),
+            Some(false),
+            Some(desktop_headers),
+            |uploaded, total| progress.push((uploaded, total)),
+        )
+        .await?;
+        let upload_millis = upload_started.elapsed().as_millis() as u64;
+        let attachment_id = attachment
+            .get("id")
+            .and_then(Value::as_str)
+            .ok_or_else(|| "Tauri upload response omitted attachment id".to_string())?;
+        if progress.last().copied() != Some((source_bytes.len() as u64, source_bytes.len() as u64))
+        {
+            return Err("Tauri upload progress did not reach the exact file length".to_string());
+        }
+
+        let source_download_path = tempdir.path().join("source-server-download.bin");
+        let source_download = download_attachment_to_file_core(
+            api_base_url,
+            attachment_id,
+            &source_download_path,
+            None,
+            Some(live_desktop_headers(source_memory, token)),
+        )
+        .await?;
+        if source_download.sha256 != source_sha256
+            || source_download.bytes_written != source_bytes.len() as u64
+            || !source_download.reopened
+        {
+            return Err("source server download did not match the desktop file".to_string());
+        }
+
+        let export_started = std::time::Instant::now();
+        let export_response = live_request(
+            client.get(format!(
+                "{api_base_url}/backup/knowledge-shard?schema_version=2.0.0&profile=full-v1&include_blobs=true"
+            )),
+            source_memory,
+            token,
+        )
+        .send()
+        .await
+        .map_err(|error| error.to_string())?;
+        let export_status = export_response.status();
+        let shard = export_response
+            .bytes()
+            .await
+            .map_err(|error| error.to_string())?;
+        if !export_status.is_success() {
+            return Err(format!(
+                "signed full-v1 export failed ({export_status}); response bytes={}",
+                shard.len()
+            ));
+        }
+        let export_millis = export_started.elapsed().as_millis() as u64;
+
+        let import_started = std::time::Instant::now();
+        let import_response = live_request(
+            client.post(format!("{api_base_url}/backup/knowledge-shard/import")),
+            recovery_memory,
+            token,
+        )
+        .json(&json!({
+            "shard_base64": B64.encode(&shard),
+            "dry_run": false,
+            "on_conflict": "replace",
+            "skip_embedding_regen": true,
+            "verify_signature": "require"
+        }))
+        .send()
+        .await
+        .map_err(|error| error.to_string())?;
+        let import_status = import_response.status();
+        let import_body: Value = import_response
+            .json()
+            .await
+            .map_err(|error| error.to_string())?;
+        if !import_status.is_success() {
+            return Err(format!(
+                "trust-required full-v1 import failed ({import_status}): {import_body}"
+            ));
+        }
+        if import_body
+            .pointer("/manifest/profile")
+            .and_then(Value::as_str)
+            != Some("full-v1")
+        {
+            return Err("import response did not identify profile full-v1".to_string());
+        }
+        let import_millis = import_started.elapsed().as_millis() as u64;
+
+        let attachments_response = live_request(
+            client.get(format!("{api_base_url}/notes/{note_id}/attachments")),
+            recovery_memory,
+            token,
+        )
+        .send()
+        .await
+        .map_err(|error| error.to_string())?;
+        let attachments_status = attachments_response.status();
+        let attachments_body: Value = attachments_response
+            .json()
+            .await
+            .map_err(|error| error.to_string())?;
+        if !attachments_status.is_success() {
+            return Err(format!(
+                "list recovered attachments failed ({attachments_status}): {attachments_body}"
+            ));
+        }
+        let recovered_attachment = attachments_body
+            .get("attachments")
+            .and_then(Value::as_array)
+            .or_else(|| attachments_body.as_array())
+            .and_then(|attachments| {
+                attachments.iter().find(|candidate| {
+                    candidate.get("filename").and_then(Value::as_str)
+                        == Some("desktop-live-full-v1.bin")
+                })
+            })
+            .ok_or_else(|| "recovered attachment was not found".to_string())?;
+        let recovered_attachment_id = recovered_attachment
+            .get("id")
+            .and_then(Value::as_str)
+            .ok_or_else(|| "recovered attachment omitted id".to_string())?;
+        let recovered_size = recovered_attachment
+            .get("size_bytes")
+            .and_then(Value::as_u64)
+            .ok_or_else(|| "recovered attachment omitted size_bytes".to_string())?;
+        if recovered_size != source_bytes.len() as u64 {
+            return Err("recovered attachment length differs from source".to_string());
+        }
+
+        let recovery_path = tempdir.path().join("desktop-live-full-v1-recovered.bin");
+        let recovery_started = std::time::Instant::now();
+        let recovered_download = download_attachment_to_file_core(
+            api_base_url,
+            recovered_attachment_id,
+            &recovery_path,
+            None,
+            Some(live_desktop_headers(recovery_memory, token)),
+        )
+        .await?;
+        let recovery_download_millis = recovery_started.elapsed().as_millis() as u64;
+        let recovered_bytes = std::fs::read(&recovery_path).map_err(|error| error.to_string())?;
+        let recovered_content_hash = blake3_content_hash(&recovered_bytes);
+        if recovered_download.sha256 != source_sha256
+            || recovered_download.bytes_written != source_bytes.len() as u64
+            || !recovered_download.reopened
+            || recovered_content_hash != source_content_hash
+            || recovered_bytes != source_bytes
+        {
+            return Err("recovered desktop download did not match source bytes".to_string());
+        }
+
+        let health = client
+            .get(api_base_url.trim_end_matches("/api/v1").to_string() + "/health")
+            .send()
+            .await
+            .map_err(|error| error.to_string())?
+            .json::<Value>()
+            .await
+            .map_err(|error| error.to_string())?;
+        let hotm_commit = command_output("git", &["rev-parse", "HEAD"]);
+        let hotm_worktree_dirty = command_output_allow_empty("git", &["status", "--porcelain"])
+            .map(|status| !status.is_empty());
+
+        Ok(json!({
+            "schemaVersion": "hotm.desktop-live-full-v1-recovery-receipt.v1",
+            "receipt": "hotm-desktop-live-full-v1-recovery",
+            "issue": "Fortemi/HotM#283",
+            "status": "passed",
+            "profile": "2.0.0/full-v1",
+            "identity": {
+                "hotmGitCommit": hotm_commit,
+                "hotmWorktreeDirty": hotm_worktree_dirty,
+                "fortemiGitCommit": health.get("git_sha"),
+                "fortemiVersion": health.get("version"),
+                "authenticationRequired": token.is_some(),
+                "bearerTokenSupplied": token.is_some(),
+                "storageBackend": "filesystem"
+            },
+            "source": {
+                "memory": source_memory,
+                "noteId": note_id,
+                "attachmentId": attachment_id,
+                "filename": "desktop-live-full-v1.bin",
+                "bytes": source_bytes.len(),
+                "sha256": source_sha256,
+                "contentHash": source_content_hash
+            },
+            "recovery": {
+                "memory": recovery_memory,
+                "attachmentId": recovered_attachment_id,
+                "filename": "desktop-live-full-v1.bin",
+                "bytes": recovered_size,
+                "sha256": recovered_download.sha256,
+                "contentHash": recovered_content_hash,
+                "savedFileReopened": recovered_download.reopened,
+                "signaturePolicy": "require"
+            },
+            "timingsMillis": {
+                "tauriLocalFileUpload": upload_millis,
+                "signedFullV1Export": export_millis,
+                "trustRequiredFullV1Import": import_millis,
+                "tauriRecoveredFileDownload": recovery_download_millis,
+                "recoveryRtoImportAndDownload": import_millis + recovery_download_millis
+            },
+            "archiveBytes": shard.len(),
+            "claims": {
+                "tauriLocalFileCoreAgainstLiveFortemiPassed": true,
+                "trustRequiredSignedFullV1RecoveryPassed": true,
+                "sourceServerRecoveryBytesPassed": true,
+                "desktopDownloadCoreSavedAndReopenedPassed": true,
+                "launchedTauriGuiInThisRunPassed": false,
+                "interactiveNativeDialogsInThisRunPassed": false,
+                "immutableCiArtifactPublished": false,
+                "suiteWidePortability": false
+            },
+            "notClaimed": [
+                "launched Tauri GUI operation in this command-core run",
+                "interactive native picker or save dialog in this command-core run",
+                "immutable CI artifact publication before upload completes",
+                "non-Linux desktop platforms",
+                "suite-wide portability or complete backup"
+            ]
+        }))
+    }
+
+    fn live_receipt_memory(name: &str) -> String {
+        let value = std::env::var(name).unwrap_or_else(|_| panic!("{name} is required"));
+        assert!(
+            value.starts_with("hotm_live_"),
+            "{name} must use the isolated hotm_live_ prefix"
+        );
+        value
+    }
+
+    fn live_desktop_headers(memory: &str, token: Option<&str>) -> HashMap<String, String> {
+        let mut headers = HashMap::from([("X-Fortemi-Memory".to_string(), memory.to_string())]);
+        if let Some(token) = token {
+            headers.insert("Authorization".to_string(), format!("Bearer {token}"));
+        }
+        headers
+    }
+
+    fn live_request(
+        request: reqwest::RequestBuilder,
+        memory: &str,
+        token: Option<&str>,
+    ) -> reqwest::RequestBuilder {
+        let mut headers = HeaderMap::new();
+        headers.insert(
+            "X-Fortemi-Memory",
+            HeaderValue::from_str(memory).expect("valid memory header"),
+        );
+        if let Some(token) = token {
+            headers.insert(
+                AUTHORIZATION,
+                HeaderValue::from_str(&format!("Bearer {token}")).expect("valid bearer header"),
+            );
+        }
+        request.headers(headers)
+    }
+
+    async fn create_live_memory(
+        client: &reqwest::Client,
+        api_base_url: &str,
+        memory: &str,
+        token: Option<&str>,
+    ) -> Result<(), String> {
+        let mut request = client.post(format!("{api_base_url}/archives"));
+        if let Some(token) = token {
+            request = request.header(AUTHORIZATION, format!("Bearer {token}"));
+        }
+        let response = request
+            .json(&json!({
+                "name": memory,
+                "description": "HotM live Tauri signed full-v1 receipt"
+            }))
+            .send()
+            .await
+            .map_err(|error| error.to_string())?;
+        if response.status() != reqwest::StatusCode::CREATED {
+            let status = response.status();
+            let body = response.text().await.unwrap_or_default();
+            return Err(format!(
+                "create isolated memory {memory} failed ({status}): {body}"
+            ));
+        }
+        Ok(())
+    }
+
+    async fn assert_empty_memory(
+        client: &reqwest::Client,
+        api_base_url: &str,
+        memory: &str,
+        token: Option<&str>,
+    ) -> Result<(), String> {
+        let response = live_request(
+            client.get(format!("{api_base_url}/notes?limit=1")),
+            memory,
+            token,
+        )
+        .send()
+        .await
+        .map_err(|error| error.to_string())?;
+        let status = response.status();
+        let body: Value = response.json().await.map_err(|error| error.to_string())?;
+        if !status.is_success() {
+            return Err(format!(
+                "query clean recovery memory failed ({status}): {body}"
+            ));
+        }
+        let count = body
+            .get("notes")
+            .and_then(Value::as_array)
+            .map_or(0, Vec::len);
+        if count != 0 {
+            return Err("recovery memory was not clean before import".to_string());
+        }
+        Ok(())
+    }
+
+    async fn assert_live_auth_mode(
+        client: &reqwest::Client,
+        api_base_url: &str,
+        memory: &str,
+        token: Option<&str>,
+    ) -> Result<(), String> {
+        if token.is_none() {
+            return Ok(());
+        }
+        let status = client
+            .get(format!("{api_base_url}/notes?limit=1"))
+            .header("X-Fortemi-Memory", memory)
+            .send()
+            .await
+            .map_err(|error| error.to_string())?
+            .status();
+        if status != reqwest::StatusCode::UNAUTHORIZED {
+            return Err(format!(
+                "bearer-auth receipt requires unauthenticated notes to return 401, got {status}"
+            ));
+        }
+        Ok(())
+    }
+
+    async fn delete_live_memory(
+        client: &reqwest::Client,
+        api_base_url: &str,
+        memory: &str,
+        token: Option<&str>,
+    ) -> Result<(), String> {
+        let response = live_request(
+            client.delete(format!("{api_base_url}/archives/{memory}")),
+            memory,
+            token,
+        )
+        .send()
+        .await
+        .map_err(|error| error.to_string())?;
+        if !response.status().is_success() {
+            return Err(format!(
+                "delete isolated memory {memory} failed ({})",
+                response.status()
+            ));
+        }
+        Ok(())
+    }
+
+    fn deterministic_live_bytes(length: usize) -> Vec<u8> {
+        (0..length)
+            .map(|index| ((index * 31 + index / 257 + 41) % 251) as u8)
+            .collect()
+    }
+
+    fn blake3_content_hash(bytes: &[u8]) -> String {
+        format!("blake3:{}", blake3::hash(bytes).to_hex())
+    }
+
+    fn command_output(program: &str, args: &[&str]) -> Option<String> {
+        command_output_allow_empty(program, args).filter(|value| !value.is_empty())
+    }
+
+    fn command_output_allow_empty(program: &str, args: &[&str]) -> Option<String> {
+        std::process::Command::new(program)
+            .args(args)
+            .output()
+            .ok()
+            .and_then(|output| {
+                output
+                    .status
+                    .success()
+                    .then(|| String::from_utf8_lossy(&output.stdout).trim().to_string())
+            })
     }
 
     struct HttpRequest {
