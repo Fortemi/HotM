@@ -54,8 +54,15 @@ jobs:
       - name: Install Tauri dependencies
         shell: bash
         run: |
-          sudo apt-get update
-          sudo apt-get install -y --no-install-recommends \
+          run_root() {
+            if [ "$(id -u)" -eq 0 ]; then
+              "$@"
+            else
+              sudo "$@"
+            fi
+          }
+          run_root apt-get update
+          run_root apt-get install -y --no-install-recommends \
             libwebkit2gtk-4.1-dev libgtk-3-dev \
             libsoup-3.0-dev libjavascriptcoregtk-4.1-dev librsvg2-dev patchelf \
             libayatana-appindicator3-dev \
