@@ -8,6 +8,7 @@ import {
   deleteLiveMemory,
   deleteNote,
   downloadAttachmentBytes,
+  downloadAttachmentEvidence,
   ensureLiveMemory,
   exportFullV1Shard,
   getApiBaseUrl,
@@ -180,6 +181,17 @@ test.describe('live asset lifecycle', () => {
         downloadAttachmentBytes(disconnectedAttachment.attachmentId),
       );
       expect(sha256Hex(disconnectedDownloaded)).toBe(expectedSha256);
+      const disconnectedRecords = await listNoteAttachments(sourceNote.id);
+      expect(
+        disconnectedRecords.filter(
+          (attachment) => attachment.filename === 'hotm-live-browser-disconnect-resume.bin',
+        ),
+      ).toEqual([
+        expect.objectContaining({
+          id: disconnectedAttachment.attachmentId,
+          note_id: sourceNote.id,
+        }),
+      ]);
       receipt.tusDisconnectResume = {
         interruptedOffset: disconnectedAttachment.interruptedOffset,
         resumeOffset: disconnectedAttachment.resumeOffset,
@@ -187,6 +199,7 @@ test.describe('live asset lifecycle', () => {
         checkpoints: disconnectedAttachment.checkpoints,
       };
       receipt.claims.browserTusDisconnectResumePassed = true;
+      receipt.claims.browserTusExactlyOneAttachmentPassed = true;
 
       const downloaded = await timeReceipt(receipt, 'browserDownloadMillis', () =>
         page.evaluate(
@@ -219,6 +232,19 @@ test.describe('live asset lifecycle', () => {
         ),
       );
       expect(reuploaded.sha256).toBe(expectedSha256);
+      const sourceReturnAttachment = await pollForDownloadableAttachment(
+        destinationNote.id,
+        'hotm-live-browser-return.bin',
+        expectedSha256,
+      );
+      expect(sourceReturnAttachment.id).toBe(reuploaded.attachmentId);
+      const sourceReturnEvidence = await downloadAttachmentEvidence(sourceReturnAttachment.id);
+      expect(sourceReturnEvidence.bytes).toHaveLength(bytes.length);
+      expect(sha256Hex(sourceReturnEvidence.bytes)).toBe(expectedSha256);
+      expect(sourceReturnEvidence.contentType).toBe('application/octet-stream');
+      expect(sourceReturnEvidence.contentDisposition).toMatch(
+        /^attachment; filename="attachment_filename_len_28_[0-9a-f-]{36}"$/,
+      );
 
       const serverDownloaded = await timeReceipt(receipt, 'serverReturnDownloadMillis', () =>
         downloadAttachmentBytes(reuploaded.attachmentId),
@@ -253,7 +279,27 @@ test.describe('live asset lifecycle', () => {
         downloadAttachmentBytes(recoveredAttachment.id, recoveryMemory),
       );
       expect(sha256Hex(recoveredBytes)).toBe(expectedSha256);
+      const recoveredReturnAttachment = await pollForDownloadableAttachment(
+        destinationNote.id,
+        'hotm-live-browser-return.bin',
+        expectedSha256,
+        recoveryMemory,
+      );
+      const recoveredReturnEvidence = await downloadAttachmentEvidence(
+        recoveredReturnAttachment.id,
+        recoveryMemory,
+      );
+      expect(normalizedAttachmentContract(recoveredReturnAttachment)).toEqual(
+        normalizedAttachmentContract(sourceReturnAttachment),
+      );
+      expect(recoveredReturnEvidence.bytes).toHaveLength(sourceReturnEvidence.bytes.length);
+      expect(sha256Hex(recoveredReturnEvidence.bytes)).toBe(expectedSha256);
+      expect(recoveredReturnEvidence.contentType).toBe(sourceReturnEvidence.contentType);
+      expect(recoveredReturnEvidence.contentDisposition).toBe(
+        sourceReturnEvidence.contentDisposition,
+      );
       receipt.claims.signedFullV1RecoveryPassed = true;
+      receipt.claims.reuploadAndShardMetadataRelationshipsPassed = true;
       receipt.timingsMillis.fullV1RtoImportPollAndDownloadMillis =
         (receipt.timingsMillis.fullV1ImportMillis ?? 0) +
         (receipt.timingsMillis.recoveryPollMillis ?? 0) +
@@ -593,7 +639,7 @@ async function pollForDownloadableAttachment(
   filename: string,
   expectedSha256: string,
   memoryName?: string | null,
-): Promise<{ id: string }> {
+): Promise<{ id: string; [key: string]: unknown }> {
   const deadline = Date.now() + 30000;
   let lastSeen = '';
   let lastDownloadError = '';
@@ -605,7 +651,7 @@ async function pollForDownloadableAttachment(
       try {
         const downloaded = await downloadAttachmentBytes(match.id, memoryName);
         if (sha256Hex(downloaded) === expectedSha256) {
-          return { id: match.id };
+          return { ...match, id: match.id };
         }
         lastDownloadError = `sha256 mismatch for ${match.id}`;
       } catch (error) {
@@ -621,4 +667,14 @@ async function pollForDownloadableAttachment(
   throw new Error(
     `Timed out waiting for downloadable UI-uploaded attachment ${filename}; last attachments: ${lastSeen}; last download error: ${lastDownloadError}`,
   );
+}
+
+function normalizedAttachmentContract(attachment: Record<string, unknown>): Record<string, unknown> {
+  return {
+    id: attachment.id,
+    noteId: attachment.note_id,
+    blobId: attachment.blob_id,
+    filename: attachment.filename,
+    originalFilename: attachment.original_filename ?? null,
+  };
 }

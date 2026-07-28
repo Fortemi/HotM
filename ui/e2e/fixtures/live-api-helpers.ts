@@ -223,6 +223,17 @@ export async function deleteNote(id: string): Promise<boolean> {
 }
 
 export async function downloadAttachmentBytes(attachmentId: string, memoryName?: string | null): Promise<Uint8Array> {
+  return (await downloadAttachmentEvidence(attachmentId, memoryName)).bytes;
+}
+
+export async function downloadAttachmentEvidence(
+  attachmentId: string,
+  memoryName?: string | null,
+): Promise<{
+  bytes: Uint8Array;
+  contentType: string | null;
+  contentDisposition: string | null;
+}> {
   const res = await apiFetch(`/attachments/${attachmentId}/download`, {
     headers: {},
   }, memoryName);
@@ -230,7 +241,11 @@ export async function downloadAttachmentBytes(attachmentId: string, memoryName?:
     const text = await res.text().catch(() => '');
     throw new Error(`downloadAttachmentBytes failed (${res.status}): ${text}`);
   }
-  return new Uint8Array(await res.arrayBuffer());
+  return {
+    bytes: new Uint8Array(await res.arrayBuffer()),
+    contentType: res.headers.get('content-type'),
+    contentDisposition: res.headers.get('content-disposition'),
+  };
 }
 
 export async function listNoteAttachments(noteId: string, memoryName?: string | null): Promise<Array<Record<string, unknown>>> {

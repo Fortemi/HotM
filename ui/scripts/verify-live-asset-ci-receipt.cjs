@@ -5,9 +5,12 @@ const fs = require('node:fs');
 const REQUIRED_TRUE_CLAIMS = [
   'browserSetInputFilesAgainstLiveFortemiPassed',
   'browserTusMultiOffsetResumePassed',
+  'browserTusExactlyOneAttachmentPassed',
+  'reuploadAndShardMetadataRelationshipsPassed',
   'browserSavedDownloadPassed',
   'tauriLocalFileCoreAgainstLiveFortemiPassed',
   'sourceRetiredBeforeCleanRecoveryPassed',
+  'browserAndDesktopNormalizedContractPassed',
   'signedFullV1CleanRecoveryPassed',
   'exactBytesDigestAndLengthPassed',
   'authenticatedBoundaryPassed',

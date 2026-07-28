@@ -36,6 +36,8 @@ export type LiveAssetBrowserReceipt = {
     browserBoundaryBytesPreserved: boolean;
     browserTusResumePassed: boolean;
     browserTusDisconnectResumePassed: boolean;
+    browserTusExactlyOneAttachmentPassed: boolean;
+    reuploadAndShardMetadataRelationshipsPassed: boolean;
     signedFullV1RecoveryPassed: boolean;
     hotmDesktopGuiPassed: false;
     suiteWidePortability: false;
@@ -75,6 +77,8 @@ export function createLiveAssetBrowserReceipt(args: {
       browserBoundaryBytesPreserved: false,
       browserTusResumePassed: false,
       browserTusDisconnectResumePassed: false,
+      browserTusExactlyOneAttachmentPassed: false,
+      reuploadAndShardMetadataRelationshipsPassed: false,
       signedFullV1RecoveryPassed: false,
       hotmDesktopGuiPassed: false,
       suiteWidePortability: false,
@@ -213,6 +217,8 @@ export function validateCompletedLiveAssetBrowserReceipt(receipt: LiveAssetBrows
     'browserBoundaryBytesPreserved',
     'browserTusResumePassed',
     'browserTusDisconnectResumePassed',
+    'browserTusExactlyOneAttachmentPassed',
+    'reuploadAndShardMetadataRelationshipsPassed',
     'signedFullV1RecoveryPassed',
   ] as const) {
     if (receipt.claims[key] !== true) failures.push(`claim ${key} must be true`);

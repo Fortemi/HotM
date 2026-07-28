@@ -66,6 +66,8 @@ function completeMetrics(overrides = {}) {
       browserBoundaryBytesPreserved: true,
       browserTusResumePassed: true,
       browserTusDisconnectResumePassed: true,
+      browserTusExactlyOneAttachmentPassed: true,
+      reuploadAndShardMetadataRelationshipsPassed: true,
       signedFullV1RecoveryPassed: true,
       hotmDesktopGuiPassed: false,
       suiteWidePortability: false,

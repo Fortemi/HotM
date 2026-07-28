@@ -33,9 +33,12 @@ function validReceipt() {
     claims: {
       browserSetInputFilesAgainstLiveFortemiPassed: true,
       browserTusMultiOffsetResumePassed: true,
+      browserTusExactlyOneAttachmentPassed: true,
+      reuploadAndShardMetadataRelationshipsPassed: true,
       browserSavedDownloadPassed: true,
       tauriLocalFileCoreAgainstLiveFortemiPassed: true,
       sourceRetiredBeforeCleanRecoveryPassed: true,
+      browserAndDesktopNormalizedContractPassed: true,
       signedFullV1CleanRecoveryPassed: true,
       exactBytesDigestAndLengthPassed: true,
       authenticatedBoundaryPassed: true,

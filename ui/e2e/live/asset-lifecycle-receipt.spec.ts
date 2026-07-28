@@ -89,6 +89,8 @@ test.describe('live asset metrics receipt schema', () => {
         'claim browserBoundaryBytesPreserved must be true',
         'claim browserTusResumePassed must be true',
         'claim browserTusDisconnectResumePassed must be true',
+        'claim browserTusExactlyOneAttachmentPassed must be true',
+        'claim reuploadAndShardMetadataRelationshipsPassed must be true',
         'claim signedFullV1RecoveryPassed must be true',
       ]),
     );
@@ -129,6 +131,8 @@ test.describe('live asset metrics receipt schema', () => {
     receipt.claims.browserBoundaryBytesPreserved = true;
     receipt.claims.browserTusResumePassed = true;
     receipt.claims.browserTusDisconnectResumePassed = true;
+    receipt.claims.browserTusExactlyOneAttachmentPassed = true;
+    receipt.claims.reuploadAndShardMetadataRelationshipsPassed = true;
     receipt.claims.signedFullV1RecoveryPassed = true;
 
     expect(validateCompletedLiveAssetBrowserReceipt(receipt)).toEqual([]);

@@ -95,6 +95,8 @@ function validateMetrics(metrics) {
     'browserBoundaryBytesPreserved',
     'browserTusResumePassed',
     'browserTusDisconnectResumePassed',
+    'browserTusExactlyOneAttachmentPassed',
+    'reuploadAndShardMetadataRelationshipsPassed',
     'signedFullV1RecoveryPassed',
   ]) {
     if (metrics.claims?.[key] !== true) failures.push(`claim ${key} must be true`);

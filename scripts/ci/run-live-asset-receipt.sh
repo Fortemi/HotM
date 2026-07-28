@@ -287,9 +287,12 @@ const receipt = {
   claims: {
     browserSetInputFilesAgainstLiveFortemiPassed: Number(process.env.BROWSER_STATUS) === 0,
     browserTusMultiOffsetResumePassed: Number(process.env.BROWSER_STATUS) === 0,
+    browserTusExactlyOneAttachmentPassed: Number(process.env.BROWSER_STATUS) === 0,
+    reuploadAndShardMetadataRelationshipsPassed: Number(process.env.BROWSER_STATUS) === 0,
     browserSavedDownloadPassed: Number(process.env.BROWSER_STATUS) === 0,
     tauriLocalFileCoreAgainstLiveFortemiPassed: Number(process.env.TAURI_STATUS) === 0,
     sourceRetiredBeforeCleanRecoveryPassed: Number(process.env.TAURI_STATUS) === 0,
+    browserAndDesktopNormalizedContractPassed: passed,
     signedFullV1CleanRecoveryPassed: passed,
     exactBytesDigestAndLengthPassed: passed,
     authenticatedBoundaryPassed: passed,
