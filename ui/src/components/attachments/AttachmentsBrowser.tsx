@@ -63,6 +63,8 @@ import {
 } from '@/components/ui/select';
 import { api } from '@/api';
 import { ApiError } from '@/api';
+import { getAuthorizationHeader, hasApiBearerToken } from '@/api/auth-context';
+import { getActiveMemory, getMemoryRoutingHeaderName } from '@/api/memory-context';
 import { useBlobUrl } from '@/lib/tauri';
 import type { Attachment, AttachmentMetadata, ExtractionStatus, AttachmentStatus } from '@/api/types-extended';
 import { getPreviewMode, shouldDownloadBlob, getDocTypeLabel, getLanguageFromType } from './preview-utils';
@@ -203,8 +205,16 @@ interface BrowserCardProps {
 
 function BrowserCard({ attachment, noteCount, viewMode, onView, onDownload, onDelete }: BrowserCardProps) {
   const isImage = attachment.content_type.startsWith('image/');
+  const selectedMemory = getActiveMemory();
+  const useHeaderFetch = hasApiBearerToken() || !!selectedMemory;
+  const thumbnailHeaders = useMemo(() => {
+    const headers: HeadersInit = { ...getAuthorizationHeader() };
+    if (selectedMemory) headers[getMemoryRoutingHeaderName()] = selectedMemory;
+    return headers;
+  }, [selectedMemory]);
   const thumbnailUrl = useBlobUrl(
     isImage ? api.attachments.getDownloadUrl(attachment.id) : undefined,
+    { forceFetch: useHeaderFetch, headers: thumbnailHeaders },
   );
 
   if (viewMode === 'grid') {
@@ -822,6 +832,12 @@ export function AttachmentsBrowser({ className }: AttachmentsBrowserProps) {
 
   const handleDownload = useCallback(async (attachment: NoteAttachment) => {
     try {
+      const savedToLocalFile = await api.attachments.downloadAttachmentToLocalFile(
+        attachment.id,
+        attachment.filename,
+      );
+      if (savedToLocalFile) return;
+
       const blob = await api.attachments.downloadAttachment(attachment.id);
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');

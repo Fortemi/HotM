@@ -360,7 +360,10 @@ import { useState, useEffect } from "react";
  *
  * Revokes the blob URL on unmount or URL change to prevent leaks.
  */
-export function useBlobUrl(url: string | undefined): string | undefined {
+export function useBlobUrl(
+  url: string | undefined,
+  options?: { forceFetch?: boolean; headers?: HeadersInit },
+): string | undefined {
   const [blobUrl, setBlobUrl] = useState<string | undefined>(undefined);
 
   useEffect(() => {
@@ -370,7 +373,7 @@ export function useBlobUrl(url: string | undefined): string | undefined {
     }
 
     // In browser mode, direct URLs work fine
-    if (!isTauri() && !hasHostAdapter()) {
+    if (!options?.forceFetch && !isTauri() && !hasHostAdapter()) {
       setBlobUrl(url);
       return;
     }
@@ -378,7 +381,7 @@ export function useBlobUrl(url: string | undefined): string | undefined {
     let revoked = false;
     let currentBlobUrl: string | null = null;
 
-    getTauriFetch()(url)
+    getTauriFetch()(url, options?.headers ? { headers: options.headers } : undefined)
       .then((res) => {
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         return res.blob();
@@ -399,7 +402,7 @@ export function useBlobUrl(url: string | undefined): string | undefined {
         URL.revokeObjectURL(currentBlobUrl);
       }
     };
-  }, [url]);
+  }, [url, options?.forceFetch, options?.headers]);
 
   return blobUrl;
 }

@@ -1,0 +1,42 @@
+metadata:
+  schema_version: "1.0.0"
+  created_at: "2026-07-28T02:00:55Z"
+  description: "Provenance for the HotM desktop receipt validator tests"
+entity:
+  id: "urn:aiwg:artifact:ui/scripts/verify-desktop-live-asset-receipt.test.js"
+  type: test
+  created_at: "2026-07-28T02:00:55Z"
+  checksum: "sha256:3ae60e58edb6edfdd39658c86ef8cdfd2d666045b4081fe31982ee7d6443833b"
+  size_bytes: 2663
+  attributes:
+    change_scope: "hotm-283-desktop-receipt-validation"
+    base_revision: "932fcaad24ccc8b9374dbc46b1c9db41419ab6bf"
+activity:
+  id: "urn:aiwg:activity:generation:verify-desktop-live-asset-receipt-test-js:001"
+  type: generation
+  started_at: "2026-07-28T02:00:55Z"
+  ended_at: "2026-07-28T02:00:55Z"
+  description: "Test passing evidence and rejection of drift, overclaims, and local paths"
+agent:
+  id: "urn:aiwg:agent:codex-gpt-5"
+  type: ai_assistant
+  name: "Codex"
+  version: "gpt-5"
+  tool: "codex"
+relationships:
+  wasGeneratedBy:
+    entity: "urn:aiwg:artifact:ui/scripts/verify-desktop-live-asset-receipt.test.js"
+    activity: "urn:aiwg:activity:generation:verify-desktop-live-asset-receipt-test-js:001"
+    time: "2026-07-28T02:00:55Z"
+  wasDerivedFrom:
+    - entity: "urn:aiwg:artifact:ui/scripts/verify-desktop-live-asset-receipt.test.js"
+      source: "urn:aiwg:artifact:ui/scripts/verify-desktop-live-asset-receipt.cjs"
+      derivation_type: "tests"
+      activity: "urn:aiwg:activity:generation:verify-desktop-live-asset-receipt-test-js:001"
+  wasAssociatedWith:
+    activity: "urn:aiwg:activity:generation:verify-desktop-live-asset-receipt-test-js:001"
+    agent: "urn:aiwg:agent:codex-gpt-5"
+    role: "primary_author"
+  wasAttributedTo:
+    entity: "urn:aiwg:artifact:ui/scripts/verify-desktop-live-asset-receipt.test.js"
+    agent: "urn:aiwg:agent:codex-gpt-5"

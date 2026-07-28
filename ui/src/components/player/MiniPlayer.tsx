@@ -28,6 +28,7 @@ import { usePlayerPosition } from './usePlayerPosition';
 import { api } from '@/api';
 import { ThumbnailPreview } from '@/components/attachments/ThumbnailPreview';
 import { parseThumbnailVtt, getCueForTime, type ThumbnailCue } from '@/components/attachments/thumbnail-vtt';
+import { getAuthorizationHeader, hasApiBearerToken } from '@/api/auth-context';
 import { getActiveMemory, getMemoryRoutingHeaderName } from '@/api/memory-context';
 
 // ---------------------------------------------------------------------------
@@ -78,7 +79,9 @@ export function MiniPlayer({ session, mediaRef, variant = 'mini' }: MiniPlayerPr
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const [blobUrl, setBlobUrl] = useState<string | null>(session.blobUrl ?? null);
-  const [mode, setMode] = useState<'direct' | 'blob'>(session.blobUrl ? 'blob' : 'direct');
+  const [mode, setMode] = useState<'direct' | 'blob'>(() =>
+    session.blobUrl || getActiveMemory() || hasApiBearerToken() ? 'blob' : 'direct',
+  );
 
   // Container ref for fullscreen on the whole player (not just <video>)
   const containerRef = useRef<HTMLDivElement>(null);
@@ -151,7 +154,7 @@ export function MiniPlayer({ session, mediaRef, variant = 'mini' }: MiniPlayerPr
     if (!isVideo) return;
     let cancelled = false;
     const vttUrl = api.attachments.getThumbnailVttUrl(session.attachmentId);
-    const headers: HeadersInit = {};
+    const headers: HeadersInit = { ...getAuthorizationHeader() };
     const mem = getActiveMemory();
     if (mem) headers[getMemoryRoutingHeaderName()] = mem;
 

@@ -36,9 +36,17 @@ export default defineConfig({
       testMatch: 'uat/**/*.spec.ts',
       use: { ...devices['Desktop Chrome'] },
     },
+    {
+      name: 'live-assets',
+      testMatch: 'live/**/*.spec.ts',
+      use: {
+        ...devices['Desktop Chrome'],
+        baseURL: 'http://localhost:1420',
+      },
+    },
   ],
   webServer: {
-    command: 'npm run dev',
+    command: 'VITE_API_BASE_URL="${HOTM_API_URL:-${VITE_API_BASE_URL:-http://localhost:3000/api/v1}}" npm run dev',
     url: 'http://localhost:1420',
     reuseExistingServer: !process.env.CI,
     timeout: 120000,

@@ -23,7 +23,9 @@ import { Music, Loader2, AlertCircle, RefreshCw, Download, Video, Subtitles, Act
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { api } from '@/api';
+import { getAuthorizationHeader, hasApiBearerToken } from '@/api/auth-context';
 import { getActiveMemory, getMemoryRoutingHeaderName } from '@/api/memory-context';
+import { useBlobUrl } from '@/lib/tauri';
 import type { TranscriptSegment } from './subtitle-utils';
 import { createVttBlobUrl, parseVttToSegments } from './subtitle-utils';
 import { TranscriptPanel } from './TranscriptPanel';
@@ -43,6 +45,17 @@ type PlaybackMode = 'direct' | 'blob' | 'error';
 
 const POSITION_SAVE_INTERVAL_MS = 5000;
 const MAX_RETRIES = 3;
+
+function shouldFetchBinaryWithHeaders(): boolean {
+  return !!getActiveMemory() || hasApiBearerToken();
+}
+
+function buildBinaryResourceHeaders(): HeadersInit {
+  const headers: HeadersInit = { ...getAuthorizationHeader() };
+  const mem = getActiveMemory();
+  if (mem) headers[getMemoryRoutingHeaderName()] = mem;
+  return headers;
+}
 
 // ---------------------------------------------------------------------------
 // Playback position persistence
@@ -140,7 +153,7 @@ export function StreamingVideoPlayer({
   extractionStrategy,
   onPopOut,
 }: StreamingVideoPlayerProps) {
-  const [mode, setMode] = useState<PlaybackMode>('direct');
+  const [mode, setMode] = useState<PlaybackMode>(() => shouldFetchBinaryWithHeaders() ? 'blob' : 'direct');
   const [blobUrl, setBlobUrl] = useState<string | null>(null);
   const [playbackState, setPlaybackState] = useState<
     'loading' | 'ready' | 'buffering' | 'error'
@@ -168,8 +181,12 @@ export function StreamingVideoPlayer({
   const directUrl = api.attachments.getDownloadUrl(attachmentId, variant);
   const downloadUrl = api.attachments.getDownloadUrl(attachmentId);
 
-  const activeMemory = getActiveMemory();
-  const startWithBlob = !!activeMemory;
+  const startWithBlob = shouldFetchBinaryWithHeaders();
+  const binaryResourceHeaders = useMemo(() => buildBinaryResourceHeaders(), [startWithBlob]);
+  const resolvedPosterUrl = useBlobUrl(posterUrl, {
+    forceFetch: startWithBlob,
+    headers: binaryResourceHeaders,
+  });
 
   // ---- Transcript: metadata segments or server subtitle fallback ----
   const [fetchedSegments, setFetchedSegments] = useState<TranscriptSegment[] | null>(null);
@@ -183,9 +200,7 @@ export function StreamingVideoPlayer({
     if (transcriptSegments && transcriptSegments.length > 0) return;
     let cancelled = false;
     const subtitleUrl = api.attachments.getSubtitleUrl(attachmentId, 'vtt');
-    const headers: HeadersInit = {};
-    const mem = getActiveMemory();
-    if (mem) headers[getMemoryRoutingHeaderName()] = mem;
+    const headers = buildBinaryResourceHeaders();
 
     fetch(subtitleUrl, { headers })
       .then((res) => (res.ok ? res.text() : null))
@@ -301,9 +316,7 @@ export function StreamingVideoPlayer({
   useEffect(() => {
     let cancelled = false;
     const vttUrl = api.attachments.getThumbnailVttUrl(attachmentId);
-    const headers: HeadersInit = {};
-    const mem = getActiveMemory();
-    if (mem) headers[getMemoryRoutingHeaderName()] = mem;
+    const headers = buildBinaryResourceHeaders();
 
     fetch(vttUrl, { headers })
       .then((res) => (res.ok ? res.text() : null))
@@ -651,7 +664,7 @@ export function StreamingVideoPlayer({
           ref={videoRef}
           src={mode === 'direct' ? directUrl : (blobUrl ?? undefined)}
           preload="metadata"
-          poster={posterUrl}
+          poster={resolvedPosterUrl}
           className={className ?? cn(
             'w-full bg-black',
             isFullscreen ? 'max-h-full max-w-full object-contain' : 'max-h-[500px]'
@@ -799,7 +812,7 @@ export function StreamingAudioPlayer({
   extractionStrategy,
   onPopOut,
 }: StreamingAudioPlayerProps) {
-  const [mode, setMode] = useState<PlaybackMode>('direct');
+  const [mode, setMode] = useState<PlaybackMode>(() => shouldFetchBinaryWithHeaders() ? 'blob' : 'direct');
   const [blobUrl, setBlobUrl] = useState<string | null>(null);
   const [retryCount, setRetryCount] = useState(0);
   const [currentTime, setCurrentTime] = useState(0);
@@ -813,6 +826,12 @@ export function StreamingAudioPlayer({
 
   const directUrl = api.attachments.getDownloadUrl(attachmentId, variant);
   const downloadUrl = api.attachments.getDownloadUrl(attachmentId);
+  const startWithBlob = shouldFetchBinaryWithHeaders();
+  const binaryResourceHeaders = useMemo(() => buildBinaryResourceHeaders(), [startWithBlob]);
+  const resolvedPosterUrl = useBlobUrl(posterUrl, {
+    forceFetch: startWithBlob,
+    headers: binaryResourceHeaders,
+  });
 
   // Transcript: prefer metadata segments, fall back to server subtitle endpoint
   const [fetchedSegments, setFetchedSegments] = useState<TranscriptSegment[] | null>(null);
@@ -827,9 +846,7 @@ export function StreamingAudioPlayer({
     if (transcriptSegments && transcriptSegments.length > 0) return;
     let cancelled = false;
     const subtitleUrl = api.attachments.getSubtitleUrl(attachmentId, 'vtt');
-    const headers: HeadersInit = {};
-    const mem = getActiveMemory();
-    if (mem) headers[getMemoryRoutingHeaderName()] = mem;
+    const headers = buildBinaryResourceHeaders();
 
     fetch(subtitleUrl, { headers })
       .then((res) => (res.ok ? res.text() : null))
@@ -854,9 +871,6 @@ export function StreamingAudioPlayer({
       setCurrentTime(timeSecs);
     }
   }, []);
-
-  const activeMemory = getActiveMemory();
-  const startWithBlob = !!activeMemory;
 
   useEffect(() => {
     if (startWithBlob) {
@@ -1020,9 +1034,9 @@ export function StreamingAudioPlayer({
 
   return (
     <div className={className ?? 'flex flex-col items-center gap-4 py-8'} data-testid="attachment-audio-preview">
-      {posterUrl ? (
+      {resolvedPosterUrl ? (
         <img
-          src={posterUrl}
+          src={resolvedPosterUrl}
           alt="Audio waveform"
           className="w-full max-w-md h-[120px] object-contain rounded border bg-muted/10"
           loading="lazy"

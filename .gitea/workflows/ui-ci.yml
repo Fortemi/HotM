@@ -32,6 +32,25 @@ on:
       - 'scripts/verify-hux-traceability.sh'
       - '.gitea/workflows/ui-ci.yml'
   workflow_dispatch:
+    inputs:
+      live_asset_receipt:
+        description: 'Run and publish the opt-in live Fortemi asset lifecycle receipt'
+        required: false
+        default: 'false'
+        type: boolean
+      live_asset_api_url:
+        description: 'Fortemi API base URL for the live asset receipt'
+        required: false
+        default: 'http://localhost:3000/api/v1'
+      live_asset_memory:
+        description: 'Isolated Fortemi memory/archive name for the live asset receipt'
+        required: false
+        default: ''
+      live_asset_require_auth:
+        description: 'Require bearer-authenticated Fortemi API for the live asset receipt'
+        required: false
+        default: 'false'
+        type: boolean
 
 env:
   GITEA_REGISTRY: git.integrolabs.net
@@ -115,6 +134,127 @@ jobs:
       - name: Security audit (non-blocking)
         working-directory: agent-proxy
         run: npm audit --audit-level high || true
+
+  # ─── Manual: publish live Fortemi browser asset receipt ───────────
+  live-asset-receipt:
+    name: Live Asset Browser Receipt
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch' && inputs.live_asset_receipt == 'true'
+    steps:
+      - name: Checkout
+        shell: bash
+        run: |
+          set -euo pipefail
+          git init .
+          git remote add origin \
+            "https://token:${{ github.token }}@git.integrolabs.net/${GITHUB_REPOSITORY}.git"
+          git fetch --depth 1 origin "${GITHUB_REF:-${GITHUB_SHA:-main}}" ||
+            git fetch --depth 1 origin "${GITHUB_SHA:-main}"
+          git checkout --detach FETCH_HEAD
+
+      - name: Install dependencies
+        working-directory: ui
+        run: npm ci
+
+      - name: Install Playwright Chromium
+        working-directory: ui
+        run: npx playwright install chromium --with-deps
+
+      - name: Run live asset browser receipt
+        id: live_asset
+        shell: bash
+        working-directory: ui
+        env:
+          HOTM_LIVE_ASSET_E2E: "1"
+          HOTM_LIVE_MEMORY: ${{ inputs.live_asset_memory }}
+          HOTM_LIVE_REQUIRE_AUTH: ${{ inputs.live_asset_require_auth }}
+          HOTM_API_URL: ${{ inputs.live_asset_api_url }}
+          VITE_API_BEARER_TOKEN: ${{ secrets.HOTM_LIVE_ASSET_TOKEN }}
+        run: |
+          set -euo pipefail
+          if [ -z "${HOTM_LIVE_MEMORY}" ]; then
+            echo "live_asset_memory is required when live_asset_receipt=true" >&2
+            exit 2
+          fi
+
+          mkdir -p test-results/live-asset-receipt
+          started_at="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          set +e
+          npm run test:e2e:live-assets
+          status=$?
+          set -e
+          finished_at="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          metrics_status=0
+          npm run verify:live-asset-metrics || metrics_status=$?
+          if [ "${status}" -eq 0 ] && [ "${metrics_status}" -ne 0 ]; then
+            status="${metrics_status}"
+          fi
+
+          node - "${status}" "${started_at}" "${finished_at}" \
+            > test-results/live-asset-receipt/receipt.json <<'NODE'
+          const [status, startedAt, finishedAt] = process.argv.slice(2);
+          const requireAuth = process.env.HOTM_LIVE_REQUIRE_AUTH === 'true';
+          const receipt = {
+            receipt: 'hotm-live-asset-browser',
+            issue: 'Fortemi/HotM#283',
+            command: 'npm run test:e2e:live-assets',
+            status: Number(status) === 0 ? 'passed' : 'failed',
+            exit_code: Number(status),
+            started_at: startedAt,
+            finished_at: finishedAt,
+            git: {
+              repository: process.env.GITHUB_REPOSITORY || null,
+              sha: process.env.GITHUB_SHA || null,
+              ref: process.env.GITHUB_REF || null,
+              run_id: process.env.GITHUB_RUN_ID || null,
+            },
+            fortemi: {
+              api_url: process.env.HOTM_API_URL,
+              memory: process.env.HOTM_LIVE_MEMORY,
+              require_auth: requireAuth,
+              bearer_token_supplied: Boolean(process.env.VITE_API_BEARER_TOKEN),
+            },
+            metrics_artifact: 'ui/test-results/**/hotm-live-asset-browser-metrics.json',
+            scope: [
+              'HotM UI setInputFiles multipart upload',
+              'browser-origin TUS mismatch, HEAD resume, and finalization',
+              'attachment action-menu browser Download saved to test output',
+              'browser re-upload to live Fortemi',
+              'signed 2.0.0/full-v1 export inspection',
+              'clean recovery import and recovered-byte hash verification',
+              'browser-boundary timing metrics emitted by the Playwright test',
+            ],
+            not_claimed: [
+              'Tauri desktop GUI native picker or save-open flow',
+              'trusted publisher allowlist',
+              'direct preview URL bearer coverage',
+            ],
+          };
+          console.log(JSON.stringify(receipt, null, 2));
+          NODE
+
+          node scripts/write-receipt-artifact-manifest.cjs \
+            test-results/live-asset-receipt/artifact-manifest.json \
+            hotm-live-asset-browser-receipt \
+            test-results \
+            playwright-report
+          node scripts/write-receipt-artifact-manifest.cjs --verify \
+            test-results/live-asset-receipt/artifact-manifest.json
+
+          exit "${status}"
+
+      - name: Upload live asset browser receipt
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: hotm-live-asset-browser-receipt
+          path: |
+            ui/test-results/live-asset-receipt/receipt.json
+            ui/test-results/live-asset-receipt/artifact-manifest.json
+            ui/test-results/
+            ui/playwright-report/
+          if-no-files-found: warn
+          retention-days: 30
 
   # ─── On push / manual dispatch: Publish dev image ─────────────────
   publish-dev:

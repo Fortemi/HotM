@@ -69,6 +69,94 @@ jobs:
         working-directory: ui
         run: npm ci
 
+      - name: Run Tauri local file command-core receipt
+        id: tauri_command_core
+        shell: bash
+        working-directory: ui/src-tauri
+        run: |
+          set -euo pipefail
+          export PATH="$HOME/.cargo/bin:$PATH"
+          mkdir -p ../test-results/tauri-command-core-receipt
+          started_at="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          set +e
+          TAURI_CONFIG='{"bundle":{"externalBin":[]}}' \
+            cargo test local_file_ -- --nocapture
+          local_file_status=$?
+          TAURI_CONFIG='{"bundle":{"externalBin":[]}}' \
+            cargo test native_ -- --nocapture
+          native_status=$?
+          set -e
+          finished_at="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          if [ "${local_file_status}" -eq 0 ] && [ "${native_status}" -eq 0 ]; then
+            status=0
+          else
+            status=1
+          fi
+
+          node - "${status}" "${started_at}" "${finished_at}" \
+            > ../test-results/tauri-command-core-receipt/receipt.json <<'NODE'
+          const [status, startedAt, finishedAt] = process.argv.slice(2);
+          const receipt = {
+            receipt: 'hotm-tauri-local-file-command-core',
+            issue: 'Fortemi/HotM#283',
+            command: 'TAURI_CONFIG={"bundle":{"externalBin":[]}} cargo test local_file_ -- --nocapture && TAURI_CONFIG={"bundle":{"externalBin":[]}} cargo test native_ -- --nocapture',
+            status: Number(status) === 0 ? 'passed' : 'failed',
+            exit_code: Number(status),
+            started_at: startedAt,
+            finished_at: finishedAt,
+            git: {
+              repository: process.env.GITHUB_REPOSITORY || null,
+              sha: process.env.GITHUB_SHA || null,
+              ref: process.env.GITHUB_REF || null,
+              run_id: process.env.GITHUB_RUN_ID || null,
+            },
+            scope: [
+              'real temporary local file bytes',
+              'Tauri upload command core',
+              'local TUS-compatible HTTP server create and PATCH',
+              'desktop TUS offset-conflict HEAD resume and resumed PATCH',
+              'Tauri download command core',
+              'local attachment download HTTP server',
+              'Authorization and X-Fortemi-Memory headers on upload and download',
+              'upload metadata and final attachment JSON',
+              'progress events',
+              'download variant route',
+              'saved filesystem bytes, byte count, reopened byte count, and SHA-256 digest',
+              'selected native file paths are converted to local file metadata',
+              'native download core writes, reopens, and hashes saved attachment bytes',
+            ],
+            not_claimed: [
+              'Tauri desktop GUI launch',
+              'interactive native picker/save dialog operated in a launched GUI',
+              'real Fortemi backend',
+              'trusted publisher allowlist',
+            ],
+          };
+          console.log(JSON.stringify(receipt, null, 2));
+          NODE
+
+          (cd .. && npm run verify:tauri-command-core-receipt)
+          (cd .. && npm run verify:desktop-live-asset-receipt)
+          cp ../../.aiwg/evidence/hotm-desktop-live-asset-receipt-2026-07-27.json \
+            ../test-results/tauri-command-core-receipt/desktop-live-asset-receipt.json
+          node ../scripts/write-receipt-artifact-manifest.cjs \
+            ../test-results/tauri-command-core-receipt/artifact-manifest.json \
+            hotm-tauri-command-core-receipt \
+            ../test-results/tauri-command-core-receipt
+          node ../scripts/write-receipt-artifact-manifest.cjs --verify \
+            ../test-results/tauri-command-core-receipt/artifact-manifest.json
+
+          exit "${status}"
+
+      - name: Upload Tauri command-core receipt
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: hotm-tauri-command-core-receipt
+          path: ui/test-results/tauri-command-core-receipt/*.json
+          if-no-files-found: warn
+          retention-days: 30
+
       - name: Download pinned Fortemi sidecar (Linux x86_64)
         shell: bash
         run: |

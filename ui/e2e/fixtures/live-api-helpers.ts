@@ -9,11 +9,72 @@
 
 const UAT_TAG = '_hotm_uat';
 
-function getApiBaseUrl(): string {
+export function getApiBaseUrl(): string {
   const deployUrl = process.env.HOTM_DEPLOY_URL ?? 'http://localhost:4180';
   // HOTM_API_URL overrides if API is on a different host/port than the UI.
   // Default assumes API is colocated at the deploy URL under /api/v1.
   return process.env.HOTM_API_URL ?? `${deployUrl.replace(/\/$/, '')}/api/v1`;
+}
+
+export function getLiveMemoryName(): string | null {
+  return process.env.HOTM_LIVE_MEMORY?.trim() || null;
+}
+
+export function getLiveApiToken(): string | null {
+  return process.env.HOTM_API_TOKEN?.trim()
+    || process.env.VITE_API_BEARER_TOKEN?.trim()
+    || null;
+}
+
+function liveAuthHeaders(): Record<string, string> {
+  const token = getLiveApiToken();
+  return token ? { Authorization: `Bearer ${token}` } : {};
+}
+
+export async function assertAuthRequired(): Promise<void> {
+  const base = getApiBaseUrl();
+  const res = await fetch(`${base}/notes?limit=1`, {
+    headers: { 'Content-Type': 'application/json' },
+  });
+  if (res.status !== 401) {
+    const text = await res.text().catch(() => '');
+    throw new Error(`Expected unauthenticated /notes to return 401, got ${res.status}: ${text}`);
+  }
+}
+
+export async function ensureLiveMemory(memoryName = getLiveMemoryName()): Promise<void> {
+  const liveMemory = memoryName?.trim() || null;
+  if (!liveMemory) return;
+
+  const base = getApiBaseUrl();
+  const res = await fetch(`${base}/archives`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...liveAuthHeaders() },
+    body: JSON.stringify({
+      name: liveMemory,
+      description: 'HotM live asset lifecycle e2e archive',
+    }),
+  });
+  if (res.status === 201) return;
+
+  const text = await res.text().catch(() => '');
+  if (res.status === 400 && text.includes('already exists')) return;
+  throw new Error(`ensureLiveMemory failed (${res.status}): ${text}`);
+}
+
+export async function deleteLiveMemory(memoryName: string | null): Promise<boolean> {
+  const liveMemory = memoryName?.trim() || null;
+  if (!liveMemory) return true;
+  if (!liveMemory.startsWith('hotm_live_')) {
+    throw new Error(`Refusing to delete non-test memory ${liveMemory}`);
+  }
+
+  const base = getApiBaseUrl();
+  const res = await fetch(`${base}/archives/${encodeURIComponent(liveMemory)}`, {
+    method: 'DELETE',
+    headers: { 'Content-Type': 'application/json', ...liveAuthHeaders() },
+  });
+  return res.ok || res.status === 404;
 }
 
 /** Derive the API server root (without /api/v1 suffix) for root-level endpoints like /health */
@@ -22,13 +83,16 @@ function getApiRootUrl(): string {
   return base.replace(/\/api\/v\d+\/?$/, '');
 }
 
-async function apiFetch(path: string, init?: RequestInit): Promise<Response> {
+async function apiFetch(path: string, init?: RequestInit, memoryOverride?: string | null): Promise<Response> {
   const base = getApiBaseUrl();
   const url = `${base}${path}`;
+  const liveMemory = memoryOverride === undefined ? getLiveMemoryName() : memoryOverride?.trim() || null;
   const res = await fetch(url, {
     ...init,
     headers: {
       'Content-Type': 'application/json',
+      ...liveAuthHeaders(),
+      ...(liveMemory ? { 'X-Fortemi-Memory': liveMemory } : {}),
       ...init?.headers,
     },
   });
@@ -51,7 +115,7 @@ export async function checkHealth(): Promise<HealthResult> {
     if (!res.ok) {
       const rootUrl = `${getApiRootUrl()}/health`;
       res = await fetch(rootUrl, {
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...liveAuthHeaders() },
       });
     }
     const body = await res.json().catch(() => ({}));
@@ -156,6 +220,59 @@ export async function listTags(): Promise<TagListResult> {
 export async function deleteNote(id: string): Promise<boolean> {
   const res = await apiFetch(`/notes/${id}`, { method: 'DELETE' });
   return res.ok;
+}
+
+export async function downloadAttachmentBytes(attachmentId: string, memoryName?: string | null): Promise<Uint8Array> {
+  const res = await apiFetch(`/attachments/${attachmentId}/download`, {
+    headers: {},
+  }, memoryName);
+  if (!res.ok) {
+    const text = await res.text().catch(() => '');
+    throw new Error(`downloadAttachmentBytes failed (${res.status}): ${text}`);
+  }
+  return new Uint8Array(await res.arrayBuffer());
+}
+
+export async function listNoteAttachments(noteId: string, memoryName?: string | null): Promise<Array<Record<string, unknown>>> {
+  const res = await apiFetch(`/notes/${noteId}/attachments`, {
+    headers: {},
+  }, memoryName);
+  if (!res.ok) {
+    const text = await res.text().catch(() => '');
+    throw new Error(`listNoteAttachments failed (${res.status}): ${text}`);
+  }
+  const data = await res.json();
+  return data.attachments ?? (Array.isArray(data) ? data : []);
+}
+
+export async function exportFullV1Shard(): Promise<Uint8Array> {
+  const res = await apiFetch(
+    '/backup/knowledge-shard?schema_version=2.0.0&profile=full-v1&include_blobs=true',
+    { headers: {} },
+  );
+  if (!res.ok) {
+    const text = await res.text().catch(() => '');
+    throw new Error(`exportFullV1Shard failed (${res.status}): ${text}`);
+  }
+  return new Uint8Array(await res.arrayBuffer());
+}
+
+export async function importFullV1Shard(shard: Uint8Array, memoryName: string): Promise<Record<string, unknown>> {
+  const res = await apiFetch('/backup/knowledge-shard/import', {
+    method: 'POST',
+    body: JSON.stringify({
+      shard_base64: Buffer.from(shard).toString('base64'),
+      dry_run: false,
+      on_conflict: 'replace',
+      skip_embedding_regen: true,
+      verify_signature: 'trusted-local-only',
+    }),
+  }, memoryName);
+  if (!res.ok) {
+    const text = await res.text().catch(() => '');
+    throw new Error(`importFullV1Shard failed (${res.status}): ${text}`);
+  }
+  return res.json();
 }
 
 /**

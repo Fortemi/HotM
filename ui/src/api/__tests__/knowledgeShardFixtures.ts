@@ -92,6 +92,7 @@ function tarEntry(name: string, contents: Uint8Array): Uint8Array {
 export function createKnowledgeShardFile(
   manifest: KnowledgeShardManifest = canonicalManifest,
   componentFiles?: Record<string, Uint8Array>,
+  extraFiles: Record<string, Uint8Array> = {},
 ): File {
   const files = componentFiles ?? (
     manifest.profile === 'full-v1'
@@ -105,6 +106,7 @@ export function createKnowledgeShardFile(
   );
   const entries = [
     ...Object.entries(files).map(([name, contents]) => tarEntry(name, contents)),
+    ...Object.entries(extraFiles).map(([name, contents]) => tarEntry(name, contents)),
     tarEntry('manifest.json', encoder.encode(JSON.stringify(manifest))),
   ];
   const byteLength = entries.reduce((total, entry) => total + entry.byteLength, 0);

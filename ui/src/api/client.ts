@@ -4,6 +4,7 @@
  */
 
 import { ApiError, NetworkError } from './errors';
+import { getAuthorizationHeader } from './auth-context';
 import { getActiveMemory, getMemoryRoutingHeaderName } from './memory-context';
 import { getTauriFetch } from '@/lib/tauri';
 
@@ -82,7 +83,7 @@ export function createApiClient(baseUrl: string) {
     } = options;
 
     const url = buildUrl(normalizedBaseUrl, path, params);
-    const requestHeaders = { ...defaultHeaders, ...headers };
+    const requestHeaders = { ...defaultHeaders, ...getAuthorizationHeader(), ...headers };
     const selectedMemory = getActiveMemory();
     if (selectedMemory && !requestHeaders[getMemoryRoutingHeaderName()]) {
       requestHeaders[getMemoryRoutingHeaderName()] = selectedMemory;

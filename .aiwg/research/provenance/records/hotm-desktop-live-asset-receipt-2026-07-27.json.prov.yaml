@@ -1,0 +1,49 @@
+metadata:
+  schema_version: "1.0.0"
+  created_at: "2026-07-28T02:00:55Z"
+  description: "Provenance for the launched HotM Linux desktop live-asset receipt"
+entity:
+  id: "urn:aiwg:artifact:.aiwg/evidence/hotm-desktop-live-asset-receipt-2026-07-27.json"
+  type: evidence
+  created_at: "2026-07-28T02:00:55Z"
+  checksum: "sha256:a55a8394dfeb93cd63d09766df7990c87a9d37df20d61d00e098400582497aac"
+  size_bytes: 2446
+  attributes:
+    change_scope: "hotm-283-launched-linux-desktop"
+    base_revision: "932fcaad24ccc8b9374dbc46b1c9db41419ab6bf"
+activity:
+  id: "urn:aiwg:activity:generation:hotm-desktop-live-asset-receipt:001"
+  type: generation
+  started_at: "2026-07-28T02:00:55Z"
+  ended_at: "2026-07-28T02:00:55Z"
+  description: "Record the interactive native picker upload and native save download against live Fortemi"
+agent:
+  id: "urn:aiwg:agent:codex-gpt-5"
+  type: ai_assistant
+  name: "Codex"
+  version: "gpt-5"
+  tool: "codex"
+relationships:
+  wasGeneratedBy:
+    entity: "urn:aiwg:artifact:.aiwg/evidence/hotm-desktop-live-asset-receipt-2026-07-27.json"
+    activity: "urn:aiwg:activity:generation:hotm-desktop-live-asset-receipt:001"
+    time: "2026-07-28T02:00:55Z"
+  used:
+    - activity: "urn:aiwg:activity:generation:hotm-desktop-live-asset-receipt:001"
+      entity: "urn:gitea:Fortemi/HotM:issue:283"
+      role: "requirement"
+    - activity: "urn:aiwg:activity:generation:hotm-desktop-live-asset-receipt:001"
+      entity: "urn:gitea:Fortemi/fortemi:issue:1093"
+      role: "live_server_dependency"
+  wasDerivedFrom:
+    - entity: "urn:aiwg:artifact:.aiwg/evidence/hotm-desktop-live-asset-receipt-2026-07-27.json"
+      source: "urn:gitea:Fortemi/HotM:issue:283"
+      derivation_type: "tests"
+      activity: "urn:aiwg:activity:generation:hotm-desktop-live-asset-receipt:001"
+  wasAssociatedWith:
+    activity: "urn:aiwg:activity:generation:hotm-desktop-live-asset-receipt:001"
+    agent: "urn:aiwg:agent:codex-gpt-5"
+    role: "primary_author"
+  wasAttributedTo:
+    entity: "urn:aiwg:artifact:.aiwg/evidence/hotm-desktop-live-asset-receipt-2026-07-27.json"
+    agent: "urn:aiwg:agent:codex-gpt-5"

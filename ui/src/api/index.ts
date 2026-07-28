@@ -299,6 +299,7 @@ export type {
   WebhooksApi,
 } from './webhooks';
 export { getActiveMemory, setActiveMemory, clearActiveMemory } from './memory-context';
+export { getApiBearerToken, setApiBearerToken } from './auth-context';
 
 // Export types for the API modules
 export type { ApiClient } from './client';

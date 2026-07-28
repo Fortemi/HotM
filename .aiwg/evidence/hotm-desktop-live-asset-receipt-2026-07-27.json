@@ -1,0 +1,66 @@
+{
+  "schemaVersion": "hotm.desktop-live-asset-receipt.v1",
+  "receipt": "hotm-desktop-live-asset",
+  "issue": "Fortemi/HotM#283",
+  "status": "passed",
+  "observedAt": "2026-07-28T01:41:00Z",
+  "platform": {
+    "os": "linux",
+    "desktop": "GNOME",
+    "sessionType": "wayland",
+    "tauriWindowBackend": "x11",
+    "dialogBackend": "tauri-plugin-dialog/gtk3"
+  },
+  "runtime": {
+    "tauriGuiLaunched": true,
+    "fortemiApiBaseUrl": "http://127.0.0.1:3020/api/v1",
+    "authenticationRequired": false,
+    "fortemiStorageBackend": "filesystem",
+    "isolatedStorageRoot": true
+  },
+  "source": {
+    "filename": "desktop-upload.bin",
+    "bytes": 262144,
+    "sha256": "8a39d2abd3999ab73c34db2476849cddf303ce389b35826850f9a700589b4a90"
+  },
+  "server": {
+    "noteId": "019fa65c-4054-7cb2-9018-73870583311f",
+    "attachmentId": "019fa65c-432d-74f3-bd53-3ed167ede8d5",
+    "blobId": "019fa65c-432b-7841-aa7b-34f8614c4547",
+    "attachmentStatus": "uploaded",
+    "bytes": 262144,
+    "contentHash": "blake3:86bb2b521a10612d5a1d38204fac4fa632466d1866144d8a6a7e3afc050ce7ae"
+  },
+  "destination": {
+    "filename": "desktop-download.bin",
+    "bytes": 262144,
+    "sha256": "8a39d2abd3999ab73c34db2476849cddf303ce389b35826850f9a700589b4a90",
+    "reopened": true
+  },
+  "interactions": {
+    "picker": "Quick Capture Attach files -> Tauri command -> parented GTK native file dialog",
+    "upload": "Tauri local-file command -> Fortemi TUS create/PATCH -> filesystem blob",
+    "download": "Attachment preview Download -> Tauri command -> parented GTK native save dialog",
+    "verification": "independent source and saved-file SHA-256 plus Fortemi database/blob metadata"
+  },
+  "claims": {
+    "launchedLinuxTauriGuiPassed": true,
+    "interactiveNativePickerUploadPassed": true,
+    "interactiveNativeSaveDownloadPassed": true,
+    "realFortemiFilesystemBackendPassed": true,
+    "exactBidirectionalBytesPassed": true,
+    "browserTusResumePassed": false,
+    "signedFullV1RecoveryPassed": false,
+    "authenticatedLifecyclePassed": false,
+    "immutableCiGuiReceiptPassed": false,
+    "suiteWidePortability": false
+  },
+  "notClaimed": [
+    "signed 2.0.0/full-v1 export or clean-destination recovery in this desktop run",
+    "authenticated desktop lifecycle",
+    "non-Linux desktop platforms",
+    "browser TUS disconnect/resume",
+    "immutable CI operation of the interactive GUI",
+    "suite-wide portability or complete backup"
+  ]
+}

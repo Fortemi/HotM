@@ -1,0 +1,46 @@
+metadata:
+  schema_version: "1.0.0"
+  created_at: "2026-07-28T02:00:55Z"
+  description: "Provenance for the HotM #283 Tauri receipt workflow"
+entity:
+  id: "urn:aiwg:artifact:.gitea/workflows/tauri-build.yml"
+  type: workflow
+  created_at: "2026-07-28T02:00:55Z"
+  checksum: "sha256:80d21e3961328699408dbd43647767954130c027b723c77acad52e452884e110"
+  size_bytes: 7495
+  attributes:
+    change_scope: "hotm-283-tauri-receipts"
+    base_revision: "932fcaad24ccc8b9374dbc46b1c9db41419ab6bf"
+activity:
+  id: "urn:aiwg:activity:modification:tauri-build-hotm-283:001"
+  type: modification
+  started_at: "2026-07-28T02:00:55Z"
+  ended_at: "2026-07-28T02:00:55Z"
+  description: "Run native command-core tests and publish validated command and observational receipts"
+agent:
+  id: "urn:aiwg:agent:codex-gpt-5"
+  type: ai_assistant
+  name: "Codex"
+  version: "gpt-5"
+  tool: "codex"
+relationships:
+  wasGeneratedBy:
+    entity: "urn:aiwg:artifact:.gitea/workflows/tauri-build.yml"
+    activity: "urn:aiwg:activity:modification:tauri-build-hotm-283:001"
+    time: "2026-07-28T02:00:55Z"
+  used:
+    - activity: "urn:aiwg:activity:modification:tauri-build-hotm-283:001"
+      entity: "urn:gitea:Fortemi/HotM:issue:283"
+      role: "requirement"
+  wasDerivedFrom:
+    - entity: "urn:aiwg:artifact:.gitea/workflows/tauri-build.yml"
+      source: "urn:git:git@git.integrolabs.net:Fortemi/HotM.git:932fcaad24ccc8b9374dbc46b1c9db41419ab6bf:.gitea/workflows/tauri-build.yml"
+      derivation_type: "modifies"
+      activity: "urn:aiwg:activity:modification:tauri-build-hotm-283:001"
+  wasAssociatedWith:
+    activity: "urn:aiwg:activity:modification:tauri-build-hotm-283:001"
+    agent: "urn:aiwg:agent:codex-gpt-5"
+    role: "primary_author"
+  wasAttributedTo:
+    entity: "urn:aiwg:artifact:.gitea/workflows/tauri-build.yml"
+    agent: "urn:aiwg:agent:codex-gpt-5"

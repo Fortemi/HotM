@@ -61,6 +61,12 @@ export const SUPPORTED_FULL_V1_COUNT_FIELDS = [
   'community_sets',
   ...SUPPORTED_FULL_V1_COMPONENTS.slice(-2),
 ] as const;
+export type KnowledgeShardSignature = {
+  signer: {
+    key_id: string;
+    public_key?: string;
+  };
+};
 
 const REGISTERED_PROFILES = new Set<KnowledgeShardProfile>([
   'core-v1',
@@ -391,6 +397,9 @@ async function validateArchiveContents(
     'manifest.json',
     ...manifest.components.map((component) => COMPONENT_FILENAMES[component]),
   ]);
+  if (manifest.profile === SUPPORTED_FULL_V1_PROFILE) {
+    expectedFiles.add('signature.json');
+  }
   for (const path of entries.keys()) {
     if (!expectedFiles.has(path)) {
       throw new Error(`Knowledge shard contains undeclared file ${path}.`);
@@ -398,7 +407,9 @@ async function validateArchiveContents(
   }
 
   const declaredChecksumFiles = Object.keys(manifest.checksums);
-  const componentFiles = [...expectedFiles].filter((path) => path !== 'manifest.json');
+  const componentFiles = [...expectedFiles].filter(
+    (path) => path !== 'manifest.json' && path !== 'signature.json',
+  );
   if (
     declaredChecksumFiles.length !== componentFiles.length
     || declaredChecksumFiles.some((path) => !componentFiles.includes(path))
@@ -575,6 +586,83 @@ async function inspectStreamedTarManifest(blob: Blob): Promise<KnowledgeShardMan
   return manifest;
 }
 
+async function inspectStreamedTarEntry(
+  blob: Blob,
+  targetPath: string,
+  maxEntryBytes: number,
+): Promise<Uint8Array | null> {
+  if (blob.size <= 0 || blob.size > MAX_COMPRESSED_ARCHIVE_SIZE) {
+    throw new Error('Knowledge shard exceeds the compressed size limit.');
+  }
+  if (typeof DecompressionStream === 'undefined' || typeof blob.stream !== 'function') {
+    throw new Error('Streaming Knowledge Shard inspection is unavailable in this client.');
+  }
+
+  let decompressed: ReadableStream<Uint8Array>;
+  try {
+    decompressed = blob.stream().pipeThrough(new DecompressionStream('gzip'));
+  } catch {
+    throw new Error('Knowledge shard is not a valid gzip archive.');
+  }
+
+  const stream = new StreamingByteReader(decompressed.getReader());
+  let entryCount = 0;
+  let uncompressedBytes = 0;
+
+  try {
+    while (true) {
+      const header = await stream.readExact(TAR_BLOCK_SIZE, true);
+      if (!header || header.every((value) => value === 0)) break;
+
+      validateTarHeaderChecksum(header, 0);
+      const name = readTarText(header, 0, 100);
+      const prefix = readTarText(header, 345, 155);
+      const path = prefix ? `${prefix}/${name}` : name;
+      const size = parseTarOctal(header, 124, 12, 'entry size');
+      const typeFlag = header[156];
+      const paddedSize = Math.ceil(size / TAR_BLOCK_SIZE) * TAR_BLOCK_SIZE;
+
+      entryCount += 1;
+      uncompressedBytes += TAR_BLOCK_SIZE + paddedSize;
+      if (entryCount > MAX_ARCHIVE_ENTRIES) {
+        throw new Error('Knowledge shard exceeds the archive entry limit.');
+      }
+      if (uncompressedBytes > MAX_UNCOMPRESSED_ARCHIVE_SIZE) {
+        throw new Error('Knowledge shard exceeds the uncompressed size limit.');
+      }
+      if (
+        !path
+        || new TextEncoder().encode(path).byteLength > MAX_ARCHIVE_ENTRY_NAME_BYTES
+        || path.startsWith('/')
+        || path.split('/').includes('..')
+      ) {
+        throw new Error('Knowledge shard contains an unsafe TAR path.');
+      }
+      if (typeFlag !== 0 && typeFlag !== '0'.charCodeAt(0)) {
+        throw new Error(`Knowledge shard contains unsupported TAR entry ${path}.`);
+      }
+
+      if (path === targetPath) {
+        if (size === 0 || size > maxEntryBytes) {
+          throw new Error(`Knowledge shard ${targetPath} size is invalid.`);
+        }
+        const bytes = await stream.readExact(size);
+        return bytes;
+      }
+      await stream.skip(paddedSize);
+    }
+  } catch (error) {
+    if (error instanceof TypeError) {
+      throw new Error('Knowledge shard is not a valid gzip archive.');
+    }
+    throw error;
+  } finally {
+    await stream.cancel();
+  }
+
+  return null;
+}
+
 export async function inspectKnowledgeShard(blob: Blob): Promise<KnowledgeShardManifest> {
   let streamedManifest: KnowledgeShardManifest | null = null;
   try {
@@ -623,6 +711,56 @@ export async function inspectKnowledgeShard(blob: Blob): Promise<KnowledgeShardM
   }
   await validateArchiveContents(manifest, entries);
   return manifest;
+}
+
+export async function inspectKnowledgeShardSignature(
+  blob: Blob,
+): Promise<KnowledgeShardSignature> {
+  let signatureBytes: Uint8Array | null = null;
+  try {
+    signatureBytes = await inspectStreamedTarEntry(blob, 'signature.json', MAX_MANIFEST_SIZE);
+  } catch (error) {
+    if (
+      error instanceof Error
+      && error.message === 'Streaming Knowledge Shard inspection is unavailable in this client.'
+    ) {
+      signatureBytes = null;
+    } else {
+      throw error;
+    }
+  }
+
+  if (!signatureBytes) {
+    let tarBytes: Uint8Array;
+    try {
+      tarBytes = ungzip(new Uint8Array(await blob.arrayBuffer()));
+    } catch {
+      throw new Error('Knowledge shard is not a valid gzip archive.');
+    }
+    signatureBytes = extractTarEntries(tarBytes).get('signature.json') ?? null;
+  }
+  if (!signatureBytes) {
+    throw new Error('Knowledge shard full-v1 recovery requires signature.json.');
+  }
+
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(textDecoder.decode(signatureBytes));
+  } catch (error) {
+    if (error instanceof SyntaxError) {
+      throw new Error('Knowledge shard signature.json is not valid JSON.');
+    }
+    throw error;
+  }
+  const signature = requireRecord(parsed, 'Knowledge shard signature');
+  const signer = requireRecord(signature.signer, 'Knowledge shard signature signer');
+  if (typeof signer.key_id !== 'string' || !signer.key_id.trim()) {
+    throw new Error('Knowledge shard signature signer.key_id is required.');
+  }
+  if (signer.public_key !== undefined && typeof signer.public_key !== 'string') {
+    throw new Error('Knowledge shard signature signer.public_key must be a string.');
+  }
+  return signature as unknown as KnowledgeShardSignature;
 }
 
 export function normalizeKnowledgeShardInclude(

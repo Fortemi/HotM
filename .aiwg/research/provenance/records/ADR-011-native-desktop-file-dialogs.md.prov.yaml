@@ -1,0 +1,46 @@
+metadata:
+  schema_version: "1.0.0"
+  created_at: "2026-07-28T02:00:55Z"
+  description: "Provenance for the HotM native desktop file-dialog decision"
+entity:
+  id: "urn:aiwg:artifact:.aiwg/architecture/adr/ADR-011-native-desktop-file-dialogs.md"
+  type: architecture
+  created_at: "2026-07-28T02:00:55Z"
+  checksum: "sha256:1bc3b0a1d23f3367e7fe0bd7a675435e190acfc4fa4021be158599bffbbf3797"
+  size_bytes: 2438
+  attributes:
+    change_scope: "hotm-283-native-desktop-dialogs"
+    base_revision: "932fcaad24ccc8b9374dbc46b1c9db41419ab6bf"
+activity:
+  id: "urn:aiwg:activity:generation:adr-011-native-desktop-file-dialogs:001"
+  type: generation
+  started_at: "2026-07-28T02:00:55Z"
+  ended_at: "2026-07-28T02:00:55Z"
+  description: "Record the supported Tauri dialog-plugin boundary and scoped Linux evidence"
+agent:
+  id: "urn:aiwg:agent:codex-gpt-5"
+  type: ai_assistant
+  name: "Codex"
+  version: "gpt-5"
+  tool: "codex"
+relationships:
+  wasGeneratedBy:
+    entity: "urn:aiwg:artifact:.aiwg/architecture/adr/ADR-011-native-desktop-file-dialogs.md"
+    activity: "urn:aiwg:activity:generation:adr-011-native-desktop-file-dialogs:001"
+    time: "2026-07-28T02:00:55Z"
+  used:
+    - activity: "urn:aiwg:activity:generation:adr-011-native-desktop-file-dialogs:001"
+      entity: "urn:gitea:Fortemi/HotM:issue:283"
+      role: "requirement"
+  wasDerivedFrom:
+    - entity: "urn:aiwg:artifact:.aiwg/architecture/adr/ADR-011-native-desktop-file-dialogs.md"
+      source: "urn:gitea:Fortemi/HotM:issue:283"
+      derivation_type: "implements"
+      activity: "urn:aiwg:activity:generation:adr-011-native-desktop-file-dialogs:001"
+  wasAssociatedWith:
+    activity: "urn:aiwg:activity:generation:adr-011-native-desktop-file-dialogs:001"
+    agent: "urn:aiwg:agent:codex-gpt-5"
+    role: "primary_author"
+  wasAttributedTo:
+    entity: "urn:aiwg:artifact:.aiwg/architecture/adr/ADR-011-native-desktop-file-dialogs.md"
+    agent: "urn:aiwg:agent:codex-gpt-5"

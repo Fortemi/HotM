@@ -5,6 +5,8 @@ import type { ApiClient } from '../client';
 // Mock getTauriFetch to return global.fetch
 vi.mock('@/lib/tauri', () => ({
   getTauriFetch: () => global.fetch,
+  invokeTauri: vi.fn(),
+  isTauri: () => false,
 }));
 
 // Mock memory-context

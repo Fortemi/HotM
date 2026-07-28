@@ -13,6 +13,7 @@
 import * as tus from 'tus-js-client';
 import type { HttpRequest, HttpResponse, HttpStack } from 'tus-js-client';
 import { api } from '@/api';
+import { getAuthorizationHeader } from '@/api/auth-context';
 import type { Attachment } from '@/api/types-extended';
 import { getActiveMemory, getMemoryRoutingHeaderName } from '@/api/memory-context';
 import { getTauriFetch } from '@/lib/tauri';
@@ -167,7 +168,7 @@ export function startTusUpload(opts: TusUploadOptions): TusUploadHandle {
   const endpoint = `${baseUrl}/notes/${encodeURIComponent(noteId)}/attachments/tus${endpointQuery ? `?${endpointQuery}` : ''}`;
 
   // Build routing headers
-  const headers: Record<string, string> = {};
+  const headers: Record<string, string> = { ...getAuthorizationHeader() };
   const selectedMemory = getActiveMemory();
   if (selectedMemory) {
     headers[getMemoryRoutingHeaderName()] = selectedMemory;

@@ -3,7 +3,7 @@
  * File attachment management with upload, preview, and metadata display
  */
 
-import { useState, useEffect, useCallback, useRef, lazy, Suspense } from 'react';
+import { useState, useEffect, useCallback, useRef, useMemo, lazy, Suspense } from 'react';
 import {
   Upload,
   Grid,
@@ -51,6 +51,8 @@ import {
 } from '@/components/ui/dialog';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { api } from '@/api';
+import { getAuthorizationHeader, hasApiBearerToken } from '@/api/auth-context';
+import { getActiveMemory, getMemoryRoutingHeaderName } from '@/api/memory-context';
 import { realtimeEventBus } from '@/services/realtimeEventBus';
 import { uploadStore } from '@/services/uploadStore';
 import { useBlobUrl } from '@/lib/tauri';
@@ -205,10 +207,18 @@ function AttachmentCard({ attachment, viewMode, onView, onDownload, onDelete, ex
   const mediaType = getMediaType(attachment.content_type);
   const isMedia = mediaType === 'video' || mediaType === 'audio';
   const mediaInfo = isMedia ? extractMediaInfo(attachment) : null;
+  const selectedMemory = getActiveMemory();
+  const useHeaderFetch = hasApiBearerToken() || !!selectedMemory;
+  const thumbnailHeaders = useMemo(() => {
+    const headers: HeadersInit = { ...getAuthorizationHeader() };
+    if (selectedMemory) headers[getMemoryRoutingHeaderName()] = selectedMemory;
+    return headers;
+  }, [selectedMemory]);
   // In Tauri, direct URLs can't be loaded as <img src> cross-origin.
   // useBlobUrl fetches via the HTTP plugin and returns a blob: URL.
   const thumbnailUrl = useBlobUrl(
-    isImage ? api.attachments.getDownloadUrl(attachment.id) : undefined
+    isImage ? api.attachments.getDownloadUrl(attachment.id) : undefined,
+    { forceFetch: useHeaderFetch, headers: thumbnailHeaders },
   );
   const extractionStatus = getExtractionStatus(attachment);
   const extractionPreview = getExtractionPreview(attachment);
@@ -1355,6 +1365,12 @@ export function AttachmentsPanel({ noteId, className, extractionProgress }: Atta
 
   const handleDownload = useCallback(async (attachment: Attachment) => {
     try {
+      const savedToLocalFile = await api.attachments.downloadAttachmentToLocalFile(
+        attachment.id,
+        attachment.filename,
+      );
+      if (savedToLocalFile) return;
+
       const blob = await api.attachments.downloadAttachment(attachment.id);
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');

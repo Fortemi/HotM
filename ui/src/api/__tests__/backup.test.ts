@@ -21,6 +21,7 @@ vi.mock('../memory-context', () => ({
 
 const mockFetch = vi.fn();
 global.fetch = mockFetch;
+const encoder = new TextEncoder();
 
 const expectBlobSize = async (value: Promise<Blob>, expectedText: string): Promise<void> => {
   const blob = await value;
@@ -54,6 +55,7 @@ describe('Backup API', () => {
     backupApi = createBackupApi(mockClient);
     mockFetch.mockReset();
     memoryState.activeMemory = null;
+    window.localStorage.clear();
   });
 
   describe('importBackup', () => {
@@ -246,6 +248,95 @@ describe('Backup API', () => {
       'http://localhost:3000/backup/knowledge-shard/upload?dry_run=false&on_conflict=replace&skip_embedding_regen=true&verify_signature=require',
       expect.objectContaining({ method: 'POST' }),
     );
+  });
+
+  it('refuses untrusted full-v1 publishers before any upload request', async () => {
+    const shard = createKnowledgeShardFile(
+      fullV1Manifest,
+      undefined,
+      {
+        'signature.json': encoder.encode(JSON.stringify({
+          signer: {
+            key_id: 'fortemi-dev-key',
+            public_key: 'dev-public-key',
+          },
+        })),
+      },
+    );
+
+    await expect(backupApi.uploadKnowledgeShard(shard, {
+      onConflict: 'replace',
+      trustedPublisherKeyIds: ['fortemi-release-key'],
+    })).rejects.toThrow(
+      "Knowledge shard publisher fortemi-dev-key is not in HotM's trusted publisher allowlist.",
+    );
+    expect(mockFetch).not.toHaveBeenCalled();
+  });
+
+  it('allows trusted full-v1 publishers and still requires signed dry-run preflight', async () => {
+    const shard = createKnowledgeShardFile(
+      fullV1Manifest,
+      undefined,
+      {
+        'signature.json': encoder.encode(JSON.stringify({
+          signer: {
+            key_id: 'fortemi-release-key',
+            public_key: 'release-public-key',
+          },
+        })),
+      },
+    );
+    mockFetch
+      .mockResolvedValueOnce(new Response(JSON.stringify({
+        status: 'success',
+        dry_run: true,
+      }), { headers: { 'Content-Type': 'application/json' } }))
+      .mockResolvedValueOnce(new Response(JSON.stringify({
+        status: 'success',
+        dry_run: false,
+      }), { headers: { 'Content-Type': 'application/json' } }));
+
+    await expect(backupApi.uploadKnowledgeShard(shard, {
+      onConflict: 'replace',
+      trustedPublisherKeyIds: ['fortemi-release-key'],
+    })).resolves.toMatchObject({
+      manifest: { version: '2.0.0', profile: 'full-v1' },
+      preflight: { status: 'success', dry_run: true },
+      response: { status: 'success', dry_run: false },
+    });
+
+    expect(mockFetch).toHaveBeenCalledTimes(2);
+    expect(mockFetch).toHaveBeenNthCalledWith(
+      1,
+      'http://localhost:3000/backup/knowledge-shard/upload?dry_run=true&on_conflict=replace&verify_signature=require',
+      expect.objectContaining({ method: 'POST' }),
+    );
+  });
+
+  it('uses the local HotM trusted publisher allowlist when no explicit list is passed', async () => {
+    window.localStorage.setItem(
+      'hotm_trusted_shard_publisher_key_ids',
+      JSON.stringify(['fortemi-release-key']),
+    );
+    const shard = createKnowledgeShardFile(
+      fullV1Manifest,
+      undefined,
+      {
+        'signature.json': encoder.encode(JSON.stringify({
+          signer: {
+            key_id: 'fortemi-dev-key',
+            public_key: 'dev-public-key',
+          },
+        })),
+      },
+    );
+
+    await expect(backupApi.uploadKnowledgeShard(shard, {
+      onConflict: 'replace',
+    })).rejects.toThrow(
+      "Knowledge shard publisher fortemi-dev-key is not in HotM's trusted publisher allowlist.",
+    );
+    expect(mockFetch).not.toHaveBeenCalled();
   });
 
   it.each([

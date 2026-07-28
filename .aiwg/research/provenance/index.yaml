@@ -1,7 +1,7 @@
 metadata:
   schema_version: "1.0.0"
-  updated_at: "2026-07-27T12:55:23Z"
-  record_count: 63
+  updated_at: "2026-07-28T02:00:55Z"
+  record_count: 70
 records:
   - entity: "urn:aiwg:artifact:.aiwg/architecture/adr-mobile-cloud-architecture.md"
     record: "records/adr-mobile-cloud-architecture.md.prov.yaml"
@@ -129,3 +129,17 @@ records:
     record: "records/adr-auth-shared-crate.md.prov.yaml"
   - entity: "urn:aiwg:artifact:.aiwg/reports/fortemi-auth-node-conformance-receipt-2026-07-26.md"
     record: "records/fortemi-auth-node-conformance-receipt-2026-07-26.md.prov.yaml"
+  - entity: "urn:aiwg:artifact:.aiwg/architecture/adr/ADR-011-native-desktop-file-dialogs.md"
+    record: "records/ADR-011-native-desktop-file-dialogs.md.prov.yaml"
+  - entity: "urn:aiwg:artifact:.aiwg/evidence/hotm-desktop-live-asset-receipt-2026-07-27.json"
+    record: "records/hotm-desktop-live-asset-receipt-2026-07-27.json.prov.yaml"
+  - entity: "urn:aiwg:artifact:.aiwg/reports/fortemi-v2026-07-coverage-evidence-audit.md"
+    record: "records/fortemi-v2026-07-coverage-evidence-audit.md.hotm-283.prov.yaml"
+  - entity: "urn:aiwg:artifact:.gitea/workflows/tauri-build.yml"
+    record: "records/tauri-build-hotm-283.prov.yaml"
+  - entity: "urn:aiwg:artifact:ui/src-tauri/src/lib.rs"
+    record: "records/tauri-lib-hotm-283.prov.yaml"
+  - entity: "urn:aiwg:artifact:ui/scripts/verify-desktop-live-asset-receipt.cjs"
+    record: "records/verify-desktop-live-asset-receipt.cjs.prov.yaml"
+  - entity: "urn:aiwg:artifact:ui/scripts/verify-desktop-live-asset-receipt.test.js"
+    record: "records/verify-desktop-live-asset-receipt.test.js.prov.yaml"

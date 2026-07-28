@@ -8,6 +8,7 @@
  */
 
 import { api } from '@/api';
+import { getAuthorizationHeader } from '@/api/auth-context';
 import { getActiveMemory, getMemoryRoutingHeaderName } from '@/api/memory-context';
 import { invokeTauri, listenTauriEvent } from '@/lib/tauri';
 import type { Attachment } from '@/api/types-extended';
@@ -479,7 +480,7 @@ class UploadStore {
 
     await this.ensureNativeProgressListener();
 
-    const headers: Record<string, string> = {};
+    const headers: Record<string, string> = { ...getAuthorizationHeader() };
     const selectedMemory = getActiveMemory();
     if (selectedMemory) {
       headers[getMemoryRoutingHeaderName()] = selectedMemory;

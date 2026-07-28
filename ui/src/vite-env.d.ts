@@ -5,6 +5,7 @@ declare const __GIT_SHA__: string;
 
 interface ImportMetaEnv {
   readonly VITE_API_BASE_URL?: string;
+  readonly VITE_API_BEARER_TOKEN?: string;
 }
 
 interface ImportMeta {
@@ -15,4 +16,3 @@ interface ImportMeta {
 interface Window {
   __TAURI_INTERNALS__?: Record<string, unknown>;
 }
-

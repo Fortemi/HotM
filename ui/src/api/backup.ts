@@ -22,6 +22,7 @@ import type {
 import { getActiveMemory, getMemoryRoutingHeaderName } from './memory-context';
 import {
   inspectKnowledgeShard,
+  inspectKnowledgeShardSignature,
   normalizeKnowledgeShardInclude,
   SUPPORTED_FULL_V1_PROFILE,
   SUPPORTED_FULL_V1_SCHEMA,
@@ -35,6 +36,22 @@ type KnowledgeShardExportOptions = {
 };
 
 type ShardSignaturePolicy = 'require' | 'prefer' | 'trusted-local-only';
+const TRUSTED_SHARD_PUBLISHER_KEY_IDS_STORAGE_KEY = 'hotm_trusted_shard_publisher_key_ids';
+
+function configuredTrustedPublisherKeyIds(
+  explicit: readonly string[] | undefined,
+): string[] {
+  const source = explicit ?? (() => {
+    try {
+      const raw = globalThis.localStorage?.getItem(TRUSTED_SHARD_PUBLISHER_KEY_IDS_STORAGE_KEY);
+      const parsed: unknown = raw ? JSON.parse(raw) : [];
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
+    }
+  })();
+  return [...new Set(source.map((value) => value.trim()).filter(Boolean))];
+}
 
 export function createBackupApi(client: ApiClient) {
   const getBaseUrl = (): string => client.baseUrl;
@@ -299,6 +316,7 @@ export function createBackupApi(client: ApiClient) {
         onConflict?: 'skip' | 'replace' | 'merge';
         skipEmbeddingRegen?: boolean;
         verifySignature?: ShardSignaturePolicy;
+        trustedPublisherKeyIds?: readonly string[];
       } = {},
     ): Promise<KnowledgeShardImportResult> {
       if (!file) {
@@ -312,6 +330,17 @@ export function createBackupApi(client: ApiClient) {
       }
       if (isFullV1 && options.verifySignature && options.verifySignature !== 'require') {
         throw new Error('Knowledge shard 2.0.0/full-v1 recovery requires publisher signature verification.');
+      }
+      if (isFullV1) {
+        const trustedKeyIds = configuredTrustedPublisherKeyIds(options.trustedPublisherKeyIds);
+        if (trustedKeyIds.length > 0) {
+          const signature = await inspectKnowledgeShardSignature(file);
+          if (!trustedKeyIds.includes(signature.signer.key_id)) {
+            throw new Error(
+              `Knowledge shard publisher ${signature.signer.key_id} is not in HotM's trusted publisher allowlist.`,
+            );
+          }
+        }
       }
 
       const uploadOnce = async (

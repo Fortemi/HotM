@@ -29,6 +29,7 @@ vi.mock('@/api', () => ({
 
 vi.mock('@/api/memory-context', () => ({
   getActiveMemory: vi.fn(() => null),
+  getMemoryRoutingHeaderName: vi.fn(() => 'X-Fortemi-Memory'),
 }));
 
 // Mock localStorage
@@ -78,6 +79,10 @@ Object.defineProperty(HTMLElement.prototype, 'requestFullscreen', {
 beforeEach(() => {
   localStorageMock.clear();
   vi.clearAllMocks();
+  vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+    ok: false,
+    text: () => Promise.resolve(''),
+  }));
 });
 
 afterEach(() => {
@@ -128,6 +133,51 @@ describe('StreamingVideoPlayer', () => {
     render(<StreamingVideoPlayer attachmentId="vid-1" posterUrl="http://test/poster.jpg" />);
     const video = screen.getByTestId('attachment-video-preview');
     expect(video).toHaveAttribute('poster', 'http://test/poster.jpg');
+  });
+
+  it('uses authorized blob playback instead of a direct URL when bearer auth is active', async () => {
+    const { api: mockApi } = await import('@/api');
+    localStorageMock.setItem('hotm_api_bearer_token', 'secret-token');
+    (mockApi.attachments.downloadAttachment as ReturnType<typeof vi.fn>).mockResolvedValue(
+      new Blob(['video-bytes'], { type: 'video/mp4' }),
+    );
+
+    render(<StreamingVideoPlayer attachmentId="vid-1" />);
+
+    expect(screen.queryByTestId('attachment-video-preview')).not.toBeInTheDocument();
+    await waitFor(() => {
+      expect(mockApi.attachments.downloadAttachment).toHaveBeenCalledWith('vid-1', undefined);
+    });
+    await waitFor(() => {
+      const video = screen.getByTestId('attachment-video-preview');
+      expect(video.getAttribute('src')).toMatch(/^blob:/);
+    });
+  });
+
+  it('sends bearer headers for subtitle and thumbnail sidecar fetches', async () => {
+    localStorageMock.setItem('hotm_api_bearer_token', 'sidecar-token');
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      text: () => Promise.resolve('WEBVTT\n'),
+    });
+    vi.stubGlobal('fetch', fetchMock);
+
+    render(<StreamingVideoPlayer attachmentId="vid-sidecars" />);
+
+    await waitFor(() => {
+      expect(fetchMock).toHaveBeenCalledWith(
+        'http://test/api/v1/attachments/vid-sidecars/subtitles?format=vtt',
+        expect.objectContaining({
+          headers: expect.objectContaining({ Authorization: 'Bearer sidecar-token' }),
+        }),
+      );
+    });
+    expect(fetchMock).toHaveBeenCalledWith(
+      'http://test/api/v1/attachments/vid-sidecars/thumbnails.vtt',
+      expect.objectContaining({
+        headers: expect.objectContaining({ Authorization: 'Bearer sidecar-token' }),
+      }),
+    );
   });
 
   it('renders container with keyboard focus support', () => {

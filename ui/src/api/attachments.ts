@@ -4,8 +4,9 @@
  */
 
 import type { ApiClient } from './client';
+import { getAuthorizationHeader } from './auth-context';
 import { getActiveMemory, getMemoryRoutingHeaderName } from './memory-context';
-import { getTauriFetch } from '@/lib/tauri';
+import { getTauriFetch, invokeTauri, isTauri } from '@/lib/tauri';
 import type {
   Attachment,
   AttachmentListResponse,
@@ -48,6 +49,9 @@ export function createAttachmentsApi(client: ApiClient) {
 
   const buildRoutingHeaders = (): Headers => {
     const headers = new Headers();
+    for (const [name, value] of Object.entries(getAuthorizationHeader())) {
+      headers.set(name, value);
+    }
     const selectedMemory = getActiveMemory();
     if (selectedMemory) {
       headers.set(getMemoryRoutingHeaderName(), selectedMemory);
@@ -90,7 +94,7 @@ export function createAttachmentsApi(client: ApiClient) {
 
       // Build headers as plain object — do NOT set Content-Type so the
       // browser auto-generates the multipart boundary for FormData.
-      const headers: Record<string, string> = {};
+      const headers: Record<string, string> = { ...getAuthorizationHeader() };
       const selectedMemory = getActiveMemory();
       if (selectedMemory) {
         headers[getMemoryRoutingHeaderName()] = selectedMemory;
@@ -185,6 +189,44 @@ export function createAttachmentsApi(client: ApiClient) {
       }
 
       return response.blob();
+    },
+
+    /**
+     * Save an attachment through the desktop host when running in Tauri.
+     * Returns false in web mode or when the user cancels the save dialog.
+     */
+    async downloadAttachmentToLocalFile(
+      attachmentId: string,
+      filename: string,
+      variant?: string,
+    ): Promise<boolean> {
+      if (!attachmentId || attachmentId.trim() === '') {
+        throw new Error('Attachment ID is required');
+      }
+      if (!isTauri()) return false;
+
+      const headers: Record<string, string> = {};
+      for (const [name, value] of buildRoutingHeaders()) {
+        headers[name] = value;
+      }
+
+      const result = await invokeTauri<{
+        path: string;
+        bytes_written: number;
+        sha256: string;
+        reopened: boolean;
+        reopened_bytes: number;
+      } | null>(
+        'hotm_download_attachment_to_file',
+        {
+          api_base_url: getBaseUrl(),
+          attachment_id: attachmentId,
+          suggested_filename: filename,
+          variant,
+          headers,
+        },
+      );
+      return Boolean(result);
     },
 
     /**
