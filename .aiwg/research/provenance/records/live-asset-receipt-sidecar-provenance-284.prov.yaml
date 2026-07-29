@@ -6,19 +6,19 @@ entity:
   id: "urn:aiwg:artifact:release/live-asset-receipt-sidecar-provenance.json"
   type: test_fixture
   created_at: "2026-07-28T21:14:06Z"
-  updated_at: "2026-07-28T21:14:06Z"
-  checksum: "sha256:bbaeb746a9b85a3d7cc5fb87cc5d36c6cba55a9e65ab77728763942542c97aed"
-  size_bytes: 943
+  updated_at: "2026-07-29T03:22:33Z"
+  checksum: "sha256:56e3768d478809980563180977c14f0d1f14ce93c7c982ba15cd1521932bd104"
+  size_bytes: 1152
   attributes:
     issue: "Fortemi/HotM#284"
-    producer_revision: "447fd5148fb97dc35b7b160fb1e7f15914c84d7a"
-    release: "sidecar-447fd5148fb9"
+    producer_revision: "aac23805d0906a5f39a5fdcceb51d048c09cb9d8"
+    release: "sidecar-aac23805d090"
 activity:
   id: "urn:aiwg:activity:modification:live-sidecar-provenance-284:001"
   type: modification
   started_at: "2026-07-28T21:12:17Z"
-  ended_at: "2026-07-28T21:14:06Z"
-  description: "Pin the live consumer proof to immutable Linux x86_64 and macOS arm64 sidecar assets"
+  ended_at: "2026-07-29T03:22:33Z"
+  description: "Pin live consumer proof to immutable Linux x86_64, Linux arm64, and macOS arm64 assets"
 agent:
   id: "urn:aiwg:agent:codex-gpt-5"
   type: ai_assistant
@@ -29,10 +29,10 @@ relationships:
   wasGeneratedBy:
     entity: "urn:aiwg:artifact:release/live-asset-receipt-sidecar-provenance.json"
     activity: "urn:aiwg:activity:modification:live-sidecar-provenance-284:001"
-    time: "2026-07-28T21:14:06Z"
+    time: "2026-07-29T03:22:33Z"
   used:
     - activity: "urn:aiwg:activity:modification:live-sidecar-provenance-284:001"
-      entity: "urn:gitea:Fortemi/fortemi:release:sidecar-447fd5148fb9"
+      entity: "urn:gitea:Fortemi/fortemi:release:sidecar-aac23805d090"
       role: "producer_release"
     - activity: "urn:aiwg:activity:modification:live-sidecar-provenance-284:001"
       entity: "urn:gitea:Fortemi/HotM:issue:284"

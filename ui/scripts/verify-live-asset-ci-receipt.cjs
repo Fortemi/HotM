@@ -47,6 +47,12 @@ const SUPPORTED_PLATFORMS = Object.freeze({
     target: 'x86_64-unknown-linux-gnu',
     desktopTarget: 'tauri-command-core-linux-x86_64',
   }),
+  'linux/arm64/aarch64-unknown-linux-gnu': Object.freeze({
+    os: 'linux',
+    arch: 'arm64',
+    target: 'aarch64-unknown-linux-gnu',
+    desktopTarget: 'tauri-command-core-linux-arm64',
+  }),
   'darwin/arm64/aarch64-apple-darwin': Object.freeze({
     os: 'darwin',
     arch: 'arm64',
@@ -104,7 +110,9 @@ function validateLiveAssetCiReceipt(receipt, { expectClean = true } = {}) {
   ].join('/');
   const platform = SUPPORTED_PLATFORMS[platformKey];
   if (!platform) {
-    failures.push('execution platform must be Linux x86_64 or Darwin arm64');
+    failures.push(
+      'execution platform must be Linux x86_64, Linux arm64, or Darwin arm64',
+    );
   } else if (
     receipt.identity?.sidecarSha256
       !== SIDECAR_PROVENANCE.assets?.[platform.target]?.sha256

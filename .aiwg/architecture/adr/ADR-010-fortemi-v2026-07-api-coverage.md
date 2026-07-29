@@ -77,7 +77,7 @@ A green route-inventory gate cannot satisfy any of gates 2-6. User-facing suppor
 - Consume Fortemi-owned OpenAPI, AsyncAPI, Knowledge Shard, and compatibility artifacts by pinned revision; HotM does not redefine producer semantics locally.
 - Treat `fortemi-auth` as a normative specification boundary until Rust workspace, CI, release, and shared downstream fixture evidence exist.
 
-### Two-Platform Consumer Adherence Gate (HotM #284)
+### Supported-Platform Consumer Adherence Gate (HotM #284)
 
 The suite proof treats HotM strictly as a consumer. Fortemi owns and enforces the
 OpenAPI, AsyncAPI, authentication, persistence, and Knowledge Shard
@@ -86,26 +86,25 @@ the browser-side portable-data boundary. HotM must call those APIs through its
 production client and must not redefine producer schemas or substitute a
 HotM-specific persistence format.
 
-The automated suite matrix pins Fortemi schema authority commit
-`0c59bc6cb06cca0b1e00eba4c0fa493f3ef3b90b`, runtime commit
-`01df081bac0759363f7d6bff7e9a055ae929861f`, contract revision `21`, and
-the immutable `sidecar-01df081bac07` release assets. The exact React and HotM
-consumer commits and the packed `@fortemi/core` digest are authority-owned
-matrix inputs rather than values duplicated in this ADR.
+The automated suite matrix in the Fortemi authority repository pins the exact
+schema authority, runtime, immutable native sidecar assets, React/core package,
+and HotM consumer revisions. Those values are authority-owned matrix inputs
+rather than values duplicated in this ADR.
 
-For each required platform, Linux x86_64 on `matric-builder` and macOS arm64 on
-`mutsu`, the HotM gate runs authenticated HTTP lifecycle operations, browser
-TUS upload/download, headless Tauri commands, signed `full-v1` export, required
-signature dry-run, and mutating import through `createBackupApi`. The recovery
-memory is exported before import and must contain zero records and no blobs.
-Child evidence files are independently hashed and checked by both the HotM
-receipt verifier and the suite aggregate.
+For each required platform, Linux x86_64 on `matric-builder`, native Linux
+arm64 in mutsu's Colima VM, and native macOS arm64 on `mutsu`, the HotM gate
+runs authenticated HTTP lifecycle operations, browser TUS upload/download,
+headless Tauri commands, signed `full-v1` export, required-signature dry-run,
+and mutating import through `createBackupApi`. The recovery memory is exported
+before import and must contain zero records and no blobs. Child evidence files
+are independently hashed and checked by both the HotM receipt verifier and the
+suite aggregate.
 
-This gate is bounded to the two named platform cells and exact pinned
-participants. It does not establish universal platform portability, complete
-backup of all product state, a shared schema across the AIWG static index,
-Knowledge Shard, and Fortemi persistence planes, or support for deferred
-platforms.
+Windows is the only deferred operating system because no Windows execution
+authority is available. Passing the three required cells does not establish
+universal platform portability, complete backup of all product state, a
+launched desktop GUI/native-dialog claim, or a shared schema across the AIWG
+static index, Knowledge Shard, and Fortemi persistence planes.
 
 ### Realtime Contract Receipt (HotM #268)
 

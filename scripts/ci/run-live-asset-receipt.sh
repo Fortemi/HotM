@@ -31,6 +31,10 @@ case "${NORMALIZED_OS}/${NORMALIZED_ARCH}" in
     SIDECAR_TARGET="x86_64-unknown-linux-gnu"
     DESKTOP_TARGET="tauri-command-core-linux-x86_64"
     ;;
+  linux/arm64)
+    SIDECAR_TARGET="aarch64-unknown-linux-gnu"
+    DESKTOP_TARGET="tauri-command-core-linux-arm64"
+    ;;
   darwin/arm64)
     SIDECAR_TARGET="aarch64-apple-darwin"
     DESKTOP_TARGET="tauri-command-core-darwin-arm64"

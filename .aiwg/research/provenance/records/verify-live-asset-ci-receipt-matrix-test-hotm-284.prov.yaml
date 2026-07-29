@@ -1,0 +1,42 @@
+metadata:
+  schema_version: "1.0.0"
+  created_at: "2026-07-29T02:54:25Z"
+  description: "Provenance for the exact three-platform HotM aggregate tests"
+entity:
+  id: "urn:aiwg:artifact:ui/scripts/verify-live-asset-ci-receipt-matrix.test.js"
+  type: test
+  created_at: "2026-07-29T02:54:25Z"
+  updated_at: "2026-07-29T02:54:25Z"
+  checksum: "sha256:408073824da25bdd0da42c4708cb7f1fd0cefddd8f81ac4c7f4bb83a5f07da02"
+  size_bytes: 4978
+  attributes:
+    issue: "Fortemi/HotM#284"
+    tests: "ui/scripts/verify-live-asset-ci-receipt-matrix.cjs"
+activity:
+  id: "urn:aiwg:activity:generation:verify-live-asset-ci-receipt-matrix-test-hotm-284:001"
+  type: generation
+  started_at: "2026-07-29T02:54:25Z"
+  ended_at: "2026-07-29T02:54:25Z"
+  description: "Test the complete matrix, missing and duplicate cells, and revision drift"
+agent:
+  id: "urn:aiwg:agent:codex-gpt-5"
+  type: ai_assistant
+  name: "Codex"
+  version: "gpt-5"
+  tool: "codex"
+relationships:
+  wasGeneratedBy:
+    entity: "urn:aiwg:artifact:ui/scripts/verify-live-asset-ci-receipt-matrix.test.js"
+    activity: "urn:aiwg:activity:generation:verify-live-asset-ci-receipt-matrix-test-hotm-284:001"
+    time: "2026-07-29T02:54:25Z"
+  used:
+    - activity: "urn:aiwg:activity:generation:verify-live-asset-ci-receipt-matrix-test-hotm-284:001"
+      entity: "urn:aiwg:artifact:ui/scripts/verify-live-asset-ci-receipt-matrix.cjs"
+      role: tests
+  wasAssociatedWith:
+    activity: "urn:aiwg:activity:generation:verify-live-asset-ci-receipt-matrix-test-hotm-284:001"
+    agent: "urn:aiwg:agent:codex-gpt-5"
+    role: primary_author
+  wasAttributedTo:
+    entity: "urn:aiwg:artifact:ui/scripts/verify-live-asset-ci-receipt-matrix.test.js"
+    agent: "urn:aiwg:agent:codex-gpt-5"

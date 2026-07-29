@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "producer": {
     "repository": "Fortemi/fortemi",
-    "commit": "447fd5148fb97dc35b7b160fb1e7f15914c84d7a",
+    "commit": "aac23805d0906a5f39a5fdcceb51d048c09cb9d8",
     "path": "contracts/openapi/openapi.yaml",
     "sha256": "9d2d5ea05f21a71d416d713a5cadd2c4f76086a3494105280d50ec328c4056fd",
     "contractRevision": "1",

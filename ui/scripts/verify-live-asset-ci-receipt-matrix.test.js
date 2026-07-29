@@ -3,19 +3,26 @@ import { describe, expect, test } from 'vitest';
 
 const require = createRequire(import.meta.url);
 const {
-  createLiveAssetCiReceiptPair,
-  validateLiveAssetCiReceiptPair,
-} = require('./verify-live-asset-ci-receipt-pair.cjs');
+  createLiveAssetCiReceiptMatrix,
+  validateLiveAssetCiReceiptMatrix,
+} = require('./verify-live-asset-ci-receipt-matrix.cjs');
 const { FIXTURE_IDENTITY } = require('./verify-live-asset-ci-receipt.cjs');
 const provenance = require('../../release/live-asset-receipt-sidecar-provenance.json');
 
 const PLATFORMS = {
-  linux: {
+  linuxX86: {
     os: 'linux',
     arch: 'x86_64',
     target: 'x86_64-unknown-linux-gnu',
     desktopTarget: 'tauri-command-core-linux-x86_64',
     sidecarSha256: provenance.assets['x86_64-unknown-linux-gnu'].sha256,
+  },
+  linuxArm: {
+    os: 'linux',
+    arch: 'arm64',
+    target: 'aarch64-unknown-linux-gnu',
+    desktopTarget: 'tauri-command-core-linux-arm64',
+    sidecarSha256: provenance.assets['aarch64-unknown-linux-gnu'].sha256,
   },
   darwin: {
     os: 'darwin',
@@ -51,7 +58,7 @@ function receipt(platformName) {
       headless: true,
       authenticationRequired: true,
       storageBackend: 'filesystem',
-      databaseProvisioning: platformName === 'linux' ? 'managed-docker' : 'external',
+      databaseProvisioning: platform.os === 'linux' ? 'managed-docker' : 'external',
       browserTarget: 'playwright-chromium',
     },
     children: {
@@ -85,40 +92,47 @@ function receipt(platformName) {
   };
 }
 
-describe('live asset CI receipt pair verifier', () => {
-  test('emits a bounded aggregate for one Linux and one Darwin receipt', () => {
-    const aggregate = createLiveAssetCiReceiptPair([
+describe('live asset CI receipt platform matrix verifier', () => {
+  test('emits a bounded aggregate for both Linux architectures and Darwin arm64', () => {
+    const aggregate = createLiveAssetCiReceiptMatrix([
       { receipt: receipt('darwin'), sha256: 'e'.repeat(64) },
-      { receipt: receipt('linux'), sha256: 'f'.repeat(64) },
+      { receipt: receipt('linuxArm'), sha256: 'f'.repeat(64) },
+      { receipt: receipt('linuxX86'), sha256: 'a'.repeat(64) },
     ]);
 
     expect(aggregate.status).toBe('passed');
     expect(aggregate.failures).toEqual([]);
     expect(aggregate.claims).toMatchObject({
-      exactLinuxDarwinPairPassed: true,
+      exactRequiredPlatformMatrixPassed: true,
       launchedDesktopGui: false,
       interactiveNativeDialogs: false,
       suiteWidePortability: false,
     });
-    expect(aggregate.children['linux-x86_64'].receiptSha256).toBe('f'.repeat(64));
+    expect(aggregate.children['linux-x86_64'].receiptSha256).toBe('a'.repeat(64));
+    expect(aggregate.children['linux-arm64'].receiptSha256).toBe('f'.repeat(64));
     expect(aggregate.children['darwin-arm64'].receiptSha256).toBe('e'.repeat(64));
   });
 
-  test('rejects a duplicate Linux receipt and missing Darwin evidence', () => {
-    const failures = validateLiveAssetCiReceiptPair([
-      receipt('linux'),
-      receipt('linux'),
+  test('rejects duplicate Linux x86_64 and missing matrix evidence', () => {
+    const failures = validateLiveAssetCiReceiptMatrix([
+      receipt('linuxX86'),
+      receipt('linuxX86'),
+      receipt('darwin'),
     ]);
     expect(failures).toEqual(expect.arrayContaining([
       'duplicate platform receipt: linux/x86_64/x86_64-unknown-linux-gnu',
-      'missing required platform receipt: darwin/arm64/aarch64-apple-darwin',
+      'missing required platform receipt: linux/arm64/aarch64-unknown-linux-gnu',
     ]));
   });
 
   test('rejects revision drift between otherwise valid platform receipts', () => {
     const darwin = receipt('darwin');
     darwin.identity.hotmCommit = '9'.repeat(40);
-    expect(validateLiveAssetCiReceiptPair([receipt('linux'), darwin])).toContain(
+    expect(validateLiveAssetCiReceiptMatrix([
+      receipt('linuxX86'),
+      receipt('linuxArm'),
+      darwin,
+    ])).toContain(
       'HotM commit differs between platform receipts',
     );
   });

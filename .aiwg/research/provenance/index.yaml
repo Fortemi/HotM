@@ -1,12 +1,24 @@
 metadata:
   schema_version: "1.0.0"
-  updated_at: "2026-07-28T23:14:27Z"
-  record_count: 81
+  updated_at: "2026-07-29T02:54:25Z"
+  record_count: 87
 records:
   - entity: "urn:aiwg:artifact:release/live-asset-receipt-sidecar-provenance.json"
     record: "records/live-asset-receipt-sidecar-provenance-284.prov.yaml"
   - entity: "urn:aiwg:artifact:release/sidecar-provenance.json"
     record: "records/sidecar-provenance-284.prov.yaml"
+  - entity: "urn:aiwg:artifact:scripts/ci/refresh-fortemi-live-contracts.mjs"
+    record: "records/refresh-fortemi-live-contracts-hotm-284.prov.yaml"
+  - entity: "urn:aiwg:artifact:ui/scripts/verify-live-asset-ci-receipt.cjs"
+    record: "records/verify-live-asset-ci-receipt-hotm-284.prov.yaml"
+  - entity: "urn:aiwg:artifact:ui/scripts/verify-live-asset-ci-receipt.test.js"
+    record: "records/verify-live-asset-ci-receipt-test-hotm-284.prov.yaml"
+  - entity: "urn:aiwg:artifact:ui/scripts/verify-live-asset-ci-receipt-pair.cjs"
+    record: "records/verify-live-asset-ci-receipt-pair-hotm-284.prov.yaml"
+  - entity: "urn:aiwg:artifact:ui/scripts/verify-live-asset-ci-receipt-matrix.cjs"
+    record: "records/verify-live-asset-ci-receipt-matrix-hotm-284.prov.yaml"
+  - entity: "urn:aiwg:artifact:ui/scripts/verify-live-asset-ci-receipt-matrix.test.js"
+    record: "records/verify-live-asset-ci-receipt-matrix-test-hotm-284.prov.yaml"
   - entity: "urn:aiwg:artifact:.aiwg/architecture/adr-mobile-cloud-architecture.md"
     record: "records/adr-mobile-cloud-architecture.md.prov.yaml"
   - entity: "urn:aiwg:artifact:.aiwg/testing/enterprise-demo-operator-signoff-2026-07-06.md"

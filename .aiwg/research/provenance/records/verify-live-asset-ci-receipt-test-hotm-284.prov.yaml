@@ -1,0 +1,42 @@
+metadata:
+  schema_version: "1.0.0"
+  created_at: "2026-07-29T02:54:25Z"
+  description: "Provenance for supported and deferred HotM receipt tests"
+entity:
+  id: "urn:aiwg:artifact:ui/scripts/verify-live-asset-ci-receipt.test.js"
+  type: test
+  created_at: "2026-07-29T02:54:25Z"
+  updated_at: "2026-07-29T02:54:25Z"
+  checksum: "sha256:cfe6f8a04969b2d0616c6c6fec4a2d5c294512956dcb5202c0dcaadef15395b7"
+  size_bytes: 6750
+  attributes:
+    issue: "Fortemi/HotM#284"
+    tests: "ui/scripts/verify-live-asset-ci-receipt.cjs"
+activity:
+  id: "urn:aiwg:activity:modification:verify-live-asset-ci-receipt-test-hotm-284:001"
+  type: modification
+  started_at: "2026-07-29T02:54:25Z"
+  ended_at: "2026-07-29T02:54:25Z"
+  description: "Test three accepted cells and explicit Windows rejection"
+agent:
+  id: "urn:aiwg:agent:codex-gpt-5"
+  type: ai_assistant
+  name: "Codex"
+  version: "gpt-5"
+  tool: "codex"
+relationships:
+  wasGeneratedBy:
+    entity: "urn:aiwg:artifact:ui/scripts/verify-live-asset-ci-receipt.test.js"
+    activity: "urn:aiwg:activity:modification:verify-live-asset-ci-receipt-test-hotm-284:001"
+    time: "2026-07-29T02:54:25Z"
+  used:
+    - activity: "urn:aiwg:activity:modification:verify-live-asset-ci-receipt-test-hotm-284:001"
+      entity: "urn:aiwg:artifact:ui/scripts/verify-live-asset-ci-receipt.cjs"
+      role: tests
+  wasAssociatedWith:
+    activity: "urn:aiwg:activity:modification:verify-live-asset-ci-receipt-test-hotm-284:001"
+    agent: "urn:aiwg:agent:codex-gpt-5"
+    role: primary_author
+  wasAttributedTo:
+    entity: "urn:aiwg:artifact:ui/scripts/verify-live-asset-ci-receipt.test.js"
+    agent: "urn:aiwg:agent:codex-gpt-5"

@@ -14,12 +14,19 @@ const {
 const provenance = require('../../release/live-asset-receipt-sidecar-provenance.json');
 
 const PLATFORMS = {
-  linux: {
+  linuxX86: {
     os: 'linux',
     arch: 'x86_64',
     target: 'x86_64-unknown-linux-gnu',
     desktopTarget: 'tauri-command-core-linux-x86_64',
     sidecarSha256: provenance.assets['x86_64-unknown-linux-gnu'].sha256,
+  },
+  linuxArm: {
+    os: 'linux',
+    arch: 'arm64',
+    target: 'aarch64-unknown-linux-gnu',
+    desktopTarget: 'tauri-command-core-linux-arm64',
+    sidecarSha256: provenance.assets['aarch64-unknown-linux-gnu'].sha256,
   },
   darwin: {
     os: 'darwin',
@@ -30,7 +37,7 @@ const PLATFORMS = {
   },
 };
 
-function validReceipt(platformName = 'linux') {
+function validReceipt(platformName = 'linuxX86') {
   const fortemiCommit = provenance.target_commitish;
   const platform = PLATFORMS[platformName];
   return {
@@ -54,7 +61,7 @@ function validReceipt(platformName = 'linux') {
       headless: true,
       authenticationRequired: true,
       storageBackend: 'filesystem',
-      databaseProvisioning: platformName === 'linux' ? 'managed-docker' : 'external',
+      databaseProvisioning: platform.os === 'linux' ? 'managed-docker' : 'external',
       browserTarget: 'playwright-chromium',
       desktopTarget: platform.desktopTarget,
     },
@@ -91,17 +98,24 @@ function validReceipt(platformName = 'linux') {
 
 describe('live asset CI receipt verifier', () => {
   test.each([
-    ['Linux x86_64', 'linux'],
+    ['Linux x86_64', 'linuxX86'],
+    ['Linux arm64', 'linuxArm'],
     ['Darwin arm64', 'darwin'],
   ])('accepts the bounded headless authenticated receipt on %s', (_label, platform) => {
     expect(validateLiveAssetCiReceipt(validReceipt(platform))).toEqual([]);
   });
 
-  test('rejects an unsupported target even when the OS and architecture are supported', () => {
+  test.each([
+    ['Darwin x86_64', 'darwin', 'x86_64', 'x86_64-apple-darwin'],
+    ['Windows x86_64', 'windows', 'x86_64', 'x86_64-pc-windows-msvc'],
+    ['Windows arm64', 'windows', 'arm64', 'aarch64-pc-windows-msvc'],
+  ])('rejects the unsupported %s execution cell', (_label, os, arch, target) => {
     const receipt = validReceipt('darwin');
-    receipt.execution.target = 'x86_64-apple-darwin';
+    receipt.execution.os = os;
+    receipt.execution.arch = arch;
+    receipt.execution.target = target;
     expect(validateLiveAssetCiReceipt(receipt)).toContain(
-      'execution platform must be Linux x86_64 or Darwin arm64',
+      'execution platform must be Linux x86_64, Linux arm64, or Darwin arm64',
     );
   });
 

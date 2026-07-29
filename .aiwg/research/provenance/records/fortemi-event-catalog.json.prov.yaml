@@ -1,24 +1,24 @@
 metadata:
   schema_version: "1.0.0"
   created_at: "2026-07-17T20:15:02Z"
-  updated_at: "2026-07-28T21:14:06Z"
-  description: "Provenance for the HotM two-platform Fortemi event contract refresh"
+  updated_at: "2026-07-29T03:22:33Z"
+  description: "Provenance for the HotM three-platform Fortemi event contract refresh"
 entity:
   id: "urn:aiwg:artifact:ui/src/api/contracts/fortemi-event-catalog.json"
   type: test_fixture
   created_at: "2026-07-17T20:15:02Z"
-  updated_at: "2026-07-28T21:14:06Z"
-  checksum: "sha256:f488c899e99190b739541197b616e023898fda23155160147ef81a18e0620704"
+  updated_at: "2026-07-29T03:22:33Z"
+  checksum: "sha256:d3b1c4362f518f3982e550c7413a47f511785a4968cc20999c01f5823a1ce535"
   size_bytes: 2280
   attributes:
-    change_scope: "hotm-284-two-platform-contract"
-    producer_revision: "447fd5148fb97dc35b7b160fb1e7f15914c84d7a"
+    change_scope: "hotm-284-three-platform-contract"
+    producer_revision: "aac23805d0906a5f39a5fdcceb51d048c09cb9d8"
 activity:
   id: "urn:aiwg:activity:modification:fortemi-event-catalog-json:004"
   type: modification
   started_at: "2026-07-28T21:12:17Z"
-  ended_at: "2026-07-28T21:14:06Z"
-  description: "Rebind the unchanged committed event catalog to the immutable two-platform Fortemi authority"
+  ended_at: "2026-07-29T03:22:33Z"
+  description: "Rebind the unchanged event catalog to the immutable three-platform authority"
 agent:
   id: "urn:aiwg:agent:codex-gpt-5"
   type: ai_assistant
@@ -29,17 +29,17 @@ relationships:
   wasGeneratedBy:
     entity: "urn:aiwg:artifact:ui/src/api/contracts/fortemi-event-catalog.json"
     activity: "urn:aiwg:activity:modification:fortemi-event-catalog-json:004"
-    time: "2026-07-28T21:14:06Z"
+    time: "2026-07-29T03:22:33Z"
   used:
     - activity: "urn:aiwg:activity:modification:fortemi-event-catalog-json:004"
       entity: "urn:gitea:Fortemi/HotM:issue:284"
       role: "requirement"
     - activity: "urn:aiwg:activity:modification:fortemi-event-catalog-json:004"
-      entity: "urn:git:git@git.integrolabs.net:Fortemi/fortemi.git:447fd5148fb97dc35b7b160fb1e7f15914c84d7a:contracts/asyncapi/asyncapi.yaml"
+      entity: "urn:git:git@git.integrolabs.net:Fortemi/fortemi.git:aac23805d0906a5f39a5fdcceb51d048c09cb9d8:contracts/asyncapi/asyncapi.yaml"
       role: "producer_contract"
   wasDerivedFrom:
     - entity: "urn:aiwg:artifact:ui/src/api/contracts/fortemi-event-catalog.json"
-      source: "urn:git:git@git.integrolabs.net:Fortemi/fortemi.git:447fd5148fb97dc35b7b160fb1e7f15914c84d7a:contracts/asyncapi/asyncapi.yaml"
+      source: "urn:git:git@git.integrolabs.net:Fortemi/fortemi.git:aac23805d0906a5f39a5fdcceb51d048c09cb9d8:contracts/asyncapi/asyncapi.yaml"
       derivation_type: "derives_from"
       activity: "urn:aiwg:activity:modification:fortemi-event-catalog-json:004"
   wasAssociatedWith:

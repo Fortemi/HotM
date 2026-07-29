@@ -285,6 +285,26 @@ HotM must support at least these server profiles:
 
 ## 10. Acceptance
 
+### Supported-Platform Consumer Conformance
+
+Fortemi owns and enforces the OpenAPI, AsyncAPI, authentication,
+compatibility, live persistence, and Knowledge Shard contracts. React/core and
+HotM consume those pinned contracts; HotM does not define an alternate schema
+or server policy.
+
+The authority-owned platform matrix requires the same authenticated,
+receipt-producing consumer journey on Linux x86_64, Linux arm64, and native
+macOS arm64 on `mutsu`. Linux arm64 executes in mutsu's native Colima VM and
+uses the immutable `aarch64-unknown-linux-gnu` Fortemi sidecar. Windows is the
+only deferred operating system because no Windows execution authority is
+available.
+
+These receipts prove the declared contract surface and exact
+`2.0.0/full-v1` path only at their bound revisions. They do not prove a
+launched GUI or native dialogs, complete backup, universal portability, or one
+schema spanning the AIWG static index, Knowledge Shard transfer, and live
+Fortemi persistence planes.
+
 This addendum is accepted when:
 
 - Route inventory remains regenerable with zero unclassified route families.

@@ -77,6 +77,7 @@ function main() {
     sidecar.source_repository !== 'Fortemi/fortemi'
     || sidecar.target_commitish !== commit
     || !sidecar.assets?.['x86_64-unknown-linux-gnu']
+    || !sidecar.assets?.['aarch64-unknown-linux-gnu']
     || !sidecar.assets?.['aarch64-apple-darwin']
   ) {
     fail('sidecar provenance does not bind the required producer/platform assets');
