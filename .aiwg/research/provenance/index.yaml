@@ -1,8 +1,10 @@
 metadata:
   schema_version: "1.0.0"
-  updated_at: "2026-07-29T02:54:25Z"
-  record_count: 87
+  updated_at: "2026-07-29T03:43:34Z"
+  record_count: 88
 records:
+  - entity: "urn:aiwg:artifact:scripts/download-pinned-sidecar.sh"
+    record: "records/download-pinned-sidecar-hotm-284.prov.yaml"
   - entity: "urn:aiwg:artifact:release/live-asset-receipt-sidecar-provenance.json"
     record: "records/live-asset-receipt-sidecar-provenance-284.prov.yaml"
   - entity: "urn:aiwg:artifact:release/sidecar-provenance.json"

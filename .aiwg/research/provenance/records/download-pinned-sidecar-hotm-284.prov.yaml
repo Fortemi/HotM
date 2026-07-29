@@ -1,0 +1,45 @@
+metadata:
+  schema_version: "1.0.0"
+  created_at: "2026-07-29T03:43:34Z"
+  description: "Provenance for checksum-enforced local sidecar staging"
+entity:
+  id: "urn:aiwg:artifact:scripts/download-pinned-sidecar.sh"
+  type: test_automation
+  created_at: "2026-07-29T03:43:34Z"
+  updated_at: "2026-07-29T03:43:34Z"
+  checksum: "sha256:beeed8b9760b6293d0ac73a73bd0d7f650e5b78e0cfe8de024361a6e10773eef"
+  size_bytes: 3163
+  attributes:
+    issue: "Fortemi/HotM#284"
+    verification: "pinned SHA-256 remains mandatory for remote and local sources"
+activity:
+  id: "urn:aiwg:activity:modification:download-pinned-sidecar-hotm-284:001"
+  type: modification
+  started_at: "2026-07-29T03:43:34Z"
+  ended_at: "2026-07-29T03:43:34Z"
+  description: "Allow an orchestrator-staged immutable sidecar without weakening digest verification"
+agent:
+  id: "urn:aiwg:agent:codex-gpt-5"
+  type: ai_assistant
+  name: "Codex"
+  version: "gpt-5"
+  tool: "codex"
+relationships:
+  wasGeneratedBy:
+    entity: "urn:aiwg:artifact:scripts/download-pinned-sidecar.sh"
+    activity: "urn:aiwg:activity:modification:download-pinned-sidecar-hotm-284:001"
+    time: "2026-07-29T03:43:34Z"
+  used:
+    - activity: "urn:aiwg:activity:modification:download-pinned-sidecar-hotm-284:001"
+      entity: "urn:gitea:Fortemi/HotM:issue:284"
+      role: requirement
+    - activity: "urn:aiwg:activity:modification:download-pinned-sidecar-hotm-284:001"
+      entity: "urn:gitea:Fortemi/fortemi:run:6364"
+      role: failed_network_boundary_evidence
+  wasAssociatedWith:
+    activity: "urn:aiwg:activity:modification:download-pinned-sidecar-hotm-284:001"
+    agent: "urn:aiwg:agent:codex-gpt-5"
+    role: primary_author
+  wasAttributedTo:
+    entity: "urn:aiwg:artifact:scripts/download-pinned-sidecar.sh"
+    agent: "urn:aiwg:agent:codex-gpt-5"

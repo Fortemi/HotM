@@ -52,16 +52,26 @@ RELEASE_TAG="$(manifest_value 'manifest.release_tag')"
 TARGET_COMMITISH="$(manifest_value 'manifest.target_commitish')"
 PUBLISHED_AT="$(manifest_value 'manifest.published_at')"
 URL="${BASE_URL%/}/${ASSET_NAME}"
+SOURCE_FILE="${SIDECAR_SOURCE_FILE:-}"
 
 mkdir -p "$(dirname "${DEST}")"
 TMP="${DEST}.tmp"
 rm -f "${TMP}"
 
-echo "Downloading pinned Fortemi sidecar:"
+echo "Staging pinned Fortemi sidecar:"
 echo "  target: ${TARGET_TRIPLE}"
 echo "  asset:  ${ASSET_NAME}"
 echo "  commit: ${TARGET_COMMITISH}"
-curl -sfL "${URL}" -o "${TMP}"
+if [[ -n "${SOURCE_FILE}" ]]; then
+  if [[ ! -f "${SOURCE_FILE}" ]]; then
+    echo "Pinned sidecar source file not found: ${SOURCE_FILE}" >&2
+    exit 1
+  fi
+  cp "${SOURCE_FILE}" "${TMP}"
+  URL="file://${SOURCE_FILE}"
+else
+  curl -sfL "${URL}" -o "${TMP}"
+fi
 
 if command -v sha256sum >/dev/null 2>&1; then
   SHA256_ACTUAL="$(sha256sum "${TMP}" | awk '{print $1}')"
