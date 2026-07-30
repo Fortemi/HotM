@@ -1,0 +1,44 @@
+metadata:
+  schema_version: "1.0.0"
+  created_at: "2026-07-30T01:38:05Z"
+  description: "Provenance for the HotM 2026.7.1 code-to-docs audit report"
+entity:
+  id: "urn:aiwg:artifact:.aiwg/reports/doc-sync-20260729-code-to-docs.md"
+  type: document
+  created_at: "2026-07-30T01:38:05Z"
+  checksum: "sha256:d7892cf93ab1e51d657911630acfdde495e3dd424d423f1a6427fe7d9ca7809d"
+  size_bytes: 3259
+  attributes:
+    change_scope: "hotm-2026.7.1-release-documentation"
+    base_revision: "1b220c1e1735314e70e610d84951db960742da35"
+activity:
+  id: "urn:aiwg:activity:generation:doc-sync-20260729-code-to-docs-md:001"
+  type: generation
+  started_at: "2026-07-29T06:01:29Z"
+  ended_at: "2026-07-30T01:38:05Z"
+  description: "Document release-input reconciliation, claim boundaries, and validation"
+agent:
+  id: "urn:aiwg:agent:codex-gpt-5"
+  type: ai_assistant
+  name: "Codex"
+  version: "gpt-5"
+  tool: "codex"
+relationships:
+  wasGeneratedBy:
+    entity: "urn:aiwg:artifact:.aiwg/reports/doc-sync-20260729-code-to-docs.md"
+    activity: "urn:aiwg:activity:generation:doc-sync-20260729-code-to-docs-md:001"
+    time: "2026-07-30T01:38:05Z"
+  used:
+    - activity: "urn:aiwg:activity:generation:doc-sync-20260729-code-to-docs-md:001"
+      entity: "urn:git:git@git.integrolabs.net:Fortemi/HotM.git:1b220c1e1735314e70e610d84951db960742da35"
+      role: "baseline"
+    - activity: "urn:aiwg:activity:generation:doc-sync-20260729-code-to-docs-md:001"
+      entity: "urn:gitea:Fortemi/fortemi:issue:1096"
+      role: "windows_deferral"
+  wasAssociatedWith:
+    activity: "urn:aiwg:activity:generation:doc-sync-20260729-code-to-docs-md:001"
+    agent: "urn:aiwg:agent:codex-gpt-5"
+    role: "primary_author"
+  wasAttributedTo:
+    entity: "urn:aiwg:artifact:.aiwg/reports/doc-sync-20260729-code-to-docs.md"
+    agent: "urn:aiwg:agent:codex-gpt-5"

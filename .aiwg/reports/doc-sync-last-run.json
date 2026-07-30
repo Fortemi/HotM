@@ -1,11 +1,126 @@
 {
-  "timestamp": "2026-04-22T03:42:28Z",
+  "schemaVersion": 1,
+  "workflow": "doc-sync",
   "direction": "code-to-docs",
-  "scope": "full repo",
-  "findings_total": 70,
-  "fixes_applied": 10,
-  "files_modified": [
-    "CLAUDE.md",
-    "ui/src-tauri/tauri.conf.json"
-  ]
+  "mode": "bounded-dry-run-first",
+  "runAt": "2026-07-29T06:01:29Z",
+  "finalizedAt": "2026-07-29T06:03:01Z",
+  "repository": {
+    "path": "/home/roctinam/dev/fortemi-suite/HotM",
+    "remote": "Fortemi/HotM",
+    "head": "1b220c1e1735314e70e610d84951db960742da35",
+    "latestStableTag": "v2026.7.0",
+    "latestStableCommit": "55fa684440aba637dd39c95c50319096482b40a7",
+    "commitsSinceStable": 43
+  },
+  "scope": [
+    "changed files since v2026.7.0",
+    "release-facing documentation",
+    "Fortemi integration SAD addendum",
+    "ADR-010",
+    "consumer receipts and sidecar provenance",
+    "authority-owned supported-platform matrix"
+  ],
+  "findings": [
+    {
+      "id": "DS-1",
+      "status": "fixed",
+      "summary": "Added release-facing qualification requirements for the three required platform cells."
+    },
+    {
+      "id": "DS-2",
+      "status": "fixed",
+      "summary": "Bound the SAD to the exact released authority, React/core, and immutable sidecar inputs."
+    },
+    {
+      "id": "DS-3",
+      "status": "fixed",
+      "summary": "Recorded the release inputs in ADR-010 without assigning authority to HotM."
+    },
+    {
+      "id": "DS-4",
+      "status": "fixed",
+      "summary": "Linked Windows deferral to Fortemi/fortemi#1096."
+    },
+    {
+      "id": "DS-5",
+      "status": "fixed",
+      "summary": "Reconciled the release SOP to immutable sidecar provenance and the authority aggregate gate."
+    },
+    {
+      "id": "DS-6",
+      "status": "human-review",
+      "summary": "Release config omitted because CI workflow, asset, and release-entry policy is incomplete."
+    }
+  ],
+  "changedFiles": [
+    ".aiwg/architecture/adr/ADR-010-fortemi-v2026-07-api-coverage.md",
+    ".aiwg/architecture/sad-fortemi-integration-addendum-2026-07.md",
+    ".aiwg/reports/doc-sync-20260729-code-to-docs.md",
+    ".aiwg/reports/doc-sync-last-run.json",
+    "CHANGELOG.md",
+    "docs/sops/release.md"
+  ],
+  "validation": [
+    {
+      "command": ".aiwg/testing/scripts/verify-fortemi-route-inventory.sh",
+      "status": "passed",
+      "note": "Passed against Fortemi 5ea08229 (v2026.7.19); generated route inventory is included."
+    },
+    {
+      "command": "node .aiwg/testing/scripts/verify-fortemi-event-catalog.mjs",
+      "status": "passed"
+    },
+    {
+      "command": "node .aiwg/testing/scripts/verify-fortemi-knowledge-shard-contract.mjs",
+      "status": "passed"
+    },
+    {
+      "command": "node .aiwg/testing/scripts/verify-fortemi-openapi-contract.mjs ../fortemi",
+      "status": "passed"
+    },
+    {
+      "command": "node .aiwg/testing/scripts/validate-manifest-schema.mjs",
+      "status": "passed"
+    },
+    {
+      "command": "npm test -- --run scripts/verify-live-asset-ci-receipt-matrix.test.js scripts/verify-live-asset-ci-receipt.test.js scripts/verify-live-asset-ci-receipt-pair.test.js",
+      "status": "passed",
+      "note": "17 tests passed across two discovered test files."
+    },
+    {
+      "command": "matrix-to-doc identity validation",
+      "status": "passed"
+    },
+    {
+      "command": "changed Markdown local-link validation",
+      "status": "passed"
+    },
+    {
+      "command": "jq empty and sidecar provenance equality",
+      "status": "passed"
+    },
+    {
+      "command": "git diff --check and authorized-scope validation",
+      "status": "passed"
+    },
+    {
+      "command": "python3 .aiwg/testing/scripts/verify-fortemi-closeout-package.py",
+      "status": "passed",
+      "note": "Route inventory and evidence-map producer identities agree."
+    }
+  ],
+  "humanReview": [
+    "Define exact HotM CI workflows, publication assets, and release-entry automation before creating .aiwg/release.config.",
+    "Require the exact authority aggregate before publishing the release tag."
+  ],
+  "releaseConfig": {
+    "created": false,
+    "reason": "Existing documentation does not define enough policy to encode a release flow without invention."
+  },
+  "delivery": {
+    "committed": false,
+    "pushed": false
+  },
+  "status": "ready-for-delivery"
 }

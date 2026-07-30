@@ -1,15 +1,15 @@
 metadata:
   schema_version: "1.0.0"
   created_at: "2026-07-17T21:46:51Z"
-  updated_at: "2026-07-29T02:54:25Z"
+  updated_at: "2026-07-30T01:38:05Z"
   description: "Provenance for the supported-platform Fortemi consumer design"
 entity:
   id: "urn:aiwg:artifact:.aiwg/architecture/sad-fortemi-integration-addendum-2026-07.md"
   type: document
   created_at: "2026-07-17T21:46:51Z"
-  updated_at: "2026-07-29T02:54:25Z"
-  checksum: "sha256:910a30fcfb9af1dbd42847ddab26172ed88eabf694c3b9112dfa76788a53c575"
-  size_bytes: 22375
+  updated_at: "2026-07-30T01:38:05Z"
+  checksum: "sha256:3484c5665f8523492af51c2fd2bd7268c4fde7a53de0091d9825905d7898cf05"
+  size_bytes: 22971
   attributes:
     change_scope: "hotm-three-platform-consumer-conformance"
     base_revision: "ca035799bfe46b622be1e1a131de986cd19f2a72"
@@ -17,8 +17,8 @@ activity:
   id: "urn:aiwg:activity:modification:aiwg-architecture-sad-fortemi-integration-addendum-2026-07-md:001"
   type: modification
   started_at: "2026-07-17T21:46:51Z"
-  ended_at: "2026-07-29T02:54:25Z"
-  description: "Document three required platform cells, Windows-only deferral, and consumer authority boundaries"
+  ended_at: "2026-07-30T01:38:05Z"
+  description: "Document exact release inputs, three required platform cells, Windows-only deferral, and authority boundaries"
 agent:
   id: "urn:aiwg:agent:codex-gpt-5"
   type: ai_assistant
@@ -29,7 +29,7 @@ relationships:
   wasGeneratedBy:
     entity: "urn:aiwg:artifact:.aiwg/architecture/sad-fortemi-integration-addendum-2026-07.md"
     activity: "urn:aiwg:activity:modification:aiwg-architecture-sad-fortemi-integration-addendum-2026-07-md:001"
-    time: "2026-07-29T02:54:25Z"
+    time: "2026-07-30T01:38:05Z"
   used:
     - activity: "urn:aiwg:activity:modification:aiwg-architecture-sad-fortemi-integration-addendum-2026-07-md:001"
       entity: "urn:git:git@git.integrolabs.net:Fortemi/HotM.git:ca035799bfe46b622be1e1a131de986cd19f2a72:.aiwg/architecture/sad-fortemi-integration-addendum-2026-07.md"

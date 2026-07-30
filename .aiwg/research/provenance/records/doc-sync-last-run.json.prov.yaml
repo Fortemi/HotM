@@ -1,0 +1,41 @@
+metadata:
+  schema_version: "1.0.0"
+  created_at: "2026-07-30T01:38:05Z"
+  description: "Provenance for the bounded HotM code-to-docs audit receipt"
+entity:
+  id: "urn:aiwg:artifact:.aiwg/reports/doc-sync-last-run.json"
+  type: evidence
+  created_at: "2026-07-30T01:38:05Z"
+  checksum: "sha256:fa12c0000efb86aaacf1f1906d4ca4423174cef9cae99a7f114941a8baafbb6d"
+  size_bytes: 4123
+  attributes:
+    change_scope: "hotm-2026.7.1-release-documentation"
+    base_revision: "1b220c1e1735314e70e610d84951db960742da35"
+activity:
+  id: "urn:aiwg:activity:generation:doc-sync-last-run-json:001"
+  type: generation
+  started_at: "2026-07-29T06:01:29Z"
+  ended_at: "2026-07-30T01:38:05Z"
+  description: "Record the release documentation audit, validation results, and delivery boundary"
+agent:
+  id: "urn:aiwg:agent:codex-gpt-5"
+  type: ai_assistant
+  name: "Codex"
+  version: "gpt-5"
+  tool: "codex"
+relationships:
+  wasGeneratedBy:
+    entity: "urn:aiwg:artifact:.aiwg/reports/doc-sync-last-run.json"
+    activity: "urn:aiwg:activity:generation:doc-sync-last-run-json:001"
+    time: "2026-07-30T01:38:05Z"
+  used:
+    - activity: "urn:aiwg:activity:generation:doc-sync-last-run-json:001"
+      entity: "urn:git:git@git.integrolabs.net:Fortemi/HotM.git:1b220c1e1735314e70e610d84951db960742da35"
+      role: "baseline"
+  wasAssociatedWith:
+    activity: "urn:aiwg:activity:generation:doc-sync-last-run-json:001"
+    agent: "urn:aiwg:agent:codex-gpt-5"
+    role: "primary_author"
+  wasAttributedTo:
+    entity: "urn:aiwg:artifact:.aiwg/reports/doc-sync-last-run.json"
+    agent: "urn:aiwg:agent:codex-gpt-5"

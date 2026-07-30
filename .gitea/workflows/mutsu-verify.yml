@@ -43,16 +43,36 @@ jobs:
       - name: Set up SSH to mutsu
         shell: bash
         run: |
+          set -euo pipefail
           test -s "${MUTSU_SSH_KEY_FILE:?MUTSU_SSH_KEY_FILE is required}"
           mkdir -p ~/.ssh
-          cp "$MUTSU_SSH_KEY_FILE" ~/.ssh/mutsu_key
+          tr -d '\r' <"$MUTSU_SSH_KEY_FILE" >~/.ssh/mutsu_key
           chmod 600 ~/.ssh/mutsu_key
-          ssh-keyscan -t ed25519 10.0.42.41 >> ~/.ssh/known_hosts 2>/dev/null
+          ssh-keygen -y -f ~/.ssh/mutsu_key >/dev/null
+          host_key="$(mktemp)"
+          for attempt in 1 2 3; do
+            if ssh-keyscan -T 15 -t ed25519 10.0.42.41 >"$host_key" 2>/dev/null; then
+              break
+            fi
+            sleep 5
+          done
+          test -s "$host_key"
+          fingerprint="$(ssh-keygen -lf "$host_key" | awk '{print $2}')"
+          test "$fingerprint" = "SHA256:5g0PgPko1v4soAco1TrwF7uLOMoctLuNKTwGt29PTFk"
+          cat "$host_key" >~/.ssh/known_hosts
+          rm -f "$host_key"
+          chmod 600 ~/.ssh/known_hosts
           echo "Host mutsu
             HostName 10.0.42.41
             User manitcor
             IdentityFile ~/.ssh/mutsu_key
-            StrictHostKeyChecking no" >> ~/.ssh/config
+            IdentitiesOnly yes
+            StrictHostKeyChecking yes
+            BatchMode yes
+            PreferredAuthentications publickey
+            PasswordAuthentication no
+            KbdInteractiveAuthentication no" >> ~/.ssh/config
+          chmod 600 ~/.ssh/config
 
       - name: Test SSH connectivity
         shell: bash

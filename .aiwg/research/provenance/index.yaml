@@ -1,7 +1,7 @@
 metadata:
   schema_version: "1.0.0"
-  updated_at: "2026-07-29T03:43:34Z"
-  record_count: 88
+  updated_at: "2026-07-30T01:38:05Z"
+  record_count: 90
 records:
   - entity: "urn:aiwg:artifact:scripts/download-pinned-sidecar.sh"
     record: "records/download-pinned-sidecar-hotm-284.prov.yaml"
@@ -179,3 +179,7 @@ records:
     record: "records/run-live-asset-receipt-hotm-284.prov.yaml"
   - entity: "urn:aiwg:artifact:ui/src-tauri/gen/schemas/macOS-schema.json"
     record: "records/macOS-schema-hotm-284.prov.yaml"
+  - entity: "urn:aiwg:artifact:.aiwg/reports/doc-sync-last-run.json"
+    record: "records/doc-sync-last-run.json.prov.yaml"
+  - entity: "urn:aiwg:artifact:.aiwg/reports/doc-sync-20260729-code-to-docs.md"
+    record: "records/doc-sync-20260729-code-to-docs.md.prov.yaml"

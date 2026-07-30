@@ -297,7 +297,18 @@ receipt-producing consumer journey on Linux x86_64, Linux arm64, and native
 macOS arm64 on `mutsu`. Linux arm64 executes in mutsu's native Colima VM and
 uses the immutable `aarch64-unknown-linux-gnu` Fortemi sidecar. Windows is the
 only deferred operating system because no Windows execution authority is
-available.
+available; [Fortemi #1096](https://git.integrolabs.net/Fortemi/fortemi/issues/1096)
+owns that future native Windows validation without weakening the required
+Unix cells.
+
+HotM `2026.7.1` consumes Fortemi runtime
+`5ea08229c9f1565122df5f8e6906e89d98dc7e75` (`v2026.7.19`),
+React/core `5cab4ea2d3d4bb985ea0d38f8bcb1ea790b32cf7`
+(`@fortemi/core@2026.7.15`), and immutable sidecar
+`sidecar-5ea08229c9f1`. The Fortemi authority-owned matrix binds those inputs
+to the exact HotM release commit and is the source of the three platform
+receipts and required aggregate. The consumer does not redefine that
+authority.
 
 These receipts prove the declared contract surface and exact
 `2.0.0/full-v1` path only at their bound revisions. They do not prove a

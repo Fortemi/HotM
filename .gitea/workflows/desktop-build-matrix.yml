@@ -22,6 +22,7 @@ on:
       - 'ui/**'
       - 'release/sidecar-provenance.json'
       - 'scripts/download-pinned-sidecar.sh'
+      - 'scripts/ci/mutsu-build-lock.sh'
       - '.gitea/workflows/desktop-build-matrix.yml'
   workflow_dispatch:
 
@@ -245,20 +246,40 @@ jobs:
       - name: Set up SSH to mutsu
         shell: bash
         run: |
+          set -euo pipefail
           test -s "${MUTSU_SSH_KEY_FILE:?MUTSU_SSH_KEY_FILE is required}"
           mkdir -p ~/.ssh
-          cp "$MUTSU_SSH_KEY_FILE" ~/.ssh/mutsu_key
+          tr -d '\r' <"$MUTSU_SSH_KEY_FILE" >~/.ssh/mutsu_key
           chmod 600 ~/.ssh/mutsu_key
-          ssh-keyscan -t ed25519 10.0.42.41 >> ~/.ssh/known_hosts 2>/dev/null || true
+          ssh-keygen -y -f ~/.ssh/mutsu_key >/dev/null
+          host_key="$(mktemp)"
+          for attempt in 1 2 3; do
+            if ssh-keyscan -T 15 -t ed25519 10.0.42.41 >"$host_key" 2>/dev/null; then
+              break
+            fi
+            sleep 5
+          done
+          test -s "$host_key"
+          fingerprint="$(ssh-keygen -lf "$host_key" | awk '{print $2}')"
+          test "$fingerprint" = "SHA256:5g0PgPko1v4soAco1TrwF7uLOMoctLuNKTwGt29PTFk"
+          cat "$host_key" >~/.ssh/known_hosts
+          rm -f "$host_key"
+          chmod 600 ~/.ssh/known_hosts
           cat >> ~/.ssh/config << 'EOF'
           Host mutsu
             HostName 10.0.42.41
             User manitcor
             IdentityFile ~/.ssh/mutsu_key
-            StrictHostKeyChecking no
+            IdentitiesOnly yes
+            StrictHostKeyChecking yes
+            BatchMode yes
+            PreferredAuthentications publickey
+            PasswordAuthentication no
+            KbdInteractiveAuthentication no
             ServerAliveInterval 60
             ServerAliveCountMax 10
           EOF
+          chmod 600 ~/.ssh/config
 
       - name: Test SSH connectivity
         shell: bash
@@ -297,8 +318,13 @@ jobs:
         run: |
           set -euo pipefail
           BUILD_DIR="/Volumes/build/hotm/builds/run-${GITHUB_RUN_ID}"
+          LOCK_HELPER="/Volumes/build/tmp/mutsu-build-lock-hotm-matrix-${GITHUB_RUN_ID}.sh"
+          scp scripts/ci/mutsu-build-lock.sh "mutsu:${LOCK_HELPER}"
 
-          ssh mutsu bash -s -- "$BUILD_DIR" "$GITEA_TOKEN" << 'REMOTE'
+          ssh mutsu bash "$LOCK_HELPER" \
+            --label "HotM-desktop-matrix-${GITHUB_RUN_ID}" \
+            --timeout 3600 \
+            -- bash -s -- "$BUILD_DIR" "$GITEA_TOKEN" << 'REMOTE'
           set -euo pipefail
           BUILD_DIR="$1"
           GITEA_TOKEN="$2"
@@ -431,6 +457,7 @@ jobs:
         shell: bash
         run: |
           BUILD_DIR="/Volumes/build/hotm/builds/run-${GITHUB_RUN_ID}"
-          ssh mutsu "rm -rf '${BUILD_DIR}'" && echo "Cleaned ${BUILD_DIR}" || true
+          LOCK_HELPER="/Volumes/build/tmp/mutsu-build-lock-hotm-matrix-${GITHUB_RUN_ID}.sh"
+          ssh mutsu "rm -rf '${BUILD_DIR}'; rm -f '${LOCK_HELPER}'" && echo "Cleaned ${BUILD_DIR}" || true
           rm -f ~/.ssh/mutsu_key
           ci/vault-fetch.sh --cleanup

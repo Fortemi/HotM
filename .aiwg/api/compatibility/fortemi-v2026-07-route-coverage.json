@@ -1,8 +1,8 @@
 {
-  "generated_at": "2026-07-28",
+  "generated_at": "2026-07-29",
   "fortemi_root": "../fortemi",
-  "fortemi_commit": "447fd514",
-  "fortemi_latest_tag": "v2026.7.12",
+  "fortemi_commit": "5ea08229",
+  "fortemi_latest_tag": "v2026.7.19",
   "route_count": 202,
   "status_counts": {
     "covered": 188,

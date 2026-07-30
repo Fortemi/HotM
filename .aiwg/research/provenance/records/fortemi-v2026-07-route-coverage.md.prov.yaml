@@ -1,23 +1,23 @@
 metadata:
   schema_version: "1.0.0"
   created_at: "2026-07-26T15:10:08Z"
-  updated_at: "2026-07-28T23:14:27Z"
+  updated_at: "2026-07-30T01:38:05Z"
   description: "Provenance for the rendered delivered Fortemi route inventory"
 entity:
   id: "urn:aiwg:artifact:.aiwg/api/compatibility/fortemi-v2026-07-route-coverage.md"
   type: document
   created_at: "2026-07-26T15:10:08Z"
-  updated_at: "2026-07-28T23:14:27Z"
-  checksum: "sha256:c523eda393532733bcebe2ff84574b5567a5b3fd9b5b99a5b124edbafdd833eb"
+  updated_at: "2026-07-30T01:38:05Z"
+  checksum: "sha256:df9f120af9bc98904cc4d9ac007e7251f43a431016229cecf795352483942e38"
   size_bytes: 29937
   attributes:
     change_scope: "hotm-route-202-operator-contracts"
-    producer_commit: "447fd5148fb97dc35b7b160fb1e7f15914c84d7a"
+    producer_commit: "5ea08229c9f1565122df5f8e6906e89d98dc7e75"
 activity:
   id: "urn:aiwg:activity:generation:fortemi-route-coverage-md:001"
   type: generation
   started_at: "2026-07-26T15:10:08Z"
-  ended_at: "2026-07-28T23:14:27Z"
+  ended_at: "2026-07-30T01:38:05Z"
   description: "Render the generated 202-route zero-gap inventory at the pinned Fortemi runtime authority"
 agent: &agent
   id: "urn:aiwg:agent:codex-gpt-5"
@@ -29,7 +29,7 @@ relationships:
   wasGeneratedBy:
     entity: "urn:aiwg:artifact:.aiwg/api/compatibility/fortemi-v2026-07-route-coverage.md"
     activity: "urn:aiwg:activity:generation:fortemi-route-coverage-md:001"
-    time: "2026-07-28T23:14:27Z"
+    time: "2026-07-30T01:38:05Z"
   wasDerivedFrom:
     - entity: "urn:aiwg:artifact:.aiwg/api/compatibility/fortemi-v2026-07-route-coverage.md"
       source: "urn:aiwg:artifact:.aiwg/api/compatibility/fortemi-v2026-07-route-coverage.json"

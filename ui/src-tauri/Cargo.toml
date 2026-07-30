@@ -1,6 +1,6 @@
 [package]
 name = "hotm"
-version = "2026.7.0"
+version = "2026.7.1"
 description = "Hall of the Mind - Desktop Application"
 authors = ["HotM Contributors"]
 license = "BUSL-1.1"

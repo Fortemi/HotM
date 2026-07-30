@@ -20,6 +20,9 @@ on:
     paths:
       - 'ui/**'
       - 'agent-proxy/**'
+      - 'scripts/ci/mutsu-build-lock.sh'
+      - 'scripts/ci/test-mutsu-build-lock.sh'
+      - 'scripts/ci/verify-mutsu-workflows.sh'
       - 'scripts/verify-hux-traceability.sh'
       - '.gitea/workflows/ui-ci.yml'
   create:
@@ -29,6 +32,9 @@ on:
     paths:
       - 'ui/**'
       - 'agent-proxy/**'
+      - 'scripts/ci/mutsu-build-lock.sh'
+      - 'scripts/ci/test-mutsu-build-lock.sh'
+      - 'scripts/ci/verify-mutsu-workflows.sh'
       - 'scripts/verify-hux-traceability.sh'
       - '.gitea/workflows/ui-ci.yml'
   workflow_dispatch:
@@ -79,6 +85,11 @@ jobs:
         working-directory: ui
         run: npm ci
 
+      - name: Verify mutsu heavyweight-build lock
+        run: |
+          scripts/ci/test-mutsu-build-lock.sh
+          scripts/ci/verify-mutsu-workflows.sh
+
       - name: Type check
         working-directory: ui
         run: npm run typecheck
@@ -95,9 +106,9 @@ jobs:
         working-directory: ui
         run: npm run test:hux-traceability
 
-      - name: Security audit (non-blocking)
+      - name: Security audit
         working-directory: ui
-        run: npm audit --audit-level high || true
+        run: npm audit --audit-level high
 
       - name: Generate SBOM
         working-directory: ui

@@ -4,6 +4,44 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2026.7.1] - 2026-07-29
+
+### Fixed
+
+- **Mutsu crash recovery:** remove abandoned build state, move heavyweight
+  macOS work behind a shared PID-aware host lock, recover stale owners after
+  interrupted jobs, and require the pinned Mutsu ED25519 host identity with
+  public-key-only SSH in verification, rolling-build, and release workflows.
+- **PostCSS source-map disclosure advisory:** refresh the lockfile from
+  vulnerable PostCSS `8.5.14` to fixed `8.5.25` and make the UI high-severity
+  dependency audit release-blocking.
+
+### Changed
+
+- **Pinned desktop runtime:** advance all four native sidecar assets to
+  immutable release `sidecar-5ea08229c9f1` at Fortemi runtime commit
+  `5ea08229c9f1565122df5f8e6906e89d98dc7e75`, with exact release sizes and
+  SHA-256 values in both provenance manifests.
+- **Supported-platform consumer conformance (#284):** HotM remains an
+  application consumer of Fortemi-owned API, event, compatibility,
+  authentication, persistence, and Knowledge Shard contracts. Release
+  qualification uses the Fortemi authority matrix to bind the exact HotM
+  release commit to Fortemi `v2026.7.19`, React/core `v2026.7.15`, immutable
+  sidecar `sidecar-5ea08229c9f1`, and the required Linux x86_64, Linux arm64,
+  native macOS arm64, and aggregate jobs.
+- **Exact portable-data scope:** the supported-platform result covers only
+  `2.0.0/full-v1` at the receipt-bound authority, React/core, and HotM
+  revisions. Windows validation is separately deferred to
+  [Fortemi #1096](https://git.integrolabs.net/Fortemi/fortemi/issues/1096)
+  until a native Windows execution authority is available.
+
+### Compatibility
+
+- The three passing platform cells do not establish all-platform or
+  suite-wide portability, complete backup of all product state, launched
+  desktop GUI/native-dialog coverage, or a common schema across the AIWG
+  static index, Knowledge Shard transfer, and live Fortemi persistence.
+
 ## [2026.7.0] - 2026-07-24
 
 This is a profile-scoped suite-contract baseline. It releases the proven

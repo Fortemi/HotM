@@ -88,8 +88,14 @@ HotM-specific persistence format.
 
 The automated suite matrix in the Fortemi authority repository pins the exact
 schema authority, runtime, immutable native sidecar assets, React/core package,
-and HotM consumer revisions. Those values are authority-owned matrix inputs
-rather than values duplicated in this ADR.
+and HotM consumer revisions. For HotM `2026.7.1`, the release inputs are
+Fortemi runtime `5ea08229c9f1565122df5f8e6906e89d98dc7e75`
+(`v2026.7.19`), React/core
+`5cab4ea2d3d4bb985ea0d38f8bcb1ea790b32cf7`
+(`@fortemi/core@2026.7.15`), and immutable sidecar
+`sidecar-5ea08229c9f1`. The authority-owned matrix adds the exact HotM release
+commit and emits the platform and aggregate receipts. These are receipt
+identities, not consumer-defined authority.
 
 For each required platform, Linux x86_64 on `matric-builder`, native Linux
 arm64 in mutsu's Colima VM, and native macOS arm64 on `mutsu`, the HotM gate
@@ -101,10 +107,12 @@ are independently hashed and checked by both the HotM receipt verifier and the
 suite aggregate.
 
 Windows is the only deferred operating system because no Windows execution
-authority is available. Passing the three required cells does not establish
-universal platform portability, complete backup of all product state, a
-launched desktop GUI/native-dialog claim, or a shared schema across the AIWG
-static index, Knowledge Shard, and Fortemi persistence planes.
+authority is available. [Fortemi #1096](https://git.integrolabs.net/Fortemi/fortemi/issues/1096)
+owns native Windows validation as a separate deferred story. Passing the three
+required cells does not establish universal platform portability, complete
+backup of all product state, a launched desktop GUI/native-dialog claim, or a
+shared schema across the AIWG static index, Knowledge Shard, and Fortemi
+persistence planes.
 
 ### Realtime Contract Receipt (HotM #268)
 
