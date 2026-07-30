@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 # Mirror one or more Gitea releases, including metadata and assets, to GitHub.
 #
-# The exact annotated tag object and peeled commit must already match. The
-# script verifies that invariant before any release mutation and then performs
-# a full byte-for-byte mirror verification after upload.
+# The script publishes a missing exact annotated tag to GitHub, refuses to
+# overwrite a mismatched tag, and performs a full byte-for-byte mirror
+# verification after upload.
 #
 # Required:
 #   gh authenticated locally, or GH_TOKEN/GITHUB_TOKEN in the environment
@@ -23,6 +23,8 @@ set -euo pipefail
 GITEA_API_BASE="${GITEA_API_BASE:-https://git.integrolabs.net/api/v1}"
 GITEA_REPO="${GITEA_REPO:-Fortemi/HotM}"
 GITHUB_REPO="${GITHUB_REPO:-Fortemi/HotM}"
+GITEA_GIT_URL="${GITEA_GIT_URL:-https://git.integrolabs.net/${GITEA_REPO}.git}"
+GITHUB_GIT_URL="${GITHUB_GIT_URL:-https://github.com/${GITHUB_REPO}.git}"
 
 usage() {
   sed -n '2,15p' "$0" | sed 's/^# \{0,1\}//'
@@ -53,6 +55,37 @@ release_json() {
 github_release_exists() {
   local tag="$1"
   gh release view "$tag" --repo "$GITHUB_REPO" >/dev/null 2>&1
+}
+
+ensure_github_tag() {
+  local tag="$1"
+  local github_refs tmp token
+
+  github_refs="$(git ls-remote \
+    "$GITHUB_GIT_URL" "refs/tags/${tag}" "refs/tags/${tag}^{}")"
+  if [[ -n "$github_refs" ]]; then
+    tools/release/verify-release-mirror.sh --tag-only "$tag"
+    return
+  fi
+
+  token="${GH_TOKEN:-${GITHUB_TOKEN:-}}"
+  [[ -n "$token" ]] || {
+    echo "error: GH_TOKEN or GITHUB_TOKEN is required to publish ${tag}" >&2
+    return 1
+  }
+
+  tmp="$(mktemp -d -t hotm-release-tag.XXXXXX)"
+  git -C "$tmp" init --quiet
+  git -C "$tmp" fetch --quiet --no-tags \
+    "$GITEA_GIT_URL" "refs/tags/${tag}:refs/tags/${tag}"
+  export HOTM_GITHUB_TAG_TOKEN="$token"
+  git -C "$tmp" \
+    -c credential.helper='!f() { echo username=x-access-token; echo password=$HOTM_GITHUB_TAG_TOKEN; }; f' \
+    push "$GITHUB_GIT_URL" "refs/tags/${tag}:refs/tags/${tag}"
+  unset HOTM_GITHUB_TAG_TOKEN
+  rm -rf "$tmp"
+
+  tools/release/verify-release-mirror.sh --tag-only "$tag"
 }
 
 sync_github_release() {
@@ -177,7 +210,7 @@ mirror_tag() {
   json="$(release_json "$tag")"
   tmp="$(mktemp -d -t hotm-release-mirror.XXXXXX)"
 
-  tools/release/verify-release-mirror.sh --tag-only "$tag"
+  ensure_github_tag "$tag"
   sync_github_release "$json" "$tmp"
   prune_extra_assets "$json" "$tag"
   download_assets "$json" "$tmp"
@@ -201,6 +234,7 @@ list_release_tags() {
 main() {
   require_tool curl
   require_tool gh
+  require_tool git
   require_tool jq
   require_tool sha256sum
   [[ -x tools/release/verify-release-mirror.sh ]] || {

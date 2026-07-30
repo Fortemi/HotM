@@ -18,6 +18,10 @@ on:
   create:
     tags: ['v*']
   workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Optional versioned release tag to repair (for example v2026.7.1)'
+        required: false
 
 jobs:
   publish-dist:
@@ -28,12 +32,19 @@ jobs:
         shell: bash
         env:
           GITHUB_TOKEN: ${{ github.token }}
+          RELEASE_TAG_INPUT: ${{ inputs.tag }}
         run: |
           set -euo pipefail
           REPO_URL="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}.git"
           AUTH_URL="${REPO_URL/https:\/\//https:\/\/x-access-token:${GITHUB_TOKEN}@}"
           git init . && git remote add origin "${AUTH_URL}"
-          git fetch --depth=1 origin "${GITHUB_SHA}" && git checkout --force FETCH_HEAD
+          TARGET="${GITHUB_SHA}"
+          if [[ "${GITHUB_EVENT_NAME}" == "workflow_dispatch" &&
+            -n "${RELEASE_TAG_INPUT}" ]]; then
+            TARGET="refs/tags/${RELEASE_TAG_INPUT}"
+          fi
+          git fetch --depth=1 origin "${TARGET}"
+          git checkout --force FETCH_HEAD
 
       - name: Install system tools
         shell: bash
@@ -77,7 +88,7 @@ jobs:
           rm -rf /tmp/verify-dist
 
       - name: Publish to rolling release (hotm-latest)
-        if: github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
+        if: github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.tag == '')
         env:
           API_TOKEN: ${{ github.token }}
           API_BASE: https://git.integrolabs.net/api/v1/repos/${{ github.repository }}
@@ -157,13 +168,17 @@ jobs:
           fi
 
       - name: Attach to versioned release
-        if: startsWith(github.ref, 'refs/tags/v')
+        if: startsWith(github.ref, 'refs/tags/v') || (github.event_name == 'workflow_dispatch' && inputs.tag != '')
         env:
           API_TOKEN: ${{ github.token }}
           API_BASE: https://git.integrolabs.net/api/v1/repos/${{ github.repository }}
+          RELEASE_TAG_INPUT: ${{ inputs.tag }}
         run: |
           set -euo pipefail
           TAG="${GITHUB_REF_NAME}"
+          if [[ "${GITHUB_EVENT_NAME}" == "workflow_dispatch" ]]; then
+            TAG="${RELEASE_TAG_INPUT}"
+          fi
           ASSET="hotm-ui-dist.tar.gz"
 
           # Wait briefly for the release to be created by ui-ci.yml
@@ -211,6 +226,16 @@ jobs:
 
           echo "Attaching ${ASSET} to release ${TAG} (id=${RELEASE_ID})"
 
+          STALE=$(curl -fsSL \
+            -H "Authorization: token ${API_TOKEN}" \
+            "${API_BASE}/releases/${RELEASE_ID}/assets?name=${ASSET}" |
+            jq -r '.[0].id // empty')
+          if [[ -n "${STALE}" ]]; then
+            curl -fsSL -X DELETE \
+              -H "Authorization: token ${API_TOKEN}" \
+              "${API_BASE}/releases/${RELEASE_ID}/assets/${STALE}"
+          fi
+
           UPLOAD_CODE=$(curl -s -o /dev/null -w '%{http_code}' -X POST \
             -H "Authorization: token ${API_TOKEN}" \
             -H "Content-Type: application/gzip" \
@@ -225,7 +250,7 @@ jobs:
           fi
 
       - name: Install GitHub CLI
-        if: startsWith(github.ref, 'refs/tags/v')
+        if: startsWith(github.ref, 'refs/tags/v') || (github.event_name == 'workflow_dispatch' && inputs.tag != '')
         shell: bash
         run: |
           set -euo pipefail
@@ -241,7 +266,7 @@ jobs:
           apt-get install -y gh
 
       - name: Fetch GitHub release token from vault
-        if: startsWith(github.ref, 'refs/tags/v')
+        if: startsWith(github.ref, 'refs/tags/v') || (github.event_name == 'workflow_dispatch' && inputs.tag != '')
         env:
           VAULT_ADDR: ${{ vars.VAULT_ADDR }}
           VAULT_CI_ROLE_ID: ${{ secrets.VAULT_CI_ROLE_ID }}
@@ -251,12 +276,17 @@ jobs:
         run: ci/vault-fetch.sh --spec ci/vault-fetch.github-release.spec
 
       - name: Mirror versioned release to GitHub
-        if: startsWith(github.ref, 'refs/tags/v')
+        if: startsWith(github.ref, 'refs/tags/v') || (github.event_name == 'workflow_dispatch' && inputs.tag != '')
         env:
           GITEA_TOKEN: ${{ github.token }}
           GITEA_REPO: ${{ github.repository }}
           GITHUB_REPO: Fortemi/HotM
+          RELEASE_TAG_INPUT: ${{ inputs.tag }}
         run: |
           set -euo pipefail
           export GH_TOKEN="${GH_PUBLISH_TOKEN:?GH_PUBLISH_TOKEN is required}"
-          tools/release/mirror-gitea-release-to-github.sh "${GITHUB_REF_NAME}"
+          TAG="${GITHUB_REF_NAME}"
+          if [[ "${GITHUB_EVENT_NAME}" == "workflow_dispatch" ]]; then
+            TAG="${RELEASE_TAG_INPUT}"
+          fi
+          tools/release/mirror-gitea-release-to-github.sh "${TAG}"
