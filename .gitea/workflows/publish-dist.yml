@@ -226,15 +226,15 @@ jobs:
 
           echo "Attaching ${ASSET} to release ${TAG} (id=${RELEASE_ID})"
 
-          STALE=$(curl -fsSL \
+          mapfile -t STALE_IDS < <(curl -fsSL \
             -H "Authorization: token ${API_TOKEN}" \
-            "${API_BASE}/releases/${RELEASE_ID}/assets?name=${ASSET}" |
-            jq -r '.[0].id // empty')
-          if [[ -n "${STALE}" ]]; then
+            "${API_BASE}/releases/${RELEASE_ID}/assets" |
+            jq -r --arg name "${ASSET}" '.[] | select(.name == $name) | .id')
+          for STALE in "${STALE_IDS[@]}"; do
             curl -fsSL -X DELETE \
               -H "Authorization: token ${API_TOKEN}" \
               "${API_BASE}/releases/${RELEASE_ID}/assets/${STALE}"
-          fi
+          done
 
           UPLOAD_CODE=$(curl -s -o /dev/null -w '%{http_code}' -X POST \
             -H "Authorization: token ${API_TOKEN}" \
