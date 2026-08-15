@@ -9,7 +9,7 @@ import { ShieldCheck, ShieldAlert, ShieldX } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { getToolPrivilege, type OperationPrivilege } from './privileges';
-import type { PendingConfirmation } from './useAgentPrivileges';
+import type { PendingConfirmation } from './useAgentChat';
 
 interface ConfirmationCardProps {
   confirmation: PendingConfirmation;
@@ -69,7 +69,7 @@ function formatArgs(args: Record<string, unknown>): Array<{ key: string; value: 
 }
 
 export function ConfirmationCard({ confirmation, onResolve }: ConfirmationCardProps) {
-  const privilege = getToolPrivilege(confirmation.toolName);
+  const privilege = getToolPrivilege(confirmation.toolName) ?? 'admin';
   const style = PRIVILEGE_STYLES[privilege];
   const Icon = style.icon;
   const args = formatArgs(confirmation.args);
@@ -106,22 +106,27 @@ export function ConfirmationCard({ confirmation, onResolve }: ConfirmationCardPr
               size="sm"
               variant="default"
               onClick={() => onResolve('allow')}
+              disabled={confirmation.isResolving}
               className="h-7 text-xs"
             >
               Allow
             </Button>
-            <Button
-              size="sm"
-              variant="secondary"
-              onClick={() => onResolve('allow-remember')}
-              className="h-7 text-xs"
-            >
-              Allow & Remember
-            </Button>
+            {privilege === 'write' && (
+              <Button
+                size="sm"
+                variant="secondary"
+                onClick={() => onResolve('allow-remember')}
+                disabled={confirmation.isResolving}
+                className="h-7 text-xs"
+              >
+                Allow & Remember
+              </Button>
+            )}
             <Button
               size="sm"
               variant="destructive"
               onClick={() => onResolve('deny')}
+              disabled={confirmation.isResolving}
               className="h-7 text-xs"
             >
               Deny

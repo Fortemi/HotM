@@ -42,6 +42,9 @@ export const TOOL_PRIVILEGES: Record<string, OperationPrivilege> = {
   list_collections: 'read',
   get_related: 'read',
   search_concepts: 'read',
+  list_archives: 'read',
+  list_notes: 'read',
+  get_attachments: 'read',
 
   // Write operations — requires assisted confirmation or full mode
   create_note: 'write',
@@ -49,15 +52,6 @@ export const TOOL_PRIVILEGES: Record<string, OperationPrivilege> = {
   update_tags: 'write',
   link_notes: 'write',
 
-  // Delete operations — requires full mode or explicit confirmation
-  delete_note: 'delete',
-  remove_from_collection: 'delete',
-  unlink_notes: 'delete',
-
-  // Admin operations — always requires confirmation, even in full mode
-  create_backup: 'admin',
-  restore_backup: 'admin',
-  purge_notes: 'admin',
 };
 
 // ---------------------------------------------------------------------------
@@ -82,10 +76,22 @@ export function canExecute(
   toolName: string,
   settings: AgentPrivilegeSettings,
 ): PermissionDecision {
-  // 1. Check per-tool overrides first
-  if (toolName in settings.overrides) {
-    return settings.overrides[toolName];
+  const privilege = TOOL_PRIVILEGES[toolName];
+  if (!privilege) return 'denied';
+
+  const override = settings.overrides[toolName];
+  if (override === 'denied') return 'denied';
+  if (settings.mode === 'read-only' && !override && privilege !== 'read') {
+    return 'denied';
   }
+
+  // Once enabled, delete/admin operations retain a confirmation floor.
+  if (privilege === 'delete' || privilege === 'admin') {
+    return 'confirm';
+  }
+
+  // 1. Check per-tool overrides first
+  if (override) return override;
 
   // 2. Check session allowlist ("Allow & Remember")
   if (settings.sessionAllowlist.includes(toolName)) {
@@ -93,7 +99,6 @@ export function canExecute(
   }
 
   // 3. Resolve from mode + privilege level
-  const privilege = TOOL_PRIVILEGES[toolName] ?? 'read';
   return resolveFromMode(privilege, settings.mode);
 }
 
@@ -106,8 +111,8 @@ export function resolveFromMode(
 ): PermissionDecision {
   switch (mode) {
     case 'full':
-      // Admin ops still need confirmation, everything else auto-approved
-      return privilege === 'admin' ? 'confirm' : 'allowed';
+      // Destructive/admin ops still need confirmation.
+      return privilege === 'delete' || privilege === 'admin' ? 'confirm' : 'allowed';
 
     case 'assisted':
       // Reads auto-approved, writes/deletes/admin need confirmation
@@ -121,10 +126,10 @@ export function resolveFromMode(
 
 /**
  * Get the privilege level for a tool name.
- * Returns 'read' for unknown tools (safe default).
+ * Returns undefined for unknown tools so callers fail closed.
  */
-export function getToolPrivilege(toolName: string): OperationPrivilege {
-  return TOOL_PRIVILEGES[toolName] ?? 'read';
+export function getToolPrivilege(toolName: string): OperationPrivilege | undefined {
+  return TOOL_PRIVILEGES[toolName];
 }
 
 /**
@@ -174,11 +179,16 @@ export function loadPrivilegeSettings(): AgentPrivilegeSettings {
     if (!['full', 'assisted', 'read-only'].includes(parsed.mode)) {
       return { ...DEFAULT_PRIVILEGE_SETTINGS };
     }
+    const overrides = Object.fromEntries(
+      Object.entries(parsed.overrides ?? {}).filter(
+        ([toolName, decision]) =>
+          toolName in TOOL_PRIVILEGES &&
+          ['allowed', 'confirm', 'denied'].includes(String(decision)),
+      ),
+    ) as Record<string, PermissionDecision>;
     return {
       mode: parsed.mode,
-      overrides: parsed.overrides && typeof parsed.overrides === 'object'
-        ? parsed.overrides
-        : {},
+      overrides,
       // Session allowlist is NOT persisted — always starts empty
       sessionAllowlist: [],
     };

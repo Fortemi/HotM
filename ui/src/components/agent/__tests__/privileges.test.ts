@@ -20,6 +20,9 @@ describe('privileges', () => {
       expect(TOOL_PRIVILEGES.list_collections).toBe('read');
       expect(TOOL_PRIVILEGES.get_related).toBe('read');
       expect(TOOL_PRIVILEGES.search_concepts).toBe('read');
+      expect(TOOL_PRIVILEGES.list_archives).toBe('read');
+      expect(TOOL_PRIVILEGES.list_notes).toBe('read');
+      expect(TOOL_PRIVILEGES.get_attachments).toBe('read');
     });
 
     it('classifies write tools as write', () => {
@@ -29,16 +32,8 @@ describe('privileges', () => {
       expect(TOOL_PRIVILEGES.link_notes).toBe('write');
     });
 
-    it('classifies delete tools as delete', () => {
-      expect(TOOL_PRIVILEGES.delete_note).toBe('delete');
-      expect(TOOL_PRIVILEGES.remove_from_collection).toBe('delete');
-      expect(TOOL_PRIVILEGES.unlink_notes).toBe('delete');
-    });
-
-    it('classifies admin tools as admin', () => {
-      expect(TOOL_PRIVILEGES.create_backup).toBe('admin');
-      expect(TOOL_PRIVILEGES.restore_backup).toBe('admin');
-      expect(TOOL_PRIVILEGES.purge_notes).toBe('admin');
+    it('matches the complete currently implemented proxy registry', () => {
+      expect(Object.keys(TOOL_PRIVILEGES)).toHaveLength(12);
     });
   });
 
@@ -46,20 +41,18 @@ describe('privileges', () => {
     it('returns correct privilege for known tools', () => {
       expect(getToolPrivilege('search_notes')).toBe('read');
       expect(getToolPrivilege('create_note')).toBe('write');
-      expect(getToolPrivilege('delete_note')).toBe('delete');
-      expect(getToolPrivilege('purge_notes')).toBe('admin');
     });
 
-    it('defaults to read for unknown tools', () => {
-      expect(getToolPrivilege('unknown_tool')).toBe('read');
+    it('does not classify unknown tools', () => {
+      expect(getToolPrivilege('unknown_tool')).toBeUndefined();
     });
   });
 
   describe('resolveFromMode', () => {
-    it('full mode: allows read/write/delete, confirms admin', () => {
+    it('full mode: allows read/write and confirms delete/admin', () => {
       expect(resolveFromMode('read', 'full')).toBe('allowed');
       expect(resolveFromMode('write', 'full')).toBe('allowed');
-      expect(resolveFromMode('delete', 'full')).toBe('allowed');
+      expect(resolveFromMode('delete', 'full')).toBe('confirm');
       expect(resolveFromMode('admin', 'full')).toBe('confirm');
     });
 
@@ -115,8 +108,8 @@ describe('privileges', () => {
       expect(canExecute('create_note', settings)).toBe('denied');
     });
 
-    it('treats unknown tools as read privilege', () => {
-      expect(canExecute('some_future_tool', baseSettings)).toBe('allowed');
+    it('denies unknown tools', () => {
+      expect(canExecute('some_future_tool', baseSettings)).toBe('denied');
     });
 
     it('read-only mode denies all mutations', () => {
@@ -126,19 +119,17 @@ describe('privileges', () => {
       };
       expect(canExecute('search_notes', settings)).toBe('allowed');
       expect(canExecute('create_note', settings)).toBe('denied');
-      expect(canExecute('delete_note', settings)).toBe('denied');
-      expect(canExecute('purge_notes', settings)).toBe('denied');
+      expect(canExecute('future_mutation', settings)).toBe('denied');
     });
 
-    it('full mode allows everything except admin', () => {
+    it('full mode allows every currently implemented tool', () => {
       const settings: AgentPrivilegeSettings = {
         ...baseSettings,
         mode: 'full',
       };
       expect(canExecute('search_notes', settings)).toBe('allowed');
       expect(canExecute('create_note', settings)).toBe('allowed');
-      expect(canExecute('delete_note', settings)).toBe('allowed');
-      expect(canExecute('purge_notes', settings)).toBe('confirm');
+      expect(canExecute('list_archives', settings)).toBe('allowed');
     });
   });
 
@@ -194,6 +185,14 @@ describe('privileges', () => {
       localStorage.setItem('hotm:agent-privileges', JSON.stringify({ mode: 'super' }));
       const settings = loadPrivilegeSettings();
       expect(settings.mode).toBe('assisted');
+    });
+
+    it('drops unknown or invalid persisted overrides', () => {
+      localStorage.setItem('hotm:agent-privileges', JSON.stringify({
+        mode: 'full',
+        overrides: { create_note: 'denied', unknown_tool: 'allowed', get_note: 'maybe' },
+      }));
+      expect(loadPrivilegeSettings().overrides).toEqual({ create_note: 'denied' });
     });
 
     it('handles localStorage write errors gracefully', () => {

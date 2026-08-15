@@ -22,6 +22,14 @@ import {
   toolMetadata,
 } from '../tools.js';
 import {
+  AgentPrivilegeError,
+  AgentPrivilegeStore,
+  createPrivilegedTools,
+  parsePrivilegeSettings,
+  type ConfirmationDecision,
+  type PrivilegeRequestRestriction,
+} from '../privileges.js';
+import {
   createFlowActor,
   getFlowState,
   getFlowContext,
@@ -114,6 +122,28 @@ When creating or revising notes, these modes are available:
 - **contextual**: Revision with cross-references to other notes`;
 
 export const chatRouter = Router();
+export const agentPrivilegeStore = new AgentPrivilegeStore();
+
+const SESSION_ID_PATTERN = /^[A-Za-z0-9_-]{16,128}$/;
+
+function requirePrivilegeSessionId(value: unknown): string {
+  if (typeof value !== 'string' || !SESSION_ID_PATTERN.test(value)) {
+    throw new AgentPrivilegeError(
+      'invalid_settings',
+      'A valid agent privilege session ID is required.',
+    );
+  }
+  return value;
+}
+
+function privilegeErrorResponse(res: import('express').Response, error: unknown): void {
+  if (error instanceof AgentPrivilegeError) {
+    const status = error.code === 'invalid_settings' ? 400 : 409;
+    res.status(status).json({ error: error.code, message: error.message });
+    return;
+  }
+  res.status(500).json({ error: 'privilege_policy_error' });
+}
 
 // Readiness probe — returns endpoint metadata so initial GET doesn't 404.
 chatRouter.get('/', (_req, res) => {
@@ -136,6 +166,44 @@ chatRouter.get('/', (_req, res) => {
   });
 });
 
+chatRouter.post('/privileges', (req, res) => {
+  try {
+    const sessionId = requirePrivilegeSessionId(req.body?.sessionId);
+    const settings = parsePrivilegeSettings(req.body?.settings);
+    const stored = agentPrivilegeStore.updateSession(
+      sessionId,
+      settings,
+      req.body?.clientRevision,
+    );
+    res.json({ settings: stored });
+  } catch (error) {
+    privilegeErrorResponse(res, error);
+  }
+});
+
+chatRouter.post('/privileges/confirm', (req, res) => {
+  try {
+    const sessionId = requirePrivilegeSessionId(req.body?.sessionId);
+    const decision = req.body?.decision as ConfirmationDecision;
+    if (decision !== 'allow' && decision !== 'allow-remember' && decision !== 'deny') {
+      throw new AgentPrivilegeError('invalid_settings', 'Confirmation decision is invalid.');
+    }
+    if (typeof req.body?.toolCallId !== 'string' || typeof req.body?.toolName !== 'string') {
+      throw new AgentPrivilegeError('invalid_settings', 'Confirmation tool call is invalid.');
+    }
+    agentPrivilegeStore.resolveConfirmation({
+      sessionId,
+      toolCallId: req.body.toolCallId,
+      toolName: req.body.toolName,
+      args: req.body.args,
+      decision,
+    });
+    res.json({ resolved: true });
+  } catch (error) {
+    privilegeErrorResponse(res, error);
+  }
+});
+
 chatRouter.post('/', async (req, res) => {
   try {
     const {
@@ -145,12 +213,19 @@ chatRouter.post('/', async (req, res) => {
       temperature = 0.7,
       maxSteps = 5,
       context,
+      privilegeSessionId: rawPrivilegeSessionId,
+      privileges: rawPrivilegeRestriction,
     } = req.body;
 
     if (!messages || !Array.isArray(messages)) {
       res.status(400).json({ error: 'messages array is required' });
       return;
     }
+
+    const privilegeSessionId = requirePrivilegeSessionId(rawPrivilegeSessionId);
+    const privilegeRestriction = rawPrivilegeRestriction === undefined
+      ? undefined
+      : parsePrivilegeSettings(rawPrivilegeRestriction) as PrivilegeRequestRestriction;
 
     // Build context-aware system prompt
     let systemPrompt = SYSTEM_PROMPT;
@@ -205,6 +280,10 @@ chatRouter.post('/', async (req, res) => {
 
     // Determine if we need tools at all
     const hasTools = flowCtx.activeTools.length > 0;
+    const privilegedTools = createPrivilegedTools(agentTools, agentPrivilegeStore, {
+      sessionId: privilegeSessionId,
+      requestRestriction: privilegeRestriction,
+    });
 
     const result = streamText({
       model: languageModel,
@@ -213,7 +292,7 @@ chatRouter.post('/', async (req, res) => {
       // Only pass tools if the intent requires them
       ...(hasTools
         ? {
-            tools: agentTools,
+            tools: privilegedTools,
             activeTools: flowCtx.activeTools as (keyof typeof agentTools)[],
             stopWhen: stepCountIs(maxSteps),
           }
@@ -286,6 +365,10 @@ chatRouter.post('/', async (req, res) => {
     // Stream the response using AI SDK UI message stream protocol
     result.pipeUIMessageStreamToResponse(res);
   } catch (err) {
+    if (err instanceof AgentPrivilegeError && !res.headersSent) {
+      privilegeErrorResponse(res, err);
+      return;
+    }
     const message = err instanceof Error ? err.message : 'Internal server error';
     console.error('[agent-proxy] Chat error:', message);
 

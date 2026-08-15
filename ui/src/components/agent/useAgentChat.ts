@@ -10,21 +10,39 @@
  * All of this streams as a single response. The client just renders
  * message parts (text, tool invocations, tool results) as they arrive.
  *
- * All providers (fortemi, ollama, anthropic, openai) route through the proxy.
+ * Ollama, Anthropic, and OpenAI route through the proxy. The Fortemi provider
+ * uses Fortemi's native chat stream and does not expose this proxy tool loop.
  */
 
-import { DefaultChatTransport } from 'ai';
+import {
+  DefaultChatTransport,
+  lastAssistantMessageIsCompleteWithApprovalResponses,
+} from 'ai';
 import { useChat, type UIMessage } from '@ai-sdk/react';
 import { useCallback, useMemo, useRef, useState } from 'react';
 import { api } from '@/api';
 import type { AgentContext } from './useAgent';
 import type { ProviderConfig } from './providers';
+import {
+  DEFAULT_PRIVILEGE_SETTINGS,
+  type AgentPrivilegeSettings,
+} from './privileges';
 
 export interface UseAgentChatOptions {
   config: ProviderConfig;
   context?: AgentContext;
   /** URL of the agent-proxy chat endpoint */
   proxyUrl?: string;
+  privileges?: AgentPrivilegeSettings;
+  privilegeSessionId?: string;
+}
+
+export interface PendingConfirmation {
+  approvalId: string;
+  toolCallId: string;
+  toolName: string;
+  args: Record<string, unknown>;
+  isResolving: boolean;
 }
 
 export interface UseAgentChatReturn {
@@ -37,6 +55,10 @@ export interface UseAgentChatReturn {
   stop: () => void;
   /** Replace the message array (used by context compaction). */
   setMessages: (messages: UIMessage[]) => void;
+  pendingConfirmation: PendingConfirmation | null;
+  resolveConfirmation: (
+    decision: 'allow' | 'allow-remember' | 'deny',
+  ) => Promise<void>;
 }
 
 const DEFAULT_PROXY_URL = '/api/agent/chat';
@@ -56,12 +78,46 @@ function makeTextMessage(role: 'user' | 'assistant', text: string): UIMessage {
   } as UIMessage;
 }
 
+function findPendingConfirmation(
+  messages: UIMessage[],
+  isResolving: boolean,
+): PendingConfirmation | null {
+  for (let messageIndex = messages.length - 1; messageIndex >= 0; messageIndex--) {
+    const parts = messages[messageIndex].parts;
+    for (let partIndex = parts.length - 1; partIndex >= 0; partIndex--) {
+      const part = parts[partIndex] as unknown as Record<string, unknown>;
+      const approval = part.approval as Record<string, unknown> | undefined;
+      if (part.state !== 'approval-requested' || typeof approval?.id !== 'string') continue;
+      const type = typeof part.type === 'string' ? part.type : '';
+      const toolName = type === 'dynamic-tool'
+        ? part.toolName
+        : type.startsWith('tool-')
+          ? type.slice('tool-'.length)
+          : undefined;
+      if (typeof toolName !== 'string' || typeof part.toolCallId !== 'string') continue;
+      const input = part.input;
+      return {
+        approvalId: approval.id,
+        toolCallId: part.toolCallId,
+        toolName,
+        args: input && typeof input === 'object'
+          ? input as Record<string, unknown>
+          : { value: input },
+        isResolving,
+      };
+    }
+  }
+  return null;
+}
+
 export function useAgentChat(options: UseAgentChatOptions): UseAgentChatReturn {
   const { config, context, proxyUrl = DEFAULT_PROXY_URL } = options;
   const maxSteps = config.maxSteps ?? 5;
   const useNativeFortemiStream = config.provider === 'fortemi';
 
   const chatId = useMemo(() => `agent-${Date.now()}`, []);
+  const privilegeSessionId = options.privilegeSessionId ?? chatId;
+  const privileges = options.privileges ?? DEFAULT_PRIVILEGE_SETTINGS;
 
   // Track steps per conversation turn (for client-side awareness only)
   const stepCountRef = useRef(0);
@@ -69,6 +125,8 @@ export function useAgentChat(options: UseAgentChatOptions): UseAgentChatReturn {
   const [nativeMessages, setNativeMessages] = useState<UIMessage[]>([]);
   const [nativeLoading, setNativeLoading] = useState(false);
   const [nativeError, setNativeError] = useState<Error | undefined>();
+  const [confirmationError, setConfirmationError] = useState<Error | undefined>();
+  const [isResolvingConfirmation, setIsResolvingConfirmation] = useState(false);
 
   // DefaultChatTransport handles the AI SDK data stream protocol.
   // The proxy backend speaks this protocol and routes to the
@@ -88,15 +146,20 @@ export function useAgentChat(options: UseAgentChatOptions): UseAgentChatReturn {
             collectionId: context?.collectionId,
             searchQuery: context?.searchQuery,
           },
+          privilegeSessionId,
+          privileges: {
+            mode: privileges.mode,
+            overrides: privileges.overrides,
+          },
         },
       }),
     [proxyUrl, config.provider, config.model, config.temperature, maxSteps,
-     context?.noteId, context?.collectionId, context?.searchQuery],
+     context?.noteId, context?.collectionId, context?.searchQuery,
+     privilegeSessionId, privileges.mode, privileges.overrides],
   );
 
-  // No onToolCall or sendAutomaticallyWhen — the server handles the full
-  // tool execution loop via streamText + stopWhen. The client just renders
-  // the streamed message parts (text, tool calls, tool results).
+  // The server executes tools. The client only submits approval responses and
+  // lets the SDK resume after every outstanding approval has been answered.
   const {
     messages,
     sendMessage: sdkSendMessage,
@@ -105,12 +168,56 @@ export function useAgentChat(options: UseAgentChatOptions): UseAgentChatReturn {
     setMessages,
     stop,
     clearError,
+    addToolApprovalResponse,
   } = useChat({
     id: chatId,
     transport,
+    sendAutomaticallyWhen: lastAssistantMessageIsCompleteWithApprovalResponses,
   });
 
   const isLoading = status === 'streaming' || status === 'submitted';
+  const pendingConfirmation = useMemo(
+    () => useNativeFortemiStream
+      ? null
+      : findPendingConfirmation(messages, isResolvingConfirmation),
+    [useNativeFortemiStream, messages, isResolvingConfirmation],
+  );
+
+  const resolveConfirmation = useCallback(async (
+    decision: 'allow' | 'allow-remember' | 'deny',
+  ) => {
+    if (!pendingConfirmation || isResolvingConfirmation) return;
+    setIsResolvingConfirmation(true);
+    setConfirmationError(undefined);
+    try {
+      const response = await fetch(`${proxyUrl}/privileges/confirm`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          sessionId: privilegeSessionId,
+          toolCallId: pendingConfirmation.toolCallId,
+          toolName: pendingConfirmation.toolName,
+          args: pendingConfirmation.args,
+          decision,
+        }),
+      });
+      if (!response.ok) {
+        const body = await response.json().catch(() => ({})) as { message?: string };
+        throw new Error(body.message ?? 'Failed to resolve tool confirmation.');
+      }
+      await addToolApprovalResponse({
+        id: pendingConfirmation.approvalId,
+        approved: decision !== 'deny',
+        reason: decision,
+      });
+    } catch (error) {
+      setConfirmationError(
+        error instanceof Error ? error : new Error('Failed to resolve tool confirmation.'),
+      );
+    } finally {
+      setIsResolvingConfirmation(false);
+    }
+  }, [pendingConfirmation, isResolvingConfirmation, proxyUrl, privilegeSessionId, addToolApprovalResponse]);
 
   const wrappedSendMessage = useCallback(
     async (input: string) => {
@@ -283,6 +390,7 @@ export function useAgentChat(options: UseAgentChatOptions): UseAgentChatReturn {
   }, [useNativeFortemiStream, stop]);
 
   const clearNativeOrProxyError = useCallback(() => {
+    setConfirmationError(undefined);
     if (useNativeFortemiStream) {
       setNativeError(undefined);
       return;
@@ -304,11 +412,13 @@ export function useAgentChat(options: UseAgentChatOptions): UseAgentChatReturn {
   return {
     messages: useNativeFortemiStream ? nativeMessages : messages,
     isLoading: useNativeFortemiStream ? nativeLoading : isLoading,
-    error: useNativeFortemiStream ? nativeError : error,
+    error: confirmationError ?? (useNativeFortemiStream ? nativeError : error),
     sendMessage: wrappedSendMessage,
     clearMessages,
     clearError: clearNativeOrProxyError,
     stop: stopNativeOrProxy,
     setMessages: setNativeOrProxyMessages,
+    pendingConfirmation,
+    resolveConfirmation,
   };
 }

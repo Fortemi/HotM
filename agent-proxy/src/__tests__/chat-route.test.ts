@@ -7,6 +7,7 @@
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import express from 'express';
+import { streamText } from 'ai';
 
 // Mock streamText and related AI SDK functions before imports
 vi.mock('ai', async () => {
@@ -34,7 +35,7 @@ vi.mock('../providers/index.js', () => ({
   },
 }));
 
-import { chatRouter } from '../routes/chat.js';
+import { agentPrivilegeStore, chatRouter } from '../routes/chat.js';
 import {
   agentTools,
   deferredToolDecisions,
@@ -53,6 +54,8 @@ function createTestApp() {
   app.use('/api/agent/chat', chatRouter);
   return app;
 }
+
+const PRIVILEGE_SESSION_ID = 'agent_test_session_000001';
 
 /** Simple supertest-free request helper using Node fetch against an Express app. */
 async function request(
@@ -135,6 +138,7 @@ describe('GET /api/agent/chat', () => {
     const metadata = res.body.toolMetadata as typeof toolMetadata;
     expect(metadata.search_notes.routeFamilies).toContain('search');
     expect(metadata.create_note.safety).toBe('write');
+    expect(metadata.create_note.privilege).toBe('write');
     expect(metadata.get_attachments.resultPolicy).toMatch(/no bytes/i);
 
     const deferred = res.body.deferredToolDecisions as typeof deferredToolDecisions;
@@ -177,6 +181,8 @@ describe('POST /api/agent/chat', () => {
 
   beforeEach(() => {
     app = createTestApp();
+    agentPrivilegeStore.resetForTests();
+    vi.mocked(streamText).mockClear();
   });
 
   it('returns 400 when messages is missing', async () => {
@@ -196,9 +202,61 @@ describe('POST /api/agent/chat', () => {
       messages: [
         { role: 'user', parts: [{ type: 'text', text: 'Hello' }] },
       ],
+      privilegeSessionId: PRIVILEGE_SESSION_ID,
     });
     // Should not be 400
     expect(res.status).not.toBe(400);
+  });
+
+  it('rejects chat without a privilege session', async () => {
+    const res = await request(app, 'POST', '/api/agent/chat', {
+      messages: [{ role: 'user', parts: [{ type: 'text', text: 'Hello' }] }],
+    });
+    expect(res.status).toBe(400);
+    expect(res.body.error).toBe('invalid_settings');
+  });
+
+  it('does not let a forged chat mode elevate a stored read-only policy', async () => {
+    const policy = await request(app, 'POST', '/api/agent/chat/privileges', {
+      sessionId: PRIVILEGE_SESSION_ID,
+      clientRevision: 0,
+      settings: { mode: 'read-only', overrides: {} },
+    });
+    expect(policy.status).toBe(200);
+
+    const res = await request(app, 'POST', '/api/agent/chat', {
+      messages: [{ role: 'user', parts: [{ type: 'text', text: 'Create a note' }] }],
+      privilegeSessionId: PRIVILEGE_SESSION_ID,
+      privileges: { mode: 'full', overrides: {} },
+    });
+    expect(res.status).toBe(200);
+
+    const options = vi.mocked(streamText).mock.calls.at(-1)?.[0] as unknown as {
+      tools: Record<string, { execute: (args: unknown, options: { toolCallId: string }) => Promise<unknown> }>;
+    };
+    await expect(options.tools.create_note.execute(
+      { content: 'forged' },
+      { toolCallId: 'forged-call' },
+    )).rejects.toMatchObject({ code: 'operation_denied' });
+  });
+
+  it('resolves a pending confirmation once through the confirmation endpoint', async () => {
+    const args = { content: 'confirmed' };
+    agentPrivilegeStore.registerConfirmation(
+      PRIVILEGE_SESSION_ID,
+      'endpoint-call',
+      'create_note',
+      args,
+    );
+    const body = {
+      sessionId: PRIVILEGE_SESSION_ID,
+      toolCallId: 'endpoint-call',
+      toolName: 'create_note',
+      args,
+      decision: 'allow',
+    };
+    expect((await request(app, 'POST', '/api/agent/chat/privileges/confirm', body)).status).toBe(200);
+    expect((await request(app, 'POST', '/api/agent/chat/privileges/confirm', body)).status).toBe(409);
   });
 });
 
@@ -211,6 +269,7 @@ describe('message text extraction', () => {
 
   beforeEach(() => {
     app = createTestApp();
+    agentPrivilegeStore.resetForTests();
   });
 
   it('handles parts-based messages', async () => {
@@ -218,6 +277,7 @@ describe('message text extraction', () => {
       messages: [
         { role: 'user', parts: [{ type: 'text', text: 'find notes about AI' }] },
       ],
+      privilegeSessionId: PRIVILEGE_SESSION_ID,
     });
     // If message extraction works, the intent classifier runs without error
     expect(res.status).not.toBe(500);
@@ -228,6 +288,7 @@ describe('message text extraction', () => {
       messages: [
         { role: 'user', content: 'search for TypeScript notes' },
       ],
+      privilegeSessionId: PRIVILEGE_SESSION_ID,
     });
     expect(res.status).not.toBe(500);
   });
@@ -237,6 +298,7 @@ describe('message text extraction', () => {
       messages: [
         { role: 'user', parts: [] },
       ],
+      privilegeSessionId: PRIVILEGE_SESSION_ID,
     });
     expect(res.status).not.toBe(500);
   });

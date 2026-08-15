@@ -5,7 +5,7 @@ export { useAgent } from './useAgent';
 export { useAgentChat } from './useAgentChat';
 export { useAgentConfig } from './useAgentConfig';
 export type { AgentMessage, AgentContext, UseAgentOptions, UseAgentReturn } from './useAgent';
-export type { UseAgentChatOptions, UseAgentChatReturn } from './useAgentChat';
+export type { PendingConfirmation, UseAgentChatOptions, UseAgentChatReturn } from './useAgentChat';
 export type { AgentProvider, ProviderConfig } from './providers';
 export {
   DEFAULT_PROVIDER_CONFIG,
@@ -98,7 +98,7 @@ export type { ExportFormat, ExportOptions } from './session-export';
 export { SaveAsNoteButton } from './SaveAsNoteButton';
 export { MessageActions } from './MessageActions';
 export { useAgentPrivileges } from './useAgentPrivileges';
-export type { PendingConfirmation, UseAgentPrivilegesReturn } from './useAgentPrivileges';
+export type { UseAgentPrivilegesReturn } from './useAgentPrivileges';
 export {
   canExecute,
   resolveFromMode,

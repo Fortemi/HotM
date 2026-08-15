@@ -9,6 +9,8 @@ const mockClearMessages = vi.fn();
 const mockClearError = vi.fn();
 const mockStop = vi.fn();
 const mockSetMessages = vi.fn();
+const mockResolveConfirmation = vi.fn();
+const mockSetPrivilegeMode = vi.fn();
 
 vi.mock('../useAgentChat', () => ({
   useAgentChat: vi.fn(() => ({
@@ -20,6 +22,8 @@ vi.mock('../useAgentChat', () => ({
     clearError: mockClearError,
     stop: mockStop,
     setMessages: mockSetMessages,
+    pendingConfirmation: null,
+    resolveConfirmation: mockResolveConfirmation,
   })),
 }));
 
@@ -34,9 +38,11 @@ vi.mock('../useAgentConfig', () => ({
 vi.mock('../useAgentPrivileges', () => ({
   useAgentPrivileges: () => ({
     mode: 'assisted',
-    setMode: vi.fn(),
-    pending: null,
-    resolveConfirmation: vi.fn(),
+    setMode: mockSetPrivilegeMode,
+    settings: { mode: 'assisted', overrides: {}, sessionAllowlist: [] },
+    sessionId: 'agent_test_session_000001',
+    policyError: null,
+    clearPolicyError: vi.fn(),
   }),
 }));
 
@@ -105,7 +111,36 @@ describe('AgentPanel', () => {
 
   it('shows privilege mode button', () => {
     render(<AgentPanel />);
-    expect(screen.getByText('assisted')).toBeInTheDocument();
+    const modeButton = screen.getByText('assisted');
+    expect(modeButton).toBeInTheDocument();
+    fireEvent.click(modeButton);
+    expect(mockSetPrivilegeMode).toHaveBeenCalledWith('full');
+  });
+
+  it('shows a pending confirmation and disables new chat input', async () => {
+    const { useAgentChat } = await import('../useAgentChat');
+    vi.mocked(useAgentChat).mockReturnValue({
+      messages: [],
+      isLoading: false,
+      error: undefined,
+      sendMessage: mockSendMessage,
+      clearMessages: mockClearMessages,
+      clearError: mockClearError,
+      stop: mockStop,
+      setMessages: mockSetMessages,
+      pendingConfirmation: {
+        approvalId: 'approval-1',
+        toolCallId: 'call-1',
+        toolName: 'create_note',
+        args: { content: 'test' },
+        isResolving: false,
+      },
+      resolveConfirmation: mockResolveConfirmation,
+    });
+
+    render(<AgentPanel />);
+    expect(screen.getByTestId('confirmation-card')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Send' })).toBeDisabled();
   });
 
   it('renders messages when present', async () => {
@@ -132,6 +167,8 @@ describe('AgentPanel', () => {
       clearError: mockClearError,
       stop: mockStop,
       setMessages: mockSetMessages,
+      pendingConfirmation: null,
+      resolveConfirmation: mockResolveConfirmation,
     });
 
     render(<AgentPanel />);
@@ -159,6 +196,8 @@ describe('AgentPanel', () => {
       clearError: mockClearError,
       stop: mockStop,
       setMessages: mockSetMessages,
+      pendingConfirmation: null,
+      resolveConfirmation: mockResolveConfirmation,
     });
 
     render(<AgentPanel />);
@@ -178,6 +217,8 @@ describe('AgentPanel', () => {
       clearError: mockClearError,
       stop: mockStop,
       setMessages: mockSetMessages,
+      pendingConfirmation: null,
+      resolveConfirmation: mockResolveConfirmation,
     });
 
     render(<AgentPanel />);

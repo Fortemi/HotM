@@ -22,6 +22,7 @@ const mockSetMessages = vi.fn();
 const mockStop = vi.fn();
 const mockClearError = vi.fn();
 const mockAddToolOutput = vi.fn();
+const mockAddToolApprovalResponse = vi.fn();
 
 vi.mock('@ai-sdk/react', () => ({
   useChat: vi.fn(() => ({
@@ -33,6 +34,7 @@ vi.mock('@ai-sdk/react', () => ({
     stop: mockStop,
     clearError: mockClearError,
     addToolOutput: mockAddToolOutput,
+    addToolApprovalResponse: mockAddToolApprovalResponse,
   })),
 }));
 
@@ -45,6 +47,7 @@ vi.mock('ai', () => ({
     this._type = 'DefaultChatTransport';
     this._opts = opts;
   }),
+  lastAssistantMessageIsCompleteWithApprovalResponses: vi.fn(),
 }));
 
 const mockNativeStream = vi.fn();
@@ -107,6 +110,12 @@ describe('useAgentChat', () => {
         config: defaultConfig,
         proxyUrl: '/custom/proxy',
         context: { noteId: 'note-1' },
+        privilegeSessionId: 'agent_test_session_000001',
+        privileges: {
+          mode: 'read-only',
+          overrides: { create_note: 'denied' },
+          sessionAllowlist: [],
+        },
       }),
     );
 
@@ -116,10 +125,69 @@ describe('useAgentChat', () => {
         body: expect.objectContaining({
           provider: 'ollama',
           model: 'llama3.2',
+          privilegeSessionId: 'agent_test_session_000001',
+          privileges: {
+            mode: 'read-only',
+            overrides: { create_note: 'denied' },
+          },
           context: expect.objectContaining({ noteId: 'note-1' }),
         }),
       }),
     );
+  });
+
+  it('renders and resolves a server-issued, argument-bound approval request', async () => {
+    const { useChat } = await import('@ai-sdk/react');
+    vi.mocked(useChat).mockReturnValue({
+      id: 'test',
+      messages: [{
+        id: 'assistant-1',
+        role: 'assistant',
+        parts: [{
+          type: 'tool-create_note',
+          toolCallId: 'call-1',
+          state: 'approval-requested',
+          input: { content: 'approved content' },
+          approval: { id: 'approval-1' },
+        }],
+      }] as unknown as ReturnType<typeof useChat>['messages'],
+      sendMessage: mockSendMessage,
+      status: 'ready',
+      error: undefined,
+      setMessages: mockSetMessages,
+      stop: mockStop,
+      clearError: mockClearError,
+      addToolOutput: mockAddToolOutput,
+      addToolApprovalResponse: mockAddToolApprovalResponse,
+    } as unknown as ReturnType<typeof useChat>);
+    const fetchMock = vi.fn().mockResolvedValue({ ok: true, json: async () => ({}) });
+    vi.stubGlobal('fetch', fetchMock);
+
+    const { result } = renderHook(() => useAgentChat({
+      config: defaultConfig,
+      privilegeSessionId: 'agent_test_session_000001',
+    }));
+    expect(result.current.pendingConfirmation).toMatchObject({
+      approvalId: 'approval-1',
+      toolCallId: 'call-1',
+      toolName: 'create_note',
+      args: { content: 'approved content' },
+    });
+
+    await act(async () => result.current.resolveConfirmation('allow-remember'));
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      '/api/agent/chat/privileges/confirm',
+      expect.objectContaining({
+        method: 'POST',
+        body: expect.stringContaining('"decision":"allow-remember"'),
+      }),
+    );
+    expect(mockAddToolApprovalResponse).toHaveBeenCalledWith({
+      id: 'approval-1',
+      approved: true,
+      reason: 'allow-remember',
+    });
   });
 
   it('uses default proxy URL when not specified', async () => {
@@ -203,6 +271,7 @@ describe('useAgentChat', () => {
       stop: mockStop,
       clearError: mockClearError,
       addToolOutput: mockAddToolOutput,
+      addToolApprovalResponse: mockAddToolApprovalResponse,
     } as unknown as ReturnType<typeof useChat>);
 
     const { result } = renderHook(() =>
@@ -224,6 +293,7 @@ describe('useAgentChat', () => {
       stop: mockStop,
       clearError: mockClearError,
       addToolOutput: mockAddToolOutput,
+      addToolApprovalResponse: mockAddToolApprovalResponse,
     } as unknown as ReturnType<typeof useChat>);
 
     const { result } = renderHook(() =>
@@ -233,7 +303,7 @@ describe('useAgentChat', () => {
     expect(result.current.isLoading).toBe(true);
   });
 
-  it('does not pass onToolCall to useChat (tools execute server-side)', async () => {
+  it('uses AI SDK approval completion without client-side tool execution', async () => {
     let opts: Record<string, unknown> = {};
     const { useChat } = await import('@ai-sdk/react');
     vi.mocked(useChat).mockImplementation((o: unknown) => {
@@ -247,6 +317,7 @@ describe('useAgentChat', () => {
         stop: mockStop,
         clearError: mockClearError,
         addToolOutput: mockAddToolOutput,
+        addToolApprovalResponse: mockAddToolApprovalResponse,
       } as unknown as ReturnType<typeof useChat>;
     });
 
@@ -256,7 +327,7 @@ describe('useAgentChat', () => {
 
     // Server handles tool execution — client should NOT intercept tool calls
     expect(opts).not.toHaveProperty('onToolCall');
-    expect(opts).not.toHaveProperty('sendAutomaticallyWhen');
+    expect(opts).toHaveProperty('sendAutomaticallyWhen');
   });
 
   it('passes transport with id to useChat', async () => {
@@ -273,6 +344,7 @@ describe('useAgentChat', () => {
         stop: mockStop,
         clearError: mockClearError,
         addToolOutput: mockAddToolOutput,
+        addToolApprovalResponse: mockAddToolApprovalResponse,
       } as unknown as ReturnType<typeof useChat>;
     });
 

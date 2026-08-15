@@ -15,6 +15,11 @@
 import { tool } from 'ai';
 import { z } from 'zod';
 import { requireCompatibleFortemiMutation } from './compatibility.js';
+import {
+  AGENT_TOOL_PRIVILEGES,
+  assertCompleteToolClassification,
+  type OperationPrivilege,
+} from './privileges.js';
 
 export type AgentToolSafety = 'read' | 'write';
 
@@ -25,6 +30,7 @@ export interface AgentToolMetadata {
   routeFamilies: string[];
   endpoints: string[];
   safety: AgentToolSafety;
+  privilege: OperationPrivilege;
   capabilityGate: string;
   roleScope: string;
   resultPolicy: string;
@@ -518,12 +524,15 @@ export const agentTools = {
 
 export type AgentToolName = keyof typeof agentTools;
 
+assertCompleteToolClassification(agentTools);
+
 export const toolMetadata: Record<AgentToolName, AgentToolMetadata> = {
   search_notes: {
     intentSets: ['exploratory', 'knowledge-action'],
     routeFamilies: ['search'],
     endpoints: ['GET /api/v1/search'],
     safety: 'read',
+    privilege: AGENT_TOOL_PRIVILEGES.search_notes,
     capabilityGate: 'search capability available',
     roleScope: 'read',
     resultPolicy: 'Return note id, title, snippet, score, and tags only.',
@@ -533,6 +542,7 @@ export const toolMetadata: Record<AgentToolName, AgentToolMetadata> = {
     routeFamilies: ['notes', 'tags'],
     endpoints: ['POST /api/v1/notes', 'PUT /api/v1/notes/{id}/tags'],
     safety: 'write',
+    privilege: AGENT_TOOL_PRIVILEGES.create_note,
     capabilityGate: 'notes write capability available',
     roleScope: 'write',
     resultPolicy: 'Return created note id and revision mode; do not return raw auth or server internals.',
@@ -542,6 +552,7 @@ export const toolMetadata: Record<AgentToolName, AgentToolMetadata> = {
     routeFamilies: ['notes', 'attachments'],
     endpoints: ['GET /api/v1/notes/{id}', 'GET /api/v1/notes/{id}/attachments'],
     safety: 'read',
+    privilege: AGENT_TOOL_PRIVILEGES.get_note,
     capabilityGate: 'notes read capability available',
     roleScope: 'read',
     resultPolicy: 'Return note content and attachment summaries only; no attachment bytes or private paths.',
@@ -551,6 +562,7 @@ export const toolMetadata: Record<AgentToolName, AgentToolMetadata> = {
     routeFamilies: ['jobs', 'notes'],
     endpoints: ['POST /api/v1/jobs'],
     safety: 'write',
+    privilege: AGENT_TOOL_PRIVILEGES.revise_note,
     capabilityGate: 'jobs and revision capability available',
     roleScope: 'write',
     resultPolicy: 'Return queued-state summary only.',
@@ -560,6 +572,7 @@ export const toolMetadata: Record<AgentToolName, AgentToolMetadata> = {
     routeFamilies: ['tags', 'notes'],
     endpoints: ['GET /api/v1/notes/{id}/tags', 'PUT /api/v1/notes/{id}/tags'],
     safety: 'write',
+    privilege: AGENT_TOOL_PRIVILEGES.update_tags,
     capabilityGate: 'tag update capability available',
     roleScope: 'write',
     resultPolicy: 'Return final tag set only.',
@@ -569,6 +582,7 @@ export const toolMetadata: Record<AgentToolName, AgentToolMetadata> = {
     routeFamilies: ['notes'],
     endpoints: ['POST /api/v1/notes/{id}/links'],
     safety: 'write',
+    privilege: AGENT_TOOL_PRIVILEGES.link_notes,
     capabilityGate: 'note link capability available',
     roleScope: 'write',
     resultPolicy: 'Return source id, target id, and link kind only.',
@@ -578,6 +592,7 @@ export const toolMetadata: Record<AgentToolName, AgentToolMetadata> = {
     routeFamilies: ['collections'],
     endpoints: ['GET /api/v1/collections'],
     safety: 'read',
+    privilege: AGENT_TOOL_PRIVILEGES.list_collections,
     capabilityGate: 'collections read capability available',
     roleScope: 'read',
     resultPolicy: 'Return collection id, name, and description only.',
@@ -587,6 +602,7 @@ export const toolMetadata: Record<AgentToolName, AgentToolMetadata> = {
     routeFamilies: ['concepts'],
     endpoints: ['GET /api/v1/concepts'],
     safety: 'read',
+    privilege: AGENT_TOOL_PRIVILEGES.search_concepts,
     capabilityGate: 'concept taxonomy read capability available',
     roleScope: 'read',
     resultPolicy: 'Return concept id, label, notation, status, and note count only.',
@@ -596,6 +612,7 @@ export const toolMetadata: Record<AgentToolName, AgentToolMetadata> = {
     routeFamilies: ['notes', 'search'],
     endpoints: ['GET /api/v1/notes/{id}/similar'],
     safety: 'read',
+    privilege: AGENT_TOOL_PRIVILEGES.get_related,
     capabilityGate: 'related-notes capability available',
     roleScope: 'read',
     resultPolicy: 'Return related note summaries only.',
@@ -605,6 +622,7 @@ export const toolMetadata: Record<AgentToolName, AgentToolMetadata> = {
     routeFamilies: ['archives'],
     endpoints: ['GET /api/v1/archives'],
     safety: 'read',
+    privilege: AGENT_TOOL_PRIVILEGES.list_archives,
     capabilityGate: 'archive listing capability available',
     roleScope: 'read',
     resultPolicy: 'Return archive summary metadata only.',
@@ -614,6 +632,7 @@ export const toolMetadata: Record<AgentToolName, AgentToolMetadata> = {
     routeFamilies: ['notes'],
     endpoints: ['GET /api/v1/notes'],
     safety: 'read',
+    privilege: AGENT_TOOL_PRIVILEGES.list_notes,
     capabilityGate: 'notes list capability available',
     roleScope: 'read',
     resultPolicy: 'Return note summaries and attachment presence only.',
@@ -623,6 +642,7 @@ export const toolMetadata: Record<AgentToolName, AgentToolMetadata> = {
     routeFamilies: ['attachments'],
     endpoints: ['GET /api/v1/notes/{id}/attachments'],
     safety: 'read',
+    privilege: AGENT_TOOL_PRIVILEGES.get_attachments,
     capabilityGate: 'attachment listing capability available',
     roleScope: 'read',
     resultPolicy: 'Return attachment metadata and truncated extracted text only; no bytes, paths, or upload credentials.',

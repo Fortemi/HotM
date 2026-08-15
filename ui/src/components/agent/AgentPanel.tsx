@@ -68,17 +68,17 @@ export function AgentPanel({ context, onNoteClick }: AgentPanelProps) {
   const { config, setConfig } = useAgentConfig();
   const { queueStatus } = useJobStore();
   const isSystemBusy = queueStatus.pending > 0;
-  const { mode, setMode, pending, resolveConfirmation } = useAgentPrivileges();
+  const {
+    mode,
+    setMode,
+    settings: privilegeSettings,
+    sessionId: privilegeSessionId,
+    policyError,
+    clearPolicyError,
+  } = useAgentPrivileges();
   const [showSettings, setShowSettings] = useState(false);
   const [autoFocusKey, setAutoFocusKey] = useState(0);
 
-  const handleResolveConfirmation = useCallback(
-    (decision: 'allow' | 'allow-remember' | 'deny') => {
-      resolveConfirmation(decision);
-      setAutoFocusKey((k) => k + 1);
-    },
-    [resolveConfirmation],
-  );
   const { models, defaultModel } = useChatModels(config.provider);
 
   const sessionManager = useSessionManager({
@@ -86,8 +86,29 @@ export function AgentPanel({ context, onNoteClick }: AgentPanelProps) {
     model: config.model,
   });
 
-  const { messages, isLoading, error, sendMessage, clearMessages, clearError, setMessages } =
-    useAgentChat({ config, context });
+  const {
+    messages,
+    isLoading,
+    error,
+    sendMessage,
+    clearMessages,
+    clearError,
+    setMessages,
+    pendingConfirmation: pending,
+    resolveConfirmation,
+  } = useAgentChat({
+    config,
+    context,
+    privileges: privilegeSettings,
+    privilegeSessionId,
+  });
+  const handleResolveConfirmation = useCallback(
+    async (decision: 'allow' | 'allow-remember' | 'deny') => {
+      await resolveConfirmation(decision);
+      setAutoFocusKey((k) => k + 1);
+    },
+    [resolveConfirmation],
+  );
   const scrollRef = useRef<HTMLDivElement>(null);
 
   // Restore last active session messages on mount
@@ -443,6 +464,15 @@ export function AgentPanel({ context, onNoteClick }: AgentPanelProps) {
             </div>
           )}
 
+          {policyError && (
+            <div className="flex items-center justify-between border-t bg-destructive/10 px-4 py-2 text-sm text-destructive">
+              <span>{policyError.message}</span>
+              <Button variant="ghost" size="sm" onClick={clearPolicyError} className="h-6 px-2 text-xs">
+                Dismiss
+              </Button>
+            </div>
+          )}
+
           {/* Pending confirmation card */}
           {pending && (
             <ConfirmationCard
@@ -452,7 +482,12 @@ export function AgentPanel({ context, onNoteClick }: AgentPanelProps) {
           )}
 
           {/* Input */}
-          <ChatInput onSend={sendMessage} isLoading={isLoading} autoFocusKey={autoFocusKey} isSystemBusy={isSystemBusy} />
+          <ChatInput
+            onSend={sendMessage}
+            isLoading={isLoading || Boolean(pending)}
+            autoFocusKey={autoFocusKey}
+            isSystemBusy={isSystemBusy}
+          />
         </>
       )}
 

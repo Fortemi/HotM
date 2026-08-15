@@ -28,6 +28,7 @@ import {
   toolMetadata,
 } from '../tools.js';
 import { resetCompatibilityAdmissionForTests } from '../compatibility.js';
+import { AGENT_TOOL_PRIVILEGES } from '../privileges.js';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -135,6 +136,7 @@ describe('agentTools registry', () => {
       expect(meta.routeFamilies.length, `${name} missing route families`).toBeGreaterThan(0);
       expect(meta.endpoints.length, `${name} missing endpoints`).toBeGreaterThan(0);
       expect(['read', 'write']).toContain(meta.safety);
+      expect(meta.privilege).toBe(AGENT_TOOL_PRIVILEGES[name as keyof typeof AGENT_TOOL_PRIVILEGES]);
       expect(meta.capabilityGate, `${name} missing capability gate`).toMatch(/capability/i);
       expect(meta.roleScope, `${name} missing role/scope`).toBeTruthy();
       expect(meta.resultPolicy, `${name} missing result policy`).toBeTruthy();
