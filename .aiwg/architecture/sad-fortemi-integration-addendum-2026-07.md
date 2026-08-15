@@ -392,3 +392,27 @@ schema-bearing shared RFC 9457 rate-limit response on all 251 operations. The
 verifier rejects any operation that loses this shared boundary. Focused typed
 success coverage remains limited to producer-declared schemas and does not
 infer payload types from response descriptions.
+
+### Operation, Event, and Browser Evidence Update (2026-08-15)
+
+`.aiwg/testing/scripts/fortemi-route-coverage.py --check` now generates an
+OpenAPI operation matrix in addition to the route-disposition inventory. The
+matrix keys evidence by HTTP method, path, and operation ID and evaluates route,
+request, response, auth/context, UI, agent, and live-receipt dimensions
+independently. At the pinned 251-operation baseline it reports 1 integrated,
+238 partial, and 12 gap operations. Those counts are the architecture baseline;
+the 188 covered route dispositions remain discovery evidence only.
+
+The realtime boundary now validates all 48 pinned event schemas using
+schema-derived positive fixtures and missing-required, enum, nullability, and
+identifier-format mutations through both SSE and WebSocket decoders. Malformed
+known events and unknown future events normalize to `Unknown` while preserving
+bounded raw data. The pinned producer checkout contains no producer-owned
+example corpus, so #288 remains open and this evidence is not described as a
+producer-example or full payload-conformance receipt.
+
+The deterministic mocked browser gate runs desktop (1280 px) and mobile
+(390 px) projects with retries disabled. It publishes the exact HotM revision,
+fixture/test digest, report, and failure media and is required by both publish
+jobs. This gate verifies mocked UI integration only; live Fortemi and launched
+Tauri receipts remain separate controls.

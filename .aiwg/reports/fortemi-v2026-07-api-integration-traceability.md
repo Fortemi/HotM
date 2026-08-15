@@ -149,3 +149,16 @@ the `hotm-openapi-v1` semantic SHA-256 is
 `6e84af14c4f0aebb885123b19dfa639ddfda5e73ef08d0ebbb9ca7ca8db9e633`.
 All 251 operations are schema-bearing through the shared RFC 9457 `429`
 boundary; 257 of 563 response entries contain schemas.
+
+## 2026-08-15 Executable Evidence Update
+
+| Requirement | Executable evidence | Result / remaining work |
+| --- | --- | --- |
+| REQ-020 operation conformance | `.aiwg/testing/scripts/fortemi-route-coverage.py`, `.aiwg/testing/data/fortemi-operation-conformance-v2026-07.json`, generated operation JSON/Markdown, focused verifier tests | 251 operations: 1 integrated, 238 partial, 12 gap; zero verifier diagnostics. #290 establishes the evidence model but does not convert partial/gap rows into support claims. |
+| REQ-014 AsyncAPI payloads | `.aiwg/testing/scripts/verify-fortemi-asyncapi-payloads.mjs`, schema-derived event fixtures/rules, event and realtime-bus tests, conformance receipt | 48 valid schemas pass both decoders; malformed known events remain unknown. Producer-owned examples are absent, so #288 remains open. |
+| REQ-023 mocked browser gate | `.gitea/workflows/ui-ci.yml`, `ui/scripts/playwright-mocked-ci.config.cjs`, receipt writer, deterministic browser scenarios | Required desktop/mobile gate with zero retries, exact revision/digest receipt, and failure artifacts. This is mocked UI evidence only. |
+
+The operation report is authoritative for integration disposition; the route
+report remains authoritative only for route discovery/disposition. Neither the
+AsyncAPI schema-derived receipt nor mocked browser result supplies live,
+compatibility, Knowledge Shard, or authentication evidence.

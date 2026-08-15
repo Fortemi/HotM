@@ -1,0 +1,512 @@
+{
+  "schema_version": 1,
+  "source_issue": "Fortemi/HotM#290",
+  "supported_contract_revisions": ["1"],
+  "supported_contract_versions": ["2026.2.9"],
+  "independent_boundaries": {
+    "route_inventory": ".aiwg/api/compatibility/fortemi-v2026-07-route-coverage.json",
+    "openapi": "ui/src/api/contracts/fortemi-openapi-receipt.json",
+    "asyncapi": ".aiwg/testing/scripts/verify-fortemi-event-catalog.mjs",
+    "knowledge_shard": ".aiwg/testing/scripts/verify-fortemi-knowledge-shard-contract.mjs",
+    "compatibility": ".aiwg/testing/scripts/verify-fortemi-system-compatibility-contract.mjs",
+    "auth": "agent-proxy/src/auth/fixtures/fortemi-auth-v1.json"
+  },
+  "dimension_statuses": ["conformant", "partial", "gap", "documented_exclusion", "not_applicable"],
+  "operations": {
+    "POST /api/v1/inference/complete#complete": {
+      "targeted_by_290": true,
+      "disposition": "gap",
+      "tracker": "#290",
+      "rationale": "No HotM typed client method, request serializer, response decoder, UI workflow, agent workflow, or live receipt exists for direct inference completion.",
+      "dimensions": {
+        "route": {"status": "conformant", "evidence_paths": []},
+        "request": {"status": "gap", "evidence_paths": [], "notes": "CompleteRequest is pinned in OpenAPI only; HotM has no request serializer."},
+        "response": {"status": "gap", "evidence_paths": [], "notes": "CompleteResponse success/error decoder is not implemented in HotM."},
+        "auth_context": {"status": "gap", "evidence_paths": [], "notes": "No operation-specific auth/context gate beyond the OpenAPI bearer requirement."},
+        "ui": {"status": "gap", "evidence_paths": []},
+        "agent": {"status": "gap", "evidence_paths": []},
+        "live": {"status": "gap", "evidence_paths": []}
+      }
+    },
+    "GET /api/v1/inference/config#get_inference_config": {
+      "targeted_by_290": true,
+      "disposition": "partial",
+      "tracker": "#290",
+      "rationale": "Typed config read and UI workflow exist, but focused operation tests/live receipt are not complete.",
+      "dimensions": {
+        "route": {"status": "conformant", "evidence_paths": []},
+        "request": {"status": "conformant", "evidence_paths": ["ui/src/api/inference.ts"]},
+        "response": {"status": "conformant", "evidence_paths": ["ui/src/api/inference.ts"]},
+        "auth_context": {"status": "partial", "evidence_paths": ["ui/src/api/inference.ts"]},
+        "ui": {"status": "conformant", "evidence_paths": ["ui/src/components/admin/InferenceSettings.tsx", "ui/src/components/admin/AdminPanel.tsx"]},
+        "agent": {"status": "gap", "evidence_paths": []},
+        "live": {"status": "gap", "evidence_paths": []}
+      }
+    },
+    "POST /api/v1/inference/config#update_inference_config": {
+      "targeted_by_290": true,
+      "disposition": "partial",
+      "tracker": "#290",
+      "rationale": "Config update serializer and UI workflow exist, but focused operation tests/live receipt are incomplete.",
+      "dimensions": {
+        "route": {"status": "conformant", "evidence_paths": []},
+        "request": {"status": "conformant", "evidence_paths": ["ui/src/api/inference.ts"]},
+        "response": {"status": "conformant", "evidence_paths": ["ui/src/api/inference.ts"]},
+        "auth_context": {"status": "partial", "evidence_paths": ["ui/src/api/inference.ts"]},
+        "ui": {"status": "conformant", "evidence_paths": ["ui/src/components/admin/InferenceSettings.tsx"]},
+        "agent": {"status": "gap", "evidence_paths": []},
+        "live": {"status": "gap", "evidence_paths": []}
+      }
+    },
+    "DELETE /api/v1/inference/config#delete_inference_config": {
+      "targeted_by_290": true,
+      "disposition": "partial",
+      "tracker": "#290",
+      "rationale": "Reset config call exists, but response/error conformance and live evidence are incomplete.",
+      "dimensions": {
+        "route": {"status": "conformant", "evidence_paths": []},
+        "request": {"status": "not_applicable", "evidence_paths": []},
+        "response": {"status": "partial", "evidence_paths": ["ui/src/api/inference.ts"]},
+        "auth_context": {"status": "partial", "evidence_paths": ["ui/src/api/inference.ts"]},
+        "ui": {"status": "conformant", "evidence_paths": ["ui/src/components/admin/InferenceSettings.tsx"]},
+        "agent": {"status": "gap", "evidence_paths": []},
+        "live": {"status": "gap", "evidence_paths": []}
+      }
+    },
+    "GET /api/v1/inference/config/audit#get_inference_config_audit": {
+      "targeted_by_290": true,
+      "disposition": "partial",
+      "tracker": "#290",
+      "rationale": "Audit query and admin surface exist; operation-level auth/redaction and live evidence remain partial.",
+      "dimensions": {
+        "route": {"status": "conformant", "evidence_paths": []},
+        "request": {"status": "conformant", "evidence_paths": ["ui/src/api/inference.ts"]},
+        "response": {"status": "conformant", "evidence_paths": ["ui/src/api/inference.ts"]},
+        "auth_context": {"status": "partial", "evidence_paths": ["ui/src/api/inference.ts"]},
+        "ui": {"status": "conformant", "evidence_paths": ["ui/src/components/admin/InferenceAuditLog.tsx"]},
+        "agent": {"status": "gap", "evidence_paths": []},
+        "live": {"status": "gap", "evidence_paths": []}
+      }
+    },
+    "GET /api/v1/inference/providers#list_providers": {
+      "targeted_by_290": true,
+      "disposition": "gap",
+      "tracker": "#290",
+      "rationale": "HotM currently uses a local provider profile catalog; it does not call or decode the Fortemi providers operation.",
+      "dimensions": {
+        "route": {"status": "conformant", "evidence_paths": []},
+        "request": {"status": "not_applicable", "evidence_paths": []},
+        "response": {"status": "gap", "evidence_paths": []},
+        "auth_context": {"status": "gap", "evidence_paths": []},
+        "ui": {"status": "gap", "evidence_paths": []},
+        "agent": {"status": "gap", "evidence_paths": []},
+        "live": {"status": "gap", "evidence_paths": []}
+      }
+    },
+    "POST /api/v1/inference/stream#stream": {
+      "targeted_by_290": true,
+      "disposition": "gap",
+      "tracker": "#290",
+      "rationale": "Native chat stream coverage is separate; the direct inference stream operation lacks a typed HotM client and SSE decoder.",
+      "dimensions": {
+        "route": {"status": "conformant", "evidence_paths": []},
+        "request": {"status": "gap", "evidence_paths": []},
+        "response": {"status": "gap", "evidence_paths": []},
+        "auth_context": {"status": "gap", "evidence_paths": []},
+        "ui": {"status": "gap", "evidence_paths": []},
+        "agent": {"status": "gap", "evidence_paths": []},
+        "live": {"status": "gap", "evidence_paths": []}
+      }
+    },
+    "POST /api/v1/inference/test-connection#test_connection": {
+      "targeted_by_290": true,
+      "disposition": "partial",
+      "tracker": "#290",
+      "rationale": "Connection-test serializer/decoder and UI workflow exist, but focused operation tests and live receipts are incomplete.",
+      "dimensions": {
+        "route": {"status": "conformant", "evidence_paths": []},
+        "request": {"status": "conformant", "evidence_paths": ["ui/src/api/inference.ts"]},
+        "response": {"status": "conformant", "evidence_paths": ["ui/src/api/inference.ts"]},
+        "auth_context": {"status": "partial", "evidence_paths": ["ui/src/api/inference.ts"]},
+        "ui": {"status": "conformant", "evidence_paths": ["ui/src/components/admin/InferenceSettings.tsx"]},
+        "agent": {"status": "gap", "evidence_paths": []},
+        "live": {"status": "gap", "evidence_paths": []}
+      }
+    },
+    "GET /api/v1/jobs#list_jobs": {
+      "targeted_by_290": true,
+      "disposition": "partial",
+      "tracker": "#290",
+      "rationale": "Jobs list client, archive context header, and UI exist; no live receipt is recorded.",
+      "dimensions": {
+        "route": {"status": "conformant", "evidence_paths": []},
+        "request": {"status": "conformant", "evidence_paths": ["ui/src/api/jobs.ts"]},
+        "response": {"status": "conformant", "evidence_paths": ["ui/src/api/jobs.ts"]},
+        "auth_context": {"status": "conformant", "evidence_paths": ["ui/src/api/jobs.ts"]},
+        "ui": {"status": "conformant", "evidence_paths": ["ui/src/components/jobs/JobQueueView.tsx", "ui/src/components/jobs/__tests__/JobQueueView.test.tsx"]},
+        "agent": {"status": "gap", "evidence_paths": []},
+        "live": {"status": "gap", "evidence_paths": []}
+      }
+    },
+    "POST /api/v1/jobs#create_job": {
+      "targeted_by_290": true,
+      "disposition": "gap",
+      "tracker": "#290",
+      "rationale": "No HotM typed client or workflow creates arbitrary Fortemi jobs.",
+      "dimensions": {
+        "route": {"status": "conformant", "evidence_paths": []},
+        "request": {"status": "gap", "evidence_paths": []},
+        "response": {"status": "gap", "evidence_paths": []},
+        "auth_context": {"status": "gap", "evidence_paths": []},
+        "ui": {"status": "gap", "evidence_paths": []},
+        "agent": {"status": "gap", "evidence_paths": []},
+        "live": {"status": "gap", "evidence_paths": []}
+      }
+    },
+    "GET /api/v1/jobs/{id}#get_job": {
+      "targeted_by_290": true,
+      "disposition": "gap",
+      "tracker": "#290",
+      "rationale": "Jobs detail is in the pinned OpenAPI contract but HotM lacks a typed get-job method and detail workflow.",
+      "dimensions": {
+        "route": {"status": "conformant", "evidence_paths": []},
+        "request": {"status": "gap", "evidence_paths": []},
+        "response": {"status": "gap", "evidence_paths": []},
+        "auth_context": {"status": "gap", "evidence_paths": []},
+        "ui": {"status": "gap", "evidence_paths": []},
+        "agent": {"status": "gap", "evidence_paths": []},
+        "live": {"status": "gap", "evidence_paths": []}
+      }
+    },
+    "GET /api/v1/extraction/stats#extraction_stats": {
+      "targeted_by_290": true,
+      "disposition": "gap",
+      "tracker": "#290",
+      "rationale": "Extraction statistics are route-disposed only; no typed HotM operation evidence exists.",
+      "dimensions": {
+        "route": {"status": "conformant", "evidence_paths": []},
+        "request": {"status": "not_applicable", "evidence_paths": []},
+        "response": {"status": "gap", "evidence_paths": []},
+        "auth_context": {"status": "gap", "evidence_paths": []},
+        "ui": {"status": "gap", "evidence_paths": []},
+        "agent": {"status": "gap", "evidence_paths": []},
+        "live": {"status": "gap", "evidence_paths": []}
+      }
+    },
+    "GET /api/v1/graph/diagnostics#graph_diagnostics": {
+      "targeted_by_290": true,
+      "disposition": "gap",
+      "tracker": "#290",
+      "rationale": "Graph diagnostics are not typed as an API operation in HotM; graph UI evidence is adjacent graph exploration only.",
+      "dimensions": {
+        "route": {"status": "conformant", "evidence_paths": []},
+        "request": {"status": "not_applicable", "evidence_paths": []},
+        "response": {"status": "gap", "evidence_paths": []},
+        "auth_context": {"status": "gap", "evidence_paths": []},
+        "ui": {"status": "gap", "evidence_paths": []},
+        "agent": {"status": "gap", "evidence_paths": []},
+        "live": {"status": "gap", "evidence_paths": []}
+      }
+    },
+    "GET /api/v1/graph/diagnostics/history#list_diagnostics_snapshots": {
+      "targeted_by_290": true,
+      "disposition": "gap",
+      "tracker": "#290",
+      "rationale": "No typed HotM operation evidence exists for graph diagnostics history.",
+      "dimensions": {
+        "route": {"status": "conformant", "evidence_paths": []},
+        "request": {"status": "not_applicable", "evidence_paths": []},
+        "response": {"status": "gap", "evidence_paths": []},
+        "auth_context": {"status": "gap", "evidence_paths": []},
+        "ui": {"status": "gap", "evidence_paths": []},
+        "agent": {"status": "gap", "evidence_paths": []},
+        "live": {"status": "gap", "evidence_paths": []}
+      }
+    },
+    "GET /api/v1/graph/diagnostics/compare#compare_diagnostics_snapshots": {
+      "targeted_by_290": true,
+      "disposition": "gap",
+      "tracker": "#290",
+      "rationale": "No typed HotM operation evidence exists for graph diagnostics comparison.",
+      "dimensions": {
+        "route": {"status": "conformant", "evidence_paths": []},
+        "request": {"status": "gap", "evidence_paths": []},
+        "response": {"status": "gap", "evidence_paths": []},
+        "auth_context": {"status": "gap", "evidence_paths": []},
+        "ui": {"status": "gap", "evidence_paths": []},
+        "agent": {"status": "gap", "evidence_paths": []},
+        "live": {"status": "gap", "evidence_paths": []}
+      }
+    },
+    "POST /api/v1/graph/diagnostics/snapshot#capture_diagnostics_snapshot": {
+      "targeted_by_290": true,
+      "disposition": "gap",
+      "tracker": "#290",
+      "rationale": "No typed HotM operation evidence exists for administrative graph snapshot mutation.",
+      "dimensions": {
+        "route": {"status": "conformant", "evidence_paths": []},
+        "request": {"status": "gap", "evidence_paths": []},
+        "response": {"status": "gap", "evidence_paths": []},
+        "auth_context": {"status": "gap", "evidence_paths": []},
+        "ui": {"status": "gap", "evidence_paths": []},
+        "agent": {"status": "gap", "evidence_paths": []},
+        "live": {"status": "gap", "evidence_paths": []}
+      }
+    },
+    "POST /api/v1/provenance/locations#create_prov_location": {
+      "targeted_by_290": true,
+      "disposition": "partial",
+      "tracker": "#290",
+      "rationale": "Typed provenance mutation and validation exist, but no UI/agent workflow or live receipt is recorded.",
+      "dimensions": {
+        "route": {"status": "conformant", "evidence_paths": []},
+        "request": {"status": "conformant", "evidence_paths": ["ui/src/api/provenance.ts", "ui/src/api/__tests__/provenance.test.ts"]},
+        "response": {"status": "conformant", "evidence_paths": ["ui/src/api/provenance.ts", "ui/src/api/__tests__/provenance.test.ts"]},
+        "auth_context": {"status": "partial", "evidence_paths": ["ui/src/api/provenance.ts"]},
+        "ui": {"status": "gap", "evidence_paths": []},
+        "agent": {"status": "gap", "evidence_paths": []},
+        "live": {"status": "gap", "evidence_paths": []}
+      }
+    },
+    "POST /api/v1/provenance/named-locations#create_named_location": {
+      "targeted_by_290": true,
+      "disposition": "partial",
+      "tracker": "#290",
+      "rationale": "Typed provenance mutation exists, but workflow and live evidence are absent.",
+      "dimensions": {
+        "route": {"status": "conformant", "evidence_paths": []},
+        "request": {"status": "conformant", "evidence_paths": ["ui/src/api/provenance.ts", "ui/src/api/__tests__/provenance.test.ts"]},
+        "response": {"status": "conformant", "evidence_paths": ["ui/src/api/provenance.ts", "ui/src/api/__tests__/provenance.test.ts"]},
+        "auth_context": {"status": "partial", "evidence_paths": ["ui/src/api/provenance.ts"]},
+        "ui": {"status": "gap", "evidence_paths": []},
+        "agent": {"status": "gap", "evidence_paths": []},
+        "live": {"status": "gap", "evidence_paths": []}
+      }
+    },
+    "POST /api/v1/provenance/devices#create_prov_device": {
+      "targeted_by_290": true,
+      "disposition": "partial",
+      "tracker": "#290",
+      "rationale": "Typed provenance mutation exists, but workflow and live evidence are absent.",
+      "dimensions": {
+        "route": {"status": "conformant", "evidence_paths": []},
+        "request": {"status": "conformant", "evidence_paths": ["ui/src/api/provenance.ts", "ui/src/api/__tests__/provenance.test.ts"]},
+        "response": {"status": "conformant", "evidence_paths": ["ui/src/api/provenance.ts", "ui/src/api/__tests__/provenance.test.ts"]},
+        "auth_context": {"status": "partial", "evidence_paths": ["ui/src/api/provenance.ts"]},
+        "ui": {"status": "gap", "evidence_paths": []},
+        "agent": {"status": "gap", "evidence_paths": []},
+        "live": {"status": "gap", "evidence_paths": []}
+      }
+    },
+    "POST /api/v1/provenance/files#create_file_provenance": {
+      "targeted_by_290": true,
+      "disposition": "partial",
+      "tracker": "#290",
+      "rationale": "Typed provenance mutation exists, but workflow and live evidence are absent.",
+      "dimensions": {
+        "route": {"status": "conformant", "evidence_paths": []},
+        "request": {"status": "conformant", "evidence_paths": ["ui/src/api/provenance.ts", "ui/src/api/__tests__/provenance.test.ts"]},
+        "response": {"status": "conformant", "evidence_paths": ["ui/src/api/provenance.ts", "ui/src/api/__tests__/provenance.test.ts"]},
+        "auth_context": {"status": "partial", "evidence_paths": ["ui/src/api/provenance.ts"]},
+        "ui": {"status": "gap", "evidence_paths": []},
+        "agent": {"status": "gap", "evidence_paths": []},
+        "live": {"status": "gap", "evidence_paths": []}
+      }
+    },
+    "POST /api/v1/provenance/notes#create_note_provenance": {
+      "targeted_by_290": true,
+      "disposition": "partial",
+      "tracker": "#290",
+      "rationale": "Typed provenance mutation exists, but workflow and live evidence are absent.",
+      "dimensions": {
+        "route": {"status": "conformant", "evidence_paths": []},
+        "request": {"status": "conformant", "evidence_paths": ["ui/src/api/provenance.ts", "ui/src/api/__tests__/provenance.test.ts"]},
+        "response": {"status": "conformant", "evidence_paths": ["ui/src/api/provenance.ts", "ui/src/api/__tests__/provenance.test.ts"]},
+        "auth_context": {"status": "partial", "evidence_paths": ["ui/src/api/provenance.ts"]},
+        "ui": {"status": "gap", "evidence_paths": []},
+        "agent": {"status": "gap", "evidence_paths": []},
+        "live": {"status": "gap", "evidence_paths": []}
+      }
+    },
+    "GET /api/v1/collections/{id}/export#export_collection": {
+      "targeted_by_290": true,
+      "disposition": "gap",
+      "tracker": "#290",
+      "rationale": "Collection export is pinned in OpenAPI but not implemented in the HotM collections client.",
+      "dimensions": {
+        "route": {"status": "conformant", "evidence_paths": []},
+        "request": {"status": "gap", "evidence_paths": []},
+        "response": {"status": "gap", "evidence_paths": []},
+        "auth_context": {"status": "gap", "evidence_paths": []},
+        "ui": {"status": "gap", "evidence_paths": []},
+        "agent": {"status": "gap", "evidence_paths": []},
+        "live": {"status": "gap", "evidence_paths": []}
+      }
+    },
+    "GET /api/v1/templates#list_templates": {
+      "targeted_by_290": true,
+      "disposition": "partial",
+      "tracker": "#290",
+      "rationale": "Template list client and manager UI exist; live operation evidence is absent.",
+      "dimensions": {
+        "route": {"status": "conformant", "evidence_paths": []},
+        "request": {"status": "not_applicable", "evidence_paths": []},
+        "response": {"status": "conformant", "evidence_paths": ["ui/src/api/templates.ts", "ui/src/components/templates/__tests__/TemplateManager.test.tsx"]},
+        "auth_context": {"status": "partial", "evidence_paths": ["ui/src/api/templates.ts"]},
+        "ui": {"status": "conformant", "evidence_paths": ["ui/src/components/templates/TemplateManager.tsx"]},
+        "agent": {"status": "gap", "evidence_paths": []},
+        "live": {"status": "gap", "evidence_paths": []}
+      }
+    },
+    "POST /api/v1/templates#create_template": {
+      "targeted_by_290": true,
+      "disposition": "partial",
+      "tracker": "#290",
+      "rationale": "Template create serializer and UI exist; live operation evidence is absent.",
+      "dimensions": {
+        "route": {"status": "conformant", "evidence_paths": []},
+        "request": {"status": "conformant", "evidence_paths": ["ui/src/api/templates.ts", "ui/src/components/templates/__tests__/TemplateManager.test.tsx"]},
+        "response": {"status": "conformant", "evidence_paths": ["ui/src/api/templates.ts"]},
+        "auth_context": {"status": "partial", "evidence_paths": ["ui/src/api/templates.ts"]},
+        "ui": {"status": "conformant", "evidence_paths": ["ui/src/components/templates/TemplateManager.tsx"]},
+        "agent": {"status": "gap", "evidence_paths": []},
+        "live": {"status": "gap", "evidence_paths": []}
+      }
+    },
+    "GET /api/v1/templates/{id}#get_template": {
+      "targeted_by_290": true,
+      "disposition": "partial",
+      "tracker": "#290",
+      "rationale": "Template get client exists; direct UI/live evidence is partial.",
+      "dimensions": {
+        "route": {"status": "conformant", "evidence_paths": []},
+        "request": {"status": "conformant", "evidence_paths": ["ui/src/api/templates.ts"]},
+        "response": {"status": "conformant", "evidence_paths": ["ui/src/api/templates.ts"]},
+        "auth_context": {"status": "partial", "evidence_paths": ["ui/src/api/templates.ts"]},
+        "ui": {"status": "partial", "evidence_paths": ["ui/src/components/templates/TemplateManager.tsx"]},
+        "agent": {"status": "gap", "evidence_paths": []},
+        "live": {"status": "gap", "evidence_paths": []}
+      }
+    },
+    "PATCH /api/v1/templates/{id}#update_template": {
+      "targeted_by_290": true,
+      "disposition": "partial",
+      "tracker": "#290",
+      "rationale": "Template update client and manager UI exist; live operation evidence is absent.",
+      "dimensions": {
+        "route": {"status": "conformant", "evidence_paths": []},
+        "request": {"status": "conformant", "evidence_paths": ["ui/src/api/templates.ts"]},
+        "response": {"status": "conformant", "evidence_paths": ["ui/src/api/templates.ts"]},
+        "auth_context": {"status": "partial", "evidence_paths": ["ui/src/api/templates.ts"]},
+        "ui": {"status": "conformant", "evidence_paths": ["ui/src/components/templates/TemplateManager.tsx"]},
+        "agent": {"status": "gap", "evidence_paths": []},
+        "live": {"status": "gap", "evidence_paths": []}
+      }
+    },
+    "DELETE /api/v1/templates/{id}#delete_template": {
+      "targeted_by_290": true,
+      "disposition": "partial",
+      "tracker": "#290",
+      "rationale": "Template delete client and manager UI exist; response/live evidence is partial.",
+      "dimensions": {
+        "route": {"status": "conformant", "evidence_paths": []},
+        "request": {"status": "not_applicable", "evidence_paths": []},
+        "response": {"status": "partial", "evidence_paths": ["ui/src/api/templates.ts"]},
+        "auth_context": {"status": "partial", "evidence_paths": ["ui/src/api/templates.ts"]},
+        "ui": {"status": "conformant", "evidence_paths": ["ui/src/components/templates/TemplateManager.tsx"]},
+        "agent": {"status": "gap", "evidence_paths": []},
+        "live": {"status": "gap", "evidence_paths": []}
+      }
+    },
+    "POST /api/v1/templates/{id}/instantiate#instantiate_template": {
+      "targeted_by_290": true,
+      "disposition": "partial",
+      "tracker": "#290",
+      "rationale": "Template instantiate client exists; UI/live evidence is not complete.",
+      "dimensions": {
+        "route": {"status": "conformant", "evidence_paths": []},
+        "request": {"status": "conformant", "evidence_paths": ["ui/src/api/templates.ts"]},
+        "response": {"status": "conformant", "evidence_paths": ["ui/src/api/templates.ts"]},
+        "auth_context": {"status": "partial", "evidence_paths": ["ui/src/api/templates.ts"]},
+        "ui": {"status": "partial", "evidence_paths": ["ui/src/components/templates/TemplateManager.tsx"]},
+        "agent": {"status": "gap", "evidence_paths": []},
+        "live": {"status": "gap", "evidence_paths": []}
+      }
+    },
+    "PATCH /api/v1/webhooks/{id}#update_webhook": {
+      "targeted_by_290": true,
+      "disposition": "partial",
+      "tracker": "#290",
+      "rationale": "Webhook update client and admin UI exist, but live delivery/update receipt is absent.",
+      "dimensions": {
+        "route": {"status": "conformant", "evidence_paths": []},
+        "request": {"status": "conformant", "evidence_paths": ["ui/src/api/webhooks.ts", "ui/src/api/__tests__/webhooks.test.ts"]},
+        "response": {"status": "conformant", "evidence_paths": ["ui/src/api/webhooks.ts", "ui/src/api/__tests__/webhooks.test.ts"]},
+        "auth_context": {"status": "partial", "evidence_paths": ["ui/src/api/webhooks.ts"]},
+        "ui": {"status": "conformant", "evidence_paths": ["ui/src/components/admin/WebhooksPanel.tsx", "ui/src/components/admin/__tests__/WebhooksPanel.test.tsx"]},
+        "agent": {"status": "gap", "evidence_paths": []},
+        "live": {"status": "gap", "evidence_paths": []}
+      }
+    },
+    "GET /api/v1/webhooks/{id}/deliveries#list_webhook_deliveries": {
+      "targeted_by_290": true,
+      "disposition": "partial",
+      "tracker": "#290",
+      "rationale": "Webhook delivery history client and admin UI exist; live receipt is absent.",
+      "dimensions": {
+        "route": {"status": "conformant", "evidence_paths": []},
+        "request": {"status": "conformant", "evidence_paths": ["ui/src/api/webhooks.ts", "ui/src/api/__tests__/webhooks.test.ts"]},
+        "response": {"status": "conformant", "evidence_paths": ["ui/src/api/webhooks.ts", "ui/src/api/__tests__/webhooks.test.ts"]},
+        "auth_context": {"status": "partial", "evidence_paths": ["ui/src/api/webhooks.ts"]},
+        "ui": {"status": "conformant", "evidence_paths": ["ui/src/components/admin/WebhooksPanel.tsx", "ui/src/components/admin/__tests__/WebhooksPanel.test.tsx"]},
+        "agent": {"status": "gap", "evidence_paths": []},
+        "live": {"status": "gap", "evidence_paths": []}
+      }
+    },
+    "POST /api/v1/document-types/detect#detect_document_type": {
+      "targeted_by_290": true,
+      "disposition": "partial",
+      "tracker": "#290",
+      "rationale": "Document detection serializer/decoder exists; direct UI/live evidence remains partial.",
+      "dimensions": {
+        "route": {"status": "conformant", "evidence_paths": []},
+        "request": {"status": "conformant", "evidence_paths": ["ui/src/api/documents.ts", "ui/src/components/admin/__tests__/DocumentTypesPanel.test.tsx"]},
+        "response": {"status": "conformant", "evidence_paths": ["ui/src/api/documents.ts"]},
+        "auth_context": {"status": "partial", "evidence_paths": ["ui/src/api/documents.ts"]},
+        "ui": {"status": "partial", "evidence_paths": ["ui/src/components/admin/DocumentTypesPanel.tsx"]},
+        "agent": {"status": "gap", "evidence_paths": []},
+        "live": {"status": "gap", "evidence_paths": []}
+      }
+    },
+    "PATCH /api/v1/document-types/{name}#update_document_type": {
+      "targeted_by_290": true,
+      "disposition": "partial",
+      "tracker": "#290",
+      "rationale": "Document type update client and UI exist; live receipt is absent.",
+      "dimensions": {
+        "route": {"status": "conformant", "evidence_paths": []},
+        "request": {"status": "conformant", "evidence_paths": ["ui/src/api/documents.ts", "ui/src/components/admin/__tests__/DocumentTypesPanel.test.tsx"]},
+        "response": {"status": "conformant", "evidence_paths": ["ui/src/api/documents.ts"]},
+        "auth_context": {"status": "partial", "evidence_paths": ["ui/src/api/documents.ts"]},
+        "ui": {"status": "conformant", "evidence_paths": ["ui/src/components/admin/DocumentTypesPanel.tsx"]},
+        "agent": {"status": "gap", "evidence_paths": []},
+        "live": {"status": "gap", "evidence_paths": []}
+      }
+    },
+    "GET /api/v1/health/access-frequency#get_access_frequency": {
+      "targeted_by_290": true,
+      "disposition": "gap",
+      "tracker": "#290",
+      "rationale": "Access-frequency health is pinned in OpenAPI but has no HotM typed client method or UI workflow.",
+      "dimensions": {
+        "route": {"status": "conformant", "evidence_paths": []},
+        "request": {"status": "not_applicable", "evidence_paths": []},
+        "response": {"status": "gap", "evidence_paths": []},
+        "auth_context": {"status": "gap", "evidence_paths": []},
+        "ui": {"status": "gap", "evidence_paths": []},
+        "agent": {"status": "gap", "evidence_paths": []},
+        "live": {"status": "gap", "evidence_paths": []}
+      }
+    }
+  }
+}

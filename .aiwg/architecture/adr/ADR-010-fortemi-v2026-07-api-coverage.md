@@ -261,3 +261,22 @@ boundary, producing 255 schema-bearing responses across 559 response entries.
 The gate requires that shared boundary on every operation and preserves the six
 producer-declared typed success schemas. This does not claim typed success
 payloads where Fortemi has not declared them.
+
+### Decision Amendment: Executable Operation Evidence
+
+The route-family disposition decision is amended by #290. The normative
+coverage record is now generated from the pinned OpenAPI artifact plus
+`.aiwg/testing/data/fortemi-operation-conformance-v2026-07.json`. Evidence is
+keyed by method, path, and operation ID; mixed dispositions within a route
+family are allowed. An operation is `integrated` only when every applicable
+request, response, auth/context, UI, agent, and live dimension is conformant.
+Missing evidence is reported as `partial` or `gap`, never inferred from a path
+prefix or source-file match.
+
+The current generated result is 1 integrated, 238 partial, and 12 gap operations
+with zero pin, boundary, evidence-path, or unclassified-operation diagnostics.
+Route inventory, OpenAPI, AsyncAPI, Knowledge Shard, compatibility, and auth
+remain independent release gates. The schema-derived AsyncAPI transport receipt
+does not close #288 because no producer-owned event example corpus exists at the
+pinned Fortemi revision. The desktop/mobile mocked Playwright gate introduced by
+#291 is likewise UI evidence, not live or auth/context evidence.

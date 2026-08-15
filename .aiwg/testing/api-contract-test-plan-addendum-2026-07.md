@@ -377,3 +377,49 @@ entries, and 257 response schemas. Every operation must retain the shared
 schema-bearing RFC 9457 `429` boundary. The gate must report both
 schema-bearing-operation and response-schema counts and must not convert
 response-description presence into an undeclared success payload type.
+
+### Operation-Level and Realtime Commands
+
+```bash
+python3 .aiwg/testing/scripts/test_fortemi_route_coverage.py
+python3 .aiwg/testing/scripts/fortemi-route-coverage.py --check
+node .aiwg/testing/scripts/verify-fortemi-asyncapi-payloads.mjs
+(cd ui && npm test -- --run src/api/__tests__/events.test.ts src/services/__tests__/realtimeEventBus.test.ts)
+```
+
+The operation verifier consumes the exact OpenAPI receipt and fails on stale
+pins, missing evidence paths, unsupported boundaries, unclassified operations,
+or missing focused operations. Its generated JSON and Markdown reports come
+from one in-memory model. The current expected disposition counts are 1
+integrated, 238 partial, and 12 gap; route-disposition counts are checked
+separately.
+
+The AsyncAPI payload verifier resolves all 48 event schemas and executes
+schema-derived positives plus four negative categories. Both transports must
+accept all 48 valid events; SSE must reject 192 malformed known cases and
+WebSocket must reject 179, with 13 envelope-only identifier mutations recorded
+as not applicable to the legacy WebSocket shape. Unknown and malformed known
+events must remain `Unknown` with raw data preserved. Full #288 closure also
+requires producer-owned positive examples, which are absent from the pinned
+producer checkout.
+
+### Required Mocked Browser Gate
+
+```bash
+cd ui
+rm -rf node_modules
+npm ci
+npx playwright install chromium --with-deps
+node scripts/write-mocked-playwright-ci-receipt.cjs --prepare test-results/mocked-ci/receipt.json
+CI=1 npx playwright test --config scripts/playwright-mocked-ci.config.cjs
+node scripts/write-mocked-playwright-ci-receipt.cjs --finalize test-results/mocked-ci/receipt.json 0
+node scripts/write-mocked-playwright-ci-receipt.cjs --verify test-results/mocked-ci/receipt.json
+npm test -- --run
+npm run typecheck
+npm run build
+```
+
+The Playwright config must retain desktop 1280 and mobile 390 projects, retries
+set to zero, and no unconditional skips for note, search, or tag workflows. CI
+uploads the receipt, report, traces, screenshots, and videos on failure. Live
+Fortemi and launched Tauri scenarios remain opt-in receipt gates.

@@ -186,3 +186,24 @@ operations carry a schema-bearing shared RFC 9457 rate-limit boundary; the
 verifier rejects its removal or media/schema drift. CI emits exact producer and
 consumer commits. Undeclared success payloads remain undeclared rather than
 being inferred from descriptions.
+
+## 2026-08-15 Verification Baseline
+
+REQ-020 is now enforced by the generated method/path/operation-ID matrix at
+`.aiwg/api/compatibility/fortemi-v2026-07-operation-coverage.json`. Its seven
+dimensions are independent, and an operation cannot become integrated from
+route or file-presence evidence. The pinned baseline is 251 operations: 1
+integrated, 238 partial, and 12 gap. REQ-021 therefore remains open for the
+partial/gap workflows even though all 202 routes have a disposition.
+
+REQ-014 has schema-derived coverage for all 48 pinned event schemas over SSE and
+WebSocket, including required-field, enum, nullability, and identifier-format
+negative mutations. Malformed known and unknown future events remain `Unknown`
+with bounded raw-event preservation. Because the pinned Fortemi checkout does
+not provide producer-owned positive examples, #288 and the producer-example
+portion of REQ-014 remain open.
+
+REQ-023 is implemented as a required two-project mocked Playwright gate at
+1280 px and 390 px with zero retries. The gate records the exact HotM revision
+and fixture/test digest and uploads reports and failure media. It does not
+satisfy live Fortemi, launched Tauri, compatibility, or auth/context receipts.

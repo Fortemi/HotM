@@ -1,0 +1,20 @@
+{
+  "scenarios": [
+    {
+      "name": "no_inference_from_route_family",
+      "description": "A route-disposed OpenAPI operation without explicit request/response/auth evidence remains partial, not integrated."
+    },
+    {
+      "name": "missing_evidence_path_hard_fail",
+      "description": "A conformant operation dimension with a stale evidence path fails --check."
+    },
+    {
+      "name": "unsupported_revision_hard_fail",
+      "description": "A pinned OpenAPI document with a contract revision outside the accepted set fails."
+    },
+    {
+      "name": "focused_gap_classification",
+      "description": "#290 target operations can be explicit gaps with rationale instead of being reported as covered from family prefixes."
+    }
+  ]
+}
