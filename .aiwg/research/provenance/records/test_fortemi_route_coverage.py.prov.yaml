@@ -1,19 +1,21 @@
 metadata:
   schema_version: "1.0.0"
   created_at: "2026-08-15T00:00:00Z"
+  updated_at: "2026-08-15T22:38:00Z"
   description: "Provenance for HotM #290 focused verifier unit tests"
 entity:
   id: "urn:aiwg:artifact:.aiwg/testing/scripts/test_fortemi_route_coverage.py"
   type: test
   created_at: "2026-08-15T00:00:00Z"
-  checksum: "sha256:6a4921493fe036f4360e82a555acc687f2335c0c7bcc52a2a03f89cb2c8bafc8"
-  size_bytes: 8877
+  updated_at: "2026-08-15T22:38:00Z"
+  checksum: "sha256:a32fe40a4b718b5b1b7e29df6ba78a7a8a45a3d9cf839a11811337b9acfc5c28"
+  size_bytes: 9880
 activity:
   id: "urn:aiwg:activity:generation:test-fortemi-route-coverage-py:001"
   type: generation
   started_at: "2026-08-15T00:00:00Z"
-  ended_at: "2026-08-15T00:00:00Z"
-  description: "Generate focused tests for operation-level conformance, stale pin, missing evidence, and report parity"
+  ended_at: "2026-08-15T22:38:00Z"
+  description: "Test operation-level conformance, stale source projection, missing evidence, and report parity"
 agent:
   id: "urn:aiwg:agent:test-engineer"
   type: ai_assistant

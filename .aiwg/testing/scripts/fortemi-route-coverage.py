@@ -22,9 +22,6 @@ from datetime import date, datetime, timezone
 from pathlib import Path
 from typing import Any, Iterable
 
-import yaml
-
-
 HOTM_ROOT = Path(__file__).resolve().parents[3]
 WORKSPACE_ROOT = HOTM_ROOT.parent
 FORTEMI_ROOT = WORKSPACE_ROOT / "fortemi"
@@ -272,14 +269,6 @@ def load_json(path: Path) -> dict[str, Any]:
     return value
 
 
-def load_openapi(path: Path = OPENAPI_CONTRACT) -> dict[str, Any]:
-    with path.open(encoding="utf-8") as handle:
-        document = yaml.safe_load(handle)
-    if not isinstance(document, dict):
-        raise ValueError(f"{path} is not a YAML object")
-    return document
-
-
 def build_routes(source: str) -> list[ServerRoute]:
     routes: list[ServerRoute] = []
     for path, handler_expr in extract_route_calls(source):
@@ -338,6 +327,55 @@ def extract_openapi_operations(document: dict[str, Any], routes: list[ServerRout
                 )
             )
     return operations
+
+
+def load_pinned_operation_projection(routes: list[ServerRoute]) -> tuple[dict[str, Any], list[OpenApiOperation], dict[str, Any]]:
+    """Load the tracked operation projection without requiring PyYAML in CI.
+
+    The projection is accepted only while its recorded source digest matches
+    the exact vendored OpenAPI bytes. Local artifact refreshes still parse the
+    producer YAML before committing the regenerated projection.
+    """
+    projection = load_json(OP_JSON_OUT)
+    metadata = projection.get("openapi")
+    records = projection.get("operations")
+    if not isinstance(metadata, dict) or not isinstance(records, list):
+        raise ValueError(f"{OP_JSON_OUT} is not an operation projection")
+
+    route_status = {
+        (method, route.path): route.status
+        for route in routes
+        for method in route.methods
+    }
+    operations: list[OpenApiOperation] = []
+    for record in records:
+        if not isinstance(record, dict):
+            raise ValueError(f"{OP_JSON_OUT} contains a non-object operation")
+        method = record.get("method")
+        path = record.get("path")
+        operation_id = record.get("operation_id")
+        if not all(isinstance(value, str) and value for value in (method, path, operation_id)):
+            raise ValueError(f"{OP_JSON_OUT} contains an incomplete operation identity")
+        operations.append(
+            OpenApiOperation(
+                method=method.upper(),
+                path=path,
+                operation_id=operation_id,
+                family=classify(path)[0],
+                has_request_body=bool(record.get("has_request_body")),
+                success_statuses=[str(value) for value in record.get("success_statuses", [])],
+                error_statuses=[str(value) for value in record.get("error_statuses", [])],
+                security=record.get("security") if isinstance(record.get("security"), list) else [],
+                route_disposition=route_status.get((method.upper(), path), "not_in_route_inventory"),
+            )
+        )
+
+    document = {
+        "openapi": metadata.get("specification_version", "3.1.0"),
+        "info": {"version": metadata.get("contract_version")},
+        "x-fortemi-contract": {"contract_revision": metadata.get("contract_revision")},
+    }
+    return document, operations, projection
 
 
 def route_level_overrides(routes: list[ServerRoute]) -> list[dict[str, object]]:
@@ -450,7 +488,12 @@ def build_route_diagnostics(summary: dict[str, object]) -> dict[str, object]:
     }
 
 
-def build_pin_diagnostics(document: dict[str, Any], receipt: dict[str, Any], evidence: dict[str, Any]) -> list[str]:
+def build_pin_diagnostics(
+    document: dict[str, Any],
+    receipt: dict[str, Any],
+    evidence: dict[str, Any],
+    projection: dict[str, Any] | None = None,
+) -> list[str]:
     issues: list[str] = []
     supported_revisions = evidence.get("supported_contract_revisions")
     supported_versions = evidence.get("supported_contract_versions")
@@ -471,8 +514,16 @@ def build_pin_diagnostics(document: dict[str, Any], receipt: dict[str, Any], evi
         issues.append("OpenAPI receipt contract version differs from vendored contract")
 
     contract_bytes = OPENAPI_CONTRACT.read_bytes()
-    if sha256(contract_bytes) != producer.get("sha256"):
+    contract_digest = sha256(contract_bytes)
+    if contract_digest != producer.get("sha256"):
         issues.append("vendored OpenAPI checksum does not match receipt")
+    if projection is not None:
+        projection_metadata = projection.get("openapi", {})
+        projection_operations = projection.get("operations", [])
+        if projection_metadata.get("sha256") != contract_digest:
+            issues.append("stale OpenAPI operation projection: source checksum differs")
+        if projection.get("operation_count") != len(projection_operations):
+            issues.append("OpenAPI operation projection count is inconsistent")
 
     commit = producer.get("commit")
     path = producer.get("path")
@@ -558,6 +609,7 @@ def build_operation_summary(
     document: dict[str, Any],
     receipt: dict[str, Any],
     evidence: dict[str, Any],
+    projection: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     evidence_operations = evidence.get("operations", {})
     if not isinstance(evidence_operations, dict):
@@ -569,7 +621,7 @@ def build_operation_summary(
         "missing_openapi_operations": [],
         "extra_evidence_operations": [],
         "evidence_issues": [],
-        "pin_issues": build_pin_diagnostics(document, receipt, evidence),
+        "pin_issues": build_pin_diagnostics(document, receipt, evidence, projection),
         "boundary_issues": [],
     }
     seen_keys: set[str] = set()
@@ -629,6 +681,7 @@ def build_operation_summary(
         "openapi": {
             "path": str(OPENAPI_CONTRACT.relative_to(HOTM_ROOT)),
             "receipt": str(OPENAPI_RECEIPT.relative_to(HOTM_ROOT)),
+            "specification_version": document.get("openapi"),
             "contract_revision": document.get("x-fortemi-contract", {}).get("contract_revision"),
             "contract_version": document.get("info", {}).get("version"),
             "producer_commit": receipt.get("producer", {}).get("commit"),
@@ -881,11 +934,12 @@ def build_summaries() -> tuple[dict[str, Any], dict[str, Any], list[ServerRoute]
     }
     route_summary["verifier_diagnostics"] = build_route_diagnostics(route_summary)
 
-    document = load_openapi()
     receipt = load_json(OPENAPI_RECEIPT)
     evidence = load_json(OPERATION_EVIDENCE)
-    operations = extract_openapi_operations(document, routes)
-    operation_summary = build_operation_summary(operations, routes, document, receipt, evidence)
+    document, operations, projection = load_pinned_operation_projection(routes)
+    operation_summary = build_operation_summary(
+        operations, routes, document, receipt, evidence, projection
+    )
     return route_summary, operation_summary, routes
 
 

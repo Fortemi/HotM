@@ -163,6 +163,30 @@ class FortemiOperationCoverageTests(unittest.TestCase):
         self.assertIn("unsupported OpenAPI contract revision: 99", issues)
         self.assertIn("stale OpenAPI producer pin: pinned artifact differs from vendored contract", issues)
 
+    def test_stale_operation_projection_is_a_check_failure(self) -> None:
+        document = openapi_fixture()
+        evidence = evidence_fixture()
+        contract_bytes = yaml.safe_dump(document).encode("utf-8")
+        receipt = receipt_fixture(contract_bytes)
+        projection = {
+            "openapi": {"sha256": "0" * 64},
+            "operation_count": 2,
+            "operations": [{}],
+        }
+
+        class FakeContractPath:
+            def read_bytes(self) -> bytes:
+                return contract_bytes
+
+        with patch.object(coverage, "OPENAPI_CONTRACT", FakeContractPath()):
+            with patch.object(coverage, "git_show_bytes", return_value=contract_bytes):
+                issues = coverage.build_pin_diagnostics(
+                    document, receipt, evidence, projection
+                )
+
+        self.assertIn("stale OpenAPI operation projection: source checksum differs", issues)
+        self.assertIn("OpenAPI operation projection count is inconsistent", issues)
+
     def test_extra_target_evidence_operation_is_a_check_failure(self) -> None:
         document = openapi_fixture()
         routes: list[coverage.ServerRoute] = []

@@ -1,21 +1,23 @@
 metadata:
   schema_version: "1.0.0"
   created_at: "2026-08-15T00:00:00Z"
+  updated_at: "2026-08-15T22:38:00Z"
   description: "Provenance for HotM #290 operation-level Fortemi route coverage verifier"
 entity:
   id: "urn:aiwg:artifact:.aiwg/testing/scripts/fortemi-route-coverage.py"
   type: test
   created_at: "2026-08-15T00:00:00Z"
-  checksum: "sha256:4bb5ea0ecf6e2caee37526982fd3efea17a350e1a154b46cceb83bac09013a06"
-  size_bytes: 44589
+  updated_at: "2026-08-15T22:38:00Z"
+  checksum: "sha256:4860fd6867815d43cb0ddd44af0bf314184645e244f8502cb3fcce30c082353f"
+  size_bytes: 47318
   attributes:
     change_scope: "hotm-290-operation-level-conformance"
 activity:
   id: "urn:aiwg:activity:modification:fortemi-route-coverage-py:002"
   type: modification
   started_at: "2026-08-15T00:00:00Z"
-  ended_at: "2026-08-15T00:00:00Z"
-  description: "Upgrade verifier from route-family inventory to pinned OpenAPI method/path/operationId conformance dimensions"
+  ended_at: "2026-08-15T22:38:00Z"
+  description: "Verify pinned operation projection and conformance dimensions without a non-standard CI runtime dependency"
 agent:
   id: "urn:aiwg:agent:test-engineer"
   type: ai_assistant
