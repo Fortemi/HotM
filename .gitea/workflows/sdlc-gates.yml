@@ -80,6 +80,15 @@ jobs:
         shell: bash
         run: npm ci --prefix ui --ignore-scripts
 
+      - name: Verify Fortemi AsyncAPI payload conformance
+        shell: bash
+        run: |
+          node .aiwg/testing/scripts/verify-fortemi-asyncapi-payloads.mjs ../fortemi
+          git diff --exit-code -- \
+            .aiwg/evidence/fortemi-asyncapi-payload-conformance-receipt.json \
+            ui/src/api/contracts/fortemi-asyncapi-event-fixtures.json \
+            ui/src/api/contracts/fortemi-asyncapi-event-validation-rules.json
+
       - name: Verify Fortemi OpenAPI consumer contract
         shell: bash
         run: |

@@ -207,6 +207,8 @@ records:
     record: "records/events.test.ts.hotm-288.prov.yaml"
   - entity: "urn:aiwg:artifact:ui/src/api/contracts/fortemi-asyncapi-event-fixtures.json"
     record: "records/fortemi-asyncapi-event-fixtures.json.hotm-288.prov.yaml"
+  - entity: "urn:aiwg:artifact:ui/src/api/contracts/fortemi-asyncapi-event-validation-rules.json"
+    record: "records/fortemi-asyncapi-event-validation-rules.json.hotm-288.prov.yaml"
   - entity: "urn:aiwg:artifact:.aiwg/evidence/fortemi-asyncapi-payload-conformance-receipt.json"
     record: "records/fortemi-asyncapi-payload-conformance-receipt.json.hotm-288.prov.yaml"
   - entity: "urn:aiwg:artifact:ui/src/services/__tests__/realtimeEventBus.test.ts"

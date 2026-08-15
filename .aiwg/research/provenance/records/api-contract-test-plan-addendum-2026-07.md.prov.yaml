@@ -1,15 +1,15 @@
 metadata:
   schema_version: "1.0.0"
   created_at: "2026-07-17T21:46:51Z"
-  updated_at: "2026-08-15T22:31:07Z"
-  description: "Provenance for the 2026-08-15 Fortemi integration test-gate update"
+  updated_at: "2026-08-15T23:07:04Z"
+  description: "Provenance for the deterministic Fortemi integration test-gate update"
 entity:
   id: "urn:aiwg:artifact:.aiwg/testing/api-contract-test-plan-addendum-2026-07.md"
   type: document
   created_at: "2026-07-17T21:46:51Z"
-  updated_at: "2026-08-15T22:31:07Z"
-  checksum: "sha256:995ab7724b03ef1d0c2c04418f26cc6316a1bc23f904b133aceef831d0467af1"
-  size_bytes: 23141
+  updated_at: "2026-08-15T23:07:04Z"
+  checksum: "sha256:86bf9fc6eb9c5026f50183226d6050680dd4d051973fbc22039f261a6819b7fa"
+  size_bytes: 23349
   attributes:
     change_scope: "fortemi-hotm-integration-audit-2026-08-15"
     base_revision: "bf00c6c5334707621e8c6fd96bfcff908ee1f770"
@@ -17,8 +17,8 @@ activity:
   id: "urn:aiwg:activity:modification:aiwg-testing-api-contract-test-plan-addendum-2026-07-md:001"
   type: modification
   started_at: "2026-07-17T21:46:51Z"
-  ended_at: "2026-08-15T22:31:07Z"
-  description: "Define operation, AsyncAPI payload, and required mocked browser verification commands"
+  ended_at: "2026-08-15T23:07:04Z"
+  description: "Define deterministic operation, AsyncAPI payload, and required mocked browser verification commands"
 agent:
   id: "urn:aiwg:agent:codex-gpt-5"
   type: ai_assistant
@@ -29,7 +29,7 @@ relationships:
   wasGeneratedBy:
     entity: "urn:aiwg:artifact:.aiwg/testing/api-contract-test-plan-addendum-2026-07.md"
     activity: "urn:aiwg:activity:modification:aiwg-testing-api-contract-test-plan-addendum-2026-07-md:001"
-    time: "2026-08-15T22:31:07Z"
+    time: "2026-08-15T23:07:04Z"
   used:
     - activity: "urn:aiwg:activity:modification:aiwg-testing-api-contract-test-plan-addendum-2026-07-md:001"
       entity: "urn:git:git@git.integrolabs.net:Fortemi/HotM.git:bf00c6c5334707621e8c6fd96bfcff908ee1f770:.aiwg/testing/api-contract-test-plan-addendum-2026-07.md"

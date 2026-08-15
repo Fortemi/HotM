@@ -1,15 +1,15 @@
 metadata:
   schema_version: "1.0.0"
   created_at: "2026-08-15T21:59:17Z"
-  updated_at: "2026-08-15T21:59:17Z"
-  description: "Provenance for the HotM #288 Fortemi AsyncAPI payload conformance verifier"
+  updated_at: "2026-08-15T23:07:04Z"
+  description: "Provenance for the deterministic HotM #288 Fortemi AsyncAPI payload conformance verifier"
 entity:
   id: "urn:aiwg:artifact:.aiwg/testing/scripts/verify-fortemi-asyncapi-payloads.mjs"
   type: test
   created_at: "2026-08-15T21:59:17Z"
-  updated_at: "2026-08-15T21:59:17Z"
-  checksum: "sha256:39a9f2065b324c7a87fb458133911e000d95c3f76211fc5e00d80cbf410d97ad"
-  size_bytes: 14544
+  updated_at: "2026-08-15T23:07:04Z"
+  checksum: "sha256:ba9a73e56f690f3c70e05890fb557dbffcefdaead777c96ad6eb8f27a7e4a227"
+  size_bytes: 22096
   attributes:
     change_scope: "hotm-288-asyncapi-payload-conformance"
     producer_revision: "5ea08229c9f1565122df5f8e6906e89d98dc7e75"
@@ -17,8 +17,8 @@ activity:
   id: "urn:aiwg:activity:generation:verify-fortemi-asyncapi-payloads-mjs:hotm-288"
   type: generation
   started_at: "2026-08-15T21:58:00Z"
-  ended_at: "2026-08-15T21:59:17Z"
-  description: "Generate executable verifier for Fortemi AsyncAPI EventEnvelope and ServerEvent payload conformance"
+  ended_at: "2026-08-15T23:07:04Z"
+  description: "Generate deterministic payload evidence and reject committed artifact drift in CI"
 agent:
   id: "urn:aiwg:agent:test-engineer"
   type: ai_assistant
@@ -29,7 +29,7 @@ relationships:
   wasGeneratedBy:
     entity: "urn:aiwg:artifact:.aiwg/testing/scripts/verify-fortemi-asyncapi-payloads.mjs"
     activity: "urn:aiwg:activity:generation:verify-fortemi-asyncapi-payloads-mjs:hotm-288"
-    time: "2026-08-15T21:59:17Z"
+    time: "2026-08-15T23:07:04Z"
   used:
     - activity: "urn:aiwg:activity:generation:verify-fortemi-asyncapi-payloads-mjs:hotm-288"
       entity: "urn:gitea:Fortemi/HotM:issue:288"

@@ -1,0 +1,52 @@
+metadata:
+  schema_version: "1.0.0"
+  created_at: "2026-08-15T23:07:04Z"
+  updated_at: "2026-08-15T23:07:04Z"
+  description: "Provenance for deterministic HotM #288 AsyncAPI runtime validation rules"
+entity:
+  id: "urn:aiwg:artifact:ui/src/api/contracts/fortemi-asyncapi-event-validation-rules.json"
+  type: test_fixture
+  created_at: "2026-08-15T23:07:04Z"
+  updated_at: "2026-08-15T23:07:04Z"
+  checksum: "sha256:43bba568d37f259904f28f43be3f2249baffed3cbb2df3377392a4f55aa24b54"
+  size_bytes: 31395
+  attributes:
+    change_scope: "hotm-288-asyncapi-payload-conformance"
+    rules: 48
+activity:
+  id: "urn:aiwg:activity:generation:fortemi-asyncapi-event-validation-rules-json:hotm-288"
+  type: generation
+  started_at: "2026-08-15T23:07:04Z"
+  ended_at: "2026-08-15T23:07:04Z"
+  description: "Generate deterministic runtime validation rules from pinned Fortemi AsyncAPI schemas"
+agent:
+  id: "urn:aiwg:agent:test-engineer"
+  type: ai_assistant
+  name: "Test Engineer"
+  version: "codex-gpt-5"
+  tool: "codex"
+relationships:
+  wasGeneratedBy:
+    entity: "urn:aiwg:artifact:ui/src/api/contracts/fortemi-asyncapi-event-validation-rules.json"
+    activity: "urn:aiwg:activity:generation:fortemi-asyncapi-event-validation-rules-json:hotm-288"
+    time: "2026-08-15T23:07:04Z"
+  used:
+    - activity: "urn:aiwg:activity:generation:fortemi-asyncapi-event-validation-rules-json:hotm-288"
+      entity: "urn:gitea:Fortemi/HotM:issue:288"
+      role: "requirement"
+  wasDerivedFrom:
+    - entity: "urn:aiwg:artifact:ui/src/api/contracts/fortemi-asyncapi-event-validation-rules.json"
+      source: "urn:aiwg:artifact:.aiwg/testing/scripts/verify-fortemi-asyncapi-payloads.mjs"
+      derivation_type: "derives_from"
+      activity: "urn:aiwg:activity:generation:fortemi-asyncapi-event-validation-rules-json:hotm-288"
+    - entity: "urn:aiwg:artifact:ui/src/api/contracts/fortemi-asyncapi-event-validation-rules.json"
+      source: "urn:git:git@git.integrolabs.net:Fortemi/fortemi.git:5ea08229c9f1565122df5f8e6906e89d98dc7e75:contracts/asyncapi/asyncapi.yaml"
+      derivation_type: "derives_from"
+      activity: "urn:aiwg:activity:generation:fortemi-asyncapi-event-validation-rules-json:hotm-288"
+  wasAssociatedWith:
+    activity: "urn:aiwg:activity:generation:fortemi-asyncapi-event-validation-rules-json:hotm-288"
+    agent: "urn:aiwg:agent:test-engineer"
+    role: "primary_author"
+  wasAttributedTo:
+    entity: "urn:aiwg:artifact:ui/src/api/contracts/fortemi-asyncapi-event-validation-rules.json"
+    agent: "urn:aiwg:agent:test-engineer"

@@ -399,9 +399,11 @@ schema-derived positives plus four negative categories. Both transports must
 accept all 48 valid events; SSE must reject 192 malformed known cases and
 WebSocket must reject 179, with 13 envelope-only identifier mutations recorded
 as not applicable to the legacy WebSocket shape. Unknown and malformed known
-events must remain `Unknown` with raw data preserved. Full #288 closure also
-requires producer-owned positive examples, which are absent from the pinned
-producer checkout.
+events must remain `Unknown` with raw data preserved. The SDLC gate regenerates
+the corpus from the pinned producer, uses the sidecar publication time as its
+deterministic source marker, and fails on any resulting artifact diff. Full
+#288 closure also requires producer-owned positive examples, tracked by
+Fortemi/fortemi#1097, which are absent from the pinned producer checkout.
 
 ### Required Mocked Browser Gate
 

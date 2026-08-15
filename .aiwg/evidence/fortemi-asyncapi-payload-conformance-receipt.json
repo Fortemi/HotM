@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "issue": "Fortemi/HotM#288",
-  "generatedAt": "2026-08-15T22:16:05.692Z",
+  "sourcePublishedAt": "2026-07-29T16:36:55-04:00",
   "producer": {
     "repository": "Fortemi/fortemi",
     "commit": "5ea08229c9f1565122df5f8e6906e89d98dc7e75",
@@ -28,7 +28,7 @@
   },
   "corpus": {
     "fixturePath": "ui/src/api/contracts/fortemi-asyncapi-event-fixtures.json",
-    "sha256": "d260b39bbcd51725948f812da4dcda1899979c2d8df0e78e2bb2bae99e937d8f",
+    "sha256": "84340831f6585909b56b22485ac443b8df8b3003cbaa457294754d4ab570811d",
     "sourceKind": "schema-derived",
     "producerOwnedExamplesFound": false,
     "positiveCases": 48,
@@ -92,7 +92,7 @@
   },
   "validationRules": {
     "path": "ui/src/api/contracts/fortemi-asyncapi-event-validation-rules.json",
-    "sha256": "92b788d34b8c12bc0a0478d689ab5006996478c0e30168ce004f0314c34726d7",
+    "sha256": "43bba568d37f259904f28f43be3f2249baffed3cbb2df3377392a4f55aa24b54",
     "rules": 48
   },
   "producerExampleInspection": {

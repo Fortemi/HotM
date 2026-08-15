@@ -378,6 +378,12 @@ if (eventCatalog.producer.repository !== sidecarReceipt.source_repository) {
 if (eventCatalog.producer.commit !== sidecarReceipt.target_commitish) {
   throw new Error(`producer commit mismatch: ${eventCatalog.producer.commit} != ${sidecarReceipt.target_commitish}`);
 }
+if (
+  typeof sidecarReceipt.published_at !== 'string'
+  || Number.isNaN(Date.parse(sidecarReceipt.published_at))
+) {
+  throw new Error('sidecar provenance must include a valid published_at timestamp');
+}
 
 const asyncApiPath = resolve(fortemiRoot, eventCatalog.producer.asyncApi.artifactPath);
 const producerEventSourcePath = resolve(fortemiRoot, eventCatalog.producer.sourcePath);
@@ -465,7 +471,7 @@ const fixture = {
   schemaVersion: 1,
   description: 'Schema-derived fixture corpus for Fortemi AsyncAPI EventEnvelope and ServerEvent payload conformance. This is not producer-owned example material; it is derived from @tests ../fortemi/contracts/asyncapi/asyncapi.yaml for Gitea HotM issue #288.',
   producer: eventCatalog.producer,
-  generatedAt: new Date().toISOString(),
+  sourcePublishedAt: sidecarReceipt.published_at,
   sourceKind: 'schema-derived',
   producerOwnedExamples: {
     found: false,
@@ -517,7 +523,7 @@ const rules = {
   description: 'Schema-derived runtime validation rules for known Fortemi AsyncAPI event payloads.',
   producer: eventCatalog.producer,
   sourceKind: 'schema-derived',
-  generatedAt: fixture.generatedAt,
+  sourcePublishedAt: fixture.sourcePublishedAt,
   rules: validationRules,
 };
 const rulesText = `${JSON.stringify(rules, null, 2)}\n`;
@@ -526,7 +532,7 @@ const rulesSha256 = sha256(rulesText);
 const receipt = {
   schemaVersion: 1,
   issue: 'Fortemi/HotM#288',
-  generatedAt: fixture.generatedAt,
+  sourcePublishedAt: fixture.sourcePublishedAt,
   producer: eventCatalog.producer,
   verifier: '.aiwg/testing/scripts/verify-fortemi-asyncapi-payloads.mjs',
   asyncApi: {
