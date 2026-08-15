@@ -216,6 +216,13 @@
       "attachmentSidecarsIdentical": 1,
       "zeroMutationRejections": 8
     },
+    "liveTauriRecovery": {
+      "path": ".aiwg/evidence/hotm-live-tauri-full-v1-recovery-receipt-2026-07-28.json",
+      "producerCommit": "5ea08229c9f1565122df5f8e6906e89d98dc7e75",
+      "consumerCommit": "9e561b69f30757592e1ff39a818d5d1412a2795e",
+      "attachmentBytes": 262144,
+      "attachmentSha256": "71a5f7dcf8bc2f8b11e3b88f0a5ec957594b04269568b46709201acb58280a8c"
+    },
     "claims": {
       "fullV1Interoperability": true,
       "suiteWide": false,

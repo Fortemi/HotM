@@ -1,0 +1,43 @@
+metadata:
+  schema_version: "1.0.0"
+  created_at: "2026-08-15T21:42:00Z"
+  updated_at: "2026-08-15T21:42:00Z"
+  description: "Provenance for the HotM #292 Knowledge Shard authority negative tests"
+entity:
+  id: "urn:aiwg:artifact:.aiwg/testing/scripts/knowledge-shard-authority-policy.test.mjs"
+  type: test
+  created_at: "2026-08-15T21:42:00Z"
+  updated_at: "2026-08-15T21:42:00Z"
+  checksum: "sha256:446d117929e7cb9088f7c884b6feacd7a2765fa1fd4753b25c9a1ecd27700750"
+  size_bytes: 3191
+  attributes:
+    change_scope: "hotm-292-knowledge-shard-revision-21"
+activity: &activity
+  id: "urn:aiwg:activity:generation:knowledge-shard-authority-policy-tests:001"
+  type: generation
+  started_at: "2026-08-15T21:42:00Z"
+  ended_at: "2026-08-15T21:42:00Z"
+  description: "Reject unknown revision, unsupported profile, missing opt-in, and evidence drift"
+agent: &agent
+  id: "urn:aiwg:agent:codex-gpt-5"
+  type: ai_assistant
+  name: "Codex"
+  version: "gpt-5"
+  tool: "codex"
+relationships:
+  wasGeneratedBy:
+    entity: "urn:aiwg:artifact:.aiwg/testing/scripts/knowledge-shard-authority-policy.test.mjs"
+    activity: *activity
+    time: "2026-08-15T21:42:00Z"
+  wasDerivedFrom:
+    - entity: "urn:aiwg:artifact:.aiwg/testing/scripts/knowledge-shard-authority-policy.test.mjs"
+      source: "urn:aiwg:artifact:.aiwg/testing/scripts/knowledge-shard-authority-policy.mjs"
+      derivation_type: "tests"
+      activity: *activity
+  wasAssociatedWith:
+    activity: *activity
+    agent: *agent
+    role: "primary_author"
+  wasAttributedTo:
+    entity: "urn:aiwg:artifact:.aiwg/testing/scripts/knowledge-shard-authority-policy.test.mjs"
+    agent: *agent

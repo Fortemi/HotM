@@ -209,9 +209,30 @@ if (
   throw new Error('HotM full-v1 live recovery receipt is missing required scoped evidence');
 }
 
+const liveTauriPath = resolve(hotmRoot, fullV1.liveTauriRecovery.path);
+execFileSync(
+  process.execPath,
+  [resolve(hotmRoot, 'ui/scripts/verify-live-tauri-full-v1-receipt.cjs'), liveTauriPath],
+  { stdio: 'ignore' },
+);
+const liveTauri = JSON.parse(await readFile(liveTauriPath, 'utf8'));
+if (
+  liveTauri.identity?.fortemiGitCommit !== fullV1.liveTauriRecovery.producerCommit
+  || liveTauri.identity?.hotmGitCommit !== fullV1.liveTauriRecovery.consumerCommit
+  || liveTauri.source?.deletedBeforeRecovery !== true
+  || liveTauri.claims?.sourceMemoryDeletedBeforeRecoveryPassed !== true
+  || liveTauri.source?.bytes !== fullV1.liveTauriRecovery.attachmentBytes
+  || liveTauri.recovery?.bytes !== fullV1.liveTauriRecovery.attachmentBytes
+  || liveTauri.source?.sha256 !== fullV1.liveTauriRecovery.attachmentSha256
+  || liveTauri.recovery?.sha256 !== fullV1.liveTauriRecovery.attachmentSha256
+  || liveTauri.claims?.suiteWidePortability !== false
+) {
+  throw new Error('HotM live Tauri recovery receipt is missing required scoped evidence');
+}
+
 console.log(
   `Fortemi Knowledge Shard ${receipt.profile} fixtures verified at ${receipt.authority.commit} `
   + `(revision ${receipt.authority.contract.revision}, schemas ${receipt.acceptedSchemaVersions.join(', ')}); `
   + `${fullV1.tuple.schemaVersion}/${fullV1.tuple.profile} authority, paired receipt, and live recovery verified `
-  + `(revision ${fullV1.authority.contract.revision})`,
+  + `(revision ${fullV1.authority.contract.revision}); clean-source Tauri recovery verified`,
 );

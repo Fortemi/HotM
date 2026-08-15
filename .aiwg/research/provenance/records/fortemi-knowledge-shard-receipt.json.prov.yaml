@@ -1,24 +1,24 @@
 metadata:
   schema_version: "1.0.0"
   created_at: "2026-07-20T20:03:43Z"
-  updated_at: "2026-07-25T00:01:05Z"
-  description: "Provenance for the HotM #272 full-v1 authority and implementation receipt"
+  updated_at: "2026-08-15T21:42:00Z"
+  description: "Provenance for the HotM #292 revision-21 Knowledge Shard authority receipt"
 entity:
   id: "urn:aiwg:artifact:ui/src/api/contracts/fortemi-knowledge-shard-receipt.json"
   type: test_fixture
   created_at: "2026-07-20T20:03:43Z"
-  updated_at: "2026-07-25T00:01:05Z"
-  checksum: "sha256:88e4192624e26a169190c255510d27111c61cee5ef19c8c6ff0c1679ffb33b2d"
-  size_bytes: 8399
+  updated_at: "2026-08-15T21:42:00Z"
+  checksum: "sha256:5af4600d4afb2ee88dbd22651219e8ee8a812b62288e91db57c377fecf9a22da"
+  size_bytes: 8996
   attributes:
-    change_scope: "hotm-272-full-v1-recovery"
-    producer_revision: "7232b22c77f8e300c6820676909ba0e3d99c2c14"
+    change_scope: "hotm-292-knowledge-shard-revision-21"
+    producer_revision: "48bc0a0bd68fd9e4eeb742c5af8a54207cbcc425"
 activity:
   id: "urn:aiwg:activity:generation:fortemi-knowledge-shard-receipt:001"
   type: generation
   started_at: "2026-07-20T20:03:43Z"
-  ended_at: "2026-07-25T00:01:05Z"
-  description: "Pin contract revision 20, full-v1 schemas, runtime receipts, and the scoped passing live recovery claim"
+  ended_at: "2026-08-15T21:42:00Z"
+  description: "Pin revision 21, receipt-bound full-v1 advertisement, runtime receipts, and clean-source live recovery"
 agent: &agent
   id: "urn:aiwg:agent:codex-gpt-5"
   type: ai_assistant
@@ -32,7 +32,7 @@ relationships:
     time: "2026-07-24T08:10:00Z"
   wasDerivedFrom:
     - entity: "urn:aiwg:artifact:ui/src/api/contracts/fortemi-knowledge-shard-receipt.json"
-      source: "urn:git:git@git.integrolabs.net:Fortemi/fortemi.git:6343bd899958445bbc7e7e87b0dc92a8429d5a06:contracts/knowledge-shard/contract.json"
+      source: "urn:git:git@git.integrolabs.net:Fortemi/fortemi.git:48bc0a0bd68fd9e4eeb742c5af8a54207cbcc425:contracts/knowledge-shard/2.0.0/contract.json"
       derivation_type: "derives_from"
       activity: "urn:aiwg:activity:generation:fortemi-knowledge-shard-receipt:001"
   wasAssociatedWith:

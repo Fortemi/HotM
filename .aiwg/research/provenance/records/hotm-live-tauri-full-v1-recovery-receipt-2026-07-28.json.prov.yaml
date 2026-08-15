@@ -1,25 +1,27 @@
 metadata:
   schema_version: "1.0.0"
   created_at: "2026-07-28T03:44:03Z"
-  description: "Provenance for the HotM #283 clean-worktree live Tauri signed full-v1 recovery receipt"
+  updated_at: "2026-08-15T21:42:00Z"
+  description: "Provenance for the regenerated HotM #292 clean-source live Tauri signed full-v1 recovery receipt"
 entity:
   id: "urn:aiwg:artifact:.aiwg/evidence/hotm-live-tauri-full-v1-recovery-receipt-2026-07-28.json"
   type: evidence
   created_at: "2026-07-28T03:44:03Z"
-  checksum: "sha256:6efae6e12c68c42adb78c099a9f07b5b39492c35164422cbb919fde6c92eef2a"
-  size_bytes: 2338
+  updated_at: "2026-08-15T21:42:00Z"
+  checksum: "sha256:033e219100f438922ed8ca7a3a745da0e2d8d2b79e67f779bba6fb836dab55a2"
+  size_bytes: 2404
   attributes:
     issue: "Fortemi/HotM#283"
     profile: "2.0.0/full-v1"
-    hotm_revision: "6950658a2de62c5084c74f98454d9bcfcf80fae7"
-    fortemi_revision: "0ef4eccc21affe0ed4efe7b3da41ccb8b5e67f86"
+    hotm_revision: "9e561b69f30757592e1ff39a818d5d1412a2795e"
+    fortemi_revision: "5ea08229c9f1565122df5f8e6906e89d98dc7e75"
     status: "passed"
 activity:
   id: "urn:aiwg:activity:validation:hotm-live-tauri-full-v1-recovery:001"
   type: validation
   started_at: "2026-07-28T03:42:47Z"
-  ended_at: "2026-07-28T03:44:03Z"
-  description: "Run production Tauri local-file command cores against live signed Fortemi, trust-required clean-memory recovery, exact digest verification, and cleanup"
+  ended_at: "2026-08-15T21:42:00Z"
+  description: "Run production Tauri local-file command cores against signed Fortemi with source deletion, trust-required recovery, exact bytes, and cleanup"
 agent:
   id: "urn:aiwg:agent:codex-gpt-5"
   type: ai_assistant
@@ -36,10 +38,10 @@ relationships:
       entity: "urn:gitea:Fortemi/HotM:issue:283"
       role: "requirement"
     - activity: "urn:aiwg:activity:validation:hotm-live-tauri-full-v1-recovery:001"
-      entity: "urn:git:git@git.integrolabs.net:Fortemi/HotM.git:6950658a2de62c5084c74f98454d9bcfcf80fae7"
+      entity: "urn:git:git@git.integrolabs.net:Fortemi/HotM.git:9e561b69f30757592e1ff39a818d5d1412a2795e"
       role: "consumer implementation"
     - activity: "urn:aiwg:activity:validation:hotm-live-tauri-full-v1-recovery:001"
-      entity: "urn:git:git@git.integrolabs.net:Fortemi/fortemi.git:0ef4eccc21affe0ed4efe7b3da41ccb8b5e67f86"
+      entity: "urn:git:git@git.integrolabs.net:Fortemi/fortemi.git:5ea08229c9f1565122df5f8e6906e89d98dc7e75"
       role: "producer implementation"
   wasDerivedFrom:
     - entity: "urn:aiwg:artifact:.aiwg/evidence/hotm-live-tauri-full-v1-recovery-receipt-2026-07-28.json"
