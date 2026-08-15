@@ -49,7 +49,7 @@ following independent gates are open:
 | Operation coverage | Route prefixes and source-file existence can classify an operation as covered without typed request/response, auth, UI, agent, or live proof. | #290 |
 | Umbrella UX | Supported server capabilities still lack user/operator workflows or explicit exclusions. | #287 |
 | Agent authority | Privilege metadata and Node auth fixtures are not installed as mandatory server-side tool-execution controls. | #123, #231 |
-| Portable data | `full-v1` evidence is pinned to contract revision 20 while current authority is revision 21; `record-v1` remains unsupported. | #292 |
+| Portable data | Revision-21 `full-v1` is pinned as a receipt-bound opt-in; `record-v1` remains unadvertised and unsupported. | #292 delivered |
 | Browser verification | The mocked browser suite has 36 unexpected failures and is not currently a reliable release gate. | #291 |
 
 The exact OpenAPI pin remains healthy at 193 paths and 251 operations, and the
@@ -208,8 +208,8 @@ former consumer-only `format` and `include_deleted` parameters are not sent.
 
 Backup Manager displays the declared profile/schema and renders producer or
 local validation failures without claiming full recovery. The machine receipt
-pins contract revision 19 and all three core manifest fixtures to Fortemi
-commit `81fbeaf065df3818edd046ed8a744f10eeb00e6f`; the current 1.2 manifest
+pins contract revision 19 and all three core manifest fixtures at Fortemi
+commit `48bc0a0bd68fd9e4eeb742c5af8a54207cbcc425`; the current 1.2 manifest
 SHA-256 is
 `246b89d6ca1d2e2c4a19b650e4cebe7825b69d39306280e281f4a94c80c2b008`.
 The visible clean-server and repeated-import semantic receipt remains scoped to
@@ -218,8 +218,9 @@ The visible clean-server and repeated-import semantic receipt remains scoped to
 #### Exact full-v1 Recovery Extension (HotM #272)
 
 The `core-v1` migration window remains intact. A distinct recovery path now
-accepts only `2.0.0/full-v1`, pinned to Fortemi contract revision 20 and the
-delivered runtime/paired receipts. Its local streaming TAR inspector bounds
+accepts only the revision-21 advertised opt-in `2.0.0/full-v1`, pinned at
+Fortemi commit `48bc0a0bd68fd9e4eeb742c5af8a54207cbcc425` with the advertisement,
+runtime, and paired receipts. Its local streaming TAR inspector bounds
 compressed size (50 MiB), uncompressed size (200 MiB), entries (64), entry
 size (50 MiB), manifest size (1 MiB), and entry-name length (255 bytes), and
 requires the complete 33-component, 34-count-field, and 33-checksum inventory.
@@ -241,6 +242,11 @@ Required-signature dry-run, two imports, exact 33-component/34-count-field and
 attachment-byte re-export, plus eight zero-mutation rejection classes passed.
 The earlier unsigned preflight remains a historical receipt, not the current
 disposition.
+
+The revision-21 verifier rejects unknown revisions, missing or altered opt-in
+advertisement, unsupported profile tuples, and evidence checksum drift.
+`record-v1` remains unsupported; the scoped claims remain
+`suiteWide=false` and `completeBackup=false`.
 
 #### Compatibility Runtime Admission (HotM #244/#286)
 

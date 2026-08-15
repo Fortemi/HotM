@@ -157,7 +157,7 @@ producer AsyncAPI schema-diff coverage.
 ### Knowledge Shard Consumer Receipt (HotM #269)
 
 HotM consumes the Fortemi `core-v1` authority at producer commit
-`81fbeaf065df3818edd046ed8a744f10eeb00e6f`, contract revision 19. The
+`48bc0a0bd68fd9e4eeb742c5af8a54207cbcc425`, contract revision 19. The
 machine receipt pins exact producer fixtures for schemas `1.0.0`, `1.1.0`, and
 `1.2.0`; the current vendored manifest SHA-256 is
 `246b89d6ca1d2e2c4a19b650e4cebe7825b69d39306280e281f4a94c80c2b008`.
@@ -175,12 +175,12 @@ conformance.
 ### Full-v1 Recovery Consumer Receipt (HotM #272)
 
 HotM additionally consumes the exact `2.0.0/full-v1` tuple at Fortemi authority
-commit `6343bd899958445bbc7e7e87b0dc92a8429d5a06`, contract revision 20,
+commit `48bc0a0bd68fd9e4eeb742c5af8a54207cbcc425`, contract revision 21,
 contract SHA-256
-`5bf8d2fd8147d8df92599b1a3ce6b405ce022c83893f37547aefa7ca659f0783`.
-The machine receipt pins the 33 component identifiers, 34 count fields, schema
-bundle, 220-field presence inventory, runtime receipt, and paired
-cross-repository receipt.
+`ac417e23181ec80741d776b6b29fa38236091dfa649b01255aaac30ebb53969f`.
+The machine receipt pins the receipt-bound opt-in advertisement, 33 component
+identifiers, 34 count fields, schema bundle, 220-field presence inventory,
+runtime receipt, and paired cross-repository receipt.
 
 The export path requests `schema_version=2.0.0`, `profile=full-v1`, and
 `include_blobs=true`, then pipes `Response.body` directly to an
@@ -207,6 +207,11 @@ React-fixture -> immutable Fortemi producer -> released HotM pass-through ->
 clean Fortemi destination cell. `suiteWide` and `completeBackup` remain false,
 and `record-v1` remains unsupported. The historical unsigned preflight receipt
 is retained separately from the passing receipt.
+
+The producer advertises only exact `2.0.0/full-v1`; `2.0.0/core-v1` and
+`2.0.0/record-v1` are explicitly unadvertised. The consumer verifier fails
+closed on any unknown revision, advertisement/evidence drift, or broadened
+suite-wide, complete-backup, or parity claim.
 
 ### Compatibility Admission Receipt (HotM #244/#286)
 

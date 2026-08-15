@@ -61,7 +61,7 @@ All `Covered` entries below refer to route/surface disposition only unless a sep
 | Outbound webhooks | `ui/src/api/webhooks.ts`; Admin WebhooksPanel | Covered |
 | Document types | `ui/src/api/documents.ts`; Admin DocumentTypesPanel | Covered |
 | Attachments and TUS upload | `ui/src/api/attachments.ts`, `ui/src/services/tusUploader.ts`, upload store, `JobQueueMonitor` | Covered; preserve TUS verb, resume, termination, degraded-state, and no checksum-extension tests |
-| Backup/import/export/status/list/snapshot/restore | `ui/src/api/backup.ts`, `knowledgeShard.ts`; revision-19 `core-v1` receipt plus revision-20 exact `2.0.0/full-v1` recovery receipt; BackupManager and focused Backup/TUS tests | Historical bounded evidence; current revision-21 authority and live receipt are open in #292; no suite-wide or complete-backup claim |
+| Backup/import/export/status/list/snapshot/restore | `ui/src/api/backup.ts`, `knowledgeShard.ts`; revision-19 `core-v1` plus revision-21 receipt-bound exact `2.0.0/full-v1`; BackupManager and focused Backup/TUS tests | Profile-specific bounded evidence; `record-v1`, suite-wide, and complete-backup claims remain false |
 | System compatibility | UI/proxy compatibility receipts; `ui/src/api/systemCompatibility.ts`; `agent-proxy/src/compatibility.ts`; verifier and focused tests; ApiCapabilitiesPanel | Runtime admission delivered for #286: pinned profile/source, SemVer/API/minimum/auth checks, startup preflight, and denial before all remote mutation paths; authenticated mode remains blocked until Fortemi advertises claim-contract `1` |
 | Native Fortemi chat stream | `ui/src/api/chat.ts` native stream client and `ui/src/components/agent/useAgentChat.ts` Fortemi provider path cover `/chat/stream`. | Covered |
 | Streaming health counters | `ui/src/api/health.ts` and `ApiCapabilitiesPanel` cover `/health/streaming` telemetry blocks. | Covered |
@@ -90,14 +90,14 @@ All `Covered` entries below refer to route/surface disposition only unless a sep
 | FORTEMI-2026-07-REQ-012 | Agent tools have route-family/capability metadata and explicit non-tool boundaries. | Enforce authority in #123/#231 and complete the umbrella workflow inventory in #287/#290. |
 | FORTEMI-2026-07-REQ-013 | Exact Fortemi OpenAPI artifact and semantic fingerprint are pinned; all 251 operations require the schema-bearing shared RFC 9457 error boundary. | Preserve the receipt and add operation-complete typed/workflow evidence in #290. |
 | FORTEMI-2026-07-REQ-014 | SSE/WS clients preserve the canonical envelope and unknown events remain unknown. | Prove authenticated context in #285 and every payload schema in #288. |
-| FORTEMI-2026-07-REQ-015 | Revision-19 `core-v1` and revision-20 exact `2.0.0/full-v1` historical receipts are preserved. | Consume current revision 21 in #292; keep `suiteWide=false`, `completeBackup=false`, and `record-v1` unsupported. |
+| FORTEMI-2026-07-REQ-015 | Fortemi `48bc0a0b` pins revision-19 `core-v1` and revision-21 advertised exact `2.0.0/full-v1` with runtime/interop receipt binding. | Keep `suiteWide=false`, `completeBackup=false`, and `record-v1` unsupported. |
 | FORTEMI-2026-07-REQ-016 | Fortemi `48bc0a0b` profile/source receipts, schema/revision, SemVer API range, minimum client, auth claim-contract policy, startup preflight, and UI/proxy mutation gates are executable and CI-verified. | #286 delivered; keep authenticated writes fail-closed until producer metadata advertises supported claim-contract `1`. |
 | FORTEMI-2026-07-REQ-017 | Node fixtures exist, but mandatory runtime middleware, a released authority identity, and shared Rust/Node receipts are incomplete. | #231. |
 | FORTEMI-2026-07-REQ-018 | REST carries bearer and memory context; SSE/WS do not preserve the same context or prove cross-context isolation. | #285. |
 | FORTEMI-2026-07-REQ-019 | UI privilege mode and tool metadata exist; agent-proxy does not enforce them before tool execution. | #123; coordinate mandatory runtime auth with #231. |
 | FORTEMI-2026-07-REQ-020 | Route inventory reports 188 covered dispositions, but prefix/file evidence can overstate typed and executable integration. | #290. |
 | FORTEMI-2026-07-REQ-021 | Several supported Fortemi operation families remain API-only, agent-only, diagnostic-only, or absent from verifiable UX. | #287. |
-| FORTEMI-2026-07-REQ-022 | Historical `core-v1` revision-19 and `full-v1` revision-20 receipts exist; current authority is revision 21. | #292; preserve profile-specific and bounded claims. |
+| FORTEMI-2026-07-REQ-022 | Revision-21 authority, opt-in advertisement, schema/profile inventory, runtime receipt, and paired receipt are pinned and fail closed on drift. | #292 delivered; preserve profile-specific and bounded claims. |
 | FORTEMI-2026-07-REQ-023 | UI unit tests pass, but the mocked Playwright run has 36 unexpected failures of 46 tests. | #291. |
 
 ## Artifact Trace

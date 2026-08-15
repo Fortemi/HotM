@@ -129,7 +129,7 @@ Implemented consumer checks for HotM #269:
 
 - Vendor the producer `core-v1` manifest fixtures for registered schemas
   `1.0.0`, `1.1.0`, and `1.2.0` from Fortemi commit
-  `81fbeaf065df3818edd046ed8a744f10eeb00e6f`; verify contract revision 19
+  `48bc0a0bd68fd9e4eeb742c5af8a54207cbcc425`; verify contract revision 19
   and every manifest/component digest from the machine receipt.
 - Build a real gzip/TAR archive around that fixture in Vitest and exercise the
   production manifest parser rather than a URL-only mock.
@@ -146,9 +146,9 @@ version boundary current without widening the supported profile.
 
 Delivered extension for HotM #272:
 
-- Preserve revision-20 historical evidence and pin current authority revision
-  21, schema bundle, field-semantics inventory, runtime receipt, and paired
-  receipt for exact `2.0.0/full-v1` before making a current-support claim.
+- Pin authority revision 21, its receipt-bound opt-in advertisement, schema
+  bundle, field-semantics inventory, runtime receipt, and paired receipt for
+  exact `2.0.0/full-v1` before making a current-support claim.
 - Require 33 component files, 34 count fields, and a matching 33-file checksum
   inventory during bounded streaming inspection.
 - Assert full export uses `schema_version=2.0.0`, `profile=full-v1`, and
@@ -174,6 +174,12 @@ attachment sidecar re-exported identically. Manifest, component, signature,
 attachment, missing, oversized, unsupported, and skewed cases returned 400
 with a whole-schema zero-mutation fingerprint. The scoped receipt is
 `.aiwg/evidence/hotm-full-v1-clean-recovery-receipt-2026-07-24.json`.
+
+Revision-21 authority negatives execute with the contract gate: unknown
+revision, unsupported profile, missing advertised opt-in, and evidence digest
+drift fail closed. Existing API tests retain signature-tamper and attachment
+byte-drift rejection. `record-v1`, suite-wide portability, and complete backup
+remain outside the supported claim.
 
 ### 1D. Compatibility Negotiation
 
@@ -320,6 +326,7 @@ Current route-inventory command:
 python3 .aiwg/testing/scripts/fortemi-route-coverage.py
 jq -e '.route_count == 202 and (.family_counts.unclassified == null) and .status_counts.gap == 0 and (.status_counts.decision_needed // 0) == 0' .aiwg/api/compatibility/fortemi-v2026-07-route-coverage.json
 node .aiwg/testing/scripts/verify-fortemi-event-catalog.mjs
+node --test .aiwg/testing/scripts/knowledge-shard-authority-policy.test.mjs
 node .aiwg/testing/scripts/verify-fortemi-knowledge-shard-contract.mjs
 (cd ui && npm run test:realtime)
 (cd ui && npm test -- --run src/api/__tests__/knowledgeShard.test.ts src/api/__tests__/backup.test.ts src/components/backup/__tests__/BackupManager.test.tsx)

@@ -5,6 +5,8 @@ import { execFileSync } from 'node:child_process';
 import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 
+import { validateKnowledgeShardAuthorityPolicy } from './knowledge-shard-authority-policy.mjs';
+
 const hotmRoot = resolve(import.meta.dirname, '../../..');
 const fortemiRoot = resolve(process.argv[2] ?? resolve(hotmRoot, '../fortemi'));
 const receiptPath = resolve(
@@ -90,6 +92,23 @@ if (
   ] !== fullV1.authority.contract.fieldSemanticsSha256
 ) {
   throw new Error('Fortemi Knowledge Shard 2.0.0 authority identity is unexpected');
+}
+
+const advertisementBytes = readProducerFile(
+  fullV1.authority.advertisementReceipt.path,
+  fullV1.authority.commit,
+);
+if (sha256(advertisementBytes) !== fullV1.authority.advertisementReceipt.sha256) {
+  throw new Error('Fortemi Knowledge Shard advertisement receipt checksum mismatch');
+}
+const advertisement = JSON.parse(advertisementBytes.toString('utf8'));
+const authorityFailures = validateKnowledgeShardAuthorityPolicy(
+  receipt,
+  parsedFullContract,
+  advertisement,
+);
+if (authorityFailures.length > 0) {
+  throw new Error(authorityFailures.join('; '));
 }
 
 const fullManifestSchema = readProducerFile(

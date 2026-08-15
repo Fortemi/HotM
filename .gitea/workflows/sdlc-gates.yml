@@ -68,7 +68,9 @@ jobs:
 
       - name: Verify Fortemi Knowledge Shard contract fixture
         shell: bash
-        run: node .aiwg/testing/scripts/verify-fortemi-knowledge-shard-contract.mjs
+        run: |
+          node --test .aiwg/testing/scripts/knowledge-shard-authority-policy.test.mjs
+          node .aiwg/testing/scripts/verify-fortemi-knowledge-shard-contract.mjs
 
       - name: Verify Fortemi runtime compatibility profile
         shell: bash

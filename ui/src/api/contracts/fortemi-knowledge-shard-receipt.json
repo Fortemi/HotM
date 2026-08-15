@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "authority": {
     "repository": "Fortemi/fortemi",
-    "commit": "81fbeaf065df3818edd046ed8a744f10eeb00e6f",
+    "commit": "48bc0a0bd68fd9e4eeb742c5af8a54207cbcc425",
     "contract": {
       "path": "contracts/knowledge-shard/contract.json",
       "sha256": "5debc14e0bc7eef403a75e8e063a10f53019e1d74857485d6eda3abaec9397e2",
@@ -92,28 +92,32 @@
     },
     "authority": {
       "repository": "Fortemi/fortemi",
-      "commit": "6343bd899958445bbc7e7e87b0dc92a8429d5a06",
+      "commit": "48bc0a0bd68fd9e4eeb742c5af8a54207cbcc425",
       "contract": {
         "path": "contracts/knowledge-shard/2.0.0/contract.json",
-        "sha256": "5bf8d2fd8147d8df92599b1a3ce6b405ce022c83893f37547aefa7ca659f0783",
-        "revision": "20",
-        "schemaBundleSha256": "66dee80876c73fdc8756541c72e96ae189c098113a831c849d619381c4121c02",
+        "sha256": "ac417e23181ec80741d776b6b29fa38236091dfa649b01255aaac30ebb53969f",
+        "revision": "21",
+        "schemaBundleSha256": "731700868cc93ba95e2c1d9e896df265d0757438b06fa002d9b643ab05b5f74d",
         "fieldSemanticsSha256": "43e5704bc8d805158aa67f33eef6d440fecfeb8385d4f622d79084be3424da09",
         "fieldInventoryCount": 220
       },
       "manifestSchema": {
         "path": "contracts/knowledge-shard/2.0.0/full-v1/manifest.schema.json",
         "sha256": "ffad2eb31832eb611bdaed60e3dc51fc4d70be65110e477a03e298ed1e9fd3a8"
+      },
+      "advertisementReceipt": {
+        "path": "tests/fixtures/shards/external/schema-2-advertisement.receipt.json",
+        "sha256": "1d5d94a46772b35c3ca900504770d61319c136159136f82ef32fc97f15c73ea6"
       }
     },
     "runtimeReceipt": {
-      "commit": "44db73dfeee8213972cbb43ada87fafe12615060",
+      "commit": "48bc0a0bd68fd9e4eeb742c5af8a54207cbcc425",
       "path": "tests/fixtures/shards/external/schema-2-runtime.implementation-receipt.json",
       "sha256": "88a11341f6cd120a937974babc83539d7837548fbceaf4bb2dd23c9e9f19fbca",
       "implementationCommit": "336df3ed834be581d1a0f0a3d252fb48e723b987"
     },
     "pairedReceipt": {
-      "commit": "7232b22c77f8e300c6820676909ba0e3d99c2c14",
+      "commit": "48bc0a0bd68fd9e4eeb742c5af8a54207cbcc425",
       "path": "tests/fixtures/shards/external/schema-2-full-v1.interop-receipt.json",
       "sha256": "48f622afc02279b2360534af3aa542de96efea1e752f4a80a4cd6f3d6e2066cc"
     },

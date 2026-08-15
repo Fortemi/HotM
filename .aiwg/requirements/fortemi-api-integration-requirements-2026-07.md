@@ -89,7 +89,7 @@ in #285 and #288.
 
 `FORTEMI-2026-07-REQ-015` retains the selected `core-v1` profile
 against Fortemi contract revision 19 at
-`81fbeaf065df3818edd046ed8a744f10eeb00e6f`. HotM vendors exact producer
+`48bc0a0bd68fd9e4eeb742c5af8a54207cbcc425`. HotM vendors exact producer
 manifests for registered schemas `1.0.0`, `1.1.0`, and `1.2.0`, serializes only
 the supported `include` query, validates the declared profile/schema/minimum
 reader/components/counts/checksums before upload, and shows profile/schema plus
@@ -98,7 +98,7 @@ actionable failures in Backup Manager.
 The visible server-export -> HotM -> clean-server-import and repeated-import
 receipt proves semantic equality for the selected byte-free `core-v1` profile.
 The separate HotM #272 recovery path consumes exact `2.0.0/full-v1` against
-authority commit `6343bd899958445bbc7e7e87b0dc92a8429d5a06`, revision 20.
+authority commit `48bc0a0bd68fd9e4eeb742c5af8a54207cbcc425`, revision 21.
 It streams export bytes without a complete archive buffer, requires all 33
 components and 34 count fields, and performs a signed Fortemi zero-mutation
 dry-run before any mutating upload. The pinned runtime and paired receipts
@@ -111,9 +111,11 @@ Fortemi destination passed required-signature dry-run, two imports, exact
 rejections. `fullV1Interoperability` is true only for this named exact cell;
 `suiteWide` and `completeBackup` remain false.
 
-Current Fortemi authority is contract revision 21. Revision-19 `core-v1` and
-revision-20 `full-v1` receipts remain historical, profile-specific evidence;
-#292 owns the current authority pin and replacement live receipt.
+Revision-19 `core-v1` remains the default migration-window authority.
+Revision-21 advertises exact `2.0.0/full-v1` only as a receipt-bound opt-in;
+`2.0.0/record-v1` remains unadvertised and unsupported. The verifier binds the
+advertisement to its runtime and cross-repository receipts and preserves
+`suiteWide=false` and `completeBackup=false`.
 
 ## Compatibility Requirement Receipt
 
