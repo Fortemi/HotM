@@ -142,9 +142,11 @@ jobs:
         working-directory: agent-proxy
         run: npm test
 
-      - name: Security audit (non-blocking)
+      - name: Security audit
         working-directory: agent-proxy
-        run: npm audit --audit-level high || true
+        run: |
+          npm audit --omit=dev --audit-level high
+          npm audit --audit-level moderate
 
   # ─── Manual: publish live Fortemi browser asset receipt ───────────
   live-asset-receipt:

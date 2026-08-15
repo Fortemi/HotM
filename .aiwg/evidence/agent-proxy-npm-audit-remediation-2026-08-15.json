@@ -1,0 +1,70 @@
+{
+  "schemaVersion": "hotm.agent-proxy.npm-audit-remediation.v1",
+  "observedAt": "2026-08-15",
+  "issue": "Fortemi/HotM#289",
+  "package": "@hotm/agent-proxy@0.1.0",
+  "before": {
+    "production": {
+      "high": 1,
+      "moderate": 0,
+      "total": 1
+    },
+    "full": {
+      "high": 2,
+      "moderate": 1,
+      "total": 3
+    },
+    "advisories": [
+      {
+        "dependency": "ip-address",
+        "path": "express-rate-limit>ip-address",
+        "classification": "production-reachable-request-middleware",
+        "installedBefore": "10.2.0",
+        "installedAfter": "10.5.0",
+        "advisoryIds": [
+          "GHSA-mwp4-54f8-5fhr",
+          "GHSA-4xrf-jv44-h6hh",
+          "GHSA-22jq-vg5j-6vgg"
+        ],
+        "npmSources": [1130722, 1130723, 1130724]
+      },
+      {
+        "dependency": "nanoid",
+        "path": "vitest>vite>postcss>nanoid",
+        "classification": "development-only-not-shipped",
+        "installedBefore": "3.3.16",
+        "installedAfter": "3.3.18",
+        "advisoryIds": ["GHSA-2v37-7h3g-55p8"],
+        "npmSources": [1139427]
+      },
+      {
+        "dependency": "postcss",
+        "path": "vitest>vite>postcss",
+        "classification": "development-only-test-transform",
+        "installedBefore": "8.5.19",
+        "installedAfter": "8.5.26",
+        "advisoryIds": ["GHSA-fxqj-rqcc-2cmp"],
+        "npmSources": [1130709]
+      }
+    ]
+  },
+  "remediation": {
+    "method": "compatible npm overrides without --force",
+    "packageLockSha256": "d3cbcae9f59d205a8a9158bf0e5b019bf781dafd91ce1a943def50d81ca14e49",
+    "lockfileIntegrityPreserved": true
+  },
+  "after": {
+    "production": {
+      "command": "npm audit --omit=dev --json",
+      "high": 0,
+      "moderate": 0,
+      "total": 0
+    },
+    "full": {
+      "command": "npm audit --json",
+      "high": 0,
+      "moderate": 0,
+      "total": 0
+    }
+  }
+}

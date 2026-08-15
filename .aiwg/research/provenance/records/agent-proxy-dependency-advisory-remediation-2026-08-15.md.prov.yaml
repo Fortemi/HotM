@@ -1,0 +1,43 @@
+metadata:
+  schema_version: "1.0.0"
+  created_at: "2026-08-15T21:42:00Z"
+  updated_at: "2026-08-15T21:42:00Z"
+  description: "Provenance for the HotM #289 dependency advisory report"
+entity:
+  id: "urn:aiwg:artifact:.aiwg/reports/agent-proxy-dependency-advisory-remediation-2026-08-15.md"
+  type: report
+  created_at: "2026-08-15T21:42:00Z"
+  updated_at: "2026-08-15T21:42:00Z"
+  checksum: "sha256:1131bf6964cc124a559e7e5fc8664e3d0a29f257cb686246c2a3b7923f3eaa77"
+  size_bytes: 1136
+  attributes:
+    change_scope: "hotm-289-agent-proxy-advisories"
+activity: &activity
+  id: "urn:aiwg:activity:generation:agent-proxy-dependency-advisory-report:001"
+  type: generation
+  started_at: "2026-08-15T21:42:00Z"
+  ended_at: "2026-08-15T21:42:00Z"
+  description: "Document exact advisories, reachability, remediation, and CI enforcement"
+agent: &agent
+  id: "urn:aiwg:agent:codex-gpt-5"
+  type: ai_assistant
+  name: "Codex"
+  version: "gpt-5"
+  tool: "codex"
+relationships:
+  wasGeneratedBy:
+    entity: "urn:aiwg:artifact:.aiwg/reports/agent-proxy-dependency-advisory-remediation-2026-08-15.md"
+    activity: *activity
+    time: "2026-08-15T21:42:00Z"
+  wasDerivedFrom:
+    - entity: "urn:aiwg:artifact:.aiwg/reports/agent-proxy-dependency-advisory-remediation-2026-08-15.md"
+      source: "urn:aiwg:artifact:.aiwg/evidence/agent-proxy-npm-audit-remediation-2026-08-15.json"
+      derivation_type: "derives_from"
+      activity: *activity
+  wasAssociatedWith:
+    activity: *activity
+    agent: *agent
+    role: "primary_author"
+  wasAttributedTo:
+    entity: "urn:aiwg:artifact:.aiwg/reports/agent-proxy-dependency-advisory-remediation-2026-08-15.md"
+    agent: *agent

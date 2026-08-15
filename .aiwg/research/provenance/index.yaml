@@ -1,8 +1,16 @@
 metadata:
   schema_version: "1.0.0"
-  updated_at: "2026-08-15T21:13:59Z"
-  record_count: 96
+  updated_at: "2026-08-15T21:42:00Z"
+  record_count: 100
 records:
+  - entity: "urn:aiwg:artifact:.aiwg/testing/scripts/knowledge-shard-authority-policy.mjs"
+    record: "records/knowledge-shard-authority-policy.mjs.prov.yaml"
+  - entity: "urn:aiwg:artifact:.aiwg/testing/scripts/knowledge-shard-authority-policy.test.mjs"
+    record: "records/knowledge-shard-authority-policy.test.mjs.prov.yaml"
+  - entity: "urn:aiwg:artifact:.aiwg/evidence/agent-proxy-npm-audit-remediation-2026-08-15.json"
+    record: "records/agent-proxy-npm-audit-remediation-2026-08-15.json.prov.yaml"
+  - entity: "urn:aiwg:artifact:.aiwg/reports/agent-proxy-dependency-advisory-remediation-2026-08-15.md"
+    record: "records/agent-proxy-dependency-advisory-remediation-2026-08-15.md.prov.yaml"
   - entity: "urn:aiwg:artifact:.aiwg/testing/scripts/verify-fortemi-system-compatibility-contract.mjs"
     record: "records/verify-fortemi-system-compatibility-contract.mjs.prov.yaml"
   - entity: "urn:aiwg:artifact:ui/src/api/contracts/fortemi-system-compatibility-receipt.json"
