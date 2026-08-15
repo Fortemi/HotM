@@ -25,13 +25,14 @@ related_artifacts:
   - .aiwg/planning/fortemi-v2026-07-issue-dependency-map.md
   - .aiwg/testing/fortemi-route-verifier-spec-2026-07.md
   - .aiwg/reports/fortemi-v2026-07-coverage-evidence-audit.md
+  - .aiwg/reports/fortemi-hotm-integration-audit-2026-08-15.md
 ---
 
 # Fortemi v2026.7.1 API Integration Traceability
 
 ## Generated Inventory
 
-The generated inventory `.aiwg/api/compatibility/fortemi-v2026-07-route-coverage.md` extracts 200 route declarations from the latest Fortemi source checkout at commit `f6733252`.
+The generated inventory `.aiwg/api/compatibility/fortemi-v2026-07-route-coverage.md` extracts 202 route declarations from Fortemi source `48bc0a0b`.
 
 The evidence strength of current `covered` rows is audited in `.aiwg/reports/fortemi-v2026-07-coverage-evidence-audit.md`. Its result is limited to route-family evidence and must not be read as OpenAPI, AsyncAPI, Knowledge Shard, compatibility-negotiation, or auth-fixture conformance.
 
@@ -39,7 +40,7 @@ The current machine-readable route-family evidence map is `.aiwg/api/compatibili
 
 | Status | Count | Traceability disposition |
 | --- | ---: | --- |
-| covered | 186 | Existing HotM API/UI/agent route-disposition evidence found. |
+| covered | 188 | Existing HotM API/UI/agent route-disposition evidence found. This is not operation conformance. |
 | partial | 0 | No current verifier rows remain partial. |
 | gap | 0 | No undisposed route family remains in the current generated verifier baseline. |
 | decision_needed | 0 | No unresolved UX/product disposition remains in the current verifier baseline. |
@@ -55,13 +56,13 @@ All `Covered` entries below refer to route/surface disposition only unless a sep
 | Search and federated search | `ui/src/api/search.ts`; Search UI; agent-proxy search tool | Covered |
 | Archives/memories and memory routing | `ui/src/api/archives.ts`, `memory-context.ts`; ArchiveManager | Covered |
 | Jobs and pause/resume | `ui/src/api/jobs.ts`, `extended.ts`; Job panels/store | Covered |
-| Events SSE and WebSocket fallback | `ui/src/api/events.ts`, `ui/src/services/realtimeEventBus.ts`, `websocket.ts` | Covered for current UI event families |
+| Events SSE and WebSocket fallback | `ui/src/api/events.ts`, `ui/src/services/realtimeEventBus.ts`, `websocket.ts` | Route-disposed; authenticated context and per-event payload conformance remain open in #285/#288 |
 | Inference config/providers/audit/test-connection | `ui/src/api/inference.ts`; InferenceSettings and audit log | Covered |
 | Outbound webhooks | `ui/src/api/webhooks.ts`; Admin WebhooksPanel | Covered |
 | Document types | `ui/src/api/documents.ts`; Admin DocumentTypesPanel | Covered |
 | Attachments and TUS upload | `ui/src/api/attachments.ts`, `ui/src/services/tusUploader.ts`, upload store, `JobQueueMonitor` | Covered; preserve TUS verb, resume, termination, degraded-state, and no checksum-extension tests |
-| Backup/import/export/status/list/snapshot/restore | `ui/src/api/backup.ts`, `knowledgeShard.ts`; revision-19 `core-v1` receipt plus revision-20 exact `2.0.0/full-v1` recovery receipt; BackupManager and focused Backup/TUS tests | Route coverage plus bounded pass-through streaming, signed zero-mutation preflight, and named clean-Fortemi recovery evidence; no suite-wide or complete-backup claim |
-| System compatibility | `ui/src/api/systemCompatibility.ts`; `systemCompatibility.test.ts`; ApiCapabilitiesPanel | Schema/revision/minimum-client fail-closed guard implemented |
+| Backup/import/export/status/list/snapshot/restore | `ui/src/api/backup.ts`, `knowledgeShard.ts`; revision-19 `core-v1` receipt plus revision-20 exact `2.0.0/full-v1` recovery receipt; BackupManager and focused Backup/TUS tests | Historical bounded evidence; current revision-21 authority and live receipt are open in #292; no suite-wide or complete-backup claim |
+| System compatibility | UI/proxy compatibility receipts; `ui/src/api/systemCompatibility.ts`; `agent-proxy/src/compatibility.ts`; verifier and focused tests; ApiCapabilitiesPanel | Runtime admission delivered for #286: pinned profile/source, SemVer/API/minimum/auth checks, startup preflight, and denial before all remote mutation paths; authenticated mode remains blocked until Fortemi advertises claim-contract `1` |
 | Native Fortemi chat stream | `ui/src/api/chat.ts` native stream client and `ui/src/components/agent/useAgentChat.ts` Fortemi provider path cover `/chat/stream`. | Covered |
 | Streaming health counters | `ui/src/api/health.ts` and `ApiCapabilitiesPanel` cover `/health/streaming` telemetry blocks. | Covered |
 | Ingest stream/tokens | `ui/src/api/ingest.ts` and Backup > Stream NDJSON Import cover token mint/revoke plus `/ingest/stream` SSE parsing/upload. | Covered |
@@ -69,13 +70,13 @@ All `Covered` entries below refer to route/surface disposition only unless a sep
 | Inbound external sources | `ui/src/api/webhooks.ts` and Admin WebhooksPanel cover source list/create/delete metadata. | Covered |
 | Vision/audio ad-hoc tools | Attachment preview actions and typed clients cover image description and audio/video transcription. | Covered; agent-tool exposure remains gated by #258 |
 | Realtime calls/Twilio | Typed `/calls/{id}` client and Admin API Surface redacted diagnostics are covered; Twilio realtime WebSocket diagnostics are documented as excluded with no helper/product claim. | Covered plus documented exclusion; agent-tool exposure remains gated by #258 |
-| Agent tools | `agent-proxy/src/tools.ts` covers notes/search/collections/concepts/archives/attachments/jobs and exports route-family/capability metadata plus deferred/excluded tool decisions; `GET /api/agent/chat` exposes the metadata. | Metadata/gating scaffold covered; new diagnostic tools remain deferred |
+| Agent tools | `agent-proxy/src/tools.ts` covers notes/search/collections/concepts/archives/attachments/jobs and exports route-family/capability metadata plus deferred/excluded tool decisions; `GET /api/agent/chat` exposes the metadata. | Metadata scaffold only; runtime privilege/auth enforcement remains open in #123/#231 |
 
 ## Requirement Trace
 
 | Requirement | Evidence now | Issue / next action |
 | --- | --- | --- |
-| FORTEMI-2026-07-REQ-001 | Manual source-route extraction completed during audit; local `docs/openapi.json` not canonical. | Formalize contract inventory verifier in #253. |
+| FORTEMI-2026-07-REQ-001 | Source-route extraction exists and reports 202 dispositions; local `docs/openapi.json` is not authority. | Replace route-prefix evidence with operation-level conformance in #290. |
 | FORTEMI-2026-07-REQ-002 | `ui/src/api/chat.ts`, `ui/src/api/__tests__/chat.test.ts`, and `ui/src/components/agent/__tests__/useAgentChat.test.ts` cover native stream parsing and active Agent fallback behavior. | Preserve #242 tests; #258 still owns broader agent tool registry claims. |
 | FORTEMI-2026-07-REQ-003 | Realtime event bus, Admin API Surface streaming-health card, and focused parser/component tests exist. | Preserve #254 streaming-health evidence while continuing incoming/inbound implementation. |
 | FORTEMI-2026-07-REQ-004 | `ui/src/api/ingest.ts` and Backup Manager tests cover token mint/revoke, stream frames, progress summary, token revocation, and no-secret rendering. | Keep agent ingest tools gated by #258. |
@@ -85,13 +86,19 @@ All `Covered` entries below refer to route/surface disposition only unless a sep
 | FORTEMI-2026-07-REQ-008 | `ui/src/api/mediaTools.ts` plus AttachmentsPanel preview actions cover image description and audio/video transcription. | Keep agent exposure gated by #258. |
 | FORTEMI-2026-07-REQ-009 | `ui/src/api/calls.ts` plus ApiCapabilitiesPanel call diagnostics cover REST call detail; Twilio realtime is a documented exclusion. | Preserve route-level mixed-disposition evidence under #253/#259. |
 | FORTEMI-2026-07-REQ-010 | BackupManager and backup API tests cover backup/archive route parity, sidecar limitation copy, metadata, snapshots, downloads, uploads, restore, import, list/detail/swap, and route-group controls. | Preserve #257 backup/archive evidence. |
-| FORTEMI-2026-07-REQ-011 | Compatibility guard docs and tests exist. | Keep #244/#252/#253 active. |
-| FORTEMI-2026-07-REQ-012 | Agent tools are selective and now have route-family/capability metadata, intent-set tests, no-MCP-parity-copy tests, and explicit non-tool boundaries for credential, PKE, rate-limit, Twilio, destructive backup, and purge-style operations. | Preserve #258 metadata tests; add disabled-state/redaction fixtures before enabling any new diagnostic tools. |
-| FORTEMI-2026-07-REQ-013 | Exact Fortemi OpenAPI artifact and semantic fingerprint are pinned; all 249 operations require the schema-bearing shared RFC 9457 error boundary, and negative semantic/skew fixtures plus a typed call/error boundary pass. | Preserve exact producer/consumer receipts and do not infer success payload schemas that Fortemi has not declared. |
-| FORTEMI-2026-07-REQ-014 | SSE/WS clients exist; canonical AsyncAPI envelope/catalog conformance is not established by route coverage. | Add producer-owned event fixtures and unknown-event non-coercion tests. |
-| FORTEMI-2026-07-REQ-015 | Revision-19 `core-v1` migration receipt is preserved; revision-20 exact `2.0.0/full-v1` adds 33/34 inventory checks, pass-through sidecar streaming, mandatory signed dry-run, and pinned runtime/paired clean-destination evidence. Immutable sidecar `sidecar-336df3ed834b` passed the released HotM streaming path, public-key-only clean destination, two-import convergence, exact attachment-byte re-export, and eight whole-schema zero-mutation rejection classes. | `fullV1Interoperability=true` is scoped to the named exact cell only. Keep `suiteWide=false`, `completeBackup=false`, and `record-v1` unsupported. |
-| FORTEMI-2026-07-REQ-016 | Schema 1/revision `2026-07-06` and package-derived minimum-client enforcement run before capability normalization; compatible, skewed, malformed, too-old, and unreachable/degraded cases are tested. | Preserve the pinned revision matrix and update authority, client, fixtures, SAD/ADR, and tests together on revision change. |
-| FORTEMI-2026-07-REQ-017 | A claim-contract document exists; Rust workspace/release and shared Rust/Node fixture receipts are not present. | Pin the contract version and run shared fixtures in both repositories. |
+| FORTEMI-2026-07-REQ-011 | Runtime compatibility admission denies unknown/incompatible UI and agent-proxy mutations before dispatch while local/read workflows remain available. | Preserve typed block-state and zero-dispatch tests. |
+| FORTEMI-2026-07-REQ-012 | Agent tools have route-family/capability metadata and explicit non-tool boundaries. | Enforce authority in #123/#231 and complete the umbrella workflow inventory in #287/#290. |
+| FORTEMI-2026-07-REQ-013 | Exact Fortemi OpenAPI artifact and semantic fingerprint are pinned; all 251 operations require the schema-bearing shared RFC 9457 error boundary. | Preserve the receipt and add operation-complete typed/workflow evidence in #290. |
+| FORTEMI-2026-07-REQ-014 | SSE/WS clients preserve the canonical envelope and unknown events remain unknown. | Prove authenticated context in #285 and every payload schema in #288. |
+| FORTEMI-2026-07-REQ-015 | Revision-19 `core-v1` and revision-20 exact `2.0.0/full-v1` historical receipts are preserved. | Consume current revision 21 in #292; keep `suiteWide=false`, `completeBackup=false`, and `record-v1` unsupported. |
+| FORTEMI-2026-07-REQ-016 | Fortemi `48bc0a0b` profile/source receipts, schema/revision, SemVer API range, minimum client, auth claim-contract policy, startup preflight, and UI/proxy mutation gates are executable and CI-verified. | #286 delivered; keep authenticated writes fail-closed until producer metadata advertises supported claim-contract `1`. |
+| FORTEMI-2026-07-REQ-017 | Node fixtures exist, but mandatory runtime middleware, a released authority identity, and shared Rust/Node receipts are incomplete. | #231. |
+| FORTEMI-2026-07-REQ-018 | REST carries bearer and memory context; SSE/WS do not preserve the same context or prove cross-context isolation. | #285. |
+| FORTEMI-2026-07-REQ-019 | UI privilege mode and tool metadata exist; agent-proxy does not enforce them before tool execution. | #123; coordinate mandatory runtime auth with #231. |
+| FORTEMI-2026-07-REQ-020 | Route inventory reports 188 covered dispositions, but prefix/file evidence can overstate typed and executable integration. | #290. |
+| FORTEMI-2026-07-REQ-021 | Several supported Fortemi operation families remain API-only, agent-only, diagnostic-only, or absent from verifiable UX. | #287. |
+| FORTEMI-2026-07-REQ-022 | Historical `core-v1` revision-19 and `full-v1` revision-20 receipts exist; current authority is revision 21. | #292; preserve profile-specific and bounded claims. |
+| FORTEMI-2026-07-REQ-023 | UI unit tests pass, but the mocked Playwright run has 36 unexpected failures of 46 tests. | #291. |
 
 ## Artifact Trace
 
@@ -120,6 +127,9 @@ All `Covered` entries below refer to route/surface disposition only unless a sep
 | `.aiwg/handoffs/fortemi-v2026-07-discovery-to-delivery-handoff.md` | Conditional implementation handoff package with work order, blockers, and baseline verification commands. | Conditional |
 | `.aiwg/reports/fortemi-v2026-07-artifact-index.md` | Navigation index for the full Fortemi v2026.7.1 planning package. | Proposed |
 | `.aiwg/reports/fortemi-v2026-07-coverage-evidence-audit.md` | Evidence-strength audit separating strong code/test proof from weak or planning-only route-family coverage. | Proposed |
+| `.aiwg/reports/fortemi-hotm-integration-audit-2026-08-15.md` | Current producer-pin, executable-gate, and umbrella-interface audit with Gitea owners. | Open findings |
+| `ui/src/api/contracts/fortemi-system-compatibility-receipt.json` and `agent-proxy/src/contracts/fortemi-system-compatibility-receipt.json` | Identical consumer policy pin for Fortemi compatibility profile and response source at `48bc0a0b`. | Implemented / CI verified |
+| `.aiwg/testing/scripts/verify-fortemi-system-compatibility-contract.mjs` | Verifies producer Git-object checksums, profile revision/schema, source markers, and consumer receipt identity. | Implemented / required SDLC gate |
 
 ## Completion Gate
 
@@ -129,13 +139,13 @@ This traceability report records local route/surface evidence for the Fortemi v2
 
 | Artifact | Trace role | Status |
 | --- | --- | --- |
-| `ui/src/api/contracts/fortemi-openapi.yaml` | Exact Fortemi OpenAPI 3.1 artifact from commit `ec14e0447711c45a8d5c5445ce47a35f26d4346a`. | Generated producer receipt; 249/249 schema-bearing operations |
+| `ui/src/api/contracts/fortemi-openapi.yaml` | Exact Fortemi OpenAPI 3.1 artifact from commit `5ea08229c9f1565122df5f8e6906e89d98dc7e75`. | Generated producer receipt; 251/251 schema-bearing operations |
 | `.aiwg/testing/scripts/verify-fortemi-openapi-contract.mjs` | Byte, semantic, negative-mutation, version-skew, and exact CI receipt gate. | Implemented |
 | `ui/src/api/__tests__/delivered-openapi-contract.test.ts` | Typed calls serializer/response and `ProblemDetails` boundary against the delivered artifact. | Implemented |
 
 The exact artifact SHA-256 is
-`4d1f9655c60ed6f97f86c790cab64ea9826ac9ca61084250a3b242fd10a7e30c`;
+`9d2d5ea05f21a71d416d713a5cadd2c4f76086a3494105280d50ec328c4056fd`;
 the `hotm-openapi-v1` semantic SHA-256 is
-`52ea99780e621b2073e0fb4bd1f0166c1a343c81d548f9856b8b1bc6ca886535`.
-All 249 operations are schema-bearing through the shared RFC 9457 `429`
-boundary; 255 of 559 response entries contain schemas.
+`6e84af14c4f0aebb885123b19dfa639ddfda5e73ef08d0ebbb9ca7ca8db9e633`.
+All 251 operations are schema-bearing through the shared RFC 9457 `429`
+boundary; 257 of 563 response entries contain schemas.

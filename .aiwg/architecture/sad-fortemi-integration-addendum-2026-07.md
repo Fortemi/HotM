@@ -13,13 +13,14 @@ related_artifacts:
   - .aiwg/design/fortemi-v2026-07-ux-integration-addendum.md
   - .aiwg/planning/fortemi-v2026-07-implementation-roadmap.md
   - .aiwg/testing/api-contract-test-plan-addendum-2026-07.md
+  - .aiwg/reports/fortemi-hotm-integration-audit-2026-08-15.md
 ---
 
 # SAD Addendum - Fortemi v2026.7.1 Integration Architecture
 
 ## 1. Purpose
 
-This addendum updates the HotM Software Architecture Document for the Fortemi server API and capability surface audited at Fortemi commit `f6733252`, release tag `v2026.7.1`.
+This addendum updates the HotM Software Architecture Document for the Fortemi server API and capability surface. The 2026-08-15 audit evaluates HotM `bf00c6c5334707621e8c6fd96bfcff908ee1f770` against the Fortemi checkout and route inventory at `48bc0a0b`; the consumed OpenAPI and AsyncAPI artifacts remain pinned to producer `5ea08229c9f1565122df5f8e6906e89d98dc7e75`.
 
 The original SAD remains the baseline for the local-first HotM architecture. This addendum defines the target integration architecture across API clients, UX surfaces, realtime streams, admin controls, agent tools, compatibility guards, and route coverage verification. It does not assert that the target is implemented merely because a matching route or client method exists.
 
@@ -34,6 +35,26 @@ The generated 202-route inventory proves route discovery and client/surface disp
 - cross-language JWT claim behavior.
 
 Those properties remain target-state gates until the executable controls in the API contract test addendum pass against a pinned Fortemi producer.
+
+### 1.2 2026-08-15 Audit Status
+
+The architecture is not yet verified as a complete server umbrella. The
+following independent gates are open:
+
+| Boundary | Architectural gap | Issue |
+| --- | --- | --- |
+| Compatibility | The parser is display-oriented; startup and remote mutations are not admitted through a pinned, API-version-aware fail-closed decision. | #286 |
+| Realtime context | SSE and WebSocket do not preserve the REST bearer, memory, and tenant context or independently reject cross-context events. | #285 |
+| Event payloads | Event names and envelope identity are pinned, but every AsyncAPI payload is not validated on both transports. | #288 |
+| Operation coverage | Route prefixes and source-file existence can classify an operation as covered without typed request/response, auth, UI, agent, or live proof. | #290 |
+| Umbrella UX | Supported server capabilities still lack user/operator workflows or explicit exclusions. | #287 |
+| Agent authority | Privilege metadata and Node auth fixtures are not installed as mandatory server-side tool-execution controls. | #123, #231 |
+| Portable data | `full-v1` evidence is pinned to contract revision 20 while current authority is revision 21; `record-v1` remains unsupported. | #292 |
+| Browser verification | The mocked browser suite has 36 unexpected failures and is not currently a reliable release gate. | #291 |
+
+The exact OpenAPI pin remains healthy at 193 paths and 251 operations, and the
+exact AsyncAPI pin remains healthy at 48 event names. Those passing artifact
+identity checks do not waive any open gate above.
 
 ## 2. Architectural Drivers
 
@@ -164,7 +185,7 @@ supported for WebSocket compatibility. No substring or fuzzy event matching is
 permitted, and unrecognized input remains `Unknown`.
 
 The catalog fixture and source verifier pin this behavior to delivered sidecar commit
-`45aff7e6f4390c650c98f55c643b1dc95d818c86`. The verifier extracts all 48 names
+`5ea08229c9f1565122df5f8e6906e89d98dc7e75`. The verifier extracts all 48 names
 from `ServerEvent::namespaced_event_type` after validating the source checksum,
 then compares the exact set with the consumer fixture. The fixture also pins the
 AsyncAPI generator source and the reproducible canonical YAML digest
@@ -221,14 +242,28 @@ attachment-byte re-export, plus eight zero-mutation rejection classes passed.
 The earlier unsigned preflight remains a historical receipt, not the current
 disposition.
 
-#### Compatibility Boundary Completion (HotM #244)
+#### Compatibility Runtime Admission (HotM #244/#286)
 
-The compatibility client validates schema `1`, contract revision
-`2026-07-06`, and the producer minimum-client requirement against the running
-HotM package version before capability normalization. Typed failures for
-unsupported schema/revision, malformed minimum policy, or client-too-old
-state feed the existing unavailable/degraded presentation and disable advanced
-server surfaces while local workflows remain visible.
+The UI and agent-proxy pin Fortemi commit
+`48bc0a0bd68fd9e4eeb742c5af8a54207cbcc425`, the producer
+`platform-matrix.json` profile, and the response implementation source in
+`fortemi-system-compatibility-receipt.json`. The verifier checks both consumer
+receipts byte-for-byte and validates the pinned producer Git objects. This is
+profile/source evidence, not a standalone response-schema claim.
+
+The compatibility client enforces schema `1`, revision `2026-07-06`, Fortemi
+API range `>=2026.7.0 <2027.0.0`, SemVer 2 precedence, and the producer's
+minimum HotM client before capability normalization. Startup begins a cached
+preflight without blocking rendering. Every JSON, multipart, streaming,
+root-OAuth, legacy-client, and agent-tool mutation awaits the same admission
+decision before dispatch. Typed malformed, unknown, too-old, too-new,
+minimum-client, unavailable, and auth-contract failures block with zero remote
+mutation while reads and local UI remain available.
+
+Authenticated mode also requires advertised claim-contract version `1`.
+Fortemi's pinned response source does not yet emit that field, so authenticated
+remote mutations fail closed. This does not establish `fortemi-auth` runtime
+parity; REQ-017 and #231 remain independent.
 
 ## 5. Data and State Impact
 
@@ -245,6 +280,7 @@ server surfaces while local workflows remain visible.
 
 - Treat incoming receiver HMAC secrets, ingest bearer tokens, API keys, connector credentials, OAuth tokens, tenant identifiers, KMS identifiers, and private file/object paths as sensitive.
 - Unknown compatibility state disables production actions.
+- Compatibility admission is cached per configured server; changing server configuration recreates the client and decision.
 - Preview capability state permits fixture/demo rendering only, not production mutation.
 - Agent tools must not bypass UI capability gates for production-affecting operations.
 - Stream error payloads must be sanitized before rendering or logging.
@@ -325,14 +361,15 @@ This addendum is accepted when:
 - Implementation follows the roadmap dependency order so shared stream transport, capability guards, and redaction patterns are established before dependent UX and agent tools claim coverage.
 - Route-family proof expectations stay aligned with `.aiwg/design/fortemi-v2026-07-capability-surface-matrix.md`.
 - OpenAPI, AsyncAPI/SSE, Knowledge Shard, compatibility negotiation, and auth fixture gates are reported independently and pass for the release pairing.
+- The compatibility profile/source verifier and UI/agent-proxy mutation denial tests pass before runtime compatibility is marked green.
 - Documentation and UI never equate `covered` route status with schema compatibility, semantic compatibility, or lossless data portability.
 
 ### OpenAPI Consumer Boundary
 
 `ui/src/api/contracts/fortemi-openapi.yaml` is an exact consumer copy of
-Fortemi commit `ec14e0447711c45a8d5c5445ce47a35f26d4346a`,
+Fortemi commit `5ea08229c9f1565122df5f8e6906e89d98dc7e75`,
 `contracts/openapi/openapi.yaml`, SHA-256
-`4d1f9655c60ed6f97f86c790cab64ea9826ac9ca61084250a3b242fd10a7e30c`.
+`9d2d5ea05f21a71d416d713a5cadd2c4f76086a3494105280d50ec328c4056fd`.
 `.aiwg/testing/scripts/verify-fortemi-openapi-contract.mjs` compares the copy to
 the producer Git object, validates OpenAPI metadata and security, fingerprints
 all delivered operations and component schemas, runs focused breaking
@@ -344,8 +381,8 @@ media transcript fields to the producer-owned `TranscriptSegment` shape. The
 gate fails closed on unaccepted contract versions or semantic drift and
 coordinates with the compatibility gate rather than replacing it.
 
-The current artifact has 255 schema-bearing responses across 559 entries and a
-schema-bearing shared RFC 9457 rate-limit response on all 249 operations. The
+The current artifact has 257 schema-bearing responses across 563 entries and a
+schema-bearing shared RFC 9457 rate-limit response on all 251 operations. The
 verifier rejects any operation that loses this shared boundary. Focused typed
 success coverage remains limited to producer-declared schemas and does not
 infer payload types from response descriptions.

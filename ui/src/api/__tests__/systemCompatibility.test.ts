@@ -1,5 +1,6 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import {
+  createCompatibilityAdmissionGate,
   SystemCompatibilityContractError,
   normalizeSystemCompatibility,
   type SystemCompatibilityResponse,
@@ -81,6 +82,17 @@ describe('Fortemi compatibility boundary', () => {
     expect(normalizeSystemCompatibility(fixture, '2026.6.0')).toBeTruthy();
   });
 
+  it('uses SemVer numeric prerelease precedence and ignores build metadata', () => {
+    const fixture = compatibilityFixture({
+      api: {
+        ...compatibilityFixture().api,
+        minimum_hotm_enterprise_client: '2026.6.0-beta.2',
+        version: '2026.7.19+build.42',
+      },
+    });
+    expect(normalizeSystemCompatibility(fixture, '2026.6.0-beta.10+client.1')).toBeTruthy();
+  });
+
   it('fails closed on a current-plus-one contract revision', () => {
     expectContractError(
       () => normalizeSystemCompatibility(
@@ -127,5 +139,67 @@ describe('Fortemi compatibility boundary', () => {
       ),
       'invalid_minimum_client',
     );
+  });
+
+  it.each([
+    ['2026.6.99', 'server_api_too_old'],
+    ['2027.0.0', 'server_api_too_new'],
+    ['latest', 'invalid_api_version'],
+  ] as const)('fails closed on server API version %s', (version, code) => {
+    expectContractError(
+      () => normalizeSystemCompatibility(
+        compatibilityFixture({ api: { ...compatibilityFixture().api, version } }),
+        '2026.7.1',
+      ),
+      code,
+    );
+  });
+
+  it('fails closed when authenticated mode omits or changes the claim contract', () => {
+    const authenticated = {
+      ...compatibilityFixture().auth,
+      required: true,
+      mode: 'oauth_bearer',
+      oauth_issuer_configured: true,
+    };
+    expectContractError(
+      () => normalizeSystemCompatibility(
+        compatibilityFixture({ auth: authenticated }),
+        '2026.7.1',
+      ),
+      'unsupported_auth_contract',
+    );
+    expectContractError(
+      () => normalizeSystemCompatibility(
+        compatibilityFixture({ auth: { ...authenticated, claim_contract_version: '2' } }),
+        '2026.7.1',
+      ),
+      'unsupported_auth_contract',
+    );
+  });
+});
+
+describe('compatibility admission gate', () => {
+  it('caches a compatible preflight', async () => {
+    const get = vi.fn().mockResolvedValue(compatibilityFixture());
+    const gate = createCompatibilityAdmissionGate({ get } as never);
+
+    await gate.requireRemoteMutation();
+    await gate.requireRemoteMutation();
+
+    expect(get).toHaveBeenCalledOnce();
+    expect(gate.getSnapshot().state).toBe('compatible');
+  });
+
+  it('preserves a typed block reason and does not retry a blocked mutation', async () => {
+    const error = new SystemCompatibilityContractError('unsupported_revision', 'unsupported');
+    const get = vi.fn().mockRejectedValue(error);
+    const gate = createCompatibilityAdmissionGate({ get } as never);
+
+    await expect(gate.requireRemoteMutation()).rejects.toBe(error);
+    await expect(gate.requireRemoteMutation()).rejects.toBe(error);
+
+    expect(get).toHaveBeenCalledOnce();
+    expect(gate.getSnapshot()).toMatchObject({ state: 'blocked', error });
   });
 });

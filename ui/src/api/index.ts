@@ -32,7 +32,7 @@ import { createInferenceApi } from './inference';
 import { createIngestApi } from './ingest';
 import { createMediaToolsApi } from './mediaTools';
 import { createCallsApi } from './calls';
-import { createSystemCompatibilityApi } from './systemCompatibility';
+import { createCompatibilityAdmissionGate, createSystemCompatibilityApi } from './systemCompatibility';
 
 // Export core types
 export type {
@@ -75,8 +75,11 @@ export type {
 } from './extended';
 
 export type {
+  CompatibilityAdmissionSnapshot,
+  CompatibilityAdmissionState,
   SystemCapability,
   SystemCapabilityState,
+  SystemCompatibilityBlockCode,
   SystemCompatibilityResponse,
 } from './systemCompatibility';
 
@@ -368,6 +371,9 @@ function getApiBaseUrl(): string {
 export function createApi(baseUrl?: string) {
   const url = baseUrl || getApiBaseUrl();
   const client = createApiClient(url);
+  const systemCompatibility = createSystemCompatibilityApi(client);
+  const compatibilityGate = createCompatibilityAdmissionGate(systemCompatibility);
+  client.setMutationGate(() => compatibilityGate.requireRemoteMutation());
   const normalizedBase = url.endsWith('/') ? url.slice(0, -1) : url;
   const serverRoot = getServerRoot(normalizedBase);
 
@@ -424,7 +430,8 @@ export function createApi(baseUrl?: string) {
     ingest: createIngestApi(client),
     mediaTools: createMediaToolsApi(client),
     calls: createCallsApi(client),
-    systemCompatibility: createSystemCompatibilityApi(client),
+    systemCompatibility,
+    compatibilityGate,
 
     /**
      * Quick health check endpoint (legacy)

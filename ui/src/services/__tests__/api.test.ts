@@ -72,6 +72,21 @@ describe('Legacy API Service (Compatibility Layer)', () => {
 
       mockFetch.mockResolvedValueOnce({
         ok: true,
+        status: 200,
+        json: () => Promise.resolve({
+          schema_version: 1,
+          contract_revision: '2026-07-06',
+          api: {
+            name: 'fortemi',
+            version: '2026.7.19',
+            minimum_hotm_enterprise_client: '0.0.0-checkpoint',
+          },
+          auth: { required: false, mode: 'anonymous_local' },
+          capabilities: {},
+        }),
+      });
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
         json: () => Promise.resolve(mockResponse),
       });
 

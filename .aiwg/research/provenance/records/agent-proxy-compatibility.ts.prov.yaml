@@ -1,0 +1,44 @@
+metadata:
+  schema_version: "1.0.0"
+  created_at: "2026-08-15T21:13:59Z"
+  updated_at: "2026-08-15T21:13:59Z"
+  description: "Provenance for agent-proxy runtime compatibility admission"
+entity:
+  id: "urn:aiwg:artifact:agent-proxy/src/compatibility.ts"
+  type: software
+  created_at: "2026-08-15T21:13:59Z"
+  updated_at: "2026-08-15T21:13:59Z"
+  checksum: "sha256:3f3e97f23299aa6766f4204f619fbcd630e9cfac1ca81d6c230b8b5cc9f94a97"
+  size_bytes: 6722
+  attributes:
+    change_scope: "hotm-286-runtime-compatibility"
+    base_revision: "bf00c6c5334707621e8c6fd96bfcff908ee1f770"
+activity:
+  id: "urn:aiwg:activity:generation:agent-proxy-compatibility:001"
+  type: generation
+  started_at: "2026-08-15T21:13:59Z"
+  ended_at: "2026-08-15T21:13:59Z"
+  description: "Fail closed before agent-proxy mutations on unknown or incompatible Fortemi metadata"
+agent: &agent
+  id: "urn:aiwg:agent:codex-gpt-5"
+  type: ai_assistant
+  name: "Codex"
+  version: "gpt-5"
+  tool: "codex"
+relationships:
+  wasGeneratedBy:
+    entity: "urn:aiwg:artifact:agent-proxy/src/compatibility.ts"
+    activity: "urn:aiwg:activity:generation:agent-proxy-compatibility:001"
+    time: "2026-08-15T21:13:59Z"
+  wasDerivedFrom:
+    - entity: "urn:aiwg:artifact:agent-proxy/src/compatibility.ts"
+      source: "urn:aiwg:artifact:agent-proxy/src/contracts/fortemi-system-compatibility-receipt.json"
+      derivation_type: "implements"
+      activity: "urn:aiwg:activity:generation:agent-proxy-compatibility:001"
+  wasAssociatedWith:
+    activity: "urn:aiwg:activity:generation:agent-proxy-compatibility:001"
+    agent: *agent
+    role: "primary_author"
+  wasAttributedTo:
+    entity: "urn:aiwg:artifact:agent-proxy/src/compatibility.ts"
+    agent: *agent

@@ -16,13 +16,14 @@ related_artifacts:
   - .aiwg/planning/fortemi-v2026-07-implementation-roadmap.md
   - .aiwg/testing/api-contract-test-plan-addendum-2026-07.md
   - .aiwg/reports/fortemi-v2026-07-api-integration-traceability.md
+  - .aiwg/reports/fortemi-hotm-integration-audit-2026-08-15.md
 ---
 
 # Fortemi API Integration Requirements - v2026.7.1
 
 ## Scope
 
-This requirements baseline covers HotM alignment with the current Fortemi server checkout at `/home/roctinam/dev/fortemi/fortemi`, commit `f6733252`, with latest release tag `v2026.7.1` dated 2026-07-13. The audit uses server route declarations in `crates/matric-api/src/main.rs`, release notes in `docs/releases/v2026.7.1-announcement.md`, and HotM client modules under `ui/src/api` plus `agent-proxy/src/tools.ts`.
+This requirements baseline covers HotM alignment with Fortemi. The 2026-08-15 audit uses HotM `bf00c6c5334707621e8c6fd96bfcff908ee1f770`, the Fortemi checkout at `48bc0a0b`, producer-owned contract artifacts pinned at `5ea08229c9f1565122df5f8e6906e89d98dc7e75`, server route declarations in `crates/matric-api/src/main.rs`, HotM clients under `ui/src/api`, and the agent tool boundary under `agent-proxy/src`.
 
 ## Requirements
 
@@ -43,13 +44,26 @@ This requirements baseline covers HotM alignment with the current Fortemi server
 | FORTEMI-2026-07-REQ-013 | HotM must pin and validate the Fortemi-owned canonical OpenAPI contract; route presence must not be treated as request/response schema compatibility. | P0 | Breaking-diff control plus typed consumer tests cover bodies, parameters, nullability, statuses, errors, and security requirements. |
 | FORTEMI-2026-07-REQ-014 | HotM realtime consumers must conform to the Fortemi-owned AsyncAPI event envelope and payload catalog across SSE and WebSocket transports. | P0 | Golden event fixtures verify top-level `event_type`, identifiers, timestamps, resource references, and metadata; unknown events remain unknown and are not coerced to another event type. |
 | FORTEMI-2026-07-REQ-015 | HotM backup/shard workflows must negotiate canonical Knowledge Shard schema version, `min_reader_version`, and profile, and must not claim lossless portability before cross-repository round trips pass. | P0 | Server-export -> HotM -> server-import golden suites preserve declared identities, relationships, null/tombstone semantics, timestamps, counts/checksums, and attachment bytes or produce a blocking loss report. |
-| FORTEMI-2026-07-REQ-016 | HotM must enforce compatibility contract revision, server API revision, and minimum-client constraints before enabling server mutations. | P0 | Fixture matrix covers supported, unknown, malformed, and client-too-old responses with fail-closed production controls. |
+| FORTEMI-2026-07-REQ-016 | HotM must enforce compatibility contract revision, server API revision, minimum-client constraints, and supported auth claim-contract versions before enabling server mutations. | P0 | Pinned producer profile/source verification plus UI and agent-proxy fixtures cover compatible, unknown, malformed, unavailable, client-too-old, server-too-old/new, and unsupported-auth responses with denial before dispatch. |
 | FORTEMI-2026-07-REQ-017 | HotM's Node auth verifier must pin the `fortemi-auth` claim-contract version and pass the same versioned fixtures as the Rust implementation before parity is claimed. | P0 | Cross-language fixture receipt covers issuer/audience/algorithm validation, tenant derivation, scopes, time claims, error taxonomy, and redaction. |
+| FORTEMI-2026-07-REQ-018 | HotM realtime SSE and WebSocket transports must preserve authenticated bearer, memory, and tenant context and reject cross-context events. | P0 | Authenticated two-memory/two-tenant tests prove isolation, reconnect continuity, and credential/context redaction on both transports. |
+| FORTEMI-2026-07-REQ-019 | HotM agent privileges must be enforced at the server-side tool execution boundary; UI mode and tool metadata are not authorization. | P0 | Forged mode, replayed confirmation, altered arguments, unknown tool, destructive/admin, and concurrent-session tests fail closed. |
+| FORTEMI-2026-07-REQ-020 | Integration coverage must be recorded per OpenAPI operation with independent request, response, auth/context, UI, agent, and live evidence. | P0 | The generated operation matrix rejects prefix/file-only coverage and fails on unclassified or stale evidence. |
+| FORTEMI-2026-07-REQ-021 | Every supported Fortemi capability must have a verifiable HotM user/operator workflow, a privilege-gated agent workflow, or an explicit documented exclusion. | P1 | Browser scenarios cover each implemented family and the operation matrix contains no implicit gaps. |
+| FORTEMI-2026-07-REQ-022 | Knowledge Shard authority refresh must include current contract revision/profile metadata and preserve profile-specific claims. | P0 | Revision-21 `core-v1`/`full-v1` checks and clean-server golden receipts pass; `record-v1`, suite-wide, and complete-backup claims remain false until separately proven. |
+| FORTEMI-2026-07-REQ-023 | The deterministic mocked browser suite must be a reliable required integration gate. | P1 | All non-quarantined Playwright scenarios pass with pinned contract fixtures; quarantines are issue-backed and cannot hide core note/search/tag failures. |
+
+## 2026-08-15 Audit Disposition
+
+Requirements 013 through 023 are independent release gates. Artifact identity
+currently passes for the pinned OpenAPI and AsyncAPI inputs, but full integration
+closure is blocked by #285 through #292, plus the existing runtime authority
+work in #123 and #231. A green route inventory cannot satisfy these requirements.
 
 ## Realtime Requirement Receipt
 
-`FORTEMI-2026-07-REQ-014` is implemented for the sidecar-pinned producer commit
-`45aff7e6f4390c650c98f55c643b1dc95d818c86` by:
+`FORTEMI-2026-07-REQ-014` is partially implemented for the sidecar-pinned producer commit
+`5ea08229c9f1565122df5f8e6906e89d98dc7e75` by:
 
 - `ui/src/api/contracts/fortemi-event-catalog.json`, which records the 48 exact
   namespaced event types, default subscription prefixes, producer source path, and
@@ -66,6 +80,10 @@ The delivered inference availability payload uses the producer field `available`
 the former consumer-only `reachable` and `provider_id` event fields are not part of
 this contract. Event and AsyncAPI source checksums are unchanged from the earlier
 `98c9b29deee43b9c5bd96278f1f96837595882cd` receipt.
+
+The catalog and envelope receipt does not validate each event payload schema or
+authenticated memory/tenant context. Those remaining requirements are tracked
+in #285 and #288.
 
 ## Knowledge Shard Requirement Receipt
 
@@ -93,28 +111,38 @@ Fortemi destination passed required-signature dry-run, two imports, exact
 rejections. `fullV1Interoperability` is true only for this named exact cell;
 `suiteWide` and `completeBackup` remain false.
 
+Current Fortemi authority is contract revision 21. Revision-19 `core-v1` and
+revision-20 `full-v1` receipts remain historical, profile-specific evidence;
+#292 owns the current authority pin and replacement live receipt.
+
 ## Compatibility Requirement Receipt
 
-`FORTEMI-2026-07-REQ-016` is implemented at the HotM consumer boundary for
-schema `1` and revision `2026-07-06`. The exact package version is compared
-with `minimum_hotm_enterprise_client` before capability interpretation.
-Supported/equal/checkpoint, future revision, client-too-old, malformed
-minimum, unsupported schema, and unreachable/degraded presentation cases are
-covered by focused tests. This receipt proves HotM's fail-closed consumer
-behavior, not compatibility of any separate OpenAPI, AsyncAPI, shard, or auth
-contract.
+`FORTEMI-2026-07-REQ-016` has runtime evidence for schema `1`, revision
+`2026-07-06`, Fortemi API range `>=2026.7.0 <2027.0.0`, SemVer 2 ordering, the
+producer minimum-client field, and auth claim-contract version `1`. The UI
+starts a non-blocking cached preflight and denies shared-client, multipart,
+streaming, root-OAuth, legacy-wrapper, and agent-proxy mutations before network
+dispatch on any unknown or incompatible state. Reads and local rendering remain
+available.
+
+The consumer receipt pins Fortemi commit `48bc0a0b`, its compatibility profile,
+and response source; the CI verifier checks both consumer copies and producer
+checksums. This proves bounded admission behavior only. OpenAPI, AsyncAPI,
+Knowledge Shard, and cross-language auth parity remain separate gates. Because
+the current producer does not advertise a claim-contract version,
+authenticated remote mutations intentionally fail closed.
 
 ## Current Coverage Summary
 
 HotM already has meaningful route and UI coverage for notes, search, archives/memories, jobs, events, inference config/audit/providers/test-connection, outbound webhooks, document types, attachments including TUS upload support, backup basics, concepts/SKOS, collections, templates, embedding sets/configs, health, and system compatibility. This statement is not a schema, semantic, losslessness, negotiation, or auth-parity claim.
 
-The original investigation open set was concentrated in full backup/download coverage, agent-tool gating, hosted auth parity, and automated end-to-end contract inventory. The current implementation baseline has local evidence for those P0/P1 slices, and tracker closeout comments are published. Final closure still depends on a live route-verifier CI receipt or accepted local-preflight-only decision.
+The current implementation baseline has broad local route and component evidence, but the 2026-08-15 audit reopened operation-level conformance, realtime context/payloads, compatibility admission, agent authority, Knowledge Shard authority, umbrella UX, and browser verification. The owning issues are #123, #231, and #285 through #292.
 
 ## Route Inventory Baseline
 
 The generated coverage inventory at `.aiwg/api/compatibility/fortemi-v2026-07-route-coverage.md`
 extracts 202 Fortemi route declarations from `crates/matric-api/src/main.rs` at delivered sidecar
-commit `45aff7e6`.
+commit `48bc0a0b`.
 
 | Status | Count | Meaning |
 | --- | ---: | --- |
@@ -141,17 +169,17 @@ The accepted product/UX disposition for vision, audio, and realtime call routes 
 ## OpenAPI Requirement Receipt
 
 `FORTEMI-2026-07-REQ-013` is implemented against Fortemi commit
-`ec14e0447711c45a8d5c5445ce47a35f26d4346a`. HotM vendors the exact generated
+`5ea08229c9f1565122df5f8e6906e89d98dc7e75`. HotM vendors the exact generated
 OpenAPI artifact at SHA-256
-`4d1f9655c60ed6f97f86c790cab64ea9826ac9ca61084250a3b242fd10a7e30c`
+`9d2d5ea05f21a71d416d713a5cadd2c4f76086a3494105280d50ec328c4056fd`
 and pins semantic fingerprint
-`52ea99780e621b2073e0fb4bd1f0166c1a343c81d548f9856b8b1bc6ca886535`.
+`6e84af14c4f0aebb885123b19dfa639ddfda5e73ef08d0ebbb9ca7ca8db9e633`.
 The verifier covers parameters, bodies, response/status declarations, component
 schemas, errors, nullability, enums, and security; skew fixtures accept
 `2026.2.8` and `2026.2.9` and reject breaking `2027.0.0`.
 
 The typed call boundary now matches the delivered `CallDetailResponse` and
-`TranscriptSegment` schemas and rejects malformed producer examples. All 249
+`TranscriptSegment` schemas and rejects malformed producer examples. All 251
 operations carry a schema-bearing shared RFC 9457 rate-limit boundary; the
 verifier rejects its removal or media/schema drift. CI emits exact producer and
 consumer commits. Undeclared success payloads remain undeclared rather than

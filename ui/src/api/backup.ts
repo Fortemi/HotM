@@ -364,6 +364,7 @@ export function createBackupApi(client: ApiClient) {
         const url = `${getBaseUrl()}/backup/knowledge-shard/upload${queryString ? `?${queryString}` : ''}`;
         const formData = new FormData();
         formData.append('file', file);
+        await client.requireMutation?.('POST', '/backup/knowledge-shard/upload');
         const response = await getTauriFetch()(url, {
           method: 'POST',
           headers: getMemoryHeaders(),
@@ -519,6 +520,7 @@ export function createBackupApi(client: ApiClient) {
       const baseUrl = getBaseUrl();
       const url = `${baseUrl}/backup/knowledge-archive`;
 
+      await client.requireMutation?.('POST', '/backup/knowledge-archive');
       const response = await getTauriFetch()(url, {
         method: 'POST',
         headers: getMemoryHeaders(),

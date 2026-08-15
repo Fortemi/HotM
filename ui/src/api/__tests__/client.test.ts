@@ -111,6 +111,17 @@ describe('API Client', () => {
   });
 
   describe('POST requests', () => {
+    it('runs the mutation gate before dispatch and preserves its typed error', async () => {
+      const block = new Error('compatibility blocked');
+      const gate = vi.fn().mockRejectedValue(block);
+      client.setMutationGate(gate);
+
+      await expect(client.post('/notes', { content: 'blocked' })).rejects.toBe(block);
+
+      expect(gate).toHaveBeenCalledWith({ method: 'POST', path: '/notes' });
+      expect(mockFetch).not.toHaveBeenCalled();
+    });
+
     it('makes successful POST request with body', async () => {
       const mockResponse = { id: 'new-id' };
       const requestBody = { content: 'Test content' };

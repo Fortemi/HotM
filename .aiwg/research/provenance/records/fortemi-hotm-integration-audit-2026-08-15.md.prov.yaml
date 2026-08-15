@@ -1,0 +1,62 @@
+metadata:
+  schema_version: "1.0.0"
+  created_at: "2026-08-15T20:50:46Z"
+  updated_at: "2026-08-15T20:54:54Z"
+  description: "Provenance for the 2026-08-15 Fortemi-HotM integration audit"
+entity:
+  id: "urn:aiwg:artifact:.aiwg/reports/fortemi-hotm-integration-audit-2026-08-15.md"
+  type: document
+  created_at: "2026-08-15T20:50:46Z"
+  updated_at: "2026-08-15T20:54:54Z"
+  checksum: "sha256:c9bb211ab80dcaa926bc49f3c9b61738ef5e6b892e1f454c7903a3d841279692"
+  size_bytes: 5279
+  attributes:
+    change_scope: "fortemi-hotm-integration-audit-2026-08-15"
+    hotm_revision: "bf00c6c5334707621e8c6fd96bfcff908ee1f770"
+    fortemi_revision: "48bc0a0b"
+activity:
+  id: "urn:aiwg:activity:generation:aiwg-reports-fortemi-hotm-integration-audit-2026-08-15-md:001"
+  type: generation
+  started_at: "2026-08-15T20:49:45Z"
+  ended_at: "2026-08-15T20:54:54Z"
+  description: "Record contract identities, executable verification results, bounded claims, findings, and Gitea owners"
+agent:
+  id: "urn:aiwg:agent:codex-gpt-5"
+  type: ai_assistant
+  name: "Codex"
+  version: "gpt-5"
+  tool: "codex"
+  attributes:
+    delegated_roles:
+      - "security-auditor"
+      - "architecture-documenter"
+      - "requirements-analyst"
+      - "test-architect"
+relationships:
+  wasGeneratedBy:
+    entity: "urn:aiwg:artifact:.aiwg/reports/fortemi-hotm-integration-audit-2026-08-15.md"
+    activity: "urn:aiwg:activity:generation:aiwg-reports-fortemi-hotm-integration-audit-2026-08-15-md:001"
+    time: "2026-08-15T20:54:54Z"
+  used:
+    - activity: "urn:aiwg:activity:generation:aiwg-reports-fortemi-hotm-integration-audit-2026-08-15-md:001"
+      entity: "urn:git:git@git.integrolabs.net:Fortemi/HotM.git:bf00c6c5334707621e8c6fd96bfcff908ee1f770"
+      role: "consumer_baseline"
+    - activity: "urn:aiwg:activity:generation:aiwg-reports-fortemi-hotm-integration-audit-2026-08-15-md:001"
+      entity: "urn:git:git@git.integrolabs.net:Fortemi/fortemi.git:48bc0a0b"
+      role: "producer_baseline"
+  wasDerivedFrom:
+    - entity: "urn:aiwg:artifact:.aiwg/reports/fortemi-hotm-integration-audit-2026-08-15.md"
+      source: "urn:git:git@git.integrolabs.net:Fortemi/HotM.git:bf00c6c5334707621e8c6fd96bfcff908ee1f770"
+      derivation_type: "audits"
+      activity: "urn:aiwg:activity:generation:aiwg-reports-fortemi-hotm-integration-audit-2026-08-15-md:001"
+    - entity: "urn:aiwg:artifact:.aiwg/reports/fortemi-hotm-integration-audit-2026-08-15.md"
+      source: "urn:git:git@git.integrolabs.net:Fortemi/fortemi.git:48bc0a0b"
+      derivation_type: "audits"
+      activity: "urn:aiwg:activity:generation:aiwg-reports-fortemi-hotm-integration-audit-2026-08-15-md:001"
+  wasAssociatedWith:
+    activity: "urn:aiwg:activity:generation:aiwg-reports-fortemi-hotm-integration-audit-2026-08-15-md:001"
+    agent: "urn:aiwg:agent:codex-gpt-5"
+    role: "primary_author"
+  wasAttributedTo:
+    entity: "urn:aiwg:artifact:.aiwg/reports/fortemi-hotm-integration-audit-2026-08-15.md"
+    agent: "urn:aiwg:agent:codex-gpt-5"

@@ -111,6 +111,7 @@ export function createMediaToolsApi(client: ApiClient) {
     formData: FormData,
     failurePrefix: string,
   ): Promise<T> {
+    await client.requireMutation?.('POST', path);
     const response = await getTauriFetch()(`${client.baseUrl}${path}`, {
       method: 'POST',
       body: formData,

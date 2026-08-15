@@ -10,6 +10,7 @@ related_artifacts:
   - .aiwg/architecture/impact/fortemi-api-contract-drift-2026-07.md
   - .aiwg/design/fortemi-v2026-07-capability-surface-matrix.md
   - .aiwg/architecture/adr/ADR-011-fortemi-media-call-surface-disposition.md
+  - .aiwg/reports/fortemi-hotm-integration-audit-2026-08-15.md
 ---
 
 # ADR-010: Fortemi v2026.7.1 API Coverage Strategy
@@ -20,7 +21,7 @@ HotM previously integrated the Fortemi v2026.5.x surface. Fortemi now ships v202
 
 The current HotM API client is broad but not exhaustive. A seamless integration target requires a formal coverage model: each server capability must be implemented in UI/API client/agent tooling, or explicitly excluded with rationale and a tracker item.
 
-The current route inventory generated from delivered sidecar commit `45aff7e6` extracts 202
+The current route inventory generated from Fortemi source commit `48bc0a0b` extracts 202
 Fortemi route declarations and classifies them as 188 covered, 0 partial, 0 gap,
 0 decision-needed, and 14 documented exclusions. The added `/livez` and `/readyz` probes are
 classified under health, while the operator OpenAPI and AsyncAPI paths replace the removed root
@@ -28,6 +29,22 @@ document paths under `contract_docs`. That classification establishes route disp
 request/response, event, portable-data, compatibility-negotiation, or authentication conformance.
 
 The route-family proof checklist for moving those classifications to implementation evidence is maintained in `.aiwg/design/fortemi-v2026-07-capability-surface-matrix.md`.
+
+### 2026-08-15 Audit Amendment
+
+The route count remains useful for discovery and disposition, but the current
+classifier can derive `covered` from route prefixes and source-file existence.
+That cannot support an operation-level integration claim. #290 therefore owns
+a method/path/operation-ID evidence model with independent request, response,
+auth/context, UI, agent, and live-receipt states. #287 owns the resulting
+umbrella-interface gaps.
+
+The audit also identifies independent blockers that route coverage cannot
+retire: runtime compatibility admission (#286), authenticated realtime context
+(#285), per-event AsyncAPI payload validation (#288), agent runtime privilege
+and auth enforcement (#123 and #231), current Knowledge Shard revision-21
+consumption (#292), and a reliable browser gate (#291). Existing July receipts
+remain historical evidence only at their exact pins and named profiles.
 
 ## Decision
 
@@ -117,7 +134,7 @@ persistence planes.
 ### Realtime Contract Receipt (HotM #268)
 
 The realtime consumer gate is implemented against the delivered sidecar-pinned Fortemi commit
-`45aff7e6f4390c650c98f55c643b1dc95d818c86`. The source-derived catalog at
+`5ea08229c9f1565122df5f8e6906e89d98dc7e75`. The source-derived catalog at
 `ui/src/api/contracts/fortemi-event-catalog.json` records all 48 names returned by
 `ServerEvent::namespaced_event_type` and the SHA-256 of
 `crates/matric-core/src/events.rs`. The CI verifier rejects revision, checksum, or
@@ -191,29 +208,38 @@ clean Fortemi destination cell. `suiteWide` and `completeBackup` remain false,
 and `record-v1` remains unsupported. The historical unsigned preflight receipt
 is retained separately from the passing receipt.
 
-### Compatibility Guard Receipt (HotM #244)
+### Compatibility Admission Receipt (HotM #244/#286)
 
 `ui/src/api/systemCompatibility.ts` accepts only schema `1` and contract
 revision `2026-07-06`. It compares Fortemi's
 `minimum_hotm_enterprise_client` with the exact version from
-`ui/package.json` before capability normalization. Unsupported schemas,
-unknown revisions, malformed minimum-client policies, and client-too-old
-responses throw typed contract errors, preserving the existing
-unavailable/degraded UI path and leaving local workflows available.
+`ui/package.json` before capability normalization and admits only Fortemi API
+versions `>=2026.7.0 <2027.0.0` using SemVer 2 precedence. Unsupported schemas,
+unknown revisions, malformed values, client-too-old, server-too-old/new,
+unavailable, and unsupported auth-contract responses throw typed errors.
 
-Focused fixtures cover compatible, exactly-equal minimum, checkpoint
-prerelease, current-plus-one revision, client-too-old, malformed minimum, and
-unsupported-schema states. Route presence and a successful HTTP response do
-not bypass this boundary.
+The UI starts a non-blocking preflight and gates all shared-client plus direct
+multipart/stream/root-OAuth mutations before dispatch. The legacy wrapper and
+agent-proxy use the same policy. Focused tests cover correct numeric prerelease
+ordering, all typed block states, cached decisions, zero-dispatch denial, and
+local/read-only continuity.
+
+The duplicated consumer receipts pin Fortemi commit `48bc0a0b`,
+`contracts/suite-conformance/platform-matrix.json`, and the response source;
+`.aiwg/testing/scripts/verify-fortemi-system-compatibility-contract.mjs`
+verifies both copies and producer checksums in CI. Authenticated mode requires
+claim-contract version `1`; the current producer omits it and therefore fails
+closed. This receipt is not OpenAPI, AsyncAPI, Knowledge Shard, or
+`fortemi-auth` parity evidence.
 
 ### OpenAPI Consumer Receipt (HotM #270)
 
 HotM consumes the Fortemi-generated OpenAPI 3.1 artifact at producer commit
-`ec14e0447711c45a8d5c5445ce47a35f26d4346a`, stable path
+`5ea08229c9f1565122df5f8e6906e89d98dc7e75`, stable path
 `contracts/openapi/openapi.yaml`, and SHA-256
-`4d1f9655c60ed6f97f86c790cab64ea9826ac9ca61084250a3b242fd10a7e30c`.
+`9d2d5ea05f21a71d416d713a5cadd2c4f76086a3494105280d50ec328c4056fd`.
 The `hotm-openapi-v1` semantic projection has SHA-256
-`52ea99780e621b2073e0fb4bd1f0166c1a343c81d548f9856b8b1bc6ca886535`
+`6e84af14c4f0aebb885123b19dfa639ddfda5e73ef08d0ebbb9ca7ca8db9e633`
 and compares parameters, request bodies, responses/statuses, component schemas,
 nullability, enums, error metadata, and security requirements.
 
@@ -224,7 +250,7 @@ response schema exposed and corrected a real consumer mismatch: call transcript
 segments now use producer fields `id`, `call_id`, `text`, `sequence`,
 `created_at`, `speaker_label`, `start_ts`, `end_ts`, and `confidence`.
 
-The producer artifact has 191 paths and 249 operations. All 249 operations now
+The producer artifact has 193 paths and 251 operations. All 251 operations now
 carry the global middleware's schema-bearing `429 application/problem+json`
 boundary, producing 255 schema-bearing responses across 559 response entries.
 The gate requires that shared boundary on every operation and preserves the six

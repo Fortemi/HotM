@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "producer": {
+    "repository": "Fortemi/fortemi",
+    "commit": "48bc0a0bd68fd9e4eeb742c5af8a54207cbcc425",
+    "profile": {
+      "path": "contracts/suite-conformance/platform-matrix.json",
+      "sha256": "27e4ccc8b29d825de669c75cb5b9f642f444f92fc1fc29022b7955a35ba923fe"
+    },
+    "responseSource": {
+      "path": "crates/matric-api/src/main.rs",
+      "sha256": "0af67cf61385b44b01f8e83d5dd1e465208ddb48c49924302998f46b8075e590"
+    }
+  },
+  "consumer": {
+    "apiName": "fortemi",
+    "compatibilitySchemaVersion": 1,
+    "acceptedContractRevisions": ["2026-07-06"],
+    "minimumServerApiVersion": "2026.7.0",
+    "maximumServerApiVersionExclusive": "2027.0.0",
+    "acceptedAuthClaimContractVersions": ["1"],
+    "localAuthModes": ["anonymous_local"]
+  },
+  "evidenceScope": "Pinned producer profile and response-source evidence; not a standalone response-schema conformance claim."
+}

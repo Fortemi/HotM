@@ -4,7 +4,7 @@
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { api } from '../compat';
+import { api, reinitializeCompatApi } from '../compat';
 
 // Mock fetch globally
 global.fetch = vi.fn();
@@ -13,7 +13,27 @@ describe('API Compatibility Layer', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     (global.fetch as any).mockReset();
+    reinitializeCompatApi();
   });
+
+  const compatibilityResponse = {
+    ok: true,
+    status: 200,
+    json: async () => ({
+      schema_version: 1,
+      contract_revision: '2026-07-06',
+      api: {
+        name: 'fortemi',
+        version: '2026.7.19',
+        minimum_hotm_enterprise_client: '0.0.0-checkpoint',
+      },
+      auth: {
+        required: false,
+        mode: 'anonymous_local',
+      },
+      capabilities: {},
+    }),
+  };
 
   describe('Health Check', () => {
     it('should check health and return formatted response', async () => {
@@ -59,6 +79,7 @@ describe('API Compatibility Layer', () => {
 
   describe('Note Operations', () => {
     it('should create a note', async () => {
+      (global.fetch as any).mockResolvedValueOnce(compatibilityResponse);
       (global.fetch as any).mockResolvedValueOnce({
         ok: true,
         json: async () => ({
@@ -157,6 +178,7 @@ describe('API Compatibility Layer', () => {
 
   describe('Tag Operations', () => {
     it('should update note tags', async () => {
+      (global.fetch as any).mockResolvedValueOnce(compatibilityResponse);
       (global.fetch as any).mockResolvedValueOnce({
         ok: true,
         json: async () => ({

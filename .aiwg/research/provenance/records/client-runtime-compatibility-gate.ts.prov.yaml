@@ -1,0 +1,44 @@
+metadata:
+  schema_version: "1.0.0"
+  created_at: "2026-08-15T21:13:59Z"
+  updated_at: "2026-08-15T21:13:59Z"
+  description: "Provenance for the shared UI mutation gate hook"
+entity:
+  id: "urn:aiwg:artifact:ui/src/api/client.ts"
+  type: software
+  created_at: "2026-08-15T21:13:59Z"
+  updated_at: "2026-08-15T21:13:59Z"
+  checksum: "sha256:f912087d074bae57b5f976b494ab3614f98df29fbb66bb9e25f84af780655071"
+  size_bytes: 6476
+  attributes:
+    change_scope: "hotm-286-runtime-compatibility"
+    base_revision: "bf00c6c5334707621e8c6fd96bfcff908ee1f770"
+activity:
+  id: "urn:aiwg:activity:modification:ui-api-client-compatibility-gate:001"
+  type: modification
+  started_at: "2026-08-15T21:13:59Z"
+  ended_at: "2026-08-15T21:13:59Z"
+  description: "Run a reusable asynchronous admission gate before every shared-client mutation"
+agent: &agent
+  id: "urn:aiwg:agent:codex-gpt-5"
+  type: ai_assistant
+  name: "Codex"
+  version: "gpt-5"
+  tool: "codex"
+relationships:
+  wasGeneratedBy:
+    entity: "urn:aiwg:artifact:ui/src/api/client.ts"
+    activity: "urn:aiwg:activity:modification:ui-api-client-compatibility-gate:001"
+    time: "2026-08-15T21:13:59Z"
+  wasDerivedFrom:
+    - entity: "urn:aiwg:artifact:ui/src/api/client.ts"
+      source: "urn:git:git@git.integrolabs.net:Fortemi/HotM.git:bf00c6c5334707621e8c6fd96bfcff908ee1f770:ui/src/api/client.ts"
+      derivation_type: "modifies"
+      activity: "urn:aiwg:activity:modification:ui-api-client-compatibility-gate:001"
+  wasAssociatedWith:
+    activity: "urn:aiwg:activity:modification:ui-api-client-compatibility-gate:001"
+    agent: *agent
+    role: "primary_author"
+  wasAttributedTo:
+    entity: "urn:aiwg:artifact:ui/src/api/client.ts"
+    agent: *agent

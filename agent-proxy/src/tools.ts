@@ -14,6 +14,7 @@
 
 import { tool } from 'ai';
 import { z } from 'zod';
+import { requireCompatibleFortemiMutation } from './compatibility.js';
 
 export type AgentToolSafety = 'read' | 'write';
 
@@ -52,7 +53,12 @@ async function fortemi<T = unknown>(
   path: string,
   init?: RequestInit,
 ): Promise<T> {
-  const url = `${fortemiUrl()}${path}`;
+  const apiBaseUrl = fortemiUrl();
+  const method = (init?.method ?? 'GET').toUpperCase();
+  if (method !== 'GET' && method !== 'HEAD' && method !== 'OPTIONS') {
+    await requireCompatibleFortemiMutation(apiBaseUrl);
+  }
+  const url = `${apiBaseUrl}${path}`;
   const res = await fetch(url, {
     ...init,
     signal: init?.signal ?? AbortSignal.timeout(FORTEMI_TIMEOUT_MS),

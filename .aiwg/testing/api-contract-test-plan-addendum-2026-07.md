@@ -18,6 +18,7 @@ related_artifacts:
   - .aiwg/testing/fortemi-route-verifier-spec-2026-07.md
   - .aiwg/reports/fortemi-v2026-07-api-integration-traceability.md
   - .aiwg/reports/fortemi-v2026-07-coverage-evidence-audit.md
+  - .aiwg/reports/fortemi-hotm-integration-audit-2026-08-15.md
 ---
 
 # API Contract Test Plan Addendum - Fortemi v2026.7.1
@@ -25,6 +26,23 @@ related_artifacts:
 ## Objective
 
 Extend the May 2026 API contract checks so HotM can track and verify the Fortemi v2026.7.1 server surface. The test strategy must cover route inventory drift, OpenAPI schemas, AsyncAPI event semantics, Knowledge Shard profiles and losslessness, compatibility negotiation, cross-language auth fixtures, streaming endpoints, operator/admin surfaces, future partial parity regressions, newly discovered decision-needed endpoints, and documented exclusions.
+
+## 2026-08-15 Required Gate Additions
+
+| Gate | Required evidence | Issue |
+| --- | --- | --- |
+| Runtime compatibility | Pinned producer artifact, correct SemVer, server API revision, minimum client, and mutation denial before dispatch while local-only workflows remain available. | #286 |
+| Realtime context | Authenticated SSE/WS tests with two memories and tenants, reconnect continuity, event ownership checks, and URL/log/error redaction. | #285 |
+| AsyncAPI payloads | Producer-owned positive and negative fixtures for every event schema through both transport decoders; unknown events remain unknown. | #288 |
+| Operation conformance | Per-operation request, response, auth/context, UI, agent, and live evidence; prefix/file-only evidence is rejected. | #290 |
+| Agent authority | Mandatory JWT middleware plus server-side privilege decisions, confirmation replay resistance, and least-privilege Fortemi context forwarding. | #123, #231 |
+| Knowledge Shard | Revision-21 authority pin, profile-specific `core-v1` and `full-v1` golden receipts, current live recovery receipt, and negative revision/profile/signature/byte tests. | #292 |
+| Browser integration | All non-quarantined mocked Playwright scenarios pass and publish exact fixture/commit evidence. | #291 |
+| Umbrella workflows | Browser-verifiable user/operator or privileged-agent workflow for every supported operation, or explicit exclusion. | #287 |
+
+These gates are independent. Passing route discovery or artifact byte identity
+does not satisfy payload, auth/context, runtime admission, workflow, or live
+recovery behavior.
 
 ## Existing Guards To Preserve
 
@@ -47,7 +65,7 @@ python3 .aiwg/testing/scripts/fortemi-route-coverage.py
 
 Acceptance:
 
-- Extracts 202 Fortemi route declarations for delivered sidecar commit `45aff7e6`.
+- Extracts 202 Fortemi route declarations for source commit `48bc0a0b`.
 - Produces `.aiwg/api/compatibility/fortemi-v2026-07-route-coverage.md`.
 - Produces `.aiwg/api/compatibility/fortemi-v2026-07-route-coverage.json`.
 - Produces zero `unclassified` route families.
@@ -76,7 +94,7 @@ Required checks:
 Delivered for HotM #268:
 
 - The source-derived fixture pins sidecar commit
-  `45aff7e6f4390c650c98f55c643b1dc95d818c86`, the producer source path, source
+  `5ea08229c9f1565122df5f8e6906e89d98dc7e75`, the producer source path, source
   SHA-256, all 48 namespaced event types, and the default subscription prefixes.
 - The pinned producer generator, invoked with version `2026.7.1` and canonical
   server URL `https://example.invalid`, produces a 45,161-byte AsyncAPI 3.0 YAML
@@ -128,8 +146,9 @@ version boundary current without widening the supported profile.
 
 Delivered extension for HotM #272:
 
-- Pin authority revision 20, schema bundle, field-semantics inventory, runtime
-  receipt, and paired receipt for exact `2.0.0/full-v1`.
+- Preserve revision-20 historical evidence and pin current authority revision
+  21, schema bundle, field-semantics inventory, runtime receipt, and paired
+  receipt for exact `2.0.0/full-v1` before making a current-support claim.
 - Require 33 component files, 34 count fields, and a matching 33-file checksum
   inventory during bounded streaming inspection.
 - Assert full export uses `schema_version=2.0.0`, `profile=full-v1`, and
@@ -164,15 +183,29 @@ Required checks:
 - Cover minimum-client satisfied, client-too-old, malformed, and absent metadata.
 - Keep local workflows available while disabling affected server mutations on negotiation failure.
 
-Delivered for HotM #244:
+Delivered for HotM #244/#286:
 
 - Schema `1` and revision `2026-07-06` are the only accepted compatibility
   boundary.
 - The minimum client is compared with `ui/package.json` before capability
   normalization.
-- Fixtures cover supported, equal minimum, checkpoint prerelease, future
-  revision, client-too-old, malformed minimum, unsupported schema, and the
-  existing unreachable/degraded UI path.
+- Fortemi API versions are limited to `>=2026.7.0 <2027.0.0` with SemVer 2
+  numeric prerelease ordering and build metadata handling.
+- Authenticated compatibility responses must advertise supported claim-contract
+  version `1`; missing and unknown versions fail closed.
+- UI startup preflights asynchronously, and every shared-client, direct
+  multipart/stream/root-OAuth, legacy-wrapper, and agent-proxy mutation awaits
+  the cached decision before dispatch.
+- Fixtures cover supported, equal minimum, checkpoint and numeric prerelease,
+  future revision, client-too-old, malformed minimum/API, server-too-old/new,
+  unsupported schema/auth contract, unreachable state, cached decisions, and
+  zero-dispatch denial while reads/local startup remain available.
+- `.aiwg/testing/scripts/verify-fortemi-system-compatibility-contract.mjs`
+  validates identical UI/proxy receipts and pinned Fortemi profile/source Git
+  objects at `48bc0a0b`; CI runs the verifier as an independent SDLC gate.
+
+This gate is runtime compatibility evidence only and cannot satisfy OpenAPI,
+AsyncAPI, Knowledge Shard, or cross-language auth conformance.
 
 ### 1E. Cross-Language Auth Fixtures
 
@@ -311,10 +344,10 @@ The scenario-level test ownership, fixture states, redaction assertions, and pla
 ### OpenAPI Contract Gate Receipt
 
 The #270 gate pins Fortemi commit
-`ec14e0447711c45a8d5c5445ce47a35f26d4346a`, artifact SHA-256
-`4d1f9655c60ed6f97f86c790cab64ea9826ac9ca61084250a3b242fd10a7e30c`,
+`5ea08229c9f1565122df5f8e6906e89d98dc7e75`, artifact SHA-256
+`9d2d5ea05f21a71d416d713a5cadd2c4f76086a3494105280d50ec328c4056fd`,
 and semantic SHA-256
-`52ea99780e621b2073e0fb4bd1f0166c1a343c81d548f9856b8b1bc6ca886535`.
+`6e84af14c4f0aebb885123b19dfa639ddfda5e73ef08d0ebbb9ca7ca8db9e633`.
 CI must compare exact producer bytes, validate its semantic fingerprint, run
 negative mutations for parameters, bodies, response schemas/statuses, errors,
 nullability, enums, and security, and publish a receipt with both exact commits.
@@ -332,8 +365,8 @@ node .aiwg/testing/scripts/verify-fortemi-openapi-contract.mjs ../fortemi
 (cd ui && npm test -- --run src/api/__tests__/calls.test.ts src/api/__tests__/delivered-openapi-contract.test.ts src/components/admin/__tests__/ApiCapabilitiesPanel.test.tsx)
 ```
 
-The current producer baseline has 191 paths, 249 operations, 559 response
-entries, and 255 response schemas. Every operation must retain the shared
+The current producer baseline has 193 paths, 251 operations, 563 response
+entries, and 257 response schemas. Every operation must retain the shared
 schema-bearing RFC 9457 `429` boundary. The gate must report both
 schema-bearing-operation and response-schema counts and must not convert
 response-description presence into an undeclared success payload type.

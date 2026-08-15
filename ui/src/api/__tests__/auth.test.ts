@@ -93,6 +93,17 @@ describe('auth API root OAuth routes', () => {
 
   it('posts authorize, register, token, introspect, and revoke requests with server-compatible forms', async () => {
     mockFetch
+      .mockResolvedValueOnce(jsonResponse({
+        schema_version: 1,
+        contract_revision: '2026-07-06',
+        api: {
+          name: 'fortemi',
+          version: '2026.7.19',
+          minimum_hotm_enterprise_client: '0.0.0-checkpoint',
+        },
+        auth: { required: false, mode: 'anonymous_local' },
+        capabilities: {},
+      }))
       .mockResolvedValueOnce(emptyResponse())
       .mockResolvedValueOnce(jsonResponse({ client_id: 'client-1', client_secret: 'secret-1' }, 201))
       .mockResolvedValueOnce(jsonResponse({ access_token: 'token-1', token_type: 'Bearer', expires_in: 3600 }))
@@ -130,6 +141,11 @@ describe('auth API root OAuth routes', () => {
 
     expect(mockFetch).toHaveBeenNthCalledWith(
       1,
+      'http://localhost:3000/api/v1/system/compatibility',
+      expect.objectContaining({ method: 'GET' })
+    );
+    expect(mockFetch).toHaveBeenNthCalledWith(
+      2,
       'http://localhost:3000/oauth/authorize',
       expect.objectContaining({
         method: 'POST',
@@ -138,7 +154,7 @@ describe('auth API root OAuth routes', () => {
       })
     );
     expect(mockFetch).toHaveBeenNthCalledWith(
-      2,
+      3,
       'http://localhost:3000/oauth/register',
       expect.objectContaining({
         method: 'POST',
@@ -146,7 +162,7 @@ describe('auth API root OAuth routes', () => {
       })
     );
     expect(mockFetch).toHaveBeenNthCalledWith(
-      3,
+      4,
       'http://localhost:3000/oauth/token',
       expect.objectContaining({
         method: 'POST',
@@ -154,7 +170,7 @@ describe('auth API root OAuth routes', () => {
       })
     );
     expect(mockFetch).toHaveBeenNthCalledWith(
-      4,
+      5,
       'http://localhost:3000/oauth/token',
       expect.objectContaining({
         method: 'POST',
@@ -162,7 +178,7 @@ describe('auth API root OAuth routes', () => {
       })
     );
     expect(mockFetch).toHaveBeenNthCalledWith(
-      5,
+      6,
       'http://localhost:3000/oauth/introspect',
       expect.objectContaining({
         method: 'POST',
@@ -170,7 +186,7 @@ describe('auth API root OAuth routes', () => {
       })
     );
     expect(mockFetch).toHaveBeenNthCalledWith(
-      6,
+      7,
       'http://localhost:3000/oauth/revoke',
       expect.objectContaining({
         method: 'POST',

@@ -70,6 +70,10 @@ jobs:
         shell: bash
         run: node .aiwg/testing/scripts/verify-fortemi-knowledge-shard-contract.mjs
 
+      - name: Verify Fortemi runtime compatibility profile
+        shell: bash
+        run: node .aiwg/testing/scripts/verify-fortemi-system-compatibility-contract.mjs ../fortemi
+
       - name: Install OpenAPI verifier dependency
         shell: bash
         run: npm ci --prefix ui --ignore-scripts

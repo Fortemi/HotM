@@ -27,6 +27,7 @@ import {
   nonToolBoundaries,
   toolMetadata,
 } from '../tools.js';
+import { resetCompatibilityAdmissionForTests } from '../compatibility.js';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -58,6 +59,7 @@ beforeEach(() => {
   mockFetch.mockReset();
   vi.stubGlobal('fetch', mockFetch);
   process.env.FORTEMI_API_URL = 'http://test-fortemi:3000/api/v1';
+  resetCompatibilityAdmissionForTests();
 });
 
 afterEach(() => {
@@ -75,6 +77,22 @@ function jsonResponse(data: unknown, status = 200): Response {
 /** Helper to create an error response. */
 function errorResponse(status: number, body = ''): Response {
   return new Response(body, { status });
+}
+
+function compatibilityResponse(): Response {
+  return jsonResponse({
+    schema_version: 1,
+    contract_revision: '2026-07-06',
+    api: {
+      name: 'fortemi',
+      version: '2026.7.19',
+      minimum_hotm_enterprise_client: '0.0.0-checkpoint',
+    },
+    auth: {
+      required: false,
+      mode: 'anonymous_local',
+    },
+  });
 }
 
 // ---------------------------------------------------------------------------
@@ -239,16 +257,17 @@ describe('searchNotesTool', () => {
 
 describe('createNoteTool', () => {
   it('creates a note with POST /notes', async () => {
-    mockFetch.mockResolvedValueOnce(
-      jsonResponse({ note_id: 'new-123', id: 'new-123' }),
-    );
+    mockFetch
+      .mockResolvedValueOnce(compatibilityResponse())
+      .mockResolvedValueOnce(jsonResponse({ note_id: 'new-123', id: 'new-123' }));
 
     const result = await callTool<{ note_id: string; revision_mode: string }>(
       createNoteTool, { content: 'Hello world', revision_mode: 'standard', tags: undefined },
     );
 
-    expect(mockFetch).toHaveBeenCalledOnce();
-    const [, init] = mockFetch.mock.calls[0];
+    expect(mockFetch).toHaveBeenCalledTimes(2);
+    expect(String(mockFetch.mock.calls[0][0])).toContain('/system/compatibility');
+    const [, init] = mockFetch.mock.calls[1];
     expect(init?.method).toBe('POST');
     const body = JSON.parse(init?.body as string);
     expect(body.content).toBe('Hello world');
@@ -259,6 +278,7 @@ describe('createNoteTool', () => {
 
   it('applies tags with a separate PUT call', async () => {
     mockFetch
+      .mockResolvedValueOnce(compatibilityResponse())
       .mockResolvedValueOnce(jsonResponse({ note_id: 'new-456' }))
       .mockResolvedValueOnce(jsonResponse({ tags: ['important'] }));
 
@@ -266,8 +286,8 @@ describe('createNoteTool', () => {
       createNoteTool, { content: 'Tagged note', revision_mode: 'none', tags: ['important'] },
     );
 
-    expect(mockFetch).toHaveBeenCalledTimes(2);
-    const [url2, init2] = mockFetch.mock.calls[1];
+    expect(mockFetch).toHaveBeenCalledTimes(3);
+    const [url2, init2] = mockFetch.mock.calls[2];
     expect(String(url2)).toContain('/notes/new-456/tags');
     expect(init2?.method).toBe('PUT');
     const body2 = JSON.parse(init2?.body as string);
@@ -277,9 +297,9 @@ describe('createNoteTool', () => {
   });
 
   it('extracts note ID from nested { note: { id } } format', async () => {
-    mockFetch.mockResolvedValueOnce(
-      jsonResponse({ note: { id: 'nested-id' } }),
-    );
+    mockFetch
+      .mockResolvedValueOnce(compatibilityResponse())
+      .mockResolvedValueOnce(jsonResponse({ note: { id: 'nested-id' } }));
 
     const result = await callTool<{ note_id: string }>(
       createNoteTool, { content: 'Nested format', revision_mode: 'standard', tags: undefined },
@@ -393,14 +413,16 @@ describe('getNoteTool', () => {
 
 describe('reviseNoteTool', () => {
   it('queues a revision job via POST /jobs', async () => {
-    mockFetch.mockResolvedValueOnce(jsonResponse({ job_id: 'j1' }));
+    mockFetch
+      .mockResolvedValueOnce(compatibilityResponse())
+      .mockResolvedValueOnce(jsonResponse({ job_id: 'j1' }));
 
     const result = await callTool<{ note_id: string; status: string }>(
       reviseNoteTool, { note_id: 'note-to-revise' },
     );
 
-    expect(mockFetch).toHaveBeenCalledOnce();
-    const [url, init] = mockFetch.mock.calls[0];
+    expect(mockFetch).toHaveBeenCalledTimes(2);
+    const [url, init] = mockFetch.mock.calls[1];
     expect(String(url)).toContain('/jobs');
     expect(init?.method).toBe('POST');
     const body = JSON.parse(init?.body as string);
@@ -418,18 +440,19 @@ describe('reviseNoteTool', () => {
 describe('updateTagsTool', () => {
   it('fetches current tags, merges, and PUTs the result', async () => {
     mockFetch.mockResolvedValueOnce(jsonResponse(['existing-tag']));
+    mockFetch.mockResolvedValueOnce(compatibilityResponse());
     mockFetch.mockResolvedValueOnce(jsonResponse({ tags: ['existing-tag', 'new-tag'] }));
 
     const result = await callTool<{ note_id: string; tags: string[] }>(
       updateTagsTool, { note_id: 'n1', add: ['new-tag'], remove: undefined },
     );
 
-    expect(mockFetch).toHaveBeenCalledTimes(2);
+    expect(mockFetch).toHaveBeenCalledTimes(3);
 
     const [url1] = mockFetch.mock.calls[0];
     expect(String(url1)).toContain('/notes/n1/tags');
 
-    const [url2, init2] = mockFetch.mock.calls[1];
+    const [url2, init2] = mockFetch.mock.calls[2];
     expect(String(url2)).toContain('/notes/n1/tags');
     expect(init2?.method).toBe('PUT');
     const body = JSON.parse(init2?.body as string);
@@ -442,6 +465,7 @@ describe('updateTagsTool', () => {
 
   it('removes tags from the current set', async () => {
     mockFetch.mockResolvedValueOnce(jsonResponse(['keep', 'remove-me']));
+    mockFetch.mockResolvedValueOnce(compatibilityResponse());
     mockFetch.mockResolvedValueOnce(jsonResponse({ tags: ['keep'] }));
 
     const result = await callTool<{ tags: string[] }>(
@@ -453,6 +477,7 @@ describe('updateTagsTool', () => {
 
   it('handles { tags: [...] } response format for current tags', async () => {
     mockFetch.mockResolvedValueOnce(jsonResponse({ tags: ['a', 'b'] }));
+    mockFetch.mockResolvedValueOnce(compatibilityResponse());
     mockFetch.mockResolvedValueOnce(jsonResponse({ tags: ['a', 'b', 'c'] }));
 
     const result = await callTool<{ tags: string[] }>(
@@ -471,14 +496,16 @@ describe('updateTagsTool', () => {
 
 describe('linkNotesTool', () => {
   it('creates a link via POST /notes/:id/links', async () => {
-    mockFetch.mockResolvedValueOnce(jsonResponse({ id: 'link-1' }));
+    mockFetch
+      .mockResolvedValueOnce(compatibilityResponse())
+      .mockResolvedValueOnce(jsonResponse({ id: 'link-1' }));
 
     const result = await callTool<{ source_id: string; target_id: string; kind: string }>(
       linkNotesTool, { source_id: 's1', target_id: 't1', kind: 'related' },
     );
 
-    expect(mockFetch).toHaveBeenCalledOnce();
-    const [url, init] = mockFetch.mock.calls[0];
+    expect(mockFetch).toHaveBeenCalledTimes(2);
+    const [url, init] = mockFetch.mock.calls[1];
     expect(String(url)).toContain('/notes/s1/links');
     expect(init?.method).toBe('POST');
     const body = JSON.parse(init?.body as string);

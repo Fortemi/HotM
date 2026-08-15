@@ -153,7 +153,7 @@ describe('api.systemCompatibility', () => {
         contract_revision: '2026-07-06',
         api: {
           name: 'fortemi',
-          version: '2026.5.25',
+          version: '2026.7.19',
           minimum_hotm_enterprise_client: '0.0.0-checkpoint',
           git_sha_present: true,
           build_date_present: true,

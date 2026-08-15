@@ -281,6 +281,7 @@ export function createIngestApi(client: ApiClient) {
         headers['X-Ingest-Cursor'] = options.cursor;
       }
 
+      await client.requireMutation?.('POST', '/ingest/stream');
       const httpFetch = getHostAdapter() ? globalThis.fetch : getTauriFetch();
       const response = await httpFetch(`${client.baseUrl}/ingest/stream`, {
         method: 'POST',

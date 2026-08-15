@@ -91,6 +91,7 @@ export function createAttachmentsApi(client: ApiClient) {
 
       const baseUrl = getBaseUrl();
       const url = `${baseUrl}/notes/${noteId}/attachments/upload`;
+      await client.requireMutation?.('POST', `/notes/${noteId}/attachments/upload`);
 
       // Build headers as plain object — do NOT set Content-Type so the
       // browser auto-generates the multipart boundary for FormData.

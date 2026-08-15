@@ -17,6 +17,13 @@ interface RequestOptions {
   retryDelay?: number;
 }
 
+export interface MutationRequestContext {
+  method: 'POST' | 'PATCH' | 'PUT' | 'DELETE';
+  path: string;
+}
+
+export type MutationGate = (context: MutationRequestContext) => Promise<void>;
+
 /**
  * Exponential backoff delay calculation
  */
@@ -68,6 +75,7 @@ export function createApiClient(baseUrl: string) {
   const defaultHeaders: Record<string, string> = {
     'Content-Type': 'application/json',
   };
+  let mutationGate: MutationGate | null = null;
 
   async function request<T>(
     path: string,
@@ -81,6 +89,10 @@ export function createApiClient(baseUrl: string) {
       retryAttempts = 3,
       retryDelay = 1000,
     } = options;
+
+    if (method !== 'GET') {
+      await requireMutation(method, path);
+    }
 
     const url = buildUrl(normalizedBaseUrl, path, params);
     const requestHeaders = { ...defaultHeaders, ...getAuthorizationHeader(), ...headers };
@@ -164,9 +176,22 @@ export function createApiClient(baseUrl: string) {
     throw new NetworkError(lastError || new Error('Request failed'));
   }
 
+  async function requireMutation(
+    method: MutationRequestContext['method'],
+    path: string,
+  ): Promise<void> {
+    if (mutationGate) await mutationGate({ method, path });
+  }
+
   return {
     baseUrl: normalizedBaseUrl,
     serverUrl: getServerRoot(normalizedBaseUrl),
+
+    setMutationGate(gate: MutationGate | null): void {
+      mutationGate = gate;
+    },
+
+    requireMutation,
 
     async get<T>(
       path: string,

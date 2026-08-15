@@ -1,8 +1,18 @@
 metadata:
   schema_version: "1.0.0"
-  updated_at: "2026-07-30T01:38:05Z"
-  record_count: 90
+  updated_at: "2026-08-15T21:13:59Z"
+  record_count: 96
 records:
+  - entity: "urn:aiwg:artifact:.aiwg/testing/scripts/verify-fortemi-system-compatibility-contract.mjs"
+    record: "records/verify-fortemi-system-compatibility-contract.mjs.prov.yaml"
+  - entity: "urn:aiwg:artifact:ui/src/api/contracts/fortemi-system-compatibility-receipt.json"
+    record: "records/fortemi-system-compatibility-receipt-ui.prov.yaml"
+  - entity: "urn:aiwg:artifact:agent-proxy/src/contracts/fortemi-system-compatibility-receipt.json"
+    record: "records/fortemi-system-compatibility-receipt-agent-proxy.prov.yaml"
+  - entity: "urn:aiwg:artifact:agent-proxy/src/compatibility.ts"
+    record: "records/agent-proxy-compatibility.ts.prov.yaml"
+  - entity: "urn:aiwg:artifact:ui/src/api/client.ts"
+    record: "records/client-runtime-compatibility-gate.ts.prov.yaml"
   - entity: "urn:aiwg:artifact:scripts/download-pinned-sidecar.sh"
     record: "records/download-pinned-sidecar-hotm-284.prov.yaml"
   - entity: "urn:aiwg:artifact:release/live-asset-receipt-sidecar-provenance.json"
@@ -81,6 +91,8 @@ records:
     record: "records/fortemi-openapi.yaml.prov.yaml"
   - entity: "urn:aiwg:artifact:.aiwg/reports/fortemi-v2026-07-api-integration-traceability.md"
     record: "records/fortemi-v2026-07-api-integration-traceability.md.prov.yaml"
+  - entity: "urn:aiwg:artifact:.aiwg/reports/fortemi-hotm-integration-audit-2026-08-15.md"
+    record: "records/fortemi-hotm-integration-audit-2026-08-15.md.prov.yaml"
   - entity: "urn:aiwg:artifact:.aiwg/testing/fortemi-v2026-07-fixture-catalog.md"
     record: "records/fortemi-v2026-07-fixture-catalog.md.prov.yaml"
   - entity: "urn:aiwg:artifact:.aiwg/evidence/hotm-full-v1-clean-recovery-preflight-2026-07-24.json"

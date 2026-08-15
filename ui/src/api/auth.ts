@@ -103,6 +103,16 @@ function buildAuthorizationParams(request: OAuthAuthorizationRequest): URLSearch
 
 export function createAuthApi(client: ApiClient) {
   const serverUrl = client.serverUrl;
+  const requestServer = async <T>(
+    path: string,
+    options: { method?: string; body?: string; headers?: Record<string, string> } = {},
+  ): Promise<T> => {
+    const method = (options.method ?? 'GET').toUpperCase();
+    if (method !== 'GET' && method !== 'HEAD' && method !== 'OPTIONS') {
+      await client.requireMutation(method as 'POST' | 'PATCH' | 'PUT' | 'DELETE', path);
+    }
+    return serverRequest<T>(serverUrl, path, options);
+  };
 
   return {
     // ===========================
@@ -113,14 +123,14 @@ export function createAuthApi(client: ApiClient) {
      * Get OAuth2 authorization server metadata
      */
     async getAuthServerMetadata(): Promise<Record<string, unknown>> {
-      return serverRequest(serverUrl, '/.well-known/oauth-authorization-server');
+      return requestServer('/.well-known/oauth-authorization-server');
     },
 
     /**
      * Get protected resource metadata
      */
     async getProtectedResourceMetadata(): Promise<Record<string, unknown>> {
-      return serverRequest(serverUrl, '/.well-known/oauth-protected-resource');
+      return requestServer('/.well-known/oauth-protected-resource');
     },
 
     // ===========================
@@ -141,7 +151,7 @@ export function createAuthApi(client: ApiClient) {
         throw new Error('At least one grant type is required');
       }
 
-      return serverRequest<ClientRegistration>(serverUrl, '/oauth/register', {
+      return requestServer<ClientRegistration>('/oauth/register', {
         method: 'POST',
         body: JSON.stringify(request),
       });
@@ -184,7 +194,7 @@ export function createAuthApi(client: ApiClient) {
       const params = buildAuthorizationParams(request);
       params.append('action', request.action);
 
-      await serverRequest<void>(serverUrl, '/oauth/authorize', {
+      await requestServer<void>('/oauth/authorize', {
         method: 'POST',
         body: params.toString(),
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -239,7 +249,7 @@ export function createAuthApi(client: ApiClient) {
       }
 
       // OAuth2 token endpoint expects form-urlencoded
-      return serverRequest<TokenResponse>(serverUrl, '/oauth/token', {
+      return requestServer<TokenResponse>('/oauth/token', {
         method: 'POST',
         body: body.toString(),
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -281,7 +291,7 @@ export function createAuthApi(client: ApiClient) {
         client_secret: clientSecret,
       });
 
-      return serverRequest(serverUrl, '/oauth/introspect', {
+      return requestServer('/oauth/introspect', {
         method: 'POST',
         body: body.toString(),
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -311,7 +321,7 @@ export function createAuthApi(client: ApiClient) {
         body.append('token_type_hint', tokenTypeHint);
       }
 
-      await serverRequest(serverUrl, '/oauth/revoke', {
+      await requestServer('/oauth/revoke', {
         method: 'POST',
         body: body.toString(),
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },

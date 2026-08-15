@@ -302,6 +302,7 @@ export function createChatApi(client: ApiClient) {
         headers['Last-Event-ID'] = options.lastEventId;
       }
 
+      await client.requireMutation?.('POST', '/chat/stream');
       const httpFetch = getHostAdapter() ? globalThis.fetch : getTauriFetch();
       const response = await httpFetch(`${client.baseUrl}/chat/stream`, {
         method: 'POST',

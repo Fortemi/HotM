@@ -11,6 +11,7 @@ import { createNotesApi } from './notes';
 import { createSearchApi } from './search';
 import { createTagsApi } from './tags';
 import { createExtendedApi } from './extended';
+import { createCompatibilityAdmissionGate, createSystemCompatibilityApi } from './systemCompatibility';
 import type { NoteFull, CreateNoteResponse, SearchResult, RegenerateAIRequest, RegenerateAIResponse } from './types';
 import type {
   Job,
@@ -100,6 +101,8 @@ class CompatApiClient {
     this.baseUrl = baseUrl;
     this.serverRoot = getServerRoot(baseUrl);
     this.client = createApiClient(baseUrl);
+    const compatibilityGate = createCompatibilityAdmissionGate(createSystemCompatibilityApi(this.client));
+    this.client.setMutationGate(() => compatibilityGate.requireRemoteMutation());
     this.notes = createNotesApi(this.client);
     this.search = createSearchApi(this.client);
     this.tags = createTagsApi(this.client);

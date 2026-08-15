@@ -90,6 +90,16 @@ describe('Tauri Config', () => {
       expect(main).toContain('if (isTauri())');
       expect(main).toContain('await loadAppConfig()');
     });
+
+    it('starts compatibility preflight without blocking local UI rendering', () => {
+      const mainPath = join(__dirname, '../main.tsx');
+      const main = readFileSync(mainPath, 'utf-8');
+
+      expect(main).toContain('void api.compatibilityGate.preflight().catch(() => undefined)');
+      expect(main.indexOf('compatibilityGate.preflight()')).toBeLessThan(
+        main.indexOf('ReactDOM.createRoot'),
+      );
+    });
   });
 
   describe('Tauri isolation preserved', () => {
