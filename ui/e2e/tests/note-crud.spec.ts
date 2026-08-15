@@ -1,404 +1,417 @@
 /**
  * E2E Test: Note CRUD Operations
  *
- * Tests critical path for creating, reading, updating, and deleting notes.
- * Covers:
- * - Create new note
- * - Edit existing note
- * - Delete note
- * - Star/unstar note
+ * Test Context
+ * - Code to test: ui/src/components/HallOfMind.tsx quick note, note detail tabs, save,
+ *   delete confirmation, star toggle, validation/error handling.
+ * - Testing framework: Playwright.
+ * - Coverage target: deterministic mocked browser coverage for core note CRUD paths in this file.
+ * - Test types needed: mocked browser integration.
+ * - External dependencies to mock: health probes, system compatibility, archives, inference status,
+ *   notes CRUD endpoints, note concept/provenance metadata.
+ * - Edge cases identified: quick note section starts collapsed, create requires non-empty content,
+ *   mutation preflight compatibility, duplicate note title text across navigator/detail regions,
+ *   destructive delete confirmation.
  */
 
-import { test, expect } from '@playwright/test';
-import { fixtures, noteFactory, mockResponses } from '../fixtures/test-data';
+import { test, expect, type Locator, type Page, type Route, type Request } from '@playwright/test';
+import { fixtures, mockResponses } from '../fixtures/test-data';
+import type { NoteFull, NoteSummary } from '../../src/services/api';
 
-test.describe('Note CRUD Operations', () => {
-  test.beforeEach(async ({ page }) => {
-    // Mock API health check
-    await page.route('**/api/v1/health', async (route) => {
-      await route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify(fixtures.healthySystem),
-      });
-    });
+const compatibilityResponse = {
+  schema_version: 1,
+  contract_revision: '2026-07-06',
+  api: {
+    name: 'fortemi',
+    version: '2026.7.0',
+    minimum_hotm_enterprise_client: '0.1.0',
+    git_sha_present: true,
+    build_date_present: true,
+  },
+  deployment: {
+    mode: 'local',
+    edition: 'community',
+    hosted_multi_tenant_ready: false,
+  },
+  auth: {
+    required: false,
+    mode: 'anonymous_local',
+    oauth_issuer_configured: false,
+    tenant_context_available: false,
+  },
+  capabilities: {
+    notes: { state: 'available' },
+    mutation: { state: 'available' },
+  },
+  links: {
+    openapi: '/api/v1/operator/openapi.yaml',
+    asyncapi: '/api/v1/operator/asyncapi.yaml',
+    health: '/health',
+    streaming_health: '/api/v1/events',
+  },
+};
 
-    // Mock initial notes list (empty state)
-    await page.route('**/api/v1/notes?*', async (route) => {
-      await route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify(mockResponses.listNotes([])),
-      });
-    });
+type NotesApiState = {
+  notes: NoteFull[];
+  createStatus?: number;
+  createErrorBody?: unknown;
+  createdPayloads: unknown[];
+  patchPayloads: Array<{ noteId: string; body: unknown }>;
+  statusPayloads: Array<{ noteId: string; body: unknown }>;
+  deletedNoteIds: string[];
+};
 
-    await page.goto('/');
-    await page.waitForLoadState('networkidle');
+const cloneNote = (note: NoteFull): NoteFull => JSON.parse(JSON.stringify(note)) as NoteFull;
+
+const toSummary = (note: NoteFull): NoteSummary => ({
+  id: note.note.id,
+  title: note.note.title!,
+  snippet: note.original.content.substring(0, 100),
+  created_at_utc: note.note.created_at_utc,
+  updated_at_utc: note.note.updated_at_utc,
+  starred: note.note.starred!,
+  archived: note.note.archived!,
+  tags: note.tags,
+  has_revision: Boolean(note.revised?.content),
+  metadata: {},
+});
+
+const buildNote = (id: string, content: string, overrides: Partial<NoteFull['note']> = {}): NoteFull => {
+  const firstHeading = content
+    .split('\n')
+    .map((line) => line.trim().replace(/^#+\s*/, '').trim())
+    .find(Boolean);
+
+  return {
+    note: {
+      id,
+      format: 'markdown',
+      source: 'manual',
+      created_at_utc: '2026-08-15T18:00:00Z',
+      updated_at_utc: '2026-08-15T18:00:00Z',
+      starred: false,
+      archived: false,
+      title: firstHeading || 'Untitled',
+      ...overrides,
+    },
+    original: {
+      content,
+      hash: `${id}-hash`,
+    },
+    revised: {
+      content,
+      last_revision_id: `${id}-rev-001`,
+    },
+    tags: [],
+    links: [],
+    labels: [],
+  };
+};
+
+const fulfillJson = async (route: Route, body: unknown, status = 200) => {
+  await route.fulfill({
+    status,
+    contentType: 'application/json',
+    body: JSON.stringify(body),
   });
+};
 
-  test('should create a new note', async ({ page }) => {
-    const newNote = noteFactory.build({
-      note: { id: 'new-note-001', title: 'My New Note' },
-      original: { content: '# My New Note\n\nThis is my first note.' },
-    });
+async function mockAppShell(page: Page) {
+  await page.route('**/health/live', (route) => fulfillJson(route, { status: 'live', db: true }));
+  await page.route('**/health', (route) =>
+    fulfillJson(route, { status: 'healthy', database: 'ok', ollama: 'mocked', db: true, vector: true })
+  );
+  await page.route('**/healthz', (route) => fulfillJson(route, { status: 'healthy', db: true }));
+  await page.route('**/api/v1/health', (route) =>
+    fulfillJson(route, { status: 'healthy', database: 'ok', ollama: true, db: true, vector: true })
+  );
+  await page.route('**/api/v1/system/compatibility', (route) => fulfillJson(route, compatibilityResponse));
+  await page.route('**/api/v1/archives', (route) => fulfillJson(route, []));
+  await page.route('**/api/v1/inference/config', (route) =>
+    fulfillJson(route, { providers: [], ollama: null, openai: null })
+  );
+  await page.route('**/api/v1/inference/test-connection', (route) =>
+    fulfillJson(route, { reachable: false })
+  );
+  await page.route('**/api/v1/notes/*/concepts', (route) => fulfillJson(route, []));
+  await page.route('**/api/v1/notes/*/provenance', (route) => fulfillJson(route, null));
+}
 
-    // Mock create note API
-    await page.route('**/api/v1/notes', async (route) => {
-      if (route.request().method() === 'POST') {
-        await route.fulfill({
-          status: 201,
-          contentType: 'application/json',
-          body: JSON.stringify(mockResponses.createNote(newNote.note.id)),
-        });
-      }
-    });
+async function mockNotesApi(page: Page, state: NotesApiState) {
+  await page.route('**/api/v1/notes**', async (route) => {
+    const request = route.request();
+    const url = new URL(request.url());
+    const path = url.pathname;
+    const method = request.method();
+    const noteIdMatch = path.match(/\/api\/v1\/notes\/([^/]+)$/);
+    const statusMatch = path.match(/\/api\/v1\/notes\/([^/]+)\/status$/);
 
-    // Mock get note API (after creation)
-    await page.route(`**/api/v1/notes/${newNote.note.id}`, async (route) => {
-      await route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify(newNote),
-      });
-    });
-
-    // Click "New Note" button
-    const newNoteButton = page.getByRole('button', { name: /new note|create note|\+/i });
-    await expect(newNoteButton).toBeVisible();
-    await newNoteButton.click();
-
-    // Wait for editor to be visible
-    const editor = page.locator('[data-testid="note-editor"], .markdown-editor, textarea');
-    await expect(editor.first()).toBeVisible();
-
-    // Enter note content
-    await editor.first().fill('# My New Note\n\nThis is my first note.');
-
-    // Save note
-    const saveButton = page.getByRole('button', { name: /save|create/i });
-    await expect(saveButton).toBeVisible();
-    await saveButton.click();
-
-    // Verify note appears in list or detail view
-    await expect(page.getByText('My New Note')).toBeVisible({ timeout: 5000 });
-  });
-
-  test('should edit existing note', async ({ page }) => {
-    const existingNote = fixtures.standardNote;
-    const updatedNote = {
-      ...existingNote,
-      original: {
-        ...existingNote.original,
-        content: '# Updated Note\n\nThis content has been edited.',
-      },
-    };
-
-    // Mock get note API
-    await page.route(`**/api/v1/notes/${existingNote.note.id}`, async (route) => {
-      await route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify(existingNote),
-      });
-    });
-
-    // Mock update note API
-    await page.route(`**/api/v1/notes/${existingNote.note.id}/original`, async (route) => {
-      if (route.request().method() === 'PUT') {
-        await route.fulfill({
-          status: 200,
-          contentType: 'application/json',
-          body: JSON.stringify({ success: true }),
-        });
-      }
-    });
-
-    // Mock notes list with existing note
-    await page.route('**/api/v1/notes?*', async (route) => {
-      await route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify(
-          mockResponses.listNotes([
-            {
-              id: existingNote.note.id,
-              title: existingNote.note.title!,
-              snippet: existingNote.original.content.substring(0, 100),
-              created_at_utc: existingNote.note.created_at_utc,
-              updated_at_utc: existingNote.note.updated_at_utc,
-              starred: false,
-              archived: false,
-              tags: existingNote.tags,
-              has_revision: true,
-              metadata: {},
-            },
-          ])
-        ),
-      });
-    });
-
-    // Navigate to note (click on note in sidebar or list)
-    await page.reload();
-    await page.waitForLoadState('networkidle');
-
-    const noteLink = page.getByText(existingNote.note.title!);
-    await expect(noteLink).toBeVisible();
-    await noteLink.click();
-
-    // Click edit button
-    const editButton = page.getByRole('button', { name: /edit/i });
-    await expect(editButton).toBeVisible();
-    await editButton.click();
-
-    // Modify content
-    const editor = page.locator('[data-testid="note-editor"], .markdown-editor, textarea');
-    await expect(editor.first()).toBeVisible();
-    await editor.first().clear();
-    await editor.first().fill('# Updated Note\n\nThis content has been edited.');
-
-    // Save changes
-    const saveButton = page.getByRole('button', { name: /save/i });
-    await expect(saveButton).toBeVisible();
-    await saveButton.click();
-
-    // Verify updated content is displayed
-    await expect(page.getByText('Updated Note')).toBeVisible({ timeout: 5000 });
-  });
-
-  test('should delete note', async ({ page }) => {
-    const noteToDelete = fixtures.standardNote;
-
-    // Mock get note API
-    await page.route(`**/api/v1/notes/${noteToDelete.note.id}`, async (route) => {
-      await route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify(noteToDelete),
-      });
-    });
-
-    // Mock delete note API
-    await page.route(`**/api/v1/notes/${noteToDelete.note.id}`, async (route) => {
-      if (route.request().method() === 'DELETE') {
-        await route.fulfill({
-          status: 204,
-          contentType: 'application/json',
-          body: '',
-        });
-      }
-    });
-
-    // Mock notes list with note
-    await page.route('**/api/v1/notes?*', async (route) => {
-      await route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify(
-          mockResponses.listNotes([
-            {
-              id: noteToDelete.note.id,
-              title: noteToDelete.note.title!,
-              snippet: noteToDelete.original.content.substring(0, 100),
-              created_at_utc: noteToDelete.note.created_at_utc,
-              updated_at_utc: noteToDelete.note.updated_at_utc,
-              starred: false,
-              archived: false,
-              tags: noteToDelete.tags,
-              has_revision: true,
-              metadata: {},
-            },
-          ])
-        ),
-      });
-    });
-
-    // Navigate to note
-    await page.reload();
-    await page.waitForLoadState('networkidle');
-
-    const noteLink = page.getByText(noteToDelete.note.title!);
-    await expect(noteLink).toBeVisible();
-    await noteLink.click();
-
-    // Open context menu or click delete button
-    const deleteButton = page.getByRole('button', { name: /delete|remove/i });
-    if (await deleteButton.isVisible()) {
-      await deleteButton.click();
-    } else {
-      // Try context menu
-      await noteLink.click({ button: 'right' });
-      const deleteMenuItem = page.getByRole('menuitem', { name: /delete/i });
-      await expect(deleteMenuItem).toBeVisible();
-      await deleteMenuItem.click();
+    if (path === '/api/v1/notes' && method === 'GET') {
+      await fulfillJson(route, mockResponses.listNotes(state.notes.map(toSummary)));
+      return;
     }
 
-    // Confirm deletion in dialog
-    const confirmButton = page.getByRole('button', { name: /confirm|delete|yes/i });
-    await expect(confirmButton).toBeVisible({ timeout: 3000 });
-    await confirmButton.click();
+    if (path === '/api/v1/notes' && method === 'POST') {
+      state.createdPayloads.push(await request.postDataJSON());
+      if (state.createStatus && state.createStatus >= 400) {
+        await fulfillJson(route, state.createErrorBody ?? { error: 'create failed' }, state.createStatus);
+        return;
+      }
 
-    // Verify note is removed from list
-    await expect(page.getByText(noteToDelete.note.title!)).not.toBeVisible({ timeout: 5000 });
+      const payload = state.createdPayloads[state.createdPayloads.length - 1] as { content: string; title?: string };
+      const created = buildNote('created-note-001', payload.content, { title: payload.title || 'Created Note' });
+      state.notes = [created, ...state.notes];
+      await fulfillJson(route, { note_id: created.note.id, status: 'created' }, 201);
+      return;
+    }
+
+    if (statusMatch && method === 'PATCH') {
+      const noteId = statusMatch[1];
+      const body = await request.postDataJSON();
+      state.statusPayloads.push({ noteId, body });
+      state.notes = state.notes.map((note) =>
+        note.note.id === noteId
+          ? { ...note, note: { ...note.note, ...(body.starred !== undefined ? { starred: body.starred } : {}) } }
+          : note
+      );
+      await fulfillJson(route, { success: true });
+      return;
+    }
+
+    if (noteIdMatch && method === 'GET') {
+      const note = state.notes.find((candidate) => candidate.note.id === noteIdMatch[1]);
+      if (note) {
+        await fulfillJson(route, note);
+      } else {
+        await fulfillJson(route, { error: 'Note not found' }, 404);
+      }
+      return;
+    }
+
+    if (noteIdMatch && method === 'PATCH') {
+      const noteId = noteIdMatch[1];
+      const body = await request.postDataJSON();
+      state.patchPayloads.push({ noteId, body });
+      state.notes = state.notes.map((note) =>
+        note.note.id === noteId && typeof body.content === 'string'
+          ? {
+              ...note,
+              note: {
+                ...note.note,
+                updated_at_utc: '2026-08-15T18:05:00Z',
+                title: body.content.split('\n')[0].replace(/^#+\s*/, '').trim() || note.note.title,
+              },
+              original: { ...note.original, content: body.content },
+            }
+          : note
+      );
+      await fulfillJson(route, { success: true });
+      return;
+    }
+
+    if (noteIdMatch && method === 'DELETE') {
+      state.deletedNoteIds.push(noteIdMatch[1]);
+      state.notes = state.notes.filter((note) => note.note.id !== noteIdMatch[1]);
+      await route.fulfill({ status: 204, body: '' });
+      return;
+    }
+
+    await route.fallback();
   });
+}
 
-  test('should star/unstar note', async ({ page }) => {
-    const noteToStar = fixtures.standardNote;
-    const starredNote = {
-      ...noteToStar,
-      note: { ...noteToStar.note, starred: true },
+function notesNavigator(page: Page) {
+  return page
+    .getByText('Notes Navigator', { exact: true })
+    .locator('xpath=ancestor::div[contains(@class, "rounded-lg")][1]');
+}
+
+function noteButton(page: Page, title: string) {
+  return notesNavigator(page).getByRole('button', { name: title });
+}
+
+function isMobileViewport(page: Page) {
+  return (page.viewportSize()?.width ?? 1280) < 768;
+}
+
+function visibleAppSidebar(page: Page) {
+  return page.locator('[data-sidebar="sidebar"]:visible');
+}
+
+async function openAppSidebar(page: Page): Promise<Locator> {
+  const sidebar = visibleAppSidebar(page);
+  if (isMobileViewport(page) && (await sidebar.count()) === 0) {
+    await page.getByRole('button', { name: 'Toggle Sidebar' }).click();
+  }
+  await expect(sidebar).toBeVisible();
+  return sidebar;
+}
+
+async function closeMobileSidebar(page: Page) {
+  if (!isMobileViewport(page)) return;
+
+  await page.keyboard.press('Escape');
+  await expect(visibleAppSidebar(page)).toHaveCount(0);
+}
+
+async function openQuickNote(page: Page) {
+  const sidebar = await openAppSidebar(page);
+  const quickNoteDisclosure = sidebar.getByRole('button', { name: 'Quick Note' });
+  const draft = sidebar.getByPlaceholder('Quick note... (Ctrl+Enter to save)');
+  const createButton = sidebar.getByRole('button', { name: 'Create Note' });
+  await expect(quickNoteDisclosure).toBeVisible();
+  if (!(await draft.isVisible().catch(() => false))) {
+    await quickNoteDisclosure.click();
+  }
+  await expect(draft).toBeVisible();
+  return { draft, createButton };
+}
+
+async function selectNote(page: Page, note: NoteFull) {
+  await noteButton(page, note.note.title!).click();
+  await expect(page.getByLabel('AI Enhanced').getByText(note.note.title!, { exact: true })).toBeVisible();
+}
+
+async function editSelectedOriginal(page: Page, content: string) {
+  await page.getByRole('tab', { name: 'Edit' }).click();
+  await page.getByRole('tab', { name: 'Raw Markdown' }).click();
+  const markdownEditor = page.getByPlaceholder('Write in Markdown format...');
+  await expect(markdownEditor).toBeVisible();
+  await markdownEditor.fill(content);
+  await expect(page.getByRole('button', { name: 'Save' })).toBeVisible();
+  await page.getByRole('button', { name: 'Save' }).click();
+}
+
+async function expectAlert(page: Page, action: () => Promise<void>, message: RegExp) {
+  const dialogPromise = page.waitForEvent('dialog');
+  await action();
+  const dialog = await dialogPromise;
+  expect(dialog.message()).toMatch(message);
+  await dialog.accept();
+}
+
+test.describe('Note CRUD Operations', () => {
+  let state: NotesApiState;
+
+  test.beforeEach(async ({ page }) => {
+    await page.addInitScript(() => {
+      window.localStorage.removeItem('hotm.notesNavigatorExpanded.desktop');
+      window.localStorage.removeItem('hotm.notesNavigatorExpanded.mobile');
+    });
+    state = {
+      notes: [],
+      createdPayloads: [],
+      patchPayloads: [],
+      statusPayloads: [],
+      deletedNoteIds: [],
     };
 
-    // Mock get note API (initially unstarred)
-    let isStarred = false;
-    await page.route(`**/api/v1/notes/${noteToStar.note.id}`, async (route) => {
-      if (route.request().method() === 'GET') {
-        await route.fulfill({
-          status: 200,
-          contentType: 'application/json',
-          body: JSON.stringify(isStarred ? starredNote : noteToStar),
-        });
-      }
-    });
+    await mockAppShell(page);
+    await mockNotesApi(page, state);
+    await page.goto('/');
+    await expect(page.getByPlaceholder('Search your mind...')).toBeVisible();
+    await expect(notesNavigator(page)).toBeVisible();
+  });
 
-    // Mock update status API
-    await page.route(`**/api/v1/notes/${noteToStar.note.id}/status`, async (route) => {
-      if (route.request().method() === 'PUT') {
-        const requestBody = await route.request().postDataJSON();
-        isStarred = requestBody.starred ?? isStarred;
-        await route.fulfill({
-          status: 200,
-          contentType: 'application/json',
-          body: JSON.stringify({ success: true }),
-        });
-      }
-    });
+  test('creates a note from quick note content and selects the created note', async ({ page }) => {
+    const { draft, createButton } = await openQuickNote(page);
+    await draft.fill('# My New Note\n\nThis is my first note.');
+    await createButton.click();
+    await closeMobileSidebar(page);
 
-    // Mock notes list
-    await page.route('**/api/v1/notes?*', async (route) => {
-      await route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify(
-          mockResponses.listNotes([
-            {
-              id: noteToStar.note.id,
-              title: noteToStar.note.title!,
-              snippet: noteToStar.original.content.substring(0, 100),
-              created_at_utc: noteToStar.note.created_at_utc,
-              updated_at_utc: noteToStar.note.updated_at_utc,
-              starred: isStarred,
-              archived: false,
-              tags: noteToStar.tags,
-              has_revision: true,
-              metadata: {},
-            },
-          ])
-        ),
-      });
+    await expect(page.getByRole('heading', { name: 'My New Note' })).toBeVisible();
+    await expect(noteButton(page, 'My New Note')).toBeVisible();
+    expect(state.createdPayloads).toHaveLength(1);
+    expect(state.createdPayloads[0]).toMatchObject({
+      content: '# My New Note\n\nThis is my first note.',
+      title: 'My New Note',
+      format: 'markdown',
+      source: 'manual',
     });
+  });
 
-    // Navigate to note
+  test('reads and updates an existing note original body', async ({ page }) => {
+    state.notes = [cloneNote(fixtures.standardNote)];
     await page.reload();
-    await page.waitForLoadState('networkidle');
+    await expect(noteButton(page, fixtures.standardNote.note.title!)).toBeVisible();
 
-    const noteLink = page.getByText(noteToStar.note.title!);
-    await expect(noteLink).toBeVisible();
-    await noteLink.click();
+    await selectNote(page, fixtures.standardNote);
+    await editSelectedOriginal(page, '# Updated Note\n\nThis content has been edited.');
 
-    // Click star button (icon or button)
-    const starButton = page.getByRole('button', { name: /star|favorite/i }).or(
-      page.locator('[data-testid="star-button"], .star-icon, button:has(svg[data-icon="star"])')
+    await expect(page.getByRole('button', { name: 'Save' })).toHaveCount(0);
+    await page.getByRole('tab', { name: 'Original' }).click();
+    await expect(page.getByLabel('Original').getByText('This content has been edited.')).toBeVisible();
+    expect(state.patchPayloads).toEqual([
+      {
+        noteId: fixtures.standardNote.note.id,
+        body: { content: '# Updated Note\n\nThis content has been edited.' },
+      },
+    ]);
+  });
+
+  test('deletes a selected note through the confirmation dialog', async ({ page }) => {
+    state.notes = [cloneNote(fixtures.standardNote)];
+    await page.reload();
+    await expect(noteButton(page, fixtures.standardNote.note.title!)).toBeVisible();
+
+    await selectNote(page, fixtures.standardNote);
+    await noteButton(page, fixtures.standardNote.note.title!).click({ button: 'right' });
+    await page.getByRole('menuitem', { name: 'Delete' }).click();
+    await expect(page.getByRole('alertdialog')).toContainText(`"${fixtures.standardNote.note.title!}"`);
+    await page.getByRole('button', { name: 'Delete Note' }).click();
+
+    await expect(noteButton(page, fixtures.standardNote.note.title!)).toHaveCount(0);
+    await expect(page.getByText('Notes Workspace')).toBeVisible();
+    expect(state.deletedNoteIds).toEqual([fixtures.standardNote.note.id]);
+  });
+
+  test('stars and unstars a note with persisted status payloads', async ({ page }) => {
+    state.notes = [cloneNote(fixtures.standardNote)];
+    await page.reload();
+    await selectNote(page, fixtures.standardNote);
+
+    const starButton = page.getByLabel('AI Enhanced').getByRole('button', { name: '' }).first();
+    await starButton.click();
+    await expect(noteButton(page, fixtures.standardNote.note.title!).locator('svg.fill-yellow-500')).toBeVisible();
+
+    await starButton.click();
+    await expect(noteButton(page, fixtures.standardNote.note.title!).locator('svg.fill-yellow-500')).toHaveCount(0);
+    expect(state.statusPayloads).toEqual([
+      { noteId: fixtures.standardNote.note.id, body: { starred: true } },
+      { noteId: fixtures.standardNote.note.id, body: { starred: false } },
+    ]);
+  });
+
+  test('keeps empty quick note content client-side and does not call create', async ({ page }) => {
+    const { createButton } = await openQuickNote(page);
+    await expect(createButton).toBeDisabled();
+    expect(state.createdPayloads).toHaveLength(0);
+  });
+
+  test('surfaces create failures and leaves the draft in place', async ({ page }) => {
+    state.createStatus = 500;
+    state.createErrorBody = fixtures.apiErrors.serverError.body;
+
+    const { draft, createButton } = await openQuickNote(page);
+    await draft.fill('# Failing Note\n\nThis should remain a draft.');
+
+    await expectAlert(
+      page,
+      async () => {
+        await createButton.click();
+      },
+      /Failed to create note/
     );
-    await expect(starButton.first()).toBeVisible();
-    await starButton.first().click();
-
-    // Verify star state changed (icon color or fill)
-    await page.waitForTimeout(500); // Wait for state update
-
-    // Unstar the note
-    await starButton.first().click();
-    await page.waitForTimeout(500);
-
-    // Verify unstarred state
-    // (Visual verification would happen here - checking icon state)
-  });
-
-  test('should handle create note error gracefully', async ({ page }) => {
-    // Mock create note API with error
-    await page.route('**/api/v1/notes', async (route) => {
-      if (route.request().method() === 'POST') {
-        await route.fulfill({
-          status: 500,
-          contentType: 'application/json',
-          body: JSON.stringify(fixtures.apiErrors.serverError.body),
-        });
-      }
-    });
-
-    // Attempt to create note
-    const newNoteButton = page.getByRole('button', { name: /new note|create note|\+/i });
-    await expect(newNoteButton).toBeVisible();
-    await newNoteButton.click();
-
-    const editor = page.locator('[data-testid="note-editor"], .markdown-editor, textarea');
-    await expect(editor.first()).toBeVisible();
-    await editor.first().fill('# Test Note\n\nThis should fail.');
-
-    const saveButton = page.getByRole('button', { name: /save|create/i });
-    await expect(saveButton).toBeVisible();
-    await saveButton.click();
-
-    // Verify error message is displayed
-    const errorMessage = page.getByText(/error|failed|unable/i);
-    await expect(errorMessage).toBeVisible({ timeout: 5000 });
-  });
-
-  test('should handle empty note content', async ({ page }) => {
-    const emptyNote = fixtures.emptyNote;
-
-    // Mock create note API
-    await page.route('**/api/v1/notes', async (route) => {
-      if (route.request().method() === 'POST') {
-        await route.fulfill({
-          status: 201,
-          contentType: 'application/json',
-          body: JSON.stringify(mockResponses.createNote(emptyNote.note.id)),
-        });
-      }
-    });
-
-    // Mock get note API
-    await page.route(`**/api/v1/notes/${emptyNote.note.id}`, async (route) => {
-      await route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify(emptyNote),
+    await expect(draft).toHaveValue('# Failing Note\n\nThis should remain a draft.');
+    await expect(noteButton(page, 'Failing Note')).toHaveCount(0);
+    expect(state.createdPayloads).toHaveLength(4);
+    for (const payload of state.createdPayloads) {
+      expect(payload).toMatchObject({
+        content: '# Failing Note\n\nThis should remain a draft.',
+        title: 'Failing Note',
+        format: 'markdown',
+        source: 'manual',
       });
-    });
-
-    // Create empty note
-    const newNoteButton = page.getByRole('button', { name: /new note|create note|\+/i });
-    await expect(newNoteButton).toBeVisible();
-    await newNoteButton.click();
-
-    const editor = page.locator('[data-testid="note-editor"], .markdown-editor, textarea');
-    await expect(editor.first()).toBeVisible();
-
-    // Leave editor empty and try to save
-    const saveButton = page.getByRole('button', { name: /save|create/i });
-    await expect(saveButton).toBeVisible();
-    await saveButton.click();
-
-    // Should either:
-    // 1. Show validation error
-    // 2. Create note with empty content
-    // (Behavior depends on implementation - test both scenarios)
-
-    // Check for validation error OR successful creation
-    const hasError = await page.getByText(/content.*required|cannot.*empty/i).isVisible({ timeout: 2000 }).catch(() => false);
-    if (!hasError) {
-      // If no validation error, note should be created
-      await expect(page.getByText(emptyNote.note.title!)).toBeVisible({ timeout: 5000 });
     }
   });
 });

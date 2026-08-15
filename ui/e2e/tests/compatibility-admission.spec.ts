@@ -43,7 +43,11 @@ test.describe('Runtime compatibility admission', () => {
     await page.goto('/');
     await page.waitForLoadState('networkidle');
 
+    const sidebarToggle = page.getByRole('button', { name: /toggle sidebar/i });
     const quickNote = page.getByRole('button', { name: 'Quick Note' });
+    if (!(await quickNote.isVisible().catch(() => false))) {
+      await sidebarToggle.click();
+    }
     await expect(quickNote).toBeVisible();
     await quickNote.click();
 
@@ -55,10 +59,21 @@ test.describe('Runtime compatibility admission', () => {
     await page.waitForTimeout(250);
     expect(noteMutationCount).toBe(0);
 
-    const sidebarToggle = page.getByRole('button', { name: /toggle sidebar/i });
-    await expect(sidebarToggle).toBeEnabled();
-    await sidebarToggle.click();
+    if (await page.getByRole('dialog', { name: 'Sidebar' }).isVisible().catch(() => false)) {
+      await page.keyboard.press('Escape');
+    } else {
+      await expect(sidebarToggle).toBeEnabled();
+      await sidebarToggle.click();
+    }
     await expect(page.locator('main')).toBeVisible();
+
+    if (!(await editor.isVisible().catch(() => false))) {
+      await expect(sidebarToggle).toBeEnabled();
+      await sidebarToggle.click();
+      if (!(await editor.isVisible().catch(() => false))) {
+        await quickNote.click();
+      }
+    }
     await expect(editor).toHaveValue('Local draft remains editable');
   });
 });

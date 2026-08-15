@@ -148,6 +148,65 @@ jobs:
           npm audit --omit=dev --audit-level high
           npm audit --audit-level moderate
 
+  # ─── Always: mocked desktop/mobile browser gate ───────────────────
+  mocked-playwright-ci:
+    name: Mocked Playwright CI
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        shell: bash
+        run: |
+          set -euo pipefail
+          git init .
+          git remote add origin \
+            "https://token:${{ github.token }}@git.integrolabs.net/${GITHUB_REPOSITORY}.git"
+          git fetch --depth 1 origin "${GITHUB_REF:-${GITHUB_SHA:-main}}" ||
+            git fetch --depth 1 origin "${GITHUB_SHA:-main}"
+          git checkout --detach FETCH_HEAD
+
+      - name: Clean install UI dependencies
+        working-directory: ui
+        run: |
+          rm -rf node_modules
+          npm ci
+
+      - name: Install Playwright Chromium
+        working-directory: ui
+        run: npx playwright install chromium --with-deps
+
+      - name: Run mocked Playwright desktop and mobile gates
+        shell: bash
+        working-directory: ui
+        run: |
+          set -euo pipefail
+          mkdir -p test-results/mocked-ci
+          node scripts/write-mocked-playwright-ci-receipt.cjs \
+            --prepare test-results/mocked-ci/receipt.json
+
+          set +e
+          npx playwright test --config scripts/playwright-mocked-ci.config.cjs
+          status=$?
+          set -e
+
+          node scripts/write-mocked-playwright-ci-receipt.cjs \
+            --finalize test-results/mocked-ci/receipt.json "${status}"
+          node scripts/write-mocked-playwright-ci-receipt.cjs \
+            --verify test-results/mocked-ci/receipt.json
+
+          exit "${status}"
+
+      - name: Upload mocked Playwright artifacts
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: hotm-291-mocked-playwright-ci
+          path: |
+            ui/test-results/mocked-ci/receipt.json
+            ui/test-results/mocked-ci/
+            ui/playwright-report/mocked-ci/
+          if-no-files-found: warn
+          retention-days: 30
+
   # ─── Manual: publish live Fortemi browser asset receipt ───────────
   live-asset-receipt:
     name: Live Asset Browser Receipt
@@ -273,7 +332,7 @@ jobs:
   publish-dev:
     name: Publish Dev Image (Gitea + GHCR)
     runs-on: ubuntu-22.04
-    needs: [quality-gate, agent-proxy-quality-gate]
+    needs: [quality-gate, agent-proxy-quality-gate, mocked-playwright-ci]
     if: (github.ref == 'refs/heads/main' && github.event_name == 'push') || github.event_name == 'workflow_dispatch'
     steps:
       - name: Checkout
@@ -359,7 +418,7 @@ jobs:
   publish-release:
     name: Publish Agent-Proxy Release Image
     runs-on: ubuntu-22.04
-    needs: [quality-gate, agent-proxy-quality-gate]
+    needs: [quality-gate, agent-proxy-quality-gate, mocked-playwright-ci]
     # Gate on both event type AND ref. Gating on ref alone was firing this job
     # on non-tag pushes to main (issue #221) — likely Gitea Actions context
     # bleed from the workflow's mixed push+create triggers. The `on:` block

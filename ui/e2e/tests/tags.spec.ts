@@ -1,562 +1,290 @@
 /**
  * E2E Test: Tag Management
  *
- * Tests critical path for managing tags on notes.
- * Covers:
- * - Add tag to note
- * - Remove tag from note
- * - Filter notes by tag
- * - Create new tag
- * - Tag autocomplete
+ * Deterministic mocked coverage for current tag APIs:
+ * - GET /api/v1/tags -> { tags: [{ name, count }] }
+ * - POST /api/v1/tags -> { name }
+ * - PATCH /api/v1/tags/{name} -> { name }
+ * - DELETE /api/v1/tags/{name} -> 204
  */
 
-import { test, expect } from '@playwright/test';
+import { expect, test, type Page, type Route } from '@playwright/test';
 import { fixtures, mockResponses } from '../fixtures/test-data';
+import type { Tag } from '../../src/api';
+
+const compatibility = {
+  schema_version: 1,
+  contract_revision: '2026-07-06',
+  api: {
+    name: 'fortemi',
+    version: '2026.7.0',
+    minimum_hotm_enterprise_client: '2026.7.1',
+    git_sha_present: true,
+    build_date_present: true,
+  },
+  deployment: {
+    mode: 'local',
+    edition: 'community',
+    hosted_multi_tenant_ready: false,
+  },
+  auth: {
+    required: false,
+    mode: 'anonymous_local',
+    oauth_issuer_configured: false,
+    tenant_context_available: false,
+  },
+  capabilities: {},
+  links: {
+    openapi: '/api/v1/operator/openapi.yaml',
+    asyncapi: '/api/v1/operator/asyncapi.yaml',
+    health: '/health',
+    streaming_health: '/api/v1/health/stream',
+  },
+};
+
+const statsFromTags = (tags: Tag[]) => ({
+  total_tags: tags.length,
+  total_tagged_notes: tags.reduce((sum, tag) => sum + tag.count, 0),
+  avg_tags_per_note: tags.length ? 2.5 : 0,
+  most_used: [...tags].sort((a, b) => b.count - a.count).slice(0, 10),
+});
+
+async function installShellMocks(page: Page) {
+  const fulfillHealthyRoot = async (route: Route) => {
+    await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ status: 'healthy' }) });
+  };
+  await page.route(
+    (url) => url.origin === 'http://localhost:3000' && (url.pathname === '/health' || url.pathname.startsWith('/health/')),
+    fulfillHealthyRoot
+  );
+  await page.route('**/api/v1/health', async (route) => {
+    await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(fixtures.healthySystem) });
+  });
+  await page.route('**/api/v1/system/compatibility', async (route) => {
+    await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(compatibility) });
+  });
+  await page.route('**/api/v1/archives**', async (route) => {
+    await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify([]) });
+  });
+  await page.route('**/api/v1/notes?*', async (route) => {
+    await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(mockResponses.listNotes([])) });
+  });
+}
+
+async function installTagMocks(page: Page, tags: Tag[]) {
+  await page.route('**/api/v1/tags**', async (route) => {
+    const url = new URL(route.request().url());
+    const method = route.request().method();
+
+    if (url.pathname.endsWith('/tags/stats')) {
+      await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(statsFromTags(tags)) });
+      return;
+    }
+
+    if (url.pathname.endsWith('/tags') && method === 'GET') {
+      await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ tags }) });
+      return;
+    }
+
+    if (url.pathname.endsWith('/tags') && method === 'POST') {
+      const body = await route.request().postDataJSON();
+      const name = String(body.name);
+      tags.push({ name, count: 0 });
+      await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ name }) });
+      return;
+    }
+
+    if (method === 'PATCH') {
+      const oldName = decodeURIComponent(url.pathname.split('/').pop() ?? '');
+      const body = await route.request().postDataJSON();
+      const newName = String(body.new_name);
+      const tag = tags.find((item) => item.name === oldName);
+      if (tag) {
+        tag.name = newName;
+      }
+      await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ name: newName }) });
+      return;
+    }
+
+    if (method === 'DELETE') {
+      const name = decodeURIComponent(url.pathname.split('/').pop() ?? '');
+      const index = tags.findIndex((tag) => tag.name === name);
+      if (index >= 0) {
+        tags.splice(index, 1);
+      }
+      await route.fulfill({ status: 204 });
+      return;
+    }
+
+    await route.fulfill({ status: 404, contentType: 'application/json', body: JSON.stringify({ error: 'Unhandled tag mock' }) });
+  });
+}
+
+async function openSidebar(page: Page) {
+  const sidebarHeading = page.getByText('Hall of the Mind', { exact: true });
+  if (await sidebarHeading.isVisible().catch(() => false)) {
+    return;
+  }
+
+  const toggle = page.getByRole('button', { name: 'Toggle Sidebar', exact: true }).first();
+  await expect(toggle).toBeVisible();
+  await toggle.click();
+  await expect(sidebarHeading).toBeVisible();
+}
+
+async function closeMobileSidebar(page: Page) {
+  if ((page.viewportSize()?.width ?? 1280) >= 768) {
+    return;
+  }
+
+  await page.keyboard.press('Escape');
+  await expect(page.getByText('Hall of the Mind', { exact: true })).not.toBeVisible();
+}
+
+async function openTagManager(page: Page) {
+  await page.goto('/');
+  await openSidebar(page);
+  const tagsNav = page.getByRole('button', { name: /^Tags$/ });
+  if (!(await tagsNav.isVisible().catch(() => false))) {
+    await page.getByRole('button', { name: /^Navigate$/ }).click();
+  }
+  await expect(tagsNav).toBeVisible();
+  await tagsNav.click();
+  await closeMobileSidebar(page);
+  await expect(page.getByRole('region', { name: 'Tag Management' })).toBeVisible();
+}
 
 test.describe('Tag Management', () => {
-  test.beforeEach(async ({ page }) => {
-    // Mock API health check
-    await page.route('**/api/v1/health', async (route) => {
-      await route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify(fixtures.healthySystem),
-      });
-    });
+  test('loads tags with counts and stats from current contract shape', async ({ page }) => {
+    const tags: Tag[] = [
+      { name: 'research', count: 4 },
+      { name: 'important', count: 2 },
+      { name: 'archive', count: 1 },
+    ];
 
-    // Mock initial notes list
-    await page.route('**/api/v1/notes?*', async (route) => {
-      await route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify(mockResponses.listNotes([])),
-      });
-    });
+    await installShellMocks(page);
+    await installTagMocks(page, tags);
 
-    await page.goto('/');
-    await page.waitForLoadState('networkidle');
+    await openTagManager(page);
+    const manager = page.getByRole('region', { name: 'Tag Management' });
+    await expect(manager.getByText('3 tags')).toBeVisible();
+    await expect(manager.getByText('research')).toBeVisible();
+    await expect(manager.getByText('4')).toBeVisible();
+
+    await manager.getByRole('button', { name: /stats/i }).click();
+    await expect(manager.getByText('Total Tags')).toBeVisible();
+    await expect(manager.getByText('Tagged Notes')).toBeVisible();
+    await expect(manager.getByText('research', { exact: true }).first()).toBeVisible();
   });
 
-  test('should add tag to note', async ({ page }) => {
-    const targetNote = fixtures.standardNote;
-    const newTag = 'urgent';
-    const updatedNote = {
-      ...targetNote,
-      tags: [...targetNote.tags, newTag],
-    };
+  test('filters tags locally without issuing another list request', async ({ page }) => {
+    let listCallCount = 0;
+    const tags: Tag[] = [
+      { name: 'research', count: 4 },
+      { name: 'important', count: 2 },
+      { name: 'archive', count: 1 },
+    ];
 
-    // Mock get note API
-    let currentNote = targetNote;
-    await page.route(`**/api/v1/notes/${targetNote.note.id}`, async (route) => {
-      if (route.request().method() === 'GET') {
-        await route.fulfill({
-          status: 200,
-          contentType: 'application/json',
-          body: JSON.stringify(currentNote),
-        });
-      }
-    });
-
-    // Mock update tags API
-    await page.route(`**/api/v1/notes/${targetNote.note.id}/tags`, async (route) => {
-      if (route.request().method() === 'PUT') {
-        const requestBody = await route.request().postDataJSON();
-        if (requestBody.add && requestBody.add.includes(newTag)) {
-          currentNote = updatedNote;
-        }
-        await route.fulfill({
-          status: 200,
-          contentType: 'application/json',
-          body: JSON.stringify({ tags: currentNote.tags }),
-        });
-      }
-    });
-
-    // Mock notes list
-    await page.route('**/api/v1/notes?*', async (route) => {
-      await route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify(
-          mockResponses.listNotes([
-            {
-              id: targetNote.note.id,
-              title: targetNote.note.title!,
-              snippet: targetNote.original.content.substring(0, 100),
-              created_at_utc: targetNote.note.created_at_utc,
-              updated_at_utc: targetNote.note.updated_at_utc,
-              starred: false,
-              archived: false,
-              tags: currentNote.tags,
-              has_revision: true,
-              metadata: {},
-            },
-          ])
-        ),
-      });
-    });
-
-    // Navigate to note
-    await page.reload();
-    await page.waitForLoadState('networkidle');
-
-    const noteLink = page.getByText(targetNote.note.title!);
-    await expect(noteLink).toBeVisible();
-    await noteLink.click();
-
-    // Find tag input or add tag button
-    const addTagButton = page.getByRole('button', { name: /add tag|new tag|\+.*tag/i });
-    const tagInput = page.getByPlaceholder(/tag|label/i);
-
-    if (await addTagButton.isVisible({ timeout: 1000 }).catch(() => false)) {
-      await addTagButton.click();
-    }
-
-    await expect(tagInput.first()).toBeVisible();
-
-    // Enter tag name
-    await tagInput.first().fill(newTag);
-    await tagInput.first().press('Enter');
-
-    // Verify tag appears on note
-    const tagBadge = page.getByText(newTag, { exact: false });
-    await expect(tagBadge).toBeVisible({ timeout: 5000 });
-  });
-
-  test('should remove tag from note', async ({ page }) => {
-    const targetNote = fixtures.taggedNote; // Has tags: ['tag1', 'tag2', 'tag3']
-    const tagToRemove = 'tag2';
-    const updatedNote = {
-      ...targetNote,
-      tags: targetNote.tags.filter((t) => t !== tagToRemove),
-    };
-
-    // Mock get note API
-    let currentNote = targetNote;
-    await page.route(`**/api/v1/notes/${targetNote.note.id}`, async (route) => {
-      if (route.request().method() === 'GET') {
-        await route.fulfill({
-          status: 200,
-          contentType: 'application/json',
-          body: JSON.stringify(currentNote),
-        });
-      }
-    });
-
-    // Mock update tags API
-    await page.route(`**/api/v1/notes/${targetNote.note.id}/tags`, async (route) => {
-      if (route.request().method() === 'PUT') {
-        const requestBody = await route.request().postDataJSON();
-        if (requestBody.remove && requestBody.remove.includes(tagToRemove)) {
-          currentNote = updatedNote;
-        }
-        await route.fulfill({
-          status: 200,
-          contentType: 'application/json',
-          body: JSON.stringify({ tags: currentNote.tags }),
-        });
-      }
-    });
-
-    // Mock notes list
-    await page.route('**/api/v1/notes?*', async (route) => {
-      await route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify(
-          mockResponses.listNotes([
-            {
-              id: targetNote.note.id,
-              title: targetNote.note.title!,
-              snippet: targetNote.original.content.substring(0, 100),
-              created_at_utc: targetNote.note.created_at_utc,
-              updated_at_utc: targetNote.note.updated_at_utc,
-              starred: false,
-              archived: false,
-              tags: currentNote.tags,
-              has_revision: true,
-              metadata: {},
-            },
-          ])
-        ),
-      });
-    });
-
-    // Navigate to note
-    await page.reload();
-    await page.waitForLoadState('networkidle');
-
-    const noteLink = page.getByText(targetNote.note.title!);
-    await expect(noteLink).toBeVisible();
-    await noteLink.click();
-
-    // Find tag badge for the tag to remove
-    const tagBadge = page.getByText(tagToRemove, { exact: false }).first();
-    await expect(tagBadge).toBeVisible();
-
-    // Click remove button (X icon) on tag badge
-    const removeButton = tagBadge
-      .locator('..') // Parent element
-      .getByRole('button', { name: /remove|delete|×|x/i })
-      .or(tagBadge.locator('xpath=..').locator('button'));
-
-    if (await removeButton.isVisible({ timeout: 1000 }).catch(() => false)) {
-      await removeButton.first().click();
-    } else {
-      // Fallback: Right-click tag for context menu
-      await tagBadge.click({ button: 'right' });
-      const removeMenuItem = page.getByRole('menuitem', { name: /remove|delete/i });
-      await expect(removeMenuItem).toBeVisible();
-      await removeMenuItem.click();
-    }
-
-    // Verify tag is removed
-    await expect(page.getByText(tagToRemove, { exact: true })).not.toBeVisible({ timeout: 5000 });
-  });
-
-  test('should filter notes by tag', async ({ page }) => {
-    const filterTag = 'important';
-    const taggedNote = fixtures.taggedNote;
-    const untaggedNote = fixtures.standardNote;
-
-    // Mock notes list with filtering
-    await page.route('**/api/v1/notes?*', async (route) => {
+    await installShellMocks(page);
+    await page.route('**/api/v1/tags**', async (route) => {
       const url = new URL(route.request().url());
-      const filter = url.searchParams.get('filter');
-
-      let notesToReturn = [];
-
-      if (filter && filter.includes(filterTag)) {
-        // Only return notes with the filter tag
-        notesToReturn = [
-          {
-            id: taggedNote.note.id,
-            title: taggedNote.note.title!,
-            snippet: taggedNote.original.content.substring(0, 100),
-            created_at_utc: taggedNote.note.created_at_utc,
-            updated_at_utc: taggedNote.note.updated_at_utc,
-            starred: false,
-            archived: false,
-            tags: [...taggedNote.tags, filterTag],
-            has_revision: true,
-            metadata: {},
-          },
-        ];
-      } else {
-        // Return all notes
-        notesToReturn = [
-          {
-            id: taggedNote.note.id,
-            title: taggedNote.note.title!,
-            snippet: taggedNote.original.content.substring(0, 100),
-            created_at_utc: taggedNote.note.created_at_utc,
-            updated_at_utc: taggedNote.note.updated_at_utc,
-            starred: false,
-            archived: false,
-            tags: [...taggedNote.tags, filterTag],
-            has_revision: true,
-            metadata: {},
-          },
-          {
-            id: untaggedNote.note.id,
-            title: untaggedNote.note.title!,
-            snippet: untaggedNote.original.content.substring(0, 100),
-            created_at_utc: untaggedNote.note.created_at_utc,
-            updated_at_utc: untaggedNote.note.updated_at_utc,
-            starred: false,
-            archived: false,
-            tags: untaggedNote.tags,
-            has_revision: true,
-            metadata: {},
-          },
-        ];
+      if (url.pathname.endsWith('/tags/stats')) {
+        await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(statsFromTags(tags)) });
+        return;
       }
-
-      await route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify(mockResponses.listNotes(notesToReturn)),
-      });
+      if (url.pathname.endsWith('/tags')) {
+        listCallCount += 1;
+        await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ tags }) });
+        return;
+      }
+      await route.fulfill({ status: 404 });
     });
 
-    // Navigate to app
-    await page.reload();
-    await page.waitForLoadState('networkidle');
+    await openTagManager(page);
+    await expect(page.getByText('research')).toBeVisible();
 
-    // Verify both notes are initially visible
-    await expect(page.getByText(taggedNote.note.title!)).toBeVisible();
-    await expect(page.getByText(untaggedNote.note.title!)).toBeVisible();
-
-    // Click on tag filter (in sidebar or filter panel)
-    const tagFilter = page.getByText(filterTag, { exact: false }).first();
-    await expect(tagFilter).toBeVisible();
-    await tagFilter.click();
-
-    // Verify only tagged note is visible
-    await expect(page.getByText(taggedNote.note.title!)).toBeVisible({ timeout: 5000 });
-    await expect(page.getByText(untaggedNote.note.title!)).not.toBeVisible();
-
-    // Clear filter
-    const clearFilterButton = page.getByRole('button', { name: /clear filter|all notes|×/i });
-    if (await clearFilterButton.isVisible({ timeout: 1000 }).catch(() => false)) {
-      await clearFilterButton.click();
-
-      // Verify both notes are visible again
-      await expect(page.getByText(taggedNote.note.title!)).toBeVisible({ timeout: 5000 });
-      await expect(page.getByText(untaggedNote.note.title!)).toBeVisible();
-    }
+    const beforeFilter = listCallCount;
+    await page.getByPlaceholder('Filter tags...').fill('imp');
+    await expect(page.getByText('important')).toBeVisible();
+    await expect(page.getByText('research')).not.toBeVisible();
+    expect(listCallCount).toBe(beforeFilter);
   });
 
-  test('should create new tag', async ({ page }) => {
-    const newTagName = 'newly-created-tag';
+  test('creates a tag through POST /tags and reloads the list', async ({ page }) => {
+    const tags: Tag[] = [{ name: 'existing', count: 1 }];
+    const createRequest = page.waitForRequest((request) => request.method() === 'POST' && new URL(request.url()).pathname.endsWith('/api/v1/tags'));
 
-    // Mock create tag API
-    await page.route('**/api/v1/tags', async (route) => {
-      if (route.request().method() === 'POST') {
-        const requestBody = await route.request().postDataJSON();
-        await route.fulfill({
-          status: 201,
-          contentType: 'application/json',
-          body: JSON.stringify({ name: requestBody.name }),
-        });
-      }
-    });
+    await installShellMocks(page);
+    await installTagMocks(page, tags);
 
-    // Mock get all tags API
-    let allTags = ['existing-tag-1', 'existing-tag-2'];
-    await page.route('**/api/v1/tags', async (route) => {
-      if (route.request().method() === 'GET') {
-        await route.fulfill({
-          status: 200,
-          contentType: 'application/json',
-          body: JSON.stringify(allTags),
-        });
-      }
-    });
+    await openTagManager(page);
+    await page.getByRole('button', { name: /new tag/i }).click();
+    await page.getByPlaceholder('Tag name').fill('newly-created-tag');
+    await page.getByRole('button', { name: /^Create$/ }).click();
 
-    // Navigate to tags management (if available)
-    // This is implementation-specific - might be in settings, sidebar, etc.
-
-    // Try to create tag via note tagging interface
-    const targetNote = fixtures.standardNote;
-    await page.route(`**/api/v1/notes/${targetNote.note.id}`, async (route) => {
-      await route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify(targetNote),
-      });
-    });
-
-    await page.route(`**/api/v1/notes/${targetNote.note.id}/tags`, async (route) => {
-      if (route.request().method() === 'PUT') {
-        const requestBody = await route.request().postDataJSON();
-        if (requestBody.add && requestBody.add.includes(newTagName)) {
-          allTags = [...allTags, newTagName];
-        }
-        await route.fulfill({
-          status: 200,
-          contentType: 'application/json',
-          body: JSON.stringify({ tags: [...targetNote.tags, newTagName] }),
-        });
-      }
-    });
-
-    await page.route('**/api/v1/notes?*', async (route) => {
-      await route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify(
-          mockResponses.listNotes([
-            {
-              id: targetNote.note.id,
-              title: targetNote.note.title!,
-              snippet: targetNote.original.content.substring(0, 100),
-              created_at_utc: targetNote.note.created_at_utc,
-              updated_at_utc: targetNote.note.updated_at_utc,
-              starred: false,
-              archived: false,
-              tags: targetNote.tags,
-              has_revision: true,
-              metadata: {},
-            },
-          ])
-        ),
-      });
-    });
-
-    await page.reload();
-    await page.waitForLoadState('networkidle');
-
-    const noteLink = page.getByText(targetNote.note.title!);
-    await expect(noteLink).toBeVisible();
-    await noteLink.click();
-
-    // Add new tag
-    const addTagButton = page.getByRole('button', { name: /add tag|new tag|\+.*tag/i });
-    const tagInput = page.getByPlaceholder(/tag|label/i);
-
-    if (await addTagButton.isVisible({ timeout: 1000 }).catch(() => false)) {
-      await addTagButton.click();
-    }
-
-    await expect(tagInput.first()).toBeVisible();
-    await tagInput.first().fill(newTagName);
-    await tagInput.first().press('Enter');
-
-    // Verify new tag is created and appears
-    await expect(page.getByText(newTagName)).toBeVisible({ timeout: 5000 });
+    const request = await createRequest;
+    expect(await request.postDataJSON()).toEqual({ name: 'newly-created-tag' });
+    await expect(page.getByText('newly-created-tag')).toBeVisible();
   });
 
-  test('should show tag autocomplete suggestions', async ({ page }) => {
-    const existingTags = ['existing-tag-1', 'existing-tag-2', 'another-tag'];
-    const partialInput = 'exist';
+  test('renames a tag through PATCH /tags/{name}', async ({ page }) => {
+    const tags: Tag[] = [{ name: 'research', count: 3 }];
+    const renameRequest = page.waitForRequest((request) => request.method() === 'PATCH' && new URL(request.url()).pathname.endsWith('/api/v1/tags/research'));
 
-    // Mock get all tags API
-    await page.route('**/api/v1/labels', async (route) => {
-      await route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify(existingTags),
-      });
-    });
+    await installShellMocks(page);
+    await installTagMocks(page, tags);
 
-    const targetNote = fixtures.standardNote;
-    await page.route(`**/api/v1/notes/${targetNote.note.id}`, async (route) => {
-      await route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify(targetNote),
-      });
-    });
+    await openTagManager(page);
+    await page.getByLabel('Rename research').click();
+    const renameInput = page.getByRole('region', { name: 'Tag Management' }).getByRole('textbox').nth(1);
+    await renameInput.fill('research-notes');
+    await renameInput.press('Enter');
 
-    await page.route('**/api/v1/notes?*', async (route) => {
-      await route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify(
-          mockResponses.listNotes([
-            {
-              id: targetNote.note.id,
-              title: targetNote.note.title!,
-              snippet: targetNote.original.content.substring(0, 100),
-              created_at_utc: targetNote.note.created_at_utc,
-              updated_at_utc: targetNote.note.updated_at_utc,
-              starred: false,
-              archived: false,
-              tags: targetNote.tags,
-              has_revision: true,
-              metadata: {},
-            },
-          ])
-        ),
-      });
-    });
-
-    await page.reload();
-    await page.waitForLoadState('networkidle');
-
-    const noteLink = page.getByText(targetNote.note.title!);
-    await expect(noteLink).toBeVisible();
-    await noteLink.click();
-
-    // Open tag input
-    const addTagButton = page.getByRole('button', { name: /add tag|new tag|\+.*tag/i });
-    const tagInput = page.getByPlaceholder(/tag|label/i);
-
-    if (await addTagButton.isVisible({ timeout: 1000 }).catch(() => false)) {
-      await addTagButton.click();
-    }
-
-    await expect(tagInput.first()).toBeVisible();
-
-    // Type partial tag name
-    await tagInput.first().fill(partialInput);
-    await page.waitForTimeout(300);
-
-    // Verify autocomplete suggestions appear
-    const autocompleteMenu = page.locator('[role="listbox"], [data-testid="tag-autocomplete"], .autocomplete-menu');
-
-    // Check if autocomplete is implemented
-    const hasAutocomplete = await autocompleteMenu.isVisible({ timeout: 2000 }).catch(() => false);
-
-    if (hasAutocomplete) {
-      // Verify matching suggestions are shown
-      const suggestions = autocompleteMenu.locator('[role="option"], .autocomplete-item');
-      const suggestionCount = await suggestions.count();
-      expect(suggestionCount).toBeGreaterThan(0);
-
-      // Verify suggestions contain the partial input
-      const firstSuggestion = suggestions.first();
-      await expect(firstSuggestion).toContainText(partialInput, { ignoreCase: true });
-    }
+    const request = await renameRequest;
+    expect(await request.postDataJSON()).toEqual({ new_name: 'research-notes' });
+    await expect(page.getByText('research-notes')).toBeVisible();
+    await expect(page.getByText('research', { exact: true })).not.toBeVisible();
   });
 
-  test('should handle tag API error gracefully', async ({ page }) => {
-    const targetNote = fixtures.standardNote;
+  test('deletes a tag after confirmation', async ({ page }) => {
+    const tags: Tag[] = [{ name: 'archive', count: 1 }];
+    const deleteRequest = page.waitForRequest((request) => request.method() === 'DELETE' && new URL(request.url()).pathname.endsWith('/api/v1/tags/archive'));
 
-    await page.route(`**/api/v1/notes/${targetNote.note.id}`, async (route) => {
-      await route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify(targetNote),
-      });
-    });
+    await installShellMocks(page);
+    await installTagMocks(page, tags);
 
-    // Mock update tags API with error
-    await page.route(`**/api/v1/notes/${targetNote.note.id}/tags`, async (route) => {
-      if (route.request().method() === 'PUT') {
-        await route.fulfill({
-          status: 500,
-          contentType: 'application/json',
-          body: JSON.stringify(fixtures.apiErrors.serverError.body),
-        });
+    page.on('dialog', (dialog) => dialog.accept());
+    await openTagManager(page);
+    await page.getByLabel('Delete archive').click();
+
+    await deleteRequest;
+    await expect(page.getByText('No tags yet')).toBeVisible();
+    await expect(page.getByText('archive', { exact: true })).not.toBeVisible();
+  });
+
+  test('surfaces tag list API failure and retries successfully', async ({ page }) => {
+    let shouldFail = true;
+    const tags: Tag[] = [{ name: 'recovered', count: 1 }];
+
+    await installShellMocks(page);
+    await page.route('**/api/v1/tags**', async (route) => {
+      const url = new URL(route.request().url());
+      if (shouldFail) {
+        await route.fulfill({ status: 400, contentType: 'application/json', body: JSON.stringify({ error: 'Tag list unavailable' }) });
+        return;
       }
+      if (url.pathname.endsWith('/tags/stats')) {
+        await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(statsFromTags(tags)) });
+        return;
+      }
+      await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ tags }) });
     });
 
-    await page.route('**/api/v1/notes?*', async (route) => {
-      await route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify(
-          mockResponses.listNotes([
-            {
-              id: targetNote.note.id,
-              title: targetNote.note.title!,
-              snippet: targetNote.original.content.substring(0, 100),
-              created_at_utc: targetNote.note.created_at_utc,
-              updated_at_utc: targetNote.note.updated_at_utc,
-              starred: false,
-              archived: false,
-              tags: targetNote.tags,
-              has_revision: true,
-              metadata: {},
-            },
-          ])
-        ),
-      });
-    });
+    await openTagManager(page);
+    await expect(page.getByText('Failed to load tags')).toBeVisible();
 
-    await page.reload();
-    await page.waitForLoadState('networkidle');
-
-    const noteLink = page.getByText(targetNote.note.title!);
-    await expect(noteLink).toBeVisible();
-    await noteLink.click();
-
-    // Try to add tag
-    const addTagButton = page.getByRole('button', { name: /add tag|new tag|\+.*tag/i });
-    const tagInput = page.getByPlaceholder(/tag|label/i);
-
-    if (await addTagButton.isVisible({ timeout: 1000 }).catch(() => false)) {
-      await addTagButton.click();
-    }
-
-    await expect(tagInput.first()).toBeVisible();
-    await tagInput.first().fill('error-tag');
-    await tagInput.first().press('Enter');
-
-    // Verify error message is displayed
-    const errorMessage = page.getByText(/error|failed|unable/i);
-    await expect(errorMessage).toBeVisible({ timeout: 5000 });
+    shouldFail = false;
+    await page.getByRole('button', { name: /retry/i }).click();
+    await expect(page.getByText('recovered')).toBeVisible();
   });
 });
