@@ -251,7 +251,8 @@ jobs:
           mkdir -p ~/.ssh
           tr -d '\r' <"$MUTSU_SSH_KEY_FILE" >~/.ssh/mutsu_key
           chmod 600 ~/.ssh/mutsu_key
-          ssh-keygen -y -f ~/.ssh/mutsu_key >/dev/null
+          client_fingerprint="$(ssh-keygen -y -f ~/.ssh/mutsu_key | ssh-keygen -E sha256 -lf - | awk 'NR == 1 {print $2}')"
+          test "$client_fingerprint" = "SHA256:98FJbexEnVPwJAio08Qv53uEahv4u6V+wSoUQLyKFII"
           host_key="$(mktemp)"
           for attempt in 1 2 3; do
             if ssh-keyscan -T 15 -t ed25519 10.0.42.41 >"$host_key" 2>/dev/null; then

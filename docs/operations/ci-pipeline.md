@@ -152,9 +152,14 @@ tag and checked by digest before publication.
 - Creates a matching release on `github.com/Fortemi/HotM` via `gh` CLI using `GH_PUBLISH_TOKEN`
 - Uploads all assets to the GitHub release
 
-**Secrets required**:
-- `MUTSU_SSH_KEY` — SSH private key for `manitcor@10.0.42.41`
-- `GH_PUBLISH_TOKEN` — GitHub PAT with `repo` + `write:releases` scope
+**Credential configuration**:
+- `VAULT_CI_ROLE_ID` and `VAULT_CI_SECRET_ID` authenticate the repository's
+  scoped CI reader.
+- `MUTSU_SSH_KEY_VAULT_PATH` and `MUTSU_SSH_KEY_VAULT_FIELD` select the
+  Vaulte/OpenBao leaf. The fetched key must match the pinned mutsu client-key
+  fingerprint before SSH is attempted.
+- `GH_PUBLISH_TOKEN_VAULT_PATH` and `GH_PUBLISH_TOKEN_VAULT_FIELD` select the
+  GitHub release credential without storing it in the repository or workflow.
 
 ---
 
@@ -226,7 +231,12 @@ mutsu is an Apple M4 Mac mini used as the macOS build machine for all Tauri desk
 | Cargo home | `/Volumes/build/hotm/cargo` |
 | Rust target | `aarch64-apple-darwin` |
 
-**How it works**: There is no act_runner agent on mutsu. Instead, a Linux runner (`ubuntu-22.04`) establishes an SSH connection using the `MUTSU_SSH_KEY` secret and drives the build remotely via heredoc scripts. The build directory is always cleaned up after the run (including on failure).
+**How it works**: There is no act_runner agent on mutsu. Instead, a Linux
+runner (`ubuntu-22.04`) retrieves the repository-authorized SSH key from
+Vaulte/OpenBao into the job's temporary environment, verifies its pinned
+client-key fingerprint, and drives the build remotely via heredoc scripts. The
+build directory and temporary key are always cleaned up after the run
+(including on failure).
 
 **Health check**: A script is installed at `/Volumes/build/hotm/health.sh` on mutsu. Run it anytime to verify the environment:
 
@@ -330,13 +340,15 @@ cd ui && npm run test:hux-traceability
 
 ---
 
-## Required Secrets Summary
+## Required Credential Summary
 
-| Secret | Used by | Purpose |
+| Setting | Used by | Purpose |
 |---|---|---|
-| `MUTSU_SSH_KEY` | `desktop-build-matrix.yml`, `desktop-release.yml`, `mutsu-verify.yml` | SSH private key for `manitcor@10.0.42.41` |
-| `GH_PUBLISH_TOKEN` | `ui-ci.yml`, `desktop-release.yml`, `publish-hotm-ui-image.yml` | GitHub PAT with `repo` + `write:releases` + `write:packages` |
-| `BUILD_REPO_TOKEN` | `ui-ci.yml`, `publish-hotm-ui-image.yml` | Gitea PAT with `write:package` scope |
+| `VAULT_CI_ROLE_ID`, `VAULT_CI_SECRET_ID` | Vault-consuming workflows | Bootstrap the scoped HotM CI reader; these are the only repository secrets in this path |
+| `VAULT_ADDR` | Vault-consuming workflows | Select the approved Vaulte/OpenBao endpoint |
+| `MUTSU_SSH_KEY_VAULT_PATH`, `MUTSU_SSH_KEY_VAULT_FIELD` | `desktop-build-matrix.yml`, `desktop-release.yml`, `mutsu-verify.yml` | Select the rotated mutsu SSH key leaf; key bytes are fetched only at runtime |
+| `GH_PUBLISH_TOKEN_VAULT_PATH`, `GH_PUBLISH_TOKEN_VAULT_FIELD` | `ui-ci.yml`, `desktop-release.yml`, `publish-hotm-ui-image.yml` | Select the GitHub release/package token leaf |
+| `BUILD_REPO_TOKEN_VAULT_PATH`, `BUILD_REPO_TOKEN_VAULT_FIELD` | `ui-ci.yml`, `publish-hotm-ui-image.yml` | Select the Gitea package-publish token leaf |
 
 ---
 
