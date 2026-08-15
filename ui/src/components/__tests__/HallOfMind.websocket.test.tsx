@@ -305,11 +305,12 @@ describe('HallOfMind WebSocket Integration', () => {
     });
 
     it('applies non-initiator NoteCreated events to the list', async () => {
+      const createdNoteId = '33333333-3333-4333-8333-333333333333';
       const existingNote = createMockNoteFull({
         note: { id: 'existing-note', title: 'Existing Note' },
       });
       const createdNote = createMockNoteFull({
-        note: { id: 'remote-created-note', title: 'Remote Created Note' },
+        note: { id: createdNoteId, title: 'Remote Created Note' },
       });
 
       mockApi.getNotes.mockResolvedValue([createNoteSummary(existingNote)]);
@@ -326,7 +327,8 @@ describe('HallOfMind WebSocket Integration', () => {
       act(() => {
         realtimeEventBus.publishFromTransport({
           type: 'NoteCreated',
-          note_id: 'remote-created-note',
+          note_id: createdNoteId,
+          tags: [],
           event_id: 'evt-created-1',
         });
       });
@@ -337,8 +339,9 @@ describe('HallOfMind WebSocket Integration', () => {
     });
 
     it('applies non-initiator NoteDeleted events to the list', async () => {
+      const deletedNoteId = '44444444-4444-4444-8444-444444444444';
       const existingNote = createMockNoteFull({
-        note: { id: 'remote-deleted-note', title: 'Remote Deleted Note' },
+        note: { id: deletedNoteId, title: 'Remote Deleted Note' },
       });
 
       mockApi.getNotes.mockResolvedValue([createNoteSummary(existingNote)]);
@@ -353,7 +356,7 @@ describe('HallOfMind WebSocket Integration', () => {
       act(() => {
         realtimeEventBus.publishFromTransport({
           type: 'NoteDeleted',
-          note_id: 'remote-deleted-note',
+          note_id: deletedNoteId,
           event_id: 'evt-deleted-1',
         });
       });

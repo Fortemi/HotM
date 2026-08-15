@@ -1,0 +1,1592 @@
+{
+  "schemaVersion": 1,
+  "description": "Schema-derived runtime validation rules for known Fortemi AsyncAPI event payloads.",
+  "producer": {
+    "repository": "Fortemi/fortemi",
+    "commit": "5ea08229c9f1565122df5f8e6906e89d98dc7e75",
+    "sourcePath": "crates/matric-core/src/events.rs",
+    "sourceSha256": "9828d2856f7aea057978b66bf113596dccbfcf9642303eeb9a4d1a1e228d84e7",
+    "asyncApi": {
+      "sourcePath": "crates/matric-core/src/asyncapi.rs",
+      "sourceSha256": "7be3732aa01cd40e7761b78ce56c7b3199494cd76c8d06f3ccfb78b6070f1da8",
+      "artifactPath": "contracts/asyncapi/asyncapi.yaml",
+      "format": "yaml",
+      "asyncApiVersion": "3.0.0",
+      "generatorVersion": "2026.7.19",
+      "canonicalServerUrl": "http://localhost:3000",
+      "sha256": "1ec4a4477431caf60a62ace48f80186bf732408476a24c8d9cd32dba41957ea4",
+      "sizeBytes": 45160
+    }
+  },
+  "sourceKind": "schema-derived",
+  "generatedAt": "2026-08-15T22:16:05.692Z",
+  "rules": [
+    {
+      "eventType": "archive.created",
+      "legacyType": "ArchiveCreated",
+      "required": [
+        "name",
+        "type"
+      ],
+      "fields": {
+        "archive_id": {
+          "types": [
+            "string",
+            "null"
+          ],
+          "nullable": true,
+          "format": "uuid"
+        },
+        "name": {
+          "types": [
+            "string"
+          ],
+          "nullable": false
+        },
+        "type": {
+          "types": [
+            "string"
+          ],
+          "nullable": false,
+          "enum": [
+            "ArchiveCreated"
+          ]
+        }
+      }
+    },
+    {
+      "eventType": "archive.default.changed",
+      "legacyType": "ArchiveDefaultChanged",
+      "required": [
+        "name",
+        "type"
+      ],
+      "fields": {
+        "name": {
+          "types": [
+            "string"
+          ],
+          "nullable": false
+        },
+        "type": {
+          "types": [
+            "string"
+          ],
+          "nullable": false,
+          "enum": [
+            "ArchiveDefaultChanged"
+          ]
+        }
+      }
+    },
+    {
+      "eventType": "archive.deleted",
+      "legacyType": "ArchiveDeleted",
+      "required": [
+        "name",
+        "type"
+      ],
+      "fields": {
+        "name": {
+          "types": [
+            "string"
+          ],
+          "nullable": false
+        },
+        "type": {
+          "types": [
+            "string"
+          ],
+          "nullable": false,
+          "enum": [
+            "ArchiveDeleted"
+          ]
+        }
+      }
+    },
+    {
+      "eventType": "archive.updated",
+      "legacyType": "ArchiveUpdated",
+      "required": [
+        "name",
+        "type"
+      ],
+      "fields": {
+        "name": {
+          "types": [
+            "string"
+          ],
+          "nullable": false
+        },
+        "type": {
+          "types": [
+            "string"
+          ],
+          "nullable": false,
+          "enum": [
+            "ArchiveUpdated"
+          ]
+        }
+      }
+    },
+    {
+      "eventType": "attachment.created",
+      "legacyType": "AttachmentCreated",
+      "required": [
+        "attachment_id",
+        "note_id",
+        "type"
+      ],
+      "fields": {
+        "attachment_id": {
+          "types": [
+            "string"
+          ],
+          "nullable": false,
+          "format": "uuid"
+        },
+        "filename": {
+          "types": [
+            "string",
+            "null"
+          ],
+          "nullable": true
+        },
+        "note_id": {
+          "types": [
+            "string"
+          ],
+          "nullable": false,
+          "format": "uuid"
+        },
+        "type": {
+          "types": [
+            "string"
+          ],
+          "nullable": false,
+          "enum": [
+            "AttachmentCreated"
+          ]
+        }
+      }
+    },
+    {
+      "eventType": "attachment.deleted",
+      "legacyType": "AttachmentDeleted",
+      "required": [
+        "attachment_id",
+        "type"
+      ],
+      "fields": {
+        "attachment_id": {
+          "types": [
+            "string"
+          ],
+          "nullable": false,
+          "format": "uuid"
+        },
+        "note_id": {
+          "types": [
+            "string",
+            "null"
+          ],
+          "nullable": true,
+          "format": "uuid"
+        },
+        "type": {
+          "types": [
+            "string"
+          ],
+          "nullable": false,
+          "enum": [
+            "AttachmentDeleted"
+          ]
+        }
+      }
+    },
+    {
+      "eventType": "attachment.extraction.updated",
+      "legacyType": "AttachmentExtractionUpdated",
+      "required": [
+        "attachment_id",
+        "note_id",
+        "type"
+      ],
+      "fields": {
+        "attachment_id": {
+          "types": [
+            "string"
+          ],
+          "nullable": false,
+          "format": "uuid"
+        },
+        "note_id": {
+          "types": [
+            "string"
+          ],
+          "nullable": false,
+          "format": "uuid"
+        },
+        "type": {
+          "types": [
+            "string"
+          ],
+          "nullable": false,
+          "enum": [
+            "AttachmentExtractionUpdated"
+          ]
+        }
+      }
+    },
+    {
+      "eventType": "collection.created",
+      "legacyType": "CollectionCreated",
+      "required": [
+        "collection_id",
+        "name",
+        "type"
+      ],
+      "fields": {
+        "collection_id": {
+          "types": [
+            "string"
+          ],
+          "nullable": false,
+          "format": "uuid"
+        },
+        "name": {
+          "types": [
+            "string"
+          ],
+          "nullable": false
+        },
+        "type": {
+          "types": [
+            "string"
+          ],
+          "nullable": false,
+          "enum": [
+            "CollectionCreated"
+          ]
+        }
+      }
+    },
+    {
+      "eventType": "collection.deleted",
+      "legacyType": "CollectionDeleted",
+      "required": [
+        "collection_id",
+        "type"
+      ],
+      "fields": {
+        "collection_id": {
+          "types": [
+            "string"
+          ],
+          "nullable": false,
+          "format": "uuid"
+        },
+        "type": {
+          "types": [
+            "string"
+          ],
+          "nullable": false,
+          "enum": [
+            "CollectionDeleted"
+          ]
+        }
+      }
+    },
+    {
+      "eventType": "collection.membership.changed",
+      "legacyType": "CollectionMembershipChanged",
+      "required": [
+        "note_id",
+        "type"
+      ],
+      "fields": {
+        "collection_id": {
+          "types": [
+            "string",
+            "null"
+          ],
+          "nullable": true,
+          "format": "uuid"
+        },
+        "note_id": {
+          "types": [
+            "string"
+          ],
+          "nullable": false,
+          "format": "uuid"
+        },
+        "type": {
+          "types": [
+            "string"
+          ],
+          "nullable": false,
+          "enum": [
+            "CollectionMembershipChanged"
+          ]
+        }
+      }
+    },
+    {
+      "eventType": "collection.updated",
+      "legacyType": "CollectionUpdated",
+      "required": [
+        "collection_id",
+        "name",
+        "type"
+      ],
+      "fields": {
+        "collection_id": {
+          "types": [
+            "string"
+          ],
+          "nullable": false,
+          "format": "uuid"
+        },
+        "name": {
+          "types": [
+            "string"
+          ],
+          "nullable": false
+        },
+        "type": {
+          "types": [
+            "string"
+          ],
+          "nullable": false,
+          "enum": [
+            "CollectionUpdated"
+          ]
+        }
+      }
+    },
+    {
+      "eventType": "concept.collection.membership.changed",
+      "legacyType": "ConceptCollectionMembershipChanged",
+      "required": [
+        "concept_id",
+        "type"
+      ],
+      "fields": {
+        "collection_id": {
+          "types": [
+            "string",
+            "null"
+          ],
+          "nullable": true,
+          "format": "uuid"
+        },
+        "concept_id": {
+          "types": [
+            "string"
+          ],
+          "nullable": false,
+          "format": "uuid"
+        },
+        "type": {
+          "types": [
+            "string"
+          ],
+          "nullable": false,
+          "enum": [
+            "ConceptCollectionMembershipChanged"
+          ]
+        }
+      }
+    },
+    {
+      "eventType": "concept.created",
+      "legacyType": "ConceptCreated",
+      "required": [
+        "concept_id",
+        "type"
+      ],
+      "fields": {
+        "concept_id": {
+          "types": [
+            "string"
+          ],
+          "nullable": false,
+          "format": "uuid"
+        },
+        "scheme_id": {
+          "types": [
+            "string",
+            "null"
+          ],
+          "nullable": true,
+          "format": "uuid"
+        },
+        "type": {
+          "types": [
+            "string"
+          ],
+          "nullable": false,
+          "enum": [
+            "ConceptCreated"
+          ]
+        }
+      }
+    },
+    {
+      "eventType": "concept.deleted",
+      "legacyType": "ConceptDeleted",
+      "required": [
+        "concept_id",
+        "type"
+      ],
+      "fields": {
+        "concept_id": {
+          "types": [
+            "string"
+          ],
+          "nullable": false,
+          "format": "uuid"
+        },
+        "type": {
+          "types": [
+            "string"
+          ],
+          "nullable": false,
+          "enum": [
+            "ConceptDeleted"
+          ]
+        }
+      }
+    },
+    {
+      "eventType": "concept.relations.updated",
+      "legacyType": "ConceptRelationsUpdated",
+      "required": [
+        "concept_id",
+        "relation_type",
+        "type"
+      ],
+      "fields": {
+        "concept_id": {
+          "types": [
+            "string"
+          ],
+          "nullable": false,
+          "format": "uuid"
+        },
+        "relation_type": {
+          "types": [
+            "string"
+          ],
+          "nullable": false
+        },
+        "type": {
+          "types": [
+            "string"
+          ],
+          "nullable": false,
+          "enum": [
+            "ConceptRelationsUpdated"
+          ]
+        }
+      }
+    },
+    {
+      "eventType": "concept.scheme.changed",
+      "legacyType": "ConceptSchemeChanged",
+      "required": [
+        "concept_id",
+        "type"
+      ],
+      "fields": {
+        "concept_id": {
+          "types": [
+            "string"
+          ],
+          "nullable": false,
+          "format": "uuid"
+        },
+        "scheme_id": {
+          "types": [
+            "string",
+            "null"
+          ],
+          "nullable": true,
+          "format": "uuid"
+        },
+        "type": {
+          "types": [
+            "string"
+          ],
+          "nullable": false,
+          "enum": [
+            "ConceptSchemeChanged"
+          ]
+        }
+      }
+    },
+    {
+      "eventType": "concept_scheme.created",
+      "legacyType": "ConceptSchemeCreated",
+      "required": [
+        "scheme_id",
+        "type"
+      ],
+      "fields": {
+        "scheme_id": {
+          "types": [
+            "string"
+          ],
+          "nullable": false,
+          "format": "uuid"
+        },
+        "type": {
+          "types": [
+            "string"
+          ],
+          "nullable": false,
+          "enum": [
+            "ConceptSchemeCreated"
+          ]
+        }
+      }
+    },
+    {
+      "eventType": "concept_scheme.deleted",
+      "legacyType": "ConceptSchemeDeleted",
+      "required": [
+        "scheme_id",
+        "type"
+      ],
+      "fields": {
+        "scheme_id": {
+          "types": [
+            "string"
+          ],
+          "nullable": false,
+          "format": "uuid"
+        },
+        "type": {
+          "types": [
+            "string"
+          ],
+          "nullable": false,
+          "enum": [
+            "ConceptSchemeDeleted"
+          ]
+        }
+      }
+    },
+    {
+      "eventType": "concept_scheme.updated",
+      "legacyType": "ConceptSchemeUpdated",
+      "required": [
+        "scheme_id",
+        "type"
+      ],
+      "fields": {
+        "scheme_id": {
+          "types": [
+            "string"
+          ],
+          "nullable": false,
+          "format": "uuid"
+        },
+        "type": {
+          "types": [
+            "string"
+          ],
+          "nullable": false,
+          "enum": [
+            "ConceptSchemeUpdated"
+          ]
+        }
+      }
+    },
+    {
+      "eventType": "concept.updated",
+      "legacyType": "ConceptUpdated",
+      "required": [
+        "concept_id",
+        "type"
+      ],
+      "fields": {
+        "concept_id": {
+          "types": [
+            "string"
+          ],
+          "nullable": false,
+          "format": "uuid"
+        },
+        "type": {
+          "types": [
+            "string"
+          ],
+          "nullable": false,
+          "enum": [
+            "ConceptUpdated"
+          ]
+        }
+      }
+    },
+    {
+      "eventType": "index.embedding.updated",
+      "legacyType": "IndexEmbeddingUpdated",
+      "required": [
+        "note_id",
+        "type"
+      ],
+      "fields": {
+        "job_id": {
+          "types": [
+            "string",
+            "null"
+          ],
+          "nullable": true,
+          "format": "uuid"
+        },
+        "note_id": {
+          "types": [
+            "string"
+          ],
+          "nullable": false,
+          "format": "uuid"
+        },
+        "type": {
+          "types": [
+            "string"
+          ],
+          "nullable": false,
+          "enum": [
+            "IndexEmbeddingUpdated"
+          ]
+        }
+      }
+    },
+    {
+      "eventType": "index.fts.updated",
+      "legacyType": "IndexFtsUpdated",
+      "required": [
+        "note_id",
+        "type"
+      ],
+      "fields": {
+        "job_id": {
+          "types": [
+            "string",
+            "null"
+          ],
+          "nullable": true,
+          "format": "uuid"
+        },
+        "note_id": {
+          "types": [
+            "string"
+          ],
+          "nullable": false,
+          "format": "uuid"
+        },
+        "type": {
+          "types": [
+            "string"
+          ],
+          "nullable": false,
+          "enum": [
+            "IndexFtsUpdated"
+          ]
+        }
+      }
+    },
+    {
+      "eventType": "index.linking.updated",
+      "legacyType": "IndexLinkingUpdated",
+      "required": [
+        "note_id",
+        "type"
+      ],
+      "fields": {
+        "job_id": {
+          "types": [
+            "string",
+            "null"
+          ],
+          "nullable": true,
+          "format": "uuid"
+        },
+        "note_id": {
+          "types": [
+            "string"
+          ],
+          "nullable": false,
+          "format": "uuid"
+        },
+        "type": {
+          "types": [
+            "string"
+          ],
+          "nullable": false,
+          "enum": [
+            "IndexLinkingUpdated"
+          ]
+        }
+      }
+    },
+    {
+      "eventType": "inference.availability.changed",
+      "legacyType": "InferenceAvailabilityChanged",
+      "required": [
+        "available",
+        "type"
+      ],
+      "fields": {
+        "available": {
+          "types": [
+            "boolean"
+          ],
+          "nullable": false
+        },
+        "type": {
+          "types": [
+            "string"
+          ],
+          "nullable": false,
+          "enum": [
+            "InferenceAvailabilityChanged"
+          ]
+        }
+      }
+    },
+    {
+      "eventType": "inference.config.changed",
+      "legacyType": "InferenceConfigChanged",
+      "required": [
+        "changed_fields",
+        "default_backend",
+        "type"
+      ],
+      "fields": {
+        "changed_fields": {
+          "types": [
+            "array"
+          ],
+          "nullable": false,
+          "items": {
+            "types": [
+              "string"
+            ],
+            "nullable": false
+          }
+        },
+        "default_backend": {
+          "types": [
+            "string"
+          ],
+          "nullable": false
+        },
+        "embedding_backend": {
+          "types": [
+            "string",
+            "null"
+          ],
+          "nullable": true
+        },
+        "type": {
+          "types": [
+            "string"
+          ],
+          "nullable": false,
+          "enum": [
+            "InferenceConfigChanged"
+          ]
+        }
+      }
+    },
+    {
+      "eventType": "job.completed",
+      "legacyType": "JobCompleted",
+      "required": [
+        "job_id",
+        "job_type",
+        "type"
+      ],
+      "fields": {
+        "duration_ms": {
+          "types": [
+            "integer",
+            "null"
+          ],
+          "nullable": true,
+          "format": "int64"
+        },
+        "job_id": {
+          "types": [
+            "string"
+          ],
+          "nullable": false,
+          "format": "uuid"
+        },
+        "job_type": {
+          "types": [
+            "string"
+          ],
+          "nullable": false
+        },
+        "note_id": {
+          "types": [
+            "string",
+            "null"
+          ],
+          "nullable": true,
+          "format": "uuid"
+        },
+        "type": {
+          "types": [
+            "string"
+          ],
+          "nullable": false,
+          "enum": [
+            "JobCompleted"
+          ]
+        }
+      }
+    },
+    {
+      "eventType": "job.failed",
+      "legacyType": "JobFailed",
+      "required": [
+        "error",
+        "job_id",
+        "job_type",
+        "type"
+      ],
+      "fields": {
+        "error": {
+          "types": [
+            "string"
+          ],
+          "nullable": false
+        },
+        "job_id": {
+          "types": [
+            "string"
+          ],
+          "nullable": false,
+          "format": "uuid"
+        },
+        "job_type": {
+          "types": [
+            "string"
+          ],
+          "nullable": false
+        },
+        "note_id": {
+          "types": [
+            "string",
+            "null"
+          ],
+          "nullable": true,
+          "format": "uuid"
+        },
+        "type": {
+          "types": [
+            "string"
+          ],
+          "nullable": false,
+          "enum": [
+            "JobFailed"
+          ]
+        }
+      }
+    },
+    {
+      "eventType": "job.progress",
+      "legacyType": "JobProgress",
+      "required": [
+        "job_id",
+        "progress",
+        "type"
+      ],
+      "fields": {
+        "job_id": {
+          "types": [
+            "string"
+          ],
+          "nullable": false,
+          "format": "uuid"
+        },
+        "message": {
+          "types": [
+            "string",
+            "null"
+          ],
+          "nullable": true
+        },
+        "note_id": {
+          "types": [
+            "string",
+            "null"
+          ],
+          "nullable": true,
+          "format": "uuid"
+        },
+        "progress": {
+          "types": [
+            "integer"
+          ],
+          "nullable": false,
+          "format": "int32"
+        },
+        "type": {
+          "types": [
+            "string"
+          ],
+          "nullable": false,
+          "enum": [
+            "JobProgress"
+          ]
+        }
+      }
+    },
+    {
+      "eventType": "job.queued",
+      "legacyType": "JobQueued",
+      "required": [
+        "job_id",
+        "job_type",
+        "type"
+      ],
+      "fields": {
+        "job_id": {
+          "types": [
+            "string"
+          ],
+          "nullable": false,
+          "format": "uuid"
+        },
+        "job_type": {
+          "types": [
+            "string"
+          ],
+          "nullable": false
+        },
+        "note_id": {
+          "types": [
+            "string",
+            "null"
+          ],
+          "nullable": true,
+          "format": "uuid"
+        },
+        "type": {
+          "types": [
+            "string"
+          ],
+          "nullable": false,
+          "enum": [
+            "JobQueued"
+          ]
+        }
+      }
+    },
+    {
+      "eventType": "jobs.paused",
+      "legacyType": "JobsPaused",
+      "required": [
+        "scope",
+        "type"
+      ],
+      "fields": {
+        "scope": {
+          "types": [
+            "string"
+          ],
+          "nullable": false
+        },
+        "type": {
+          "types": [
+            "string"
+          ],
+          "nullable": false,
+          "enum": [
+            "JobsPaused"
+          ]
+        }
+      }
+    },
+    {
+      "eventType": "jobs.resumed",
+      "legacyType": "JobsResumed",
+      "required": [
+        "scope",
+        "type"
+      ],
+      "fields": {
+        "scope": {
+          "types": [
+            "string"
+          ],
+          "nullable": false
+        },
+        "type": {
+          "types": [
+            "string"
+          ],
+          "nullable": false,
+          "enum": [
+            "JobsResumed"
+          ]
+        }
+      }
+    },
+    {
+      "eventType": "job.started",
+      "legacyType": "JobStarted",
+      "required": [
+        "job_id",
+        "job_type",
+        "type"
+      ],
+      "fields": {
+        "job_id": {
+          "types": [
+            "string"
+          ],
+          "nullable": false,
+          "format": "uuid"
+        },
+        "job_type": {
+          "types": [
+            "string"
+          ],
+          "nullable": false
+        },
+        "note_id": {
+          "types": [
+            "string",
+            "null"
+          ],
+          "nullable": true,
+          "format": "uuid"
+        },
+        "type": {
+          "types": [
+            "string"
+          ],
+          "nullable": false,
+          "enum": [
+            "JobStarted"
+          ]
+        }
+      }
+    },
+    {
+      "eventType": "note.archived",
+      "legacyType": "NoteArchived",
+      "required": [
+        "note_id",
+        "type"
+      ],
+      "fields": {
+        "note_id": {
+          "types": [
+            "string"
+          ],
+          "nullable": false,
+          "format": "uuid"
+        },
+        "type": {
+          "types": [
+            "string"
+          ],
+          "nullable": false,
+          "enum": [
+            "NoteArchived"
+          ]
+        }
+      }
+    },
+    {
+      "eventType": "note.created",
+      "legacyType": "NoteCreated",
+      "required": [
+        "note_id",
+        "tags",
+        "type"
+      ],
+      "fields": {
+        "note_id": {
+          "types": [
+            "string"
+          ],
+          "nullable": false,
+          "format": "uuid"
+        },
+        "tags": {
+          "types": [
+            "array"
+          ],
+          "nullable": false,
+          "items": {
+            "types": [
+              "string"
+            ],
+            "nullable": false
+          }
+        },
+        "title": {
+          "types": [
+            "string",
+            "null"
+          ],
+          "nullable": true
+        },
+        "type": {
+          "types": [
+            "string"
+          ],
+          "nullable": false,
+          "enum": [
+            "NoteCreated"
+          ]
+        }
+      }
+    },
+    {
+      "eventType": "note.deleted",
+      "legacyType": "NoteDeleted",
+      "required": [
+        "note_id",
+        "type"
+      ],
+      "fields": {
+        "note_id": {
+          "types": [
+            "string"
+          ],
+          "nullable": false,
+          "format": "uuid"
+        },
+        "type": {
+          "types": [
+            "string"
+          ],
+          "nullable": false,
+          "enum": [
+            "NoteDeleted"
+          ]
+        }
+      }
+    },
+    {
+      "eventType": "note.links.updated",
+      "legacyType": "NoteLinksUpdated",
+      "required": [
+        "note_id",
+        "type"
+      ],
+      "fields": {
+        "note_id": {
+          "types": [
+            "string"
+          ],
+          "nullable": false,
+          "format": "uuid"
+        },
+        "type": {
+          "types": [
+            "string"
+          ],
+          "nullable": false,
+          "enum": [
+            "NoteLinksUpdated"
+          ]
+        }
+      }
+    },
+    {
+      "eventType": "note.restored",
+      "legacyType": "NoteRestored",
+      "required": [
+        "note_id",
+        "type"
+      ],
+      "fields": {
+        "note_id": {
+          "types": [
+            "string"
+          ],
+          "nullable": false,
+          "format": "uuid"
+        },
+        "type": {
+          "types": [
+            "string"
+          ],
+          "nullable": false,
+          "enum": [
+            "NoteRestored"
+          ]
+        }
+      }
+    },
+    {
+      "eventType": "note.revision.created",
+      "legacyType": "NoteRevisionCreated",
+      "required": [
+        "note_id",
+        "type"
+      ],
+      "fields": {
+        "note_id": {
+          "types": [
+            "string"
+          ],
+          "nullable": false,
+          "format": "uuid"
+        },
+        "type": {
+          "types": [
+            "string"
+          ],
+          "nullable": false,
+          "enum": [
+            "NoteRevisionCreated"
+          ]
+        }
+      }
+    },
+    {
+      "eventType": "note.tags.updated",
+      "legacyType": "NoteTagsUpdated",
+      "required": [
+        "note_id",
+        "tags",
+        "type"
+      ],
+      "fields": {
+        "note_id": {
+          "types": [
+            "string"
+          ],
+          "nullable": false,
+          "format": "uuid"
+        },
+        "tags": {
+          "types": [
+            "array"
+          ],
+          "nullable": false,
+          "items": {
+            "types": [
+              "string"
+            ],
+            "nullable": false
+          }
+        },
+        "type": {
+          "types": [
+            "string"
+          ],
+          "nullable": false,
+          "enum": [
+            "NoteTagsUpdated"
+          ]
+        }
+      }
+    },
+    {
+      "eventType": "note.updated",
+      "legacyType": "NoteUpdated",
+      "required": [
+        "has_ai_content",
+        "has_links",
+        "note_id",
+        "tags",
+        "type"
+      ],
+      "fields": {
+        "has_ai_content": {
+          "types": [
+            "boolean"
+          ],
+          "nullable": false
+        },
+        "has_links": {
+          "types": [
+            "boolean"
+          ],
+          "nullable": false
+        },
+        "note_id": {
+          "types": [
+            "string"
+          ],
+          "nullable": false,
+          "format": "uuid"
+        },
+        "tags": {
+          "types": [
+            "array"
+          ],
+          "nullable": false,
+          "items": {
+            "types": [
+              "string"
+            ],
+            "nullable": false
+          }
+        },
+        "title": {
+          "types": [
+            "string",
+            "null"
+          ],
+          "nullable": true
+        },
+        "type": {
+          "types": [
+            "string"
+          ],
+          "nullable": false,
+          "enum": [
+            "NoteUpdated"
+          ]
+        }
+      }
+    },
+    {
+      "eventType": "queue.status",
+      "legacyType": "QueueStatus",
+      "required": [
+        "pending",
+        "running",
+        "total_jobs",
+        "type"
+      ],
+      "fields": {
+        "pending": {
+          "types": [
+            "integer"
+          ],
+          "nullable": false,
+          "format": "int64"
+        },
+        "running": {
+          "types": [
+            "integer"
+          ],
+          "nullable": false,
+          "format": "int64"
+        },
+        "total_jobs": {
+          "types": [
+            "integer"
+          ],
+          "nullable": false,
+          "format": "int64"
+        },
+        "type": {
+          "types": [
+            "string"
+          ],
+          "nullable": false,
+          "enum": [
+            "QueueStatus"
+          ]
+        }
+      }
+    },
+    {
+      "eventType": "readmodel.graph.updated",
+      "legacyType": "ReadmodelGraphUpdated",
+      "required": [
+        "type"
+      ],
+      "fields": {
+        "note_id": {
+          "types": [
+            "string",
+            "null"
+          ],
+          "nullable": true,
+          "format": "uuid"
+        },
+        "type": {
+          "types": [
+            "string"
+          ],
+          "nullable": false,
+          "enum": [
+            "ReadmodelGraphUpdated"
+          ]
+        }
+      }
+    },
+    {
+      "eventType": "readmodel.search.ready",
+      "legacyType": "ReadmodelSearchReady",
+      "required": [
+        "note_id",
+        "type"
+      ],
+      "fields": {
+        "note_id": {
+          "types": [
+            "string"
+          ],
+          "nullable": false,
+          "format": "uuid"
+        },
+        "type": {
+          "types": [
+            "string"
+          ],
+          "nullable": false,
+          "enum": [
+            "ReadmodelSearchReady"
+          ]
+        }
+      }
+    },
+    {
+      "eventType": "tag.created",
+      "legacyType": "TagCreated",
+      "required": [
+        "tag",
+        "type"
+      ],
+      "fields": {
+        "tag": {
+          "types": [
+            "string"
+          ],
+          "nullable": false
+        },
+        "type": {
+          "types": [
+            "string"
+          ],
+          "nullable": false,
+          "enum": [
+            "TagCreated"
+          ]
+        }
+      }
+    },
+    {
+      "eventType": "tag.deleted",
+      "legacyType": "TagDeleted",
+      "required": [
+        "tag",
+        "type"
+      ],
+      "fields": {
+        "tag": {
+          "types": [
+            "string"
+          ],
+          "nullable": false
+        },
+        "type": {
+          "types": [
+            "string"
+          ],
+          "nullable": false,
+          "enum": [
+            "TagDeleted"
+          ]
+        }
+      }
+    },
+    {
+      "eventType": "tag.merged",
+      "legacyType": "TagMerged",
+      "required": [
+        "source_tag",
+        "target_tag",
+        "type"
+      ],
+      "fields": {
+        "affected_count": {
+          "types": [
+            "integer",
+            "null"
+          ],
+          "nullable": true,
+          "format": "int64"
+        },
+        "source_tag": {
+          "types": [
+            "string"
+          ],
+          "nullable": false
+        },
+        "target_tag": {
+          "types": [
+            "string"
+          ],
+          "nullable": false
+        },
+        "type": {
+          "types": [
+            "string"
+          ],
+          "nullable": false,
+          "enum": [
+            "TagMerged"
+          ]
+        }
+      }
+    },
+    {
+      "eventType": "tag.renamed",
+      "legacyType": "TagRenamed",
+      "required": [
+        "new_name",
+        "old_name",
+        "type"
+      ],
+      "fields": {
+        "new_name": {
+          "types": [
+            "string"
+          ],
+          "nullable": false
+        },
+        "old_name": {
+          "types": [
+            "string"
+          ],
+          "nullable": false
+        },
+        "type": {
+          "types": [
+            "string"
+          ],
+          "nullable": false,
+          "enum": [
+            "TagRenamed"
+          ]
+        }
+      }
+    },
+    {
+      "eventType": "tag.stats.updated",
+      "legacyType": "TagStatsUpdated",
+      "required": [
+        "type"
+      ],
+      "fields": {
+        "type": {
+          "types": [
+            "string"
+          ],
+          "nullable": false,
+          "enum": [
+            "TagStatsUpdated"
+          ]
+        }
+      }
+    }
+  ]
+}

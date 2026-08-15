@@ -1,0 +1,147 @@
+{
+  "schemaVersion": 1,
+  "issue": "Fortemi/HotM#288",
+  "generatedAt": "2026-08-15T22:16:05.692Z",
+  "producer": {
+    "repository": "Fortemi/fortemi",
+    "commit": "5ea08229c9f1565122df5f8e6906e89d98dc7e75",
+    "sourcePath": "crates/matric-core/src/events.rs",
+    "sourceSha256": "9828d2856f7aea057978b66bf113596dccbfcf9642303eeb9a4d1a1e228d84e7",
+    "asyncApi": {
+      "sourcePath": "crates/matric-core/src/asyncapi.rs",
+      "sourceSha256": "7be3732aa01cd40e7761b78ce56c7b3199494cd76c8d06f3ccfb78b6070f1da8",
+      "artifactPath": "contracts/asyncapi/asyncapi.yaml",
+      "format": "yaml",
+      "asyncApiVersion": "3.0.0",
+      "generatorVersion": "2026.7.19",
+      "canonicalServerUrl": "http://localhost:3000",
+      "sha256": "1ec4a4477431caf60a62ace48f80186bf732408476a24c8d9cd32dba41957ea4",
+      "sizeBytes": 45160
+    }
+  },
+  "verifier": ".aiwg/testing/scripts/verify-fortemi-asyncapi-payloads.mjs",
+  "asyncApi": {
+    "path": "contracts/asyncapi/asyncapi.yaml",
+    "sha256": "1ec4a4477431caf60a62ace48f80186bf732408476a24c8d9cd32dba41957ea4",
+    "sizeBytes": 45160,
+    "version": "3.0.0"
+  },
+  "corpus": {
+    "fixturePath": "ui/src/api/contracts/fortemi-asyncapi-event-fixtures.json",
+    "sha256": "d260b39bbcd51725948f812da4dcda1899979c2d8df0e78e2bb2bae99e937d8f",
+    "sourceKind": "schema-derived",
+    "producerOwnedExamplesFound": false,
+    "positiveCases": 48,
+    "negativeMutations": 192,
+    "negativeMutationCountsByCategory": {
+      "missing_required_field": 48,
+      "enum_violation": 48,
+      "nullability_violation": 48,
+      "identifier_format_violation": 48
+    },
+    "eventTypes": [
+      "archive.created",
+      "archive.default.changed",
+      "archive.deleted",
+      "archive.updated",
+      "attachment.created",
+      "attachment.deleted",
+      "attachment.extraction.updated",
+      "collection.created",
+      "collection.deleted",
+      "collection.membership.changed",
+      "collection.updated",
+      "concept.collection.membership.changed",
+      "concept.created",
+      "concept.deleted",
+      "concept.relations.updated",
+      "concept.scheme.changed",
+      "concept.updated",
+      "concept_scheme.created",
+      "concept_scheme.deleted",
+      "concept_scheme.updated",
+      "index.embedding.updated",
+      "index.fts.updated",
+      "index.linking.updated",
+      "inference.availability.changed",
+      "inference.config.changed",
+      "job.completed",
+      "job.failed",
+      "job.progress",
+      "job.queued",
+      "job.started",
+      "jobs.paused",
+      "jobs.resumed",
+      "note.archived",
+      "note.created",
+      "note.deleted",
+      "note.links.updated",
+      "note.restored",
+      "note.revision.created",
+      "note.tags.updated",
+      "note.updated",
+      "queue.status",
+      "readmodel.graph.updated",
+      "readmodel.search.ready",
+      "tag.created",
+      "tag.deleted",
+      "tag.merged",
+      "tag.renamed",
+      "tag.stats.updated"
+    ]
+  },
+  "validationRules": {
+    "path": "ui/src/api/contracts/fortemi-asyncapi-event-validation-rules.json",
+    "sha256": "92b788d34b8c12bc0a0478d689ab5006996478c0e30168ce004f0314c34726d7",
+    "rules": 48
+  },
+  "producerExampleInspection": {
+    "found": false,
+    "inspectedSources": [
+      {
+        "path": "crates/matric-core/src/events.rs",
+        "sha256": "9828d2856f7aea057978b66bf113596dccbfcf9642303eeb9a4d1a1e228d84e7",
+        "material": "Rust ServerEvent/EventEnvelope unit tests and metadata, not pinned JSON example corpus"
+      },
+      {
+        "path": "crates/matric-api/src/main.rs",
+        "sha256": "0af67cf61385b44b01f8e83d5dd1e465208ddb48c49924302998f46b8075e590",
+        "material": "Rust SSE flow tests collect runtime JSON values, not pinned reusable example corpus"
+      },
+      {
+        "path": "contracts/asyncapi/asyncapi.yaml",
+        "sha256": "1ec4a4477431caf60a62ace48f80186bf732408476a24c8d9cd32dba41957ea4",
+        "material": "Pinned AsyncAPI schema artifact used to derive fixtures"
+      }
+    ],
+    "acceptanceGap": "No producer-owned pinned JSON/YAML positive example corpus for every event payload was found in the pinned Fortemi checkout."
+  },
+  "decoderResults": {
+    "sse": {
+      "positiveCasesExpected": 48,
+      "malformedKnownEventsExpectedUnknown": 192,
+      "unknownRawPreservationExpected": true,
+      "verifiedBy": "npm run test -- --run src/api/__tests__/events.test.ts src/services/__tests__/realtimeEventBus.test.ts"
+    },
+    "websocket": {
+      "positiveCasesExpected": 48,
+      "malformedKnownEventsExpectedUnknown": 179,
+      "envelopeOnlyIdentifierMutationsNotApplicable": 13,
+      "unknownRawPreservationExpected": true,
+      "verifiedBy": "npm run test -- --run src/api/__tests__/events.test.ts src/services/__tests__/realtimeEventBus.test.ts"
+    }
+  },
+  "acceptanceGaps": [
+    "No producer-owned pinned JSON/YAML positive example corpus for every event payload was found in the pinned Fortemi checkout; corpus remains schema-derived."
+  ],
+  "assertions": {
+    "sidecarProvenanceMatchesPinnedProducer": true,
+    "channelMessagesMatchPinnedCatalog": true,
+    "allMessagePayloadRefsResolveToEventEnvelope": true,
+    "allServerEventVariantsHavePositivePayloads": true,
+    "allPositiveEnvelopesValidate": true,
+    "allPositivePayloadsValidate": true,
+    "allNegativeMutationsFailValidation": true,
+    "everyApplicableNegativeCategoryCovered": true
+  }
+}

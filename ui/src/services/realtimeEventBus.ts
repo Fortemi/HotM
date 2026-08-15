@@ -2,6 +2,7 @@ import {
   type EventActor,
   unwrapServerEventEnvelope,
 } from '@/api/events';
+import asyncApiValidationRules from '@/api/contracts/fortemi-asyncapi-event-validation-rules.json';
 
 export type RealtimeEventType =
   | 'Unknown'
@@ -33,10 +34,16 @@ export type RealtimeEventType =
 export interface RealtimeEvent {
   type: RealtimeEventType;
   raw_event_type?: string;
+  payload_type?: string;
+  raw_event?: Record<string, unknown>;
   received_at?: number;
   event_id?: string;
   note_id?: string;
   attachment_id?: string;
+  collection_id?: string;
+  archive_id?: string;
+  concept_id?: string;
+  scheme_id?: string;
   job_id?: string;
   job_type?: string;
   status?: string;
@@ -52,6 +59,8 @@ export interface RealtimeEvent {
   pending?: number;
   title?: string;
   tags?: string[];
+  filename?: string;
+  name?: string;
   has_ai_content?: boolean;
   has_links?: boolean;
   memory?: string;
@@ -77,7 +86,14 @@ export interface RealtimeEvent {
   metadata_count?: number;
   // Tag stats fields (tag.stats.updated)
   tag_name?: string;
+  tag?: string;
+  old_name?: string;
+  new_name?: string;
+  source_tag?: string;
+  target_tag?: string;
   note_count?: number;
+  affected_count?: number;
+  relation_type?: string;
   // Synthetic event fields
   dropped_count?: number;
   // Inference config events (Fortemi #654/#657 — InferenceConfigChanged, InferenceAvailabilityChanged)
@@ -94,6 +110,21 @@ export interface RealtimeEvent {
 }
 
 type RealtimeEventHandler = (event: RealtimeEvent) => void;
+
+interface AsyncApiFieldRule {
+  types: string[];
+  nullable: boolean;
+  enum?: string[];
+  format?: string;
+  items?: AsyncApiFieldRule;
+}
+
+interface AsyncApiEventRule {
+  eventType: string;
+  legacyType: string;
+  required: string[];
+  fields: Record<string, AsyncApiFieldRule>;
+}
 
 const DEDUP_TTL_MS = 60_000;
 const COALESCE_WINDOW_MS = 50;
@@ -125,6 +156,16 @@ const SUPPORTED_TYPES = new Set<RealtimeEventType>([
   'InferenceConfigChanged',
   'InferenceAvailabilityChanged',
 ]);
+
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const ASYNCAPI_EVENT_RULES = (asyncApiValidationRules.rules as unknown as AsyncApiEventRule[]);
+const ASYNCAPI_RULE_BY_NAME = new Map<string, AsyncApiEventRule>(
+  ASYNCAPI_EVENT_RULES.flatMap((rule) => [
+    [rule.eventType, rule],
+    [rule.legacyType, rule],
+  ]),
+);
+
 function getStringField(input: Record<string, unknown>, key: string): string | undefined {
   const value = input[key];
   return typeof value === 'string' ? value : undefined;
@@ -275,11 +316,73 @@ const LEGACY_EVENT_MAP: Record<string, RealtimeEventType> = {
 function normalizeEventType(input: Record<string, unknown>): RealtimeEventType {
   const rawType = getStringField(input, 'type') ?? getStringField(input, 'event_type');
   if (!rawType) return 'Unknown';
+  if (!isKnownEventPayloadConformant(input, rawType)) return 'Unknown';
   return NAMESPACED_EVENT_MAP[rawType]
     ?? LEGACY_EVENT_MAP[rawType]
     ?? (SUPPORTED_TYPES.has(rawType as RealtimeEventType)
       ? rawType as RealtimeEventType
       : 'Unknown');
+}
+
+function valueMatchesRule(value: unknown, rule: AsyncApiFieldRule): boolean {
+  if (value === null) return rule.nullable;
+
+  if (rule.enum && !rule.enum.includes(value as string)) {
+    return false;
+  }
+
+  const types = rule.types.filter((type) => type !== 'null');
+  const matchesType = types.some((type) => {
+    if (type === 'array') return Array.isArray(value);
+    if (type === 'integer') return Number.isInteger(value);
+    if (type === 'object') return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
+    return typeof value === type;
+  });
+  if (!matchesType) return false;
+
+  if (rule.format === 'uuid' && typeof value === 'string' && !UUID_PATTERN.test(value)) {
+    return false;
+  }
+
+  if (rule.items && Array.isArray(value)) {
+    return value.every((item) => valueMatchesRule(item, rule.items!));
+  }
+
+  return true;
+}
+
+function isKnownEventPayloadConformant(input: Record<string, unknown>, rawType: string): boolean {
+  const rule = ASYNCAPI_RULE_BY_NAME.get(rawType);
+  if (!rule) return true;
+
+  const isEnvelopeEvent = rawType === rule.eventType;
+  if (isEnvelopeEvent) {
+    const eventId = getStringField(input, 'event_id');
+    const correlationId = getStringField(input, 'correlation_id');
+    const causationId = getStringField(input, 'causation_id');
+    if (!eventId || !UUID_PATTERN.test(eventId)) return false;
+    if (correlationId && !UUID_PATTERN.test(correlationId)) return false;
+    if (causationId && !UUID_PATTERN.test(causationId)) return false;
+  }
+
+  const payloadType = isEnvelopeEvent
+    ? getStringField(input, 'payload_type')
+    : getStringField(input, 'type');
+  if (payloadType !== rule.legacyType) return false;
+
+  for (const key of rule.required) {
+    if (key === 'type') continue;
+    if (!(key in input)) return false;
+  }
+
+  for (const [key, fieldRule] of Object.entries(rule.fields)) {
+    if (key === 'type') continue;
+    if (key in input && !valueMatchesRule(input[key], fieldRule)) {
+      return false;
+    }
+  }
+
+  return true;
 }
 
 function coalesceKey(event: RealtimeEvent): string {
@@ -296,10 +399,16 @@ export function normalizeTransportEvent(input: unknown): RealtimeEvent {
   return {
     type: normalizeEventType(normalizedInput),
     raw_event_type: rawType,
+    payload_type: getStringField(normalizedInput, 'payload_type'),
+    raw_event: normalizedInput,
     received_at: Date.now(),
     event_id: getStringField(normalizedInput, 'event_id') ?? getStringField(normalizedInput, 'id'),
     note_id: getStringField(normalizedInput, 'note_id'),
     attachment_id: getStringField(normalizedInput, 'attachment_id'),
+    collection_id: getStringField(normalizedInput, 'collection_id'),
+    archive_id: getStringField(normalizedInput, 'archive_id'),
+    concept_id: getStringField(normalizedInput, 'concept_id'),
+    scheme_id: getStringField(normalizedInput, 'scheme_id'),
     job_id: getStringField(normalizedInput, 'job_id'),
     job_type: getStringField(normalizedInput, 'job_type'),
     status: getStringField(normalizedInput, 'status'),
@@ -315,6 +424,8 @@ export function normalizeTransportEvent(input: unknown): RealtimeEvent {
     pending: getNumberField(normalizedInput, 'pending'),
     title: getStringField(normalizedInput, 'title'),
     tags: getStringArrayField(normalizedInput, 'tags'),
+    filename: getStringField(normalizedInput, 'filename'),
+    name: getStringField(normalizedInput, 'name'),
     has_ai_content: getBooleanField(normalizedInput, 'has_ai_content'),
     has_links: getBooleanField(normalizedInput, 'has_links'),
     memory: getStringField(normalizedInput, 'memory'),
@@ -340,7 +451,14 @@ export function normalizeTransportEvent(input: unknown): RealtimeEvent {
     metadata_count: getNumberField(normalizedInput, 'metadata_count'),
     // Tag stats fields
     tag_name: getStringField(normalizedInput, 'tag_name'),
+    tag: getStringField(normalizedInput, 'tag'),
+    old_name: getStringField(normalizedInput, 'old_name'),
+    new_name: getStringField(normalizedInput, 'new_name'),
+    source_tag: getStringField(normalizedInput, 'source_tag'),
+    target_tag: getStringField(normalizedInput, 'target_tag'),
     note_count: getNumberField(normalizedInput, 'note_count'),
+    affected_count: getNumberField(normalizedInput, 'affected_count'),
+    relation_type: getStringField(normalizedInput, 'relation_type'),
     // Synthetic event fields
     dropped_count: getNumberField(normalizedInput, 'dropped_count'),
     // Inference config events

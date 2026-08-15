@@ -19,6 +19,7 @@ export interface EventActor {
 export interface ServerEvent {
   type: string;
   event_type?: string;
+  payload_type?: string;
   event_id?: string;
   job_id?: string;
   note_id?: string;
@@ -108,6 +109,7 @@ export function unwrapServerEventEnvelope(data: Record<string, unknown>): Server
         ?? ''
       ) as string,
       event_type: data.event_type as string | undefined,
+      payload_type: payloadObj.type as string | undefined,
       event_id: (data.event_id ?? payloadObj.event_id) as string | undefined,
       occurred_at: (data.occurred_at ?? legacyMetadataObj.occurred_at) as string | undefined,
       memory: (data.memory ?? legacyMetadataObj.memory) as string | undefined,

@@ -3,14 +3,25 @@ import {
   normalizeTransportEvent,
 } from '@/services/realtimeEventBus';
 import eventCatalog from '@/api/contracts/fortemi-event-catalog.json';
+import asyncApiFixtures from '@/api/contracts/fortemi-asyncapi-event-fixtures.json';
 import { describe, expect, it, vi } from 'vitest';
+
+const asyncApiCaseByEventType = new Map(
+  asyncApiFixtures.cases.map((fixture) => [fixture.eventType, fixture]),
+);
+
+function normalizeFixtureEvent(eventType: string) {
+  const fixture = asyncApiCaseByEventType.get(eventType);
+  if (!fixture) throw new Error(`missing AsyncAPI fixture for ${eventType}`);
+  return normalizeTransportEvent(fixture.envelope);
+}
 
 describe('realtimeEventBus', () => {
   it('normalizes transport payload into typed event', () => {
     const event = normalizeTransportEvent({
       event_type: 'NoteUpdated',
       event_id: 'evt-1',
-      note_id: 'note-1',
+      note_id: '019508a0-1234-7def-8000-abcdef123457',
       title: 'Updated title',
       tags: ['a', 'b'],
       has_ai_content: true,
@@ -20,7 +31,7 @@ describe('realtimeEventBus', () => {
 
     expect(event.type).toBe('NoteUpdated');
     expect(event.event_id).toBe('evt-1');
-    expect(event.note_id).toBe('note-1');
+    expect(event.note_id).toBe('019508a0-1234-7def-8000-abcdef123457');
     expect(event.tags).toEqual(['a', 'b']);
     expect(event.has_ai_content).toBe(true);
     expect(event.has_links).toBe(false);
@@ -49,19 +60,19 @@ describe('realtimeEventBus', () => {
   it('maps note mutation aliases into NoteUpdated events', () => {
     const event = normalizeTransportEvent({
       event_type: 'NoteArchived',
-      note_id: 'note-archived-1',
+      note_id: '019508a0-1234-7def-8000-abcdef123457',
     });
 
     expect(event.type).toBe('NoteUpdated');
-    expect(event.note_id).toBe('note-archived-1');
+    expect(event.note_id).toBe('019508a0-1234-7def-8000-abcdef123457');
   });
 
   it('maps domain-specific raw event names to reactive view buckets', () => {
-    expect(normalizeTransportEvent({ event_type: 'AttachmentCreated' }).type).toBe('AttachmentUpdated');
-    expect(normalizeTransportEvent({ event_type: 'TagRenamed' }).type).toBe('TagUpdated');
-    expect(normalizeTransportEvent({ event_type: 'CollectionMembershipChanged' }).type).toBe('CollectionUpdated');
-    expect(normalizeTransportEvent({ event_type: 'ArchiveDefaultChanged' }).type).toBe('ArchiveUpdated');
-    expect(normalizeTransportEvent({ event_type: 'ConceptSchemeUpdated' }).type).toBe('ConceptUpdated');
+    expect(normalizeTransportEvent(asyncApiCaseByEventType.get('attachment.created')!.websocketPayload).type).toBe('AttachmentUpdated');
+    expect(normalizeTransportEvent(asyncApiCaseByEventType.get('tag.renamed')!.websocketPayload).type).toBe('TagUpdated');
+    expect(normalizeTransportEvent(asyncApiCaseByEventType.get('collection.membership.changed')!.websocketPayload).type).toBe('CollectionUpdated');
+    expect(normalizeTransportEvent(asyncApiCaseByEventType.get('archive.default.changed')!.websocketPayload).type).toBe('ArchiveUpdated');
+    expect(normalizeTransportEvent(asyncApiCaseByEventType.get('concept_scheme.updated')!.websocketPayload).type).toBe('ConceptUpdated');
   });
 
   it('keeps missing and unknown event names unknown', () => {
@@ -69,6 +80,7 @@ describe('realtimeEventBus', () => {
     const event = normalizeTransportEvent({ event_type: 'future.domain.changed' });
     expect(event.type).toBe('Unknown');
     expect(event.raw_event_type).toBe('future.domain.changed');
+    expect(event.raw_event).toEqual(expect.objectContaining({ event_type: 'future.domain.changed' }));
   });
 
   it('handles out-of-order note lifecycle fixtures with deterministic routing', () => {
@@ -79,18 +91,41 @@ describe('realtimeEventBus', () => {
     });
 
     const fixture = [
-      { event_type: 'NoteUpdated', note_id: 'note-1', event_id: 'evt-2' },
-      { event_type: 'NoteCreated', note_id: 'note-1', event_id: 'evt-1' },
-      { event_type: 'NoteUpdated', note_id: 'note-1', event_id: 'evt-2' }, // duplicate
-      { event_type: 'NoteDeleted', note_id: 'note-1', event_id: 'evt-3' },
+      {
+        event_type: 'NoteUpdated',
+        note_id: '019508a0-1234-7def-8000-abcdef123457',
+        event_id: 'evt-2',
+        tags: [],
+        has_ai_content: false,
+        has_links: false,
+      },
+      {
+        event_type: 'NoteCreated',
+        note_id: '019508a0-1234-7def-8000-abcdef123457',
+        event_id: 'evt-1',
+        tags: [],
+      },
+      {
+        event_type: 'NoteUpdated',
+        note_id: '019508a0-1234-7def-8000-abcdef123457',
+        event_id: 'evt-2',
+        tags: [],
+        has_ai_content: false,
+        has_links: false,
+      }, // duplicate
+      {
+        event_type: 'NoteDeleted',
+        note_id: '019508a0-1234-7def-8000-abcdef123457',
+        event_id: 'evt-3',
+      },
     ];
 
     fixture.forEach((item) => bus.publishFromTransport(item));
 
     expect(received).toEqual([
-      'NoteUpdated:note-1',
-      'NoteCreated:note-1',
-      'NoteDeleted:note-1',
+      'NoteUpdated:019508a0-1234-7def-8000-abcdef123457',
+      'NoteCreated:019508a0-1234-7def-8000-abcdef123457',
+      'NoteDeleted:019508a0-1234-7def-8000-abcdef123457',
     ]);
   });
 
@@ -131,49 +166,96 @@ describe('realtimeEventBus', () => {
 
   describe('dot-notation event types (SSE v2)', () => {
     it('maps dot-notation core event types to PascalCase buckets', () => {
-      expect(normalizeTransportEvent({ type: 'note.created' }).type).toBe('NoteCreated');
-      expect(normalizeTransportEvent({ type: 'note.updated' }).type).toBe('NoteUpdated');
-      expect(normalizeTransportEvent({ type: 'note.deleted' }).type).toBe('NoteDeleted');
-      expect(normalizeTransportEvent({ type: 'job.queued' }).type).toBe('JobQueued');
-      expect(normalizeTransportEvent({ type: 'job.started' }).type).toBe('JobStarted');
-      expect(normalizeTransportEvent({ type: 'job.progress' }).type).toBe('JobProgress');
-      expect(normalizeTransportEvent({ type: 'job.completed' }).type).toBe('JobCompleted');
-      expect(normalizeTransportEvent({ type: 'job.failed' }).type).toBe('JobFailed');
-      expect(normalizeTransportEvent({ type: 'jobs.paused' }).type).toBe('JobsPaused');
-      expect(normalizeTransportEvent({ type: 'jobs.resumed' }).type).toBe('JobsResumed');
-      expect(normalizeTransportEvent({ type: 'queue.status' }).type).toBe('QueueStatus');
+      expect(normalizeFixtureEvent('note.created').type).toBe('NoteCreated');
+      expect(normalizeFixtureEvent('note.updated').type).toBe('NoteUpdated');
+      expect(normalizeFixtureEvent('note.deleted').type).toBe('NoteDeleted');
+      expect(normalizeFixtureEvent('job.queued').type).toBe('JobQueued');
+      expect(normalizeFixtureEvent('job.started').type).toBe('JobStarted');
+      expect(normalizeFixtureEvent('job.progress').type).toBe('JobProgress');
+      expect(normalizeFixtureEvent('job.completed').type).toBe('JobCompleted');
+      expect(normalizeFixtureEvent('job.failed').type).toBe('JobFailed');
+      expect(normalizeFixtureEvent('jobs.paused').type).toBe('JobsPaused');
+      expect(normalizeFixtureEvent('jobs.resumed').type).toBe('JobsResumed');
+      expect(normalizeFixtureEvent('queue.status').type).toBe('QueueStatus');
     });
 
     it('maps dot-notation note mutation aliases to NoteUpdated', () => {
-      expect(normalizeTransportEvent({ type: 'note.archived' }).type).toBe('NoteUpdated');
-      expect(normalizeTransportEvent({ type: 'note.restored' }).type).toBe('NoteUpdated');
-      expect(normalizeTransportEvent({ type: 'note.tags.updated' }).type).toBe('NoteUpdated');
-      expect(normalizeTransportEvent({ type: 'note.links.updated' }).type).toBe('NoteUpdated');
-      expect(normalizeTransportEvent({ type: 'note.revision.created' }).type).toBe('NoteUpdated');
+      expect(normalizeFixtureEvent('note.archived').type).toBe('NoteUpdated');
+      expect(normalizeFixtureEvent('note.restored').type).toBe('NoteUpdated');
+      expect(normalizeFixtureEvent('note.tags.updated').type).toBe('NoteUpdated');
+      expect(normalizeFixtureEvent('note.links.updated').type).toBe('NoteUpdated');
+      expect(normalizeFixtureEvent('note.revision.created').type).toBe('NoteUpdated');
     });
 
     it('maps dot-notation domain events to view buckets', () => {
-      expect(normalizeTransportEvent({ type: 'tag.created' }).type).toBe('TagUpdated');
-      expect(normalizeTransportEvent({ type: 'tag.merged' }).type).toBe('TagUpdated');
-      expect(normalizeTransportEvent({ type: 'concept_scheme.updated' }).type).toBe('ConceptUpdated');
-      expect(normalizeTransportEvent({ type: 'concept.relations.updated' }).type).toBe('ConceptUpdated');
-      expect(normalizeTransportEvent({ type: 'collection.updated' }).type).toBe('CollectionUpdated');
-      expect(normalizeTransportEvent({ type: 'attachment.extraction.updated' }).type).toBe('ExtractionUpdated');
-      expect(normalizeTransportEvent({ type: 'tag.stats.updated' }).type).toBe('TagStatsUpdated');
-      expect(normalizeTransportEvent({ type: 'archive.updated' }).type).toBe('ArchiveUpdated');
+      expect(normalizeFixtureEvent('tag.created').type).toBe('TagUpdated');
+      expect(normalizeFixtureEvent('tag.merged').type).toBe('TagUpdated');
+      expect(normalizeFixtureEvent('concept_scheme.updated').type).toBe('ConceptUpdated');
+      expect(normalizeFixtureEvent('concept.relations.updated').type).toBe('ConceptUpdated');
+      expect(normalizeFixtureEvent('collection.updated').type).toBe('CollectionUpdated');
+      expect(normalizeFixtureEvent('attachment.extraction.updated').type).toBe('ExtractionUpdated');
+      expect(normalizeFixtureEvent('tag.stats.updated').type).toBe('TagStatsUpdated');
+      expect(normalizeFixtureEvent('archive.updated').type).toBe('ArchiveUpdated');
     });
 
     it('preserves raw_event_type for dot-notation events', () => {
-      const event = normalizeTransportEvent({ type: 'note.created', note_id: 'n-1' });
+      const event = normalizeFixtureEvent('note.created');
       expect(event.raw_event_type).toBe('note.created');
       expect(event.type).toBe('NoteCreated');
     });
 
     it('maps every event in the pinned producer catalog', () => {
       for (const type of eventCatalog.eventTypes) {
-        const event = normalizeTransportEvent({ event_type: type });
+        const event = normalizeFixtureEvent(type);
         expect(event.type, type).not.toBe('Unknown');
         expect(event.raw_event_type).toBe(type);
+      }
+    });
+
+    it('normalizes every generated AsyncAPI envelope and WebSocket payload fixture', () => {
+      for (const fixture of asyncApiFixtures.cases) {
+        const sseEvent = normalizeTransportEvent(fixture.envelope);
+        const websocketEvent = normalizeTransportEvent(fixture.websocketPayload);
+
+        expect(sseEvent.type, fixture.eventType).not.toBe('Unknown');
+        expect(websocketEvent.type, fixture.legacyType).not.toBe('Unknown');
+        expect(sseEvent.raw_event_type).toBe(fixture.eventType);
+        expect(websocketEvent.raw_event_type).toBe(fixture.legacyType);
+        expect(sseEvent.event_id).toBe(fixture.envelope.event_id);
+        for (const key of Object.keys(fixture.websocketPayload)) {
+          if (key !== 'type') {
+            expect(sseEvent.raw_event?.[key], `${fixture.eventType}.${key}`).toEqual(
+              fixture.websocketPayload[key as keyof typeof fixture.websocketPayload],
+            );
+          }
+        }
+      }
+    });
+
+    it('preserves unknown raw canonical envelopes without mapping to a known bucket', () => {
+      const event = normalizeTransportEvent(asyncApiFixtures.unknownEventCase.envelope);
+
+      expect(event.type).toBe('Unknown');
+      expect(event.raw_event_type).toBe('future.domain.changed');
+      expect(event.raw_event).toEqual(
+        expect.objectContaining({
+          type: 'future.domain.changed',
+          important: 'preserve me',
+          nested: { value: 7 },
+        }),
+      );
+    });
+
+    it('does not normalize malformed known SSE envelopes or WebSocket payloads into known buckets', () => {
+      for (const mutation of asyncApiFixtures.negativeMutations) {
+        const sseEvent = normalizeTransportEvent(mutation.envelope);
+        const websocketEvent = normalizeTransportEvent(mutation.websocketPayload);
+
+        expect(sseEvent.type, `sse:${mutation.eventType}:${mutation.mutation}`).toBe('Unknown');
+        if (mutation.websocketExpectedUnknown) {
+          expect(websocketEvent.type, `ws:${mutation.eventType}:${mutation.mutation}`).toBe('Unknown');
+        }
+        expect(sseEvent.raw_event_type).toBe(mutation.eventType);
       }
     });
   });
@@ -207,36 +289,37 @@ describe('realtimeEventBus', () => {
 
     it('unwraps canonical envelopes for the WebSocket normalization path', () => {
       const event = normalizeTransportEvent({
-        event_id: 'evt-envelope',
+        event_id: '019508a0-1234-7def-8000-abcdef123456',
         event_type: 'note.created',
         occurred_at: '2026-07-17T12:00:00Z',
         memory: 'memory-1',
         tenant_id: 'tenant-1',
         actor: { kind: 'agent', name: 'indexer' },
         entity_type: 'note',
-        entity_id: 'note-1',
-        correlation_id: 'corr-1',
-        causation_id: 'cause-1',
+        entity_id: '019508a0-1234-7def-8000-abcdef123457',
+        correlation_id: '019508a0-1234-7def-8000-abcdef12345e',
+        causation_id: '019508a0-1234-7def-8000-abcdef12345f',
         payload_version: 1,
         payload: {
           type: 'NoteCreated',
-          note_id: 'note-1',
+          note_id: '019508a0-1234-7def-8000-abcdef123457',
           title: 'Envelope note',
+          tags: [],
         },
       });
 
       expect(event).toEqual(expect.objectContaining({
         type: 'NoteCreated',
         raw_event_type: 'note.created',
-        event_id: 'evt-envelope',
-        note_id: 'note-1',
+        event_id: '019508a0-1234-7def-8000-abcdef123456',
+        note_id: '019508a0-1234-7def-8000-abcdef123457',
         actor: { kind: 'agent', name: 'indexer', id: undefined },
         memory: 'memory-1',
         tenant_id: 'tenant-1',
         entity_type: 'note',
-        entity_id: 'note-1',
-        correlation_id: 'corr-1',
-        causation_id: 'cause-1',
+        entity_id: '019508a0-1234-7def-8000-abcdef123457',
+        correlation_id: '019508a0-1234-7def-8000-abcdef12345e',
+        causation_id: '019508a0-1234-7def-8000-abcdef12345f',
         occurred_at: '2026-07-17T12:00:00Z',
         payload_version: 1,
       }));
@@ -245,13 +328,13 @@ describe('realtimeEventBus', () => {
 
   describe('search/index and graph event types', () => {
     it('maps search/index events to SearchIndexUpdated', () => {
-      expect(normalizeTransportEvent({ type: 'index.embedding.updated' }).type).toBe('SearchIndexUpdated');
-      expect(normalizeTransportEvent({ type: 'index.fts.updated' }).type).toBe('SearchIndexUpdated');
-      expect(normalizeTransportEvent({ type: 'readmodel.search.ready' }).type).toBe('SearchIndexUpdated');
+      expect(normalizeFixtureEvent('index.embedding.updated').type).toBe('SearchIndexUpdated');
+      expect(normalizeFixtureEvent('index.fts.updated').type).toBe('SearchIndexUpdated');
+      expect(normalizeFixtureEvent('readmodel.search.ready').type).toBe('SearchIndexUpdated');
     });
 
     it('maps readmodel.graph.updated to GraphUpdated', () => {
-      expect(normalizeTransportEvent({ type: 'readmodel.graph.updated' }).type).toBe('GraphUpdated');
+      expect(normalizeFixtureEvent('readmodel.graph.updated').type).toBe('GraphUpdated');
     });
   });
 
@@ -279,8 +362,8 @@ describe('realtimeEventBus', () => {
 
     it('falls back to progress field when progress_percent absent', () => {
       const event = normalizeTransportEvent({
-        type: 'job.progress',
-        job_id: 'j-1',
+        type: 'JobProgress',
+        job_id: '019508a0-1234-7def-8000-abcdef123458',
         progress: 75,
       });
       expect(event.progress_percent).toBe(75);
@@ -290,8 +373,8 @@ describe('realtimeEventBus', () => {
   describe('step-level progress fields', () => {
     it('extracts step_name, steps_total, and step_current from progress events', () => {
       const event = normalizeTransportEvent({
-        type: 'job.progress',
-        job_id: 'j-1',
+        type: 'JobProgress',
+        job_id: '019508a0-1234-7def-8000-abcdef123458',
         progress: 40,
         step_name: 'Generating embeddings',
         steps_total: 5,
@@ -319,7 +402,7 @@ describe('realtimeEventBus', () => {
   describe('inference config events (Fortemi #654/#657 — Issue #203)', () => {
     it('maps inference.config.changed → InferenceConfigChanged and extracts payload', () => {
       const event = normalizeTransportEvent({
-        type: 'inference.config.changed',
+        type: 'InferenceConfigChanged',
         default_backend: 'openrouter',
         embedding_backend: 'ollama',
         changed_fields: ['default_backend', 'openrouter.api_key'],
@@ -332,7 +415,7 @@ describe('realtimeEventBus', () => {
 
     it('preserves explicit null for embedding_backend (tri-state: cleared)', () => {
       const event = normalizeTransportEvent({
-        type: 'inference.config.changed',
+        type: 'InferenceConfigChanged',
         default_backend: 'ollama',
         embedding_backend: null,
         changed_fields: ['embedding_backend'],
@@ -342,7 +425,7 @@ describe('realtimeEventBus', () => {
 
     it('leaves embedding_backend undefined when key absent (tri-state: no change)', () => {
       const event = normalizeTransportEvent({
-        type: 'inference.config.changed',
+        type: 'InferenceConfigChanged',
         default_backend: 'ollama',
         changed_fields: ['ollama.base_url'],
       });
@@ -351,7 +434,7 @@ describe('realtimeEventBus', () => {
 
     it('extracts __reset__ sentinel in changed_fields', () => {
       const event = normalizeTransportEvent({
-        type: 'inference.config.changed',
+        type: 'InferenceConfigChanged',
         default_backend: 'ollama',
         changed_fields: ['__reset__'],
       });
@@ -360,11 +443,47 @@ describe('realtimeEventBus', () => {
 
     it('maps inference.availability.changed with the producer available flag', () => {
       const event = normalizeTransportEvent({
-        type: 'inference.availability.changed',
+        type: 'InferenceAvailabilityChanged',
         available: false,
       });
       expect(event.type).toBe('InferenceAvailabilityChanged');
       expect(event.available).toBe(false);
+    });
+  });
+
+  describe('AsyncAPI payload fields', () => {
+    it('extracts schema-declared entity identifiers and governance fields', () => {
+      expect(normalizeTransportEvent({
+        type: 'CollectionCreated',
+        collection_id: '019508a0-1234-7def-8000-abcdef12345a',
+        name: 'Inbox',
+      })).toEqual(expect.objectContaining({
+        type: 'CollectionUpdated',
+        collection_id: '019508a0-1234-7def-8000-abcdef12345a',
+        name: 'Inbox',
+      }));
+
+      expect(normalizeTransportEvent({
+        type: 'ConceptRelationsUpdated',
+        concept_id: '019508a0-1234-7def-8000-abcdef12345c',
+        relation_type: 'broader',
+      })).toEqual(expect.objectContaining({
+        type: 'ConceptUpdated',
+        concept_id: '019508a0-1234-7def-8000-abcdef12345c',
+        relation_type: 'broader',
+      }));
+
+      expect(normalizeTransportEvent({
+        type: 'TagMerged',
+        source_tag: 'draft',
+        target_tag: 'final',
+        affected_count: 3,
+      })).toEqual(expect.objectContaining({
+        type: 'TagUpdated',
+        source_tag: 'draft',
+        target_tag: 'final',
+        affected_count: 3,
+      }));
     });
   });
 });

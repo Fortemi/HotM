@@ -5,6 +5,8 @@ import {
   FORTEMI_SSE_EVENT_TYPES,
 } from '@/api/events';
 import eventCatalog from '@/api/contracts/fortemi-event-catalog.json';
+import asyncApiFixtures from '@/api/contracts/fortemi-asyncapi-event-fixtures.json';
+import { normalizeTransportEvent } from '@/services/realtimeEventBus';
 
 type Listener = (event: MessageEvent) => void;
 
@@ -200,5 +202,69 @@ describe('events client replay handling', () => {
     });
 
     expect(client.replayCursor).toBe('evt-99');
+  });
+
+  it('decodes every generated AsyncAPI positive envelope through the SSE typed-event path', () => {
+    const handler = vi.fn();
+    const client = createEventsClient('http://localhost:3000');
+    client.subscribe(handler);
+
+    const es = MockEventSource.instances[0];
+    for (const fixture of asyncApiFixtures.cases) {
+      es.emitTyped(fixture.sseFrame.event, fixture.envelope, fixture.sseFrame.id);
+    }
+
+    expect(handler).toHaveBeenCalledTimes(asyncApiFixtures.cases.length);
+    asyncApiFixtures.cases.forEach((fixture, index) => {
+      expect(handler.mock.calls[index][0]).toEqual(
+        expect.objectContaining({
+          type: fixture.eventType,
+          event_type: fixture.eventType,
+          event_id: fixture.envelope.event_id,
+          payload_version: 1,
+        }),
+      );
+    });
+  });
+
+  it('preserves unknown canonical SSE envelopes without coercing their payload type', () => {
+    const handler = vi.fn();
+    const client = createEventsClient('http://localhost:3000');
+    client.subscribe(handler);
+
+    const es = MockEventSource.instances[0];
+    const fixture = asyncApiFixtures.unknownEventCase;
+    es.onmessage?.({
+      data: JSON.stringify(fixture.envelope),
+      lastEventId: fixture.envelope.event_id,
+    } as MessageEvent);
+
+    expect(handler).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'future.domain.changed',
+        event_type: 'future.domain.changed',
+        important: 'preserve me',
+        nested: { value: 7 },
+      }),
+    );
+  });
+
+  it('decodes malformed known SSE frames without normalizing them into known realtime types', () => {
+    const handler = vi.fn();
+    const client = createEventsClient('http://localhost:3000');
+    client.subscribe(handler);
+
+    const es = MockEventSource.instances[0];
+    for (const mutation of asyncApiFixtures.negativeMutations) {
+      es.emitTyped(mutation.eventType, mutation.envelope, mutation.envelope.event_id);
+    }
+
+    expect(handler).toHaveBeenCalledTimes(asyncApiFixtures.negativeMutations.length);
+    for (const [index, mutation] of asyncApiFixtures.negativeMutations.entries()) {
+      const decoded = handler.mock.calls[index][0];
+      const normalized = normalizeTransportEvent(decoded);
+      expect(normalized.type, `sse:${mutation.eventType}:${mutation.mutation}`).toBe('Unknown');
+      expect(normalized.raw_event_type).toBe(mutation.eventType);
+    }
   });
 });

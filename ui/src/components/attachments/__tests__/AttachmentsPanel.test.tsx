@@ -172,11 +172,12 @@ describe('AttachmentsPanel', () => {
     });
 
     it('should refresh attachments on realtime attachment events', async () => {
+      const noteId = '11111111-1111-4111-8111-111111111111';
       const secondPayload: Attachment[] = [
         ...mockAttachments,
         {
           id: 'att-3',
-          note_id: 'note-123',
+          note_id: noteId,
           filename: 'new.png',
           content_type: 'image/png',
           size_bytes: 1024,
@@ -192,7 +193,7 @@ describe('AttachmentsPanel', () => {
         .mockResolvedValueOnce(mockAttachments)
         .mockResolvedValueOnce(secondPayload);
 
-      render(<AttachmentsPanel noteId="note-123" />);
+      render(<AttachmentsPanel noteId={noteId} />);
 
       await waitFor(() => {
         expect(screen.getByText('image.jpg')).toBeInTheDocument();
@@ -200,8 +201,9 @@ describe('AttachmentsPanel', () => {
 
       act(() => {
         realtimeEventBus.publishFromTransport({
-          event_type: 'AttachmentCreated',
-          note_id: 'note-123',
+          type: 'AttachmentCreated',
+          attachment_id: '22222222-2222-4222-8222-222222222222',
+          note_id: noteId,
           event_id: 'evt-attach-1',
         });
       });
