@@ -1,0 +1,47 @@
+metadata:
+  schema_version: "1.0.0"
+  created_at: "2026-08-15T21:59:17Z"
+  updated_at: "2026-08-15T21:59:17Z"
+  description: "Provenance for HotM #288 realtime event bus focused tests"
+entity:
+  id: "urn:aiwg:artifact:ui/src/services/__tests__/realtimeEventBus.test.ts"
+  type: test
+  created_at: "2026-08-15T21:59:17Z"
+  updated_at: "2026-08-15T21:59:17Z"
+  checksum: "sha256:0c241ff350f0aad0a95daae7d75ee6c8c5a829223ebe71799fa59f8f14cd759f"
+  size_bytes: 16730
+  attributes:
+    change_scope: "hotm-288-asyncapi-payload-conformance"
+activity:
+  id: "urn:aiwg:activity:modification:realtimeEventBus-test-ts:hotm-288"
+  type: modification
+  started_at: "2026-08-15T21:58:00Z"
+  ended_at: "2026-08-15T21:59:17Z"
+  description: "Exercise generated AsyncAPI envelopes and WebSocket payloads through realtime event normalization"
+agent:
+  id: "urn:aiwg:agent:test-engineer"
+  type: ai_assistant
+  name: "Test Engineer"
+  version: "codex-gpt-5"
+  tool: "codex"
+relationships:
+  wasGeneratedBy:
+    entity: "urn:aiwg:artifact:ui/src/services/__tests__/realtimeEventBus.test.ts"
+    activity: "urn:aiwg:activity:modification:realtimeEventBus-test-ts:hotm-288"
+    time: "2026-08-15T21:59:17Z"
+  used:
+    - activity: "urn:aiwg:activity:modification:realtimeEventBus-test-ts:hotm-288"
+      entity: "urn:gitea:Fortemi/HotM:issue:288"
+      role: "requirement"
+  wasDerivedFrom:
+    - entity: "urn:aiwg:artifact:ui/src/services/__tests__/realtimeEventBus.test.ts"
+      source: "urn:aiwg:artifact:ui/src/api/contracts/fortemi-asyncapi-event-fixtures.json"
+      derivation_type: "tests"
+      activity: "urn:aiwg:activity:modification:realtimeEventBus-test-ts:hotm-288"
+  wasAssociatedWith:
+    activity: "urn:aiwg:activity:modification:realtimeEventBus-test-ts:hotm-288"
+    agent: "urn:aiwg:agent:test-engineer"
+    role: "primary_author"
+  wasAttributedTo:
+    entity: "urn:aiwg:artifact:ui/src/services/__tests__/realtimeEventBus.test.ts"
+    agent: "urn:aiwg:agent:test-engineer"

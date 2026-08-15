@@ -1,15 +1,15 @@
 metadata:
   schema_version: "1.0.0"
   created_at: "2026-07-17T21:46:51Z"
-  updated_at: "2026-08-15T21:13:59Z"
+  updated_at: "2026-08-15T22:31:07Z"
   description: "Provenance for the 2026-08-15 Fortemi integration traceability update"
 entity:
   id: "urn:aiwg:artifact:.aiwg/reports/fortemi-v2026-07-api-integration-traceability.md"
   type: document
   created_at: "2026-07-17T21:46:51Z"
-  updated_at: "2026-08-15T21:13:59Z"
-  checksum: "sha256:45e6cc0b54fc1d203ceaa2e294540e8cd7120770d4e2de9a1a9c12058c1fd4e2"
-  size_bytes: 17335
+  updated_at: "2026-08-15T22:31:07Z"
+  checksum: "sha256:63a781aa02a7e5016ecdd4bd6529c25da9165f10aaaba3d89580d3290b0b127e"
+  size_bytes: 18752
   attributes:
     change_scope: "fortemi-hotm-integration-audit-2026-08-15"
     base_revision: "bf00c6c5334707621e8c6fd96bfcff908ee1f770"
@@ -17,8 +17,8 @@ activity:
   id: "urn:aiwg:activity:modification:aiwg-reports-fortemi-v2026-07-api-integration-traceability-md:001"
   type: modification
   started_at: "2026-07-17T21:46:51Z"
-  ended_at: "2026-08-15T21:13:59Z"
-  description: "Trace #286 implementation, pinned producer evidence, tests, and remaining auth limitation"
+  ended_at: "2026-08-15T22:31:07Z"
+  description: "Trace #288, #290, and #291 executable evidence and remaining claim boundaries"
 agent:
   id: "urn:aiwg:agent:codex-gpt-5"
   type: ai_assistant
@@ -29,7 +29,7 @@ relationships:
   wasGeneratedBy:
     entity: "urn:aiwg:artifact:.aiwg/reports/fortemi-v2026-07-api-integration-traceability.md"
     activity: "urn:aiwg:activity:modification:aiwg-reports-fortemi-v2026-07-api-integration-traceability-md:001"
-    time: "2026-08-15T21:13:59Z"
+    time: "2026-08-15T22:31:07Z"
   used:
     - activity: "urn:aiwg:activity:modification:aiwg-reports-fortemi-v2026-07-api-integration-traceability-md:001"
       entity: "urn:git:git@git.integrolabs.net:Fortemi/HotM.git:bf00c6c5334707621e8c6fd96bfcff908ee1f770:.aiwg/reports/fortemi-v2026-07-api-integration-traceability.md"

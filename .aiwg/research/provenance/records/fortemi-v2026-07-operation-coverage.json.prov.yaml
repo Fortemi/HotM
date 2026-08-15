@@ -1,0 +1,43 @@
+metadata:
+  schema_version: "1.0.0"
+  created_at: "2026-08-15T00:00:00Z"
+  description: "Provenance for generated HotM #290 operation coverage JSON"
+entity:
+  id: "urn:aiwg:artifact:.aiwg/api/compatibility/fortemi-v2026-07-operation-coverage.json"
+  type: report
+  created_at: "2026-08-15T00:00:00Z"
+  checksum: "sha256:b05dd7af2f0b6148b803cfba202f3edcd5f168db44049acef8a87c852e2ded84"
+  size_bytes: 465019
+activity:
+  id: "urn:aiwg:activity:generation:fortemi-operation-coverage-json:001"
+  type: generation
+  started_at: "2026-08-15T00:00:00Z"
+  ended_at: "2026-08-15T00:00:00Z"
+  description: "Generate machine-readable method/path/operationId coverage from pinned OpenAPI and explicit evidence data"
+agent:
+  id: "urn:aiwg:agent:test-engineer"
+  type: ai_assistant
+  name: "Codex Test Engineer"
+  version: "gpt-5"
+  tool: "codex"
+relationships:
+  wasGeneratedBy:
+    entity: "urn:aiwg:artifact:.aiwg/api/compatibility/fortemi-v2026-07-operation-coverage.json"
+    activity: "urn:aiwg:activity:generation:fortemi-operation-coverage-json:001"
+    time: "2026-08-15T00:00:00Z"
+  wasDerivedFrom:
+    - entity: "urn:aiwg:artifact:.aiwg/api/compatibility/fortemi-v2026-07-operation-coverage.json"
+      source: "urn:aiwg:artifact:.aiwg/testing/scripts/fortemi-route-coverage.py"
+      derivation_type: "generated_by"
+      activity: "urn:aiwg:activity:generation:fortemi-operation-coverage-json:001"
+    - entity: "urn:aiwg:artifact:.aiwg/api/compatibility/fortemi-v2026-07-operation-coverage.json"
+      source: "urn:aiwg:artifact:.aiwg/testing/data/fortemi-operation-conformance-v2026-07.json"
+      derivation_type: "depends"
+      activity: "urn:aiwg:activity:generation:fortemi-operation-coverage-json:001"
+  wasAssociatedWith:
+    activity: "urn:aiwg:activity:generation:fortemi-operation-coverage-json:001"
+    agent: "urn:aiwg:agent:test-engineer"
+    role: "primary_author"
+  wasAttributedTo:
+    entity: "urn:aiwg:artifact:.aiwg/api/compatibility/fortemi-v2026-07-operation-coverage.json"
+    agent: "urn:aiwg:agent:test-engineer"

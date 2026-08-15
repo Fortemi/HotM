@@ -1,42 +1,49 @@
 metadata:
   schema_version: "1.0.0"
-  created_at: "2026-07-26T15:10:08Z"
-  description: "Provenance for the Fortemi route coverage verifier update"
+  created_at: "2026-08-15T00:00:00Z"
+  description: "Provenance for HotM #290 operation-level Fortemi route coverage verifier"
 entity:
   id: "urn:aiwg:artifact:.aiwg/testing/scripts/fortemi-route-coverage.py"
   type: test
-  created_at: "2026-07-26T15:10:08Z"
-  checksum: "sha256:3f0580f23a6ffdae1f8ea6e8cbde236d345040e306c58b8f143da23e703fa5ee"
-  size_bytes: 23720
+  created_at: "2026-08-15T00:00:00Z"
+  checksum: "sha256:4bb5ea0ecf6e2caee37526982fd3efea17a350e1a154b46cceb83bac09013a06"
+  size_bytes: 44589
   attributes:
-    change_scope: "hotm-route-202-operator-contracts"
-    base_revision: "d9e1ce69340b7b9816149c75cfced2600d9b7a22"
+    change_scope: "hotm-290-operation-level-conformance"
 activity:
-  id: "urn:aiwg:activity:modification:fortemi-route-coverage-py:001"
+  id: "urn:aiwg:activity:modification:fortemi-route-coverage-py:002"
   type: modification
-  started_at: "2026-07-26T15:10:08Z"
-  ended_at: "2026-07-26T15:10:08Z"
-  description: "Classify liveness, readiness, and operator contract routes in the exact baseline"
-agent: &agent
-  id: "urn:aiwg:agent:codex-gpt-5"
+  started_at: "2026-08-15T00:00:00Z"
+  ended_at: "2026-08-15T00:00:00Z"
+  description: "Upgrade verifier from route-family inventory to pinned OpenAPI method/path/operationId conformance dimensions"
+agent:
+  id: "urn:aiwg:agent:test-engineer"
   type: ai_assistant
-  name: "Codex"
+  name: "Codex Test Engineer"
   version: "gpt-5"
   tool: "codex"
 relationships:
   wasGeneratedBy:
     entity: "urn:aiwg:artifact:.aiwg/testing/scripts/fortemi-route-coverage.py"
-    activity: "urn:aiwg:activity:modification:fortemi-route-coverage-py:001"
-    time: "2026-07-26T15:10:08Z"
+    activity: "urn:aiwg:activity:modification:fortemi-route-coverage-py:002"
+    time: "2026-08-15T00:00:00Z"
   wasDerivedFrom:
     - entity: "urn:aiwg:artifact:.aiwg/testing/scripts/fortemi-route-coverage.py"
-      source: "urn:git:git@git.integrolabs.net:Fortemi/HotM.git:d9e1ce69340b7b9816149c75cfced2600d9b7a22:.aiwg/testing/scripts/fortemi-route-coverage.py"
-      derivation_type: "modifies"
-      activity: "urn:aiwg:activity:modification:fortemi-route-coverage-py:001"
+      source: "urn:gitea:Fortemi/HotM#290"
+      derivation_type: "implements"
+      activity: "urn:aiwg:activity:modification:fortemi-route-coverage-py:002"
+    - entity: "urn:aiwg:artifact:.aiwg/testing/scripts/fortemi-route-coverage.py"
+      source: "urn:aiwg:artifact:ui/src/api/contracts/fortemi-openapi-receipt.json"
+      derivation_type: "depends"
+      activity: "urn:aiwg:activity:modification:fortemi-route-coverage-py:002"
+    - entity: "urn:aiwg:artifact:.aiwg/testing/scripts/fortemi-route-coverage.py"
+      source: "urn:aiwg:artifact:.aiwg/testing/data/fortemi-operation-conformance-v2026-07.json"
+      derivation_type: "depends"
+      activity: "urn:aiwg:activity:modification:fortemi-route-coverage-py:002"
   wasAssociatedWith:
-    activity: "urn:aiwg:activity:modification:fortemi-route-coverage-py:001"
-    agent: "urn:aiwg:agent:codex-gpt-5"
+    activity: "urn:aiwg:activity:modification:fortemi-route-coverage-py:002"
+    agent: "urn:aiwg:agent:test-engineer"
     role: "primary_author"
   wasAttributedTo:
     entity: "urn:aiwg:artifact:.aiwg/testing/scripts/fortemi-route-coverage.py"
-    agent: "urn:aiwg:agent:codex-gpt-5"
+    agent: "urn:aiwg:agent:test-engineer"

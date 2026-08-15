@@ -1,15 +1,15 @@
 metadata:
   schema_version: "1.0.0"
   created_at: "2026-07-17T21:46:51Z"
-  updated_at: "2026-08-15T21:13:59Z"
+  updated_at: "2026-08-15T22:31:07Z"
   description: "Provenance for the 2026-08-15 Fortemi integration architecture audit update"
 entity:
   id: "urn:aiwg:artifact:.aiwg/architecture/sad-fortemi-integration-addendum-2026-07.md"
   type: document
   created_at: "2026-07-17T21:46:51Z"
-  updated_at: "2026-08-15T21:13:59Z"
-  checksum: "sha256:31884894d68bb8b49ce0755864231e9dffe8cf8738d1640a6cbb1f5bb0777368"
-  size_bytes: 25905
+  updated_at: "2026-08-15T22:31:07Z"
+  checksum: "sha256:5c29542d6ebef28d8214366e35cbbd82cff39cc768ff3f6de34c766fb63a894c"
+  size_bytes: 27684
   attributes:
     change_scope: "fortemi-hotm-integration-audit-2026-08-15"
     base_revision: "bf00c6c5334707621e8c6fd96bfcff908ee1f770"
@@ -17,8 +17,8 @@ activity:
   id: "urn:aiwg:activity:modification:aiwg-architecture-sad-fortemi-integration-addendum-2026-07-md:001"
   type: modification
   started_at: "2026-07-17T21:46:51Z"
-  ended_at: "2026-08-15T21:13:59Z"
-  description: "Specify pinned compatibility admission across UI, direct transports, legacy client, and agent proxy"
+  ended_at: "2026-08-15T22:31:07Z"
+  description: "Specify operation-level evidence, schema-derived realtime checks, and browser gate boundaries"
 agent:
   id: "urn:aiwg:agent:codex-gpt-5"
   type: ai_assistant
@@ -29,7 +29,7 @@ relationships:
   wasGeneratedBy:
     entity: "urn:aiwg:artifact:.aiwg/architecture/sad-fortemi-integration-addendum-2026-07.md"
     activity: "urn:aiwg:activity:modification:aiwg-architecture-sad-fortemi-integration-addendum-2026-07-md:001"
-    time: "2026-08-15T21:13:59Z"
+    time: "2026-08-15T22:31:07Z"
   used:
     - activity: "urn:aiwg:activity:modification:aiwg-architecture-sad-fortemi-integration-addendum-2026-07-md:001"
       entity: "urn:git:git@git.integrolabs.net:Fortemi/HotM.git:bf00c6c5334707621e8c6fd96bfcff908ee1f770:.aiwg/architecture/sad-fortemi-integration-addendum-2026-07.md"

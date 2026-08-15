@@ -1,0 +1,39 @@
+metadata:
+  schema_version: "1.0.0"
+  created_at: "2026-08-15T00:00:00Z"
+  description: "Provenance for HotM #290 executable test and coverage report"
+entity:
+  id: "urn:aiwg:artifact:.aiwg/evidence/fortemi-route-coverage-test-report-2026-08-15.md"
+  type: report
+  created_at: "2026-08-15T00:00:00Z"
+  checksum: "sha256:d3247abf2671532d9115e1599bcd4db04c2a58abdabf1e62a717b0d4b1cc1fc9"
+  size_bytes: 1741
+activity:
+  id: "urn:aiwg:activity:generation:fortemi-route-coverage-test-report:001"
+  type: generation
+  started_at: "2026-08-15T00:00:00Z"
+  ended_at: "2026-08-15T00:00:00Z"
+  description: "Record unittest, verifier check, and trace coverage results for #290"
+agent:
+  id: "urn:aiwg:agent:test-engineer"
+  type: ai_assistant
+  name: "Codex Test Engineer"
+  version: "gpt-5"
+  tool: "codex"
+relationships:
+  wasGeneratedBy:
+    entity: "urn:aiwg:artifact:.aiwg/evidence/fortemi-route-coverage-test-report-2026-08-15.md"
+    activity: "urn:aiwg:activity:generation:fortemi-route-coverage-test-report:001"
+    time: "2026-08-15T00:00:00Z"
+  wasDerivedFrom:
+    - entity: "urn:aiwg:artifact:.aiwg/evidence/fortemi-route-coverage-test-report-2026-08-15.md"
+      source: "urn:aiwg:artifact:.aiwg/testing/scripts/test_fortemi_route_coverage.py"
+      derivation_type: "reports"
+      activity: "urn:aiwg:activity:generation:fortemi-route-coverage-test-report:001"
+  wasAssociatedWith:
+    activity: "urn:aiwg:activity:generation:fortemi-route-coverage-test-report:001"
+    agent: "urn:aiwg:agent:test-engineer"
+    role: "primary_author"
+  wasAttributedTo:
+    entity: "urn:aiwg:artifact:.aiwg/evidence/fortemi-route-coverage-test-report-2026-08-15.md"
+    agent: "urn:aiwg:agent:test-engineer"

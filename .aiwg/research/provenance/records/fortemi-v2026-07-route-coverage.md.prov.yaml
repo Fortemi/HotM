@@ -8,8 +8,8 @@ entity:
   type: document
   created_at: "2026-07-26T15:10:08Z"
   updated_at: "2026-08-15T20:54:54Z"
-  checksum: "sha256:f04f983a902de2664112d54819d5b1292cc37dde73c029ca1da1a29f20b63bc5"
-  size_bytes: 29937
+  checksum: "sha256:02498307c900877ac03c3812fdc8a71447fcba9ad696192f908b4113803ca0ee"
+  size_bytes: 30010
   attributes:
     change_scope: "fortemi-hotm-integration-audit-2026-08-15"
     producer_commit: "48bc0a0b"

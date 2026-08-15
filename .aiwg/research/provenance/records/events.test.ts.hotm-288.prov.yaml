@@ -1,0 +1,47 @@
+metadata:
+  schema_version: "1.0.0"
+  created_at: "2026-08-15T21:59:17Z"
+  updated_at: "2026-08-15T21:59:17Z"
+  description: "Provenance for HotM #288 SSE event client focused tests"
+entity:
+  id: "urn:aiwg:artifact:ui/src/api/__tests__/events.test.ts"
+  type: test
+  created_at: "2026-08-15T21:59:17Z"
+  updated_at: "2026-08-15T21:59:17Z"
+  checksum: "sha256:1b8c9e7aeead35b0e8c50b351614326bfb717c21b50b5d93356e42f830efc64d"
+  size_bytes: 8193
+  attributes:
+    change_scope: "hotm-288-asyncapi-payload-conformance"
+activity:
+  id: "urn:aiwg:activity:modification:events-test-ts:hotm-288"
+  type: modification
+  started_at: "2026-08-15T21:58:00Z"
+  ended_at: "2026-08-15T21:59:17Z"
+  description: "Exercise generated AsyncAPI positive envelopes and unknown generic SSE envelope through event client"
+agent:
+  id: "urn:aiwg:agent:test-engineer"
+  type: ai_assistant
+  name: "Test Engineer"
+  version: "codex-gpt-5"
+  tool: "codex"
+relationships:
+  wasGeneratedBy:
+    entity: "urn:aiwg:artifact:ui/src/api/__tests__/events.test.ts"
+    activity: "urn:aiwg:activity:modification:events-test-ts:hotm-288"
+    time: "2026-08-15T21:59:17Z"
+  used:
+    - activity: "urn:aiwg:activity:modification:events-test-ts:hotm-288"
+      entity: "urn:gitea:Fortemi/HotM:issue:288"
+      role: "requirement"
+  wasDerivedFrom:
+    - entity: "urn:aiwg:artifact:ui/src/api/__tests__/events.test.ts"
+      source: "urn:aiwg:artifact:ui/src/api/contracts/fortemi-asyncapi-event-fixtures.json"
+      derivation_type: "tests"
+      activity: "urn:aiwg:activity:modification:events-test-ts:hotm-288"
+  wasAssociatedWith:
+    activity: "urn:aiwg:activity:modification:events-test-ts:hotm-288"
+    agent: "urn:aiwg:agent:test-engineer"
+    role: "primary_author"
+  wasAttributedTo:
+    entity: "urn:aiwg:artifact:ui/src/api/__tests__/events.test.ts"
+    agent: "urn:aiwg:agent:test-engineer"

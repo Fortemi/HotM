@@ -1,0 +1,39 @@
+metadata:
+  schema_version: "1.0.0"
+  created_at: "2026-08-15T00:00:00Z"
+  description: "Provenance for generated HotM #290 operation coverage Markdown"
+entity:
+  id: "urn:aiwg:artifact:.aiwg/api/compatibility/fortemi-v2026-07-operation-coverage.md"
+  type: report
+  created_at: "2026-08-15T00:00:00Z"
+  checksum: "sha256:e5c2391657d61434e632d969ee16ab2fe50e0406415b83e4a6e73994312ab455"
+  size_bytes: 33493
+activity:
+  id: "urn:aiwg:activity:generation:fortemi-operation-coverage-md:001"
+  type: generation
+  started_at: "2026-08-15T00:00:00Z"
+  ended_at: "2026-08-15T00:00:00Z"
+  description: "Generate human-readable operation coverage report from the same data as the JSON report"
+agent:
+  id: "urn:aiwg:agent:test-engineer"
+  type: ai_assistant
+  name: "Codex Test Engineer"
+  version: "gpt-5"
+  tool: "codex"
+relationships:
+  wasGeneratedBy:
+    entity: "urn:aiwg:artifact:.aiwg/api/compatibility/fortemi-v2026-07-operation-coverage.md"
+    activity: "urn:aiwg:activity:generation:fortemi-operation-coverage-md:001"
+    time: "2026-08-15T00:00:00Z"
+  wasDerivedFrom:
+    - entity: "urn:aiwg:artifact:.aiwg/api/compatibility/fortemi-v2026-07-operation-coverage.md"
+      source: "urn:aiwg:artifact:.aiwg/api/compatibility/fortemi-v2026-07-operation-coverage.json"
+      derivation_type: "depends"
+      activity: "urn:aiwg:activity:generation:fortemi-operation-coverage-md:001"
+  wasAssociatedWith:
+    activity: "urn:aiwg:activity:generation:fortemi-operation-coverage-md:001"
+    agent: "urn:aiwg:agent:test-engineer"
+    role: "primary_author"
+  wasAttributedTo:
+    entity: "urn:aiwg:artifact:.aiwg/api/compatibility/fortemi-v2026-07-operation-coverage.md"
+    agent: "urn:aiwg:agent:test-engineer"

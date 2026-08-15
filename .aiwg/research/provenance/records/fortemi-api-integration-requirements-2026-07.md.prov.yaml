@@ -1,15 +1,15 @@
 metadata:
   schema_version: "1.0.0"
   created_at: "2026-07-17T21:46:51Z"
-  updated_at: "2026-08-15T21:13:59Z"
+  updated_at: "2026-08-15T22:31:07Z"
   description: "Provenance for the 2026-08-15 Fortemi integration requirements update"
 entity:
   id: "urn:aiwg:artifact:.aiwg/requirements/fortemi-api-integration-requirements-2026-07.md"
   type: document
   created_at: "2026-07-17T21:46:51Z"
-  updated_at: "2026-08-15T21:13:59Z"
-  checksum: "sha256:d5e2163a9948ea40b1713175a85a01a50aa753cfa854a04498ecf0e6fc2a7263"
-  size_bytes: 17909
+  updated_at: "2026-08-15T22:31:07Z"
+  checksum: "sha256:85594dfc08d771c7056d947951da869a12be9420a123aa5ce63e23e8dabc40f9"
+  size_bytes: 19254
   attributes:
     change_scope: "fortemi-hotm-integration-audit-2026-08-15"
     base_revision: "bf00c6c5334707621e8c6fd96bfcff908ee1f770"
@@ -17,8 +17,8 @@ activity:
   id: "urn:aiwg:activity:modification:aiwg-requirements-fortemi-api-integration-requirements-2026-07-md:001"
   type: modification
   started_at: "2026-07-17T21:46:51Z"
-  ended_at: "2026-08-15T21:13:59Z"
-  description: "Record executable compatibility authority, API range, auth-contract, and mutation-denial requirements"
+  ended_at: "2026-08-15T22:31:07Z"
+  description: "Record operation-matrix, AsyncAPI payload, and mocked browser verification baselines"
 agent:
   id: "urn:aiwg:agent:codex-gpt-5"
   type: ai_assistant
@@ -29,7 +29,7 @@ relationships:
   wasGeneratedBy:
     entity: "urn:aiwg:artifact:.aiwg/requirements/fortemi-api-integration-requirements-2026-07.md"
     activity: "urn:aiwg:activity:modification:aiwg-requirements-fortemi-api-integration-requirements-2026-07-md:001"
-    time: "2026-08-15T21:13:59Z"
+    time: "2026-08-15T22:31:07Z"
   used:
     - activity: "urn:aiwg:activity:modification:aiwg-requirements-fortemi-api-integration-requirements-2026-07-md:001"
       entity: "urn:git:git@git.integrolabs.net:Fortemi/HotM.git:bf00c6c5334707621e8c6fd96bfcff908ee1f770:.aiwg/requirements/fortemi-api-integration-requirements-2026-07.md"

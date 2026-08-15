@@ -1,0 +1,47 @@
+metadata:
+  schema_version: "1.0.0"
+  created_at: "2026-08-15T21:59:17Z"
+  updated_at: "2026-08-15T21:59:17Z"
+  description: "Provenance for HotM #288 realtime event normalization update"
+entity:
+  id: "urn:aiwg:artifact:ui/src/services/realtimeEventBus.ts"
+  type: source
+  created_at: "2026-08-15T21:59:17Z"
+  updated_at: "2026-08-15T21:59:17Z"
+  checksum: "sha256:206c45713875dc99efb0214dd7db688b1fb013f425c9fa371d6581d3697fb0b9"
+  size_bytes: 16862
+  attributes:
+    change_scope: "hotm-288-asyncapi-payload-conformance"
+activity:
+  id: "urn:aiwg:activity:modification:realtimeEventBus-ts:hotm-288"
+  type: modification
+  started_at: "2026-08-15T21:58:00Z"
+  ended_at: "2026-08-15T21:59:17Z"
+  description: "Preserve raw normalized events and extract schema-declared AsyncAPI payload fields"
+agent:
+  id: "urn:aiwg:agent:test-engineer"
+  type: ai_assistant
+  name: "Test Engineer"
+  version: "codex-gpt-5"
+  tool: "codex"
+relationships:
+  wasGeneratedBy:
+    entity: "urn:aiwg:artifact:ui/src/services/realtimeEventBus.ts"
+    activity: "urn:aiwg:activity:modification:realtimeEventBus-ts:hotm-288"
+    time: "2026-08-15T21:59:17Z"
+  used:
+    - activity: "urn:aiwg:activity:modification:realtimeEventBus-ts:hotm-288"
+      entity: "urn:gitea:Fortemi/HotM:issue:288"
+      role: "requirement"
+  wasDerivedFrom:
+    - entity: "urn:aiwg:artifact:ui/src/services/realtimeEventBus.ts"
+      source: "urn:aiwg:artifact:ui/src/api/contracts/fortemi-asyncapi-event-fixtures.json"
+      derivation_type: "derives_from"
+      activity: "urn:aiwg:activity:modification:realtimeEventBus-ts:hotm-288"
+  wasAssociatedWith:
+    activity: "urn:aiwg:activity:modification:realtimeEventBus-ts:hotm-288"
+    agent: "urn:aiwg:agent:test-engineer"
+    role: "primary_author"
+  wasAttributedTo:
+    entity: "urn:aiwg:artifact:ui/src/services/realtimeEventBus.ts"
+    agent: "urn:aiwg:agent:test-engineer"
