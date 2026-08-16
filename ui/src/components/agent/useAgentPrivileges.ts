@@ -10,6 +10,8 @@ import {
   savePrivilegeSettings,
   DEFAULT_PRIVILEGE_SETTINGS,
 } from './privileges';
+import { getAuthorizationHeader } from '@/api/auth-context';
+import { getActiveMemory, getMemoryRoutingHeaderName } from '@/api/memory-context';
 
 const DEFAULT_PROXY_URL = '/api/agent/chat';
 
@@ -50,7 +52,11 @@ export function useAgentPrivileges(
     const controller = new AbortController();
     void fetch(`${proxyUrl}/privileges`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        ...getAuthorizationHeader(),
+        ...(getActiveMemory() ? { [getMemoryRoutingHeaderName()]: getActiveMemory()! } : {}),
+      },
       body: JSON.stringify({
         sessionId,
         clientRevision: revision,

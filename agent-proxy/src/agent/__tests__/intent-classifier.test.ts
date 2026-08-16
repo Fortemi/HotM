@@ -128,7 +128,7 @@ describe('shouldEscalateToAction', () => {
     expect(shouldEscalateToAction('conversational', ['create_note'])).toBe(true);
     expect(shouldEscalateToAction('conversational', ['revise_note'])).toBe(true);
     expect(shouldEscalateToAction('conversational', ['update_tags'])).toBe(true);
-    expect(shouldEscalateToAction('conversational', ['link_notes'])).toBe(true);
+    expect(shouldEscalateToAction('conversational', ['link_notes'])).toBe(false);
   });
 
   it('returns true when exploratory mode sees write tools', () => {

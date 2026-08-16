@@ -7,7 +7,6 @@
  * - get_note → note content preview with metadata
  * - revise_note → status card showing revision progress
  * - update_tags → tag list showing current state
- * - link_notes → link confirmation between two notes
  * - list_collections → collection list
  * - search_concepts → concept taxonomy results
  * - get_related → related notes with similarity scores
@@ -23,7 +22,6 @@ import {
   Plus,
   RefreshCw,
   Tag,
-  Link2,
   FolderOpen,
   BookOpen,
   GitBranch,
@@ -56,8 +54,6 @@ export function ToolResultCard({ toolName, result, onNoteClick }: ToolResultCard
       return <ReviseNoteCard result={result as ReviseNoteData} />;
     case "update_tags":
       return <UpdateTagsCard result={result as UpdateTagsData} />;
-    case "link_notes":
-      return <LinkNotesCard result={result as LinkNotesData} />;
     case "list_collections":
       return <ListCollectionsCard result={result as ListCollectionsData} />;
     case "search_concepts":
@@ -128,12 +124,6 @@ interface ReviseNoteData {
 interface UpdateTagsData {
   note_id: string;
   tags: string[];
-}
-
-interface LinkNotesData {
-  source_id: string;
-  target_id: string;
-  kind: string;
 }
 
 interface ListCollectionsData {
@@ -393,18 +383,6 @@ function UpdateTagsCard({ result }: { result: UpdateTagsData }) {
           <span className="text-xs text-muted-foreground">No tags</span>
         )}
       </div>
-    </CardShell>
-  );
-}
-
-function LinkNotesCard({ result }: { result: LinkNotesData }) {
-  return (
-    <CardShell icon={Link2} title="Link created">
-      <p className="text-sm">
-        {result.source_id}{" "}
-        <span className="text-muted-foreground">→ {result.kind} →</span>{" "}
-        {result.target_id}
-      </p>
     </CardShell>
   );
 }

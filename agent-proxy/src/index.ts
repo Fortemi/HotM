@@ -22,50 +22,14 @@
  *                       (default: 60, set to 0 to disable)
  */
 
-import express from 'express';
-import cors from 'cors';
-import rateLimit from 'express-rate-limit';
-import { chatRouter } from './routes/chat.js';
+import { createAgentProxyApp } from './app.js';
 
 const PORT = parseInt(process.env.PORT ?? '3001', 10);
 const BIND_ADDR = process.env.BIND_ADDR ?? '127.0.0.1';
 const CORS_ORIGIN = process.env.CORS_ORIGIN ?? 'http://localhost:5173';
 const RATE_LIMIT_RPM = parseInt(process.env.AGENT_PROXY_RATE_LIMIT_RPM ?? '60', 10);
 
-const app = express();
-
-// Middleware
-app.use(cors({ origin: CORS_ORIGIN }));
-app.use(express.json({ limit: '1mb' }));
-
-// Rate limiter on the protected endpoint only — /health stays unmetered for
-// monitoring. Bypassed entirely when RATE_LIMIT_RPM <= 0 (testing / local
-// development override).
-const chatLimiter = rateLimit({
-  windowMs: 60_000,
-  limit: RATE_LIMIT_RPM,
-  standardHeaders: 'draft-7',
-  legacyHeaders: false,
-  skip: () => RATE_LIMIT_RPM <= 0,
-  message: { error: 'rate_limit_exceeded', retry_after_seconds: 60 },
-});
-
-// Routes
-app.use('/api/agent/chat', chatLimiter, chatRouter);
-
-// Health check
-app.get('/health', (_req, res) => {
-  res.json({
-    status: 'ok',
-    service: 'agent-proxy',
-    fortemi_url: process.env.FORTEMI_API_URL ?? 'http://localhost:3000/api/v1',
-    providers: {
-      ollama: true,
-      anthropic: !!process.env.ANTHROPIC_API_KEY,
-      openai: !!process.env.OPENAI_API_KEY,
-    },
-  });
-});
+const app = createAgentProxyApp({ corsOrigin: CORS_ORIGIN, rateLimitRpm: RATE_LIMIT_RPM });
 
 const server = app.listen(PORT, BIND_ADDR, () => {
   console.log(`[agent-proxy] Listening on ${BIND_ADDR}:${PORT}${BIND_ADDR === '127.0.0.1' ? ' (localhost-only)' : ' (network-exposed — see SECURITY.md)'}`);

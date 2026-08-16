@@ -8,6 +8,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import express from 'express';
 import { streamText } from 'ai';
+import { createAgentAuthMiddleware } from '../auth/middleware.js';
 
 // Mock streamText and related AI SDK functions before imports
 vi.mock('ai', async () => {
@@ -50,8 +51,16 @@ import { DEFAULT_MODELS } from '../providers/index.js';
 
 function createTestApp() {
   const app = express();
-  app.use(express.json());
-  app.use('/api/agent/chat', chatRouter);
+  app.use(
+    '/api/agent/chat',
+    createAgentAuthMiddleware({
+      compatibility: async () => ({
+        auth: { required: false, mode: 'anonymous_local' },
+      }),
+    }),
+    express.json(),
+    chatRouter,
+  );
   return app;
 }
 

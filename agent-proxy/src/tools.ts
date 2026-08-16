@@ -15,6 +15,7 @@
 import { tool } from 'ai';
 import { z } from 'zod';
 import { requireCompatibleFortemiMutation } from './compatibility.js';
+import { getFortemiRequestContext } from './request-context.js';
 import {
   AGENT_TOOL_PRIVILEGES,
   assertCompleteToolClassification,
@@ -65,18 +66,24 @@ async function fortemi<T = unknown>(
     await requireCompatibleFortemiMutation(apiBaseUrl);
   }
   const url = `${apiBaseUrl}${path}`;
+  const context = getFortemiRequestContext();
+  const requestHeaders = new Headers(init?.headers);
+  if (context?.authorization) requestHeaders.set('Authorization', context.authorization);
+  const requestedMemory = requestHeaders.get('X-Fortemi-Memory');
+  if (context && requestedMemory !== null && requestedMemory !== context.memory) {
+    throw new Error('Fortemi memory context mismatch');
+  }
+  if (context?.memory) requestHeaders.set('X-Fortemi-Memory', context.memory);
+  else if (context && requestedMemory !== null) requestHeaders.delete('X-Fortemi-Memory');
+  if (!requestHeaders.has('Content-Type')) requestHeaders.set('Content-Type', 'application/json');
   const res = await fetch(url, {
     ...init,
     signal: init?.signal ?? AbortSignal.timeout(FORTEMI_TIMEOUT_MS),
-    headers: {
-      'Content-Type': 'application/json',
-      ...init?.headers,
-    },
+    headers: requestHeaders,
   });
 
   if (!res.ok) {
-    const body = await res.text().catch(() => '');
-    throw new Error(`Fortemi ${init?.method ?? 'GET'} ${path} → ${res.status}: ${body}`);
+    throw new Error(`Fortemi ${init?.method ?? 'GET'} ${path} returned ${res.status}`);
   }
 
   // Some endpoints return 204 No Content
@@ -305,28 +312,6 @@ export const updateTagsTool = tool({
   },
 });
 
-export const linkNotesTool = tool({
-  description:
-    'Create a semantic link between two notes. ' +
-    'Use this when the user asks to connect, link, or relate two notes.',
-  inputSchema: z.object({
-    source_id: z.string().describe('Source note ID'),
-    target_id: z.string().describe('Target note ID'),
-    kind: optionalEnum(
-      ['related', 'reference', 'mention', 'task', 'semantic'],
-      'related',
-      'Link type (default related)',
-    ),
-  }),
-  execute: async ({ source_id, target_id, kind }) => {
-    await fortemi(`/notes/${source_id}/links`, {
-      method: 'POST',
-      body: JSON.stringify({ to_note_id: target_id, kind }),
-    });
-    return { source_id, target_id, kind };
-  },
-});
-
 export const listCollectionsTool = tool({
   description:
     'List available note collections. ' +
@@ -513,7 +498,6 @@ export const agentTools = {
   get_note: getNoteTool,
   revise_note: reviseNoteTool,
   update_tags: updateTagsTool,
-  link_notes: linkNotesTool,
   list_collections: listCollectionsTool,
   search_concepts: searchConceptsTool,
   get_related: getRelatedTool,
@@ -576,16 +560,6 @@ export const toolMetadata: Record<AgentToolName, AgentToolMetadata> = {
     capabilityGate: 'tag update capability available',
     roleScope: 'write',
     resultPolicy: 'Return final tag set only.',
-  },
-  link_notes: {
-    intentSets: ['knowledge-action'],
-    routeFamilies: ['notes'],
-    endpoints: ['POST /api/v1/notes/{id}/links'],
-    safety: 'write',
-    privilege: AGENT_TOOL_PRIVILEGES.link_notes,
-    capabilityGate: 'note link capability available',
-    roleScope: 'write',
-    resultPolicy: 'Return source id, target id, and link kind only.',
   },
   list_collections: {
     intentSets: ['exploratory', 'knowledge-action'],

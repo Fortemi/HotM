@@ -35,15 +35,15 @@ The current core registry contains:
 
 HotM's server-side agent proxy currently exposes:
 
-`search_notes`, `create_note`, `get_note`, `revise_note`, `update_tags`, `link_notes`, `list_collections`, `search_concepts`, `get_related`, `list_archives`, `list_notes`, `get_attachments`.
+`search_notes`, `create_note`, `get_note`, `revise_note`, `update_tags`, `list_collections`, `search_concepts`, `get_related`, `list_archives`, `list_notes`, `get_attachments`.
 
-The UI-local registry currently mirrors a smaller 9-tool subset and omits server-proxy-only archive/list/attachment helpers.
+The UI-local registry currently mirrors a smaller 8-tool subset and omits server-proxy-only archive/list/attachment helpers.
 
 ## Disposition Model
 
 | MCP capability area | HotM disposition |
 | --- | --- |
-| Notes, search, tags, note links | Preserve current agent tools, with endpoint-family mapping and intent gating. |
+| Notes, search, tags | Preserve current agent tools, with endpoint-family mapping and intent gating. Explicit note-link mutation is excluded under #294 because the current Fortemi contract exposes only GET link queries. |
 | Collections, concepts, archives | Keep partial/read-oriented tools; defer management operations unless UI, capability, and audit requirements are proven. |
 | Attachments | Keep read-only listing; upload/delete/download and TUS flows remain UI-first until #257 proves parity and redaction. |
 | Jobs, inference, health, documentation, system info | Candidate read-only diagnostics after #254/#258 establish capability-gated summaries and redaction. |

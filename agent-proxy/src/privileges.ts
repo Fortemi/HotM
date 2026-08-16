@@ -32,7 +32,6 @@ export const AGENT_TOOL_PRIVILEGES = {
   get_note: 'read',
   revise_note: 'write',
   update_tags: 'write',
-  link_notes: 'write',
   list_collections: 'read',
   search_concepts: 'read',
   get_related: 'read',
@@ -61,6 +60,7 @@ interface ConfirmationRecord {
 }
 
 interface PrivilegeSession {
+  identityKey: string;
   settings: AgentPrivilegeSettings;
   clientRevision: number;
   sessionAllowlist: Set<AgentToolName>;
@@ -74,7 +74,8 @@ export class AgentPrivilegeError extends Error {
       | 'operation_denied'
       | 'confirmation_required'
       | 'confirmation_invalid'
-      | 'confirmation_replayed',
+      | 'confirmation_replayed'
+      | 'session_context_mismatch',
     message: string,
   ) {
     super(message);
@@ -198,8 +199,9 @@ export class AgentPrivilegeStore {
     sessionId: string,
     settings: AgentPrivilegeSettings,
     clientRevision: number,
+    identityKey = 'anonymous_local:public',
   ): AgentPrivilegeSettings {
-    const session = this.getSession(sessionId);
+    const session = this.getSession(sessionId, identityKey);
     if (!Number.isSafeInteger(clientRevision) || clientRevision < 0) {
       throw new AgentPrivilegeError('invalid_settings', 'Privilege policy revision is invalid.');
     }
@@ -217,8 +219,9 @@ export class AgentPrivilegeStore {
     sessionId: string,
     toolName: string,
     requestRestriction?: PrivilegeRequestRestriction,
+    identityKey = 'anonymous_local:public',
   ): PermissionDecision {
-    const session = this.getSession(sessionId);
+    const session = this.getSession(sessionId, identityKey);
     const stored = resolvePermission(toolName, session.settings, session.sessionAllowlist);
     if (!requestRestriction) return stored;
     const storedBase = resolvePermission(toolName, session.settings);
@@ -233,8 +236,9 @@ export class AgentPrivilegeStore {
     toolCallId: string,
     toolName: string,
     args: unknown,
+    identityKey = 'anonymous_local:public',
   ): void {
-    const session = this.getSession(sessionId);
+    const session = this.getSession(sessionId, identityKey);
     this.pruneExpired(session);
     const existing = session.confirmations.get(toolCallId);
     const argumentsDigest = digestToolArguments(args);
@@ -261,8 +265,9 @@ export class AgentPrivilegeStore {
     toolName: string;
     args: unknown;
     decision: ConfirmationDecision;
+    identityKey?: string;
   }): void {
-    const session = this.getSession(input.sessionId);
+    const session = this.getSession(input.sessionId, input.identityKey);
     this.pruneExpired(session);
     const record = session.confirmations.get(input.toolCallId);
     this.assertMatchingConfirmation(record, input.toolName, input.args);
@@ -292,8 +297,14 @@ export class AgentPrivilegeStore {
     toolName: string;
     args: unknown;
     requestRestriction?: PrivilegeRequestRestriction;
+    identityKey?: string;
   }): void {
-    const decision = this.decisionFor(input.sessionId, input.toolName, input.requestRestriction);
+    const decision = this.decisionFor(
+      input.sessionId,
+      input.toolName,
+      input.requestRestriction,
+      input.identityKey,
+    );
     if (decision === 'denied') {
       this.log(input.toolName, 'deny', classifyTool(input.toolName) ? 'policy_denied' : 'unclassified_tool');
       throw new AgentPrivilegeError(
@@ -306,7 +317,7 @@ export class AgentPrivilegeStore {
       return;
     }
 
-    const session = this.getSession(input.sessionId);
+    const session = this.getSession(input.sessionId, input.identityKey);
     this.pruneExpired(session);
     const record = session.confirmations.get(input.toolCallId);
     this.assertMatchingConfirmation(record, input.toolName, input.args);
@@ -328,10 +339,20 @@ export class AgentPrivilegeStore {
     this.sessions.clear();
   }
 
-  private getSession(sessionId: string): PrivilegeSession {
+  private getSession(
+    sessionId: string,
+    identityKey = 'anonymous_local:public',
+  ): PrivilegeSession {
     let session = this.sessions.get(sessionId);
+    if (session && session.identityKey !== identityKey) {
+      throw new AgentPrivilegeError(
+        'session_context_mismatch',
+        'This privilege session belongs to another authenticated context.',
+      );
+    }
     if (!session) {
       session = {
+        identityKey,
         settings: { ...DEFAULT_PRIVILEGE_SETTINGS, overrides: {} },
         clientRevision: -1,
         sessionAllowlist: new Set(),
@@ -374,6 +395,7 @@ export class AgentPrivilegeStore {
 
 interface PrivilegedToolContext {
   sessionId: string;
+  identityKey?: string;
   requestRestriction?: PrivilegeRequestRestriction;
 }
 
@@ -408,9 +430,20 @@ export function createPrivilegedTools<T extends ToolSet>(
       return [toolName, {
         ...source,
         needsApproval: (args: unknown, options: Pick<ToolExecutionOptions, 'toolCallId'>) => {
-          const decision = store.decisionFor(context.sessionId, toolName, context.requestRestriction);
+          const decision = store.decisionFor(
+            context.sessionId,
+            toolName,
+            context.requestRestriction,
+            context.identityKey,
+          );
           if (decision !== 'confirm') return false;
-          store.registerConfirmation(context.sessionId, options.toolCallId, toolName, args);
+          store.registerConfirmation(
+            context.sessionId,
+            options.toolCallId,
+            toolName,
+            args,
+            context.identityKey,
+          );
           store.noteConfirmationRequired(toolName);
           return true;
         },
@@ -421,6 +454,7 @@ export function createPrivilegedTools<T extends ToolSet>(
             toolName,
             args,
             requestRestriction: context.requestRestriction,
+            identityKey: context.identityKey,
           });
           return source.execute!(args, options);
         },

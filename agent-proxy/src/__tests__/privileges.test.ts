@@ -56,6 +56,22 @@ describe('agent tool privilege classification', () => {
 });
 
 describe('AgentPrivilegeStore execution boundary', () => {
+  it('binds an opaque session ID to one authenticated context', () => {
+    const store = new AgentPrivilegeStore(() => {});
+    store.updateSession(
+      SESSION_A,
+      { mode: 'assisted', overrides: {} },
+      0,
+      'tenant-a:principal-a:research',
+    );
+    expect(() => store.updateSession(
+      SESSION_A,
+      { mode: 'assisted', overrides: {} },
+      1,
+      'tenant-b:principal-a:research',
+    )).toThrowError(expect.objectContaining({ code: 'session_context_mismatch' }));
+  });
+
   it('does not let a request-level full mode elevate a stored read-only session', () => {
     const store = new AgentPrivilegeStore(() => undefined);
     store.updateSession(SESSION_A, { mode: 'read-only', overrides: {} }, 0);

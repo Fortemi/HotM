@@ -162,3 +162,13 @@ The operation report is authoritative for integration disposition; the route
 report remains authoritative only for route discovery/disposition. Neither the
 AsyncAPI schema-derived receipt nor mocked browser result supplies live,
 compatibility, Knowledge Shard, or authentication evidence.
+
+## Auth, Realtime, and Umbrella Trace Update
+
+| Requirement | Executable evidence | Result / remaining work |
+| --- | --- | --- |
+| REQ-017 auth contract | `agent-proxy/src/auth/middleware.ts`, `auth/verify.ts`, compatibility receipt, middleware tests | Mandatory pre-parse consumer enforcement implemented. Required hosted mode denies missing/unknown claim contract; `fortemi-auth` release authority remains unresolved, so #231 stays open. |
+| REQ-018 realtime context | `ui/src/api/events.ts`, `ui/src/services/websocket.ts`, Tauri header adapter, event/WS tests | Scoped fetch SSE forwards bearer/memory/replay headers and rejects tenant/memory mismatch. Scoped WS is excluded pending Fortemi #953; #285 stays open. |
+| REQ-019 agent privileges | `agent-proxy/src/request-context.ts`, `privileges.ts`, `routes/chat.ts`, UI chat/privilege hooks | Sessions bind to admitted identity; tool execution forwards only admitted context. Existing contract-backed registry is enforced, but all-operation agent acceptance in #123 remains open. |
+| REQ-021 umbrella disposition | `scripts/ci/verify-fortemi-operation-dispositions.mjs`, generated 251-row ledger, `OperationCatalogPanel.tsx` | Zero implicit product dispositions: 16 UI, 11 agent, 183 diagnostic, 41 excluded. This does not upgrade the #290 conformance dimensions; #287 remains open for typed/browser workflows. |
+| Removed link mutation | `ui/src/api/links.ts`, agent registries, focused tests | POST/DELETE calls fail before dispatch and are not advertised. #294 owns producer-contract replacement and coordinated claim cleanup. |

@@ -19,7 +19,7 @@ describe('system-prompt', () => {
       expect(SYSTEM_PROMPT).toContain('get_note');
       expect(SYSTEM_PROMPT).toContain('revise_note');
       expect(SYSTEM_PROMPT).toContain('update_tags');
-      expect(SYSTEM_PROMPT).toContain('link_notes');
+      expect(SYSTEM_PROMPT).not.toContain('link_notes');
       expect(SYSTEM_PROMPT).toContain('list_collections');
       expect(SYSTEM_PROMPT).toContain('search_concepts');
       expect(SYSTEM_PROMPT).toContain('get_related');

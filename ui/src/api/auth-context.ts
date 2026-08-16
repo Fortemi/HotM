@@ -1,6 +1,7 @@
 import { getRuntimeConfig } from '@/lib/runtime-config';
 
 const STORAGE_KEY = 'hotm_api_bearer_token';
+let activeTenantId: string | null = null;
 
 function isBrowser(): boolean {
   return typeof window !== 'undefined' && typeof window.localStorage !== 'undefined';
@@ -38,4 +39,12 @@ export function getAuthorizationHeader(): Record<string, string> {
 
 export function hasApiBearerToken(): boolean {
   return getApiBearerToken() !== null;
+}
+
+export function getActiveTenantId(): string | null {
+  return activeTenantId;
+}
+
+export function setActiveTenantId(tenantId: string | null): void {
+  activeTenantId = tenantId?.trim() || null;
 }

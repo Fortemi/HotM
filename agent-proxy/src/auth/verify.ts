@@ -1,5 +1,6 @@
 import {
   createLocalJWKSet,
+  createRemoteJWKSet,
   decodeProtectedHeader,
   errors,
   jwtVerify,
@@ -45,7 +46,8 @@ export interface FortemiAuthConfig {
   audience: string;
   tenantClaimName: string;
   clockSkewSeconds: number;
-  jwks: JSONWebKeySet;
+  jwks?: JSONWebKeySet;
+  jwksUrl?: string | URL;
   isTenantActive?: (tenantId: string) => boolean | Promise<boolean>;
 }
 
@@ -71,6 +73,9 @@ function authError(code: AuthErrorCode): FortemiAuthError {
 }
 
 function mapJoseError(error: unknown): FortemiAuthError {
+  if (error instanceof FortemiAuthError) {
+    return error;
+  }
   if (error instanceof errors.JWTExpired) {
     return authError('expired_token');
   }
@@ -120,7 +125,13 @@ export async function verifyFortemiBearer(
 
   let payload: JWTPayload;
   try {
-    ({ payload } = await jwtVerify(token, createLocalJWKSet(config.jwks), {
+    const keySet = config.jwks
+      ? createLocalJWKSet(config.jwks)
+      : config.jwksUrl
+        ? createRemoteJWKSet(new URL(config.jwksUrl))
+        : null;
+    if (!keySet) throw authError('key_not_found');
+    ({ payload } = await jwtVerify(token, keySet, {
       algorithms: ['RS256'],
       issuer: config.issuer,
       audience: config.audience,

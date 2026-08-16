@@ -165,11 +165,7 @@ export function createLinksApi(client: ApiClient) {
       if (!request.to_note_id && !request.to_url) {
         throw new Error('Either to_note_id or to_url is required');
       }
-
-      return client.post<CreateLinkResponse>(
-        `/notes/${noteId}/links`,
-        request
-      );
+      throw new Error('Explicit note-link creation is unavailable in the pinned Fortemi contract (#294).');
     },
 
     /**
@@ -184,7 +180,7 @@ export function createLinksApi(client: ApiClient) {
         throw new Error('Link ID is required');
       }
 
-      await client.delete(`/notes/${noteId}/links/${linkId}`);
+      throw new Error('Explicit note-link deletion is unavailable in the pinned Fortemi contract (#294).');
     },
 
     /**

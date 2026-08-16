@@ -11,6 +11,14 @@ export type CompatibilityBlockCode =
   | 'server_api_too_new'
   | 'unsupported_auth_contract';
 
+export interface CompatibleFortemiMetadata {
+  auth: {
+    required: boolean;
+    mode: string;
+    claimContractVersion?: string;
+  };
+}
+
 export class CompatibilityAdmissionError extends Error {
   constructor(public readonly code: CompatibilityBlockCode, message: string) {
     super(message);
@@ -56,7 +64,7 @@ function compareSemVers(left: ParsedVersion, right: ParsedVersion): number {
   return 0;
 }
 
-export function assertCompatibleFortemi(raw: unknown): void {
+export function assertCompatibleFortemi(raw: unknown): CompatibleFortemiMetadata {
   if (!raw || typeof raw !== 'object') {
     throw new CompatibilityAdmissionError('malformed_contract', 'Fortemi compatibility metadata is malformed.');
   }
@@ -75,8 +83,16 @@ export function assertCompatibleFortemi(raw: unknown): void {
   if (!api || api.name !== compatibilityReceipt.consumer.apiName) {
     throw new CompatibilityAdmissionError('malformed_contract', 'Fortemi API identity metadata is missing or invalid.');
   }
-  if (!parseSemVer(api.minimum_hotm_enterprise_client)) {
+  const requiredClient = parseSemVer(api.minimum_hotm_enterprise_client);
+  const currentClient = parseSemVer(compatibilityReceipt.consumer.hotmClientVersion);
+  if (!requiredClient || !currentClient) {
     throw new CompatibilityAdmissionError('invalid_minimum_client', 'Fortemi minimum-client policy is malformed.');
+  }
+  if (compareSemVers(currentClient, requiredClient) < 0) {
+    throw new CompatibilityAdmissionError(
+      'invalid_minimum_client',
+      `Fortemi requires HotM ${String(api.minimum_hotm_enterprise_client)} or later.`,
+    );
   }
   const server = parseSemVer(api.version);
   const minimum = parseSemVer(compatibilityReceipt.consumer.minimumServerApiVersion);
@@ -102,6 +118,13 @@ export function assertCompatibleFortemi(raw: unknown): void {
     ) {
       throw new CompatibilityAdmissionError('unsupported_auth_contract', `Unsupported Fortemi auth claim contract ${String(auth.claim_contract_version)}.`);
     }
+    return {
+      auth: {
+        required: true,
+        mode: typeof auth.mode === 'string' ? auth.mode : 'oauth',
+        claimContractVersion: auth.claim_contract_version,
+      },
+    };
   } else if (
     auth.required !== false
     || typeof auth.mode !== 'string'
@@ -109,16 +132,22 @@ export function assertCompatibleFortemi(raw: unknown): void {
   ) {
     throw new CompatibilityAdmissionError('unsupported_auth_contract', `Unsupported Fortemi local auth mode ${String(auth.mode)}.`);
   }
+  return { auth: { required: false, mode: auth.mode } };
 }
 
 let admittedUrl: string | null = null;
+let admittedMetadata: CompatibleFortemiMetadata | null = null;
 let blockedError: CompatibilityAdmissionError | null = null;
 let pending: Promise<void> | null = null;
 
-export async function requireCompatibleFortemiMutation(apiBaseUrl: string): Promise<void> {
-  if (admittedUrl === apiBaseUrl) return;
+export async function requireCompatibleFortemi(apiBaseUrl: string): Promise<CompatibleFortemiMetadata> {
+  if (admittedUrl === apiBaseUrl && admittedMetadata) return admittedMetadata;
   if (blockedError) throw blockedError;
-  if (pending) return pending;
+  if (pending) {
+    await pending;
+    if (!admittedMetadata) throw blockedError ?? new CompatibilityAdmissionError('compatibility_unavailable', 'Fortemi compatibility admission did not complete.');
+    return admittedMetadata;
+  }
 
   const compatibilityUrl = `${apiBaseUrl.replace(/\/$/, '')}/system/compatibility`;
   pending = fetch(compatibilityUrl, {
@@ -133,7 +162,7 @@ export async function requireCompatibleFortemiMutation(apiBaseUrl: string): Prom
           `Fortemi compatibility request failed with ${response.status}.`,
         );
       }
-      assertCompatibleFortemi(await response.json());
+      admittedMetadata = assertCompatibleFortemi(await response.json());
       admittedUrl = apiBaseUrl;
     })
     .catch((cause: unknown) => {
@@ -148,11 +177,18 @@ export async function requireCompatibleFortemiMutation(apiBaseUrl: string): Prom
     .finally(() => {
       pending = null;
     });
-  return pending;
+  await pending;
+  if (!admittedMetadata) throw blockedError ?? new CompatibilityAdmissionError('compatibility_unavailable', 'Fortemi compatibility admission did not complete.');
+  return admittedMetadata;
+}
+
+export async function requireCompatibleFortemiMutation(apiBaseUrl: string): Promise<void> {
+  await requireCompatibleFortemi(apiBaseUrl);
 }
 
 export function resetCompatibilityAdmissionForTests(): void {
   admittedUrl = null;
+  admittedMetadata = null;
   blockedError = null;
   pending = null;
 }

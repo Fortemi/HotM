@@ -10,7 +10,7 @@
  */
 
 import * as React from 'react';
-import { Settings, Shield, Database, Cpu, Lock, Info, Sparkles, ScrollText, Server, RefreshCw } from 'lucide-react';
+import { Settings, Shield, Database, Cpu, Lock, Info, Sparkles, ScrollText, Server, RefreshCw, ListTree } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -26,6 +26,7 @@ import { InferenceAuditLog } from './InferenceAuditLog';
 import { DocumentTypesPanel } from './DocumentTypesPanel';
 import { WebhooksPanel } from './WebhooksPanel';
 import { ApiCapabilitiesPanel } from './ApiCapabilitiesPanel';
+import { OperationCatalogPanel } from './OperationCatalogPanel';
 
 export interface AdminPanelProps {
   className?: string;
@@ -274,6 +275,10 @@ export function AdminPanel({ className }: AdminPanelProps) {
             <Server className="size-4" />
             API Surface
           </TabsTrigger>
+          <TabsTrigger value="operations">
+            <ListTree className="size-4" />
+            Operations
+          </TabsTrigger>
           <TabsTrigger value="inference">
             <Sparkles className="size-4" />
             Inference
@@ -438,6 +443,10 @@ export function AdminPanel({ className }: AdminPanelProps) {
         {/* API Surface Tab */}
         <TabsContent value="api-surface">
           <ApiCapabilitiesPanel />
+        </TabsContent>
+
+        <TabsContent value="operations">
+          <OperationCatalogPanel />
         </TabsContent>
 
         {/* Inference Tab */}

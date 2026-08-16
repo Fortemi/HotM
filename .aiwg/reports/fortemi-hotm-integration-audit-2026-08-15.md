@@ -69,3 +69,21 @@ Release closure requires the independent route, OpenAPI, AsyncAPI, realtime
 context, Knowledge Shard, compatibility, auth/privilege, browser, and live
 receipt gates to pass. Local-only workflows must remain available when remote
 compatibility or auth gates fail.
+
+## Authorized Remediation Update
+
+The authorized #123/#231/#285/#287 pass implemented mandatory pre-parse agent
+authentication, identity-bound privilege sessions, least-context Fortemi
+forwarding, header-only scoped fetch SSE, replay and event ownership checks,
+local-profile-only legacy WebSocket admission, and a CI-verified 251-operation
+privilege/disposition ledger rendered in Admin. Focused auth, privilege,
+realtime, catalog, and native adapter checks pass locally.
+
+The pass also found a removed Fortemi contract that earlier inventories missed:
+HotM still advertised explicit note-link POST/DELETE operations while current
+Fortemi exposes only GET link queries. Those mutations now fail before network
+dispatch and are removed from agent registries; #294 owns replacement. #295,
+#296, and #297 split the remaining umbrella workflows, operator controls, and
+protocol/security exclusions. #231 remains bounded by auth release authority,
+#285 by Fortemi #953 scoped WebSocket support, #123 by complete executable agent
+surface, and #287 by typed/browser-verifiable family workflows.

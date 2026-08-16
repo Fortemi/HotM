@@ -34,6 +34,8 @@ import {
 import { useAgentConfig } from './useAgentConfig';
 import { useChatModels } from './useChatModels';
 import { api } from '@/api';
+import { getAuthorizationHeader } from '@/api/auth-context';
+import { getActiveMemory, getMemoryRoutingHeaderName } from '@/api/memory-context';
 
 interface AgentSettingsProps {
   onClose: () => void;
@@ -116,9 +118,14 @@ export function AgentSettings({ onClose }: AgentSettingsProps) {
         setTestStatus('ok');
       } else {
         // Ollama/Anthropic/OpenAI route through the agent-proxy
+        const memory = getActiveMemory();
         const res = await fetch('/api/agent/chat', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            ...getAuthorizationHeader(),
+            ...(memory ? { [getMemoryRoutingHeaderName()]: memory } : {}),
+          },
           body: JSON.stringify({
             messages: [{ role: 'user', content: 'ping' }],
             provider: config.provider,

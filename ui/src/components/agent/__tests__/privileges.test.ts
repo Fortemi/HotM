@@ -29,11 +29,10 @@ describe('privileges', () => {
       expect(TOOL_PRIVILEGES.create_note).toBe('write');
       expect(TOOL_PRIVILEGES.revise_note).toBe('write');
       expect(TOOL_PRIVILEGES.update_tags).toBe('write');
-      expect(TOOL_PRIVILEGES.link_notes).toBe('write');
     });
 
     it('matches the complete currently implemented proxy registry', () => {
-      expect(Object.keys(TOOL_PRIVILEGES)).toHaveLength(12);
+      expect(Object.keys(TOOL_PRIVILEGES)).toHaveLength(11);
     });
   });
 

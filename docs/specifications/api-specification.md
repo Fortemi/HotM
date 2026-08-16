@@ -437,24 +437,9 @@ Response: 200 OK
 
 ### Links
 
-#### Create Manual Link
-```http
-POST /notes/{id}/links
-Content-Type: application/json
-
-{
-  "to_note_id": "110e8400-e29b-41d4-a716-446655440000"
-}
-
-Response: 201 Created
-{
-  "status": "created",
-  "link_id": "220e8400-e29b-41d4-a716-446655440000",
-  "from_note_id": "550e8400-e29b-41d4-a716-446655440000",
-  "to_note_id": "110e8400-e29b-41d4-a716-446655440000",
-  "rows_affected": 1
-}
-```
+Manual link mutation is not present in the pinned Fortemi OpenAPI or current
+router. HotM does not advertise or dispatch the historical POST/DELETE routes;
+replacement contract work is tracked in #294.
 
 #### Get Related Notes
 ```http

@@ -94,6 +94,9 @@ jobs:
         working-directory: ui
         run: npm run typecheck
 
+      - name: Verify Fortemi operation dispositions
+        run: node scripts/ci/verify-fortemi-operation-dispositions.mjs --check
+
       - name: Run tests with coverage
         working-directory: ui
         run: npm run test:coverage -- --run

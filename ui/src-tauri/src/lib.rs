@@ -636,7 +636,11 @@ async fn hotm_fetch(
 /// via window.postMessage, matching the __HOTM_HOST__ contract expected by
 /// tauri.ts / events.ts.
 #[tauri::command]
-async fn hotm_sse_connect(app: tauri::AppHandle, url: String) -> Result<serde_json::Value, String> {
+async fn hotm_sse_connect(
+    app: tauri::AppHandle,
+    url: String,
+    headers: Option<HashMap<String, String>>,
+) -> Result<serde_json::Value, String> {
     let handle = format!("sse-{}", SSE_COUNTER.fetch_add(1, Ordering::SeqCst));
     let handle_clone = handle.clone();
 
@@ -646,12 +650,16 @@ async fn hotm_sse_connect(app: tauri::AppHandle, url: String) -> Result<serde_js
             .build()
             .unwrap_or_default();
 
-        let result = client
+        let mut request = client
             .get(&url)
             .header("Accept", "text/event-stream")
-            .header("Cache-Control", "no-cache")
-            .send()
-            .await;
+            .header("Cache-Control", "no-cache");
+        if let Some(headers) = headers {
+            for (name, value) in headers {
+                request = request.header(name, value);
+            }
+        }
+        let result = request.send().await;
 
         match result {
             Err(e) => {

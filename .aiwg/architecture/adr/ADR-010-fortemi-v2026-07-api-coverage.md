@@ -280,3 +280,23 @@ remain independent release gates. The schema-derived AsyncAPI transport receipt
 does not close #288 because no producer-owned event example corpus exists at the
 pinned Fortemi revision. The desktop/mobile mocked Playwright gate introduced by
 #291 is likewise UI evidence, not live or auth/context evidence.
+
+### Decision Amendment: Authenticated Runtime and Product Disposition
+
+HotM will enforce compatibility and authentication before agent-proxy request
+parsing, bind privilege sessions to authenticated tenant/principal/memory
+identity, and forward only that admitted bearer and memory context. Required
+auth with a missing or unsupported claim-contract revision is denied; an
+advertised local `anonymous_local` profile remains usable.
+
+Scoped realtime uses header-capable fetch SSE with `Last-Event-ID` replay and
+consumer-side tenant/memory rejection. Legacy WebSocket is not a scoped
+fallback until Fortemi #953 supplies auth and canonical envelope context.
+
+The product-disposition control is
+`ui/src/api/contracts/fortemi-operation-dispositions.json`, generated and
+verified from the #290 operation matrix. Every pinned operation has an explicit
+privilege and one of UI workflow, agent workflow, operator diagnostic, or
+documented exclusion. This control never upgrades conformance. Historical
+explicit-link POST/DELETE claims are excluded under #294 because they are
+absent from the current router and OpenAPI.

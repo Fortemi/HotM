@@ -1,0 +1,123 @@
+import express from 'express';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import manifest from './fixtures/fortemi-auth-v1.json';
+import { createAgentAuthMiddleware, type AuthenticatedAgentRequest } from './middleware.js';
+
+const localCompatibility = async () => ({
+  auth: { required: false as const, mode: 'anonymous_local' },
+});
+const hostedCompatibility = async () => ({
+  auth: { required: true as const, mode: 'oauth', claimContractVersion: '1' },
+});
+
+function fixtureConfig() {
+  return {
+    issuer: manifest.config.issuer,
+    audience: manifest.config.audience,
+    tenantClaimName: manifest.config.tenant_claim_name,
+    clockSkewSeconds: manifest.config.clock_skew_seconds,
+    jwks: manifest.jwks,
+  };
+}
+
+function tokenFor(id: string): string {
+  const testCase = manifest.cases.find((candidate) => candidate.id === id);
+  if (!testCase) throw new Error(`missing auth fixture ${id}`);
+  return testCase.token;
+}
+
+async function request(
+  middleware: express.RequestHandler,
+  options: { headers?: Record<string, string>; body?: string } = {},
+) {
+  const app = express();
+  app.use('/protected', middleware, express.json());
+  app.post('/protected', (req, res) => {
+    const context = (req as AuthenticatedAgentRequest).fortemiContext;
+    res.json({
+      mode: context?.mode,
+      tenant: context?.auth?.tenantId ?? null,
+      memory: context?.memory ?? null,
+    });
+  });
+  const server = app.listen(0);
+  await new Promise<void>((resolve) => server.once('listening', resolve));
+  const address = server.address();
+  if (!address || typeof address === 'string') throw new Error('test server address unavailable');
+  try {
+    const response = await fetch(`http://127.0.0.1:${address.port}/protected`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...options.headers },
+      body: options.body ?? '{}',
+    });
+    return { status: response.status, body: await response.json() as Record<string, unknown> };
+  } finally {
+    server.close();
+  }
+}
+
+afterEach(() => vi.restoreAllMocks());
+
+describe('agent auth middleware', () => {
+  it('admits unauthenticated requests only for the advertised local profile', async () => {
+    const result = await request(createAgentAuthMiddleware({ compatibility: localCompatibility }), {
+      headers: { 'X-Fortemi-Memory': 'research' },
+    });
+    expect(result).toEqual({
+      status: 200,
+      body: { mode: 'anonymous_local', tenant: null, memory: 'research' },
+    });
+  });
+
+  it('rejects missing credentials before parsing request content', async () => {
+    const result = await request(createAgentAuthMiddleware({ compatibility: hostedCompatibility }), {
+      body: '{not-json',
+    });
+    expect(result).toEqual({ status: 401, body: { error: 'malformed_token' } });
+  });
+
+  it('installs the released verifier context for hosted requests', async () => {
+    const token = tokenFor('valid');
+    const result = await request(createAgentAuthMiddleware({
+      compatibility: hostedCompatibility,
+      authConfig: fixtureConfig,
+    }), {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'X-Fortemi-Memory': 'research',
+      },
+    });
+    expect(result.status).toBe(200);
+    expect(result.body).toMatchObject({
+      mode: 'authenticated',
+      tenant: '00000000-0000-4000-8000-000000000001',
+      memory: 'research',
+    });
+  });
+
+  it.each([
+    ['expired', 'expired_token'],
+    ['wrong-audience', 'wrong_audience'],
+  ])('maps %s without exposing the credential', async (fixtureId, errorCode) => {
+    const token = tokenFor(fixtureId);
+    const result = await request(createAgentAuthMiddleware({
+      compatibility: hostedCompatibility,
+      authConfig: fixtureConfig,
+    }), { headers: { Authorization: `Bearer ${token}` } });
+    expect(result).toEqual({ status: 401, body: { error: errorCode } });
+    expect(JSON.stringify(result.body)).not.toContain(token);
+  });
+
+  it('rejects an asserted tenant that differs from the verified claim', async () => {
+    const result = await request(createAgentAuthMiddleware({
+      compatibility: hostedCompatibility,
+      authConfig: fixtureConfig,
+    }), {
+      headers: {
+        Authorization: `Bearer ${tokenFor('valid')}`,
+        'X-Fortemi-Tenant': '00000000-0000-4000-8000-000000000002',
+      },
+    });
+    expect(result).toEqual({ status: 403, body: { error: 'unknown_tenant' } });
+  });
+});

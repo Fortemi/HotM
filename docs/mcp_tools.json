@@ -42,20 +42,6 @@
         "output": {"type": "object", "properties": {"hits": {"type": "array", "items": {"type": "object"}}}}
       }
     },
-    "link_notes": {
-      "type": "object",
-      "properties": {
-        "input": {"type": "object", "required": ["fromId", "toId", "kind"], "properties": {"fromId": {"type": "string"}, "toId": {"type": "string"}, "kind": {"type": "string", "enum": ["related", "mention", "reference", "task"]}}},
-        "output": {"type": "object", "properties": {"linkId": {"type": "string"}}}
-      }
-    },
-    "link_external": {
-      "type": "object",
-      "properties": {
-        "input": {"type": "object", "required": ["fromId", "url", "kind"], "properties": {"fromId": {"type": "string"}, "url": {"type": "string", "format": "uri"}, "kind": {"type": "string", "enum": ["related", "mention", "reference", "task"]}}},
-        "output": {"type": "object", "properties": {"linkId": {"type": "string"}}}
-      }
-    },
     "get_provenance": {
       "type": "object",
       "properties": {

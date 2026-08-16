@@ -207,3 +207,26 @@ REQ-023 is implemented as a required two-project mocked Playwright gate at
 1280 px and 390 px with zero retries. The gate records the exact HotM revision
 and fixture/test digest and uploads reports and failure media. It does not
 satisfy live Fortemi, launched Tauri, compatibility, or auth/context receipts.
+
+## Auth, Realtime, and Umbrella Implementation Receipt
+
+REQ-017 and REQ-019 now have runtime consumer evidence in the agent proxy:
+pre-parse admission, RS256 issuer/audience/JWKS verification, accepted
+claim-contract enforcement, tenant consistency, identity-bound privilege
+sessions, context forwarding, one-shot confirmations, and redacted errors.
+Hosted operation still fails closed because the current required-auth
+compatibility payload does not advertise an accepted claim-contract version;
+`fortemi-auth` remains specification-only pending the repository contract's
+release condition. These bounds keep #231 open.
+
+REQ-018 now has header-only fetch SSE context, replay, all-events subscription,
+tenant/memory rejection, and redaction tests. Scoped WebSocket is deliberately
+disabled because current Fortemi does not preserve auth, tenant, memory, or the
+canonical envelope on that transport; Fortemi #953 blocks full two-transport
+closure of #285.
+
+REQ-021 now has a complete product-disposition ledger and operator catalog for
+251 operations, with a CI stale-ledger check. The ledger records 16 UI, 11
+agent, 183 diagnostic, and 41 excluded rows, but does not convert partial/gap
+operation conformance into support. #287 remains open for family workflows and
+browser receipts. The removed note-link mutation is tracked by #294.

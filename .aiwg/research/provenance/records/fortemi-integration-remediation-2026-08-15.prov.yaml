@@ -1,0 +1,68 @@
+metadata:
+  schema_version: "1.0.0"
+  created_at: "2026-08-16T00:38:51Z"
+  updated_at: "2026-08-16T00:38:51Z"
+  description: "Provenance bundle for authorized HotM issues 123, 231, 285, and 287"
+entity:
+  id: "urn:aiwg:bundle:fortemi-integration-remediation-2026-08-15"
+  type: software_and_documentation_bundle
+  created_at: "2026-08-16T00:38:51Z"
+  updated_at: "2026-08-16T00:38:51Z"
+  checksum: "sha256:7eb703ed7a40f2861eb36a98a2542ddda7c9290ad71da4bc0c78c9011472bfdd"
+  attributes:
+    producer_revision: "48bc0a0bd68fd9e4eeb742c5af8a54207cbcc425"
+    openapi_operation_count: 251
+    scope: "auth,realtime,privilege,umbrella-disposition"
+    tracked_artifacts:
+      - "agent-proxy/src/auth/middleware.ts"
+      - "agent-proxy/src/request-context.ts"
+      - "ui/src/api/events.ts"
+      - "ui/src/services/websocket.ts"
+      - "ui/src/api/contracts/fortemi-operation-dispositions.json"
+      - "ui/src/components/admin/OperationCatalogPanel.tsx"
+      - ".aiwg/reports/fortemi-hotm-integration-audit-2026-08-15.md"
+activity:
+  id: "urn:aiwg:activity:fortemi-integration-remediation:2026-08-15"
+  type: modification
+  started_at: "2026-08-15T20:09:12-04:00"
+  ended_at: "2026-08-16T00:38:51Z"
+  description: "Implement authorized auth and realtime containment and classify the pinned operation surface"
+agent:
+  id: "urn:aiwg:agent:codex-gpt-5"
+  type: ai_assistant
+  name: "Codex"
+  version: "gpt-5"
+  tool: "codex"
+relationships:
+  wasGeneratedBy:
+    entity: "urn:aiwg:bundle:fortemi-integration-remediation-2026-08-15"
+    activity: "urn:aiwg:activity:fortemi-integration-remediation:2026-08-15"
+    time: "2026-08-16T00:38:51Z"
+  used:
+    - activity: "urn:aiwg:activity:fortemi-integration-remediation:2026-08-15"
+      entity: "urn:gitea:Fortemi/HotM:issue:123"
+      role: "requirement"
+    - activity: "urn:aiwg:activity:fortemi-integration-remediation:2026-08-15"
+      entity: "urn:gitea:Fortemi/HotM:issue:231"
+      role: "requirement"
+    - activity: "urn:aiwg:activity:fortemi-integration-remediation:2026-08-15"
+      entity: "urn:gitea:Fortemi/HotM:issue:285"
+      role: "requirement"
+    - activity: "urn:aiwg:activity:fortemi-integration-remediation:2026-08-15"
+      entity: "urn:gitea:Fortemi/HotM:issue:287"
+      role: "requirement"
+    - activity: "urn:aiwg:activity:fortemi-integration-remediation:2026-08-15"
+      entity: "urn:git:git@git.integrolabs.net:Fortemi/fortemi.git:48bc0a0bd68fd9e4eeb742c5af8a54207cbcc425"
+      role: "producer_authority"
+  wasDerivedFrom:
+    - entity: "urn:aiwg:bundle:fortemi-integration-remediation-2026-08-15"
+      source: "urn:aiwg:artifact:ui/src/api/contracts/fortemi-openapi.yaml"
+      derivation_type: "implements"
+      activity: "urn:aiwg:activity:fortemi-integration-remediation:2026-08-15"
+  wasAssociatedWith:
+    activity: "urn:aiwg:activity:fortemi-integration-remediation:2026-08-15"
+    agent: "urn:aiwg:agent:codex-gpt-5"
+    role: "primary_author"
+  wasAttributedTo:
+    entity: "urn:aiwg:bundle:fortemi-integration-remediation-2026-08-15"
+    agent: "urn:aiwg:agent:codex-gpt-5"

@@ -10,7 +10,7 @@ import { TOOL_SETS, INTENT_PROMPT_SUFFIXES } from '../tool-sets.js';
 import { agentTools, toolMetadata } from '../../tools.js';
 
 const ALL_TOOL_NAMES = Object.keys(agentTools);
-const WRITE_TOOLS = ['create_note', 'revise_note', 'update_tags', 'link_notes'];
+const WRITE_TOOLS = ['create_note', 'revise_note', 'update_tags'];
 const READ_TOOLS = ALL_TOOL_NAMES.filter((t) => !WRITE_TOOLS.includes(t));
 
 describe('TOOL_SETS', () => {

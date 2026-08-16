@@ -416,3 +416,29 @@ The deterministic mocked browser gate runs desktop (1280 px) and mobile
 fixture/test digest, report, and failure media and is required by both publish
 jobs. This gate verifies mocked UI integration only; live Fortemi and launched
 Tauri receipts remain separate controls.
+
+### Auth, Realtime, and Umbrella Boundary Update (2026-08-15)
+
+The agent proxy now admits chat, privilege-sync, and confirmation requests
+through compatibility-aware authentication before body parsing. Hosted mode
+requires the pinned `2026.7.0` auth identity, an accepted claim-contract
+version, RS256 issuer/audience/JWKS verification, tenant consistency, and an
+identity-bound privilege session. Unknown auth metadata fails closed while the
+producer-advertised `anonymous_local` profile preserves local workflows.
+`fortemi-auth` remains specification-only until the repository contract's
+release requirement is independently satisfied.
+
+Fetch SSE is the scoped realtime transport. Authorization,
+`X-Fortemi-Memory`, tenant filtering, and `Last-Event-ID` are header/context
+state rather than persisted credential query parameters. No event-type filter
+means all events, and unknown events remain unknown. The legacy WebSocket is
+allowed only for an explicitly advertised unscoped `anonymous_local` profile;
+scoped WebSocket use remains excluded pending Fortemi #953.
+
+The generated disposition ledger classifies all 251 pinned operations: 16 UI
+workflows, 11 curated agent workflows, 183 read-only operator diagnostics, and
+41 documented protocol exclusions. Privilege classes are 65 admin, 21 delete,
+96 read, and 69 write. This is product-disposition evidence only and does not
+alter request, response, auth, or live conformance. Explicit note-link mutation
+was removed from both agent registries because current Fortemi exposes only the
+GET operation; #294 owns the replacement-contract decision.

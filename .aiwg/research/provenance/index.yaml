@@ -1,8 +1,10 @@
 metadata:
   schema_version: "1.0.0"
-  updated_at: "2026-08-15T22:31:07Z"
-  record_count: 111
+  updated_at: "2026-08-16T00:38:51Z"
+  record_count: 112
 records:
+  - entity: "urn:aiwg:bundle:fortemi-integration-remediation-2026-08-15"
+    record: "records/fortemi-integration-remediation-2026-08-15.prov.yaml"
   - entity: "urn:aiwg:artifact:.aiwg/testing/scripts/knowledge-shard-authority-policy.mjs"
     record: "records/knowledge-shard-authority-policy.mjs.prov.yaml"
   - entity: "urn:aiwg:artifact:.aiwg/testing/scripts/knowledge-shard-authority-policy.test.mjs"

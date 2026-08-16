@@ -4,6 +4,12 @@ import { createEventsClient, type ServerEvent, DEFAULT_SSE_EVENT_TYPES } from '@
 import { realtimeEventBus, type RealtimeEvent } from '@/services/realtimeEventBus';
 import { getCachedConfig } from '@/lib/tauri';
 import { getRuntimeConfig } from '@/lib/runtime-config';
+import {
+  getActiveTenantId,
+  getApiBearerToken,
+} from '@/api/auth-context';
+import { getActiveMemory } from '@/api/memory-context';
+import { api } from '@/api';
 
 export interface WsActiveJob {
   job_id: string;
@@ -51,6 +57,20 @@ type MessageHandler = (message: WsMessage) => void;
 type ConnectionHandler = (connected: boolean) => void;
 type ConnectionStateHandler = (state: RealtimeConnectionState) => void;
 
+export interface LegacyWebSocketContext {
+  authorization: string | null;
+  memory: string | null;
+  tenantId: string | null;
+  anonymousLocalAdvertised: boolean;
+}
+
+export function canUseLegacyWebSocket(context: LegacyWebSocketContext): boolean {
+  return context.anonymousLocalAdvertised
+    && !context.authorization
+    && !context.memory
+    && !context.tenantId;
+}
+
 class WebSocketService {
   private ws: WebSocket | null = null;
   private eventsClient: ReturnType<typeof createEventsClient> | null = null;
@@ -69,6 +89,7 @@ class WebSocketService {
   private connectionState: RealtimeConnectionState = 'disconnected';
   private resyncHandlers: Set<ResyncHandler> = new Set();
   private lastResyncAt: number | null = null;
+  private anonymousLocalAdvertised = false;
 
   constructor() {
     // Check if WebSocket is disabled via environment variable
@@ -143,7 +164,15 @@ class WebSocketService {
     return fallbackBase;
   }
 
-  private buildWebSocketUrl(): string {
+  private buildWebSocketUrl(): string | null {
+    if (!canUseLegacyWebSocket({
+      authorization: getApiBearerToken(),
+      memory: getActiveMemory(),
+      tenantId: getActiveTenantId(),
+      anonymousLocalAdvertised: this.anonymousLocalAdvertised,
+    })) {
+      return null;
+    }
     const fallbackBase =
       typeof window !== 'undefined' && window.location?.origin
         ? window.location.origin
@@ -178,6 +207,10 @@ class WebSocketService {
 
     try {
       this.eventsClient = createEventsClient(this.getApiBaseUrl(), {
+        authorization: getApiBearerToken() ? `Bearer ${getApiBearerToken()}` : null,
+        memory: getActiveMemory(),
+        tenantId: getActiveTenantId(),
+        preferFetch: true,
         onStatusChange: (status) => {
           if (status === 'reconnecting') {
             this.sseConnected = false;
@@ -267,8 +300,12 @@ class WebSocketService {
       return Promise.resolve();
     }
 
-    this.connectionPromise = new Promise<void>((resolve) => {
+    this.connectionPromise = (async () => {
       this.notifyConnectionState('connecting');
+
+      const compatibility = await api.compatibilityGate.preflight();
+      this.anonymousLocalAdvertised = !compatibility.auth.required
+        && compatibility.auth.mode === 'anonymous_local';
 
       // Clear any existing timeout
       if (this.reconnectTimeout) {
@@ -283,8 +320,8 @@ class WebSocketService {
       this.connectWsChannel(false);
 
       this.isClosing = false;
+    })().finally(() => {
       this.connectionPromise = null;
-      resolve();
     });
 
     return this.connectionPromise;
@@ -299,6 +336,7 @@ class WebSocketService {
 
     try {
       const wsUrl = this.buildWebSocketUrl();
+      if (!wsUrl) return;
       this.ws = new WebSocket(wsUrl);
 
       this.ws.onopen = () => {

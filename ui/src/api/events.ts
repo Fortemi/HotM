@@ -46,10 +46,32 @@ export interface ServerEvent {
 type EventHandler = (event: ServerEvent) => void;
 type EventsClientStatus = 'connecting' | 'connected' | 'reconnecting' | 'closed';
 
-interface EventsClientOptions {
+export interface EventsClientOptions {
   onStatusChange?: (status: EventsClientStatus) => void;
-  /** SSE type prefixes for server-side filtering (e.g., ['note', 'job', 'queue']) */
+  /** Optional explicit server-side filter. Omit to consume all producer events. */
   typePrefixes?: string[];
+  authorization?: string | null;
+  memory?: string | null;
+  tenantId?: string | null;
+  preferFetch?: boolean;
+}
+
+export function eventMatchesRealtimeContext(
+  event: ServerEvent,
+  context: Pick<EventsClientOptions, 'memory' | 'tenantId'>,
+): boolean {
+  const systemEvent = [
+    'resync_required',
+    'events.lagged',
+    'queue.status',
+    'ResyncRequired',
+    'EventsLagged',
+    'QueueStatus',
+  ].includes(event.type);
+  if (systemEvent) return true;
+  if (context.memory && event.memory !== context.memory) return false;
+  if (context.tenantId && event.tenant_id !== context.tenantId) return false;
+  return true;
 }
 
 /** Default type prefixes that cover all events the UI currently handles */
@@ -150,18 +172,27 @@ export function createEventsClient(baseUrl: string, options: EventsClientOptions
     }
   };
 
-  const typePrefixes = options.typePrefixes ?? [...DEFAULT_SSE_TYPE_PREFIXES];
+  const typePrefixes = options.typePrefixes;
 
   function getEventsUrl(): string {
     const normalizedBase = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl;
     const url = new URL(`${normalizedBase}/events`);
-    if (lastEventId) {
-      url.searchParams.set('last_event_id', lastEventId);
-    }
-    if (typePrefixes.length > 0) {
+    if (typePrefixes && typePrefixes.length > 0) {
       url.searchParams.set('types', typePrefixes.join(','));
     }
     return url.toString();
+  }
+
+  function getRequestHeaders(): Record<string, string> {
+    const headers: Record<string, string> = { Accept: 'text/event-stream' };
+    if (options.authorization) headers.Authorization = options.authorization;
+    if (options.memory) headers['X-Fortemi-Memory'] = options.memory;
+    if (lastEventId) headers['Last-Event-ID'] = lastEventId;
+    return headers;
+  }
+
+  function matchesContext(event: ServerEvent): boolean {
+    return eventMatchesRealtimeContext(event, options);
   }
 
   function dispatchEvent(data: ServerEvent, eventId?: string): void {
@@ -171,6 +202,7 @@ export function createEventsClient(baseUrl: string, options: EventsClientOptions
       lastEventId = replayCursor;
       unwrapped.event_id = replayCursor;
     }
+    if (!matchesContext(unwrapped)) return;
     handlers.forEach(handler => {
       try {
         handler(unwrapped);
@@ -194,9 +226,8 @@ export function createEventsClient(baseUrl: string, options: EventsClientOptions
       const httpFetch = getTauriFetch();
       const url = getEventsUrl();
 
-      console.log('SSE fetch connecting to:', url);
       const response = await httpFetch(url, {
-        headers: { 'Accept': 'text/event-stream' },
+        headers: getRequestHeaders(),
         signal: fetchAbort.signal,
       });
 
@@ -261,7 +292,7 @@ export function createEventsClient(baseUrl: string, options: EventsClientOptions
         // Intentional abort
         return;
       }
-      console.error('SSE fetch error:', err);
+      console.error('SSE fetch connection failed');
     } finally {
       isFetchConnected = false;
       fetchAbort = null;
@@ -287,8 +318,13 @@ export function createEventsClient(baseUrl: string, options: EventsClientOptions
     if (isClosing || eventSource) return;
 
     try {
+      if (options.authorization || options.tenantId) {
+        throw new Error('Native EventSource is unavailable for authenticated realtime sessions.');
+      }
       notifyStatus('connecting');
-      eventSource = new EventSource(getEventsUrl());
+      const url = new URL(getEventsUrl());
+      if (options.memory) url.searchParams.set('memory', options.memory);
+      eventSource = new EventSource(url.toString());
 
       eventSource.onopen = () => {
         isClosing = false;
@@ -337,7 +373,7 @@ export function createEventsClient(baseUrl: string, options: EventsClientOptions
         }
       };
     } catch (err) {
-      console.error('Failed to create EventSource:', err);
+      console.error('SSE EventSource connection failed');
       notifyStatus('closed');
     }
   }
@@ -365,9 +401,7 @@ export function createEventsClient(baseUrl: string, options: EventsClientOptions
       notifyStatus('connecting');
       fetchAbort = new AbortController();
       const url = getEventsUrl();
-      console.log('SSE host adapter connecting to:', url);
-
-      const result = await adapter.network.sse.connect({ url });
+      const result = await adapter.network.sse.connect({ url, headers: getRequestHeaders() });
       const handle = result.handle;
 
       isFetchConnected = true;
@@ -417,7 +451,7 @@ export function createEventsClient(baseUrl: string, options: EventsClientOptions
       });
     } catch (err) {
       if (fetchAbort?.signal.aborted) return;
-      console.error('SSE host adapter error:', err);
+      console.error('SSE host adapter connection failed');
     } finally {
       isFetchConnected = false;
       fetchAbort = null;
@@ -438,9 +472,12 @@ export function createEventsClient(baseUrl: string, options: EventsClientOptions
   function connect(): void {
     // Prefer the direct host-adapter path when an embedding shell provides
     // one — avoids the synthetic-ReadableStream pitfall on Linux WebKit2GTK.
-    if (getHostAdapter()) {
+    if (options.authorization && !options.tenantId) {
+      console.error('SSE authenticated context is missing a tenant binding');
+      notifyStatus('closed');
+    } else if (getHostAdapter()) {
       connectHostProxy();
-    } else if (isTauri()) {
+    } else if (isTauri() || options.preferFetch) {
       connectFetch();
     } else {
       connectNative();
@@ -489,10 +526,7 @@ export function createEventsClient(baseUrl: string, options: EventsClientOptions
     },
 
     get connected(): boolean {
-      if (isTauri()) {
-        return isFetchConnected;
-      }
-      return eventSource?.readyState === EventSource.OPEN;
+      return isFetchConnected || eventSource?.readyState === EventSource.OPEN;
     },
     get replayCursor(): string | null {
       return lastEventId;

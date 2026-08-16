@@ -2,6 +2,7 @@ import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest';
 import {
   createEventsClient,
   DEFAULT_SSE_TYPE_PREFIXES,
+  eventMatchesRealtimeContext,
   FORTEMI_SSE_EVENT_TYPES,
 } from '@/api/events';
 import eventCatalog from '@/api/contracts/fortemi-event-catalog.json';
@@ -56,7 +57,7 @@ describe('events client replay handling', () => {
     vi.unstubAllGlobals();
   });
 
-  it('reconnects with replay cursor query when event_id is known', () => {
+  it('keeps credentials and replay state out of local EventSource URLs', () => {
     const handler = vi.fn();
     const client = createEventsClient('http://localhost:3000/api/v1');
     client.subscribe(handler);
@@ -71,7 +72,40 @@ describe('events client replay handling', () => {
     vi.advanceTimersByTime(2000);
 
     const second = MockEventSource.instances[1];
-    expect(second.url).toContain('last_event_id=evt-42');
+    expect(second.url).not.toContain('last_event_id');
+    expect(second.url).not.toContain('token');
+    expect(client.replayCursor).toBe('evt-42');
+  });
+
+  it('reconnects authenticated fetch SSE with header-only context and replay cursor', async () => {
+    const fetchMock = vi.fn<typeof fetch>()
+      .mockResolvedValueOnce(new Response(
+        'id: evt-42\nevent: note.updated\ndata: {"event_type":"note.updated","memory":"research","tenant_id":"tenant-a","payload":{"type":"NoteUpdated","note_id":"n-1"}}\n\n',
+        { status: 200, headers: { 'Content-Type': 'text/event-stream' } },
+      ))
+      .mockImplementationOnce(() => new Promise<Response>(() => {}));
+    vi.stubGlobal('fetch', fetchMock);
+    const handler = vi.fn();
+    const client = createEventsClient('http://localhost:3000/api/v1', {
+      authorization: 'Bearer fixture-token',
+      memory: 'research',
+      tenantId: 'tenant-a',
+      preferFetch: true,
+    });
+    client.subscribe(handler);
+
+    await vi.waitFor(() => expect(handler).toHaveBeenCalledOnce());
+    await vi.advanceTimersByTimeAsync(1000);
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    const firstUrl = String(fetchMock.mock.calls[0][0]);
+    const firstHeaders = new Headers(fetchMock.mock.calls[0][1]?.headers);
+    const reconnectHeaders = new Headers(fetchMock.mock.calls[1][1]?.headers);
+    expect(firstUrl).not.toContain('token');
+    expect(firstUrl).not.toContain('memory');
+    expect(firstHeaders.get('Authorization')).toBe('Bearer fixture-token');
+    expect(firstHeaders.get('X-Fortemi-Memory')).toBe('research');
+    expect(reconnectHeaders.get('Last-Event-ID')).toBe('evt-42');
+    client.close();
   });
 
   it('normalizes base URLs that already include /api/v1', () => {
@@ -161,20 +195,14 @@ describe('events client replay handling', () => {
     );
   });
 
-  it('includes types query parameter for server-side filtering', () => {
+  it('subscribes to all producer events when no explicit filter is requested', () => {
     const handler = vi.fn();
     const client = createEventsClient('http://localhost:3000');
     client.subscribe(handler);
 
     const es = MockEventSource.instances[0];
-    expect(es.url).toContain('types=');
-    // Should include key prefixes
-    expect(es.url).toContain('note');
-    expect(es.url).toContain('job');
-    expect(es.url).toContain('queue');
+    expect(es.url).not.toContain('types=');
     expect([...DEFAULT_SSE_TYPE_PREFIXES]).toEqual(eventCatalog.defaultTypePrefixes);
-    expect(es.url).toContain('concept_scheme');
-    expect(es.url).toContain('inference');
   });
 
   it('supports custom type prefixes', () => {
@@ -187,6 +215,28 @@ describe('events client replay handling', () => {
     const es = MockEventSource.instances[0];
     const url = new URL(es.url);
     expect(url.searchParams.get('types')).toBe('note,concept');
+  });
+
+  it('uses the producer-owned memory query only for local EventSource fallback', () => {
+    const client = createEventsClient('http://localhost:3000', { memory: 'research' });
+    client.subscribe(vi.fn());
+    const url = new URL(MockEventSource.instances[0].url);
+    expect(url.searchParams.get('memory')).toBe('research');
+    expect(url.searchParams.has('token')).toBe(false);
+  });
+
+  it('rejects events outside the active memory and tenant', () => {
+    const context = { memory: 'research', tenantId: 'tenant-a' };
+    expect(eventMatchesRealtimeContext({
+      type: 'note.updated', memory: 'research', tenant_id: 'tenant-a',
+    }, context)).toBe(true);
+    expect(eventMatchesRealtimeContext({
+      type: 'note.updated', memory: 'other', tenant_id: 'tenant-a',
+    }, context)).toBe(false);
+    expect(eventMatchesRealtimeContext({
+      type: 'note.updated', memory: 'research', tenant_id: 'tenant-b',
+    }, context)).toBe(false);
+    expect(eventMatchesRealtimeContext({ type: 'resync_required' }, context)).toBe(true);
   });
 
   it('extracts event_id from envelope payload for replay cursor', () => {

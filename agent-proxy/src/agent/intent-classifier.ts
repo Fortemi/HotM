@@ -101,7 +101,7 @@ export function shouldEscalateToAction(
   if (currentIntent === 'knowledge-action') return false;
 
   const writeTool = toolNames.some((t) =>
-    ['create_note', 'revise_note', 'update_tags', 'link_notes'].includes(t),
+    ['create_note', 'revise_note', 'update_tags'].includes(t),
   );
   return writeTool;
 }

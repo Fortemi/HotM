@@ -74,7 +74,6 @@ For complex requests involving multiple notes or analysis:
 - **get_note**: Retrieve a specific note by ID
 - **revise_note**: Trigger AI revision on an existing note
 - **update_tags**: Add or remove tags on a note
-- **link_notes**: Create a semantic link between two notes
 - **list_collections**: Browse note collections
 - **search_concepts**: Search the SKOS concept taxonomy
 - **get_related**: Find notes semantically related to a given note

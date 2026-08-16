@@ -425,3 +425,27 @@ The Playwright config must retain desktop 1280 and mobile 390 projects, retries
 set to zero, and no unconditional skips for note, search, or tag workflows. CI
 uploads the receipt, report, traces, screenshots, and videos on failure. Live
 Fortemi and launched Tauri scenarios remain opt-in receipt gates.
+
+### Auth, Realtime, and Operation-Disposition Commands
+
+```bash
+node scripts/ci/verify-fortemi-operation-dispositions.mjs --check
+cd agent-proxy
+npm run typecheck
+npx vitest run src/auth/middleware.test.ts src/__tests__/chat-route.test.ts \
+  src/__tests__/privileges.test.ts src/__tests__/tools.test.ts
+cd ../ui
+npm run typecheck
+npx vitest run src/api/__tests__/events.test.ts \
+  src/services/__tests__/websocket.test.ts \
+  src/components/admin/__tests__/OperationCatalogPanel.test.tsx \
+  src/api/__tests__/links.test.ts
+```
+
+Required negative cases include missing/expired/wrong-audience bearer,
+unsupported auth contract, cross-tenant and cross-memory context, privilege
+session rebinding, replayed/altered confirmation, credential-free realtime
+URLs, mismatched event ownership, stale operation ledger, incompatible-server
+catalog state, and no network dispatch for #294's removed link mutations.
+Scoped WebSocket success remains not applicable until Fortemi #953 provides a
+context-preserving producer contract; it must not be simulated as conformance.

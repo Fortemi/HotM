@@ -50,7 +50,6 @@ export const TOOL_PRIVILEGES: Record<string, OperationPrivilege> = {
   create_note: 'write',
   revise_note: 'write',
   update_tags: 'write',
-  link_notes: 'write',
 
 };
 

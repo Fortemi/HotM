@@ -30,7 +30,6 @@ const ALL_TOOLS: AgentToolName[] = [
   'get_note',
   'revise_note',
   'update_tags',
-  'link_notes',
   'list_collections',
   'search_concepts',
   'get_related',

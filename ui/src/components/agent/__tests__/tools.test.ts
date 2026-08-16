@@ -47,15 +47,14 @@ describe('agentTools', () => {
     vi.clearAllMocks();
   });
 
-  it('exports all 9 tool definitions', () => {
-    expect(Object.keys(agentTools)).toHaveLength(9);
+  it('exports all contract-backed tool definitions', () => {
+    expect(Object.keys(agentTools)).toHaveLength(8);
     expect(Object.keys(agentTools)).toEqual([
       'search_notes',
       'create_note',
       'get_note',
       'revise_note',
       'update_tags',
-      'link_notes',
       'list_collections',
       'search_concepts',
       'get_related',
@@ -197,26 +196,6 @@ describe('agentTools', () => {
         remove: ['oldtag'],
       });
       expect(result).toMatchObject({ note_id: 'n1', tags: ['tag1', 'tag2', 'newtag'] });
-    });
-  });
-
-  describe('link_notes', () => {
-    it('creates a link between two notes', async () => {
-      const { api } = await import('@/api');
-      const result = await agentTools.link_notes.execute!(
-        { source_id: 'n1', target_id: 'n2', kind: 'related' },
-        { toolCallId: 'tc7', messages: [] },
-      );
-
-      expect(api.links.createLink).toHaveBeenCalledWith('n1', {
-        to_note_id: 'n2',
-        kind: 'related',
-      });
-      expect(result).toMatchObject({
-        source_id: 'n1',
-        target_id: 'n2',
-        kind: 'related',
-      });
     });
   });
 

@@ -18,6 +18,8 @@ import {
   DefaultChatTransport,
   lastAssistantMessageIsCompleteWithApprovalResponses,
 } from 'ai';
+import { getAuthorizationHeader } from '@/api/auth-context';
+import { getActiveMemory, getMemoryRoutingHeaderName } from '@/api/memory-context';
 import { useChat, type UIMessage } from '@ai-sdk/react';
 import { useCallback, useMemo, useRef, useState } from 'react';
 import { api } from '@/api';
@@ -136,6 +138,12 @@ export function useAgentChat(options: UseAgentChatOptions): UseAgentChatReturn {
     () =>
       new DefaultChatTransport({
         api: proxyUrl,
+        headers: () => {
+          const headers = getAuthorizationHeader();
+          const memory = getActiveMemory();
+          if (memory) headers[getMemoryRoutingHeaderName()] = memory;
+          return headers;
+        },
         body: {
           provider: config.provider,
           model: config.model,
@@ -192,7 +200,11 @@ export function useAgentChat(options: UseAgentChatOptions): UseAgentChatReturn {
     try {
       const response = await fetch(`${proxyUrl}/privileges/confirm`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...getAuthorizationHeader(),
+          ...(getActiveMemory() ? { [getMemoryRoutingHeaderName()]: getActiveMemory()! } : {}),
+        },
         body: JSON.stringify({
           sessionId: privilegeSessionId,
           toolCallId: pendingConfirmation.toolCallId,

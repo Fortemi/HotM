@@ -97,6 +97,10 @@ jobs:
               ../fortemi \
               --write-ci-receipt openapi-consumer-receipt.json
 
+      - name: Verify Fortemi operation dispositions
+        shell: bash
+        run: node scripts/ci/verify-fortemi-operation-dispositions.mjs --check
+
       - name: Test delivered OpenAPI client boundary
         shell: bash
         run: npm --prefix ui test -- --run src/api/__tests__/calls.test.ts src/api/__tests__/delivered-openapi-contract.test.ts

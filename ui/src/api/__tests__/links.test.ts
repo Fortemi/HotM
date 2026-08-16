@@ -178,4 +178,11 @@ describe('Links and graph API', () => {
       'After snapshot ID is required',
     );
   });
+
+  it('fails stale explicit-link mutations before network dispatch', async () => {
+    await expect(linksApi.createLink('note-1', { to_note_id: 'note-2' })).rejects.toThrow('#294');
+    await expect(linksApi.deleteLink('note-1', 'link-1')).rejects.toThrow('#294');
+    expect(mockClient.post).not.toHaveBeenCalled();
+    expect(mockClient.delete).not.toHaveBeenCalled();
+  });
 });

@@ -15,7 +15,6 @@ import {
   getNoteTool,
   reviseNoteTool,
   updateTagsTool,
-  linkNotesTool,
   listCollectionsTool,
   searchConceptsTool,
   getRelatedTool,
@@ -29,6 +28,7 @@ import {
 } from '../tools.js';
 import { resetCompatibilityAdmissionForTests } from '../compatibility.js';
 import { AGENT_TOOL_PRIVILEGES } from '../privileges.js';
+import { runWithFortemiRequestContext } from '../request-context.js';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -101,8 +101,8 @@ function compatibilityResponse(): Response {
 // ---------------------------------------------------------------------------
 
 describe('agentTools registry', () => {
-  it('exports all 12 tools', () => {
-    expect(Object.keys(agentTools)).toHaveLength(12);
+  it('exports all contract-backed tools', () => {
+    expect(Object.keys(agentTools)).toHaveLength(11);
   });
 
   it('contains expected tool names', () => {
@@ -112,7 +112,7 @@ describe('agentTools registry', () => {
     expect(names).toContain('get_note');
     expect(names).toContain('revise_note');
     expect(names).toContain('update_tags');
-    expect(names).toContain('link_notes');
+    expect(names).not.toContain('link_notes');
     expect(names).toContain('list_collections');
     expect(names).toContain('search_concepts');
     expect(names).toContain('get_related');
@@ -217,7 +217,7 @@ describe('searchNotesTool', () => {
     const [url, init] = mockFetch.mock.calls[0];
     expect(String(url)).toContain('/search?');
     expect(String(url)).toContain('q=machine+learning');
-    expect(init?.headers).toHaveProperty('Content-Type', 'application/json');
+    expect(new Headers(init?.headers).get('Content-Type')).toBe('application/json');
 
     expect(result).toHaveLength(1);
     expect(result[0]).toEqual({
@@ -489,32 +489,6 @@ describe('updateTagsTool', () => {
     expect(result.tags).toContain('a');
     expect(result.tags).toContain('b');
     expect(result.tags).toContain('c');
-  });
-});
-
-// ---------------------------------------------------------------------------
-// link_notes
-// ---------------------------------------------------------------------------
-
-describe('linkNotesTool', () => {
-  it('creates a link via POST /notes/:id/links', async () => {
-    mockFetch
-      .mockResolvedValueOnce(compatibilityResponse())
-      .mockResolvedValueOnce(jsonResponse({ id: 'link-1' }));
-
-    const result = await callTool<{ source_id: string; target_id: string; kind: string }>(
-      linkNotesTool, { source_id: 's1', target_id: 't1', kind: 'related' },
-    );
-
-    expect(mockFetch).toHaveBeenCalledTimes(2);
-    const [url, init] = mockFetch.mock.calls[1];
-    expect(String(url)).toContain('/notes/s1/links');
-    expect(init?.method).toBe('POST');
-    const body = JSON.parse(init?.body as string);
-    expect(body.to_note_id).toBe('t1');
-    expect(body.kind).toBe('related');
-
-    expect(result).toEqual({ source_id: 's1', target_id: 't1', kind: 'related' });
   });
 });
 
@@ -854,12 +828,13 @@ describe('getAttachmentsTool', () => {
 // ---------------------------------------------------------------------------
 
 describe('Fortemi API error handling', () => {
-  it('includes status code and body in error message', async () => {
-    mockFetch.mockResolvedValueOnce(errorResponse(404, 'Note not found'));
+  it('includes the status but redacts the upstream response body', async () => {
+    mockFetch.mockResolvedValueOnce(errorResponse(404, 'token=must-not-leak'));
 
-    await expect(
-      callTool(getNoteTool, { note_id: 'nonexistent' }),
-    ).rejects.toThrow(/404.*Note not found/);
+    const error = await callTool(getNoteTool, { note_id: 'nonexistent' })
+      .catch((caught: unknown) => caught as Error);
+    expect(error.message).toMatch(/returned 404/);
+    expect(error.message).not.toContain('must-not-leak');
   });
 
   it('handles fetch network errors', async () => {
@@ -868,6 +843,44 @@ describe('Fortemi API error handling', () => {
     await expect(
       callTool(listArchivesTool, {}),
     ).rejects.toThrow('ECONNREFUSED');
+  });
+});
+
+describe('authenticated Fortemi request context', () => {
+  const context = {
+    auth: {
+      tenantId: '00000000-0000-4000-8000-000000000001',
+      principalId: 'fixture-user',
+      issuedAt: 1,
+      expiresAt: 4_102_444_800,
+      scopes: [],
+      credential: { kind: 'bearer' as const, algorithm: 'RS256' as const, keyId: 'fixture' },
+    },
+    authorization: 'Bearer fixture-token',
+    memory: 'research',
+    mode: 'authenticated' as const,
+  };
+
+  it('forwards bearer and memory headers to Fortemi', async () => {
+    mockFetch.mockResolvedValueOnce(jsonResponse({ id: 'n1', title: 'Context' }));
+    await runWithFortemiRequestContext(context, () => callTool(getNoteTool, { note_id: 'n1' }));
+
+    const headers = new Headers(mockFetch.mock.calls[0][1]?.headers);
+    expect(headers.get('Authorization')).toBe('Bearer fixture-token');
+    expect(headers.get('X-Fortemi-Memory')).toBe('research');
+  });
+
+  it('rejects a tool argument that crosses the active memory', async () => {
+    await expect(runWithFortemiRequestContext(
+      context,
+      () => callTool(searchNotesTool, {
+        query: 'cross context',
+        limit: 10,
+        mode: 'hybrid',
+        archive: 'other-memory',
+      }),
+    )).rejects.toThrow('memory context mismatch');
+    expect(mockFetch).not.toHaveBeenCalled();
   });
 });
 

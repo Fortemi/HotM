@@ -36,6 +36,11 @@ import {
   type FlowActor,
 } from '../agent/flow-machine.js';
 import type { AgentToolName, StepSummary } from '../agent/types.js';
+import { requireAgentRequestContext } from '../auth/middleware.js';
+import {
+  bindToolsToFortemiRequestContext,
+  requestContextIdentity,
+} from '../request-context.js';
 
 const SYSTEM_PROMPT = `You are a knowledge assistant embedded in HotM (Hall of the Mind), \
 a note-taking and analysis application backed by Fortemi.
@@ -106,7 +111,6 @@ For complex requests involving multiple notes or analysis:
 - **get_note**: Retrieve a specific note by ID
 - **revise_note**: Trigger AI revision on an existing note
 - **update_tags**: Add or remove tags on a note
-- **link_notes**: Create a semantic link between two notes
 - **list_collections**: Browse note collections
 - **list_archives**: List available knowledge base archives (memory spaces)
 - **search_concepts**: Search the SKOS concept taxonomy
@@ -168,12 +172,14 @@ chatRouter.get('/', (_req, res) => {
 
 chatRouter.post('/privileges', (req, res) => {
   try {
+    const requestContext = requireAgentRequestContext(req);
     const sessionId = requirePrivilegeSessionId(req.body?.sessionId);
     const settings = parsePrivilegeSettings(req.body?.settings);
     const stored = agentPrivilegeStore.updateSession(
       sessionId,
       settings,
       req.body?.clientRevision,
+      requestContextIdentity(requestContext),
     );
     res.json({ settings: stored });
   } catch (error) {
@@ -183,6 +189,7 @@ chatRouter.post('/privileges', (req, res) => {
 
 chatRouter.post('/privileges/confirm', (req, res) => {
   try {
+    const requestContext = requireAgentRequestContext(req);
     const sessionId = requirePrivilegeSessionId(req.body?.sessionId);
     const decision = req.body?.decision as ConfirmationDecision;
     if (decision !== 'allow' && decision !== 'allow-remember' && decision !== 'deny') {
@@ -197,6 +204,7 @@ chatRouter.post('/privileges/confirm', (req, res) => {
       toolName: req.body.toolName,
       args: req.body.args,
       decision,
+      identityKey: requestContextIdentity(requestContext),
     });
     res.json({ resolved: true });
   } catch (error) {
@@ -206,6 +214,7 @@ chatRouter.post('/privileges/confirm', (req, res) => {
 
 chatRouter.post('/', async (req, res) => {
   try {
+    const requestContext = requireAgentRequestContext(req);
     const {
       messages,
       provider = 'ollama',
@@ -280,8 +289,10 @@ chatRouter.post('/', async (req, res) => {
 
     // Determine if we need tools at all
     const hasTools = flowCtx.activeTools.length > 0;
-    const privilegedTools = createPrivilegedTools(agentTools, agentPrivilegeStore, {
+    const contextualTools = bindToolsToFortemiRequestContext(agentTools, requestContext);
+    const privilegedTools = createPrivilegedTools(contextualTools, agentPrivilegeStore, {
       sessionId: privilegeSessionId,
+      identityKey: requestContextIdentity(requestContext),
       requestRestriction: privilegeRestriction,
     });
 

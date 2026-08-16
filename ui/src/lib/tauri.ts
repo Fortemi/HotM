@@ -31,7 +31,10 @@ export interface HotmHostAdapter {
   version?: number;
   network: {
     sse: {
-      connect(args: { url: string }): Promise<{ handle: string; event: string }>;
+      connect(args: {
+        url: string;
+        headers?: Record<string, string>;
+      }): Promise<{ handle: string; event: string }>;
       close?(args: { handle: string }): Promise<void>;
     };
     fetch(args: {
@@ -221,7 +224,7 @@ function makeAdapterFetch(adapter: HotmHostAdapter): typeof globalThis.fetch {
 
     const accept = headers["accept"] || headers["Accept"] || "";
     if (accept.includes("text/event-stream")) {
-      const { handle } = await adapter.network.sse.connect({ url });
+      const { handle } = await adapter.network.sse.connect({ url, headers });
       const stream = new ReadableStream({
         start(controller) {
           const encoder = new TextEncoder();

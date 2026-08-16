@@ -50,12 +50,6 @@ export interface TagUpdateResult {
   tags: string[];
 }
 
-export interface LinkCreatedResult {
-  source_id: string;
-  target_id: string;
-  kind: string;
-}
-
 export interface CollectionListResult {
   collections: Array<{ id: string; name: string; description?: string }>;
 }
@@ -81,7 +75,6 @@ export type ToolResult =
   | { type: 'get_note'; data: NoteDetailResult }
   | { type: 'revise_note'; data: RevisionResult }
   | { type: 'update_tags'; data: TagUpdateResult }
-  | { type: 'link_notes'; data: LinkCreatedResult }
   | { type: 'list_collections'; data: CollectionListResult }
   | { type: 'search_concepts'; data: ConceptSearchResult }
   | { type: 'get_related'; data: RelatedNotesResult };
@@ -244,32 +237,6 @@ export const updateTagsTool = tool({
   },
 });
 
-export const linkNotesTool = tool({
-  description:
-    'Create a semantic link between two notes. ' +
-    'Use this when the user asks to connect, link, or relate two notes.',
-  inputSchema: z.object({
-    source_id: z.string().describe('Source note ID'),
-    target_id: z.string().describe('Target note ID'),
-    kind: z
-      .enum(['related', 'reference', 'mention', 'task', 'semantic'])
-      .optional()
-      .default('related')
-      .describe('Link type: related (default), reference, mention, task, or semantic'),
-  }),
-  execute: async ({ source_id, target_id, kind }) => {
-    await api.links.createLink(source_id, {
-      to_note_id: target_id,
-      kind: kind ?? 'related',
-    });
-    return {
-      source_id,
-      target_id,
-      kind: kind ?? 'related',
-    };
-  },
-});
-
 export const listCollectionsTool = tool({
   description:
     'List available note collections. ' +
@@ -367,7 +334,6 @@ export const agentTools = {
   get_note: getNoteTool,
   revise_note: reviseNoteTool,
   update_tags: updateTagsTool,
-  link_notes: linkNotesTool,
   list_collections: listCollectionsTool,
   search_concepts: searchConceptsTool,
   get_related: getRelatedTool,
