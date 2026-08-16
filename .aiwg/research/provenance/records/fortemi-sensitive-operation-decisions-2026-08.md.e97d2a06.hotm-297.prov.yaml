@@ -1,0 +1,46 @@
+metadata:
+  schema_version: "1.0.0"
+  created_at: "2026-08-16T17:08:36Z"
+  updated_at: "2026-08-16T17:08:36Z"
+  description: "Provenance for HotM sensitive-operation remediation issue #297"
+entity:
+  id: "urn:aiwg:artifact:.aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+  type: "document"
+  created_at: "2026-08-16T17:08:36Z"
+  updated_at: "2026-08-16T17:08:36Z"
+  checksum: "sha256:e97d2a067551b3571a3882fb0268a1bcd447d2ed29b760b103c852fc637449be"
+  size_bytes: 11142
+  attributes:
+    change_scope: "hotm-297-sensitive-operation-remediation"
+    base_revision: "d45c8129486392adf9bb8ad69b57f5e743c52101"
+activity:
+  id: "urn:aiwg:activity:generation:aiwg-security-fortemi-sensitive-operation-decisions-2026-08-md:hotm-297"
+  type: "generation"
+  started_at: "2026-08-16T17:08:36Z"
+  ended_at: "2026-08-16T17:08:36Z"
+  description: "Classify and harden credential, PKE, binary/media, backup, and TUS integration boundaries"
+agent:
+  id: "urn:aiwg:agent:codex-gpt-5"
+  type: "ai_assistant"
+  name: "Codex"
+  version: "gpt-5"
+  tool: "codex"
+relationships:
+  wasGeneratedBy:
+    entity: "urn:aiwg:artifact:.aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+    activity: "urn:aiwg:activity:generation:aiwg-security-fortemi-sensitive-operation-decisions-2026-08-md:hotm-297"
+    time: "2026-08-16T17:08:36Z"
+  used:
+    - activity: "urn:aiwg:activity:generation:aiwg-security-fortemi-sensitive-operation-decisions-2026-08-md:hotm-297"
+      entity: "urn:gitea:Fortemi/HotM:issue:297"
+      role: "requirement"
+    - activity: "urn:aiwg:activity:generation:aiwg-security-fortemi-sensitive-operation-decisions-2026-08-md:hotm-297"
+      entity: "urn:git:Fortemi/fortemi:5ea08229c9f1565122df5f8e6906e89d98dc7e75:contracts/openapi/openapi.yaml"
+      role: "producer-contract"
+  wasAssociatedWith:
+    activity: "urn:aiwg:activity:generation:aiwg-security-fortemi-sensitive-operation-decisions-2026-08-md:hotm-297"
+    agent: "urn:aiwg:agent:codex-gpt-5"
+    role: "primary_author"
+  wasAttributedTo:
+    entity: "urn:aiwg:artifact:.aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+    agent: "urn:aiwg:agent:codex-gpt-5"

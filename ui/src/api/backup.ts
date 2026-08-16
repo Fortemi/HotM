@@ -66,35 +66,13 @@ export function createBackupApi(client: ApiClient) {
     };
   };
 
-  const fileToBase64 = async (file: File): Promise<string> => {
-    const arrayBuffer = await file.arrayBuffer();
-    let binary = '';
-    const bytes = new Uint8Array(arrayBuffer);
-    const chunkSize = 0x8000;
-    for (let i = 0; i < bytes.length; i += chunkSize) {
-      const chunk = bytes.subarray(i, i + chunkSize);
-      binary += String.fromCharCode(...chunk);
-    }
-    return btoa(binary);
-  };
   const encodePathSegment = (value: string): string => encodeURIComponent(value.trim());
-  const jsonErrorMessage = async (response: Response, fallback: string): Promise<string> => {
-    const error = await response.json().catch(() => ({}));
-    if (error && typeof error === 'object') {
-      const message = (
-        error as {
-          message?: unknown;
-          detail?: unknown;
-          title?: unknown;
-          error?: { message?: unknown };
-        }
-      ).message
-        ?? (error as { detail?: unknown }).detail
-        ?? (error as { error?: { message?: unknown } }).error?.message
-        ?? (error as { title?: unknown }).title;
-      if (typeof message === 'string' && message.trim()) return message;
-    }
-    return fallback;
+  const transferFailure = (action: 'Upload' | 'Download' | 'Export', status: number): Error => {
+    if (status === 401 || status === 403) return new Error(`${action} authorization expired or was denied.`);
+    if (status === 413) return new Error(`${action} exceeds the server size limit.`);
+    if (status === 429) return new Error(`${action} is rate limited. Retry later.`);
+    if (status >= 500) return new Error(`${action} service is unavailable.`);
+    return new Error(`${action} failed (HTTP ${status}).`);
   };
   const assertSuccessfulShardImport = (
     response: KnowledgeShardImportResponse | undefined,
@@ -104,10 +82,7 @@ export function createBackupApi(client: ApiClient) {
       ? response.errors.filter((error) => typeof error === 'string' && error.trim())
       : [];
     if ((response.status && response.status !== 'success') || errors.length > 0) {
-      throw new Error(
-        errors[0]
-        ?? `Knowledge shard import returned ${response.status ?? 'an unsuccessful result'}.`,
-      );
+      throw new Error('Knowledge shard import validation failed.');
     }
   };
 
@@ -136,7 +111,7 @@ export function createBackupApi(client: ApiClient) {
       });
 
       if (!response.ok) {
-        throw new Error(`Download failed: ${response.statusText}`);
+        throw transferFailure('Download', response.status);
       }
 
       return response.blob();
@@ -219,7 +194,7 @@ export function createBackupApi(client: ApiClient) {
       });
 
       if (!response.ok) {
-        throw new Error(`Export failed: ${response.statusText}`);
+        throw transferFailure('Export', response.status);
       }
 
       const blob = await response.blob();
@@ -269,7 +244,7 @@ export function createBackupApi(client: ApiClient) {
         { headers: getMemoryHeaders() },
       );
       if (!response.ok) {
-        throw new Error(`Export failed: ${response.statusText}`);
+        throw transferFailure('Export', response.status);
       }
       if (!response.body) {
         throw new Error('Streaming shard export is unavailable in this client.');
@@ -293,19 +268,7 @@ export function createBackupApi(client: ApiClient) {
         throw new Error('Knowledge shard file is required');
       }
 
-      const manifest = await inspectKnowledgeShard(file);
-      if (manifest.profile === SUPPORTED_FULL_V1_PROFILE) {
-        throw new Error('Knowledge shard 2.0.0/full-v1 import requires the streaming multipart recovery path.');
-      }
-      const shardBase64 = await fileToBase64(file);
-      const response = await client.post<KnowledgeShardImportResponse | undefined>(
-        '/backup/knowledge-shard/import',
-        {
-          shard_base64: shardBase64,
-        },
-      );
-      assertSuccessfulShardImport(response);
-      return { manifest, response };
+      throw new Error('Legacy base64 shard import is disabled. Use the multipart recovery workflow.');
     },
 
     /**
@@ -339,9 +302,7 @@ export function createBackupApi(client: ApiClient) {
         if (trustedKeyIds.length > 0) {
           const signature = await inspectKnowledgeShardSignature(file);
           if (!trustedKeyIds.includes(signature.signer.key_id)) {
-            throw new Error(
-              `Knowledge shard publisher ${signature.signer.key_id} is not in HotM's trusted publisher allowlist.`,
-            );
+            throw new Error('Knowledge shard publisher is not trusted.');
           }
         }
       }
@@ -371,7 +332,7 @@ export function createBackupApi(client: ApiClient) {
           body: formData,
         });
         if (!response.ok) {
-          throw new Error(await jsonErrorMessage(response, `Upload failed: ${response.statusText}`));
+          throw transferFailure('Upload', response.status);
         }
         const result = await response
           .json()
@@ -409,7 +370,7 @@ export function createBackupApi(client: ApiClient) {
       });
 
       if (!response.ok) {
-        throw new Error(`Download failed: ${response.statusText}`);
+        throw transferFailure('Download', response.status);
       }
 
       return response.blob();
@@ -437,13 +398,8 @@ export function createBackupApi(client: ApiClient) {
         throw new Error('Database backup file is required');
       }
 
-      const dataBase64 = await fileToBase64(file);
-      await client.post('/backup/database/upload', {
-        data_base64: dataBase64,
-        original_filename: file.name,
-        title: metadata.title,
-        description: metadata.description,
-      });
+      void metadata;
+      throw new Error('Database backup upload is disabled until a native byte-transfer contract is available.');
     },
 
     /**
@@ -474,7 +430,7 @@ export function createBackupApi(client: ApiClient) {
       });
 
       if (!response.ok) {
-        throw new Error(`Download failed: ${response.statusText}`);
+        throw transferFailure('Download', response.status);
       }
 
       return response.blob();
@@ -500,7 +456,7 @@ export function createBackupApi(client: ApiClient) {
       });
 
       if (!response.ok) {
-        throw new Error(`Download failed: ${response.statusText}`);
+        throw transferFailure('Download', response.status);
       }
 
       return response.blob();
@@ -528,7 +484,7 @@ export function createBackupApi(client: ApiClient) {
       });
 
       if (!response.ok) {
-        throw new Error(await jsonErrorMessage(response, `Upload failed: ${response.statusText}`));
+        throw transferFailure('Upload', response.status);
       }
     },
 

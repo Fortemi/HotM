@@ -170,7 +170,7 @@ compatibility, Knowledge Shard, or authentication evidence.
 | REQ-017 auth contract | `agent-proxy/src/auth/middleware.ts`, `auth/verify.ts`, compatibility receipt, middleware tests | Mandatory pre-parse consumer enforcement implemented. Required hosted mode denies missing/unknown claim contract; `fortemi-auth` release authority remains unresolved, so #231 stays open. |
 | REQ-018 realtime context | `ui/src/api/events.ts`, `ui/src/services/websocket.ts`, Tauri header adapter, event/WS tests | Scoped fetch SSE forwards bearer/memory/replay headers and rejects tenant/memory mismatch. Scoped WS is excluded pending Fortemi #953; #285 stays open. |
 | REQ-019 agent privileges | `agent-proxy/src/request-context.ts`, `privileges.ts`, `routes/chat.ts`, UI chat/privilege hooks | Sessions bind to admitted identity; tool execution forwards only admitted context. Existing contract-backed registry is enforced, but all-operation agent acceptance in #123 remains open. |
-| REQ-021 umbrella disposition | `scripts/ci/verify-fortemi-operation-dispositions.mjs`, generated 251-row ledger, `OperationCatalogPanel.tsx` | Zero implicit product dispositions: 16 UI, 11 agent, 183 diagnostic, 41 excluded. This does not upgrade the #290 conformance dimensions; #287 remains open for typed/browser workflows. |
+| REQ-021 umbrella disposition | `scripts/ci/verify-fortemi-operation-dispositions.mjs`, generated 251-row ledger, `OperationCatalogPanel.tsx` | Zero implicit product dispositions: 130 UI, 10 agent, 5 external handoff, 75 diagnostic, 31 excluded. This does not upgrade the #290 conformance dimensions. |
 | Removed link mutation | pinned OpenAPI/current Fortemi router, `ui/src/api/links.ts`, both agent registries, static API specs, focused tests, disposition verifier | #294 resolves the replacement decision as removal: only authenticated GET reads are producer-owned. No create/delete client method or agent claim remains; a future mutation needs a new pinned contract and full evidence. |
 
 ## 2026-08-16 Core And Operator Trace Update
@@ -179,8 +179,22 @@ compatibility, Knowledge Shard, or authentication evidence.
 | --- | --- | --- |
 | REQ-020 core workflows (#295) | `core-content-operations.ts`, typed API modules, bounded codecs, lifecycle component tests, desktop/mobile Playwright scenarios | 60 exact entries cover notes, provenance, collections, templates, document types, jobs, SKOS, and graph workflows. Request/response/UI dimensions are conformant; operation auth, agent, and live remain independent. |
 | REQ-021 operator workflows (#296) | `operator.ts`, `OperatorConsole.tsx`, focused API/component tests, desktop/mobile Playwright scenarios | 76 exact entries cover non-secret diagnostics and confirmed controls. Responses are bounded/redacted and unknown SSE events remain unknown. Restricted #297 operations are not promoted. |
-| Generated operation ledger | operation evidence source, generated coverage JSON/Markdown, product-disposition verifier | 118 unique promoted tuples after 18 overlaps; 251 total operations are 1 integrated, 249 partial, and 1 gap with zero diagnostics. Route matching does not supply any missing dimension. |
+| Generated operation ledger | operation evidence source, generated coverage JSON/Markdown, product-disposition verifier | #295/#296 added 118 unique tuples after 18 overlaps. After #297, 251 operations are 1 integrated, 218 partial, 1 gap, and 31 documented exclusions with zero diagnostics. Route matching does not supply any missing dimension. |
 
 Mocked browser receipts verify deterministic rendering and interaction only.
 They are not live Fortemi, operation-specific authorization, binary transfer,
 Knowledge Shard round-trip, or cross-language auth receipts.
+
+## 2026-08-16 Sensitive Operation Trace Update
+
+| Requirement | Executable evidence | Result / remaining work |
+| --- | --- | --- |
+| REQ-024 exact decision set | `.aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md`, schema-v2 generated operation ledger, stale-ledger CI verifier | Exactly 41 rows: 5 typed TUS, 5 browser/native media handoffs, 31 disabled exclusions. Each row names its owner and blocker. |
+| REQ-007 TUS transport | `tusUploader.ts`, `uploadStore.ts`, `SaveAsNoteButton.tsx`, focused tests | All remote file sizes use TUS; tests cover create/options/head/patch/delete, finalization, cancellation, offset, expiry, max size, malformed metadata, auth expiry, and redaction. |
+| REQ-011 sensitive errors | `attachments.ts`, `backup.ts`, Admin auth/catalog panels and focused tests | Producer bodies, bearer artifacts, upload URLs, tenant IDs, local paths, and binary data do not reach generic errors or rendered diagnostics. |
+| Continued exclusions | pinned OpenAPI receipt plus exact #297 table | API keys, OAuth, PKE, legacy attachment upload, and underspecified backup routes remain disabled. `fortemi-auth` has no qualifying release; missing producer schemas are not inferred. |
+
+The 5 media handoffs and 5 TUS workflows are product-disposition evidence, not
+operation-specific auth or live receipts. The 31 exclusions stay visible and
+disabled in the Operations catalog. Route equality and current Fortemi source
+inspection do not alter these boundaries.

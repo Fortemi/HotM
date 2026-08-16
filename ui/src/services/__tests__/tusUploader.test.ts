@@ -62,9 +62,9 @@ describe('tusUploader', () => {
   // ---- shouldUseTus ----
 
   describe('shouldUseTus', () => {
-    it('returns false for files below threshold', () => {
-      const small = makeFile('doc.pdf', TUS_THRESHOLD_BYTES - 1);
-      expect(shouldUseTus(small)).toBe(false);
+    it('routes small remote files through TUS', () => {
+      const small = makeFile('doc.pdf', 1);
+      expect(shouldUseTus(small)).toBe(true);
     });
 
     it('returns true for files at threshold', () => {
@@ -338,15 +338,30 @@ describe('tusUploader', () => {
       );
     });
 
-    it('promise rejects on tus error', async () => {
+    it('redacts upload URLs and credentials from tus errors', async () => {
       const file = makeFile('f.bin', 60 * 1024 * 1024);
       const handle = startTusUpload({ noteId: 'note-1', file, mediaOptimize: false });
 
       // Simulate tus onError callback
       const tusOnError = capturedOptions.onError as (err: Error) => void;
-      tusOnError(new Error('Connection reset'));
+      tusOnError(new Error('Connection reset at https://api.example.com/tus/upload-123?token=secret path=/home/private'));
 
-      await expect(handle.promise).rejects.toThrow('Connection reset');
+      await expect(handle.promise).rejects.toThrow('TUS upload failed.');
+    });
+
+    it('classifies authorization expiry without exposing the bearer artifact', async () => {
+      const file = makeFile('f.bin', 60 * 1024 * 1024);
+      const handle = startTusUpload({ noteId: 'note-1', file, mediaOptimize: false });
+      const tusOnError = capturedOptions.onError as (err: Error) => void;
+      tusOnError(new Error('HTTP 401 Authorization: Bearer secret-value'));
+      await expect(handle.promise).rejects.toThrow('TUS upload authorization expired or was denied.');
+    });
+
+    it('rejects malformed metadata before starting a transport', () => {
+      const file = makeFile('bad\nname.bin', 1024);
+      expect(() => startTusUpload({ noteId: 'note-1', file, mediaOptimize: false }))
+        .toThrow('invalid upload metadata');
+      expect(mockStart).not.toHaveBeenCalled();
     });
 
     it('promise rejects when finalize GET returns non-ok response', async () => {

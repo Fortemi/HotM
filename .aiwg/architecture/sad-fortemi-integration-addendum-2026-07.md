@@ -435,9 +435,10 @@ means all events, and unknown events remain unknown. The legacy WebSocket is
 allowed only for an explicitly advertised unscoped `anonymous_local` profile;
 scoped WebSocket use remains excluded pending Fortemi #953.
 
-The generated disposition ledger classifies all 251 pinned operations: 16 UI
-workflows, 11 curated agent workflows, 183 read-only operator diagnostics, and
-41 documented protocol exclusions. Privilege classes are 65 admin, 21 delete,
+The generated disposition ledger classifies all 251 pinned operations: 130 UI
+workflows, 10 curated agent workflows, 5 external browser/native handoffs, 75
+read-only operator diagnostics, and 31 documented protocol exclusions.
+Privilege classes are 65 admin, 21 delete,
 96 read, and 69 write. This is product-disposition evidence only and does not
 alter request, response, auth, or live conformance. The #294 authority review
 compared the pinned OpenAPI producer revision and current Fortemi
@@ -470,3 +471,29 @@ Secret-bearing webhook/inbound creation, credential/key administration,
 binary backup/archive transfer, and Knowledge Shard transfer are not promoted
 by these amendments. They remain within #297's explicit authorization and
 profile-specific verification boundary.
+
+### Sensitive Operation Boundary Amendment (2026-08-16)
+
+Issue #297 classifies exactly 41 credential, PKE, attachment/media, backup, and
+TUS operations in
+`.aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md`. Five TUS
+operations are typed UI workflows, five media reads are authenticated
+browser/Tauri protocol handoffs, and 31 operations remain disabled documented
+exclusions. The generated ledger records decision owner, enabled state,
+rationale, blockers, and evidence for each row and CI rejects count drift or an
+enabled exclusion.
+
+Remote browser uploads use TUS for all file sizes. Browser/Tauri primitives
+carry bytes directly; the legacy multipart attachment method, JSON/base64
+database upload, and base64 Knowledge Shard import are disabled. Transfer
+errors are reduced to bounded status classes before reaching UI, telemetry, or
+generic error surfaces. Producer bodies, bearer artifacts, upload URLs, tenant
+identifiers, local paths, and binary content are not rendered or forwarded to
+the generic agent boundary.
+
+This amendment does not promote API-key, OAuth, PKE, or underspecified backup
+operations. Their pinned success responses or binary media declarations are
+incomplete. `fortemi-auth` remains specification-only because the required
+Rust workspace, CI, release, and shared Rust/Node fixture receipts are not all
+present. Local-only workflows remain available when compatibility or auth
+admission fails closed.

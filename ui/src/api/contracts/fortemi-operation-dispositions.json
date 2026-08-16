@@ -1,5 +1,5 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "source": ".aiwg/api/compatibility/fortemi-v2026-07-operation-coverage.json",
   "openapi": {
     "path": "ui/src/api/contracts/fortemi-openapi.yaml",
@@ -20,9 +20,15 @@
     },
     "surfaces": {
       "agent_workflow": 10,
-      "documented_exclusion": 41,
+      "documented_exclusion": 31,
+      "external_protocol_handoff": 5,
       "operator_diagnostic": 75,
-      "ui_workflow": 125
+      "ui_workflow": 130
+    },
+    "security_decisions": {
+      "continued_exclusion": 31,
+      "external_browser_protocol_handoff": 5,
+      "typed_ui_workflow": 5
     }
   },
   "evidence_boundary": "Product disposition and privilege classification only; this ledger does not establish request, response, auth, event, portable-data, compatibility, or live conformance.",
@@ -65,11 +71,18 @@
       "family": "auth_api_keys",
       "privilege": "admin",
       "surface": "documented_exclusion",
-      "rationale": "Credential, key-material, binary-transfer, or resumable-upload protocol handling is excluded from generic agent invocation pending typed workflow evidence.",
+      "rationale": "Pinned API-key success responses are not schema-bearing; secret receipt and lifecycle conformance is unverified.",
       "evidence_paths": [
-        ".aiwg/architecture/adr/ADR-010-fortemi-v2026-07-api-coverage.md"
+        "ui/src/api/contracts/fortemi-openapi-receipt.json",
+        ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
       ],
-      "conformance_disposition": "partial",
+      "security_decision": "continued_exclusion",
+      "decision_owner": "Fortemi auth and HotM security",
+      "enabled": false,
+      "promotion_blockers": [
+        "Pinned API-key success responses are not schema-bearing; secret receipt and lifecycle conformance is unverified."
+      ],
+      "conformance_disposition": "documented_exclusion",
       "tracker": "#287"
     },
     {
@@ -80,11 +93,18 @@
       "family": "auth_api_keys",
       "privilege": "admin",
       "surface": "documented_exclusion",
-      "rationale": "Credential, key-material, binary-transfer, or resumable-upload protocol handling is excluded from generic agent invocation pending typed workflow evidence.",
+      "rationale": "Pinned API-key success responses are not schema-bearing; secret receipt and lifecycle conformance is unverified.",
       "evidence_paths": [
-        ".aiwg/architecture/adr/ADR-010-fortemi-v2026-07-api-coverage.md"
+        "ui/src/api/contracts/fortemi-openapi-receipt.json",
+        ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
       ],
-      "conformance_disposition": "partial",
+      "security_decision": "continued_exclusion",
+      "decision_owner": "Fortemi auth and HotM security",
+      "enabled": false,
+      "promotion_blockers": [
+        "Pinned API-key success responses are not schema-bearing; secret receipt and lifecycle conformance is unverified."
+      ],
+      "conformance_disposition": "documented_exclusion",
       "tracker": "#287"
     },
     {
@@ -95,11 +115,18 @@
       "family": "auth_api_keys",
       "privilege": "admin",
       "surface": "documented_exclusion",
-      "rationale": "Credential, key-material, binary-transfer, or resumable-upload protocol handling is excluded from generic agent invocation pending typed workflow evidence.",
+      "rationale": "Pinned API-key success responses are not schema-bearing; secret receipt and lifecycle conformance is unverified.",
       "evidence_paths": [
-        ".aiwg/architecture/adr/ADR-010-fortemi-v2026-07-api-coverage.md"
+        "ui/src/api/contracts/fortemi-openapi-receipt.json",
+        ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
       ],
-      "conformance_disposition": "partial",
+      "security_decision": "continued_exclusion",
+      "decision_owner": "Fortemi auth and HotM security",
+      "enabled": false,
+      "promotion_blockers": [
+        "Pinned API-key success responses are not schema-bearing; secret receipt and lifecycle conformance is unverified."
+      ],
+      "conformance_disposition": "documented_exclusion",
       "tracker": "#287"
     },
     {
@@ -290,11 +317,17 @@
       "operation_id": "download_attachment",
       "family": "attachments",
       "privilege": "read",
-      "surface": "documented_exclusion",
-      "rationale": "Credential, key-material, binary-transfer, or resumable-upload protocol handling is excluded from generic agent invocation pending typed workflow evidence.",
+      "surface": "external_protocol_handoff",
+      "rationale": "Authenticated media bytes are handled by browser/Tauri fetch and media primitives; payloads and local paths never enter generic agent input.",
       "evidence_paths": [
-        ".aiwg/architecture/adr/ADR-010-fortemi-v2026-07-api-coverage.md"
+        "ui/src/api/attachments.ts",
+        "ui/src/api/__tests__/attachments.test.ts",
+        "ui/src/components/attachments/__tests__/StreamingMedia.test.tsx"
       ],
+      "security_decision": "external_browser_protocol_handoff",
+      "decision_owner": "HotM media UI",
+      "enabled": true,
+      "promotion_blockers": [],
       "conformance_disposition": "partial",
       "tracker": "#287"
     },
@@ -305,11 +338,17 @@
       "operation_id": "get_sprite_sheet",
       "family": "attachments",
       "privilege": "read",
-      "surface": "documented_exclusion",
-      "rationale": "Credential, key-material, binary-transfer, or resumable-upload protocol handling is excluded from generic agent invocation pending typed workflow evidence.",
+      "surface": "external_protocol_handoff",
+      "rationale": "Authenticated media bytes are handled by browser/Tauri fetch and media primitives; payloads and local paths never enter generic agent input.",
       "evidence_paths": [
-        ".aiwg/architecture/adr/ADR-010-fortemi-v2026-07-api-coverage.md"
+        "ui/src/api/attachments.ts",
+        "ui/src/api/__tests__/attachments.test.ts",
+        "ui/src/components/attachments/__tests__/StreamingMedia.test.tsx"
       ],
+      "security_decision": "external_browser_protocol_handoff",
+      "decision_owner": "HotM media UI",
+      "enabled": true,
+      "promotion_blockers": [],
       "conformance_disposition": "partial",
       "tracker": "#287"
     },
@@ -320,11 +359,17 @@
       "operation_id": "get_attachment_subtitles",
       "family": "attachments",
       "privilege": "read",
-      "surface": "documented_exclusion",
-      "rationale": "Credential, key-material, binary-transfer, or resumable-upload protocol handling is excluded from generic agent invocation pending typed workflow evidence.",
+      "surface": "external_protocol_handoff",
+      "rationale": "Authenticated media bytes are handled by browser/Tauri fetch and media primitives; payloads and local paths never enter generic agent input.",
       "evidence_paths": [
-        ".aiwg/architecture/adr/ADR-010-fortemi-v2026-07-api-coverage.md"
+        "ui/src/api/attachments.ts",
+        "ui/src/api/__tests__/attachments.test.ts",
+        "ui/src/components/attachments/__tests__/StreamingMedia.test.tsx"
       ],
+      "security_decision": "external_browser_protocol_handoff",
+      "decision_owner": "HotM media UI",
+      "enabled": true,
+      "promotion_blockers": [],
       "conformance_disposition": "partial",
       "tracker": "#287"
     },
@@ -335,11 +380,17 @@
       "operation_id": "get_attachment_thumbnail",
       "family": "attachments",
       "privilege": "read",
-      "surface": "documented_exclusion",
-      "rationale": "Credential, key-material, binary-transfer, or resumable-upload protocol handling is excluded from generic agent invocation pending typed workflow evidence.",
+      "surface": "external_protocol_handoff",
+      "rationale": "Authenticated media bytes are handled by browser/Tauri fetch and media primitives; payloads and local paths never enter generic agent input.",
       "evidence_paths": [
-        ".aiwg/architecture/adr/ADR-010-fortemi-v2026-07-api-coverage.md"
+        "ui/src/api/attachments.ts",
+        "ui/src/api/__tests__/attachments.test.ts",
+        "ui/src/components/attachments/__tests__/StreamingMedia.test.tsx"
       ],
+      "security_decision": "external_browser_protocol_handoff",
+      "decision_owner": "HotM media UI",
+      "enabled": true,
+      "promotion_blockers": [],
       "conformance_disposition": "partial",
       "tracker": "#287"
     },
@@ -350,11 +401,17 @@
       "operation_id": "get_sprite_vtt",
       "family": "attachments",
       "privilege": "read",
-      "surface": "documented_exclusion",
-      "rationale": "Credential, key-material, binary-transfer, or resumable-upload protocol handling is excluded from generic agent invocation pending typed workflow evidence.",
+      "surface": "external_protocol_handoff",
+      "rationale": "Authenticated media bytes are handled by browser/Tauri fetch and media primitives; payloads and local paths never enter generic agent input.",
       "evidence_paths": [
-        ".aiwg/architecture/adr/ADR-010-fortemi-v2026-07-api-coverage.md"
+        "ui/src/api/attachments.ts",
+        "ui/src/api/__tests__/attachments.test.ts",
+        "ui/src/components/attachments/__tests__/StreamingMedia.test.tsx"
       ],
+      "security_decision": "external_browser_protocol_handoff",
+      "decision_owner": "HotM media UI",
+      "enabled": true,
+      "promotion_blockers": [],
       "conformance_disposition": "partial",
       "tracker": "#287"
     },
@@ -381,11 +438,18 @@
       "family": "backup_archive",
       "privilege": "admin",
       "surface": "documented_exclusion",
-      "rationale": "Credential, key-material, binary-transfer, or resumable-upload protocol handling is excluded from generic agent invocation pending typed workflow evidence.",
+      "rationale": "Pinned binary media types, response headers, or upload request schemas are incomplete for this route.",
       "evidence_paths": [
-        ".aiwg/architecture/adr/ADR-010-fortemi-v2026-07-api-coverage.md"
+        "ui/src/api/contracts/fortemi-openapi-receipt.json",
+        ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
       ],
-      "conformance_disposition": "partial",
+      "security_decision": "continued_exclusion",
+      "decision_owner": "Fortemi backup and HotM recovery UI",
+      "enabled": false,
+      "promotion_blockers": [
+        "Pinned binary media types, response headers, or upload request schemas are incomplete for this route."
+      ],
+      "conformance_disposition": "documented_exclusion",
       "tracker": "#287"
     },
     {
@@ -430,11 +494,18 @@
       "family": "backup_archive",
       "privilege": "admin",
       "surface": "documented_exclusion",
-      "rationale": "Credential, key-material, binary-transfer, or resumable-upload protocol handling is excluded from generic agent invocation pending typed workflow evidence.",
+      "rationale": "Pinned binary media types, response headers, or upload request schemas are incomplete for this route.",
       "evidence_paths": [
-        ".aiwg/architecture/adr/ADR-010-fortemi-v2026-07-api-coverage.md"
+        "ui/src/api/contracts/fortemi-openapi-receipt.json",
+        ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
       ],
-      "conformance_disposition": "partial",
+      "security_decision": "continued_exclusion",
+      "decision_owner": "Fortemi backup and HotM recovery UI",
+      "enabled": false,
+      "promotion_blockers": [
+        "Pinned binary media types, response headers, or upload request schemas are incomplete for this route."
+      ],
+      "conformance_disposition": "documented_exclusion",
       "tracker": "#287"
     },
     {
@@ -445,11 +516,18 @@
       "family": "backup_archive",
       "privilege": "admin",
       "surface": "documented_exclusion",
-      "rationale": "Credential, key-material, binary-transfer, or resumable-upload protocol handling is excluded from generic agent invocation pending typed workflow evidence.",
+      "rationale": "Pinned binary media types, response headers, or upload request schemas are incomplete for this route.",
       "evidence_paths": [
-        ".aiwg/architecture/adr/ADR-010-fortemi-v2026-07-api-coverage.md"
+        "ui/src/api/contracts/fortemi-openapi-receipt.json",
+        ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
       ],
-      "conformance_disposition": "partial",
+      "security_decision": "continued_exclusion",
+      "decision_owner": "Fortemi backup and HotM recovery UI",
+      "enabled": false,
+      "promotion_blockers": [
+        "Pinned binary media types, response headers, or upload request schemas are incomplete for this route."
+      ],
+      "conformance_disposition": "documented_exclusion",
       "tracker": "#287"
     },
     {
@@ -490,11 +568,18 @@
       "family": "backup_archive",
       "privilege": "admin",
       "surface": "documented_exclusion",
-      "rationale": "Credential, key-material, binary-transfer, or resumable-upload protocol handling is excluded from generic agent invocation pending typed workflow evidence.",
+      "rationale": "Pinned binary media types, response headers, or upload request schemas are incomplete for this route.",
       "evidence_paths": [
-        ".aiwg/architecture/adr/ADR-010-fortemi-v2026-07-api-coverage.md"
+        "ui/src/api/contracts/fortemi-openapi-receipt.json",
+        ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
       ],
-      "conformance_disposition": "partial",
+      "security_decision": "continued_exclusion",
+      "decision_owner": "Fortemi backup and HotM recovery UI",
+      "enabled": false,
+      "promotion_blockers": [
+        "Pinned binary media types, response headers, or upload request schemas are incomplete for this route."
+      ],
+      "conformance_disposition": "documented_exclusion",
       "tracker": "#287"
     },
     {
@@ -505,11 +590,18 @@
       "family": "backup_archive",
       "privilege": "admin",
       "surface": "documented_exclusion",
-      "rationale": "Credential, key-material, binary-transfer, or resumable-upload protocol handling is excluded from generic agent invocation pending typed workflow evidence.",
+      "rationale": "Pinned binary media types, response headers, or upload request schemas are incomplete for this route.",
       "evidence_paths": [
-        ".aiwg/architecture/adr/ADR-010-fortemi-v2026-07-api-coverage.md"
+        "ui/src/api/contracts/fortemi-openapi-receipt.json",
+        ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
       ],
-      "conformance_disposition": "partial",
+      "security_decision": "continued_exclusion",
+      "decision_owner": "Fortemi backup and HotM recovery UI",
+      "enabled": false,
+      "promotion_blockers": [
+        "Pinned binary media types, response headers, or upload request schemas are incomplete for this route."
+      ],
+      "conformance_disposition": "documented_exclusion",
       "tracker": "#287"
     },
     {
@@ -550,11 +642,18 @@
       "family": "backup_archive",
       "privilege": "admin",
       "surface": "documented_exclusion",
-      "rationale": "Credential, key-material, binary-transfer, or resumable-upload protocol handling is excluded from generic agent invocation pending typed workflow evidence.",
+      "rationale": "Pinned binary media types, response headers, or upload request schemas are incomplete for this route.",
       "evidence_paths": [
-        ".aiwg/architecture/adr/ADR-010-fortemi-v2026-07-api-coverage.md"
+        "ui/src/api/contracts/fortemi-openapi-receipt.json",
+        ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
       ],
-      "conformance_disposition": "partial",
+      "security_decision": "continued_exclusion",
+      "decision_owner": "Fortemi backup and HotM recovery UI",
+      "enabled": false,
+      "promotion_blockers": [
+        "Pinned binary media types, response headers, or upload request schemas are incomplete for this route."
+      ],
+      "conformance_disposition": "documented_exclusion",
       "tracker": "#287"
     },
     {
@@ -599,11 +698,18 @@
       "family": "backup_archive",
       "privilege": "admin",
       "surface": "documented_exclusion",
-      "rationale": "Credential, key-material, binary-transfer, or resumable-upload protocol handling is excluded from generic agent invocation pending typed workflow evidence.",
+      "rationale": "Pinned binary media types, response headers, or upload request schemas are incomplete for this route.",
       "evidence_paths": [
-        ".aiwg/architecture/adr/ADR-010-fortemi-v2026-07-api-coverage.md"
+        "ui/src/api/contracts/fortemi-openapi-receipt.json",
+        ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
       ],
-      "conformance_disposition": "partial",
+      "security_decision": "continued_exclusion",
+      "decision_owner": "Fortemi backup and HotM recovery UI",
+      "enabled": false,
+      "promotion_blockers": [
+        "Pinned binary media types, response headers, or upload request schemas are incomplete for this route."
+      ],
+      "conformance_disposition": "documented_exclusion",
       "tracker": "#287"
     },
     {
@@ -2931,11 +3037,18 @@
       "family": "attachments",
       "privilege": "write",
       "surface": "documented_exclusion",
-      "rationale": "Credential, key-material, binary-transfer, or resumable-upload protocol handling is excluded from generic agent invocation pending typed workflow evidence.",
+      "rationale": "Legacy JSON attachment upload is not used by HotM; binary content is not base64-routed through the agent or UI client.",
       "evidence_paths": [
-        ".aiwg/architecture/adr/ADR-010-fortemi-v2026-07-api-coverage.md"
+        "ui/src/api/contracts/fortemi-openapi-receipt.json",
+        ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
       ],
-      "conformance_disposition": "partial",
+      "security_decision": "continued_exclusion",
+      "decision_owner": "Fortemi attachments and HotM transfer UI",
+      "enabled": false,
+      "promotion_blockers": [
+        "Legacy JSON attachment upload is not used by HotM; binary content is not base64-routed through the agent or UI client."
+      ],
+      "conformance_disposition": "documented_exclusion",
       "tracker": "#287"
     },
     {
@@ -2945,11 +3058,18 @@
       "operation_id": "tus_create_upload",
       "family": "attachments_tus",
       "privilege": "write",
-      "surface": "documented_exclusion",
-      "rationale": "Credential, key-material, binary-transfer, or resumable-upload protocol handling is excluded from generic agent invocation pending typed workflow evidence.",
+      "surface": "ui_workflow",
+      "rationale": "Typed tus-js-client workflow uses browser/Tauri byte transport with resumable offsets, bounded chunks, cancellation, and redacted failures.",
       "evidence_paths": [
-        ".aiwg/architecture/adr/ADR-010-fortemi-v2026-07-api-coverage.md"
+        "ui/src/services/tusUploader.ts",
+        "ui/src/services/uploadStore.ts",
+        "ui/src/services/__tests__/tusUploader.test.ts",
+        "ui/src/services/__tests__/uploadStore.test.ts"
       ],
+      "security_decision": "typed_ui_workflow",
+      "decision_owner": "HotM transfer UI",
+      "enabled": true,
+      "promotion_blockers": [],
       "conformance_disposition": "partial",
       "tracker": "#287"
     },
@@ -2960,11 +3080,18 @@
       "operation_id": "tus_options",
       "family": "attachments_tus",
       "privilege": "read",
-      "surface": "documented_exclusion",
-      "rationale": "Credential, key-material, binary-transfer, or resumable-upload protocol handling is excluded from generic agent invocation pending typed workflow evidence.",
+      "surface": "ui_workflow",
+      "rationale": "Typed tus-js-client workflow uses browser/Tauri byte transport with resumable offsets, bounded chunks, cancellation, and redacted failures.",
       "evidence_paths": [
-        ".aiwg/architecture/adr/ADR-010-fortemi-v2026-07-api-coverage.md"
+        "ui/src/services/tusUploader.ts",
+        "ui/src/services/uploadStore.ts",
+        "ui/src/services/__tests__/tusUploader.test.ts",
+        "ui/src/services/__tests__/uploadStore.test.ts"
       ],
+      "security_decision": "typed_ui_workflow",
+      "decision_owner": "HotM transfer UI",
+      "enabled": true,
+      "promotion_blockers": [],
       "conformance_disposition": "partial",
       "tracker": "#287"
     },
@@ -2975,11 +3102,18 @@
       "operation_id": "tus_delete_upload",
       "family": "attachments_tus",
       "privilege": "delete",
-      "surface": "documented_exclusion",
-      "rationale": "Credential, key-material, binary-transfer, or resumable-upload protocol handling is excluded from generic agent invocation pending typed workflow evidence.",
+      "surface": "ui_workflow",
+      "rationale": "Typed tus-js-client workflow uses browser/Tauri byte transport with resumable offsets, bounded chunks, cancellation, and redacted failures.",
       "evidence_paths": [
-        ".aiwg/architecture/adr/ADR-010-fortemi-v2026-07-api-coverage.md"
+        "ui/src/services/tusUploader.ts",
+        "ui/src/services/uploadStore.ts",
+        "ui/src/services/__tests__/tusUploader.test.ts",
+        "ui/src/services/__tests__/uploadStore.test.ts"
       ],
+      "security_decision": "typed_ui_workflow",
+      "decision_owner": "HotM transfer UI",
+      "enabled": true,
+      "promotion_blockers": [],
       "conformance_disposition": "partial",
       "tracker": "#287"
     },
@@ -2990,11 +3124,18 @@
       "operation_id": "tus_head_upload",
       "family": "attachments_tus",
       "privilege": "read",
-      "surface": "documented_exclusion",
-      "rationale": "Credential, key-material, binary-transfer, or resumable-upload protocol handling is excluded from generic agent invocation pending typed workflow evidence.",
+      "surface": "ui_workflow",
+      "rationale": "Typed tus-js-client workflow uses browser/Tauri byte transport with resumable offsets, bounded chunks, cancellation, and redacted failures.",
       "evidence_paths": [
-        ".aiwg/architecture/adr/ADR-010-fortemi-v2026-07-api-coverage.md"
+        "ui/src/services/tusUploader.ts",
+        "ui/src/services/uploadStore.ts",
+        "ui/src/services/__tests__/tusUploader.test.ts",
+        "ui/src/services/__tests__/uploadStore.test.ts"
       ],
+      "security_decision": "typed_ui_workflow",
+      "decision_owner": "HotM transfer UI",
+      "enabled": true,
+      "promotion_blockers": [],
       "conformance_disposition": "partial",
       "tracker": "#287"
     },
@@ -3005,11 +3146,18 @@
       "operation_id": "tus_patch_upload",
       "family": "attachments_tus",
       "privilege": "write",
-      "surface": "documented_exclusion",
-      "rationale": "Credential, key-material, binary-transfer, or resumable-upload protocol handling is excluded from generic agent invocation pending typed workflow evidence.",
+      "surface": "ui_workflow",
+      "rationale": "Typed tus-js-client workflow uses browser/Tauri byte transport with resumable offsets, bounded chunks, cancellation, and redacted failures.",
       "evidence_paths": [
-        ".aiwg/architecture/adr/ADR-010-fortemi-v2026-07-api-coverage.md"
+        "ui/src/services/tusUploader.ts",
+        "ui/src/services/uploadStore.ts",
+        "ui/src/services/__tests__/tusUploader.test.ts",
+        "ui/src/services/__tests__/uploadStore.test.ts"
       ],
+      "security_decision": "typed_ui_workflow",
+      "decision_owner": "HotM transfer UI",
+      "enabled": true,
+      "promotion_blockers": [],
       "conformance_disposition": "partial",
       "tracker": "#287"
     },
@@ -3021,11 +3169,18 @@
       "family": "attachments",
       "privilege": "write",
       "surface": "documented_exclusion",
-      "rationale": "Credential, key-material, binary-transfer, or resumable-upload protocol handling is excluded from generic agent invocation pending typed workflow evidence.",
+      "rationale": "Pinned multipart request and success response schemas are absent; remote uploads use the typed TUS workflow instead.",
       "evidence_paths": [
-        ".aiwg/architecture/adr/ADR-010-fortemi-v2026-07-api-coverage.md"
+        "ui/src/api/contracts/fortemi-openapi-receipt.json",
+        ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
       ],
-      "conformance_disposition": "partial",
+      "security_decision": "continued_exclusion",
+      "decision_owner": "Fortemi attachments and HotM transfer UI",
+      "enabled": false,
+      "promotion_blockers": [
+        "Pinned multipart request and success response schemas are absent; remote uploads use the typed TUS workflow instead."
+      ],
+      "conformance_disposition": "documented_exclusion",
       "tracker": "#287"
     },
     {
@@ -3392,11 +3547,18 @@
       "family": "pke",
       "privilege": "admin",
       "surface": "documented_exclusion",
-      "rationale": "Credential, key-material, binary-transfer, or resumable-upload protocol handling is excluded from generic agent invocation pending typed workflow evidence.",
+      "rationale": "Pinned PKE success responses are not schema-bearing; private-key custody and redaction conformance is unverified.",
       "evidence_paths": [
-        ".aiwg/architecture/adr/ADR-010-fortemi-v2026-07-api-coverage.md"
+        "ui/src/api/contracts/fortemi-openapi-receipt.json",
+        ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
       ],
-      "conformance_disposition": "partial",
+      "security_decision": "continued_exclusion",
+      "decision_owner": "Fortemi PKE and HotM security",
+      "enabled": false,
+      "promotion_blockers": [
+        "Pinned PKE success responses are not schema-bearing; private-key custody and redaction conformance is unverified."
+      ],
+      "conformance_disposition": "documented_exclusion",
       "tracker": "#287"
     },
     {
@@ -3407,11 +3569,18 @@
       "family": "pke",
       "privilege": "admin",
       "surface": "documented_exclusion",
-      "rationale": "Credential, key-material, binary-transfer, or resumable-upload protocol handling is excluded from generic agent invocation pending typed workflow evidence.",
+      "rationale": "Pinned PKE success responses are not schema-bearing; private-key custody and redaction conformance is unverified.",
       "evidence_paths": [
-        ".aiwg/architecture/adr/ADR-010-fortemi-v2026-07-api-coverage.md"
+        "ui/src/api/contracts/fortemi-openapi-receipt.json",
+        ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
       ],
-      "conformance_disposition": "partial",
+      "security_decision": "continued_exclusion",
+      "decision_owner": "Fortemi PKE and HotM security",
+      "enabled": false,
+      "promotion_blockers": [
+        "Pinned PKE success responses are not schema-bearing; private-key custody and redaction conformance is unverified."
+      ],
+      "conformance_disposition": "documented_exclusion",
       "tracker": "#287"
     },
     {
@@ -3422,11 +3591,18 @@
       "family": "pke",
       "privilege": "admin",
       "surface": "documented_exclusion",
-      "rationale": "Credential, key-material, binary-transfer, or resumable-upload protocol handling is excluded from generic agent invocation pending typed workflow evidence.",
+      "rationale": "Pinned PKE success responses are not schema-bearing; private-key custody and redaction conformance is unverified.",
       "evidence_paths": [
-        ".aiwg/architecture/adr/ADR-010-fortemi-v2026-07-api-coverage.md"
+        "ui/src/api/contracts/fortemi-openapi-receipt.json",
+        ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
       ],
-      "conformance_disposition": "partial",
+      "security_decision": "continued_exclusion",
+      "decision_owner": "Fortemi PKE and HotM security",
+      "enabled": false,
+      "promotion_blockers": [
+        "Pinned PKE success responses are not schema-bearing; private-key custody and redaction conformance is unverified."
+      ],
+      "conformance_disposition": "documented_exclusion",
       "tracker": "#287"
     },
     {
@@ -3437,11 +3613,18 @@
       "family": "pke",
       "privilege": "admin",
       "surface": "documented_exclusion",
-      "rationale": "Credential, key-material, binary-transfer, or resumable-upload protocol handling is excluded from generic agent invocation pending typed workflow evidence.",
+      "rationale": "Pinned PKE success responses are not schema-bearing; private-key custody and redaction conformance is unverified.",
       "evidence_paths": [
-        ".aiwg/architecture/adr/ADR-010-fortemi-v2026-07-api-coverage.md"
+        "ui/src/api/contracts/fortemi-openapi-receipt.json",
+        ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
       ],
-      "conformance_disposition": "partial",
+      "security_decision": "continued_exclusion",
+      "decision_owner": "Fortemi PKE and HotM security",
+      "enabled": false,
+      "promotion_blockers": [
+        "Pinned PKE success responses are not schema-bearing; private-key custody and redaction conformance is unverified."
+      ],
+      "conformance_disposition": "documented_exclusion",
       "tracker": "#287"
     },
     {
@@ -3452,11 +3635,18 @@
       "family": "pke",
       "privilege": "admin",
       "surface": "documented_exclusion",
-      "rationale": "Credential, key-material, binary-transfer, or resumable-upload protocol handling is excluded from generic agent invocation pending typed workflow evidence.",
+      "rationale": "Pinned PKE success responses are not schema-bearing; private-key custody and redaction conformance is unverified.",
       "evidence_paths": [
-        ".aiwg/architecture/adr/ADR-010-fortemi-v2026-07-api-coverage.md"
+        "ui/src/api/contracts/fortemi-openapi-receipt.json",
+        ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
       ],
-      "conformance_disposition": "partial",
+      "security_decision": "continued_exclusion",
+      "decision_owner": "Fortemi PKE and HotM security",
+      "enabled": false,
+      "promotion_blockers": [
+        "Pinned PKE success responses are not schema-bearing; private-key custody and redaction conformance is unverified."
+      ],
+      "conformance_disposition": "documented_exclusion",
       "tracker": "#287"
     },
     {
@@ -3467,11 +3657,18 @@
       "family": "pke",
       "privilege": "admin",
       "surface": "documented_exclusion",
-      "rationale": "Credential, key-material, binary-transfer, or resumable-upload protocol handling is excluded from generic agent invocation pending typed workflow evidence.",
+      "rationale": "Pinned PKE success responses are not schema-bearing; private-key custody and redaction conformance is unverified.",
       "evidence_paths": [
-        ".aiwg/architecture/adr/ADR-010-fortemi-v2026-07-api-coverage.md"
+        "ui/src/api/contracts/fortemi-openapi-receipt.json",
+        ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
       ],
-      "conformance_disposition": "partial",
+      "security_decision": "continued_exclusion",
+      "decision_owner": "Fortemi PKE and HotM security",
+      "enabled": false,
+      "promotion_blockers": [
+        "Pinned PKE success responses are not schema-bearing; private-key custody and redaction conformance is unverified."
+      ],
+      "conformance_disposition": "documented_exclusion",
       "tracker": "#287"
     },
     {
@@ -3482,11 +3679,18 @@
       "family": "pke",
       "privilege": "admin",
       "surface": "documented_exclusion",
-      "rationale": "Credential, key-material, binary-transfer, or resumable-upload protocol handling is excluded from generic agent invocation pending typed workflow evidence.",
+      "rationale": "Pinned PKE success responses are not schema-bearing; private-key custody and redaction conformance is unverified.",
       "evidence_paths": [
-        ".aiwg/architecture/adr/ADR-010-fortemi-v2026-07-api-coverage.md"
+        "ui/src/api/contracts/fortemi-openapi-receipt.json",
+        ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
       ],
-      "conformance_disposition": "partial",
+      "security_decision": "continued_exclusion",
+      "decision_owner": "Fortemi PKE and HotM security",
+      "enabled": false,
+      "promotion_blockers": [
+        "Pinned PKE success responses are not schema-bearing; private-key custody and redaction conformance is unverified."
+      ],
+      "conformance_disposition": "documented_exclusion",
       "tracker": "#287"
     },
     {
@@ -3497,11 +3701,18 @@
       "family": "pke",
       "privilege": "admin",
       "surface": "documented_exclusion",
-      "rationale": "Credential, key-material, binary-transfer, or resumable-upload protocol handling is excluded from generic agent invocation pending typed workflow evidence.",
+      "rationale": "Pinned PKE success responses are not schema-bearing; private-key custody and redaction conformance is unverified.",
       "evidence_paths": [
-        ".aiwg/architecture/adr/ADR-010-fortemi-v2026-07-api-coverage.md"
+        "ui/src/api/contracts/fortemi-openapi-receipt.json",
+        ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
       ],
-      "conformance_disposition": "partial",
+      "security_decision": "continued_exclusion",
+      "decision_owner": "Fortemi PKE and HotM security",
+      "enabled": false,
+      "promotion_blockers": [
+        "Pinned PKE success responses are not schema-bearing; private-key custody and redaction conformance is unverified."
+      ],
+      "conformance_disposition": "documented_exclusion",
       "tracker": "#287"
     },
     {
@@ -3512,11 +3723,18 @@
       "family": "pke",
       "privilege": "admin",
       "surface": "documented_exclusion",
-      "rationale": "Credential, key-material, binary-transfer, or resumable-upload protocol handling is excluded from generic agent invocation pending typed workflow evidence.",
+      "rationale": "Pinned PKE success responses are not schema-bearing; private-key custody and redaction conformance is unverified.",
       "evidence_paths": [
-        ".aiwg/architecture/adr/ADR-010-fortemi-v2026-07-api-coverage.md"
+        "ui/src/api/contracts/fortemi-openapi-receipt.json",
+        ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
       ],
-      "conformance_disposition": "partial",
+      "security_decision": "continued_exclusion",
+      "decision_owner": "Fortemi PKE and HotM security",
+      "enabled": false,
+      "promotion_blockers": [
+        "Pinned PKE success responses are not schema-bearing; private-key custody and redaction conformance is unverified."
+      ],
+      "conformance_disposition": "documented_exclusion",
       "tracker": "#287"
     },
     {
@@ -3527,11 +3745,18 @@
       "family": "pke",
       "privilege": "admin",
       "surface": "documented_exclusion",
-      "rationale": "Credential, key-material, binary-transfer, or resumable-upload protocol handling is excluded from generic agent invocation pending typed workflow evidence.",
+      "rationale": "Pinned PKE success responses are not schema-bearing; private-key custody and redaction conformance is unverified.",
       "evidence_paths": [
-        ".aiwg/architecture/adr/ADR-010-fortemi-v2026-07-api-coverage.md"
+        "ui/src/api/contracts/fortemi-openapi-receipt.json",
+        ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
       ],
-      "conformance_disposition": "partial",
+      "security_decision": "continued_exclusion",
+      "decision_owner": "Fortemi PKE and HotM security",
+      "enabled": false,
+      "promotion_blockers": [
+        "Pinned PKE success responses are not schema-bearing; private-key custody and redaction conformance is unverified."
+      ],
+      "conformance_disposition": "documented_exclusion",
       "tracker": "#287"
     },
     {
@@ -3542,11 +3767,18 @@
       "family": "pke",
       "privilege": "admin",
       "surface": "documented_exclusion",
-      "rationale": "Credential, key-material, binary-transfer, or resumable-upload protocol handling is excluded from generic agent invocation pending typed workflow evidence.",
+      "rationale": "Pinned PKE success responses are not schema-bearing; private-key custody and redaction conformance is unverified.",
       "evidence_paths": [
-        ".aiwg/architecture/adr/ADR-010-fortemi-v2026-07-api-coverage.md"
+        "ui/src/api/contracts/fortemi-openapi-receipt.json",
+        ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
       ],
-      "conformance_disposition": "partial",
+      "security_decision": "continued_exclusion",
+      "decision_owner": "Fortemi PKE and HotM security",
+      "enabled": false,
+      "promotion_blockers": [
+        "Pinned PKE success responses are not schema-bearing; private-key custody and redaction conformance is unverified."
+      ],
+      "conformance_disposition": "documented_exclusion",
       "tracker": "#287"
     },
     {
@@ -3557,11 +3789,18 @@
       "family": "pke",
       "privilege": "admin",
       "surface": "documented_exclusion",
-      "rationale": "Credential, key-material, binary-transfer, or resumable-upload protocol handling is excluded from generic agent invocation pending typed workflow evidence.",
+      "rationale": "Pinned PKE success responses are not schema-bearing; private-key custody and redaction conformance is unverified.",
       "evidence_paths": [
-        ".aiwg/architecture/adr/ADR-010-fortemi-v2026-07-api-coverage.md"
+        "ui/src/api/contracts/fortemi-openapi-receipt.json",
+        ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
       ],
-      "conformance_disposition": "partial",
+      "security_decision": "continued_exclusion",
+      "decision_owner": "Fortemi PKE and HotM security",
+      "enabled": false,
+      "promotion_blockers": [
+        "Pinned PKE success responses are not schema-bearing; private-key custody and redaction conformance is unverified."
+      ],
+      "conformance_disposition": "documented_exclusion",
       "tracker": "#287"
     },
     {
@@ -3572,11 +3811,18 @@
       "family": "pke",
       "privilege": "admin",
       "surface": "documented_exclusion",
-      "rationale": "Credential, key-material, binary-transfer, or resumable-upload protocol handling is excluded from generic agent invocation pending typed workflow evidence.",
+      "rationale": "Pinned PKE success responses are not schema-bearing; private-key custody and redaction conformance is unverified.",
       "evidence_paths": [
-        ".aiwg/architecture/adr/ADR-010-fortemi-v2026-07-api-coverage.md"
+        "ui/src/api/contracts/fortemi-openapi-receipt.json",
+        ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
       ],
-      "conformance_disposition": "partial",
+      "security_decision": "continued_exclusion",
+      "decision_owner": "Fortemi PKE and HotM security",
+      "enabled": false,
+      "promotion_blockers": [
+        "Pinned PKE success responses are not schema-bearing; private-key custody and redaction conformance is unverified."
+      ],
+      "conformance_disposition": "documented_exclusion",
       "tracker": "#287"
     },
     {
@@ -4068,11 +4314,18 @@
       "family": "oauth",
       "privilege": "admin",
       "surface": "documented_exclusion",
-      "rationale": "Credential, key-material, binary-transfer, or resumable-upload protocol handling is excluded from generic agent invocation pending typed workflow evidence.",
+      "rationale": "fortemi-auth is specification-only and has no qualifying release or shared Rust/Node fixture receipt.",
       "evidence_paths": [
-        ".aiwg/architecture/adr/ADR-010-fortemi-v2026-07-api-coverage.md"
+        "ui/src/api/contracts/fortemi-openapi-receipt.json",
+        ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
       ],
-      "conformance_disposition": "partial",
+      "security_decision": "continued_exclusion",
+      "decision_owner": "fortemi-auth and HotM security",
+      "enabled": false,
+      "promotion_blockers": [
+        "fortemi-auth is specification-only and has no qualifying release or shared Rust/Node fixture receipt."
+      ],
+      "conformance_disposition": "documented_exclusion",
       "tracker": "#287"
     },
     {
@@ -4083,11 +4336,18 @@
       "family": "oauth",
       "privilege": "admin",
       "surface": "documented_exclusion",
-      "rationale": "Credential, key-material, binary-transfer, or resumable-upload protocol handling is excluded from generic agent invocation pending typed workflow evidence.",
+      "rationale": "fortemi-auth is specification-only and has no qualifying release or shared Rust/Node fixture receipt.",
       "evidence_paths": [
-        ".aiwg/architecture/adr/ADR-010-fortemi-v2026-07-api-coverage.md"
+        "ui/src/api/contracts/fortemi-openapi-receipt.json",
+        ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
       ],
-      "conformance_disposition": "partial",
+      "security_decision": "continued_exclusion",
+      "decision_owner": "fortemi-auth and HotM security",
+      "enabled": false,
+      "promotion_blockers": [
+        "fortemi-auth is specification-only and has no qualifying release or shared Rust/Node fixture receipt."
+      ],
+      "conformance_disposition": "documented_exclusion",
       "tracker": "#287"
     },
     {
@@ -4098,11 +4358,18 @@
       "family": "oauth",
       "privilege": "admin",
       "surface": "documented_exclusion",
-      "rationale": "Credential, key-material, binary-transfer, or resumable-upload protocol handling is excluded from generic agent invocation pending typed workflow evidence.",
+      "rationale": "fortemi-auth is specification-only and has no qualifying release or shared Rust/Node fixture receipt.",
       "evidence_paths": [
-        ".aiwg/architecture/adr/ADR-010-fortemi-v2026-07-api-coverage.md"
+        "ui/src/api/contracts/fortemi-openapi-receipt.json",
+        ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
       ],
-      "conformance_disposition": "partial",
+      "security_decision": "continued_exclusion",
+      "decision_owner": "fortemi-auth and HotM security",
+      "enabled": false,
+      "promotion_blockers": [
+        "fortemi-auth is specification-only and has no qualifying release or shared Rust/Node fixture receipt."
+      ],
+      "conformance_disposition": "documented_exclusion",
       "tracker": "#287"
     },
     {
@@ -4113,11 +4380,18 @@
       "family": "oauth",
       "privilege": "admin",
       "surface": "documented_exclusion",
-      "rationale": "Credential, key-material, binary-transfer, or resumable-upload protocol handling is excluded from generic agent invocation pending typed workflow evidence.",
+      "rationale": "fortemi-auth is specification-only and has no qualifying release or shared Rust/Node fixture receipt.",
       "evidence_paths": [
-        ".aiwg/architecture/adr/ADR-010-fortemi-v2026-07-api-coverage.md"
+        "ui/src/api/contracts/fortemi-openapi-receipt.json",
+        ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
       ],
-      "conformance_disposition": "partial",
+      "security_decision": "continued_exclusion",
+      "decision_owner": "fortemi-auth and HotM security",
+      "enabled": false,
+      "promotion_blockers": [
+        "fortemi-auth is specification-only and has no qualifying release or shared Rust/Node fixture receipt."
+      ],
+      "conformance_disposition": "documented_exclusion",
       "tracker": "#287"
     },
     {
@@ -4128,11 +4402,18 @@
       "family": "oauth",
       "privilege": "admin",
       "surface": "documented_exclusion",
-      "rationale": "Credential, key-material, binary-transfer, or resumable-upload protocol handling is excluded from generic agent invocation pending typed workflow evidence.",
+      "rationale": "fortemi-auth is specification-only and has no qualifying release or shared Rust/Node fixture receipt.",
       "evidence_paths": [
-        ".aiwg/architecture/adr/ADR-010-fortemi-v2026-07-api-coverage.md"
+        "ui/src/api/contracts/fortemi-openapi-receipt.json",
+        ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
       ],
-      "conformance_disposition": "partial",
+      "security_decision": "continued_exclusion",
+      "decision_owner": "fortemi-auth and HotM security",
+      "enabled": false,
+      "promotion_blockers": [
+        "fortemi-auth is specification-only and has no qualifying release or shared Rust/Node fixture receipt."
+      ],
+      "conformance_disposition": "documented_exclusion",
       "tracker": "#287"
     },
     {
@@ -4143,11 +4424,18 @@
       "family": "oauth",
       "privilege": "admin",
       "surface": "documented_exclusion",
-      "rationale": "Credential, key-material, binary-transfer, or resumable-upload protocol handling is excluded from generic agent invocation pending typed workflow evidence.",
+      "rationale": "fortemi-auth is specification-only and has no qualifying release or shared Rust/Node fixture receipt.",
       "evidence_paths": [
-        ".aiwg/architecture/adr/ADR-010-fortemi-v2026-07-api-coverage.md"
+        "ui/src/api/contracts/fortemi-openapi-receipt.json",
+        ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
       ],
-      "conformance_disposition": "partial",
+      "security_decision": "continued_exclusion",
+      "decision_owner": "fortemi-auth and HotM security",
+      "enabled": false,
+      "promotion_blockers": [
+        "fortemi-auth is specification-only and has no qualifying release or shared Rust/Node fixture receipt."
+      ],
+      "conformance_disposition": "documented_exclusion",
       "tracker": "#287"
     },
     {

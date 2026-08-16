@@ -1,0 +1,51 @@
+metadata:
+  schema_version: "1.0.0"
+  created_at: "2026-08-16T17:08:36Z"
+  updated_at: "2026-08-16T17:08:36Z"
+  description: "Provenance for HotM sensitive-operation remediation issue #297"
+entity:
+  id: "urn:aiwg:artifact:ui/src/components/admin/__tests__/OperationCatalogPanel.test.tsx"
+  type: "test-artifact"
+  created_at: "2026-08-16T17:08:36Z"
+  updated_at: "2026-08-16T17:08:36Z"
+  checksum: "sha256:180a321771a9ed3f6e303ba28dd2c4686af3f18d5bcf7d325b11bcf66126d3f5"
+  size_bytes: 3074
+  attributes:
+    change_scope: "hotm-297-sensitive-operation-remediation"
+    base_revision: "d45c8129486392adf9bb8ad69b57f5e743c52101"
+activity:
+  id: "urn:aiwg:activity:modification:ui-src-components-admin-tests-operationcatalogpanel-test-tsx:hotm-297"
+  type: "modification"
+  started_at: "2026-08-16T17:08:36Z"
+  ended_at: "2026-08-16T17:08:36Z"
+  description: "Classify and harden credential, PKE, binary/media, backup, and TUS integration boundaries"
+agent:
+  id: "urn:aiwg:agent:codex-gpt-5"
+  type: "ai_assistant"
+  name: "Codex"
+  version: "gpt-5"
+  tool: "codex"
+relationships:
+  wasGeneratedBy:
+    entity: "urn:aiwg:artifact:ui/src/components/admin/__tests__/OperationCatalogPanel.test.tsx"
+    activity: "urn:aiwg:activity:modification:ui-src-components-admin-tests-operationcatalogpanel-test-tsx:hotm-297"
+    time: "2026-08-16T17:08:36Z"
+  used:
+    - activity: "urn:aiwg:activity:modification:ui-src-components-admin-tests-operationcatalogpanel-test-tsx:hotm-297"
+      entity: "urn:gitea:Fortemi/HotM:issue:297"
+      role: "requirement"
+    - activity: "urn:aiwg:activity:modification:ui-src-components-admin-tests-operationcatalogpanel-test-tsx:hotm-297"
+      entity: "urn:git:Fortemi/fortemi:5ea08229c9f1565122df5f8e6906e89d98dc7e75:contracts/openapi/openapi.yaml"
+      role: "producer-contract"
+  wasDerivedFrom:
+    - entity: "urn:aiwg:artifact:ui/src/components/admin/__tests__/OperationCatalogPanel.test.tsx"
+      source: "urn:git:git@git.integrolabs.net:Fortemi/HotM.git:d45c8129486392adf9bb8ad69b57f5e743c52101:ui/src/components/admin/__tests__/OperationCatalogPanel.test.tsx"
+      derivation_type: "modifies"
+      activity: "urn:aiwg:activity:modification:ui-src-components-admin-tests-operationcatalogpanel-test-tsx:hotm-297"
+  wasAssociatedWith:
+    activity: "urn:aiwg:activity:modification:ui-src-components-admin-tests-operationcatalogpanel-test-tsx:hotm-297"
+    agent: "urn:aiwg:agent:codex-gpt-5"
+    role: "primary_author"
+  wasAttributedTo:
+    entity: "urn:aiwg:artifact:ui/src/components/admin/__tests__/OperationCatalogPanel.test.tsx"
+    agent: "urn:aiwg:agent:codex-gpt-5"

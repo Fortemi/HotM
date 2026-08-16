@@ -136,7 +136,7 @@ describe('Backup API', () => {
     expect(mockClient.get).toHaveBeenCalledWith('/backup/status');
   });
 
-  it('covers knowledge shard download, base64 import, and multipart upload routes', async () => {
+  it('covers shard download and multipart upload while rejecting legacy base64 import', async () => {
     memoryState.activeMemory = 'research';
     window.localStorage.setItem('hotm_api_bearer_token', 'test-token');
     const shard = createKnowledgeShardFile();
@@ -158,12 +158,12 @@ describe('Backup API', () => {
       },
     );
 
-    await expect(backupApi.importKnowledgeShard(shard)).resolves.toMatchObject({
-      manifest: { profile: 'core-v1', version: '1.2.0' },
-    });
-    expect(mockClient.post).toHaveBeenCalledWith('/backup/knowledge-shard/import', {
-      shard_base64: expect.any(String),
-    });
+    await expect(backupApi.importKnowledgeShard(shard))
+      .rejects.toThrow('Legacy base64 shard import is disabled');
+    expect(mockClient.post).not.toHaveBeenCalledWith(
+      '/backup/knowledge-shard/import',
+      expect.anything(),
+    );
 
     mockFetch.mockResolvedValueOnce(new Response(JSON.stringify({ status: 'success' }), {
       headers: { 'Content-Type': 'application/json' },
@@ -280,7 +280,7 @@ describe('Backup API', () => {
       onConflict: 'replace',
       trustedPublisherKeyIds: ['fortemi-release-key'],
     })).rejects.toThrow(
-      "Knowledge shard publisher fortemi-dev-key is not in HotM's trusted publisher allowlist.",
+      'Knowledge shard publisher is not trusted.',
     );
     expect(mockFetch).not.toHaveBeenCalled();
   });
@@ -346,7 +346,7 @@ describe('Backup API', () => {
     await expect(backupApi.uploadKnowledgeShard(shard, {
       onConflict: 'replace',
     })).rejects.toThrow(
-      "Knowledge shard publisher fortemi-dev-key is not in HotM's trusted publisher allowlist.",
+      'Knowledge shard publisher is not trusted.',
     );
     expect(mockFetch).not.toHaveBeenCalled();
   });
@@ -370,7 +370,7 @@ describe('Backup API', () => {
 
     await expect(backupApi.uploadKnowledgeShard(shard, {
       onConflict: 'replace',
-    })).rejects.toThrow(detail);
+    })).rejects.toThrow('Upload failed (HTTP 400).');
     expect(mockFetch).toHaveBeenCalledTimes(1);
     expect(mockFetch).toHaveBeenCalledWith(
       expect.stringContaining('dry_run=true'),
@@ -378,7 +378,7 @@ describe('Backup API', () => {
     );
   });
 
-  it('surfaces server validation failures without claiming import success', async () => {
+  it('redacts server validation details without claiming import success', async () => {
     const shard = createKnowledgeShardFile();
     mockFetch.mockResolvedValueOnce(new Response(JSON.stringify({
       status: 'partial',
@@ -388,10 +388,10 @@ describe('Backup API', () => {
     }));
 
     await expect(backupApi.uploadKnowledgeShard(shard))
-      .rejects.toThrow('Knowledge shard component count validation failed.');
+      .rejects.toThrow('Knowledge shard import validation failed.');
   });
 
-  it('uses Fortemi problem details for actionable upload errors', async () => {
+  it('redacts Fortemi problem details from transfer errors', async () => {
     const shard = createKnowledgeShardFile();
     mockFetch.mockResolvedValueOnce(new Response(JSON.stringify({
       title: 'Invalid Knowledge Shard',
@@ -403,7 +403,7 @@ describe('Backup API', () => {
     }));
 
     await expect(backupApi.uploadKnowledgeShard(shard))
-      .rejects.toThrow('Knowledge shard checksum validation failed.');
+      .rejects.toThrow('Upload failed (HTTP 400).');
   });
 
   it('covers database backup download, snapshot, upload, and restore request shapes', async () => {
@@ -435,16 +435,14 @@ describe('Backup API', () => {
     });
 
     const database = makeBinaryFile('sql', 'restore.sql.gz');
-    await backupApi.uploadDatabaseBackup(database, {
+    await expect(backupApi.uploadDatabaseBackup(database, {
       title: 'Uploaded restore point',
       description: 'Known-good dump',
-    });
-    expect(mockClient.post).toHaveBeenCalledWith('/backup/database/upload', {
-      data_base64: 'c3Fs',
-      original_filename: 'restore.sql.gz',
-      title: 'Uploaded restore point',
-      description: 'Known-good dump',
-    });
+    })).rejects.toThrow('Database backup upload is disabled');
+    expect(mockClient.post).not.toHaveBeenCalledWith(
+      '/backup/database/upload',
+      expect.anything(),
+    );
 
     await backupApi.restoreDatabase({
       filename: 'restore.sql.gz',

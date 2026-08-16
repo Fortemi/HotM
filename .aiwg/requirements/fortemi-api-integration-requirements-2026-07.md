@@ -35,7 +35,7 @@ This requirements baseline covers HotM alignment with Fortemi. The 2026-08-15 au
 | FORTEMI-2026-07-REQ-004 | HotM must support operator-visible NDJSON ingest workflows for `POST /api/v1/ingest/stream`, `POST /api/v1/ingest/tokens`, and `DELETE /api/v1/ingest/tokens/{token_id}` where the UX needs bulk import or agent streaming. | P1 | Tests cover token mint/revoke, line ack/progress/error/done frames, 401/410/429 handling, and `X-Ingest-Cursor` resume guidance. |
 | FORTEMI-2026-07-REQ-005 | HotM Admin must distinguish outbound webhooks from incoming webhook receivers and support incoming receiver list/create/get/patch/delete plus payload validation where operators configure external callbacks. | P1 | Admin tests cover receiver lifecycle, HMAC/schema/idempotency help text, and validation failure display. |
 | FORTEMI-2026-07-REQ-006 | HotM Admin must surface inbound external event sources (`/api/v1/inbound-sources`) as opt-in connector controls with disabled-by-default posture when `INBOUND_EXTERNAL_SOURCES_ENABLED=false`. | P1 | Tests cover list/create/delete, disabled/cost-gated state, connector health, and DLQ/error messaging. |
-| FORTEMI-2026-07-REQ-007 | HotM attachment UX must continue to use TUS for large media and add explicit coverage for current TUS verbs (`POST`, `OPTIONS`, `GET`, `HEAD`, `PATCH`, `DELETE`) and server offset/checksum errors. | P1 | Upload tests cover resume offset, termination, checksum mismatch, and desktop adapter path. |
+| FORTEMI-2026-07-REQ-007 | HotM remote attachment UX must use TUS for byte transfer and cover the pinned create/options/head/patch/delete operations plus finalization, offset, expiry, and size failures. | P1 | Upload tests cover metadata validation, resume offset, termination, auth expiry, size limits, cancellation, redaction, and the desktop fetch adapter. |
 | FORTEMI-2026-07-REQ-008 | HotM must support included ad-hoc media routes through attachment-safe actions and keep agent exposure gated. | P2 | ADR-011 and #259 evidence record image description and audio/video transcription as attachment preview actions with unsupported-media and redaction tests. |
 | FORTEMI-2026-07-REQ-009 | HotM must bound realtime call routes by exposing redacted REST call diagnostics and documenting Twilio live WebSocket diagnostics as excluded. | P2 | Admin API Surface tests cover `GET /api/v1/calls/{id}` lookup without raw transcript/provider ID rendering; route inventory records Twilio realtime as a documented exclusion. |
 | FORTEMI-2026-07-REQ-010 | HotM backup/archive UX must document and cover the full current backup family, including database download, memory-scoped download, knowledge archive download/upload, metadata update, and portable byte-sidecar limitations. | P1 | Backup tests and docs cover implemented endpoints and list unsupported reference-only shard boundaries. |
@@ -52,6 +52,7 @@ This requirements baseline covers HotM alignment with Fortemi. The 2026-08-15 au
 | FORTEMI-2026-07-REQ-021 | Every supported Fortemi capability must have a verifiable HotM user/operator workflow, a privilege-gated agent workflow, or an explicit documented exclusion. | P1 | Browser scenarios cover each implemented family and the operation matrix contains no implicit gaps. |
 | FORTEMI-2026-07-REQ-022 | Knowledge Shard authority refresh must include current contract revision/profile metadata and preserve profile-specific claims. | P0 | Revision-21 `core-v1`/`full-v1` checks and clean-server golden receipts pass; `record-v1`, suite-wide, and complete-backup claims remain false until separately proven. |
 | FORTEMI-2026-07-REQ-023 | The deterministic mocked browser suite must be a reliable required integration gate. | P1 | All non-quarantined Playwright scenarios pass with pinned contract fixtures; quarantines are issue-backed and cannot hide core note/search/tag failures. |
+| FORTEMI-2026-07-REQ-024 | Every sensitive credential, PKE, binary/media, backup, and TUS operation must have an exact owner-backed security decision; disabled exclusions must remain visible and non-invocable. | P0 | The generated 41-row decision table and operation catalog prove 5 typed TUS workflows, 5 browser/native media handoffs, and 31 disabled exclusions; CI rejects row/count/state drift. |
 
 ## 2026-08-15 Audit Disposition
 
@@ -226,8 +227,8 @@ canonical envelope on that transport; Fortemi #953 blocks full two-transport
 closure of #285.
 
 REQ-021 now has a complete product-disposition ledger and operator catalog for
-251 operations, with a CI stale-ledger check. The ledger records 16 UI, 11
-agent, 183 diagnostic, and 41 excluded rows, but does not convert partial/gap
+251 operations, with a CI stale-ledger check. The ledger records 130 UI, 10
+agent, 5 external handoff, 75 diagnostic, and 31 excluded rows, but does not convert partial/gap
 operation conformance into support. #287 remains open for family workflows and
 browser receipts.
 
@@ -254,5 +255,25 @@ operation-specific authorization and live-server receipts exist. Agent
 coverage remains independent. Secret/key administration, secret-bearing
 webhook/inbound creation, binary backup/archive movement, and Knowledge Shard
 transfer remain outside promotion and under #297. The generated 251-operation
-result is therefore 1 integrated, 249 partial, and 1 gap with zero verifier
+result before #297 was 1 integrated, 249 partial, and 1 gap with zero verifier
 diagnostics.
+
+## Sensitive Operation Requirement Receipt (2026-08-16)
+
+REQ-024 is implemented by the generated 41-row decision table and schema-v2
+operation ledger. Every row names a decision, owner, enabled state, rationale,
+blocker, and evidence. Five TUS rows are typed UI workflows and five media rows
+are browser/native handoffs. The remaining 31 rows are visible, disabled
+documented exclusions.
+
+Remote attachments use TUS for all sizes. Legacy multipart attachment upload,
+database backup base64 upload, and base64 Knowledge Shard import are disabled.
+Focused tests cover cancellation, resume offsets, TUS range/content headers,
+advertised maximum size, malformed metadata, expired authorization, and
+redaction of producer bodies, bearer values, upload URLs, tenant identifiers,
+and local paths. No decision upgrades request, response, auth, live, or
+Knowledge Shard conformance. `fortemi-auth` remains specification-only until
+its full release condition is independently evidenced.
+
+The current generated operation result is 1 integrated, 218 partial, 1 gap,
+and 31 documented exclusions with zero verifier diagnostics.

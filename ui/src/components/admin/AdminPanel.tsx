@@ -57,13 +57,13 @@ interface AuthDiscoveryState {
 }
 
 const OAUTH_ROUTE_ROWS = [
-  'GET /.well-known/oauth-authorization-server',
-  'GET /.well-known/oauth-protected-resource',
-  'GET/POST /oauth/authorize',
-  'POST /oauth/register',
-  'POST /oauth/token',
-  'POST /oauth/introspect',
-  'POST /oauth/revoke',
+  { route: 'GET /.well-known/oauth-authorization-server', state: 'Discovery only' },
+  { route: 'GET /.well-known/oauth-protected-resource', state: 'Discovery only' },
+  { route: 'GET/POST /oauth/authorize', state: 'Disabled' },
+  { route: 'POST /oauth/register', state: 'Disabled' },
+  { route: 'POST /oauth/token', state: 'Disabled' },
+  { route: 'POST /oauth/introspect', state: 'Disabled' },
+  { route: 'POST /oauth/revoke', state: 'Disabled' },
 ];
 
 function metadataString(metadata: Record<string, unknown> | undefined, key: string): string {
@@ -94,8 +94,8 @@ function AuthDiagnosticsPanel() {
         api.auth.getProtectedResourceMetadata(),
       ]);
       setState({ authorization, protectedResource, loading: false, error: null });
-    } catch (err) {
-      console.error('Failed to fetch OAuth metadata:', err);
+    } catch {
+      console.error('OAuth discovery metadata request failed');
       setState({
         loading: false,
         error: 'OAuth discovery metadata is unavailable',
@@ -169,15 +169,15 @@ function AuthDiagnosticsPanel() {
 
       <Card>
         <CardHeader>
-          <CardTitle>OAuth Route Coverage</CardTitle>
-          <CardDescription>Diagnostic surface for Fortemi root auth endpoints</CardDescription>
+          <CardTitle>OAuth Contract Status</CardTitle>
+          <CardDescription>Discovery is read-only; credential-bearing operations remain fail-closed</CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col gap-3">
           <div className="grid gap-2">
-            {OAUTH_ROUTE_ROWS.map((route) => (
+            {OAUTH_ROUTE_ROWS.map(({ route, state: routeState }) => (
               <div key={route} className="flex items-center justify-between gap-3 rounded-md border px-3 py-2">
                 <span className="text-sm font-mono">{route}</span>
-                <Badge variant="outline">covered</Badge>
+                <Badge variant={routeState === 'Disabled' ? 'secondary' : 'outline'}>{routeState}</Badge>
               </div>
             ))}
           </div>
@@ -185,9 +185,9 @@ function AuthDiagnosticsPanel() {
           <div className="flex items-start gap-3 rounded-md border bg-muted/40 p-3">
             <Lock className="mt-0.5 size-4 text-muted-foreground" />
             <p className="text-sm text-muted-foreground">
-              Token exchange, introspection, revocation, and client registration remain API-client flows.
-              This panel renders discovery metadata only and does not display client secrets, access tokens,
-              refresh tokens, authorization codes, or tenant credentials.
+              <code>fortemi-auth</code> remains specification-only. Token exchange, authorization, introspection,
+              revocation, and client registration are disabled until the release and shared-fixture
+              conditions are met. This panel never renders credential artifacts.
             </p>
           </div>
         </CardContent>

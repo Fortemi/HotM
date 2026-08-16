@@ -180,8 +180,13 @@ const results = await api.concepts.listConcepts({
 // List attachments for a note
 const attachments = await api.attachments.listAttachments('note-id');
 
-// Upload a file
-const newAttachment = await api.attachments.uploadAttachment('note-id', file);
+// Remote file uploads use the typed TUS service for all sizes
+const upload = startTusUpload({
+  noteId: 'note-id',
+  file,
+  mediaOptimize: false,
+});
+const newAttachment = await upload.promise;
 
 // Get attachment metadata (EXIF, location, provenance)
 const metadata = await api.attachments.getMetadata('attachment-id');
@@ -296,8 +301,8 @@ const shard = await api.backup.exportKnowledgeShard({
   collection_id: 'collection-id'
 });
 
-// Import knowledge shard
-await api.backup.importKnowledgeShard(shardFile);
+// Import through the multipart, profile-gated recovery path
+await api.backup.uploadKnowledgeShard(shardFile);
 ```
 
 ## Configuration

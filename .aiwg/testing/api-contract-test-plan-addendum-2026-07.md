@@ -391,7 +391,7 @@ The operation verifier consumes the exact OpenAPI receipt and fails on stale
 pins, missing evidence paths, unsupported boundaries, unclassified operations,
 or missing focused operations. Its generated JSON and Markdown reports come
 from one in-memory model. The current expected disposition counts are 1
-integrated, 249 partial, and 1 gap; route-disposition counts are checked
+integrated, 218 partial, 1 gap, and 31 documented exclusions; route-disposition counts are checked
 separately.
 
 The AsyncAPI payload verifier resolves all 48 event schemas and executes
@@ -483,3 +483,36 @@ states, confirmation, and desktop/mobile rendering. These are deterministic
 mocked receipts. No test may convert them into operation-specific auth or live
 Fortemi evidence. #297 operations remain excluded unless separately authorized
 and verified against their named auth, binary, or Knowledge Shard profile.
+
+### Sensitive Operation Verification Commands (2026-08-16)
+
+```bash
+node scripts/ci/verify-fortemi-operation-dispositions.mjs --check
+cd ui
+npm run typecheck
+npx vitest run \
+  src/api/__tests__/attachments.test.ts \
+  src/api/__tests__/backup.test.ts \
+  src/services/__tests__/tusUploader.test.ts \
+  src/services/__tests__/uploadStore.test.ts \
+  src/components/agent/__tests__/SaveAsNoteButton.test.tsx \
+  src/components/admin/__tests__/OperationCatalogPanel.test.tsx \
+  src/components/admin/__tests__/AdminPanel.test.tsx
+```
+
+The disposition verifier must produce exactly 41 sensitive decisions: 5
+`typed_ui_workflow`, 5 `external_browser_protocol_handoff`, and 31
+`continued_exclusion`. Every continued exclusion must have `enabled=false`, a
+named owner and blocker, and a visible disabled catalog row.
+
+Negative transfer cases must cover cancellation/termination, resume offset and
+expiry headers, range failure, advertised maximum size, malformed metadata,
+401/403 expiry, 413, 416, 429, and server failure. Assertions must inject raw
+problem text containing bearer artifacts, upload URLs, tenant IDs, and local
+paths and prove none reach rendered errors. Browser/Tauri primitives carry
+bytes directly; tests must fail if multipart/base64 fallback or raw producer
+error propagation returns.
+
+These are consumer workflow and redaction tests. They do not supply missing
+producer success schemas, operation-specific authorization, live Fortemi
+outcomes, Knowledge Shard profile receipts, or a `fortemi-auth` release.

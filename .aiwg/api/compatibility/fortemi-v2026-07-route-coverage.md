@@ -8,7 +8,7 @@ artifact_type: api-coverage-inventory
 # Fortemi v2026.7.1 Route Coverage Inventory
 
 - Fortemi source: `../fortemi`
-- Fortemi commit: `5ea08229`
+- Fortemi commit: `48bc0a0b`
 - Latest release tag: `v2026.7.19`
 - Extracted route declarations: `202`
 - Evidence boundary: route inventory is route-disposition evidence only.

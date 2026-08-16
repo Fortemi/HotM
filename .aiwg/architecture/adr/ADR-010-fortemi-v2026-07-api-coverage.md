@@ -315,9 +315,36 @@ handling must be bounded and typed or redacted; malformed and oversized
 payloads fail closed. Every mutation requires an explicit confirmation in its
 rendered workflow.
 
-The generated conformance result becomes 1 integrated, 249 partial, and 1 gap.
+Before the #297 disposition amendment, the generated conformance result was 1
+integrated, 249 partial, and 1 gap.
 This count records stronger executable request/response/UI evidence; it does
 not upgrade operation-specific auth, agent, or live dimensions. Restricted
 secret/key and binary/Knowledge Shard transfer operations remain unpromoted
 under #297. Route disposition, matching family names, and mocked browser
 receipts remain insufficient to claim full Fortemi conformance.
+
+### Decision Amendment: Sensitive Operations (2026-08-16)
+
+Accept the generated #297 decision ledger as the product boundary for its
+exact 41 rows. Five TUS operations are typed UI workflows using
+`tus-js-client` and direct browser/Tauri byte transport; five authenticated
+attachment/media reads are external browser/native protocol handoffs; and 31
+credential, PKE, legacy attachment, and underspecified backup operations are
+disabled documented exclusions.
+
+The 31 exclusions cannot be enabled by route inventory, implementation
+presence, response prose, or a mocked browser receipt. Promotion requires
+producer-owned request, response, and auth artifacts at the pinned revision
+and focused consumer verification. OAuth remains excluded while
+`fortemi-auth` is specification-only. PKE remains excluded while success
+schemas and private-key custody/redaction receipts are absent. Backup and
+legacy attachment upload remain excluded where binary media types, headers, or
+request/success schemas are absent.
+
+All remote attachment uploads use TUS; uncontracted multipart and large
+base64-in-JSON paths are disabled. Transfer failures expose only bounded
+categories. Credential material, upload URLs, tenant IDs, local paths, and raw
+binary never enter generic agent inputs, logs, telemetry, screenshots, or
+generic errors. This decision records 31 explicit exclusions rather than
+promoting them: the current operation result is 1 integrated, 218 partial, 1
+gap, and 31 documented exclusions.

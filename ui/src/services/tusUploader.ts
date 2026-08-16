@@ -22,8 +22,8 @@ import { getTauriFetch } from '@/lib/tauri';
 // Constants
 // ---------------------------------------------------------------------------
 
-/** Files at or above this size use the tus resumable protocol. */
-export const TUS_THRESHOLD_BYTES = 50 * 1024 * 1024; // 50 MB
+/** Kept for compatibility; all remote browser uploads now use TUS. */
+export const TUS_THRESHOLD_BYTES = 0;
 
 /** Maximum bytes per PATCH request — keep IPC/base64 payloads small for desktop WebKit/Tauri. */
 export const TUS_CHUNK_SIZE = 1 * 1024 * 1024; // 1 MB
@@ -110,7 +110,7 @@ class FetchHttpRequest implements HttpRequest {
       signal: this.abortController.signal,
     });
     this.progressHandler?.(getBodySize(body));
-    return new FetchHttpResponse(response, await response.text());
+    return new FetchHttpResponse(response, response.ok ? await response.text() : '');
   }
 
   async abort(): Promise<void> {
@@ -148,7 +148,36 @@ function getBodySize(body?: BodyInit | null): number {
 
 /** Determine whether a file should use the tus resumable protocol. */
 export function shouldUseTus(file: File): boolean {
-  return file.size >= TUS_THRESHOLD_BYTES;
+  void file;
+  return true;
+}
+
+function validateTusMetadata(noteId: string, file: File): void {
+  const invalid = /[\0\r\n]/;
+  if (!noteId.trim() || invalid.test(noteId)) throw new Error('A valid note ID is required for upload.');
+  if (!file.name || file.name.length > 255 || invalid.test(file.name)) {
+    throw new Error('The selected file has invalid upload metadata.');
+  }
+  if (file.type.length > 255 || invalid.test(file.type)) {
+    throw new Error('The selected file has invalid upload metadata.');
+  }
+}
+
+function redactedTusError(err: unknown): Error {
+  const message = err instanceof Error ? err.message.toLowerCase() : '';
+  if (/\b(401|403)\b|unauthori[sz]ed|forbidden|auth/.test(message)) {
+    return new Error('TUS upload authorization expired or was denied.');
+  }
+  if (/\b413\b|too large|max(?:imum)? size|chunk/.test(message)) {
+    return new Error('TUS upload exceeds the server size limit.');
+  }
+  if (/\b409\b|offset|conflict/.test(message)) {
+    return new Error('TUS upload offset conflict.');
+  }
+  if (/\b(404|410)\b|expired|not found|gone/.test(message)) {
+    return new Error('TUS upload session expired or was not found.');
+  }
+  return new Error('TUS upload failed.');
 }
 
 /**
@@ -159,6 +188,7 @@ export function shouldUseTus(file: File): boolean {
  */
 export function startTusUpload(opts: TusUploadOptions): TusUploadHandle {
   const { noteId, file, mediaOptimize, onProgress } = opts;
+  validateTusMetadata(noteId, file);
   const baseUrl = api.client.baseUrl;
   const endpointParams = new URLSearchParams();
   if (mediaOptimize) {
@@ -205,7 +235,7 @@ export function startTusUpload(opts: TusUploadOptions): TusUploadHandle {
           // GET the tus Location URL to retrieve the finalized Attachment JSON
           const uploadUrl = tusUpload.url;
           if (!uploadUrl) {
-            reject(new Error('tus upload completed but no URL available'));
+            reject(new Error('TUS upload finalization is unavailable.'));
             return;
           }
 
@@ -225,13 +255,13 @@ export function startTusUpload(opts: TusUploadOptions): TusUploadHandle {
           const attachment: Attachment = await response.json();
           resolve(attachment);
         } catch (err) {
-          reject(err instanceof Error ? err : new Error(String(err)));
+          reject(redactedTusError(err));
         }
       },
 
       onError(err: Error) {
         if (!aborted) {
-          reject(err);
+          reject(redactedTusError(err));
         }
       },
     });

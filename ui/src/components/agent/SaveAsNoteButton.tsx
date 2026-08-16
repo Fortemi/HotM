@@ -14,6 +14,7 @@ import { BookmarkPlus, Check, Loader2, AlertCircle, AlertTriangle } from 'lucide
 import { Button } from '@/components/ui/button';
 import { api } from '@/api';
 import { formatSessionAsMarkdown, formatSessionAsJSON } from './session-export';
+import { startTusUpload } from '@/services/tusUploader';
 import type { UIMessage } from '@ai-sdk/react';
 
 interface SaveAsNoteButtonProps {
@@ -55,9 +56,9 @@ export function SaveAsNoteButton({
       // Tag the note so it's discoverable via "Load from Note"
       try {
         await api.notes.updateTags(savedNoteId, { add: ['agent-session'] });
-      } catch (tagErr) {
+      } catch {
         // Tag failure is non-fatal
-        console.warn('[SaveAsNote] Failed to tag note %s:', savedNoteId, tagErr);
+        console.warn('[SaveAsNote] Failed to tag note');
       }
 
       // Attach lossless JSON so the session can be restored later
@@ -66,12 +67,15 @@ export function SaveAsNoteButton({
         const json = formatSessionAsJSON(messages, { sessionName });
         const filename = `session-${sessionName.replace(/[^a-zA-Z0-9-_ ]/g, '').replace(/\s+/g, '-').toLowerCase()}.json`;
         const file = new File([json], filename, { type: 'application/json' });
-        await api.attachments.uploadAttachment(savedNoteId, file);
-      } catch (attachErr) {
+        await startTusUpload({
+          noteId: savedNoteId,
+          file,
+          mediaOptimize: false,
+        }).promise;
+      } catch {
         attachmentFailed = true;
-        const detail = attachErr instanceof Error ? attachErr.message : String(attachErr);
-        console.error('[SaveAsNote] Failed to attach session JSON to %s:', savedNoteId, attachErr);
-        setErrorMsg(`Note saved but session JSON attachment failed: ${detail}`);
+        console.error('[SaveAsNote] Session JSON attachment failed');
+        setErrorMsg('Note saved but session JSON attachment failed.');
       }
 
       setNoteId(savedNoteId);
@@ -82,10 +86,8 @@ export function SaveAsNoteButton({
         setState('success');
         setTimeout(() => setState('idle'), 5000);
       }
-    } catch (err) {
-      const message =
-        err instanceof Error ? err.message : 'Failed to save note';
-      setErrorMsg(message);
+    } catch {
+      setErrorMsg('Failed to save note.');
       setState('error');
       setTimeout(() => setState('idle'), 5000);
     }

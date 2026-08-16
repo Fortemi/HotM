@@ -1,0 +1,51 @@
+metadata:
+  schema_version: "1.0.0"
+  created_at: "2026-08-16T17:08:36Z"
+  updated_at: "2026-08-16T17:08:36Z"
+  description: "Provenance for HotM sensitive-operation remediation issue #297"
+entity:
+  id: "urn:aiwg:artifact:ui/src/services/tusUploader.ts"
+  type: "source-code"
+  created_at: "2026-08-16T17:08:36Z"
+  updated_at: "2026-08-16T17:08:36Z"
+  checksum: "sha256:2d81c40b44b871bc0cb2b4a0912e871de08952a44f9a406a2d02c5a1c236895d"
+  size_bytes: 8580
+  attributes:
+    change_scope: "hotm-297-sensitive-operation-remediation"
+    base_revision: "d45c8129486392adf9bb8ad69b57f5e743c52101"
+activity:
+  id: "urn:aiwg:activity:modification:ui-src-services-tusuploader-ts:hotm-297"
+  type: "modification"
+  started_at: "2026-08-16T17:08:36Z"
+  ended_at: "2026-08-16T17:08:36Z"
+  description: "Classify and harden credential, PKE, binary/media, backup, and TUS integration boundaries"
+agent:
+  id: "urn:aiwg:agent:codex-gpt-5"
+  type: "ai_assistant"
+  name: "Codex"
+  version: "gpt-5"
+  tool: "codex"
+relationships:
+  wasGeneratedBy:
+    entity: "urn:aiwg:artifact:ui/src/services/tusUploader.ts"
+    activity: "urn:aiwg:activity:modification:ui-src-services-tusuploader-ts:hotm-297"
+    time: "2026-08-16T17:08:36Z"
+  used:
+    - activity: "urn:aiwg:activity:modification:ui-src-services-tusuploader-ts:hotm-297"
+      entity: "urn:gitea:Fortemi/HotM:issue:297"
+      role: "requirement"
+    - activity: "urn:aiwg:activity:modification:ui-src-services-tusuploader-ts:hotm-297"
+      entity: "urn:git:Fortemi/fortemi:5ea08229c9f1565122df5f8e6906e89d98dc7e75:contracts/openapi/openapi.yaml"
+      role: "producer-contract"
+  wasDerivedFrom:
+    - entity: "urn:aiwg:artifact:ui/src/services/tusUploader.ts"
+      source: "urn:git:git@git.integrolabs.net:Fortemi/HotM.git:d45c8129486392adf9bb8ad69b57f5e743c52101:ui/src/services/tusUploader.ts"
+      derivation_type: "modifies"
+      activity: "urn:aiwg:activity:modification:ui-src-services-tusuploader-ts:hotm-297"
+  wasAssociatedWith:
+    activity: "urn:aiwg:activity:modification:ui-src-services-tusuploader-ts:hotm-297"
+    agent: "urn:aiwg:agent:codex-gpt-5"
+    role: "primary_author"
+  wasAttributedTo:
+    entity: "urn:aiwg:artifact:ui/src/services/tusUploader.ts"
+    agent: "urn:aiwg:agent:codex-gpt-5"

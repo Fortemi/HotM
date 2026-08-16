@@ -13,33 +13,13 @@ import type {
   AttachmentMetadata,
 } from './types-extended';
 
-/**
- * Extract a human-readable error message from an API error response.
- * Handles Fortemi standard format, flat error objects, and plain text responses.
- * Falls back to HTTP status code when no message can be extracted.
- */
-function extractErrorMessage(body: unknown, status: number): string {
-  if (typeof body === 'string' && body.length > 0) {
-    return body;
-  }
-
-  if (body && typeof body === 'object') {
-    const obj = body as Record<string, unknown>;
-
-    // Fortemi standard: { error: { message: "..." } }
-    if (obj.error && typeof obj.error === 'object') {
-      const nested = obj.error as Record<string, unknown>;
-      if (typeof nested.message === 'string') return nested.message;
-      if (typeof nested.code === 'string') return nested.code;
-    }
-
-    // Flat variants: { error: "..." }, { message: "..." }, { detail: "..." }
-    if (typeof obj.error === 'string') return obj.error;
-    if (typeof obj.message === 'string') return obj.message;
-    if (typeof obj.detail === 'string') return obj.detail;
-  }
-
-  return `HTTP ${status}`;
+function transferFailure(action: 'Upload' | 'Download', status: number): Error {
+  if (status === 401 || status === 403) return new Error(`${action} authorization expired or was denied.`);
+  if (status === 413) return new Error(`${action} exceeds the server size limit.`);
+  if (status === 416) return new Error('The requested download range is unavailable.');
+  if (status === 429) return new Error(`${action} is rate limited. Retry later.`);
+  if (status >= 500) return new Error(`${action} service is unavailable.`);
+  return new Error(`${action} failed (HTTP ${status}).`);
 }
 
 export function createAttachmentsApi(client: ApiClient) {
@@ -61,13 +41,8 @@ export function createAttachmentsApi(client: ApiClient) {
 
   return {
     /**
-     * Upload a file attachment to a note
-     * @param noteId - Note ID to attach file to
-     * @param file - File object to upload
-     * @param options - Upload options
-     * @param options.mediaOptimize - When true, request backend media optimization
-     *   (faststart MP4, remuxed containers, preview clips). Only effective for audio/video files.
-     * @returns Attachment metadata
+     * Compatibility guard for the uncontracted multipart route.
+     * Remote attachment callers must use the typed TUS workflow.
      */
     async uploadAttachment(
       noteId: string,
@@ -82,39 +57,8 @@ export function createAttachmentsApi(client: ApiClient) {
         throw new Error('File is required');
       }
 
-      // Fortemi multipart upload endpoint
-      const formData = new FormData();
-      formData.append('file', file);
-      if (options?.mediaOptimize) {
-        formData.append('media_optimize', 'true');
-      }
-
-      const baseUrl = getBaseUrl();
-      const url = `${baseUrl}/notes/${noteId}/attachments/upload`;
-      await client.requireMutation?.('POST', `/notes/${noteId}/attachments/upload`);
-
-      // Build headers as plain object — do NOT set Content-Type so the
-      // browser auto-generates the multipart boundary for FormData.
-      const headers: Record<string, string> = { ...getAuthorizationHeader() };
-      const selectedMemory = getActiveMemory();
-      if (selectedMemory) {
-        headers[getMemoryRoutingHeaderName()] = selectedMemory;
-      }
-
-      const response = await getTauriFetch()(url, {
-        method: 'POST',
-        body: formData,
-        ...(Object.keys(headers).length > 0 ? { headers } : {}),
-      });
-
-      if (!response.ok) {
-        let body: unknown;
-        try { body = await response.json(); }
-        catch { try { body = await response.text(); } catch { /* empty */ } }
-        throw new Error(`Upload failed: ${extractErrorMessage(body, response.status)}`);
-      }
-
-      return response.json();
+      void options;
+      throw new Error('Multipart attachment upload is disabled. Use the resumable upload workflow.');
     },
 
     /**
@@ -183,10 +127,7 @@ export function createAttachmentsApi(client: ApiClient) {
       });
 
       if (!response.ok) {
-        let body: unknown;
-        try { body = await response.json(); }
-        catch { try { body = await response.text(); } catch { /* empty */ } }
-        throw new Error(`Download failed: ${extractErrorMessage(body, response.status)}`);
+        throw transferFailure('Download', response.status);
       }
 
       return response.blob();
@@ -211,23 +152,27 @@ export function createAttachmentsApi(client: ApiClient) {
         headers[name] = value;
       }
 
-      const result = await invokeTauri<{
-        path: string;
-        bytes_written: number;
-        sha256: string;
-        reopened: boolean;
-        reopened_bytes: number;
-      } | null>(
-        'hotm_download_attachment_to_file',
-        {
-          api_base_url: getBaseUrl(),
-          attachment_id: attachmentId,
-          suggested_filename: filename,
-          variant,
-          headers,
-        },
-      );
-      return Boolean(result);
+      try {
+        const result = await invokeTauri<{
+          path: string;
+          bytes_written: number;
+          sha256: string;
+          reopened: boolean;
+          reopened_bytes: number;
+        } | null>(
+          'hotm_download_attachment_to_file',
+          {
+            api_base_url: getBaseUrl(),
+            attachment_id: attachmentId,
+            suggested_filename: filename,
+            variant,
+            headers,
+          },
+        );
+        return Boolean(result);
+      } catch {
+        throw new Error('Desktop download failed.');
+      }
     },
 
     /**

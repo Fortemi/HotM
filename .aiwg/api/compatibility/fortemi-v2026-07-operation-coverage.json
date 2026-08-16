@@ -12,9 +12,10 @@
     "sha256": "9d2d5ea05f21a71d416d713a5cadd2c4f76086a3494105280d50ec328c4056fd"
   },
   "operation_count": 251,
-  "targeted_operation_count": 33,
+  "targeted_operation_count": 74,
   "disposition_counts": {
-    "partial": 249,
+    "partial": 218,
+    "documented_exclusion": 31,
     "integrated": 1,
     "gap": 1
   },
@@ -23,26 +24,31 @@
       "conformant": 251
     },
     "request": {
-      "gap": 126,
-      "conformant": 122,
+      "gap": 85,
+      "documented_exclusion": 31,
+      "conformant": 132,
       "not_applicable": 3
     },
     "response": {
-      "gap": 126,
-      "conformant": 123,
-      "partial": 2
+      "gap": 85,
+      "documented_exclusion": 31,
+      "conformant": 128,
+      "partial": 7
     },
     "auth_context": {
-      "gap": 126,
-      "partial": 124,
+      "gap": 85,
+      "documented_exclusion": 31,
+      "partial": 134,
       "conformant": 1
     },
     "ui": {
-      "gap": 126,
-      "conformant": 125
+      "gap": 85,
+      "documented_exclusion": 31,
+      "conformant": 135
     },
     "agent": {
-      "gap": 251
+      "gap": 210,
+      "documented_exclusion": 41
     },
     "live": {
       "gap": 251
@@ -218,45 +224,55 @@
           "bearerAuth": []
         }
       ],
-      "targeted_by_290": false,
-      "disposition": "partial",
-      "tracker": "#290",
-      "rationale": "Operation-level conformance has not been explicitly claimed.",
+      "targeted_by_290": true,
+      "disposition": "documented_exclusion",
+      "tracker": "#297",
+      "rationale": "Pinned API-key success responses are not schema-bearing; secret receipt and lifecycle conformance is unverified.",
       "dimensions": {
         "route": {
           "status": "conformant",
           "evidence_paths": [],
-          "notes": "Route disposition only; does not imply request, response, auth, UI, agent, or live conformance."
+          "notes": "Route disposition only; no protocol or payload conformance is inferred."
         },
         "request": {
-          "status": "gap",
-          "evidence_paths": [],
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
           "notes": "No explicit request serializer evidence recorded."
         },
         "response": {
-          "status": "gap",
-          "evidence_paths": [],
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
           "notes": "No explicit success/error decoder evidence recorded."
         },
         "auth_context": {
-          "status": "gap",
-          "evidence_paths": [],
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
           "notes": "No explicit auth/context gate evidence recorded."
         },
         "ui": {
-          "status": "gap",
-          "evidence_paths": [],
-          "notes": "No explicit UI workflow evidence recorded."
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
+          "notes": "Visible and disabled in the Operations catalog."
         },
         "agent": {
-          "status": "gap",
-          "evidence_paths": [],
-          "notes": "No explicit agent workflow evidence recorded."
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
+          "notes": "Credential, key, path, URL, and binary material is outside generic agent invocation."
         },
         "live": {
           "status": "gap",
           "evidence_paths": [],
-          "notes": "No live receipt recorded."
+          "notes": "No live receipt; exclusion does not simulate one."
         }
       }
     },
@@ -279,45 +295,55 @@
           "bearerAuth": []
         }
       ],
-      "targeted_by_290": false,
-      "disposition": "partial",
-      "tracker": "#290",
-      "rationale": "Operation-level conformance has not been explicitly claimed.",
+      "targeted_by_290": true,
+      "disposition": "documented_exclusion",
+      "tracker": "#297",
+      "rationale": "Pinned API-key success responses are not schema-bearing; secret receipt and lifecycle conformance is unverified.",
       "dimensions": {
         "route": {
           "status": "conformant",
           "evidence_paths": [],
-          "notes": "Route disposition only; does not imply request, response, auth, UI, agent, or live conformance."
+          "notes": "Route disposition only; no protocol or payload conformance is inferred."
         },
         "request": {
-          "status": "gap",
-          "evidence_paths": [],
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
           "notes": "No explicit request serializer evidence recorded."
         },
         "response": {
-          "status": "gap",
-          "evidence_paths": [],
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
           "notes": "No explicit success/error decoder evidence recorded."
         },
         "auth_context": {
-          "status": "gap",
-          "evidence_paths": [],
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
           "notes": "No explicit auth/context gate evidence recorded."
         },
         "ui": {
-          "status": "gap",
-          "evidence_paths": [],
-          "notes": "No explicit UI workflow evidence recorded."
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
+          "notes": "Visible and disabled in the Operations catalog."
         },
         "agent": {
-          "status": "gap",
-          "evidence_paths": [],
-          "notes": "No explicit agent workflow evidence recorded."
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
+          "notes": "Credential, key, path, URL, and binary material is outside generic agent invocation."
         },
         "live": {
           "status": "gap",
           "evidence_paths": [],
-          "notes": "No live receipt recorded."
+          "notes": "No live receipt; exclusion does not simulate one."
         }
       }
     },
@@ -341,45 +367,55 @@
           "bearerAuth": []
         }
       ],
-      "targeted_by_290": false,
-      "disposition": "partial",
-      "tracker": "#290",
-      "rationale": "Operation-level conformance has not been explicitly claimed.",
+      "targeted_by_290": true,
+      "disposition": "documented_exclusion",
+      "tracker": "#297",
+      "rationale": "Pinned API-key success responses are not schema-bearing; secret receipt and lifecycle conformance is unverified.",
       "dimensions": {
         "route": {
           "status": "conformant",
           "evidence_paths": [],
-          "notes": "Route disposition only; does not imply request, response, auth, UI, agent, or live conformance."
+          "notes": "Route disposition only; no protocol or payload conformance is inferred."
         },
         "request": {
-          "status": "gap",
-          "evidence_paths": [],
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
           "notes": "No explicit request serializer evidence recorded."
         },
         "response": {
-          "status": "gap",
-          "evidence_paths": [],
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
           "notes": "No explicit success/error decoder evidence recorded."
         },
         "auth_context": {
-          "status": "gap",
-          "evidence_paths": [],
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
           "notes": "No explicit auth/context gate evidence recorded."
         },
         "ui": {
-          "status": "gap",
-          "evidence_paths": [],
-          "notes": "No explicit UI workflow evidence recorded."
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
+          "notes": "Visible and disabled in the Operations catalog."
         },
         "agent": {
-          "status": "gap",
-          "evidence_paths": [],
-          "notes": "No explicit agent workflow evidence recorded."
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
+          "notes": "Credential, key, path, URL, and binary material is outside generic agent invocation."
         },
         "live": {
           "status": "gap",
           "evidence_paths": [],
-          "notes": "No live receipt recorded."
+          "notes": "No live receipt; exclusion does not simulate one."
         }
       }
     },
@@ -1187,10 +1223,10 @@
           "bearerAuth": []
         }
       ],
-      "targeted_by_290": false,
+      "targeted_by_290": true,
       "disposition": "partial",
-      "tracker": "#290",
-      "rationale": "Operation-level conformance has not been explicitly claimed.",
+      "tracker": "#297",
+      "rationale": "Authenticated media bytes are handled by browser/Tauri fetch and media primitives; payloads and local paths never enter generic agent input.",
       "dimensions": {
         "route": {
           "status": "conformant",
@@ -1198,28 +1234,42 @@
           "notes": "Route disposition only; does not imply request, response, auth, UI, agent, or live conformance."
         },
         "request": {
-          "status": "gap",
-          "evidence_paths": [],
+          "status": "conformant",
+          "evidence_paths": [
+            "ui/src/api/attachments.ts",
+            "ui/src/api/__tests__/attachments.test.ts"
+          ],
           "notes": "No explicit request serializer evidence recorded."
         },
         "response": {
-          "status": "gap",
-          "evidence_paths": [],
-          "notes": "No explicit success/error decoder evidence recorded."
+          "status": "partial",
+          "evidence_paths": [
+            "ui/src/api/attachments.ts",
+            "ui/src/api/__tests__/attachments.test.ts"
+          ],
+          "notes": "Browser/Tauri byte handling and bounded errors are tested; producer media/header declarations remain incomplete on some routes."
         },
         "auth_context": {
-          "status": "gap",
-          "evidence_paths": [],
-          "notes": "No explicit auth/context gate evidence recorded."
+          "status": "partial",
+          "evidence_paths": [
+            "ui/src/api/auth-context.ts",
+            "ui/src/api/__tests__/attachments.test.ts"
+          ],
+          "notes": "Authenticated handoff is implemented; operation-specific server authorization has no live receipt."
         },
         "ui": {
-          "status": "gap",
-          "evidence_paths": [],
+          "status": "conformant",
+          "evidence_paths": [
+            "ui/src/components/attachments/StreamingMedia.tsx",
+            "ui/src/components/attachments/__tests__/StreamingMedia.test.tsx"
+          ],
           "notes": "No explicit UI workflow evidence recorded."
         },
         "agent": {
-          "status": "gap",
-          "evidence_paths": [],
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
           "notes": "No explicit agent workflow evidence recorded."
         },
         "live": {
@@ -1249,10 +1299,10 @@
           "bearerAuth": []
         }
       ],
-      "targeted_by_290": false,
+      "targeted_by_290": true,
       "disposition": "partial",
-      "tracker": "#290",
-      "rationale": "Operation-level conformance has not been explicitly claimed.",
+      "tracker": "#297",
+      "rationale": "Authenticated media bytes are handled by browser/Tauri fetch and media primitives; payloads and local paths never enter generic agent input.",
       "dimensions": {
         "route": {
           "status": "conformant",
@@ -1260,28 +1310,42 @@
           "notes": "Route disposition only; does not imply request, response, auth, UI, agent, or live conformance."
         },
         "request": {
-          "status": "gap",
-          "evidence_paths": [],
+          "status": "conformant",
+          "evidence_paths": [
+            "ui/src/api/attachments.ts",
+            "ui/src/api/__tests__/attachments.test.ts"
+          ],
           "notes": "No explicit request serializer evidence recorded."
         },
         "response": {
-          "status": "gap",
-          "evidence_paths": [],
-          "notes": "No explicit success/error decoder evidence recorded."
+          "status": "partial",
+          "evidence_paths": [
+            "ui/src/api/attachments.ts",
+            "ui/src/api/__tests__/attachments.test.ts"
+          ],
+          "notes": "Browser/Tauri byte handling and bounded errors are tested; producer media/header declarations remain incomplete on some routes."
         },
         "auth_context": {
-          "status": "gap",
-          "evidence_paths": [],
-          "notes": "No explicit auth/context gate evidence recorded."
+          "status": "partial",
+          "evidence_paths": [
+            "ui/src/api/auth-context.ts",
+            "ui/src/api/__tests__/attachments.test.ts"
+          ],
+          "notes": "Authenticated handoff is implemented; operation-specific server authorization has no live receipt."
         },
         "ui": {
-          "status": "gap",
-          "evidence_paths": [],
+          "status": "conformant",
+          "evidence_paths": [
+            "ui/src/components/attachments/StreamingMedia.tsx",
+            "ui/src/components/attachments/__tests__/StreamingMedia.test.tsx"
+          ],
           "notes": "No explicit UI workflow evidence recorded."
         },
         "agent": {
-          "status": "gap",
-          "evidence_paths": [],
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
           "notes": "No explicit agent workflow evidence recorded."
         },
         "live": {
@@ -1311,10 +1375,10 @@
           "bearerAuth": []
         }
       ],
-      "targeted_by_290": false,
+      "targeted_by_290": true,
       "disposition": "partial",
-      "tracker": "#290",
-      "rationale": "Operation-level conformance has not been explicitly claimed.",
+      "tracker": "#297",
+      "rationale": "Authenticated media bytes are handled by browser/Tauri fetch and media primitives; payloads and local paths never enter generic agent input.",
       "dimensions": {
         "route": {
           "status": "conformant",
@@ -1322,28 +1386,42 @@
           "notes": "Route disposition only; does not imply request, response, auth, UI, agent, or live conformance."
         },
         "request": {
-          "status": "gap",
-          "evidence_paths": [],
+          "status": "conformant",
+          "evidence_paths": [
+            "ui/src/api/attachments.ts",
+            "ui/src/api/__tests__/attachments.test.ts"
+          ],
           "notes": "No explicit request serializer evidence recorded."
         },
         "response": {
-          "status": "gap",
-          "evidence_paths": [],
-          "notes": "No explicit success/error decoder evidence recorded."
+          "status": "partial",
+          "evidence_paths": [
+            "ui/src/api/attachments.ts",
+            "ui/src/api/__tests__/attachments.test.ts"
+          ],
+          "notes": "Browser/Tauri byte handling and bounded errors are tested; producer media/header declarations remain incomplete on some routes."
         },
         "auth_context": {
-          "status": "gap",
-          "evidence_paths": [],
-          "notes": "No explicit auth/context gate evidence recorded."
+          "status": "partial",
+          "evidence_paths": [
+            "ui/src/api/auth-context.ts",
+            "ui/src/api/__tests__/attachments.test.ts"
+          ],
+          "notes": "Authenticated handoff is implemented; operation-specific server authorization has no live receipt."
         },
         "ui": {
-          "status": "gap",
-          "evidence_paths": [],
+          "status": "conformant",
+          "evidence_paths": [
+            "ui/src/components/attachments/StreamingMedia.tsx",
+            "ui/src/components/attachments/__tests__/StreamingMedia.test.tsx"
+          ],
           "notes": "No explicit UI workflow evidence recorded."
         },
         "agent": {
-          "status": "gap",
-          "evidence_paths": [],
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
           "notes": "No explicit agent workflow evidence recorded."
         },
         "live": {
@@ -1373,10 +1451,10 @@
           "bearerAuth": []
         }
       ],
-      "targeted_by_290": false,
+      "targeted_by_290": true,
       "disposition": "partial",
-      "tracker": "#290",
-      "rationale": "Operation-level conformance has not been explicitly claimed.",
+      "tracker": "#297",
+      "rationale": "Authenticated media bytes are handled by browser/Tauri fetch and media primitives; payloads and local paths never enter generic agent input.",
       "dimensions": {
         "route": {
           "status": "conformant",
@@ -1384,28 +1462,42 @@
           "notes": "Route disposition only; does not imply request, response, auth, UI, agent, or live conformance."
         },
         "request": {
-          "status": "gap",
-          "evidence_paths": [],
+          "status": "conformant",
+          "evidence_paths": [
+            "ui/src/api/attachments.ts",
+            "ui/src/api/__tests__/attachments.test.ts"
+          ],
           "notes": "No explicit request serializer evidence recorded."
         },
         "response": {
-          "status": "gap",
-          "evidence_paths": [],
-          "notes": "No explicit success/error decoder evidence recorded."
+          "status": "partial",
+          "evidence_paths": [
+            "ui/src/api/attachments.ts",
+            "ui/src/api/__tests__/attachments.test.ts"
+          ],
+          "notes": "Browser/Tauri byte handling and bounded errors are tested; producer media/header declarations remain incomplete on some routes."
         },
         "auth_context": {
-          "status": "gap",
-          "evidence_paths": [],
-          "notes": "No explicit auth/context gate evidence recorded."
+          "status": "partial",
+          "evidence_paths": [
+            "ui/src/api/auth-context.ts",
+            "ui/src/api/__tests__/attachments.test.ts"
+          ],
+          "notes": "Authenticated handoff is implemented; operation-specific server authorization has no live receipt."
         },
         "ui": {
-          "status": "gap",
-          "evidence_paths": [],
+          "status": "conformant",
+          "evidence_paths": [
+            "ui/src/components/attachments/StreamingMedia.tsx",
+            "ui/src/components/attachments/__tests__/StreamingMedia.test.tsx"
+          ],
           "notes": "No explicit UI workflow evidence recorded."
         },
         "agent": {
-          "status": "gap",
-          "evidence_paths": [],
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
           "notes": "No explicit agent workflow evidence recorded."
         },
         "live": {
@@ -1435,10 +1527,10 @@
           "bearerAuth": []
         }
       ],
-      "targeted_by_290": false,
+      "targeted_by_290": true,
       "disposition": "partial",
-      "tracker": "#290",
-      "rationale": "Operation-level conformance has not been explicitly claimed.",
+      "tracker": "#297",
+      "rationale": "Authenticated media bytes are handled by browser/Tauri fetch and media primitives; payloads and local paths never enter generic agent input.",
       "dimensions": {
         "route": {
           "status": "conformant",
@@ -1446,28 +1538,42 @@
           "notes": "Route disposition only; does not imply request, response, auth, UI, agent, or live conformance."
         },
         "request": {
-          "status": "gap",
-          "evidence_paths": [],
+          "status": "conformant",
+          "evidence_paths": [
+            "ui/src/api/attachments.ts",
+            "ui/src/api/__tests__/attachments.test.ts"
+          ],
           "notes": "No explicit request serializer evidence recorded."
         },
         "response": {
-          "status": "gap",
-          "evidence_paths": [],
-          "notes": "No explicit success/error decoder evidence recorded."
+          "status": "partial",
+          "evidence_paths": [
+            "ui/src/api/attachments.ts",
+            "ui/src/api/__tests__/attachments.test.ts"
+          ],
+          "notes": "Browser/Tauri byte handling and bounded errors are tested; producer media/header declarations remain incomplete on some routes."
         },
         "auth_context": {
-          "status": "gap",
-          "evidence_paths": [],
-          "notes": "No explicit auth/context gate evidence recorded."
+          "status": "partial",
+          "evidence_paths": [
+            "ui/src/api/auth-context.ts",
+            "ui/src/api/__tests__/attachments.test.ts"
+          ],
+          "notes": "Authenticated handoff is implemented; operation-specific server authorization has no live receipt."
         },
         "ui": {
-          "status": "gap",
-          "evidence_paths": [],
+          "status": "conformant",
+          "evidence_paths": [
+            "ui/src/components/attachments/StreamingMedia.tsx",
+            "ui/src/components/attachments/__tests__/StreamingMedia.test.tsx"
+          ],
           "notes": "No explicit UI workflow evidence recorded."
         },
         "agent": {
-          "status": "gap",
-          "evidence_paths": [],
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
           "notes": "No explicit agent workflow evidence recorded."
         },
         "live": {
@@ -1557,45 +1663,55 @@
           "bearerAuth": []
         }
       ],
-      "targeted_by_290": false,
-      "disposition": "partial",
-      "tracker": "#290",
-      "rationale": "Operation-level conformance has not been explicitly claimed.",
+      "targeted_by_290": true,
+      "disposition": "documented_exclusion",
+      "tracker": "#297",
+      "rationale": "Pinned binary media types, response headers, or upload request schemas are incomplete for this route.",
       "dimensions": {
         "route": {
           "status": "conformant",
           "evidence_paths": [],
-          "notes": "Route disposition only; does not imply request, response, auth, UI, agent, or live conformance."
+          "notes": "Route disposition only; no protocol or payload conformance is inferred."
         },
         "request": {
-          "status": "gap",
-          "evidence_paths": [],
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
           "notes": "No explicit request serializer evidence recorded."
         },
         "response": {
-          "status": "gap",
-          "evidence_paths": [],
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
           "notes": "No explicit success/error decoder evidence recorded."
         },
         "auth_context": {
-          "status": "gap",
-          "evidence_paths": [],
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
           "notes": "No explicit auth/context gate evidence recorded."
         },
         "ui": {
-          "status": "gap",
-          "evidence_paths": [],
-          "notes": "No explicit UI workflow evidence recorded."
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
+          "notes": "Visible and disabled in the Operations catalog."
         },
         "agent": {
-          "status": "gap",
-          "evidence_paths": [],
-          "notes": "No explicit agent workflow evidence recorded."
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
+          "notes": "Credential, key, path, URL, and binary material is outside generic agent invocation."
         },
         "live": {
           "status": "gap",
           "evidence_paths": [],
-          "notes": "No live receipt recorded."
+          "notes": "No live receipt; exclusion does not simulate one."
         }
       }
     },
@@ -1768,45 +1884,55 @@
           "bearerAuth": []
         }
       ],
-      "targeted_by_290": false,
-      "disposition": "partial",
-      "tracker": "#290",
-      "rationale": "Operation-level conformance has not been explicitly claimed.",
+      "targeted_by_290": true,
+      "disposition": "documented_exclusion",
+      "tracker": "#297",
+      "rationale": "Pinned binary media types, response headers, or upload request schemas are incomplete for this route.",
       "dimensions": {
         "route": {
           "status": "conformant",
           "evidence_paths": [],
-          "notes": "Route disposition only; does not imply request, response, auth, UI, agent, or live conformance."
+          "notes": "Route disposition only; no protocol or payload conformance is inferred."
         },
         "request": {
-          "status": "gap",
-          "evidence_paths": [],
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
           "notes": "No explicit request serializer evidence recorded."
         },
         "response": {
-          "status": "gap",
-          "evidence_paths": [],
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
           "notes": "No explicit success/error decoder evidence recorded."
         },
         "auth_context": {
-          "status": "gap",
-          "evidence_paths": [],
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
           "notes": "No explicit auth/context gate evidence recorded."
         },
         "ui": {
-          "status": "gap",
-          "evidence_paths": [],
-          "notes": "No explicit UI workflow evidence recorded."
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
+          "notes": "Visible and disabled in the Operations catalog."
         },
         "agent": {
-          "status": "gap",
-          "evidence_paths": [],
-          "notes": "No explicit agent workflow evidence recorded."
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
+          "notes": "Credential, key, path, URL, and binary material is outside generic agent invocation."
         },
         "live": {
           "status": "gap",
           "evidence_paths": [],
-          "notes": "No live receipt recorded."
+          "notes": "No live receipt; exclusion does not simulate one."
         }
       }
     },
@@ -1829,45 +1955,55 @@
           "bearerAuth": []
         }
       ],
-      "targeted_by_290": false,
-      "disposition": "partial",
-      "tracker": "#290",
-      "rationale": "Operation-level conformance has not been explicitly claimed.",
+      "targeted_by_290": true,
+      "disposition": "documented_exclusion",
+      "tracker": "#297",
+      "rationale": "Pinned binary media types, response headers, or upload request schemas are incomplete for this route.",
       "dimensions": {
         "route": {
           "status": "conformant",
           "evidence_paths": [],
-          "notes": "Route disposition only; does not imply request, response, auth, UI, agent, or live conformance."
+          "notes": "Route disposition only; no protocol or payload conformance is inferred."
         },
         "request": {
-          "status": "gap",
-          "evidence_paths": [],
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
           "notes": "No explicit request serializer evidence recorded."
         },
         "response": {
-          "status": "gap",
-          "evidence_paths": [],
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
           "notes": "No explicit success/error decoder evidence recorded."
         },
         "auth_context": {
-          "status": "gap",
-          "evidence_paths": [],
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
           "notes": "No explicit auth/context gate evidence recorded."
         },
         "ui": {
-          "status": "gap",
-          "evidence_paths": [],
-          "notes": "No explicit UI workflow evidence recorded."
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
+          "notes": "Visible and disabled in the Operations catalog."
         },
         "agent": {
-          "status": "gap",
-          "evidence_paths": [],
-          "notes": "No explicit agent workflow evidence recorded."
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
+          "notes": "Credential, key, path, URL, and binary material is outside generic agent invocation."
         },
         "live": {
           "status": "gap",
           "evidence_paths": [],
-          "notes": "No live receipt recorded."
+          "notes": "No live receipt; exclusion does not simulate one."
         }
       }
     },
@@ -2012,45 +2148,55 @@
           "bearerAuth": []
         }
       ],
-      "targeted_by_290": false,
-      "disposition": "partial",
-      "tracker": "#290",
-      "rationale": "Operation-level conformance has not been explicitly claimed.",
+      "targeted_by_290": true,
+      "disposition": "documented_exclusion",
+      "tracker": "#297",
+      "rationale": "Pinned binary media types, response headers, or upload request schemas are incomplete for this route.",
       "dimensions": {
         "route": {
           "status": "conformant",
           "evidence_paths": [],
-          "notes": "Route disposition only; does not imply request, response, auth, UI, agent, or live conformance."
+          "notes": "Route disposition only; no protocol or payload conformance is inferred."
         },
         "request": {
-          "status": "gap",
-          "evidence_paths": [],
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
           "notes": "No explicit request serializer evidence recorded."
         },
         "response": {
-          "status": "gap",
-          "evidence_paths": [],
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
           "notes": "No explicit success/error decoder evidence recorded."
         },
         "auth_context": {
-          "status": "gap",
-          "evidence_paths": [],
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
           "notes": "No explicit auth/context gate evidence recorded."
         },
         "ui": {
-          "status": "gap",
-          "evidence_paths": [],
-          "notes": "No explicit UI workflow evidence recorded."
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
+          "notes": "Visible and disabled in the Operations catalog."
         },
         "agent": {
-          "status": "gap",
-          "evidence_paths": [],
-          "notes": "No explicit agent workflow evidence recorded."
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
+          "notes": "Credential, key, path, URL, and binary material is outside generic agent invocation."
         },
         "live": {
           "status": "gap",
           "evidence_paths": [],
-          "notes": "No live receipt recorded."
+          "notes": "No live receipt; exclusion does not simulate one."
         }
       }
     },
@@ -2073,45 +2219,55 @@
           "bearerAuth": []
         }
       ],
-      "targeted_by_290": false,
-      "disposition": "partial",
-      "tracker": "#290",
-      "rationale": "Operation-level conformance has not been explicitly claimed.",
+      "targeted_by_290": true,
+      "disposition": "documented_exclusion",
+      "tracker": "#297",
+      "rationale": "Pinned binary media types, response headers, or upload request schemas are incomplete for this route.",
       "dimensions": {
         "route": {
           "status": "conformant",
           "evidence_paths": [],
-          "notes": "Route disposition only; does not imply request, response, auth, UI, agent, or live conformance."
+          "notes": "Route disposition only; no protocol or payload conformance is inferred."
         },
         "request": {
-          "status": "gap",
-          "evidence_paths": [],
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
           "notes": "No explicit request serializer evidence recorded."
         },
         "response": {
-          "status": "gap",
-          "evidence_paths": [],
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
           "notes": "No explicit success/error decoder evidence recorded."
         },
         "auth_context": {
-          "status": "gap",
-          "evidence_paths": [],
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
           "notes": "No explicit auth/context gate evidence recorded."
         },
         "ui": {
-          "status": "gap",
-          "evidence_paths": [],
-          "notes": "No explicit UI workflow evidence recorded."
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
+          "notes": "Visible and disabled in the Operations catalog."
         },
         "agent": {
-          "status": "gap",
-          "evidence_paths": [],
-          "notes": "No explicit agent workflow evidence recorded."
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
+          "notes": "Credential, key, path, URL, and binary material is outside generic agent invocation."
         },
         "live": {
           "status": "gap",
           "evidence_paths": [],
-          "notes": "No live receipt recorded."
+          "notes": "No live receipt; exclusion does not simulate one."
         }
       }
     },
@@ -2256,45 +2412,55 @@
           "bearerAuth": []
         }
       ],
-      "targeted_by_290": false,
-      "disposition": "partial",
-      "tracker": "#290",
-      "rationale": "Operation-level conformance has not been explicitly claimed.",
+      "targeted_by_290": true,
+      "disposition": "documented_exclusion",
+      "tracker": "#297",
+      "rationale": "Pinned binary media types, response headers, or upload request schemas are incomplete for this route.",
       "dimensions": {
         "route": {
           "status": "conformant",
           "evidence_paths": [],
-          "notes": "Route disposition only; does not imply request, response, auth, UI, agent, or live conformance."
+          "notes": "Route disposition only; no protocol or payload conformance is inferred."
         },
         "request": {
-          "status": "gap",
-          "evidence_paths": [],
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
           "notes": "No explicit request serializer evidence recorded."
         },
         "response": {
-          "status": "gap",
-          "evidence_paths": [],
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
           "notes": "No explicit success/error decoder evidence recorded."
         },
         "auth_context": {
-          "status": "gap",
-          "evidence_paths": [],
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
           "notes": "No explicit auth/context gate evidence recorded."
         },
         "ui": {
-          "status": "gap",
-          "evidence_paths": [],
-          "notes": "No explicit UI workflow evidence recorded."
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
+          "notes": "Visible and disabled in the Operations catalog."
         },
         "agent": {
-          "status": "gap",
-          "evidence_paths": [],
-          "notes": "No explicit agent workflow evidence recorded."
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
+          "notes": "Credential, key, path, URL, and binary material is outside generic agent invocation."
         },
         "live": {
           "status": "gap",
           "evidence_paths": [],
-          "notes": "No live receipt recorded."
+          "notes": "No live receipt; exclusion does not simulate one."
         }
       }
     },
@@ -2467,45 +2633,55 @@
           "bearerAuth": []
         }
       ],
-      "targeted_by_290": false,
-      "disposition": "partial",
-      "tracker": "#290",
-      "rationale": "Operation-level conformance has not been explicitly claimed.",
+      "targeted_by_290": true,
+      "disposition": "documented_exclusion",
+      "tracker": "#297",
+      "rationale": "Pinned binary media types, response headers, or upload request schemas are incomplete for this route.",
       "dimensions": {
         "route": {
           "status": "conformant",
           "evidence_paths": [],
-          "notes": "Route disposition only; does not imply request, response, auth, UI, agent, or live conformance."
+          "notes": "Route disposition only; no protocol or payload conformance is inferred."
         },
         "request": {
-          "status": "gap",
-          "evidence_paths": [],
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
           "notes": "No explicit request serializer evidence recorded."
         },
         "response": {
-          "status": "gap",
-          "evidence_paths": [],
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
           "notes": "No explicit success/error decoder evidence recorded."
         },
         "auth_context": {
-          "status": "gap",
-          "evidence_paths": [],
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
           "notes": "No explicit auth/context gate evidence recorded."
         },
         "ui": {
-          "status": "gap",
-          "evidence_paths": [],
-          "notes": "No explicit UI workflow evidence recorded."
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
+          "notes": "Visible and disabled in the Operations catalog."
         },
         "agent": {
-          "status": "gap",
-          "evidence_paths": [],
-          "notes": "No explicit agent workflow evidence recorded."
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
+          "notes": "Credential, key, path, URL, and binary material is outside generic agent invocation."
         },
         "live": {
           "status": "gap",
           "evidence_paths": [],
-          "notes": "No live receipt recorded."
+          "notes": "No live receipt; exclusion does not simulate one."
         }
       }
     },
@@ -12328,45 +12504,55 @@
           "bearerAuth": []
         }
       ],
-      "targeted_by_290": false,
-      "disposition": "partial",
-      "tracker": "#290",
-      "rationale": "Operation-level conformance has not been explicitly claimed.",
+      "targeted_by_290": true,
+      "disposition": "documented_exclusion",
+      "tracker": "#297",
+      "rationale": "Legacy JSON attachment upload is not used by HotM; binary content is not base64-routed through the agent or UI client.",
       "dimensions": {
         "route": {
           "status": "conformant",
           "evidence_paths": [],
-          "notes": "Route disposition only; does not imply request, response, auth, UI, agent, or live conformance."
+          "notes": "Route disposition only; no protocol or payload conformance is inferred."
         },
         "request": {
-          "status": "gap",
-          "evidence_paths": [],
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
           "notes": "No explicit request serializer evidence recorded."
         },
         "response": {
-          "status": "gap",
-          "evidence_paths": [],
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
           "notes": "No explicit success/error decoder evidence recorded."
         },
         "auth_context": {
-          "status": "gap",
-          "evidence_paths": [],
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
           "notes": "No explicit auth/context gate evidence recorded."
         },
         "ui": {
-          "status": "gap",
-          "evidence_paths": [],
-          "notes": "No explicit UI workflow evidence recorded."
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
+          "notes": "Visible and disabled in the Operations catalog."
         },
         "agent": {
-          "status": "gap",
-          "evidence_paths": [],
-          "notes": "No explicit agent workflow evidence recorded."
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
+          "notes": "Credential, key, path, URL, and binary material is outside generic agent invocation."
         },
         "live": {
           "status": "gap",
           "evidence_paths": [],
-          "notes": "No live receipt recorded."
+          "notes": "No live receipt; exclusion does not simulate one."
         }
       }
     },
@@ -12391,10 +12577,10 @@
           "bearerAuth": []
         }
       ],
-      "targeted_by_290": false,
+      "targeted_by_290": true,
       "disposition": "partial",
-      "tracker": "#290",
-      "rationale": "Operation-level conformance has not been explicitly claimed.",
+      "tracker": "#297",
+      "rationale": "Typed tus-js-client workflow uses browser/Tauri byte transport with resumable offsets, bounded chunks, cancellation, and redacted failures.",
       "dimensions": {
         "route": {
           "status": "conformant",
@@ -12402,28 +12588,43 @@
           "notes": "Route disposition only; does not imply request, response, auth, UI, agent, or live conformance."
         },
         "request": {
-          "status": "gap",
-          "evidence_paths": [],
+          "status": "conformant",
+          "evidence_paths": [
+            "ui/src/services/tusUploader.ts",
+            "ui/src/services/__tests__/tusUploader.test.ts"
+          ],
           "notes": "No explicit request serializer evidence recorded."
         },
         "response": {
-          "status": "gap",
-          "evidence_paths": [],
-          "notes": "No explicit success/error decoder evidence recorded."
+          "status": "conformant",
+          "evidence_paths": [
+            "ui/src/services/tusUploader.ts",
+            "ui/src/services/__tests__/tusUploader.test.ts"
+          ],
+          "notes": "Pinned status and TUS header semantics are handled; no undeclared success payload is inferred."
         },
         "auth_context": {
-          "status": "gap",
-          "evidence_paths": [],
-          "notes": "No explicit auth/context gate evidence recorded."
+          "status": "partial",
+          "evidence_paths": [
+            "ui/src/api/auth-context.ts",
+            "ui/src/services/__tests__/tusUploader.test.ts"
+          ],
+          "notes": "Bearer/memory forwarding and redaction are tested; operation-specific server authorization has no live receipt."
         },
         "ui": {
-          "status": "gap",
-          "evidence_paths": [],
+          "status": "conformant",
+          "evidence_paths": [
+            "ui/src/services/uploadStore.ts",
+            "ui/src/services/__tests__/uploadStore.test.ts",
+            "ui/src/components/agent/__tests__/SaveAsNoteButton.test.tsx"
+          ],
           "notes": "No explicit UI workflow evidence recorded."
         },
         "agent": {
-          "status": "gap",
-          "evidence_paths": [],
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
           "notes": "No explicit agent workflow evidence recorded."
         },
         "live": {
@@ -12452,10 +12653,10 @@
           "bearerAuth": []
         }
       ],
-      "targeted_by_290": false,
+      "targeted_by_290": true,
       "disposition": "partial",
-      "tracker": "#290",
-      "rationale": "Operation-level conformance has not been explicitly claimed.",
+      "tracker": "#297",
+      "rationale": "Typed tus-js-client workflow uses browser/Tauri byte transport with resumable offsets, bounded chunks, cancellation, and redacted failures.",
       "dimensions": {
         "route": {
           "status": "conformant",
@@ -12463,28 +12664,43 @@
           "notes": "Route disposition only; does not imply request, response, auth, UI, agent, or live conformance."
         },
         "request": {
-          "status": "gap",
-          "evidence_paths": [],
+          "status": "conformant",
+          "evidence_paths": [
+            "ui/src/services/tusUploader.ts",
+            "ui/src/services/__tests__/tusUploader.test.ts"
+          ],
           "notes": "No explicit request serializer evidence recorded."
         },
         "response": {
-          "status": "gap",
-          "evidence_paths": [],
-          "notes": "No explicit success/error decoder evidence recorded."
+          "status": "conformant",
+          "evidence_paths": [
+            "ui/src/services/tusUploader.ts",
+            "ui/src/services/__tests__/tusUploader.test.ts"
+          ],
+          "notes": "Pinned status and TUS header semantics are handled; no undeclared success payload is inferred."
         },
         "auth_context": {
-          "status": "gap",
-          "evidence_paths": [],
-          "notes": "No explicit auth/context gate evidence recorded."
+          "status": "partial",
+          "evidence_paths": [
+            "ui/src/api/auth-context.ts",
+            "ui/src/services/__tests__/tusUploader.test.ts"
+          ],
+          "notes": "Bearer/memory forwarding and redaction are tested; operation-specific server authorization has no live receipt."
         },
         "ui": {
-          "status": "gap",
-          "evidence_paths": [],
+          "status": "conformant",
+          "evidence_paths": [
+            "ui/src/services/uploadStore.ts",
+            "ui/src/services/__tests__/uploadStore.test.ts",
+            "ui/src/components/agent/__tests__/SaveAsNoteButton.test.tsx"
+          ],
           "notes": "No explicit UI workflow evidence recorded."
         },
         "agent": {
-          "status": "gap",
-          "evidence_paths": [],
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
           "notes": "No explicit agent workflow evidence recorded."
         },
         "live": {
@@ -12514,10 +12730,10 @@
           "bearerAuth": []
         }
       ],
-      "targeted_by_290": false,
+      "targeted_by_290": true,
       "disposition": "partial",
-      "tracker": "#290",
-      "rationale": "Operation-level conformance has not been explicitly claimed.",
+      "tracker": "#297",
+      "rationale": "Typed tus-js-client workflow uses browser/Tauri byte transport with resumable offsets, bounded chunks, cancellation, and redacted failures.",
       "dimensions": {
         "route": {
           "status": "conformant",
@@ -12525,28 +12741,43 @@
           "notes": "Route disposition only; does not imply request, response, auth, UI, agent, or live conformance."
         },
         "request": {
-          "status": "gap",
-          "evidence_paths": [],
+          "status": "conformant",
+          "evidence_paths": [
+            "ui/src/services/tusUploader.ts",
+            "ui/src/services/__tests__/tusUploader.test.ts"
+          ],
           "notes": "No explicit request serializer evidence recorded."
         },
         "response": {
-          "status": "gap",
-          "evidence_paths": [],
-          "notes": "No explicit success/error decoder evidence recorded."
+          "status": "conformant",
+          "evidence_paths": [
+            "ui/src/services/tusUploader.ts",
+            "ui/src/services/__tests__/tusUploader.test.ts"
+          ],
+          "notes": "Pinned status and TUS header semantics are handled; no undeclared success payload is inferred."
         },
         "auth_context": {
-          "status": "gap",
-          "evidence_paths": [],
-          "notes": "No explicit auth/context gate evidence recorded."
+          "status": "partial",
+          "evidence_paths": [
+            "ui/src/api/auth-context.ts",
+            "ui/src/services/__tests__/tusUploader.test.ts"
+          ],
+          "notes": "Bearer/memory forwarding and redaction are tested; operation-specific server authorization has no live receipt."
         },
         "ui": {
-          "status": "gap",
-          "evidence_paths": [],
+          "status": "conformant",
+          "evidence_paths": [
+            "ui/src/services/uploadStore.ts",
+            "ui/src/services/__tests__/uploadStore.test.ts",
+            "ui/src/components/agent/__tests__/SaveAsNoteButton.test.tsx"
+          ],
           "notes": "No explicit UI workflow evidence recorded."
         },
         "agent": {
-          "status": "gap",
-          "evidence_paths": [],
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
           "notes": "No explicit agent workflow evidence recorded."
         },
         "live": {
@@ -12576,10 +12807,10 @@
           "bearerAuth": []
         }
       ],
-      "targeted_by_290": false,
+      "targeted_by_290": true,
       "disposition": "partial",
-      "tracker": "#290",
-      "rationale": "Operation-level conformance has not been explicitly claimed.",
+      "tracker": "#297",
+      "rationale": "Typed tus-js-client workflow uses browser/Tauri byte transport with resumable offsets, bounded chunks, cancellation, and redacted failures.",
       "dimensions": {
         "route": {
           "status": "conformant",
@@ -12587,28 +12818,43 @@
           "notes": "Route disposition only; does not imply request, response, auth, UI, agent, or live conformance."
         },
         "request": {
-          "status": "gap",
-          "evidence_paths": [],
+          "status": "conformant",
+          "evidence_paths": [
+            "ui/src/services/tusUploader.ts",
+            "ui/src/services/__tests__/tusUploader.test.ts"
+          ],
           "notes": "No explicit request serializer evidence recorded."
         },
         "response": {
-          "status": "gap",
-          "evidence_paths": [],
-          "notes": "No explicit success/error decoder evidence recorded."
+          "status": "conformant",
+          "evidence_paths": [
+            "ui/src/services/tusUploader.ts",
+            "ui/src/services/__tests__/tusUploader.test.ts"
+          ],
+          "notes": "Pinned status and TUS header semantics are handled; no undeclared success payload is inferred."
         },
         "auth_context": {
-          "status": "gap",
-          "evidence_paths": [],
-          "notes": "No explicit auth/context gate evidence recorded."
+          "status": "partial",
+          "evidence_paths": [
+            "ui/src/api/auth-context.ts",
+            "ui/src/services/__tests__/tusUploader.test.ts"
+          ],
+          "notes": "Bearer/memory forwarding and redaction are tested; operation-specific server authorization has no live receipt."
         },
         "ui": {
-          "status": "gap",
-          "evidence_paths": [],
+          "status": "conformant",
+          "evidence_paths": [
+            "ui/src/services/uploadStore.ts",
+            "ui/src/services/__tests__/uploadStore.test.ts",
+            "ui/src/components/agent/__tests__/SaveAsNoteButton.test.tsx"
+          ],
           "notes": "No explicit UI workflow evidence recorded."
         },
         "agent": {
-          "status": "gap",
-          "evidence_paths": [],
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
           "notes": "No explicit agent workflow evidence recorded."
         },
         "live": {
@@ -12641,10 +12887,10 @@
           "bearerAuth": []
         }
       ],
-      "targeted_by_290": false,
+      "targeted_by_290": true,
       "disposition": "partial",
-      "tracker": "#290",
-      "rationale": "Operation-level conformance has not been explicitly claimed.",
+      "tracker": "#297",
+      "rationale": "Typed tus-js-client workflow uses browser/Tauri byte transport with resumable offsets, bounded chunks, cancellation, and redacted failures.",
       "dimensions": {
         "route": {
           "status": "conformant",
@@ -12652,28 +12898,43 @@
           "notes": "Route disposition only; does not imply request, response, auth, UI, agent, or live conformance."
         },
         "request": {
-          "status": "gap",
-          "evidence_paths": [],
+          "status": "conformant",
+          "evidence_paths": [
+            "ui/src/services/tusUploader.ts",
+            "ui/src/services/__tests__/tusUploader.test.ts"
+          ],
           "notes": "No explicit request serializer evidence recorded."
         },
         "response": {
-          "status": "gap",
-          "evidence_paths": [],
-          "notes": "No explicit success/error decoder evidence recorded."
+          "status": "conformant",
+          "evidence_paths": [
+            "ui/src/services/tusUploader.ts",
+            "ui/src/services/__tests__/tusUploader.test.ts"
+          ],
+          "notes": "Pinned status and TUS header semantics are handled; no undeclared success payload is inferred."
         },
         "auth_context": {
-          "status": "gap",
-          "evidence_paths": [],
-          "notes": "No explicit auth/context gate evidence recorded."
+          "status": "partial",
+          "evidence_paths": [
+            "ui/src/api/auth-context.ts",
+            "ui/src/services/__tests__/tusUploader.test.ts"
+          ],
+          "notes": "Bearer/memory forwarding and redaction are tested; operation-specific server authorization has no live receipt."
         },
         "ui": {
-          "status": "gap",
-          "evidence_paths": [],
+          "status": "conformant",
+          "evidence_paths": [
+            "ui/src/services/uploadStore.ts",
+            "ui/src/services/__tests__/uploadStore.test.ts",
+            "ui/src/components/agent/__tests__/SaveAsNoteButton.test.tsx"
+          ],
           "notes": "No explicit UI workflow evidence recorded."
         },
         "agent": {
-          "status": "gap",
-          "evidence_paths": [],
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
           "notes": "No explicit agent workflow evidence recorded."
         },
         "live": {
@@ -12702,45 +12963,55 @@
           "bearerAuth": []
         }
       ],
-      "targeted_by_290": false,
-      "disposition": "partial",
-      "tracker": "#290",
-      "rationale": "Operation-level conformance has not been explicitly claimed.",
+      "targeted_by_290": true,
+      "disposition": "documented_exclusion",
+      "tracker": "#297",
+      "rationale": "Pinned multipart request and success response schemas are absent; remote uploads use the typed TUS workflow instead.",
       "dimensions": {
         "route": {
           "status": "conformant",
           "evidence_paths": [],
-          "notes": "Route disposition only; does not imply request, response, auth, UI, agent, or live conformance."
+          "notes": "Route disposition only; no protocol or payload conformance is inferred."
         },
         "request": {
-          "status": "gap",
-          "evidence_paths": [],
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
           "notes": "No explicit request serializer evidence recorded."
         },
         "response": {
-          "status": "gap",
-          "evidence_paths": [],
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
           "notes": "No explicit success/error decoder evidence recorded."
         },
         "auth_context": {
-          "status": "gap",
-          "evidence_paths": [],
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
           "notes": "No explicit auth/context gate evidence recorded."
         },
         "ui": {
-          "status": "gap",
-          "evidence_paths": [],
-          "notes": "No explicit UI workflow evidence recorded."
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
+          "notes": "Visible and disabled in the Operations catalog."
         },
         "agent": {
-          "status": "gap",
-          "evidence_paths": [],
-          "notes": "No explicit agent workflow evidence recorded."
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
+          "notes": "Credential, key, path, URL, and binary material is outside generic agent invocation."
         },
         "live": {
           "status": "gap",
           "evidence_paths": [],
-          "notes": "No live receipt recorded."
+          "notes": "No live receipt; exclusion does not simulate one."
         }
       }
     },
@@ -14245,45 +14516,55 @@
           "bearerAuth": []
         }
       ],
-      "targeted_by_290": false,
-      "disposition": "partial",
-      "tracker": "#290",
-      "rationale": "Operation-level conformance has not been explicitly claimed.",
+      "targeted_by_290": true,
+      "disposition": "documented_exclusion",
+      "tracker": "#297",
+      "rationale": "Pinned PKE success responses are not schema-bearing; private-key custody and redaction conformance is unverified.",
       "dimensions": {
         "route": {
           "status": "conformant",
           "evidence_paths": [],
-          "notes": "Route disposition only; does not imply request, response, auth, UI, agent, or live conformance."
+          "notes": "Route disposition only; no protocol or payload conformance is inferred."
         },
         "request": {
-          "status": "gap",
-          "evidence_paths": [],
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
           "notes": "No explicit request serializer evidence recorded."
         },
         "response": {
-          "status": "gap",
-          "evidence_paths": [],
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
           "notes": "No explicit success/error decoder evidence recorded."
         },
         "auth_context": {
-          "status": "gap",
-          "evidence_paths": [],
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
           "notes": "No explicit auth/context gate evidence recorded."
         },
         "ui": {
-          "status": "gap",
-          "evidence_paths": [],
-          "notes": "No explicit UI workflow evidence recorded."
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
+          "notes": "Visible and disabled in the Operations catalog."
         },
         "agent": {
-          "status": "gap",
-          "evidence_paths": [],
-          "notes": "No explicit agent workflow evidence recorded."
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
+          "notes": "Credential, key, path, URL, and binary material is outside generic agent invocation."
         },
         "live": {
           "status": "gap",
           "evidence_paths": [],
-          "notes": "No live receipt recorded."
+          "notes": "No live receipt; exclusion does not simulate one."
         }
       }
     },
@@ -14306,45 +14587,55 @@
           "bearerAuth": []
         }
       ],
-      "targeted_by_290": false,
-      "disposition": "partial",
-      "tracker": "#290",
-      "rationale": "Operation-level conformance has not been explicitly claimed.",
+      "targeted_by_290": true,
+      "disposition": "documented_exclusion",
+      "tracker": "#297",
+      "rationale": "Pinned PKE success responses are not schema-bearing; private-key custody and redaction conformance is unverified.",
       "dimensions": {
         "route": {
           "status": "conformant",
           "evidence_paths": [],
-          "notes": "Route disposition only; does not imply request, response, auth, UI, agent, or live conformance."
+          "notes": "Route disposition only; no protocol or payload conformance is inferred."
         },
         "request": {
-          "status": "gap",
-          "evidence_paths": [],
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
           "notes": "No explicit request serializer evidence recorded."
         },
         "response": {
-          "status": "gap",
-          "evidence_paths": [],
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
           "notes": "No explicit success/error decoder evidence recorded."
         },
         "auth_context": {
-          "status": "gap",
-          "evidence_paths": [],
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
           "notes": "No explicit auth/context gate evidence recorded."
         },
         "ui": {
-          "status": "gap",
-          "evidence_paths": [],
-          "notes": "No explicit UI workflow evidence recorded."
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
+          "notes": "Visible and disabled in the Operations catalog."
         },
         "agent": {
-          "status": "gap",
-          "evidence_paths": [],
-          "notes": "No explicit agent workflow evidence recorded."
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
+          "notes": "Credential, key, path, URL, and binary material is outside generic agent invocation."
         },
         "live": {
           "status": "gap",
           "evidence_paths": [],
-          "notes": "No live receipt recorded."
+          "notes": "No live receipt; exclusion does not simulate one."
         }
       }
     },
@@ -14367,45 +14658,55 @@
           "bearerAuth": []
         }
       ],
-      "targeted_by_290": false,
-      "disposition": "partial",
-      "tracker": "#290",
-      "rationale": "Operation-level conformance has not been explicitly claimed.",
+      "targeted_by_290": true,
+      "disposition": "documented_exclusion",
+      "tracker": "#297",
+      "rationale": "Pinned PKE success responses are not schema-bearing; private-key custody and redaction conformance is unverified.",
       "dimensions": {
         "route": {
           "status": "conformant",
           "evidence_paths": [],
-          "notes": "Route disposition only; does not imply request, response, auth, UI, agent, or live conformance."
+          "notes": "Route disposition only; no protocol or payload conformance is inferred."
         },
         "request": {
-          "status": "gap",
-          "evidence_paths": [],
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
           "notes": "No explicit request serializer evidence recorded."
         },
         "response": {
-          "status": "gap",
-          "evidence_paths": [],
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
           "notes": "No explicit success/error decoder evidence recorded."
         },
         "auth_context": {
-          "status": "gap",
-          "evidence_paths": [],
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
           "notes": "No explicit auth/context gate evidence recorded."
         },
         "ui": {
-          "status": "gap",
-          "evidence_paths": [],
-          "notes": "No explicit UI workflow evidence recorded."
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
+          "notes": "Visible and disabled in the Operations catalog."
         },
         "agent": {
-          "status": "gap",
-          "evidence_paths": [],
-          "notes": "No explicit agent workflow evidence recorded."
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
+          "notes": "Credential, key, path, URL, and binary material is outside generic agent invocation."
         },
         "live": {
           "status": "gap",
           "evidence_paths": [],
-          "notes": "No live receipt recorded."
+          "notes": "No live receipt; exclusion does not simulate one."
         }
       }
     },
@@ -14428,45 +14729,55 @@
           "bearerAuth": []
         }
       ],
-      "targeted_by_290": false,
-      "disposition": "partial",
-      "tracker": "#290",
-      "rationale": "Operation-level conformance has not been explicitly claimed.",
+      "targeted_by_290": true,
+      "disposition": "documented_exclusion",
+      "tracker": "#297",
+      "rationale": "Pinned PKE success responses are not schema-bearing; private-key custody and redaction conformance is unverified.",
       "dimensions": {
         "route": {
           "status": "conformant",
           "evidence_paths": [],
-          "notes": "Route disposition only; does not imply request, response, auth, UI, agent, or live conformance."
+          "notes": "Route disposition only; no protocol or payload conformance is inferred."
         },
         "request": {
-          "status": "gap",
-          "evidence_paths": [],
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
           "notes": "No explicit request serializer evidence recorded."
         },
         "response": {
-          "status": "gap",
-          "evidence_paths": [],
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
           "notes": "No explicit success/error decoder evidence recorded."
         },
         "auth_context": {
-          "status": "gap",
-          "evidence_paths": [],
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
           "notes": "No explicit auth/context gate evidence recorded."
         },
         "ui": {
-          "status": "gap",
-          "evidence_paths": [],
-          "notes": "No explicit UI workflow evidence recorded."
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
+          "notes": "Visible and disabled in the Operations catalog."
         },
         "agent": {
-          "status": "gap",
-          "evidence_paths": [],
-          "notes": "No explicit agent workflow evidence recorded."
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
+          "notes": "Credential, key, path, URL, and binary material is outside generic agent invocation."
         },
         "live": {
           "status": "gap",
           "evidence_paths": [],
-          "notes": "No live receipt recorded."
+          "notes": "No live receipt; exclusion does not simulate one."
         }
       }
     },
@@ -14489,45 +14800,55 @@
           "bearerAuth": []
         }
       ],
-      "targeted_by_290": false,
-      "disposition": "partial",
-      "tracker": "#290",
-      "rationale": "Operation-level conformance has not been explicitly claimed.",
+      "targeted_by_290": true,
+      "disposition": "documented_exclusion",
+      "tracker": "#297",
+      "rationale": "Pinned PKE success responses are not schema-bearing; private-key custody and redaction conformance is unverified.",
       "dimensions": {
         "route": {
           "status": "conformant",
           "evidence_paths": [],
-          "notes": "Route disposition only; does not imply request, response, auth, UI, agent, or live conformance."
+          "notes": "Route disposition only; no protocol or payload conformance is inferred."
         },
         "request": {
-          "status": "gap",
-          "evidence_paths": [],
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
           "notes": "No explicit request serializer evidence recorded."
         },
         "response": {
-          "status": "gap",
-          "evidence_paths": [],
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
           "notes": "No explicit success/error decoder evidence recorded."
         },
         "auth_context": {
-          "status": "gap",
-          "evidence_paths": [],
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
           "notes": "No explicit auth/context gate evidence recorded."
         },
         "ui": {
-          "status": "gap",
-          "evidence_paths": [],
-          "notes": "No explicit UI workflow evidence recorded."
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
+          "notes": "Visible and disabled in the Operations catalog."
         },
         "agent": {
-          "status": "gap",
-          "evidence_paths": [],
-          "notes": "No explicit agent workflow evidence recorded."
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
+          "notes": "Credential, key, path, URL, and binary material is outside generic agent invocation."
         },
         "live": {
           "status": "gap",
           "evidence_paths": [],
-          "notes": "No live receipt recorded."
+          "notes": "No live receipt; exclusion does not simulate one."
         }
       }
     },
@@ -14550,45 +14871,55 @@
           "bearerAuth": []
         }
       ],
-      "targeted_by_290": false,
-      "disposition": "partial",
-      "tracker": "#290",
-      "rationale": "Operation-level conformance has not been explicitly claimed.",
+      "targeted_by_290": true,
+      "disposition": "documented_exclusion",
+      "tracker": "#297",
+      "rationale": "Pinned PKE success responses are not schema-bearing; private-key custody and redaction conformance is unverified.",
       "dimensions": {
         "route": {
           "status": "conformant",
           "evidence_paths": [],
-          "notes": "Route disposition only; does not imply request, response, auth, UI, agent, or live conformance."
+          "notes": "Route disposition only; no protocol or payload conformance is inferred."
         },
         "request": {
-          "status": "gap",
-          "evidence_paths": [],
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
           "notes": "No explicit request serializer evidence recorded."
         },
         "response": {
-          "status": "gap",
-          "evidence_paths": [],
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
           "notes": "No explicit success/error decoder evidence recorded."
         },
         "auth_context": {
-          "status": "gap",
-          "evidence_paths": [],
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
           "notes": "No explicit auth/context gate evidence recorded."
         },
         "ui": {
-          "status": "gap",
-          "evidence_paths": [],
-          "notes": "No explicit UI workflow evidence recorded."
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
+          "notes": "Visible and disabled in the Operations catalog."
         },
         "agent": {
-          "status": "gap",
-          "evidence_paths": [],
-          "notes": "No explicit agent workflow evidence recorded."
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
+          "notes": "Credential, key, path, URL, and binary material is outside generic agent invocation."
         },
         "live": {
           "status": "gap",
           "evidence_paths": [],
-          "notes": "No live receipt recorded."
+          "notes": "No live receipt; exclusion does not simulate one."
         }
       }
     },
@@ -14611,45 +14942,55 @@
           "bearerAuth": []
         }
       ],
-      "targeted_by_290": false,
-      "disposition": "partial",
-      "tracker": "#290",
-      "rationale": "Operation-level conformance has not been explicitly claimed.",
+      "targeted_by_290": true,
+      "disposition": "documented_exclusion",
+      "tracker": "#297",
+      "rationale": "Pinned PKE success responses are not schema-bearing; private-key custody and redaction conformance is unverified.",
       "dimensions": {
         "route": {
           "status": "conformant",
           "evidence_paths": [],
-          "notes": "Route disposition only; does not imply request, response, auth, UI, agent, or live conformance."
+          "notes": "Route disposition only; no protocol or payload conformance is inferred."
         },
         "request": {
-          "status": "gap",
-          "evidence_paths": [],
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
           "notes": "No explicit request serializer evidence recorded."
         },
         "response": {
-          "status": "gap",
-          "evidence_paths": [],
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
           "notes": "No explicit success/error decoder evidence recorded."
         },
         "auth_context": {
-          "status": "gap",
-          "evidence_paths": [],
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
           "notes": "No explicit auth/context gate evidence recorded."
         },
         "ui": {
-          "status": "gap",
-          "evidence_paths": [],
-          "notes": "No explicit UI workflow evidence recorded."
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
+          "notes": "Visible and disabled in the Operations catalog."
         },
         "agent": {
-          "status": "gap",
-          "evidence_paths": [],
-          "notes": "No explicit agent workflow evidence recorded."
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
+          "notes": "Credential, key, path, URL, and binary material is outside generic agent invocation."
         },
         "live": {
           "status": "gap",
           "evidence_paths": [],
-          "notes": "No live receipt recorded."
+          "notes": "No live receipt; exclusion does not simulate one."
         }
       }
     },
@@ -14672,45 +15013,55 @@
           "bearerAuth": []
         }
       ],
-      "targeted_by_290": false,
-      "disposition": "partial",
-      "tracker": "#290",
-      "rationale": "Operation-level conformance has not been explicitly claimed.",
+      "targeted_by_290": true,
+      "disposition": "documented_exclusion",
+      "tracker": "#297",
+      "rationale": "Pinned PKE success responses are not schema-bearing; private-key custody and redaction conformance is unverified.",
       "dimensions": {
         "route": {
           "status": "conformant",
           "evidence_paths": [],
-          "notes": "Route disposition only; does not imply request, response, auth, UI, agent, or live conformance."
+          "notes": "Route disposition only; no protocol or payload conformance is inferred."
         },
         "request": {
-          "status": "gap",
-          "evidence_paths": [],
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
           "notes": "No explicit request serializer evidence recorded."
         },
         "response": {
-          "status": "gap",
-          "evidence_paths": [],
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
           "notes": "No explicit success/error decoder evidence recorded."
         },
         "auth_context": {
-          "status": "gap",
-          "evidence_paths": [],
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
           "notes": "No explicit auth/context gate evidence recorded."
         },
         "ui": {
-          "status": "gap",
-          "evidence_paths": [],
-          "notes": "No explicit UI workflow evidence recorded."
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
+          "notes": "Visible and disabled in the Operations catalog."
         },
         "agent": {
-          "status": "gap",
-          "evidence_paths": [],
-          "notes": "No explicit agent workflow evidence recorded."
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
+          "notes": "Credential, key, path, URL, and binary material is outside generic agent invocation."
         },
         "live": {
           "status": "gap",
           "evidence_paths": [],
-          "notes": "No live receipt recorded."
+          "notes": "No live receipt; exclusion does not simulate one."
         }
       }
     },
@@ -14733,45 +15084,55 @@
           "bearerAuth": []
         }
       ],
-      "targeted_by_290": false,
-      "disposition": "partial",
-      "tracker": "#290",
-      "rationale": "Operation-level conformance has not been explicitly claimed.",
+      "targeted_by_290": true,
+      "disposition": "documented_exclusion",
+      "tracker": "#297",
+      "rationale": "Pinned PKE success responses are not schema-bearing; private-key custody and redaction conformance is unverified.",
       "dimensions": {
         "route": {
           "status": "conformant",
           "evidence_paths": [],
-          "notes": "Route disposition only; does not imply request, response, auth, UI, agent, or live conformance."
+          "notes": "Route disposition only; no protocol or payload conformance is inferred."
         },
         "request": {
-          "status": "gap",
-          "evidence_paths": [],
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
           "notes": "No explicit request serializer evidence recorded."
         },
         "response": {
-          "status": "gap",
-          "evidence_paths": [],
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
           "notes": "No explicit success/error decoder evidence recorded."
         },
         "auth_context": {
-          "status": "gap",
-          "evidence_paths": [],
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
           "notes": "No explicit auth/context gate evidence recorded."
         },
         "ui": {
-          "status": "gap",
-          "evidence_paths": [],
-          "notes": "No explicit UI workflow evidence recorded."
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
+          "notes": "Visible and disabled in the Operations catalog."
         },
         "agent": {
-          "status": "gap",
-          "evidence_paths": [],
-          "notes": "No explicit agent workflow evidence recorded."
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
+          "notes": "Credential, key, path, URL, and binary material is outside generic agent invocation."
         },
         "live": {
           "status": "gap",
           "evidence_paths": [],
-          "notes": "No live receipt recorded."
+          "notes": "No live receipt; exclusion does not simulate one."
         }
       }
     },
@@ -14794,45 +15155,55 @@
           "bearerAuth": []
         }
       ],
-      "targeted_by_290": false,
-      "disposition": "partial",
-      "tracker": "#290",
-      "rationale": "Operation-level conformance has not been explicitly claimed.",
+      "targeted_by_290": true,
+      "disposition": "documented_exclusion",
+      "tracker": "#297",
+      "rationale": "Pinned PKE success responses are not schema-bearing; private-key custody and redaction conformance is unverified.",
       "dimensions": {
         "route": {
           "status": "conformant",
           "evidence_paths": [],
-          "notes": "Route disposition only; does not imply request, response, auth, UI, agent, or live conformance."
+          "notes": "Route disposition only; no protocol or payload conformance is inferred."
         },
         "request": {
-          "status": "gap",
-          "evidence_paths": [],
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
           "notes": "No explicit request serializer evidence recorded."
         },
         "response": {
-          "status": "gap",
-          "evidence_paths": [],
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
           "notes": "No explicit success/error decoder evidence recorded."
         },
         "auth_context": {
-          "status": "gap",
-          "evidence_paths": [],
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
           "notes": "No explicit auth/context gate evidence recorded."
         },
         "ui": {
-          "status": "gap",
-          "evidence_paths": [],
-          "notes": "No explicit UI workflow evidence recorded."
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
+          "notes": "Visible and disabled in the Operations catalog."
         },
         "agent": {
-          "status": "gap",
-          "evidence_paths": [],
-          "notes": "No explicit agent workflow evidence recorded."
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
+          "notes": "Credential, key, path, URL, and binary material is outside generic agent invocation."
         },
         "live": {
           "status": "gap",
           "evidence_paths": [],
-          "notes": "No live receipt recorded."
+          "notes": "No live receipt; exclusion does not simulate one."
         }
       }
     },
@@ -14855,45 +15226,55 @@
           "bearerAuth": []
         }
       ],
-      "targeted_by_290": false,
-      "disposition": "partial",
-      "tracker": "#290",
-      "rationale": "Operation-level conformance has not been explicitly claimed.",
+      "targeted_by_290": true,
+      "disposition": "documented_exclusion",
+      "tracker": "#297",
+      "rationale": "Pinned PKE success responses are not schema-bearing; private-key custody and redaction conformance is unverified.",
       "dimensions": {
         "route": {
           "status": "conformant",
           "evidence_paths": [],
-          "notes": "Route disposition only; does not imply request, response, auth, UI, agent, or live conformance."
+          "notes": "Route disposition only; no protocol or payload conformance is inferred."
         },
         "request": {
-          "status": "gap",
-          "evidence_paths": [],
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
           "notes": "No explicit request serializer evidence recorded."
         },
         "response": {
-          "status": "gap",
-          "evidence_paths": [],
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
           "notes": "No explicit success/error decoder evidence recorded."
         },
         "auth_context": {
-          "status": "gap",
-          "evidence_paths": [],
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
           "notes": "No explicit auth/context gate evidence recorded."
         },
         "ui": {
-          "status": "gap",
-          "evidence_paths": [],
-          "notes": "No explicit UI workflow evidence recorded."
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
+          "notes": "Visible and disabled in the Operations catalog."
         },
         "agent": {
-          "status": "gap",
-          "evidence_paths": [],
-          "notes": "No explicit agent workflow evidence recorded."
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
+          "notes": "Credential, key, path, URL, and binary material is outside generic agent invocation."
         },
         "live": {
           "status": "gap",
           "evidence_paths": [],
-          "notes": "No live receipt recorded."
+          "notes": "No live receipt; exclusion does not simulate one."
         }
       }
     },
@@ -14916,45 +15297,55 @@
           "bearerAuth": []
         }
       ],
-      "targeted_by_290": false,
-      "disposition": "partial",
-      "tracker": "#290",
-      "rationale": "Operation-level conformance has not been explicitly claimed.",
+      "targeted_by_290": true,
+      "disposition": "documented_exclusion",
+      "tracker": "#297",
+      "rationale": "Pinned PKE success responses are not schema-bearing; private-key custody and redaction conformance is unverified.",
       "dimensions": {
         "route": {
           "status": "conformant",
           "evidence_paths": [],
-          "notes": "Route disposition only; does not imply request, response, auth, UI, agent, or live conformance."
+          "notes": "Route disposition only; no protocol or payload conformance is inferred."
         },
         "request": {
-          "status": "gap",
-          "evidence_paths": [],
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
           "notes": "No explicit request serializer evidence recorded."
         },
         "response": {
-          "status": "gap",
-          "evidence_paths": [],
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
           "notes": "No explicit success/error decoder evidence recorded."
         },
         "auth_context": {
-          "status": "gap",
-          "evidence_paths": [],
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
           "notes": "No explicit auth/context gate evidence recorded."
         },
         "ui": {
-          "status": "gap",
-          "evidence_paths": [],
-          "notes": "No explicit UI workflow evidence recorded."
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
+          "notes": "Visible and disabled in the Operations catalog."
         },
         "agent": {
-          "status": "gap",
-          "evidence_paths": [],
-          "notes": "No explicit agent workflow evidence recorded."
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
+          "notes": "Credential, key, path, URL, and binary material is outside generic agent invocation."
         },
         "live": {
           "status": "gap",
           "evidence_paths": [],
-          "notes": "No live receipt recorded."
+          "notes": "No live receipt; exclusion does not simulate one."
         }
       }
     },
@@ -14977,45 +15368,55 @@
           "bearerAuth": []
         }
       ],
-      "targeted_by_290": false,
-      "disposition": "partial",
-      "tracker": "#290",
-      "rationale": "Operation-level conformance has not been explicitly claimed.",
+      "targeted_by_290": true,
+      "disposition": "documented_exclusion",
+      "tracker": "#297",
+      "rationale": "Pinned PKE success responses are not schema-bearing; private-key custody and redaction conformance is unverified.",
       "dimensions": {
         "route": {
           "status": "conformant",
           "evidence_paths": [],
-          "notes": "Route disposition only; does not imply request, response, auth, UI, agent, or live conformance."
+          "notes": "Route disposition only; no protocol or payload conformance is inferred."
         },
         "request": {
-          "status": "gap",
-          "evidence_paths": [],
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
           "notes": "No explicit request serializer evidence recorded."
         },
         "response": {
-          "status": "gap",
-          "evidence_paths": [],
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
           "notes": "No explicit success/error decoder evidence recorded."
         },
         "auth_context": {
-          "status": "gap",
-          "evidence_paths": [],
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
           "notes": "No explicit auth/context gate evidence recorded."
         },
         "ui": {
-          "status": "gap",
-          "evidence_paths": [],
-          "notes": "No explicit UI workflow evidence recorded."
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
+          "notes": "Visible and disabled in the Operations catalog."
         },
         "agent": {
-          "status": "gap",
-          "evidence_paths": [],
-          "notes": "No explicit agent workflow evidence recorded."
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
+          "notes": "Credential, key, path, URL, and binary material is outside generic agent invocation."
         },
         "live": {
           "status": "gap",
           "evidence_paths": [],
-          "notes": "No live receipt recorded."
+          "notes": "No live receipt; exclusion does not simulate one."
         }
       }
     },
@@ -17109,45 +17510,55 @@
         "429"
       ],
       "security": [],
-      "targeted_by_290": false,
-      "disposition": "partial",
-      "tracker": "#290",
-      "rationale": "Operation-level conformance has not been explicitly claimed.",
+      "targeted_by_290": true,
+      "disposition": "documented_exclusion",
+      "tracker": "#297",
+      "rationale": "fortemi-auth is specification-only and has no qualifying release or shared Rust/Node fixture receipt.",
       "dimensions": {
         "route": {
           "status": "conformant",
           "evidence_paths": [],
-          "notes": "Route disposition only; does not imply request, response, auth, UI, agent, or live conformance."
+          "notes": "Route disposition only; no protocol or payload conformance is inferred."
         },
         "request": {
-          "status": "gap",
-          "evidence_paths": [],
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
           "notes": "No explicit request serializer evidence recorded."
         },
         "response": {
-          "status": "gap",
-          "evidence_paths": [],
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
           "notes": "No explicit success/error decoder evidence recorded."
         },
         "auth_context": {
-          "status": "gap",
-          "evidence_paths": [],
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
           "notes": "No explicit auth/context gate evidence recorded."
         },
         "ui": {
-          "status": "gap",
-          "evidence_paths": [],
-          "notes": "No explicit UI workflow evidence recorded."
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
+          "notes": "Visible and disabled in the Operations catalog."
         },
         "agent": {
-          "status": "gap",
-          "evidence_paths": [],
-          "notes": "No explicit agent workflow evidence recorded."
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
+          "notes": "Credential, key, path, URL, and binary material is outside generic agent invocation."
         },
         "live": {
           "status": "gap",
           "evidence_paths": [],
-          "notes": "No live receipt recorded."
+          "notes": "No live receipt; exclusion does not simulate one."
         }
       }
     },
@@ -17165,45 +17576,55 @@
         "429"
       ],
       "security": [],
-      "targeted_by_290": false,
-      "disposition": "partial",
-      "tracker": "#290",
-      "rationale": "Operation-level conformance has not been explicitly claimed.",
+      "targeted_by_290": true,
+      "disposition": "documented_exclusion",
+      "tracker": "#297",
+      "rationale": "fortemi-auth is specification-only and has no qualifying release or shared Rust/Node fixture receipt.",
       "dimensions": {
         "route": {
           "status": "conformant",
           "evidence_paths": [],
-          "notes": "Route disposition only; does not imply request, response, auth, UI, agent, or live conformance."
+          "notes": "Route disposition only; no protocol or payload conformance is inferred."
         },
         "request": {
-          "status": "gap",
-          "evidence_paths": [],
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
           "notes": "No explicit request serializer evidence recorded."
         },
         "response": {
-          "status": "gap",
-          "evidence_paths": [],
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
           "notes": "No explicit success/error decoder evidence recorded."
         },
         "auth_context": {
-          "status": "gap",
-          "evidence_paths": [],
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
           "notes": "No explicit auth/context gate evidence recorded."
         },
         "ui": {
-          "status": "gap",
-          "evidence_paths": [],
-          "notes": "No explicit UI workflow evidence recorded."
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
+          "notes": "Visible and disabled in the Operations catalog."
         },
         "agent": {
-          "status": "gap",
-          "evidence_paths": [],
-          "notes": "No explicit agent workflow evidence recorded."
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
+          "notes": "Credential, key, path, URL, and binary material is outside generic agent invocation."
         },
         "live": {
           "status": "gap",
           "evidence_paths": [],
-          "notes": "No live receipt recorded."
+          "notes": "No live receipt; exclusion does not simulate one."
         }
       }
     },
@@ -17222,45 +17643,55 @@
         "429"
       ],
       "security": [],
-      "targeted_by_290": false,
-      "disposition": "partial",
-      "tracker": "#290",
-      "rationale": "Operation-level conformance has not been explicitly claimed.",
+      "targeted_by_290": true,
+      "disposition": "documented_exclusion",
+      "tracker": "#297",
+      "rationale": "fortemi-auth is specification-only and has no qualifying release or shared Rust/Node fixture receipt.",
       "dimensions": {
         "route": {
           "status": "conformant",
           "evidence_paths": [],
-          "notes": "Route disposition only; does not imply request, response, auth, UI, agent, or live conformance."
+          "notes": "Route disposition only; no protocol or payload conformance is inferred."
         },
         "request": {
-          "status": "gap",
-          "evidence_paths": [],
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
           "notes": "No explicit request serializer evidence recorded."
         },
         "response": {
-          "status": "gap",
-          "evidence_paths": [],
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
           "notes": "No explicit success/error decoder evidence recorded."
         },
         "auth_context": {
-          "status": "gap",
-          "evidence_paths": [],
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
           "notes": "No explicit auth/context gate evidence recorded."
         },
         "ui": {
-          "status": "gap",
-          "evidence_paths": [],
-          "notes": "No explicit UI workflow evidence recorded."
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
+          "notes": "Visible and disabled in the Operations catalog."
         },
         "agent": {
-          "status": "gap",
-          "evidence_paths": [],
-          "notes": "No explicit agent workflow evidence recorded."
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
+          "notes": "Credential, key, path, URL, and binary material is outside generic agent invocation."
         },
         "live": {
           "status": "gap",
           "evidence_paths": [],
-          "notes": "No live receipt recorded."
+          "notes": "No live receipt; exclusion does not simulate one."
         }
       }
     },
@@ -17279,45 +17710,55 @@
         "429"
       ],
       "security": [],
-      "targeted_by_290": false,
-      "disposition": "partial",
-      "tracker": "#290",
-      "rationale": "Operation-level conformance has not been explicitly claimed.",
+      "targeted_by_290": true,
+      "disposition": "documented_exclusion",
+      "tracker": "#297",
+      "rationale": "fortemi-auth is specification-only and has no qualifying release or shared Rust/Node fixture receipt.",
       "dimensions": {
         "route": {
           "status": "conformant",
           "evidence_paths": [],
-          "notes": "Route disposition only; does not imply request, response, auth, UI, agent, or live conformance."
+          "notes": "Route disposition only; no protocol or payload conformance is inferred."
         },
         "request": {
-          "status": "gap",
-          "evidence_paths": [],
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
           "notes": "No explicit request serializer evidence recorded."
         },
         "response": {
-          "status": "gap",
-          "evidence_paths": [],
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
           "notes": "No explicit success/error decoder evidence recorded."
         },
         "auth_context": {
-          "status": "gap",
-          "evidence_paths": [],
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
           "notes": "No explicit auth/context gate evidence recorded."
         },
         "ui": {
-          "status": "gap",
-          "evidence_paths": [],
-          "notes": "No explicit UI workflow evidence recorded."
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
+          "notes": "Visible and disabled in the Operations catalog."
         },
         "agent": {
-          "status": "gap",
-          "evidence_paths": [],
-          "notes": "No explicit agent workflow evidence recorded."
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
+          "notes": "Credential, key, path, URL, and binary material is outside generic agent invocation."
         },
         "live": {
           "status": "gap",
           "evidence_paths": [],
-          "notes": "No live receipt recorded."
+          "notes": "No live receipt; exclusion does not simulate one."
         }
       }
     },
@@ -17336,45 +17777,55 @@
         "429"
       ],
       "security": [],
-      "targeted_by_290": false,
-      "disposition": "partial",
-      "tracker": "#290",
-      "rationale": "Operation-level conformance has not been explicitly claimed.",
+      "targeted_by_290": true,
+      "disposition": "documented_exclusion",
+      "tracker": "#297",
+      "rationale": "fortemi-auth is specification-only and has no qualifying release or shared Rust/Node fixture receipt.",
       "dimensions": {
         "route": {
           "status": "conformant",
           "evidence_paths": [],
-          "notes": "Route disposition only; does not imply request, response, auth, UI, agent, or live conformance."
+          "notes": "Route disposition only; no protocol or payload conformance is inferred."
         },
         "request": {
-          "status": "gap",
-          "evidence_paths": [],
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
           "notes": "No explicit request serializer evidence recorded."
         },
         "response": {
-          "status": "gap",
-          "evidence_paths": [],
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
           "notes": "No explicit success/error decoder evidence recorded."
         },
         "auth_context": {
-          "status": "gap",
-          "evidence_paths": [],
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
           "notes": "No explicit auth/context gate evidence recorded."
         },
         "ui": {
-          "status": "gap",
-          "evidence_paths": [],
-          "notes": "No explicit UI workflow evidence recorded."
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
+          "notes": "Visible and disabled in the Operations catalog."
         },
         "agent": {
-          "status": "gap",
-          "evidence_paths": [],
-          "notes": "No explicit agent workflow evidence recorded."
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
+          "notes": "Credential, key, path, URL, and binary material is outside generic agent invocation."
         },
         "live": {
           "status": "gap",
           "evidence_paths": [],
-          "notes": "No live receipt recorded."
+          "notes": "No live receipt; exclusion does not simulate one."
         }
       }
     },
@@ -17393,45 +17844,55 @@
         "429"
       ],
       "security": [],
-      "targeted_by_290": false,
-      "disposition": "partial",
-      "tracker": "#290",
-      "rationale": "Operation-level conformance has not been explicitly claimed.",
+      "targeted_by_290": true,
+      "disposition": "documented_exclusion",
+      "tracker": "#297",
+      "rationale": "fortemi-auth is specification-only and has no qualifying release or shared Rust/Node fixture receipt.",
       "dimensions": {
         "route": {
           "status": "conformant",
           "evidence_paths": [],
-          "notes": "Route disposition only; does not imply request, response, auth, UI, agent, or live conformance."
+          "notes": "Route disposition only; no protocol or payload conformance is inferred."
         },
         "request": {
-          "status": "gap",
-          "evidence_paths": [],
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
           "notes": "No explicit request serializer evidence recorded."
         },
         "response": {
-          "status": "gap",
-          "evidence_paths": [],
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
           "notes": "No explicit success/error decoder evidence recorded."
         },
         "auth_context": {
-          "status": "gap",
-          "evidence_paths": [],
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
           "notes": "No explicit auth/context gate evidence recorded."
         },
         "ui": {
-          "status": "gap",
-          "evidence_paths": [],
-          "notes": "No explicit UI workflow evidence recorded."
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
+          "notes": "Visible and disabled in the Operations catalog."
         },
         "agent": {
-          "status": "gap",
-          "evidence_paths": [],
-          "notes": "No explicit agent workflow evidence recorded."
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
+          "notes": "Credential, key, path, URL, and binary material is outside generic agent invocation."
         },
         "live": {
           "status": "gap",
           "evidence_paths": [],
-          "notes": "No live receipt recorded."
+          "notes": "No live receipt; exclusion does not simulate one."
         }
       }
     },

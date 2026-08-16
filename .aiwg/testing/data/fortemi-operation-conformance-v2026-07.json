@@ -6657,6 +6657,2071 @@
         }
       },
       "rationale": "Pinned exact operation dispatch, bounded/redacted response handling, compatibility admission, and mocked responsive UI receipts exist. Operation-specific authorization and live Fortemi outcomes remain unverified."
+    },
+    "GET /api/v1/api-keys#list_api_keys": {
+      "targeted_by_290": true,
+      "tracker": "#297",
+      "rationale": "Pinned API-key success responses are not schema-bearing; secret receipt and lifecycle conformance is unverified.",
+      "disposition": "documented_exclusion",
+      "dimensions": {
+        "route": {
+          "status": "conformant",
+          "evidence_paths": [],
+          "notes": "Route disposition only; no protocol or payload conformance is inferred."
+        },
+        "request": {
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ]
+        },
+        "response": {
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ]
+        },
+        "auth_context": {
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ]
+        },
+        "ui": {
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
+          "notes": "Visible and disabled in the Operations catalog."
+        },
+        "agent": {
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
+          "notes": "Credential, key, path, URL, and binary material is outside generic agent invocation."
+        },
+        "live": {
+          "status": "gap",
+          "evidence_paths": [],
+          "notes": "No live receipt; exclusion does not simulate one."
+        }
+      }
+    },
+    "POST /api/v1/api-keys#create_api_key": {
+      "targeted_by_290": true,
+      "tracker": "#297",
+      "rationale": "Pinned API-key success responses are not schema-bearing; secret receipt and lifecycle conformance is unverified.",
+      "disposition": "documented_exclusion",
+      "dimensions": {
+        "route": {
+          "status": "conformant",
+          "evidence_paths": [],
+          "notes": "Route disposition only; no protocol or payload conformance is inferred."
+        },
+        "request": {
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ]
+        },
+        "response": {
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ]
+        },
+        "auth_context": {
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ]
+        },
+        "ui": {
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
+          "notes": "Visible and disabled in the Operations catalog."
+        },
+        "agent": {
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
+          "notes": "Credential, key, path, URL, and binary material is outside generic agent invocation."
+        },
+        "live": {
+          "status": "gap",
+          "evidence_paths": [],
+          "notes": "No live receipt; exclusion does not simulate one."
+        }
+      }
+    },
+    "DELETE /api/v1/api-keys/{id}#revoke_api_key": {
+      "targeted_by_290": true,
+      "tracker": "#297",
+      "rationale": "Pinned API-key success responses are not schema-bearing; secret receipt and lifecycle conformance is unverified.",
+      "disposition": "documented_exclusion",
+      "dimensions": {
+        "route": {
+          "status": "conformant",
+          "evidence_paths": [],
+          "notes": "Route disposition only; no protocol or payload conformance is inferred."
+        },
+        "request": {
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ]
+        },
+        "response": {
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ]
+        },
+        "auth_context": {
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ]
+        },
+        "ui": {
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
+          "notes": "Visible and disabled in the Operations catalog."
+        },
+        "agent": {
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
+          "notes": "Credential, key, path, URL, and binary material is outside generic agent invocation."
+        },
+        "live": {
+          "status": "gap",
+          "evidence_paths": [],
+          "notes": "No live receipt; exclusion does not simulate one."
+        }
+      }
+    },
+    "GET /api/v1/attachments/{attachment_id}/download#download_attachment": {
+      "targeted_by_290": true,
+      "tracker": "#297",
+      "rationale": "Authenticated media bytes are handled by browser/Tauri fetch and media primitives; payloads and local paths never enter generic agent input.",
+      "dimensions": {
+        "route": {
+          "status": "conformant",
+          "evidence_paths": []
+        },
+        "request": {
+          "status": "conformant",
+          "evidence_paths": [
+            "ui/src/api/attachments.ts",
+            "ui/src/api/__tests__/attachments.test.ts"
+          ]
+        },
+        "response": {
+          "status": "partial",
+          "evidence_paths": [
+            "ui/src/api/attachments.ts",
+            "ui/src/api/__tests__/attachments.test.ts"
+          ],
+          "notes": "Browser/Tauri byte handling and bounded errors are tested; producer media/header declarations remain incomplete on some routes."
+        },
+        "auth_context": {
+          "status": "partial",
+          "evidence_paths": [
+            "ui/src/api/auth-context.ts",
+            "ui/src/api/__tests__/attachments.test.ts"
+          ],
+          "notes": "Authenticated handoff is implemented; operation-specific server authorization has no live receipt."
+        },
+        "ui": {
+          "status": "conformant",
+          "evidence_paths": [
+            "ui/src/components/attachments/StreamingMedia.tsx",
+            "ui/src/components/attachments/__tests__/StreamingMedia.test.tsx"
+          ]
+        },
+        "agent": {
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ]
+        },
+        "live": {
+          "status": "gap",
+          "evidence_paths": []
+        }
+      }
+    },
+    "GET /api/v1/attachments/{attachment_id}/sprites/{sprite_index}#get_sprite_sheet": {
+      "targeted_by_290": true,
+      "tracker": "#297",
+      "rationale": "Authenticated media bytes are handled by browser/Tauri fetch and media primitives; payloads and local paths never enter generic agent input.",
+      "dimensions": {
+        "route": {
+          "status": "conformant",
+          "evidence_paths": []
+        },
+        "request": {
+          "status": "conformant",
+          "evidence_paths": [
+            "ui/src/api/attachments.ts",
+            "ui/src/api/__tests__/attachments.test.ts"
+          ]
+        },
+        "response": {
+          "status": "partial",
+          "evidence_paths": [
+            "ui/src/api/attachments.ts",
+            "ui/src/api/__tests__/attachments.test.ts"
+          ],
+          "notes": "Browser/Tauri byte handling and bounded errors are tested; producer media/header declarations remain incomplete on some routes."
+        },
+        "auth_context": {
+          "status": "partial",
+          "evidence_paths": [
+            "ui/src/api/auth-context.ts",
+            "ui/src/api/__tests__/attachments.test.ts"
+          ],
+          "notes": "Authenticated handoff is implemented; operation-specific server authorization has no live receipt."
+        },
+        "ui": {
+          "status": "conformant",
+          "evidence_paths": [
+            "ui/src/components/attachments/StreamingMedia.tsx",
+            "ui/src/components/attachments/__tests__/StreamingMedia.test.tsx"
+          ]
+        },
+        "agent": {
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ]
+        },
+        "live": {
+          "status": "gap",
+          "evidence_paths": []
+        }
+      }
+    },
+    "GET /api/v1/attachments/{attachment_id}/subtitles#get_attachment_subtitles": {
+      "targeted_by_290": true,
+      "tracker": "#297",
+      "rationale": "Authenticated media bytes are handled by browser/Tauri fetch and media primitives; payloads and local paths never enter generic agent input.",
+      "dimensions": {
+        "route": {
+          "status": "conformant",
+          "evidence_paths": []
+        },
+        "request": {
+          "status": "conformant",
+          "evidence_paths": [
+            "ui/src/api/attachments.ts",
+            "ui/src/api/__tests__/attachments.test.ts"
+          ]
+        },
+        "response": {
+          "status": "partial",
+          "evidence_paths": [
+            "ui/src/api/attachments.ts",
+            "ui/src/api/__tests__/attachments.test.ts"
+          ],
+          "notes": "Browser/Tauri byte handling and bounded errors are tested; producer media/header declarations remain incomplete on some routes."
+        },
+        "auth_context": {
+          "status": "partial",
+          "evidence_paths": [
+            "ui/src/api/auth-context.ts",
+            "ui/src/api/__tests__/attachments.test.ts"
+          ],
+          "notes": "Authenticated handoff is implemented; operation-specific server authorization has no live receipt."
+        },
+        "ui": {
+          "status": "conformant",
+          "evidence_paths": [
+            "ui/src/components/attachments/StreamingMedia.tsx",
+            "ui/src/components/attachments/__tests__/StreamingMedia.test.tsx"
+          ]
+        },
+        "agent": {
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ]
+        },
+        "live": {
+          "status": "gap",
+          "evidence_paths": []
+        }
+      }
+    },
+    "GET /api/v1/attachments/{attachment_id}/thumbnail#get_attachment_thumbnail": {
+      "targeted_by_290": true,
+      "tracker": "#297",
+      "rationale": "Authenticated media bytes are handled by browser/Tauri fetch and media primitives; payloads and local paths never enter generic agent input.",
+      "dimensions": {
+        "route": {
+          "status": "conformant",
+          "evidence_paths": []
+        },
+        "request": {
+          "status": "conformant",
+          "evidence_paths": [
+            "ui/src/api/attachments.ts",
+            "ui/src/api/__tests__/attachments.test.ts"
+          ]
+        },
+        "response": {
+          "status": "partial",
+          "evidence_paths": [
+            "ui/src/api/attachments.ts",
+            "ui/src/api/__tests__/attachments.test.ts"
+          ],
+          "notes": "Browser/Tauri byte handling and bounded errors are tested; producer media/header declarations remain incomplete on some routes."
+        },
+        "auth_context": {
+          "status": "partial",
+          "evidence_paths": [
+            "ui/src/api/auth-context.ts",
+            "ui/src/api/__tests__/attachments.test.ts"
+          ],
+          "notes": "Authenticated handoff is implemented; operation-specific server authorization has no live receipt."
+        },
+        "ui": {
+          "status": "conformant",
+          "evidence_paths": [
+            "ui/src/components/attachments/StreamingMedia.tsx",
+            "ui/src/components/attachments/__tests__/StreamingMedia.test.tsx"
+          ]
+        },
+        "agent": {
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ]
+        },
+        "live": {
+          "status": "gap",
+          "evidence_paths": []
+        }
+      }
+    },
+    "GET /api/v1/attachments/{attachment_id}/thumbnails.vtt#get_sprite_vtt": {
+      "targeted_by_290": true,
+      "tracker": "#297",
+      "rationale": "Authenticated media bytes are handled by browser/Tauri fetch and media primitives; payloads and local paths never enter generic agent input.",
+      "dimensions": {
+        "route": {
+          "status": "conformant",
+          "evidence_paths": []
+        },
+        "request": {
+          "status": "conformant",
+          "evidence_paths": [
+            "ui/src/api/attachments.ts",
+            "ui/src/api/__tests__/attachments.test.ts"
+          ]
+        },
+        "response": {
+          "status": "partial",
+          "evidence_paths": [
+            "ui/src/api/attachments.ts",
+            "ui/src/api/__tests__/attachments.test.ts"
+          ],
+          "notes": "Browser/Tauri byte handling and bounded errors are tested; producer media/header declarations remain incomplete on some routes."
+        },
+        "auth_context": {
+          "status": "partial",
+          "evidence_paths": [
+            "ui/src/api/auth-context.ts",
+            "ui/src/api/__tests__/attachments.test.ts"
+          ],
+          "notes": "Authenticated handoff is implemented; operation-specific server authorization has no live receipt."
+        },
+        "ui": {
+          "status": "conformant",
+          "evidence_paths": [
+            "ui/src/components/attachments/StreamingMedia.tsx",
+            "ui/src/components/attachments/__tests__/StreamingMedia.test.tsx"
+          ]
+        },
+        "agent": {
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ]
+        },
+        "live": {
+          "status": "gap",
+          "evidence_paths": []
+        }
+      }
+    },
+    "GET /api/v1/backup/database#database_backup_download": {
+      "targeted_by_290": true,
+      "tracker": "#297",
+      "rationale": "Pinned binary media types, response headers, or upload request schemas are incomplete for this route.",
+      "disposition": "documented_exclusion",
+      "dimensions": {
+        "route": {
+          "status": "conformant",
+          "evidence_paths": [],
+          "notes": "Route disposition only; no protocol or payload conformance is inferred."
+        },
+        "request": {
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ]
+        },
+        "response": {
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ]
+        },
+        "auth_context": {
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ]
+        },
+        "ui": {
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
+          "notes": "Visible and disabled in the Operations catalog."
+        },
+        "agent": {
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
+          "notes": "Credential, key, path, URL, and binary material is outside generic agent invocation."
+        },
+        "live": {
+          "status": "gap",
+          "evidence_paths": [],
+          "notes": "No live receipt; exclusion does not simulate one."
+        }
+      }
+    },
+    "POST /api/v1/backup/database/upload#database_backup_upload": {
+      "targeted_by_290": true,
+      "tracker": "#297",
+      "rationale": "Pinned binary media types, response headers, or upload request schemas are incomplete for this route.",
+      "disposition": "documented_exclusion",
+      "dimensions": {
+        "route": {
+          "status": "conformant",
+          "evidence_paths": [],
+          "notes": "Route disposition only; no protocol or payload conformance is inferred."
+        },
+        "request": {
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ]
+        },
+        "response": {
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ]
+        },
+        "auth_context": {
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ]
+        },
+        "ui": {
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
+          "notes": "Visible and disabled in the Operations catalog."
+        },
+        "agent": {
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
+          "notes": "Credential, key, path, URL, and binary material is outside generic agent invocation."
+        },
+        "live": {
+          "status": "gap",
+          "evidence_paths": [],
+          "notes": "No live receipt; exclusion does not simulate one."
+        }
+      }
+    },
+    "GET /api/v1/backup/download#backup_download": {
+      "targeted_by_290": true,
+      "tracker": "#297",
+      "rationale": "Pinned binary media types, response headers, or upload request schemas are incomplete for this route.",
+      "disposition": "documented_exclusion",
+      "dimensions": {
+        "route": {
+          "status": "conformant",
+          "evidence_paths": [],
+          "notes": "Route disposition only; no protocol or payload conformance is inferred."
+        },
+        "request": {
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ]
+        },
+        "response": {
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ]
+        },
+        "auth_context": {
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ]
+        },
+        "ui": {
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
+          "notes": "Visible and disabled in the Operations catalog."
+        },
+        "agent": {
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
+          "notes": "Credential, key, path, URL, and binary material is outside generic agent invocation."
+        },
+        "live": {
+          "status": "gap",
+          "evidence_paths": [],
+          "notes": "No live receipt; exclusion does not simulate one."
+        }
+      }
+    },
+    "POST /api/v1/backup/knowledge-archive#knowledge_archive_upload": {
+      "targeted_by_290": true,
+      "tracker": "#297",
+      "rationale": "Pinned binary media types, response headers, or upload request schemas are incomplete for this route.",
+      "disposition": "documented_exclusion",
+      "dimensions": {
+        "route": {
+          "status": "conformant",
+          "evidence_paths": [],
+          "notes": "Route disposition only; no protocol or payload conformance is inferred."
+        },
+        "request": {
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ]
+        },
+        "response": {
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ]
+        },
+        "auth_context": {
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ]
+        },
+        "ui": {
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
+          "notes": "Visible and disabled in the Operations catalog."
+        },
+        "agent": {
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
+          "notes": "Credential, key, path, URL, and binary material is outside generic agent invocation."
+        },
+        "live": {
+          "status": "gap",
+          "evidence_paths": [],
+          "notes": "No live receipt; exclusion does not simulate one."
+        }
+      }
+    },
+    "GET /api/v1/backup/knowledge-archive/{filename}#knowledge_archive_download": {
+      "targeted_by_290": true,
+      "tracker": "#297",
+      "rationale": "Pinned binary media types, response headers, or upload request schemas are incomplete for this route.",
+      "disposition": "documented_exclusion",
+      "dimensions": {
+        "route": {
+          "status": "conformant",
+          "evidence_paths": [],
+          "notes": "Route disposition only; no protocol or payload conformance is inferred."
+        },
+        "request": {
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ]
+        },
+        "response": {
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ]
+        },
+        "auth_context": {
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ]
+        },
+        "ui": {
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
+          "notes": "Visible and disabled in the Operations catalog."
+        },
+        "agent": {
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
+          "notes": "Credential, key, path, URL, and binary material is outside generic agent invocation."
+        },
+        "live": {
+          "status": "gap",
+          "evidence_paths": [],
+          "notes": "No live receipt; exclusion does not simulate one."
+        }
+      }
+    },
+    "POST /api/v1/backup/knowledge-shard/upload#knowledge_shard_import_upload": {
+      "targeted_by_290": true,
+      "tracker": "#297",
+      "rationale": "Pinned binary media types, response headers, or upload request schemas are incomplete for this route.",
+      "disposition": "documented_exclusion",
+      "dimensions": {
+        "route": {
+          "status": "conformant",
+          "evidence_paths": [],
+          "notes": "Route disposition only; no protocol or payload conformance is inferred."
+        },
+        "request": {
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ]
+        },
+        "response": {
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ]
+        },
+        "auth_context": {
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ]
+        },
+        "ui": {
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
+          "notes": "Visible and disabled in the Operations catalog."
+        },
+        "agent": {
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
+          "notes": "Credential, key, path, URL, and binary material is outside generic agent invocation."
+        },
+        "live": {
+          "status": "gap",
+          "evidence_paths": [],
+          "notes": "No live receipt; exclusion does not simulate one."
+        }
+      }
+    },
+    "GET /api/v1/backup/memory/{name}#memory_backup_download": {
+      "targeted_by_290": true,
+      "tracker": "#297",
+      "rationale": "Pinned binary media types, response headers, or upload request schemas are incomplete for this route.",
+      "disposition": "documented_exclusion",
+      "dimensions": {
+        "route": {
+          "status": "conformant",
+          "evidence_paths": [],
+          "notes": "Route disposition only; no protocol or payload conformance is inferred."
+        },
+        "request": {
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ]
+        },
+        "response": {
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ]
+        },
+        "auth_context": {
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ]
+        },
+        "ui": {
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
+          "notes": "Visible and disabled in the Operations catalog."
+        },
+        "agent": {
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
+          "notes": "Credential, key, path, URL, and binary material is outside generic agent invocation."
+        },
+        "live": {
+          "status": "gap",
+          "evidence_paths": [],
+          "notes": "No live receipt; exclusion does not simulate one."
+        }
+      }
+    },
+    "POST /api/v1/notes/{id}/attachments#upload_attachment": {
+      "targeted_by_290": true,
+      "tracker": "#297",
+      "rationale": "Legacy JSON attachment upload is not used by HotM; binary content is not base64-routed through the agent or UI client.",
+      "disposition": "documented_exclusion",
+      "dimensions": {
+        "route": {
+          "status": "conformant",
+          "evidence_paths": [],
+          "notes": "Route disposition only; no protocol or payload conformance is inferred."
+        },
+        "request": {
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ]
+        },
+        "response": {
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ]
+        },
+        "auth_context": {
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ]
+        },
+        "ui": {
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
+          "notes": "Visible and disabled in the Operations catalog."
+        },
+        "agent": {
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
+          "notes": "Credential, key, path, URL, and binary material is outside generic agent invocation."
+        },
+        "live": {
+          "status": "gap",
+          "evidence_paths": [],
+          "notes": "No live receipt; exclusion does not simulate one."
+        }
+      }
+    },
+    "POST /api/v1/notes/{id}/attachments/tus#tus_create_upload": {
+      "targeted_by_290": true,
+      "tracker": "#297",
+      "rationale": "Typed tus-js-client workflow uses browser/Tauri byte transport with resumable offsets, bounded chunks, cancellation, and redacted failures.",
+      "dimensions": {
+        "route": {
+          "status": "conformant",
+          "evidence_paths": []
+        },
+        "request": {
+          "status": "conformant",
+          "evidence_paths": [
+            "ui/src/services/tusUploader.ts",
+            "ui/src/services/__tests__/tusUploader.test.ts"
+          ]
+        },
+        "response": {
+          "status": "conformant",
+          "evidence_paths": [
+            "ui/src/services/tusUploader.ts",
+            "ui/src/services/__tests__/tusUploader.test.ts"
+          ],
+          "notes": "Pinned status and TUS header semantics are handled; no undeclared success payload is inferred."
+        },
+        "auth_context": {
+          "status": "partial",
+          "evidence_paths": [
+            "ui/src/api/auth-context.ts",
+            "ui/src/services/__tests__/tusUploader.test.ts"
+          ],
+          "notes": "Bearer/memory forwarding and redaction are tested; operation-specific server authorization has no live receipt."
+        },
+        "ui": {
+          "status": "conformant",
+          "evidence_paths": [
+            "ui/src/services/uploadStore.ts",
+            "ui/src/services/__tests__/uploadStore.test.ts",
+            "ui/src/components/agent/__tests__/SaveAsNoteButton.test.tsx"
+          ]
+        },
+        "agent": {
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ]
+        },
+        "live": {
+          "status": "gap",
+          "evidence_paths": []
+        }
+      }
+    },
+    "OPTIONS /api/v1/notes/{id}/attachments/tus#tus_options": {
+      "targeted_by_290": true,
+      "tracker": "#297",
+      "rationale": "Typed tus-js-client workflow uses browser/Tauri byte transport with resumable offsets, bounded chunks, cancellation, and redacted failures.",
+      "dimensions": {
+        "route": {
+          "status": "conformant",
+          "evidence_paths": []
+        },
+        "request": {
+          "status": "conformant",
+          "evidence_paths": [
+            "ui/src/services/tusUploader.ts",
+            "ui/src/services/__tests__/tusUploader.test.ts"
+          ]
+        },
+        "response": {
+          "status": "conformant",
+          "evidence_paths": [
+            "ui/src/services/tusUploader.ts",
+            "ui/src/services/__tests__/tusUploader.test.ts"
+          ],
+          "notes": "Pinned status and TUS header semantics are handled; no undeclared success payload is inferred."
+        },
+        "auth_context": {
+          "status": "partial",
+          "evidence_paths": [
+            "ui/src/api/auth-context.ts",
+            "ui/src/services/__tests__/tusUploader.test.ts"
+          ],
+          "notes": "Bearer/memory forwarding and redaction are tested; operation-specific server authorization has no live receipt."
+        },
+        "ui": {
+          "status": "conformant",
+          "evidence_paths": [
+            "ui/src/services/uploadStore.ts",
+            "ui/src/services/__tests__/uploadStore.test.ts",
+            "ui/src/components/agent/__tests__/SaveAsNoteButton.test.tsx"
+          ]
+        },
+        "agent": {
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ]
+        },
+        "live": {
+          "status": "gap",
+          "evidence_paths": []
+        }
+      }
+    },
+    "DELETE /api/v1/notes/{id}/attachments/tus/{upload_id}#tus_delete_upload": {
+      "targeted_by_290": true,
+      "tracker": "#297",
+      "rationale": "Typed tus-js-client workflow uses browser/Tauri byte transport with resumable offsets, bounded chunks, cancellation, and redacted failures.",
+      "dimensions": {
+        "route": {
+          "status": "conformant",
+          "evidence_paths": []
+        },
+        "request": {
+          "status": "conformant",
+          "evidence_paths": [
+            "ui/src/services/tusUploader.ts",
+            "ui/src/services/__tests__/tusUploader.test.ts"
+          ]
+        },
+        "response": {
+          "status": "conformant",
+          "evidence_paths": [
+            "ui/src/services/tusUploader.ts",
+            "ui/src/services/__tests__/tusUploader.test.ts"
+          ],
+          "notes": "Pinned status and TUS header semantics are handled; no undeclared success payload is inferred."
+        },
+        "auth_context": {
+          "status": "partial",
+          "evidence_paths": [
+            "ui/src/api/auth-context.ts",
+            "ui/src/services/__tests__/tusUploader.test.ts"
+          ],
+          "notes": "Bearer/memory forwarding and redaction are tested; operation-specific server authorization has no live receipt."
+        },
+        "ui": {
+          "status": "conformant",
+          "evidence_paths": [
+            "ui/src/services/uploadStore.ts",
+            "ui/src/services/__tests__/uploadStore.test.ts",
+            "ui/src/components/agent/__tests__/SaveAsNoteButton.test.tsx"
+          ]
+        },
+        "agent": {
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ]
+        },
+        "live": {
+          "status": "gap",
+          "evidence_paths": []
+        }
+      }
+    },
+    "HEAD /api/v1/notes/{id}/attachments/tus/{upload_id}#tus_head_upload": {
+      "targeted_by_290": true,
+      "tracker": "#297",
+      "rationale": "Typed tus-js-client workflow uses browser/Tauri byte transport with resumable offsets, bounded chunks, cancellation, and redacted failures.",
+      "dimensions": {
+        "route": {
+          "status": "conformant",
+          "evidence_paths": []
+        },
+        "request": {
+          "status": "conformant",
+          "evidence_paths": [
+            "ui/src/services/tusUploader.ts",
+            "ui/src/services/__tests__/tusUploader.test.ts"
+          ]
+        },
+        "response": {
+          "status": "conformant",
+          "evidence_paths": [
+            "ui/src/services/tusUploader.ts",
+            "ui/src/services/__tests__/tusUploader.test.ts"
+          ],
+          "notes": "Pinned status and TUS header semantics are handled; no undeclared success payload is inferred."
+        },
+        "auth_context": {
+          "status": "partial",
+          "evidence_paths": [
+            "ui/src/api/auth-context.ts",
+            "ui/src/services/__tests__/tusUploader.test.ts"
+          ],
+          "notes": "Bearer/memory forwarding and redaction are tested; operation-specific server authorization has no live receipt."
+        },
+        "ui": {
+          "status": "conformant",
+          "evidence_paths": [
+            "ui/src/services/uploadStore.ts",
+            "ui/src/services/__tests__/uploadStore.test.ts",
+            "ui/src/components/agent/__tests__/SaveAsNoteButton.test.tsx"
+          ]
+        },
+        "agent": {
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ]
+        },
+        "live": {
+          "status": "gap",
+          "evidence_paths": []
+        }
+      }
+    },
+    "PATCH /api/v1/notes/{id}/attachments/tus/{upload_id}#tus_patch_upload": {
+      "targeted_by_290": true,
+      "tracker": "#297",
+      "rationale": "Typed tus-js-client workflow uses browser/Tauri byte transport with resumable offsets, bounded chunks, cancellation, and redacted failures.",
+      "dimensions": {
+        "route": {
+          "status": "conformant",
+          "evidence_paths": []
+        },
+        "request": {
+          "status": "conformant",
+          "evidence_paths": [
+            "ui/src/services/tusUploader.ts",
+            "ui/src/services/__tests__/tusUploader.test.ts"
+          ]
+        },
+        "response": {
+          "status": "conformant",
+          "evidence_paths": [
+            "ui/src/services/tusUploader.ts",
+            "ui/src/services/__tests__/tusUploader.test.ts"
+          ],
+          "notes": "Pinned status and TUS header semantics are handled; no undeclared success payload is inferred."
+        },
+        "auth_context": {
+          "status": "partial",
+          "evidence_paths": [
+            "ui/src/api/auth-context.ts",
+            "ui/src/services/__tests__/tusUploader.test.ts"
+          ],
+          "notes": "Bearer/memory forwarding and redaction are tested; operation-specific server authorization has no live receipt."
+        },
+        "ui": {
+          "status": "conformant",
+          "evidence_paths": [
+            "ui/src/services/uploadStore.ts",
+            "ui/src/services/__tests__/uploadStore.test.ts",
+            "ui/src/components/agent/__tests__/SaveAsNoteButton.test.tsx"
+          ]
+        },
+        "agent": {
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ]
+        },
+        "live": {
+          "status": "gap",
+          "evidence_paths": []
+        }
+      }
+    },
+    "POST /api/v1/notes/{id}/attachments/upload#upload_attachment_multipart": {
+      "targeted_by_290": true,
+      "tracker": "#297",
+      "rationale": "Pinned multipart request and success response schemas are absent; remote uploads use the typed TUS workflow instead.",
+      "disposition": "documented_exclusion",
+      "dimensions": {
+        "route": {
+          "status": "conformant",
+          "evidence_paths": [],
+          "notes": "Route disposition only; no protocol or payload conformance is inferred."
+        },
+        "request": {
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ]
+        },
+        "response": {
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ]
+        },
+        "auth_context": {
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ]
+        },
+        "ui": {
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
+          "notes": "Visible and disabled in the Operations catalog."
+        },
+        "agent": {
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
+          "notes": "Credential, key, path, URL, and binary material is outside generic agent invocation."
+        },
+        "live": {
+          "status": "gap",
+          "evidence_paths": [],
+          "notes": "No live receipt; exclusion does not simulate one."
+        }
+      }
+    },
+    "POST /api/v1/pke/address#pke_address": {
+      "targeted_by_290": true,
+      "tracker": "#297",
+      "rationale": "Pinned PKE success responses are not schema-bearing; private-key custody and redaction conformance is unverified.",
+      "disposition": "documented_exclusion",
+      "dimensions": {
+        "route": {
+          "status": "conformant",
+          "evidence_paths": [],
+          "notes": "Route disposition only; no protocol or payload conformance is inferred."
+        },
+        "request": {
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ]
+        },
+        "response": {
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ]
+        },
+        "auth_context": {
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ]
+        },
+        "ui": {
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
+          "notes": "Visible and disabled in the Operations catalog."
+        },
+        "agent": {
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
+          "notes": "Credential, key, path, URL, and binary material is outside generic agent invocation."
+        },
+        "live": {
+          "status": "gap",
+          "evidence_paths": [],
+          "notes": "No live receipt; exclusion does not simulate one."
+        }
+      }
+    },
+    "POST /api/v1/pke/decrypt#pke_decrypt": {
+      "targeted_by_290": true,
+      "tracker": "#297",
+      "rationale": "Pinned PKE success responses are not schema-bearing; private-key custody and redaction conformance is unverified.",
+      "disposition": "documented_exclusion",
+      "dimensions": {
+        "route": {
+          "status": "conformant",
+          "evidence_paths": [],
+          "notes": "Route disposition only; no protocol or payload conformance is inferred."
+        },
+        "request": {
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ]
+        },
+        "response": {
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ]
+        },
+        "auth_context": {
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ]
+        },
+        "ui": {
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
+          "notes": "Visible and disabled in the Operations catalog."
+        },
+        "agent": {
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
+          "notes": "Credential, key, path, URL, and binary material is outside generic agent invocation."
+        },
+        "live": {
+          "status": "gap",
+          "evidence_paths": [],
+          "notes": "No live receipt; exclusion does not simulate one."
+        }
+      }
+    },
+    "POST /api/v1/pke/encrypt#pke_encrypt": {
+      "targeted_by_290": true,
+      "tracker": "#297",
+      "rationale": "Pinned PKE success responses are not schema-bearing; private-key custody and redaction conformance is unverified.",
+      "disposition": "documented_exclusion",
+      "dimensions": {
+        "route": {
+          "status": "conformant",
+          "evidence_paths": [],
+          "notes": "Route disposition only; no protocol or payload conformance is inferred."
+        },
+        "request": {
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ]
+        },
+        "response": {
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ]
+        },
+        "auth_context": {
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ]
+        },
+        "ui": {
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
+          "notes": "Visible and disabled in the Operations catalog."
+        },
+        "agent": {
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
+          "notes": "Credential, key, path, URL, and binary material is outside generic agent invocation."
+        },
+        "live": {
+          "status": "gap",
+          "evidence_paths": [],
+          "notes": "No live receipt; exclusion does not simulate one."
+        }
+      }
+    },
+    "POST /api/v1/pke/keygen#pke_keygen": {
+      "targeted_by_290": true,
+      "tracker": "#297",
+      "rationale": "Pinned PKE success responses are not schema-bearing; private-key custody and redaction conformance is unverified.",
+      "disposition": "documented_exclusion",
+      "dimensions": {
+        "route": {
+          "status": "conformant",
+          "evidence_paths": [],
+          "notes": "Route disposition only; no protocol or payload conformance is inferred."
+        },
+        "request": {
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ]
+        },
+        "response": {
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ]
+        },
+        "auth_context": {
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ]
+        },
+        "ui": {
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
+          "notes": "Visible and disabled in the Operations catalog."
+        },
+        "agent": {
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
+          "notes": "Credential, key, path, URL, and binary material is outside generic agent invocation."
+        },
+        "live": {
+          "status": "gap",
+          "evidence_paths": [],
+          "notes": "No live receipt; exclusion does not simulate one."
+        }
+      }
+    },
+    "GET /api/v1/pke/keysets#list_keysets": {
+      "targeted_by_290": true,
+      "tracker": "#297",
+      "rationale": "Pinned PKE success responses are not schema-bearing; private-key custody and redaction conformance is unverified.",
+      "disposition": "documented_exclusion",
+      "dimensions": {
+        "route": {
+          "status": "conformant",
+          "evidence_paths": [],
+          "notes": "Route disposition only; no protocol or payload conformance is inferred."
+        },
+        "request": {
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ]
+        },
+        "response": {
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ]
+        },
+        "auth_context": {
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ]
+        },
+        "ui": {
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
+          "notes": "Visible and disabled in the Operations catalog."
+        },
+        "agent": {
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
+          "notes": "Credential, key, path, URL, and binary material is outside generic agent invocation."
+        },
+        "live": {
+          "status": "gap",
+          "evidence_paths": [],
+          "notes": "No live receipt; exclusion does not simulate one."
+        }
+      }
+    },
+    "POST /api/v1/pke/keysets#create_keyset": {
+      "targeted_by_290": true,
+      "tracker": "#297",
+      "rationale": "Pinned PKE success responses are not schema-bearing; private-key custody and redaction conformance is unverified.",
+      "disposition": "documented_exclusion",
+      "dimensions": {
+        "route": {
+          "status": "conformant",
+          "evidence_paths": [],
+          "notes": "Route disposition only; no protocol or payload conformance is inferred."
+        },
+        "request": {
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ]
+        },
+        "response": {
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ]
+        },
+        "auth_context": {
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ]
+        },
+        "ui": {
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
+          "notes": "Visible and disabled in the Operations catalog."
+        },
+        "agent": {
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
+          "notes": "Credential, key, path, URL, and binary material is outside generic agent invocation."
+        },
+        "live": {
+          "status": "gap",
+          "evidence_paths": [],
+          "notes": "No live receipt; exclusion does not simulate one."
+        }
+      }
+    },
+    "GET /api/v1/pke/keysets/active#get_active_keyset": {
+      "targeted_by_290": true,
+      "tracker": "#297",
+      "rationale": "Pinned PKE success responses are not schema-bearing; private-key custody and redaction conformance is unverified.",
+      "disposition": "documented_exclusion",
+      "dimensions": {
+        "route": {
+          "status": "conformant",
+          "evidence_paths": [],
+          "notes": "Route disposition only; no protocol or payload conformance is inferred."
+        },
+        "request": {
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ]
+        },
+        "response": {
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ]
+        },
+        "auth_context": {
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ]
+        },
+        "ui": {
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
+          "notes": "Visible and disabled in the Operations catalog."
+        },
+        "agent": {
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
+          "notes": "Credential, key, path, URL, and binary material is outside generic agent invocation."
+        },
+        "live": {
+          "status": "gap",
+          "evidence_paths": [],
+          "notes": "No live receipt; exclusion does not simulate one."
+        }
+      }
+    },
+    "POST /api/v1/pke/keysets/import#import_keyset": {
+      "targeted_by_290": true,
+      "tracker": "#297",
+      "rationale": "Pinned PKE success responses are not schema-bearing; private-key custody and redaction conformance is unverified.",
+      "disposition": "documented_exclusion",
+      "dimensions": {
+        "route": {
+          "status": "conformant",
+          "evidence_paths": [],
+          "notes": "Route disposition only; no protocol or payload conformance is inferred."
+        },
+        "request": {
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ]
+        },
+        "response": {
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ]
+        },
+        "auth_context": {
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ]
+        },
+        "ui": {
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
+          "notes": "Visible and disabled in the Operations catalog."
+        },
+        "agent": {
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
+          "notes": "Credential, key, path, URL, and binary material is outside generic agent invocation."
+        },
+        "live": {
+          "status": "gap",
+          "evidence_paths": [],
+          "notes": "No live receipt; exclusion does not simulate one."
+        }
+      }
+    },
+    "DELETE /api/v1/pke/keysets/{name_or_id}#delete_keyset": {
+      "targeted_by_290": true,
+      "tracker": "#297",
+      "rationale": "Pinned PKE success responses are not schema-bearing; private-key custody and redaction conformance is unverified.",
+      "disposition": "documented_exclusion",
+      "dimensions": {
+        "route": {
+          "status": "conformant",
+          "evidence_paths": [],
+          "notes": "Route disposition only; no protocol or payload conformance is inferred."
+        },
+        "request": {
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ]
+        },
+        "response": {
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ]
+        },
+        "auth_context": {
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ]
+        },
+        "ui": {
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
+          "notes": "Visible and disabled in the Operations catalog."
+        },
+        "agent": {
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
+          "notes": "Credential, key, path, URL, and binary material is outside generic agent invocation."
+        },
+        "live": {
+          "status": "gap",
+          "evidence_paths": [],
+          "notes": "No live receipt; exclusion does not simulate one."
+        }
+      }
+    },
+    "PUT /api/v1/pke/keysets/{name_or_id}/active#set_active_keyset": {
+      "targeted_by_290": true,
+      "tracker": "#297",
+      "rationale": "Pinned PKE success responses are not schema-bearing; private-key custody and redaction conformance is unverified.",
+      "disposition": "documented_exclusion",
+      "dimensions": {
+        "route": {
+          "status": "conformant",
+          "evidence_paths": [],
+          "notes": "Route disposition only; no protocol or payload conformance is inferred."
+        },
+        "request": {
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ]
+        },
+        "response": {
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ]
+        },
+        "auth_context": {
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ]
+        },
+        "ui": {
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
+          "notes": "Visible and disabled in the Operations catalog."
+        },
+        "agent": {
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
+          "notes": "Credential, key, path, URL, and binary material is outside generic agent invocation."
+        },
+        "live": {
+          "status": "gap",
+          "evidence_paths": [],
+          "notes": "No live receipt; exclusion does not simulate one."
+        }
+      }
+    },
+    "GET /api/v1/pke/keysets/{name_or_id}/export#export_keyset": {
+      "targeted_by_290": true,
+      "tracker": "#297",
+      "rationale": "Pinned PKE success responses are not schema-bearing; private-key custody and redaction conformance is unverified.",
+      "disposition": "documented_exclusion",
+      "dimensions": {
+        "route": {
+          "status": "conformant",
+          "evidence_paths": [],
+          "notes": "Route disposition only; no protocol or payload conformance is inferred."
+        },
+        "request": {
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ]
+        },
+        "response": {
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ]
+        },
+        "auth_context": {
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ]
+        },
+        "ui": {
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
+          "notes": "Visible and disabled in the Operations catalog."
+        },
+        "agent": {
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
+          "notes": "Credential, key, path, URL, and binary material is outside generic agent invocation."
+        },
+        "live": {
+          "status": "gap",
+          "evidence_paths": [],
+          "notes": "No live receipt; exclusion does not simulate one."
+        }
+      }
+    },
+    "POST /api/v1/pke/recipients#pke_recipients": {
+      "targeted_by_290": true,
+      "tracker": "#297",
+      "rationale": "Pinned PKE success responses are not schema-bearing; private-key custody and redaction conformance is unverified.",
+      "disposition": "documented_exclusion",
+      "dimensions": {
+        "route": {
+          "status": "conformant",
+          "evidence_paths": [],
+          "notes": "Route disposition only; no protocol or payload conformance is inferred."
+        },
+        "request": {
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ]
+        },
+        "response": {
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ]
+        },
+        "auth_context": {
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ]
+        },
+        "ui": {
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
+          "notes": "Visible and disabled in the Operations catalog."
+        },
+        "agent": {
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
+          "notes": "Credential, key, path, URL, and binary material is outside generic agent invocation."
+        },
+        "live": {
+          "status": "gap",
+          "evidence_paths": [],
+          "notes": "No live receipt; exclusion does not simulate one."
+        }
+      }
+    },
+    "GET /api/v1/pke/verify/{address}#pke_verify": {
+      "targeted_by_290": true,
+      "tracker": "#297",
+      "rationale": "Pinned PKE success responses are not schema-bearing; private-key custody and redaction conformance is unverified.",
+      "disposition": "documented_exclusion",
+      "dimensions": {
+        "route": {
+          "status": "conformant",
+          "evidence_paths": [],
+          "notes": "Route disposition only; no protocol or payload conformance is inferred."
+        },
+        "request": {
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ]
+        },
+        "response": {
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ]
+        },
+        "auth_context": {
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ]
+        },
+        "ui": {
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
+          "notes": "Visible and disabled in the Operations catalog."
+        },
+        "agent": {
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
+          "notes": "Credential, key, path, URL, and binary material is outside generic agent invocation."
+        },
+        "live": {
+          "status": "gap",
+          "evidence_paths": [],
+          "notes": "No live receipt; exclusion does not simulate one."
+        }
+      }
+    },
+    "GET /oauth/authorize#oauth_authorize_get": {
+      "targeted_by_290": true,
+      "tracker": "#297",
+      "rationale": "fortemi-auth is specification-only and has no qualifying release or shared Rust/Node fixture receipt.",
+      "disposition": "documented_exclusion",
+      "dimensions": {
+        "route": {
+          "status": "conformant",
+          "evidence_paths": [],
+          "notes": "Route disposition only; no protocol or payload conformance is inferred."
+        },
+        "request": {
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ]
+        },
+        "response": {
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ]
+        },
+        "auth_context": {
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ]
+        },
+        "ui": {
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
+          "notes": "Visible and disabled in the Operations catalog."
+        },
+        "agent": {
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
+          "notes": "Credential, key, path, URL, and binary material is outside generic agent invocation."
+        },
+        "live": {
+          "status": "gap",
+          "evidence_paths": [],
+          "notes": "No live receipt; exclusion does not simulate one."
+        }
+      }
+    },
+    "POST /oauth/authorize#oauth_authorize_post": {
+      "targeted_by_290": true,
+      "tracker": "#297",
+      "rationale": "fortemi-auth is specification-only and has no qualifying release or shared Rust/Node fixture receipt.",
+      "disposition": "documented_exclusion",
+      "dimensions": {
+        "route": {
+          "status": "conformant",
+          "evidence_paths": [],
+          "notes": "Route disposition only; no protocol or payload conformance is inferred."
+        },
+        "request": {
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ]
+        },
+        "response": {
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ]
+        },
+        "auth_context": {
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ]
+        },
+        "ui": {
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
+          "notes": "Visible and disabled in the Operations catalog."
+        },
+        "agent": {
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
+          "notes": "Credential, key, path, URL, and binary material is outside generic agent invocation."
+        },
+        "live": {
+          "status": "gap",
+          "evidence_paths": [],
+          "notes": "No live receipt; exclusion does not simulate one."
+        }
+      }
+    },
+    "POST /oauth/introspect#oauth_introspect": {
+      "targeted_by_290": true,
+      "tracker": "#297",
+      "rationale": "fortemi-auth is specification-only and has no qualifying release or shared Rust/Node fixture receipt.",
+      "disposition": "documented_exclusion",
+      "dimensions": {
+        "route": {
+          "status": "conformant",
+          "evidence_paths": [],
+          "notes": "Route disposition only; no protocol or payload conformance is inferred."
+        },
+        "request": {
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ]
+        },
+        "response": {
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ]
+        },
+        "auth_context": {
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ]
+        },
+        "ui": {
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
+          "notes": "Visible and disabled in the Operations catalog."
+        },
+        "agent": {
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
+          "notes": "Credential, key, path, URL, and binary material is outside generic agent invocation."
+        },
+        "live": {
+          "status": "gap",
+          "evidence_paths": [],
+          "notes": "No live receipt; exclusion does not simulate one."
+        }
+      }
+    },
+    "POST /oauth/register#oauth_register": {
+      "targeted_by_290": true,
+      "tracker": "#297",
+      "rationale": "fortemi-auth is specification-only and has no qualifying release or shared Rust/Node fixture receipt.",
+      "disposition": "documented_exclusion",
+      "dimensions": {
+        "route": {
+          "status": "conformant",
+          "evidence_paths": [],
+          "notes": "Route disposition only; no protocol or payload conformance is inferred."
+        },
+        "request": {
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ]
+        },
+        "response": {
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ]
+        },
+        "auth_context": {
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ]
+        },
+        "ui": {
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
+          "notes": "Visible and disabled in the Operations catalog."
+        },
+        "agent": {
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
+          "notes": "Credential, key, path, URL, and binary material is outside generic agent invocation."
+        },
+        "live": {
+          "status": "gap",
+          "evidence_paths": [],
+          "notes": "No live receipt; exclusion does not simulate one."
+        }
+      }
+    },
+    "POST /oauth/revoke#oauth_revoke": {
+      "targeted_by_290": true,
+      "tracker": "#297",
+      "rationale": "fortemi-auth is specification-only and has no qualifying release or shared Rust/Node fixture receipt.",
+      "disposition": "documented_exclusion",
+      "dimensions": {
+        "route": {
+          "status": "conformant",
+          "evidence_paths": [],
+          "notes": "Route disposition only; no protocol or payload conformance is inferred."
+        },
+        "request": {
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ]
+        },
+        "response": {
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ]
+        },
+        "auth_context": {
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ]
+        },
+        "ui": {
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
+          "notes": "Visible and disabled in the Operations catalog."
+        },
+        "agent": {
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
+          "notes": "Credential, key, path, URL, and binary material is outside generic agent invocation."
+        },
+        "live": {
+          "status": "gap",
+          "evidence_paths": [],
+          "notes": "No live receipt; exclusion does not simulate one."
+        }
+      }
+    },
+    "POST /oauth/token#oauth_token": {
+      "targeted_by_290": true,
+      "tracker": "#297",
+      "rationale": "fortemi-auth is specification-only and has no qualifying release or shared Rust/Node fixture receipt.",
+      "disposition": "documented_exclusion",
+      "dimensions": {
+        "route": {
+          "status": "conformant",
+          "evidence_paths": [],
+          "notes": "Route disposition only; no protocol or payload conformance is inferred."
+        },
+        "request": {
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ]
+        },
+        "response": {
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ]
+        },
+        "auth_context": {
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ]
+        },
+        "ui": {
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
+          "notes": "Visible and disabled in the Operations catalog."
+        },
+        "agent": {
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
+          ],
+          "notes": "Credential, key, path, URL, and binary material is outside generic agent invocation."
+        },
+        "live": {
+          "status": "gap",
+          "evidence_paths": [],
+          "notes": "No live receipt; exclusion does not simulate one."
+        }
+      }
     }
   }
 }

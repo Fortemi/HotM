@@ -88,7 +88,7 @@ function classifyUploadFailure(entry: UploadFileEntry, err: unknown): {
   const rawMessage = err instanceof Error ? err.message : 'Upload failed';
   if (isLocalFile(entry.file) || !shouldUseTus(entry.file)) {
     return {
-      error: rawMessage,
+      error: 'Upload failed.',
       degradedReason: 'generic',
       recoveryHint: null,
     };
@@ -140,7 +140,7 @@ function classifyUploadFailure(entry: UploadFileEntry, err: unknown): {
   }
 
   return {
-    error: rawMessage,
+    error: 'Upload failed.',
     degradedReason: 'generic',
     recoveryHint: 'Retry keeps the selected file in the queue.',
   };
@@ -348,8 +348,8 @@ class UploadStore {
     this.listeners.forEach((l) => {
       try {
         l();
-      } catch (err) {
-        console.error('uploadStore listener error:', err);
+      } catch {
+        console.error('uploadStore listener failed');
       }
     });
   }
@@ -542,8 +542,8 @@ class UploadStore {
       },
     )
       .then(() => {})
-      .catch((err) => {
-        console.error('uploadStore native progress listener error:', err);
+      .catch(() => {
+        console.error('uploadStore native progress listener failed');
       });
 
     return this.nativeProgressListener;
@@ -553,8 +553,8 @@ class UploadStore {
     this.noteUploadCallbacks.forEach((cb) => {
       try {
         cb(noteId, entry);
-      } catch (err) {
-        console.error('uploadStore note callback error:', err);
+      } catch {
+        console.error('uploadStore note callback failed');
       }
     });
   }

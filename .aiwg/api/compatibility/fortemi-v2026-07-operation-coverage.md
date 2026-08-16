@@ -15,26 +15,27 @@ This report is generated from the same data as the machine-readable operation co
 - Contract revision: `1`
 - Contract version: `2026.2.9`
 - Operations: `251`
-- Focused #290 operations: `33`
+- Focused #290 operations: `74`
 
 ## Disposition Counts
 
 | Disposition | Count |
 | --- | ---: |
+| documented_exclusion | 31 |
 | gap | 1 |
 | integrated | 1 |
-| partial | 249 |
+| partial | 218 |
 
 ## Dimension Counts
 
 | Dimension | Status counts |
 | --- | --- |
 | route | `{"conformant": 251}` |
-| request | `{"conformant": 122, "gap": 126, "not_applicable": 3}` |
-| response | `{"conformant": 123, "gap": 126, "partial": 2}` |
-| auth_context | `{"conformant": 1, "gap": 126, "partial": 124}` |
-| ui | `{"conformant": 125, "gap": 126}` |
-| agent | `{"gap": 251}` |
+| request | `{"conformant": 132, "documented_exclusion": 31, "gap": 85, "not_applicable": 3}` |
+| response | `{"conformant": 128, "documented_exclusion": 31, "gap": 85, "partial": 7}` |
+| auth_context | `{"conformant": 1, "documented_exclusion": 31, "gap": 85, "partial": 134}` |
+| ui | `{"conformant": 135, "documented_exclusion": 31, "gap": 85}` |
+| agent | `{"documented_exclusion": 41, "gap": 210}` |
 | live | `{"gap": 251}` |
 
 ## Verifier Diagnostics
@@ -52,6 +53,21 @@ This report is generated from the same data as the machine-readable operation co
 
 | Method | Path | operationId | Family | Disposition | Route | Request | Response | Auth/context | UI | Agent | Live | Tracker |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| `GET` | `/api/v1/api-keys` | `list_api_keys` | auth_api_keys | documented_exclusion | conformant | documented_exclusion | documented_exclusion | documented_exclusion | documented_exclusion | documented_exclusion | gap | #297 |
+| `POST` | `/api/v1/api-keys` | `create_api_key` | auth_api_keys | documented_exclusion | conformant | documented_exclusion | documented_exclusion | documented_exclusion | documented_exclusion | documented_exclusion | gap | #297 |
+| `DELETE` | `/api/v1/api-keys/{id}` | `revoke_api_key` | auth_api_keys | documented_exclusion | conformant | documented_exclusion | documented_exclusion | documented_exclusion | documented_exclusion | documented_exclusion | gap | #297 |
+| `GET` | `/api/v1/attachments/{attachment_id}/download` | `download_attachment` | attachments | partial | conformant | conformant | partial | partial | conformant | documented_exclusion | gap | #297 |
+| `GET` | `/api/v1/attachments/{attachment_id}/sprites/{sprite_index}` | `get_sprite_sheet` | attachments | partial | conformant | conformant | partial | partial | conformant | documented_exclusion | gap | #297 |
+| `GET` | `/api/v1/attachments/{attachment_id}/subtitles` | `get_attachment_subtitles` | attachments | partial | conformant | conformant | partial | partial | conformant | documented_exclusion | gap | #297 |
+| `GET` | `/api/v1/attachments/{attachment_id}/thumbnail` | `get_attachment_thumbnail` | attachments | partial | conformant | conformant | partial | partial | conformant | documented_exclusion | gap | #297 |
+| `GET` | `/api/v1/attachments/{attachment_id}/thumbnails.vtt` | `get_sprite_vtt` | attachments | partial | conformant | conformant | partial | partial | conformant | documented_exclusion | gap | #297 |
+| `GET` | `/api/v1/backup/database` | `database_backup_download` | backup_archive | documented_exclusion | conformant | documented_exclusion | documented_exclusion | documented_exclusion | documented_exclusion | documented_exclusion | gap | #297 |
+| `POST` | `/api/v1/backup/database/upload` | `database_backup_upload` | backup_archive | documented_exclusion | conformant | documented_exclusion | documented_exclusion | documented_exclusion | documented_exclusion | documented_exclusion | gap | #297 |
+| `GET` | `/api/v1/backup/download` | `backup_download` | backup_archive | documented_exclusion | conformant | documented_exclusion | documented_exclusion | documented_exclusion | documented_exclusion | documented_exclusion | gap | #297 |
+| `POST` | `/api/v1/backup/knowledge-archive` | `knowledge_archive_upload` | backup_archive | documented_exclusion | conformant | documented_exclusion | documented_exclusion | documented_exclusion | documented_exclusion | documented_exclusion | gap | #297 |
+| `GET` | `/api/v1/backup/knowledge-archive/{filename}` | `knowledge_archive_download` | backup_archive | documented_exclusion | conformant | documented_exclusion | documented_exclusion | documented_exclusion | documented_exclusion | documented_exclusion | gap | #297 |
+| `POST` | `/api/v1/backup/knowledge-shard/upload` | `knowledge_shard_import_upload` | backup_archive | documented_exclusion | conformant | documented_exclusion | documented_exclusion | documented_exclusion | documented_exclusion | documented_exclusion | gap | #297 |
+| `GET` | `/api/v1/backup/memory/{name}` | `memory_backup_download` | backup_archive | documented_exclusion | conformant | documented_exclusion | documented_exclusion | documented_exclusion | documented_exclusion | documented_exclusion | gap | #297 |
 | `GET` | `/api/v1/collections/{id}/export` | `export_collection` | collections | partial | conformant | conformant | conformant | partial | conformant | gap | gap | #295 |
 | `POST` | `/api/v1/document-types/detect` | `detect_document_type` | document_types | partial | conformant | conformant | conformant | partial | conformant | gap | gap | #295 |
 | `PATCH` | `/api/v1/document-types/{name}` | `update_document_type` | document_types | partial | conformant | conformant | conformant | partial | conformant | gap | gap | #295 |
@@ -72,6 +88,26 @@ This report is generated from the same data as the machine-readable operation co
 | `GET` | `/api/v1/jobs` | `list_jobs` | jobs | integrated | conformant | conformant | conformant | conformant | conformant | gap | gap | #296 |
 | `POST` | `/api/v1/jobs` | `create_job` | jobs | gap | conformant | gap | gap | gap | gap | gap | gap | #290 |
 | `GET` | `/api/v1/jobs/{id}` | `get_job` | jobs | partial | conformant | conformant | conformant | partial | conformant | gap | gap | #295/#296 |
+| `POST` | `/api/v1/notes/{id}/attachments` | `upload_attachment` | attachments | documented_exclusion | conformant | documented_exclusion | documented_exclusion | documented_exclusion | documented_exclusion | documented_exclusion | gap | #297 |
+| `POST` | `/api/v1/notes/{id}/attachments/tus` | `tus_create_upload` | attachments_tus | partial | conformant | conformant | conformant | partial | conformant | documented_exclusion | gap | #297 |
+| `OPTIONS` | `/api/v1/notes/{id}/attachments/tus` | `tus_options` | attachments_tus | partial | conformant | conformant | conformant | partial | conformant | documented_exclusion | gap | #297 |
+| `DELETE` | `/api/v1/notes/{id}/attachments/tus/{upload_id}` | `tus_delete_upload` | attachments_tus | partial | conformant | conformant | conformant | partial | conformant | documented_exclusion | gap | #297 |
+| `HEAD` | `/api/v1/notes/{id}/attachments/tus/{upload_id}` | `tus_head_upload` | attachments_tus | partial | conformant | conformant | conformant | partial | conformant | documented_exclusion | gap | #297 |
+| `PATCH` | `/api/v1/notes/{id}/attachments/tus/{upload_id}` | `tus_patch_upload` | attachments_tus | partial | conformant | conformant | conformant | partial | conformant | documented_exclusion | gap | #297 |
+| `POST` | `/api/v1/notes/{id}/attachments/upload` | `upload_attachment_multipart` | attachments | documented_exclusion | conformant | documented_exclusion | documented_exclusion | documented_exclusion | documented_exclusion | documented_exclusion | gap | #297 |
+| `POST` | `/api/v1/pke/address` | `pke_address` | pke | documented_exclusion | conformant | documented_exclusion | documented_exclusion | documented_exclusion | documented_exclusion | documented_exclusion | gap | #297 |
+| `POST` | `/api/v1/pke/decrypt` | `pke_decrypt` | pke | documented_exclusion | conformant | documented_exclusion | documented_exclusion | documented_exclusion | documented_exclusion | documented_exclusion | gap | #297 |
+| `POST` | `/api/v1/pke/encrypt` | `pke_encrypt` | pke | documented_exclusion | conformant | documented_exclusion | documented_exclusion | documented_exclusion | documented_exclusion | documented_exclusion | gap | #297 |
+| `POST` | `/api/v1/pke/keygen` | `pke_keygen` | pke | documented_exclusion | conformant | documented_exclusion | documented_exclusion | documented_exclusion | documented_exclusion | documented_exclusion | gap | #297 |
+| `GET` | `/api/v1/pke/keysets` | `list_keysets` | pke | documented_exclusion | conformant | documented_exclusion | documented_exclusion | documented_exclusion | documented_exclusion | documented_exclusion | gap | #297 |
+| `POST` | `/api/v1/pke/keysets` | `create_keyset` | pke | documented_exclusion | conformant | documented_exclusion | documented_exclusion | documented_exclusion | documented_exclusion | documented_exclusion | gap | #297 |
+| `GET` | `/api/v1/pke/keysets/active` | `get_active_keyset` | pke | documented_exclusion | conformant | documented_exclusion | documented_exclusion | documented_exclusion | documented_exclusion | documented_exclusion | gap | #297 |
+| `POST` | `/api/v1/pke/keysets/import` | `import_keyset` | pke | documented_exclusion | conformant | documented_exclusion | documented_exclusion | documented_exclusion | documented_exclusion | documented_exclusion | gap | #297 |
+| `DELETE` | `/api/v1/pke/keysets/{name_or_id}` | `delete_keyset` | pke | documented_exclusion | conformant | documented_exclusion | documented_exclusion | documented_exclusion | documented_exclusion | documented_exclusion | gap | #297 |
+| `PUT` | `/api/v1/pke/keysets/{name_or_id}/active` | `set_active_keyset` | pke | documented_exclusion | conformant | documented_exclusion | documented_exclusion | documented_exclusion | documented_exclusion | documented_exclusion | gap | #297 |
+| `GET` | `/api/v1/pke/keysets/{name_or_id}/export` | `export_keyset` | pke | documented_exclusion | conformant | documented_exclusion | documented_exclusion | documented_exclusion | documented_exclusion | documented_exclusion | gap | #297 |
+| `POST` | `/api/v1/pke/recipients` | `pke_recipients` | pke | documented_exclusion | conformant | documented_exclusion | documented_exclusion | documented_exclusion | documented_exclusion | documented_exclusion | gap | #297 |
+| `GET` | `/api/v1/pke/verify/{address}` | `pke_verify` | pke | documented_exclusion | conformant | documented_exclusion | documented_exclusion | documented_exclusion | documented_exclusion | documented_exclusion | gap | #297 |
 | `POST` | `/api/v1/provenance/devices` | `create_prov_device` | provenance | partial | conformant | conformant | conformant | partial | conformant | gap | gap | #295 |
 | `POST` | `/api/v1/provenance/files` | `create_file_provenance` | provenance | partial | conformant | conformant | conformant | partial | conformant | gap | gap | #295 |
 | `POST` | `/api/v1/provenance/locations` | `create_prov_location` | provenance | partial | conformant | conformant | conformant | partial | conformant | gap | gap | #295 |
@@ -85,6 +121,12 @@ This report is generated from the same data as the machine-readable operation co
 | `POST` | `/api/v1/templates/{id}/instantiate` | `instantiate_template` | templates | partial | conformant | conformant | conformant | partial | conformant | gap | gap | #295 |
 | `PATCH` | `/api/v1/webhooks/{id}` | `update_webhook` | outbound_webhooks | partial | conformant | conformant | conformant | partial | conformant | gap | gap | #296 |
 | `GET` | `/api/v1/webhooks/{id}/deliveries` | `list_webhook_deliveries` | outbound_webhooks | partial | conformant | conformant | conformant | partial | conformant | gap | gap | #296 |
+| `GET` | `/oauth/authorize` | `oauth_authorize_get` | oauth | documented_exclusion | conformant | documented_exclusion | documented_exclusion | documented_exclusion | documented_exclusion | documented_exclusion | gap | #297 |
+| `POST` | `/oauth/authorize` | `oauth_authorize_post` | oauth | documented_exclusion | conformant | documented_exclusion | documented_exclusion | documented_exclusion | documented_exclusion | documented_exclusion | gap | #297 |
+| `POST` | `/oauth/introspect` | `oauth_introspect` | oauth | documented_exclusion | conformant | documented_exclusion | documented_exclusion | documented_exclusion | documented_exclusion | documented_exclusion | gap | #297 |
+| `POST` | `/oauth/register` | `oauth_register` | oauth | documented_exclusion | conformant | documented_exclusion | documented_exclusion | documented_exclusion | documented_exclusion | documented_exclusion | gap | #297 |
+| `POST` | `/oauth/revoke` | `oauth_revoke` | oauth | documented_exclusion | conformant | documented_exclusion | documented_exclusion | documented_exclusion | documented_exclusion | documented_exclusion | gap | #297 |
+| `POST` | `/oauth/token` | `oauth_token` | oauth | documented_exclusion | conformant | documented_exclusion | documented_exclusion | documented_exclusion | documented_exclusion | documented_exclusion | gap | #297 |
 
 ## Operation Matrix
 
@@ -92,9 +134,9 @@ This report is generated from the same data as the machine-readable operation co
 | --- | --- | --- | --- | --- | --- | --- |
 | `GET` | `/.well-known/oauth-authorization-server` | `oauth_discovery` | oauth | partial | covered | false |
 | `GET` | `/.well-known/oauth-protected-resource` | `oauth_protected_resource` | oauth | partial | covered | false |
-| `GET` | `/api/v1/api-keys` | `list_api_keys` | auth_api_keys | partial | covered | false |
-| `POST` | `/api/v1/api-keys` | `create_api_key` | auth_api_keys | partial | covered | false |
-| `DELETE` | `/api/v1/api-keys/{id}` | `revoke_api_key` | auth_api_keys | partial | covered | false |
+| `GET` | `/api/v1/api-keys` | `list_api_keys` | auth_api_keys | documented_exclusion | covered | true |
+| `POST` | `/api/v1/api-keys` | `create_api_key` | auth_api_keys | documented_exclusion | covered | true |
+| `DELETE` | `/api/v1/api-keys/{id}` | `revoke_api_key` | auth_api_keys | documented_exclusion | covered | true |
 | `GET` | `/api/v1/archives` | `list_archives` | archives | partial | covered | false |
 | `POST` | `/api/v1/archives` | `create_archive` | archives | partial | covered | false |
 | `GET` | `/api/v1/archives/{name}` | `get_archive` | archives | partial | covered | false |
@@ -106,27 +148,27 @@ This report is generated from the same data as the machine-readable operation co
 | `GET` | `/api/v1/attachments` | `list_all_attachments` | attachments | partial | covered | false |
 | `GET` | `/api/v1/attachments/{attachment_id}` | `get_attachment` | attachments | partial | covered | false |
 | `DELETE` | `/api/v1/attachments/{attachment_id}` | `delete_attachment` | attachments | partial | covered | false |
-| `GET` | `/api/v1/attachments/{attachment_id}/download` | `download_attachment` | attachments | partial | covered | false |
-| `GET` | `/api/v1/attachments/{attachment_id}/sprites/{sprite_index}` | `get_sprite_sheet` | attachments | partial | covered | false |
-| `GET` | `/api/v1/attachments/{attachment_id}/subtitles` | `get_attachment_subtitles` | attachments | partial | covered | false |
-| `GET` | `/api/v1/attachments/{attachment_id}/thumbnail` | `get_attachment_thumbnail` | attachments | partial | covered | false |
-| `GET` | `/api/v1/attachments/{attachment_id}/thumbnails.vtt` | `get_sprite_vtt` | attachments | partial | covered | false |
+| `GET` | `/api/v1/attachments/{attachment_id}/download` | `download_attachment` | attachments | partial | covered | true |
+| `GET` | `/api/v1/attachments/{attachment_id}/sprites/{sprite_index}` | `get_sprite_sheet` | attachments | partial | covered | true |
+| `GET` | `/api/v1/attachments/{attachment_id}/subtitles` | `get_attachment_subtitles` | attachments | partial | covered | true |
+| `GET` | `/api/v1/attachments/{attachment_id}/thumbnail` | `get_attachment_thumbnail` | attachments | partial | covered | true |
+| `GET` | `/api/v1/attachments/{attachment_id}/thumbnails.vtt` | `get_sprite_vtt` | attachments | partial | covered | true |
 | `POST` | `/api/v1/audio/transcribe` | `transcribe_audio` | audio_tools | partial | covered | false |
-| `GET` | `/api/v1/backup/database` | `database_backup_download` | backup_archive | partial | covered | false |
+| `GET` | `/api/v1/backup/database` | `database_backup_download` | backup_archive | documented_exclusion | covered | true |
 | `POST` | `/api/v1/backup/database/restore` | `database_backup_restore` | backup_archive | partial | covered | false |
 | `POST` | `/api/v1/backup/database/snapshot` | `database_backup_snapshot` | backup_archive | partial | covered | false |
-| `POST` | `/api/v1/backup/database/upload` | `database_backup_upload` | backup_archive | partial | covered | false |
-| `GET` | `/api/v1/backup/download` | `backup_download` | backup_archive | partial | covered | false |
+| `POST` | `/api/v1/backup/database/upload` | `database_backup_upload` | backup_archive | documented_exclusion | covered | true |
+| `GET` | `/api/v1/backup/download` | `backup_download` | backup_archive | documented_exclusion | covered | true |
 | `GET` | `/api/v1/backup/export` | `backup_export` | backup_archive | partial | covered | false |
 | `POST` | `/api/v1/backup/import` | `backup_import` | backup_archive | partial | covered | false |
-| `POST` | `/api/v1/backup/knowledge-archive` | `knowledge_archive_upload` | backup_archive | partial | covered | false |
-| `GET` | `/api/v1/backup/knowledge-archive/{filename}` | `knowledge_archive_download` | backup_archive | partial | covered | false |
+| `POST` | `/api/v1/backup/knowledge-archive` | `knowledge_archive_upload` | backup_archive | documented_exclusion | covered | true |
+| `GET` | `/api/v1/backup/knowledge-archive/{filename}` | `knowledge_archive_download` | backup_archive | documented_exclusion | covered | true |
 | `GET` | `/api/v1/backup/knowledge-shard` | `knowledge_shard` | backup_archive | partial | covered | false |
 | `POST` | `/api/v1/backup/knowledge-shard/import` | `knowledge_shard_import` | backup_archive | partial | covered | false |
-| `POST` | `/api/v1/backup/knowledge-shard/upload` | `knowledge_shard_import_upload` | backup_archive | partial | covered | false |
+| `POST` | `/api/v1/backup/knowledge-shard/upload` | `knowledge_shard_import_upload` | backup_archive | documented_exclusion | covered | true |
 | `GET` | `/api/v1/backup/list` | `list_backups` | backup_archive | partial | covered | false |
 | `GET` | `/api/v1/backup/list/{filename}` | `get_backup_info` | backup_archive | partial | covered | false |
-| `GET` | `/api/v1/backup/memory/{name}` | `memory_backup_download` | backup_archive | partial | covered | false |
+| `GET` | `/api/v1/backup/memory/{name}` | `memory_backup_download` | backup_archive | documented_exclusion | covered | true |
 | `GET` | `/api/v1/backup/metadata/{filename}` | `get_backup_metadata` | backup_archive | partial | covered | false |
 | `PUT` | `/api/v1/backup/metadata/{filename}` | `update_backup_metadata` | backup_archive | partial | covered | false |
 | `GET` | `/api/v1/backup/status` | `backup_status` | backup_archive | partial | covered | false |
@@ -263,13 +305,13 @@ This report is generated from the same data as the machine-readable operation co
 | `DELETE` | `/api/v1/notes/{id}` | `delete_note` | notes | partial | covered | false |
 | `PATCH` | `/api/v1/notes/{id}` | `update_note` | notes | partial | covered | false |
 | `GET` | `/api/v1/notes/{id}/attachments` | `list_attachments` | attachments | partial | covered | false |
-| `POST` | `/api/v1/notes/{id}/attachments` | `upload_attachment` | attachments | partial | covered | false |
-| `POST` | `/api/v1/notes/{id}/attachments/tus` | `tus_create_upload` | attachments_tus | partial | covered | false |
-| `OPTIONS` | `/api/v1/notes/{id}/attachments/tus` | `tus_options` | attachments_tus | partial | covered | false |
-| `DELETE` | `/api/v1/notes/{id}/attachments/tus/{upload_id}` | `tus_delete_upload` | attachments_tus | partial | covered | false |
-| `HEAD` | `/api/v1/notes/{id}/attachments/tus/{upload_id}` | `tus_head_upload` | attachments_tus | partial | covered | false |
-| `PATCH` | `/api/v1/notes/{id}/attachments/tus/{upload_id}` | `tus_patch_upload` | attachments_tus | partial | covered | false |
-| `POST` | `/api/v1/notes/{id}/attachments/upload` | `upload_attachment_multipart` | attachments | partial | covered | false |
+| `POST` | `/api/v1/notes/{id}/attachments` | `upload_attachment` | attachments | documented_exclusion | covered | true |
+| `POST` | `/api/v1/notes/{id}/attachments/tus` | `tus_create_upload` | attachments_tus | partial | covered | true |
+| `OPTIONS` | `/api/v1/notes/{id}/attachments/tus` | `tus_options` | attachments_tus | partial | covered | true |
+| `DELETE` | `/api/v1/notes/{id}/attachments/tus/{upload_id}` | `tus_delete_upload` | attachments_tus | partial | covered | true |
+| `HEAD` | `/api/v1/notes/{id}/attachments/tus/{upload_id}` | `tus_head_upload` | attachments_tus | partial | covered | true |
+| `PATCH` | `/api/v1/notes/{id}/attachments/tus/{upload_id}` | `tus_patch_upload` | attachments_tus | partial | covered | true |
+| `POST` | `/api/v1/notes/{id}/attachments/upload` | `upload_attachment_multipart` | attachments | documented_exclusion | covered | true |
 | `GET` | `/api/v1/notes/{id}/backlinks` | `get_note_backlinks` | notes | partial | covered | false |
 | `GET` | `/api/v1/notes/{id}/concepts` | `get_note_concepts` | notes | partial | covered | false |
 | `POST` | `/api/v1/notes/{id}/concepts` | `tag_note_with_concept` | notes | partial | covered | false |
@@ -292,19 +334,19 @@ This report is generated from the same data as the machine-readable operation co
 | `GET` | `/api/v1/notes/{id}/versions/{version}` | `get_note_version` | notes | partial | covered | false |
 | `DELETE` | `/api/v1/notes/{id}/versions/{version}` | `delete_note_version` | notes | partial | covered | false |
 | `POST` | `/api/v1/notes/{id}/versions/{version}/restore` | `restore_note_version` | notes | partial | covered | false |
-| `POST` | `/api/v1/pke/address` | `pke_address` | pke | partial | documented_exclusion | false |
-| `POST` | `/api/v1/pke/decrypt` | `pke_decrypt` | pke | partial | documented_exclusion | false |
-| `POST` | `/api/v1/pke/encrypt` | `pke_encrypt` | pke | partial | documented_exclusion | false |
-| `POST` | `/api/v1/pke/keygen` | `pke_keygen` | pke | partial | documented_exclusion | false |
-| `GET` | `/api/v1/pke/keysets` | `list_keysets` | pke | partial | documented_exclusion | false |
-| `POST` | `/api/v1/pke/keysets` | `create_keyset` | pke | partial | documented_exclusion | false |
-| `GET` | `/api/v1/pke/keysets/active` | `get_active_keyset` | pke | partial | documented_exclusion | false |
-| `POST` | `/api/v1/pke/keysets/import` | `import_keyset` | pke | partial | documented_exclusion | false |
-| `DELETE` | `/api/v1/pke/keysets/{name_or_id}` | `delete_keyset` | pke | partial | documented_exclusion | false |
-| `PUT` | `/api/v1/pke/keysets/{name_or_id}/active` | `set_active_keyset` | pke | partial | documented_exclusion | false |
-| `GET` | `/api/v1/pke/keysets/{name_or_id}/export` | `export_keyset` | pke | partial | documented_exclusion | false |
-| `POST` | `/api/v1/pke/recipients` | `pke_recipients` | pke | partial | documented_exclusion | false |
-| `GET` | `/api/v1/pke/verify/{address}` | `pke_verify` | pke | partial | documented_exclusion | false |
+| `POST` | `/api/v1/pke/address` | `pke_address` | pke | documented_exclusion | documented_exclusion | true |
+| `POST` | `/api/v1/pke/decrypt` | `pke_decrypt` | pke | documented_exclusion | documented_exclusion | true |
+| `POST` | `/api/v1/pke/encrypt` | `pke_encrypt` | pke | documented_exclusion | documented_exclusion | true |
+| `POST` | `/api/v1/pke/keygen` | `pke_keygen` | pke | documented_exclusion | documented_exclusion | true |
+| `GET` | `/api/v1/pke/keysets` | `list_keysets` | pke | documented_exclusion | documented_exclusion | true |
+| `POST` | `/api/v1/pke/keysets` | `create_keyset` | pke | documented_exclusion | documented_exclusion | true |
+| `GET` | `/api/v1/pke/keysets/active` | `get_active_keyset` | pke | documented_exclusion | documented_exclusion | true |
+| `POST` | `/api/v1/pke/keysets/import` | `import_keyset` | pke | documented_exclusion | documented_exclusion | true |
+| `DELETE` | `/api/v1/pke/keysets/{name_or_id}` | `delete_keyset` | pke | documented_exclusion | documented_exclusion | true |
+| `PUT` | `/api/v1/pke/keysets/{name_or_id}/active` | `set_active_keyset` | pke | documented_exclusion | documented_exclusion | true |
+| `GET` | `/api/v1/pke/keysets/{name_or_id}/export` | `export_keyset` | pke | documented_exclusion | documented_exclusion | true |
+| `POST` | `/api/v1/pke/recipients` | `pke_recipients` | pke | documented_exclusion | documented_exclusion | true |
+| `GET` | `/api/v1/pke/verify/{address}` | `pke_verify` | pke | documented_exclusion | documented_exclusion | true |
 | `POST` | `/api/v1/provenance/devices` | `create_prov_device` | provenance | partial | covered | true |
 | `POST` | `/api/v1/provenance/files` | `create_file_provenance` | provenance | partial | covered | true |
 | `POST` | `/api/v1/provenance/locations` | `create_prov_location` | provenance | partial | covered | true |
@@ -334,10 +376,10 @@ This report is generated from the same data as the machine-readable operation co
 | `GET` | `/health` | `health_check` | health | partial | covered | false |
 | `GET` | `/health/live` | `health_check_live` | health | partial | covered | false |
 | `GET` | `/livez` | `liveness_probe` | health | partial | covered | false |
-| `GET` | `/oauth/authorize` | `oauth_authorize_get` | oauth | partial | covered | false |
-| `POST` | `/oauth/authorize` | `oauth_authorize_post` | oauth | partial | covered | false |
-| `POST` | `/oauth/introspect` | `oauth_introspect` | oauth | partial | covered | false |
-| `POST` | `/oauth/register` | `oauth_register` | oauth | partial | covered | false |
-| `POST` | `/oauth/revoke` | `oauth_revoke` | oauth | partial | covered | false |
-| `POST` | `/oauth/token` | `oauth_token` | oauth | partial | covered | false |
+| `GET` | `/oauth/authorize` | `oauth_authorize_get` | oauth | documented_exclusion | covered | true |
+| `POST` | `/oauth/authorize` | `oauth_authorize_post` | oauth | documented_exclusion | covered | true |
+| `POST` | `/oauth/introspect` | `oauth_introspect` | oauth | documented_exclusion | covered | true |
+| `POST` | `/oauth/register` | `oauth_register` | oauth | documented_exclusion | covered | true |
+| `POST` | `/oauth/revoke` | `oauth_revoke` | oauth | documented_exclusion | covered | true |
+| `POST` | `/oauth/token` | `oauth_token` | oauth | documented_exclusion | covered | true |
 | `GET` | `/readyz` | `readiness_probe` | health | partial | covered | false |

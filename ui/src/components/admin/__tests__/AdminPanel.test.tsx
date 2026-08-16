@@ -347,7 +347,7 @@ describe('AdminPanel', () => {
 
       await waitFor(() => {
         expect(screen.getByText('OAuth Discovery')).toBeInTheDocument();
-        expect(screen.getByText('OAuth Route Coverage')).toBeInTheDocument();
+        expect(screen.getByText('OAuth Contract Status')).toBeInTheDocument();
         expect(screen.getByText('http://localhost:3000/oauth/authorize')).toBeInTheDocument();
         expect(screen.getByText('GET/POST /oauth/authorize')).toBeInTheDocument();
         expect(screen.getByText('POST /oauth/register')).toBeInTheDocument();

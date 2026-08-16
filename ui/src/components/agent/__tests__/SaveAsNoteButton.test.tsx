@@ -4,18 +4,17 @@ import userEvent from '@testing-library/user-event';
 import { SaveAsNoteButton } from '../SaveAsNoteButton';
 import type { UIMessage } from '@ai-sdk/react';
 
-// Mock the API module — must include all three operations called by handleSave:
-// notes.create, notes.updateTags (tag), and attachments.uploadAttachment.
-// Missing mocks cause silent TypeError failures in the non-fatal catch blocks,
-// masking bugs and giving false confidence that the full save path works.
+const tusState = vi.hoisted(() => ({ start: vi.fn() }));
+
+vi.mock('@/services/tusUploader', () => ({
+  startTusUpload: tusState.start,
+}));
+
 vi.mock('@/api', () => ({
   api: {
     notes: {
       create: vi.fn(),
       updateTags: vi.fn().mockResolvedValue(['agent-session']),
-    },
-    attachments: {
-      uploadAttachment: vi.fn().mockResolvedValue({ id: 'att-1', filename: 'session.json' }),
     },
   },
 }));
@@ -29,6 +28,10 @@ const messages: UIMessage[] = [
 
 beforeEach(() => {
   vi.clearAllMocks();
+  tusState.start.mockReturnValue({
+    promise: Promise.resolve({ id: 'att-1', filename: 'session.json' }),
+    abort: vi.fn(),
+  });
 });
 
 describe('SaveAsNoteButton', () => {
@@ -89,11 +92,11 @@ describe('SaveAsNoteButton', () => {
 
     await waitFor(() => {
       expect(screen.getByText('Failed')).toBeInTheDocument();
-      expect(screen.getByText('Network error')).toBeInTheDocument();
+      expect(screen.getByText('Failed to save note.')).toBeInTheDocument();
     });
   });
 
-  it('calls updateTags and uploadAttachment after note creation', async () => {
+  it('calls updateTags and the typed TUS workflow after note creation', async () => {
     const user = userEvent.setup();
     vi.mocked(api.notes.create).mockResolvedValue({ note_id: 'note-abc' });
 
@@ -110,11 +113,14 @@ describe('SaveAsNoteButton', () => {
     });
 
     // Attachment upload must fire with a File named after the session
-    expect(vi.mocked(api.attachments.uploadAttachment)).toHaveBeenCalledWith(
-      'note-abc',
+    expect(tusState.start).toHaveBeenCalledWith(
       expect.objectContaining({
+        noteId: 'note-abc',
+        mediaOptimize: false,
+        file: expect.objectContaining({
         name: expect.stringMatching(/session-my-session\.json/),
         type: 'application/json',
+        }),
       }),
     );
   });
@@ -122,9 +128,10 @@ describe('SaveAsNoteButton', () => {
   it('shows partial state when attachment upload fails', async () => {
     const user = userEvent.setup();
     vi.mocked(api.notes.create).mockResolvedValue({ note_id: 'note-resilient' });
-    vi.mocked(api.attachments.uploadAttachment).mockRejectedValue(
-      new Error('Upload failed: HTTP 422'),
-    );
+    tusState.start.mockImplementation(() => ({
+      promise: Promise.reject(new Error('upload=https://host/private token=secret')),
+      abort: vi.fn(),
+    }));
 
     render(<SaveAsNoteButton messages={messages} />);
     await user.click(screen.getByTitle('Save as Fortemi note'));
@@ -142,9 +149,6 @@ describe('SaveAsNoteButton', () => {
     vi.mocked(api.notes.updateTags).mockRejectedValue(
       new Error('Tag endpoint unavailable'),
     );
-    // Ensure uploadAttachment resolves (previous test may have set mockRejectedValue)
-    vi.mocked(api.attachments.uploadAttachment).mockResolvedValue({ id: 'att-1', filename: 'session.json' } as never);
-
     render(<SaveAsNoteButton messages={messages} />);
     await user.click(screen.getByTitle('Save as Fortemi note'));
 

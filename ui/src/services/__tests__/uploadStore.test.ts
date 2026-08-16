@@ -128,7 +128,7 @@ describe('uploadStore', () => {
     const entries = Array.from(state.entries.values());
     expect(entries).toHaveLength(2);
     expect(entries[0].status).toBe('failed');
-    expect(entries[0].error).toBe('Network error');
+    expect(entries[0].error).toBe('Upload failed.');
     expect(entries[1].status).toBe('completed');
     expect(state.summary.failed).toBe(1);
     expect(state.summary.completed).toBe(1);

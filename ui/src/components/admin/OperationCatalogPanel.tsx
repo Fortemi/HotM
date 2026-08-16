@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { RefreshCw, Search } from 'lucide-react';
+import { Ban, RefreshCw, Search } from 'lucide-react';
 import { api } from '@/api';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -13,12 +13,13 @@ import {
 } from '@/components/ui/select';
 import ledger from '@/api/contracts/fortemi-operation-dispositions.json';
 
-type Surface = 'ui_workflow' | 'agent_workflow' | 'operator_diagnostic' | 'documented_exclusion';
+type Surface = 'ui_workflow' | 'agent_workflow' | 'external_protocol_handoff' | 'operator_diagnostic' | 'documented_exclusion';
 type CompatibilityState = 'checking' | 'compatible' | 'blocked';
 
 const surfaceLabels: Record<Surface, string> = {
   ui_workflow: 'UI workflow',
   agent_workflow: 'Agent workflow',
+  external_protocol_handoff: 'Browser / native handoff',
   operator_diagnostic: 'Operator diagnostic',
   documented_exclusion: 'Excluded',
 };
@@ -113,7 +114,12 @@ export function OperationCatalogPanel() {
           </thead>
           <tbody>
             {operations.map((operation) => (
-              <tr key={operation.key} className="border-b last:border-b-0">
+              <tr
+                key={operation.key}
+                className="border-b last:border-b-0 data-[disabled=true]:bg-muted/40 data-[disabled=true]:text-muted-foreground"
+                data-disabled={operation.enabled === false}
+                aria-disabled={operation.enabled === false || undefined}
+              >
                 <td className="px-3 py-2">
                   <div className="flex items-center gap-2">
                     <Badge variant={methodVariant(operation.method)}>{operation.method}</Badge>
@@ -123,7 +129,16 @@ export function OperationCatalogPanel() {
                 </td>
                 <td className="px-3 py-2">{operation.family.replace(/_/g, ' ')}</td>
                 <td className="px-3 py-2"><Badge variant="outline">{operation.privilege}</Badge></td>
-                <td className="px-3 py-2" title={operation.rationale}>{surfaceLabels[operation.surface as Surface]}</td>
+                <td className="px-3 py-2" title={operation.rationale}>
+                  <div className="flex items-center gap-2">
+                    {operation.enabled === false && <Ban className="size-4" aria-hidden="true" />}
+                    <span>{surfaceLabels[operation.surface as Surface]}</span>
+                    {operation.enabled === false && <Badge variant="secondary">Disabled</Badge>}
+                  </div>
+                  {typeof operation.security_decision === 'string' && (
+                    <div className="mt-1 text-xs">{operation.security_decision.replace(/_/g, ' ')}</div>
+                  )}
+                </td>
               </tr>
             ))}
           </tbody>
