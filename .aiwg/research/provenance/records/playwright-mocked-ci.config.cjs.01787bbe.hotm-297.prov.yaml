@@ -1,0 +1,48 @@
+metadata:
+  schema_version: "1.0.0"
+  created_at: "2026-08-16T17:43:58Z"
+  updated_at: "2026-08-16T17:43:58Z"
+  description: "Provenance for HotM issue #297 mocked-browser port isolation"
+entity:
+  id: "urn:aiwg:artifact:ui/scripts/playwright-mocked-ci.config.cjs"
+  type: "source_code"
+  created_at: "2026-08-16T17:43:58Z"
+  updated_at: "2026-08-16T17:43:58Z"
+  checksum: "sha256:01787bbec086a004b0565597d424e8a717996435eddf92040612deb27c0067bd"
+  size_bytes: 1536
+  attributes:
+    change_scope: "hotm-297-mocked-browser-port-isolation"
+    base_revision: "54f0d437795be812a508a5039077d4d88f2c33a3"
+activity:
+  id: "urn:aiwg:activity:modification:ui-scripts-playwright-mocked-ci-config-cjs:hotm-297"
+  type: "modification"
+  started_at: "2026-08-16T17:43:58Z"
+  ended_at: "2026-08-16T17:43:58Z"
+  description: "Parameterize the mocked Playwright and Vite loopback port"
+agent:
+  id: "urn:aiwg:agent:codex-gpt-5"
+  type: "ai_assistant"
+  name: "Codex"
+  version: "gpt-5"
+  tool: "codex"
+relationships:
+  wasGeneratedBy:
+    entity: "urn:aiwg:artifact:ui/scripts/playwright-mocked-ci.config.cjs"
+    activity: "urn:aiwg:activity:modification:ui-scripts-playwright-mocked-ci-config-cjs:hotm-297"
+    time: "2026-08-16T17:43:58Z"
+  used:
+    - activity: "urn:aiwg:activity:modification:ui-scripts-playwright-mocked-ci-config-cjs:hotm-297"
+      entity: "urn:gitea:Fortemi/HotM:issue:297"
+      role: "verification-requirement"
+  wasDerivedFrom:
+    - entity: "urn:aiwg:artifact:ui/scripts/playwright-mocked-ci.config.cjs"
+      source: "urn:git:git@git.integrolabs.net:Fortemi/HotM.git:54f0d437795be812a508a5039077d4d88f2c33a3:ui/scripts/playwright-mocked-ci.config.cjs"
+      derivation_type: "modifies"
+      activity: "urn:aiwg:activity:modification:ui-scripts-playwright-mocked-ci-config-cjs:hotm-297"
+  wasAssociatedWith:
+    activity: "urn:aiwg:activity:modification:ui-scripts-playwright-mocked-ci-config-cjs:hotm-297"
+    agent: "urn:aiwg:agent:codex-gpt-5"
+    role: "primary_author"
+  wasAttributedTo:
+    entity: "urn:aiwg:artifact:ui/scripts/playwright-mocked-ci.config.cjs"
+    agent: "urn:aiwg:agent:codex-gpt-5"

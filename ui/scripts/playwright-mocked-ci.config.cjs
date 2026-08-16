@@ -1,6 +1,10 @@
 const { defineConfig, devices } = require('@playwright/test');
 
-const baseURL = 'http://localhost:1420';
+const e2ePort = process.env.HOTM_E2E_PORT || '1420';
+if (!/^\d+$/.test(e2ePort)) {
+  throw new Error('HOTM_E2E_PORT must be a numeric TCP port');
+}
+const baseURL = `http://127.0.0.1:${e2ePort}`;
 
 module.exports = defineConfig({
   testDir: '../e2e',
@@ -43,7 +47,7 @@ module.exports = defineConfig({
     },
   ],
   webServer: {
-    command: 'VITE_API_BASE_URL="${HOTM_API_URL:-${VITE_API_BASE_URL:-http://localhost:3000/api/v1}}" npm run dev',
+    command: `VITE_API_BASE_URL="\${HOTM_API_URL:-\${VITE_API_BASE_URL:-http://localhost:3000/api/v1}}" npm run dev -- --host 127.0.0.1 --port ${e2ePort}`,
     url: baseURL,
     reuseExistingServer: false,
     timeout: 120000,
