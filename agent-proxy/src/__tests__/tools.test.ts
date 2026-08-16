@@ -618,6 +618,23 @@ describe('getRelatedTool', () => {
     expect(result.notes).toHaveLength(1);
     expect(result.notes[0].note_id).toBe('r1');
   });
+
+  it('accepts a direct related-note array and encodes the note ID', async () => {
+    mockFetch.mockResolvedValueOnce(
+      jsonResponse([
+        { note_id: 'r2', title: 'Direct', snippet: '...', score: 0.7, tags: [] },
+      ]),
+    );
+
+    const result = await callTool<{ notes: Array<Record<string, unknown>> }>(
+      getRelatedTool, { note_id: 'note/with space', limit: 3 },
+    );
+
+    expect(String(mockFetch.mock.calls[0][0])).toContain('/notes/note%2Fwith%20space/related?limit=3');
+    expect(result.notes).toEqual([
+      { note_id: 'r2', title: 'Direct', snippet: '...', score: 0.7, tags: [] },
+    ]);
+  });
 });
 
 // ---------------------------------------------------------------------------
