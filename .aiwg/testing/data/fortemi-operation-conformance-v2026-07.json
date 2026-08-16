@@ -22,6 +22,30 @@
     "documented_exclusion",
     "not_applicable"
   ],
+  "agent_operation_evidence": {
+    "tracker": "#298",
+    "operation_keys": [
+      "GET /api/v1/archives#list_archives",
+      "GET /api/v1/collections#list_collections",
+      "GET /api/v1/concepts#search_concepts",
+      "POST /api/v1/jobs#create_job",
+      "GET /api/v1/notes#list_notes",
+      "POST /api/v1/notes#create_note",
+      "GET /api/v1/notes/{id}#get_note",
+      "GET /api/v1/notes/{id}/attachments#list_attachments",
+      "GET /api/v1/notes/{id}/related#get_related_notes",
+      "GET /api/v1/notes/{id}/tags#get_note_tags",
+      "PUT /api/v1/notes/{id}/tags#set_note_tags",
+      "GET /api/v1/search#search_notes"
+    ],
+    "evidence_paths": [
+      "agent-proxy/src/tools.ts",
+      "agent-proxy/src/privileges.ts",
+      "agent-proxy/src/__tests__/tools.test.ts",
+      "agent-proxy/src/__tests__/privileges.test.ts"
+    ],
+    "notes": "Exact pinned endpoint dispatch and bounded tool results are covered by focused tests; compatibility admission, operation-specific server authorization, and live Fortemi outcomes remain independent."
+  },
   "operations": {
     "POST /api/v1/inference/complete#complete": {
       "targeted_by_290": true,
@@ -487,37 +511,60 @@
     },
     "POST /api/v1/jobs#create_job": {
       "targeted_by_290": true,
-      "disposition": "gap",
-      "tracker": "#290",
-      "rationale": "No HotM typed client or workflow creates arbitrary Fortemi jobs.",
+      "disposition": "partial",
+      "tracker": "#298",
+      "rationale": "A typed client and the constrained revise_note agent workflow dispatch create_job exactly. The pinned 201 response has no schema, no arbitrary-job UI is exposed, and operation-specific authorization and live outcomes remain unverified.",
       "dimensions": {
         "route": {
           "status": "conformant",
           "evidence_paths": []
         },
         "request": {
-          "status": "gap",
-          "evidence_paths": []
+          "status": "conformant",
+          "evidence_paths": [
+            "ui/src/api/jobs.ts",
+            "ui/src/api/__tests__/core-content-second-increment.test.ts",
+            "agent-proxy/src/tools.ts",
+            "agent-proxy/src/__tests__/tools.test.ts"
+          ]
         },
         "response": {
-          "status": "gap",
-          "evidence_paths": []
+          "status": "partial",
+          "evidence_paths": [
+            "ui/src/api/jobs.ts",
+            "ui/src/api/__tests__/core-content-second-increment.test.ts",
+            "agent-proxy/src/tools.ts",
+            "agent-proxy/src/__tests__/tools.test.ts"
+          ],
+          "notes": "HotM bounds the local result, but the pinned 201 response has no producer schema."
         },
         "auth_context": {
-          "status": "gap",
-          "evidence_paths": []
+          "status": "partial",
+          "evidence_paths": [
+            "agent-proxy/src/compatibility.ts",
+            "agent-proxy/src/request-context.ts",
+            "agent-proxy/src/privileges.ts"
+          ],
+          "notes": "Compatibility and local privilege admission fail closed; operation-specific server authorization has no live receipt."
         },
         "ui": {
           "status": "gap",
           "evidence_paths": []
         },
         "agent": {
-          "status": "gap",
-          "evidence_paths": []
+          "status": "conformant",
+          "evidence_paths": [
+            "agent-proxy/src/tools.ts",
+            "agent-proxy/src/privileges.ts",
+            "agent-proxy/src/__tests__/tools.test.ts",
+            "agent-proxy/src/__tests__/privileges.test.ts"
+          ],
+          "notes": "The privilege-gated revise_note tool dispatches the exact create_job operation with a constrained ai_revision request."
         },
         "live": {
           "status": "gap",
-          "evidence_paths": []
+          "evidence_paths": [],
+          "notes": "The authenticated asset receipt is workflow-level and does not identify create_job; no exact-operation live claim is made."
         }
       }
     },

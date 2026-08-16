@@ -346,5 +346,23 @@ base64-in-JSON paths are disabled. Transfer failures expose only bounded
 categories. Credential material, upload URLs, tenant IDs, local paths, and raw
 binary never enter generic agent inputs, logs, telemetry, screenshots, or
 generic errors. This decision records 31 explicit exclusions rather than
-promoting them: the current operation result is 1 integrated, 218 partial, 1
-gap, and 31 documented exclusions.
+promoting them: after the #298 reconciliation, the current operation result is
+1 integrated, 219 partial, no gaps, and 31 documented exclusions.
+
+## Agent Evidence Reconciliation (2026-08-16)
+
+#298 corrects the curated related-notes tool from the unpinned `/similar`
+route to the producer-owned `GET /api/v1/notes/{id}/related` operation and
+binds every declared tool endpoint to the pinned operation ledger. Twelve
+exact operations now have conformant local agent-dispatch and privilege
+evidence. Ten remain assigned to the agent product surface; `list_archives`
+and `get_note_tags` retain their UI product disposition while independently
+recording agent evidence.
+
+`create_job` moves from `gap` to `partial`: its typed serializer/decoder and
+the constrained `revise_note` workflow are verified, but the producer's `201`
+response is not schema-bearing and no arbitrary-job UI, operation-specific
+authorization receipt, or exact-operation live receipt exists. The generated
+result is therefore 1 integrated, 219 partial, 0 gaps, and 31 documented
+exclusions. All 251 live dimensions remain gaps; the authenticated asset
+workflow run is not reclassified as operation-bound evidence.

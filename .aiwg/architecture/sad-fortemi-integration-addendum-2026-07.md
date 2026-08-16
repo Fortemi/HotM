@@ -497,3 +497,22 @@ incomplete. `fortemi-auth` remains specification-only because the required
 Rust workspace, CI, release, and shared Rust/Node fixture receipts are not all
 present. Local-only workflows remain available when compatibility or auth
 admission fails closed.
+
+### Agent Contract Reconciliation Amendment (2026-08-16)
+
+Issue #298 adds a generated agent-evidence projection over 12 exact pinned
+operations and enforces operation-ID/method/path identity for the 11 curated
+primary agent operations. Agent metadata tests additionally require every
+declared endpoint, including secondary note-tag and attachment reads, to exist
+in the pinned operation ledger. The `get_related` implementation now uses the
+canonical `GET /api/v1/notes/{id}/related` route and accepts its wrapped
+`related` result without exposing the producer's context summary.
+
+`POST /api/v1/jobs#create_job` is admitted only through the typed client and
+the constrained, privilege-gated `revise_note` workflow. It is `partial`:
+request and local agent evidence are conformant, response and auth/context are
+partial, and UI/live remain gaps. No generic arbitrary-job agent input is
+introduced. The aggregate matrix is 1 integrated, 219 partial, 0 gaps, and 31
+documented exclusions, with 12 conformant agent dimensions. All 251 live
+dimensions remain gaps because the authenticated asset workflow receipt is not
+an immutable exact-operation receipt.

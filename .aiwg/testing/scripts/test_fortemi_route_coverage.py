@@ -220,6 +220,13 @@ class FortemiOperationCoverageTests(unittest.TestCase):
         self.assertEqual(operation_summary["source_issue"], "Fortemi/HotM#290")
         self.assertEqual(operation_summary["operation_count"], 251)
         self.assertGreaterEqual(operation_summary["targeted_operation_count"], 30)
+        self.assertEqual(operation_summary["dimension_counts"]["agent"]["conformant"], 12)
+        create_job = next(
+            record for record in operation_summary["operations"]
+            if record["operation_id"] == "create_job"
+        )
+        self.assertEqual(create_job["disposition"], "partial")
+        self.assertEqual(create_job["dimensions"]["live"]["status"], "gap")
         self.assertIn("Route Matrix", route_markdown)
         self.assertIn("Evidence boundary: route inventory is route-disposition evidence only", route_markdown)
         self.assertIn("`POST` | `/api/v1/inference/complete`", markdown)

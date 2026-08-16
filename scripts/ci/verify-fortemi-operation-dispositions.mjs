@@ -8,18 +8,18 @@ const sourcePath = resolve(root, '.aiwg/api/compatibility/fortemi-v2026-07-opera
 const outputPath = resolve(root, 'ui/src/api/contracts/fortemi-operation-dispositions.json');
 const sensitiveDecisionPath = resolve(root, '.aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md');
 
-const CURATED_AGENT_OPERATIONS = new Set([
-  'search_notes',
-  'create_note',
-  'get_note',
-  'create_job',
-  'set_note_tags',
-  'list_collections',
-  'search_concepts',
-  'get_related_notes',
-  'list_archives',
-  'list_notes',
-  'list_attachments',
+const CURATED_AGENT_OPERATIONS = new Map([
+  ['search_notes', 'GET /api/v1/search'],
+  ['create_note', 'POST /api/v1/notes'],
+  ['get_note', 'GET /api/v1/notes/{id}'],
+  ['create_job', 'POST /api/v1/jobs'],
+  ['set_note_tags', 'PUT /api/v1/notes/{id}/tags'],
+  ['list_collections', 'GET /api/v1/collections'],
+  ['search_concepts', 'GET /api/v1/concepts'],
+  ['get_related_notes', 'GET /api/v1/notes/{id}/related'],
+  ['list_archives', 'GET /api/v1/archives'],
+  ['list_notes', 'GET /api/v1/notes'],
+  ['list_attachments', 'GET /api/v1/notes/{id}/attachments'],
 ]);
 
 const ADMIN_PATHS = [
@@ -242,6 +242,15 @@ function buildSensitiveDecisionMarkdown(ledger) {
 }
 
 const source = JSON.parse(readFileSync(sourcePath, 'utf8'));
+for (const [operationId, endpoint] of CURATED_AGENT_OPERATIONS) {
+  const operation = source.operations.find((candidate) => candidate.operation_id === operationId);
+  if (!operation || `${operation.method} ${operation.path}` !== endpoint) {
+    throw new Error(`curated agent operation ${operationId} does not match pinned endpoint ${endpoint}`);
+  }
+  if (operation.dimensions.agent.status !== 'conformant') {
+    throw new Error(`curated agent operation ${operationId} lacks conformant agent evidence`);
+  }
+}
 const ledger = buildLedger(source);
 const serialized = `${JSON.stringify(ledger, null, 2)}\n`;
 

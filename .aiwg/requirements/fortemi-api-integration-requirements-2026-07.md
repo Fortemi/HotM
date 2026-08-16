@@ -275,5 +275,21 @@ and local paths. No decision upgrades request, response, auth, live, or
 Knowledge Shard conformance. `fortemi-auth` remains specification-only until
 its full release condition is independently evidenced.
 
-The current generated operation result is 1 integrated, 218 partial, 1 gap,
-and 31 documented exclusions with zero verifier diagnostics.
+The current generated operation result after #298 is 1 integrated, 219
+partial, 0 gaps, and 31 documented exclusions with zero verifier diagnostics.
+
+## Agent Operation Evidence Receipt (2026-08-16)
+
+REQ-019 and REQ-020 now record conformant local agent evidence for 12 exact
+pinned operations. The verifier checks every curated primary operation against
+its method/path tuple, and the agent test suite checks every declared endpoint
+against the pinned 251-operation ledger. This caught and corrected
+`get_related` from `/notes/{id}/similar` to the canonical
+`/notes/{id}/related` operation.
+
+`create_job` is partial rather than a gap because the typed client and
+privilege-gated `revise_note` workflow have exact request and bounded response
+tests. Its response remains partial because the pinned `201` response has no
+schema. UI, operation-specific authorization, and live evidence remain
+unclaimed. The existing authenticated asset run is workflow-level evidence
+only, so REQ-020 still reports all 251 live dimensions as gaps.

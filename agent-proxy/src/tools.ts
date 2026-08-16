@@ -371,9 +371,14 @@ export const getRelatedTool = tool({
   execute: async ({ note_id, limit }) => {
     const params = new URLSearchParams({ limit: String(limit) });
     const results = await fortemi<unknown>(
-      `/notes/${note_id}/similar?${params}`,
+      `/notes/${encodeURIComponent(note_id)}/related?${params}`,
     );
-    const items = Array.isArray(results) ? results : [];
+    const wrapped = results && typeof results === 'object' && !Array.isArray(results)
+      ? results as Record<string, unknown>
+      : null;
+    const items = Array.isArray(results)
+      ? results
+      : Array.isArray(wrapped?.related) ? wrapped.related : [];
     return {
       notes: (items as Array<Record<string, unknown>>).map((r) => ({
         note_id: r.note_id,
@@ -584,7 +589,7 @@ export const toolMetadata: Record<AgentToolName, AgentToolMetadata> = {
   get_related: {
     intentSets: ['exploratory', 'knowledge-action'],
     routeFamilies: ['notes', 'search'],
-    endpoints: ['GET /api/v1/notes/{id}/similar'],
+    endpoints: ['GET /api/v1/notes/{id}/related'],
     safety: 'read',
     privilege: AGENT_TOOL_PRIVILEGES.get_related,
     capabilityGate: 'related-notes capability available',

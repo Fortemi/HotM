@@ -390,9 +390,9 @@ node .aiwg/testing/scripts/verify-fortemi-asyncapi-payloads.mjs
 The operation verifier consumes the exact OpenAPI receipt and fails on stale
 pins, missing evidence paths, unsupported boundaries, unclassified operations,
 or missing focused operations. Its generated JSON and Markdown reports come
-from one in-memory model. The current expected disposition counts are 1
-integrated, 218 partial, 1 gap, and 31 documented exclusions; route-disposition counts are checked
-separately.
+from one in-memory model. After #298, the current expected disposition counts
+are 1 integrated, 219 partial, 0 gaps, and 31 documented exclusions;
+route-disposition counts are checked separately.
 
 The AsyncAPI payload verifier resolves all 48 event schemas and executes
 schema-derived positives plus four negative categories. Both transports must
@@ -516,3 +516,22 @@ error propagation returns.
 These are consumer workflow and redaction tests. They do not supply missing
 producer success schemas, operation-specific authorization, live Fortemi
 outcomes, Knowledge Shard profile receipts, or a `fortemi-auth` release.
+
+### Agent Operation Reconciliation Commands (2026-08-16)
+
+```bash
+python3 .aiwg/testing/scripts/fortemi-route-coverage.py --check
+python3 .aiwg/testing/scripts/test_fortemi_route_coverage.py
+node scripts/ci/verify-fortemi-operation-dispositions.mjs --check
+(cd agent-proxy && npm test -- --run src/__tests__/tools.test.ts src/__tests__/privileges.test.ts)
+(cd ui && npm test -- --run src/api/__tests__/core-content-second-increment.test.ts)
+```
+
+The generator must report 12 conformant agent dimensions and reject a curated
+operation whose operation ID no longer resolves to its pinned method/path.
+Agent tests must reject any declared endpoint absent from the pinned ledger.
+The `create_job` case must prove its exact serializer and bounded decoder, and
+the related-notes case must prove dispatch to `/notes/{id}/related` with both
+wrapped and bounded result handling. No mocked or workflow-level receipt may
+change an exact operation's live dimension; all 251 remain `gap` until an
+operation-bound live receipt is retained and verified.

@@ -15,27 +15,26 @@ This report is generated from the same data as the machine-readable operation co
 - Contract revision: `1`
 - Contract version: `2026.2.9`
 - Operations: `251`
-- Focused #290 operations: `74`
+- Focused #290 operations: `85`
 
 ## Disposition Counts
 
 | Disposition | Count |
 | --- | ---: |
 | documented_exclusion | 31 |
-| gap | 1 |
 | integrated | 1 |
-| partial | 218 |
+| partial | 219 |
 
 ## Dimension Counts
 
 | Dimension | Status counts |
 | --- | --- |
 | route | `{"conformant": 251}` |
-| request | `{"conformant": 132, "documented_exclusion": 31, "gap": 85, "not_applicable": 3}` |
-| response | `{"conformant": 128, "documented_exclusion": 31, "gap": 85, "partial": 7}` |
-| auth_context | `{"conformant": 1, "documented_exclusion": 31, "gap": 85, "partial": 134}` |
+| request | `{"conformant": 133, "documented_exclusion": 31, "gap": 84, "not_applicable": 3}` |
+| response | `{"conformant": 128, "documented_exclusion": 31, "gap": 84, "partial": 8}` |
+| auth_context | `{"conformant": 1, "documented_exclusion": 31, "gap": 84, "partial": 135}` |
 | ui | `{"conformant": 135, "documented_exclusion": 31, "gap": 85}` |
-| agent | `{"documented_exclusion": 41, "gap": 210}` |
+| agent | `{"conformant": 12, "documented_exclusion": 41, "gap": 198}` |
 | live | `{"gap": 251}` |
 
 ## Verifier Diagnostics
@@ -56,6 +55,7 @@ This report is generated from the same data as the machine-readable operation co
 | `GET` | `/api/v1/api-keys` | `list_api_keys` | auth_api_keys | documented_exclusion | conformant | documented_exclusion | documented_exclusion | documented_exclusion | documented_exclusion | documented_exclusion | gap | #297 |
 | `POST` | `/api/v1/api-keys` | `create_api_key` | auth_api_keys | documented_exclusion | conformant | documented_exclusion | documented_exclusion | documented_exclusion | documented_exclusion | documented_exclusion | gap | #297 |
 | `DELETE` | `/api/v1/api-keys/{id}` | `revoke_api_key` | auth_api_keys | documented_exclusion | conformant | documented_exclusion | documented_exclusion | documented_exclusion | documented_exclusion | documented_exclusion | gap | #297 |
+| `GET` | `/api/v1/archives` | `list_archives` | archives | partial | conformant | conformant | conformant | partial | conformant | conformant | gap | #296 |
 | `GET` | `/api/v1/attachments/{attachment_id}/download` | `download_attachment` | attachments | partial | conformant | conformant | partial | partial | conformant | documented_exclusion | gap | #297 |
 | `GET` | `/api/v1/attachments/{attachment_id}/sprites/{sprite_index}` | `get_sprite_sheet` | attachments | partial | conformant | conformant | partial | partial | conformant | documented_exclusion | gap | #297 |
 | `GET` | `/api/v1/attachments/{attachment_id}/subtitles` | `get_attachment_subtitles` | attachments | partial | conformant | conformant | partial | partial | conformant | documented_exclusion | gap | #297 |
@@ -68,7 +68,9 @@ This report is generated from the same data as the machine-readable operation co
 | `GET` | `/api/v1/backup/knowledge-archive/{filename}` | `knowledge_archive_download` | backup_archive | documented_exclusion | conformant | documented_exclusion | documented_exclusion | documented_exclusion | documented_exclusion | documented_exclusion | gap | #297 |
 | `POST` | `/api/v1/backup/knowledge-shard/upload` | `knowledge_shard_import_upload` | backup_archive | documented_exclusion | conformant | documented_exclusion | documented_exclusion | documented_exclusion | documented_exclusion | documented_exclusion | gap | #297 |
 | `GET` | `/api/v1/backup/memory/{name}` | `memory_backup_download` | backup_archive | documented_exclusion | conformant | documented_exclusion | documented_exclusion | documented_exclusion | documented_exclusion | documented_exclusion | gap | #297 |
+| `GET` | `/api/v1/collections` | `list_collections` | collections | partial | conformant | gap | gap | gap | gap | conformant | gap | #298 |
 | `GET` | `/api/v1/collections/{id}/export` | `export_collection` | collections | partial | conformant | conformant | conformant | partial | conformant | gap | gap | #295 |
+| `GET` | `/api/v1/concepts` | `search_concepts` | concepts | partial | conformant | gap | gap | gap | gap | conformant | gap | #298 |
 | `POST` | `/api/v1/document-types/detect` | `detect_document_type` | document_types | partial | conformant | conformant | conformant | partial | conformant | gap | gap | #295 |
 | `PATCH` | `/api/v1/document-types/{name}` | `update_document_type` | document_types | partial | conformant | conformant | conformant | partial | conformant | gap | gap | #295 |
 | `GET` | `/api/v1/extraction/stats` | `extraction_stats` | jobs | partial | conformant | conformant | conformant | partial | conformant | gap | gap | #295/#296 |
@@ -86,8 +88,12 @@ This report is generated from the same data as the machine-readable operation co
 | `POST` | `/api/v1/inference/stream` | `stream` | inference | partial | conformant | conformant | conformant | partial | conformant | gap | gap | #296 |
 | `POST` | `/api/v1/inference/test-connection` | `test_connection` | inference | partial | conformant | conformant | conformant | partial | conformant | gap | gap | #290 |
 | `GET` | `/api/v1/jobs` | `list_jobs` | jobs | integrated | conformant | conformant | conformant | conformant | conformant | gap | gap | #296 |
-| `POST` | `/api/v1/jobs` | `create_job` | jobs | gap | conformant | gap | gap | gap | gap | gap | gap | #290 |
+| `POST` | `/api/v1/jobs` | `create_job` | jobs | partial | conformant | conformant | partial | partial | gap | conformant | gap | #298 |
 | `GET` | `/api/v1/jobs/{id}` | `get_job` | jobs | partial | conformant | conformant | conformant | partial | conformant | gap | gap | #295/#296 |
+| `GET` | `/api/v1/notes` | `list_notes` | notes | partial | conformant | gap | gap | gap | gap | conformant | gap | #298 |
+| `POST` | `/api/v1/notes` | `create_note` | notes | partial | conformant | gap | gap | gap | gap | conformant | gap | #298 |
+| `GET` | `/api/v1/notes/{id}` | `get_note` | notes | partial | conformant | gap | gap | gap | gap | conformant | gap | #298 |
+| `GET` | `/api/v1/notes/{id}/attachments` | `list_attachments` | attachments | partial | conformant | gap | gap | gap | gap | conformant | gap | #298 |
 | `POST` | `/api/v1/notes/{id}/attachments` | `upload_attachment` | attachments | documented_exclusion | conformant | documented_exclusion | documented_exclusion | documented_exclusion | documented_exclusion | documented_exclusion | gap | #297 |
 | `POST` | `/api/v1/notes/{id}/attachments/tus` | `tus_create_upload` | attachments_tus | partial | conformant | conformant | conformant | partial | conformant | documented_exclusion | gap | #297 |
 | `OPTIONS` | `/api/v1/notes/{id}/attachments/tus` | `tus_options` | attachments_tus | partial | conformant | conformant | conformant | partial | conformant | documented_exclusion | gap | #297 |
@@ -95,6 +101,9 @@ This report is generated from the same data as the machine-readable operation co
 | `HEAD` | `/api/v1/notes/{id}/attachments/tus/{upload_id}` | `tus_head_upload` | attachments_tus | partial | conformant | conformant | conformant | partial | conformant | documented_exclusion | gap | #297 |
 | `PATCH` | `/api/v1/notes/{id}/attachments/tus/{upload_id}` | `tus_patch_upload` | attachments_tus | partial | conformant | conformant | conformant | partial | conformant | documented_exclusion | gap | #297 |
 | `POST` | `/api/v1/notes/{id}/attachments/upload` | `upload_attachment_multipart` | attachments | documented_exclusion | conformant | documented_exclusion | documented_exclusion | documented_exclusion | documented_exclusion | documented_exclusion | gap | #297 |
+| `GET` | `/api/v1/notes/{id}/related` | `get_related_notes` | notes | partial | conformant | gap | gap | gap | gap | conformant | gap | #298 |
+| `GET` | `/api/v1/notes/{id}/tags` | `get_note_tags` | notes | partial | conformant | gap | gap | gap | gap | conformant | gap | #298 |
+| `PUT` | `/api/v1/notes/{id}/tags` | `set_note_tags` | notes | partial | conformant | gap | gap | gap | gap | conformant | gap | #298 |
 | `POST` | `/api/v1/pke/address` | `pke_address` | pke | documented_exclusion | conformant | documented_exclusion | documented_exclusion | documented_exclusion | documented_exclusion | documented_exclusion | gap | #297 |
 | `POST` | `/api/v1/pke/decrypt` | `pke_decrypt` | pke | documented_exclusion | conformant | documented_exclusion | documented_exclusion | documented_exclusion | documented_exclusion | documented_exclusion | gap | #297 |
 | `POST` | `/api/v1/pke/encrypt` | `pke_encrypt` | pke | documented_exclusion | conformant | documented_exclusion | documented_exclusion | documented_exclusion | documented_exclusion | documented_exclusion | gap | #297 |
@@ -113,6 +122,7 @@ This report is generated from the same data as the machine-readable operation co
 | `POST` | `/api/v1/provenance/locations` | `create_prov_location` | provenance | partial | conformant | conformant | conformant | partial | conformant | gap | gap | #295 |
 | `POST` | `/api/v1/provenance/named-locations` | `create_named_location` | provenance | partial | conformant | conformant | conformant | partial | conformant | gap | gap | #295 |
 | `POST` | `/api/v1/provenance/notes` | `create_note_provenance` | provenance | partial | conformant | conformant | conformant | partial | conformant | gap | gap | #295 |
+| `GET` | `/api/v1/search` | `search_notes` | search | partial | conformant | gap | gap | gap | gap | conformant | gap | #298 |
 | `GET` | `/api/v1/templates` | `list_templates` | templates | partial | conformant | not_applicable | conformant | partial | conformant | gap | gap | #290 |
 | `POST` | `/api/v1/templates` | `create_template` | templates | partial | conformant | conformant | conformant | partial | conformant | gap | gap | #290 |
 | `GET` | `/api/v1/templates/{id}` | `get_template` | templates | partial | conformant | conformant | conformant | partial | conformant | gap | gap | #295 |
@@ -137,7 +147,7 @@ This report is generated from the same data as the machine-readable operation co
 | `GET` | `/api/v1/api-keys` | `list_api_keys` | auth_api_keys | documented_exclusion | covered | true |
 | `POST` | `/api/v1/api-keys` | `create_api_key` | auth_api_keys | documented_exclusion | covered | true |
 | `DELETE` | `/api/v1/api-keys/{id}` | `revoke_api_key` | auth_api_keys | documented_exclusion | covered | true |
-| `GET` | `/api/v1/archives` | `list_archives` | archives | partial | covered | false |
+| `GET` | `/api/v1/archives` | `list_archives` | archives | partial | covered | true |
 | `POST` | `/api/v1/archives` | `create_archive` | archives | partial | covered | false |
 | `GET` | `/api/v1/archives/{name}` | `get_archive` | archives | partial | covered | false |
 | `DELETE` | `/api/v1/archives/{name}` | `delete_archive` | archives | partial | covered | false |
@@ -178,14 +188,14 @@ This report is generated from the same data as the machine-readable operation co
 | `POST` | `/api/v1/chat` | `chat_handler` | chat_sync | partial | covered | false |
 | `GET` | `/api/v1/chat/models` | `list_chat_models` | chat_sync | partial | covered | false |
 | `POST` | `/api/v1/chat/stream` | `chat_stream_handler` | native_chat_stream | partial | covered | false |
-| `GET` | `/api/v1/collections` | `list_collections` | collections | partial | covered | false |
+| `GET` | `/api/v1/collections` | `list_collections` | collections | partial | covered | true |
 | `POST` | `/api/v1/collections` | `create_collection` | collections | partial | covered | false |
 | `GET` | `/api/v1/collections/{id}` | `get_collection` | collections | partial | covered | false |
 | `DELETE` | `/api/v1/collections/{id}` | `delete_collection` | collections | partial | covered | false |
 | `PATCH` | `/api/v1/collections/{id}` | `update_collection` | collections | partial | covered | false |
 | `GET` | `/api/v1/collections/{id}/export` | `export_collection` | collections | partial | covered | true |
 | `GET` | `/api/v1/collections/{id}/notes` | `get_collection_notes` | collections | partial | covered | false |
-| `GET` | `/api/v1/concepts` | `search_concepts` | concepts | partial | covered | false |
+| `GET` | `/api/v1/concepts` | `search_concepts` | concepts | partial | covered | true |
 | `POST` | `/api/v1/concepts` | `create_concept` | concepts | partial | covered | false |
 | `GET` | `/api/v1/concepts/autocomplete` | `autocomplete_concepts` | concepts | partial | covered | false |
 | `GET` | `/api/v1/concepts/collections` | `list_skos_collections` | concepts | partial | covered | false |
@@ -274,7 +284,7 @@ This report is generated from the same data as the machine-readable operation co
 | `POST` | `/api/v1/ingest/tokens` | `mint_ingest_token` | streaming_ingest | partial | covered | false |
 | `DELETE` | `/api/v1/ingest/tokens/{token_id}` | `revoke_ingest_token` | streaming_ingest | partial | covered | false |
 | `GET` | `/api/v1/jobs` | `list_jobs` | jobs | integrated | covered | true |
-| `POST` | `/api/v1/jobs` | `create_job` | jobs | gap | covered | true |
+| `POST` | `/api/v1/jobs` | `create_job` | jobs | partial | covered | true |
 | `POST` | `/api/v1/jobs/pause` | `pause_jobs_global` | jobs | partial | covered | false |
 | `POST` | `/api/v1/jobs/pause/{archive}` | `pause_jobs_archive` | jobs | partial | covered | false |
 | `GET` | `/api/v1/jobs/pending` | `pending_jobs_count` | jobs | partial | covered | false |
@@ -295,16 +305,16 @@ This report is generated from the same data as the machine-readable operation co
 | `GET` | `/api/v1/memories/{name}/stats` | `get_archive_stats_memory_alias` | archives | partial | covered | false |
 | `GET` | `/api/v1/memory/info` | `memory_info` | archives | partial | covered | false |
 | `GET` | `/api/v1/models` | `list_models` | models | partial | covered | false |
-| `GET` | `/api/v1/notes` | `list_notes` | notes | partial | covered | false |
-| `POST` | `/api/v1/notes` | `create_note` | notes | partial | covered | false |
+| `GET` | `/api/v1/notes` | `list_notes` | notes | partial | covered | true |
+| `POST` | `/api/v1/notes` | `create_note` | notes | partial | covered | true |
 | `GET` | `/api/v1/notes/activity` | `get_notes_activity` | notes | partial | covered | false |
 | `POST` | `/api/v1/notes/bulk` | `bulk_create_notes` | notes | partial | covered | false |
 | `POST` | `/api/v1/notes/reprocess` | `bulk_reprocess_notes` | notes | partial | covered | false |
 | `GET` | `/api/v1/notes/timeline` | `get_notes_timeline` | notes | partial | covered | false |
-| `GET` | `/api/v1/notes/{id}` | `get_note` | notes | partial | covered | false |
+| `GET` | `/api/v1/notes/{id}` | `get_note` | notes | partial | covered | true |
 | `DELETE` | `/api/v1/notes/{id}` | `delete_note` | notes | partial | covered | false |
 | `PATCH` | `/api/v1/notes/{id}` | `update_note` | notes | partial | covered | false |
-| `GET` | `/api/v1/notes/{id}/attachments` | `list_attachments` | attachments | partial | covered | false |
+| `GET` | `/api/v1/notes/{id}/attachments` | `list_attachments` | attachments | partial | covered | true |
 | `POST` | `/api/v1/notes/{id}/attachments` | `upload_attachment` | attachments | documented_exclusion | covered | true |
 | `POST` | `/api/v1/notes/{id}/attachments/tus` | `tus_create_upload` | attachments_tus | partial | covered | true |
 | `OPTIONS` | `/api/v1/notes/{id}/attachments/tus` | `tus_options` | attachments_tus | partial | covered | true |
@@ -323,12 +333,12 @@ This report is generated from the same data as the machine-readable operation co
 | `POST` | `/api/v1/notes/{id}/move` | `move_note_to_collection` | notes | partial | covered | false |
 | `GET` | `/api/v1/notes/{id}/provenance` | `get_note_provenance` | notes | partial | covered | false |
 | `POST` | `/api/v1/notes/{id}/purge` | `purge_note` | notes | partial | covered | false |
-| `GET` | `/api/v1/notes/{id}/related` | `get_related_notes` | notes | partial | covered | false |
+| `GET` | `/api/v1/notes/{id}/related` | `get_related_notes` | notes | partial | covered | true |
 | `POST` | `/api/v1/notes/{id}/reprocess` | `reprocess_note` | notes | partial | covered | false |
 | `POST` | `/api/v1/notes/{id}/restore` | `restore_note` | notes | partial | covered | false |
 | `PATCH` | `/api/v1/notes/{id}/status` | `update_note_status` | notes | partial | covered | false |
-| `GET` | `/api/v1/notes/{id}/tags` | `get_note_tags` | notes | partial | covered | false |
-| `PUT` | `/api/v1/notes/{id}/tags` | `set_note_tags` | notes | partial | covered | false |
+| `GET` | `/api/v1/notes/{id}/tags` | `get_note_tags` | notes | partial | covered | true |
+| `PUT` | `/api/v1/notes/{id}/tags` | `set_note_tags` | notes | partial | covered | true |
 | `GET` | `/api/v1/notes/{id}/versions` | `list_note_versions` | notes | partial | covered | false |
 | `GET` | `/api/v1/notes/{id}/versions/diff` | `diff_note_versions` | notes | partial | covered | false |
 | `GET` | `/api/v1/notes/{id}/versions/{version}` | `get_note_version` | notes | partial | covered | false |
@@ -353,7 +363,7 @@ This report is generated from the same data as the machine-readable operation co
 | `POST` | `/api/v1/provenance/named-locations` | `create_named_location` | provenance | partial | covered | true |
 | `POST` | `/api/v1/provenance/notes` | `create_note_provenance` | provenance | partial | covered | true |
 | `GET` | `/api/v1/rate-limit/status` | `rate_limit_status` | rate_limit | partial | documented_exclusion | false |
-| `GET` | `/api/v1/search` | `search_notes` | search | partial | covered | false |
+| `GET` | `/api/v1/search` | `search_notes` | search | partial | covered | true |
 | `POST` | `/api/v1/search/federated` | `federated_search` | search | partial | covered | false |
 | `GET` | `/api/v1/system/compatibility` | `system_compatibility` | system_compatibility | partial | covered | false |
 | `GET` | `/api/v1/tags` | `list_tags` | tags | partial | covered | false |

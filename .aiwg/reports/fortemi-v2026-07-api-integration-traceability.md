@@ -179,7 +179,7 @@ compatibility, Knowledge Shard, or authentication evidence.
 | --- | --- | --- |
 | REQ-020 core workflows (#295) | `core-content-operations.ts`, typed API modules, bounded codecs, lifecycle component tests, desktop/mobile Playwright scenarios | 60 exact entries cover notes, provenance, collections, templates, document types, jobs, SKOS, and graph workflows. Request/response/UI dimensions are conformant; operation auth, agent, and live remain independent. |
 | REQ-021 operator workflows (#296) | `operator.ts`, `OperatorConsole.tsx`, focused API/component tests, desktop/mobile Playwright scenarios | 76 exact entries cover non-secret diagnostics and confirmed controls. Responses are bounded/redacted and unknown SSE events remain unknown. Restricted #297 operations are not promoted. |
-| Generated operation ledger | operation evidence source, generated coverage JSON/Markdown, product-disposition verifier | #295/#296 added 118 unique tuples after 18 overlaps. After #297, 251 operations are 1 integrated, 218 partial, 1 gap, and 31 documented exclusions with zero diagnostics. Route matching does not supply any missing dimension. |
+| Generated operation ledger | operation evidence source, generated coverage JSON/Markdown, product-disposition verifier | #295/#296 added 118 unique tuples after 18 overlaps. After #297, 251 operations were 1 integrated, 218 partial, 1 gap, and 31 documented exclusions with zero diagnostics. Route matching does not supply any missing dimension. |
 
 Mocked browser receipts verify deterministic rendering and interaction only.
 They are not live Fortemi, operation-specific authorization, binary transfer,
@@ -198,3 +198,18 @@ The 5 media handoffs and 5 TUS workflows are product-disposition evidence, not
 operation-specific auth or live receipts. The 31 exclusions stay visible and
 disabled in the Operations catalog. Route equality and current Fortemi source
 inspection do not alter these boundaries.
+
+## 2026-08-16 Agent Operation Reconciliation
+
+| Requirement | Executable evidence | Result / remaining work |
+| --- | --- | --- |
+| REQ-019 agent dispatch | `agent-proxy/src/tools.ts`, privilege registry, focused tool/privilege tests, pinned disposition ledger | 12 exact operations have conformant local agent evidence. `get_related` now dispatches canonical `GET /api/v1/notes/{id}/related`; CI rejects unpinned tool endpoints and curated operation-ID/method/path drift. |
+| REQ-020 `create_job` | typed jobs client, core-content exact-operation test, constrained `revise_note` tool test | `create_job` is partial, not a gap. Request and local agent dispatch are conformant; response and auth/context are partial; UI and live remain gaps. |
+| Generated operation ledger | operation evidence source and generated JSON/Markdown | Current result: 1 integrated, 219 partial, 0 gaps, 31 documented exclusions; agent dimensions are 12 conformant, 198 gaps, and 41 exclusions. |
+| Live boundary | authenticated asset workflow run and operation matrix | The asset run does not identify immutable exact-operation outcomes. It does not promote TUS, attachment, Knowledge Shard, `create_job`, or any other live dimension; all 251 remain gaps. |
+
+The product-disposition ledger remains 130 UI workflows, 10 curated agent
+workflows, 5 external handoffs, 75 operator diagnostics, and 31 exclusions.
+Product surface ownership and conformance dimensions are independent: the
+`list_archives` and `get_note_tags` operations have UI ownership while also
+carrying verified local agent evidence.

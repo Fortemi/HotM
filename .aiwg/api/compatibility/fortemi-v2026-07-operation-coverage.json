@@ -12,33 +12,32 @@
     "sha256": "9d2d5ea05f21a71d416d713a5cadd2c4f76086a3494105280d50ec328c4056fd"
   },
   "operation_count": 251,
-  "targeted_operation_count": 74,
+  "targeted_operation_count": 85,
   "disposition_counts": {
-    "partial": 218,
+    "partial": 219,
     "documented_exclusion": 31,
-    "integrated": 1,
-    "gap": 1
+    "integrated": 1
   },
   "dimension_counts": {
     "route": {
       "conformant": 251
     },
     "request": {
-      "gap": 85,
+      "gap": 84,
       "documented_exclusion": 31,
-      "conformant": 132,
+      "conformant": 133,
       "not_applicable": 3
     },
     "response": {
-      "gap": 85,
+      "gap": 84,
       "documented_exclusion": 31,
       "conformant": 128,
-      "partial": 7
+      "partial": 8
     },
     "auth_context": {
-      "gap": 85,
+      "gap": 84,
       "documented_exclusion": 31,
-      "partial": 134,
+      "partial": 135,
       "conformant": 1
     },
     "ui": {
@@ -47,8 +46,9 @@
       "conformant": 135
     },
     "agent": {
-      "gap": 210,
-      "documented_exclusion": 41
+      "gap": 198,
+      "documented_exclusion": 41,
+      "conformant": 12
     },
     "live": {
       "gap": 251
@@ -438,7 +438,7 @@
           "bearerAuth": []
         }
       ],
-      "targeted_by_290": false,
+      "targeted_by_290": true,
       "disposition": "partial",
       "tracker": "#296",
       "rationale": "Pinned exact operation dispatch, bounded/redacted response handling, compatibility admission, and mocked responsive UI receipts exist. Operation-specific authorization and live Fortemi outcomes remain unverified.",
@@ -483,9 +483,14 @@
           "notes": "Admin workflow, confirmations, bounded receipts, and deterministic desktop/mobile mocked browser coverage exist."
         },
         "agent": {
-          "status": "gap",
-          "evidence_paths": [],
-          "notes": "No explicit agent workflow evidence recorded."
+          "status": "conformant",
+          "evidence_paths": [
+            "agent-proxy/src/tools.ts",
+            "agent-proxy/src/privileges.ts",
+            "agent-proxy/src/__tests__/tools.test.ts",
+            "agent-proxy/src/__tests__/privileges.test.ts"
+          ],
+          "notes": "Exact pinned endpoint dispatch and bounded tool results are covered by focused tests; compatibility admission, operation-specific server authorization, and live Fortemi outcomes remain independent."
         },
         "live": {
           "status": "gap",
@@ -3329,9 +3334,9 @@
           "bearerAuth": []
         }
       ],
-      "targeted_by_290": false,
+      "targeted_by_290": true,
       "disposition": "partial",
-      "tracker": "#290",
+      "tracker": "#298",
       "rationale": "Operation-level conformance has not been explicitly claimed.",
       "dimensions": {
         "route": {
@@ -3360,9 +3365,14 @@
           "notes": "No explicit UI workflow evidence recorded."
         },
         "agent": {
-          "status": "gap",
-          "evidence_paths": [],
-          "notes": "No explicit agent workflow evidence recorded."
+          "status": "conformant",
+          "evidence_paths": [
+            "agent-proxy/src/tools.ts",
+            "agent-proxy/src/privileges.ts",
+            "agent-proxy/src/__tests__/tools.test.ts",
+            "agent-proxy/src/__tests__/privileges.test.ts"
+          ],
+          "notes": "Exact pinned endpoint dispatch and bounded tool results are covered by focused tests; compatibility admission, operation-specific server authorization, and live Fortemi outcomes remain independent."
         },
         "live": {
           "status": "gap",
@@ -3791,9 +3801,9 @@
           "bearerAuth": []
         }
       ],
-      "targeted_by_290": false,
+      "targeted_by_290": true,
       "disposition": "partial",
-      "tracker": "#290",
+      "tracker": "#298",
       "rationale": "Operation-level conformance has not been explicitly claimed.",
       "dimensions": {
         "route": {
@@ -3822,9 +3832,14 @@
           "notes": "No explicit UI workflow evidence recorded."
         },
         "agent": {
-          "status": "gap",
-          "evidence_paths": [],
-          "notes": "No explicit agent workflow evidence recorded."
+          "status": "conformant",
+          "evidence_paths": [
+            "agent-proxy/src/tools.ts",
+            "agent-proxy/src/privileges.ts",
+            "agent-proxy/src/__tests__/tools.test.ts",
+            "agent-proxy/src/__tests__/privileges.test.ts"
+          ],
+          "notes": "Exact pinned endpoint dispatch and bounded tool results are covered by focused tests; compatibility admission, operation-specific server authorization, and live Fortemi outcomes remain independent."
         },
         "live": {
           "status": "gap",
@@ -10313,9 +10328,9 @@
         }
       ],
       "targeted_by_290": true,
-      "disposition": "gap",
-      "tracker": "#290",
-      "rationale": "No HotM typed client or workflow creates arbitrary Fortemi jobs.",
+      "disposition": "partial",
+      "tracker": "#298",
+      "rationale": "A typed client and the constrained revise_note agent workflow dispatch create_job exactly. The pinned 201 response has no schema, no arbitrary-job UI is exposed, and operation-specific authorization and live outcomes remain unverified.",
       "dimensions": {
         "route": {
           "status": "conformant",
@@ -10323,19 +10338,33 @@
           "notes": "Route disposition only; does not imply request, response, auth, UI, agent, or live conformance."
         },
         "request": {
-          "status": "gap",
-          "evidence_paths": [],
+          "status": "conformant",
+          "evidence_paths": [
+            "ui/src/api/jobs.ts",
+            "ui/src/api/__tests__/core-content-second-increment.test.ts",
+            "agent-proxy/src/tools.ts",
+            "agent-proxy/src/__tests__/tools.test.ts"
+          ],
           "notes": "No explicit request serializer evidence recorded."
         },
         "response": {
-          "status": "gap",
-          "evidence_paths": [],
-          "notes": "No explicit success/error decoder evidence recorded."
+          "status": "partial",
+          "evidence_paths": [
+            "ui/src/api/jobs.ts",
+            "ui/src/api/__tests__/core-content-second-increment.test.ts",
+            "agent-proxy/src/tools.ts",
+            "agent-proxy/src/__tests__/tools.test.ts"
+          ],
+          "notes": "HotM bounds the local result, but the pinned 201 response has no producer schema."
         },
         "auth_context": {
-          "status": "gap",
-          "evidence_paths": [],
-          "notes": "No explicit auth/context gate evidence recorded."
+          "status": "partial",
+          "evidence_paths": [
+            "agent-proxy/src/compatibility.ts",
+            "agent-proxy/src/request-context.ts",
+            "agent-proxy/src/privileges.ts"
+          ],
+          "notes": "Compatibility and local privilege admission fail closed; operation-specific server authorization has no live receipt."
         },
         "ui": {
           "status": "gap",
@@ -10343,14 +10372,19 @@
           "notes": "No explicit UI workflow evidence recorded."
         },
         "agent": {
-          "status": "gap",
-          "evidence_paths": [],
-          "notes": "No explicit agent workflow evidence recorded."
+          "status": "conformant",
+          "evidence_paths": [
+            "agent-proxy/src/tools.ts",
+            "agent-proxy/src/privileges.ts",
+            "agent-proxy/src/__tests__/tools.test.ts",
+            "agent-proxy/src/__tests__/privileges.test.ts"
+          ],
+          "notes": "Exact pinned endpoint dispatch and bounded tool results are covered by focused tests; compatibility admission, operation-specific server authorization, and live Fortemi outcomes remain independent."
         },
         "live": {
           "status": "gap",
           "evidence_paths": [],
-          "notes": "No live receipt recorded."
+          "notes": "The authenticated asset receipt is workflow-level and does not identify create_job; no exact-operation live claim is made."
         }
       }
     },
@@ -11820,9 +11854,9 @@
           "bearerAuth": []
         }
       ],
-      "targeted_by_290": false,
+      "targeted_by_290": true,
       "disposition": "partial",
-      "tracker": "#290",
+      "tracker": "#298",
       "rationale": "Operation-level conformance has not been explicitly claimed.",
       "dimensions": {
         "route": {
@@ -11851,9 +11885,14 @@
           "notes": "No explicit UI workflow evidence recorded."
         },
         "agent": {
-          "status": "gap",
-          "evidence_paths": [],
-          "notes": "No explicit agent workflow evidence recorded."
+          "status": "conformant",
+          "evidence_paths": [
+            "agent-proxy/src/tools.ts",
+            "agent-proxy/src/privileges.ts",
+            "agent-proxy/src/__tests__/tools.test.ts",
+            "agent-proxy/src/__tests__/privileges.test.ts"
+          ],
+          "notes": "Exact pinned endpoint dispatch and bounded tool results are covered by focused tests; compatibility admission, operation-specific server authorization, and live Fortemi outcomes remain independent."
         },
         "live": {
           "status": "gap",
@@ -11882,9 +11921,9 @@
           "bearerAuth": []
         }
       ],
-      "targeted_by_290": false,
+      "targeted_by_290": true,
       "disposition": "partial",
-      "tracker": "#290",
+      "tracker": "#298",
       "rationale": "Operation-level conformance has not been explicitly claimed.",
       "dimensions": {
         "route": {
@@ -11913,9 +11952,14 @@
           "notes": "No explicit UI workflow evidence recorded."
         },
         "agent": {
-          "status": "gap",
-          "evidence_paths": [],
-          "notes": "No explicit agent workflow evidence recorded."
+          "status": "conformant",
+          "evidence_paths": [
+            "agent-proxy/src/tools.ts",
+            "agent-proxy/src/privileges.ts",
+            "agent-proxy/src/__tests__/tools.test.ts",
+            "agent-proxy/src/__tests__/privileges.test.ts"
+          ],
+          "notes": "Exact pinned endpoint dispatch and bounded tool results are covered by focused tests; compatibility admission, operation-specific server authorization, and live Fortemi outcomes remain independent."
         },
         "live": {
           "status": "gap",
@@ -12257,9 +12301,9 @@
           "bearerAuth": []
         }
       ],
-      "targeted_by_290": false,
+      "targeted_by_290": true,
       "disposition": "partial",
-      "tracker": "#290",
+      "tracker": "#298",
       "rationale": "Operation-level conformance has not been explicitly claimed.",
       "dimensions": {
         "route": {
@@ -12288,9 +12332,14 @@
           "notes": "No explicit UI workflow evidence recorded."
         },
         "agent": {
-          "status": "gap",
-          "evidence_paths": [],
-          "notes": "No explicit agent workflow evidence recorded."
+          "status": "conformant",
+          "evidence_paths": [
+            "agent-proxy/src/tools.ts",
+            "agent-proxy/src/privileges.ts",
+            "agent-proxy/src/__tests__/tools.test.ts",
+            "agent-proxy/src/__tests__/privileges.test.ts"
+          ],
+          "notes": "Exact pinned endpoint dispatch and bounded tool results are covered by focused tests; compatibility admission, operation-specific server authorization, and live Fortemi outcomes remain independent."
         },
         "live": {
           "status": "gap",
@@ -12443,9 +12492,9 @@
           "bearerAuth": []
         }
       ],
-      "targeted_by_290": false,
+      "targeted_by_290": true,
       "disposition": "partial",
-      "tracker": "#290",
+      "tracker": "#298",
       "rationale": "Operation-level conformance has not been explicitly claimed.",
       "dimensions": {
         "route": {
@@ -12474,9 +12523,14 @@
           "notes": "No explicit UI workflow evidence recorded."
         },
         "agent": {
-          "status": "gap",
-          "evidence_paths": [],
-          "notes": "No explicit agent workflow evidence recorded."
+          "status": "conformant",
+          "evidence_paths": [
+            "agent-proxy/src/tools.ts",
+            "agent-proxy/src/privileges.ts",
+            "agent-proxy/src/__tests__/tools.test.ts",
+            "agent-proxy/src/__tests__/privileges.test.ts"
+          ],
+          "notes": "Exact pinned endpoint dispatch and bounded tool results are covered by focused tests; compatibility admission, operation-specific server authorization, and live Fortemi outcomes remain independent."
         },
         "live": {
           "status": "gap",
@@ -13774,9 +13828,9 @@
           "bearerAuth": []
         }
       ],
-      "targeted_by_290": false,
+      "targeted_by_290": true,
       "disposition": "partial",
-      "tracker": "#290",
+      "tracker": "#298",
       "rationale": "Operation-level conformance has not been explicitly claimed.",
       "dimensions": {
         "route": {
@@ -13805,9 +13859,14 @@
           "notes": "No explicit UI workflow evidence recorded."
         },
         "agent": {
-          "status": "gap",
-          "evidence_paths": [],
-          "notes": "No explicit agent workflow evidence recorded."
+          "status": "conformant",
+          "evidence_paths": [
+            "agent-proxy/src/tools.ts",
+            "agent-proxy/src/privileges.ts",
+            "agent-proxy/src/__tests__/tools.test.ts",
+            "agent-proxy/src/__tests__/privileges.test.ts"
+          ],
+          "notes": "Exact pinned endpoint dispatch and bounded tool results are covered by focused tests; compatibility admission, operation-specific server authorization, and live Fortemi outcomes remain independent."
         },
         "live": {
           "status": "gap",
@@ -14055,9 +14114,9 @@
           "bearerAuth": []
         }
       ],
-      "targeted_by_290": false,
+      "targeted_by_290": true,
       "disposition": "partial",
-      "tracker": "#290",
+      "tracker": "#298",
       "rationale": "Operation-level conformance has not been explicitly claimed.",
       "dimensions": {
         "route": {
@@ -14086,9 +14145,14 @@
           "notes": "No explicit UI workflow evidence recorded."
         },
         "agent": {
-          "status": "gap",
-          "evidence_paths": [],
-          "notes": "No explicit agent workflow evidence recorded."
+          "status": "conformant",
+          "evidence_paths": [
+            "agent-proxy/src/tools.ts",
+            "agent-proxy/src/privileges.ts",
+            "agent-proxy/src/__tests__/tools.test.ts",
+            "agent-proxy/src/__tests__/privileges.test.ts"
+          ],
+          "notes": "Exact pinned endpoint dispatch and bounded tool results are covered by focused tests; compatibility admission, operation-specific server authorization, and live Fortemi outcomes remain independent."
         },
         "live": {
           "status": "gap",
@@ -14116,9 +14180,9 @@
           "bearerAuth": []
         }
       ],
-      "targeted_by_290": false,
+      "targeted_by_290": true,
       "disposition": "partial",
-      "tracker": "#290",
+      "tracker": "#298",
       "rationale": "Operation-level conformance has not been explicitly claimed.",
       "dimensions": {
         "route": {
@@ -14147,9 +14211,14 @@
           "notes": "No explicit UI workflow evidence recorded."
         },
         "agent": {
-          "status": "gap",
-          "evidence_paths": [],
-          "notes": "No explicit agent workflow evidence recorded."
+          "status": "conformant",
+          "evidence_paths": [
+            "agent-proxy/src/tools.ts",
+            "agent-proxy/src/privileges.ts",
+            "agent-proxy/src/__tests__/tools.test.ts",
+            "agent-proxy/src/__tests__/privileges.test.ts"
+          ],
+          "notes": "Exact pinned endpoint dispatch and bounded tool results are covered by focused tests; compatibility admission, operation-specific server authorization, and live Fortemi outcomes remain independent."
         },
         "live": {
           "status": "gap",
@@ -15929,9 +15998,9 @@
           "bearerAuth": []
         }
       ],
-      "targeted_by_290": false,
+      "targeted_by_290": true,
       "disposition": "partial",
-      "tracker": "#290",
+      "tracker": "#298",
       "rationale": "Operation-level conformance has not been explicitly claimed.",
       "dimensions": {
         "route": {
@@ -15960,9 +16029,14 @@
           "notes": "No explicit UI workflow evidence recorded."
         },
         "agent": {
-          "status": "gap",
-          "evidence_paths": [],
-          "notes": "No explicit agent workflow evidence recorded."
+          "status": "conformant",
+          "evidence_paths": [
+            "agent-proxy/src/tools.ts",
+            "agent-proxy/src/privileges.ts",
+            "agent-proxy/src/__tests__/tools.test.ts",
+            "agent-proxy/src/__tests__/privileges.test.ts"
+          ],
+          "notes": "Exact pinned endpoint dispatch and bounded tool results are covered by focused tests; compatibility admission, operation-specific server authorization, and live Fortemi outcomes remain independent."
         },
         "live": {
           "status": "gap",

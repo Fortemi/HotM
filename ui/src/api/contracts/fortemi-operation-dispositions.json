@@ -2511,7 +2511,7 @@
         "agent-proxy/src/tools.ts",
         "agent-proxy/src/privileges.ts"
       ],
-      "conformance_disposition": "gap",
+      "conformance_disposition": "partial",
       "tracker": "#287"
     },
     {

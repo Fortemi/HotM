@@ -614,6 +614,13 @@ def build_operation_summary(
     evidence_operations = evidence.get("operations", {})
     if not isinstance(evidence_operations, dict):
         evidence_operations = {}
+    agent_evidence = evidence.get("agent_operation_evidence", {})
+    if not isinstance(agent_evidence, dict):
+        agent_evidence = {}
+    agent_operation_keys = set(agent_evidence.get("operation_keys", []))
+    agent_evidence_paths = list(agent_evidence.get("evidence_paths", []))
+    agent_notes = str(agent_evidence.get("notes", ""))
+    agent_tracker = str(agent_evidence.get("tracker", "#298"))
     route_keys = {operation_key(method, route.path, "") for route in routes for method in route.methods}
     records: list[dict[str, Any]] = []
     diagnostics = {
@@ -631,8 +638,14 @@ def build_operation_summary(
         seen_keys.add(key)
         override = evidence_operations.get(key)
         dimensions = merge_dimensions(operation, override if isinstance(override, dict) else None)
+        if key in agent_operation_keys:
+            dimensions["agent"] = {
+                "status": "conformant",
+                "evidence_paths": agent_evidence_paths,
+                "notes": agent_notes,
+            }
         disposition = override.get("disposition") if isinstance(override, dict) else None
-        tracker = override.get("tracker") if isinstance(override, dict) else "#290"
+        tracker = override.get("tracker") if isinstance(override, dict) else agent_tracker if key in agent_operation_keys else "#290"
         rationale = override.get("rationale") if isinstance(override, dict) else "Operation-level conformance has not been explicitly claimed."
         record = {
             "key": key,
@@ -645,7 +658,10 @@ def build_operation_summary(
             "success_statuses": operation.success_statuses,
             "error_statuses": operation.error_statuses,
             "security": operation.security,
-            "targeted_by_290": bool(isinstance(override, dict) and override.get("targeted_by_290")),
+            "targeted_by_290": bool(
+                (isinstance(override, dict) and override.get("targeted_by_290"))
+                or key in agent_operation_keys
+            ),
             "disposition": operation_status(dimensions, disposition if isinstance(disposition, str) else None),
             "tracker": tracker,
             "rationale": rationale,
@@ -659,6 +675,7 @@ def build_operation_summary(
         records.append(record)
 
     diagnostics["extra_evidence_operations"] = sorted(set(evidence_operations) - seen_keys)
+    diagnostics["extra_evidence_operations"].extend(sorted(agent_operation_keys - seen_keys))
     diagnostics["missing_openapi_operations"] = sorted(
         key for key, value in evidence_operations.items()
         if isinstance(value, dict) and value.get("targeted_by_290") and key not in seen_keys

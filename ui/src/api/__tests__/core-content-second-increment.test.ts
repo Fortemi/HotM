@@ -54,6 +54,7 @@ describe('core content second increment evidence', () => {
     if (path === '/templates/template-1/instantiate') return { id: 'note-1' };
     if (path === '/document-types/detect') return { document_type: documentType, confidence: 0.9, detection_method: 'extension' };
     if (path === '/document-types/markdown') return { ...documentType, display_name: 'Updated' };
+    if (path === '/jobs' && method === 'post') return { id: 'job-created', status: 'queued', message: 'Queued' };
     if (path === '/jobs/job-1') return job;
     if (path === '/jobs/pending') return { pending: 2 };
     if (path === '/jobs/stats') return { pending: 2, processing: 1, completed_last_hour: 3, failed_last_hour: 0, total: 6, delayed: 0, dead: 0, incompatible: 0 };
@@ -174,5 +175,18 @@ describe('core content second increment evidence', () => {
     expect(result.payload).toEqual({ memory: 'notes' });
     expect(result.has_result).toBe(false);
     expect(JSON.stringify(result)).not.toContain('secret');
+  });
+
+  it('dispatches create_job with its exact bounded serializer and decoder', async () => {
+    const result = await jobs.create({ job_type: ' ai_revision ', note_id: 'note-1' });
+
+    expect(client.post).toHaveBeenCalledWith('/jobs', {
+      job_type: 'ai_revision',
+      note_id: 'note-1',
+      priority: null,
+      payload: null,
+      deduplicate: true,
+    });
+    expect(result).toEqual({ id: 'job-created', status: 'queued', message: 'Queued' });
   });
 });

@@ -9,6 +9,8 @@
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 import {
   searchNotesTool,
   createNoteTool,
@@ -140,6 +142,22 @@ describe('agentTools registry', () => {
       expect(meta.capabilityGate, `${name} missing capability gate`).toMatch(/capability/i);
       expect(meta.roleScope, `${name} missing role/scope`).toBeTruthy();
       expect(meta.resultPolicy, `${name} missing result policy`).toBeTruthy();
+    }
+  });
+
+  it('maps every declared endpoint to an exact pinned Fortemi operation', () => {
+    const ledger = JSON.parse(readFileSync(resolve(
+      import.meta.dirname,
+      '../../../ui/src/api/contracts/fortemi-operation-dispositions.json',
+    ), 'utf8')) as { operations: Array<{ method: string; path: string }> };
+    const pinnedEndpoints = new Set(
+      ledger.operations.map(({ method, path }) => `${method} ${path}`),
+    );
+
+    for (const [name, meta] of Object.entries(toolMetadata)) {
+      for (const endpoint of meta.endpoints) {
+        expect(pinnedEndpoints, `${name} maps to unpinned endpoint ${endpoint}`).toContain(endpoint);
+      }
     }
   });
 
@@ -579,11 +597,14 @@ describe('searchConceptsTool', () => {
 // ---------------------------------------------------------------------------
 
 describe('getRelatedTool', () => {
-  it('finds similar notes via /notes/:id/similar', async () => {
+  it('finds related notes via the canonical /notes/:id/related operation', async () => {
     mockFetch.mockResolvedValueOnce(
-      jsonResponse([
-        { note_id: 'r1', title: 'Related', snippet: '...', score: 0.8, tags: ['ai'] },
-      ]),
+      jsonResponse({
+        related: [
+          { note_id: 'r1', title: 'Related', snippet: '...', score: 0.8, tags: ['ai'] },
+        ],
+        context_summary: 'Related context',
+      }),
     );
 
     const result = await callTool<{ notes: Array<Record<string, unknown>> }>(
@@ -591,7 +612,7 @@ describe('getRelatedTool', () => {
     );
 
     const [url] = mockFetch.mock.calls[0];
-    expect(String(url)).toContain('/notes/base-note/similar');
+    expect(String(url)).toContain('/notes/base-note/related');
     expect(String(url)).toContain('limit=5');
 
     expect(result.notes).toHaveLength(1);
