@@ -1,7 +1,7 @@
 metadata:
   schema_version: "1.0.0"
-  updated_at: "2026-08-16T17:31:36Z"
-  record_count: 177
+  updated_at: "2026-08-16T17:39:12Z"
+  record_count: 178
 records:
   - entity: "urn:aiwg:bundle:fortemi-integration-remediation-2026-08-15"
     record: "records/fortemi-integration-remediation-2026-08-15.prov.yaml"
@@ -357,3 +357,5 @@ records:
     record: "records/playwright.config.ts.bf46ce52.hotm-297.prov.yaml"
   - entity: "urn:aiwg:artifact:scripts/ci/run-live-asset-receipt.sh"
     record: "records/run-live-asset-receipt.sh.216ff690.hotm-297.prov.yaml"
+  - entity: "urn:aiwg:artifact:.gitea/workflows/ui-ci.yml"
+    record: "records/ui-ci.yml.e8820896.hotm-297.prov.yaml"

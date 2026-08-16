@@ -1,0 +1,48 @@
+metadata:
+  schema_version: "1.0.0"
+  created_at: "2026-08-16T17:39:12Z"
+  updated_at: "2026-08-16T17:39:12Z"
+  description: "Provenance for HotM issue #297 mocked-browser runner correction"
+entity:
+  id: "urn:aiwg:artifact:.gitea/workflows/ui-ci.yml"
+  type: "ci_configuration"
+  created_at: "2026-08-16T17:39:12Z"
+  updated_at: "2026-08-16T17:39:12Z"
+  checksum: "sha256:e88208964c53843641ccbeb642f1b845e2f05da3c6725c96460cc60dcc9ebb35"
+  size_bytes: 19812
+  attributes:
+    change_scope: "hotm-297-mocked-browser-runner"
+    base_revision: "fa932144fb06d53a9afcb7649804e72dcf8640c6"
+activity:
+  id: "urn:aiwg:activity:modification:gitea-workflows-ui-ci-yml:hotm-297"
+  type: "modification"
+  started_at: "2026-08-16T17:39:12Z"
+  ended_at: "2026-08-16T17:39:12Z"
+  description: "Run mocked Playwright on the repository's Node 20 runner instead of an unprovisioned Rust container"
+agent:
+  id: "urn:aiwg:agent:codex-gpt-5"
+  type: "ai_assistant"
+  name: "Codex"
+  version: "gpt-5"
+  tool: "codex"
+relationships:
+  wasGeneratedBy:
+    entity: "urn:aiwg:artifact:.gitea/workflows/ui-ci.yml"
+    activity: "urn:aiwg:activity:modification:gitea-workflows-ui-ci-yml:hotm-297"
+    time: "2026-08-16T17:39:12Z"
+  used:
+    - activity: "urn:aiwg:activity:modification:gitea-workflows-ui-ci-yml:hotm-297"
+      entity: "urn:gitea:Fortemi/HotM:issue:297"
+      role: "verification-requirement"
+  wasDerivedFrom:
+    - entity: "urn:aiwg:artifact:.gitea/workflows/ui-ci.yml"
+      source: "urn:git:git@git.integrolabs.net:Fortemi/HotM.git:fa932144fb06d53a9afcb7649804e72dcf8640c6:.gitea/workflows/ui-ci.yml"
+      derivation_type: "modifies"
+      activity: "urn:aiwg:activity:modification:gitea-workflows-ui-ci-yml:hotm-297"
+  wasAssociatedWith:
+    activity: "urn:aiwg:activity:modification:gitea-workflows-ui-ci-yml:hotm-297"
+    agent: "urn:aiwg:agent:codex-gpt-5"
+    role: "primary_author"
+  wasAttributedTo:
+    entity: "urn:aiwg:artifact:.gitea/workflows/ui-ci.yml"
+    agent: "urn:aiwg:agent:codex-gpt-5"
