@@ -1,15 +1,15 @@
 metadata:
   schema_version: "1.0.0"
   created_at: "2026-08-16T14:30:00Z"
-  updated_at: "2026-08-16T14:42:50Z"
+  updated_at: "2026-08-16T14:50:48Z"
   description: "Provenance for HotM Fortemi integration remediation issues #294, #295, and #296"
 entity:
   id: "urn:aiwg:artifact:ui/src/components/admin/__tests__/OperatorConsole.test.tsx"
   type: "test"
   created_at: "2026-08-16T14:30:00Z"
-  updated_at: "2026-08-16T14:42:50Z"
-  checksum: "sha256:44a20dd447767fb6cf6cfb2b1c466400d6dca2927d250e4ba6f483ea13613b52"
-  size_bytes: 10926
+  updated_at: "2026-08-16T14:50:48Z"
+  checksum: "sha256:13a9e4cdd5b7c8622dd809a3c854e8fe58b3c6d9c848bbefcfd14f9533609400"
+  size_bytes: 11334
   attributes:
     change_scope: "hotm-294-296-fortemi-integration-remediation"
     base_revision: "63e143de39c7a834c1b7c4144d24a42c3dc7bad2"
@@ -17,8 +17,8 @@ activity:
   id: "urn:aiwg:activity:generation:ui-src-components-admin-tests-operatorconsole-test-tsx:hotm-294-296"
   type: "generation"
   started_at: "2026-08-16T14:30:00Z"
-  ended_at: "2026-08-16T14:42:50Z"
-  description: "Stabilize exhaustive Fortemi admin workflow coverage under the instrumented CI test load"
+  ended_at: "2026-08-16T14:50:48Z"
+  description: "Preserve exhaustive operator confirmation coverage with bounded DOM lookup cost under instrumented CI load"
 agent:
   id: "urn:aiwg:agent:codex-gpt-5"
   type: "ai_assistant"
@@ -29,7 +29,7 @@ relationships:
   wasGeneratedBy:
     entity: "urn:aiwg:artifact:ui/src/components/admin/__tests__/OperatorConsole.test.tsx"
     activity: "urn:aiwg:activity:generation:ui-src-components-admin-tests-operatorconsole-test-tsx:hotm-294-296"
-    time: "2026-08-16T14:42:50Z"
+    time: "2026-08-16T14:50:48Z"
   used:
     - activity: "urn:aiwg:activity:generation:ui-src-components-admin-tests-operatorconsole-test-tsx:hotm-294-296"
       entity: "urn:gitea:Fortemi/HotM:issue:294"

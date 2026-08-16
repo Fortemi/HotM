@@ -137,12 +137,20 @@ describe('OperatorConsole', () => {
       'Delete inbound source', 'Test webhook', 'Activate webhook', 'Deactivate webhook',
       'Delete webhook',
     ];
+    const controlButtons = new Map(
+      Array.from(document.querySelectorAll<HTMLButtonElement>('button')).map((button) => [button.textContent?.trim(), button]),
+    );
     for (const name of controls) {
-      fireEvent.click(screen.getByRole('button', { name }));
-      expect(screen.getByRole('alertdialog')).toBeInTheDocument();
-      expect(screen.getByText('Confirm operator control')).toBeInTheDocument();
-      fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
-      expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
+      const control = controlButtons.get(name);
+      expect(control).toBeInTheDocument();
+      fireEvent.click(control!);
+      const dialog = document.querySelector<HTMLElement>('[role="alertdialog"]');
+      expect(dialog).toHaveTextContent('Confirm operator control');
+      const cancel = Array.from(dialog!.querySelectorAll<HTMLButtonElement>('button'))
+        .find((button) => button.textContent?.trim() === 'Cancel');
+      expect(cancel).toBeInTheDocument();
+      fireEvent.click(cancel!);
+      expect(document.querySelector('[role="alertdialog"]')).not.toBeInTheDocument();
     }
     expect(api.runAction).not.toHaveBeenCalled();
   }, 30_000);
