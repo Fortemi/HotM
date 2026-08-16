@@ -1,14 +1,14 @@
 metadata:
   schema_version: "1.0.0"
   created_at: "2026-07-26T15:10:08Z"
-  updated_at: "2026-08-16T14:30:00Z"
-  description: "Provenance for HotM Fortemi integration remediation issues #294, #295, and #296"
+  updated_at: "2026-08-16T14:35:37Z"
+  description: "Provenance for the pinned Fortemi release-route authority correction after HotM #294-#296 remediation"
 entity:
   id: "urn:aiwg:artifact:.aiwg/api/compatibility/fortemi-v2026-07-route-coverage.json"
   type: "report"
   created_at: "2026-07-26T15:10:08Z"
-  updated_at: "2026-08-16T14:30:00Z"
-  checksum: "sha256:c07c42d16ae5b210d3d0f6d350a5d374aa6ac48272980c302fbc7dda43789c5f"
+  updated_at: "2026-08-16T14:35:37Z"
+  checksum: "sha256:44230eeb68f80787eb2a846aa1b693ebb31b38cb6fc378b8877e684fe5eb0511"
   size_bytes: 70132
   attributes:
     change_scope: "hotm-294-296-fortemi-integration-remediation"
@@ -17,8 +17,8 @@ activity:
   id: "urn:aiwg:activity:modification:aiwg-api-compatibility-fortemi-v2026-07-route-coverage-json:hotm-294-296"
   type: "modification"
   started_at: "2026-08-16T14:30:00Z"
-  ended_at: "2026-08-16T14:30:00Z"
-  description: "Implement and verify exact pinned core/operator workflows and remove the stale note-link mutation claim"
+  ended_at: "2026-08-16T14:35:37Z"
+  description: "Restore generated route evidence to the release sidecar Fortemi pin while retaining current-producer audit findings"
 agent:
   id: "urn:aiwg:agent:codex-gpt-5"
   type: "ai_assistant"
