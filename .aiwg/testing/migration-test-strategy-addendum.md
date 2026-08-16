@@ -531,7 +531,7 @@ describe('useCreateNote', () => {
 | **Provenance** (Phase 2) | | | | | |
 | Revision history | `/api/v1/provenance/:id` | GET | ❓ TBD | LOW | Validate existence |
 | **Links** (Phase 2) | | | | | |
-| Link notes | `/api/v1/notes/:id/links` | POST | ❓ TBD | LOW | Validate existence |
+| Read note links | `/api/v1/notes/{id}/links` | GET | Supported read-only | LOW | Direct link mutation was removed from the Fortemi contract; validate read response only. |
 | Get related notes | `/api/v1/notes/:id/related` | GET | ❓ TBD | LOW | Validate existence |
 | **Health** | | | | | |
 | API health check | `/health` or `/api/v1/health` | GET | ✅ Required | CRITICAL | Unit test |

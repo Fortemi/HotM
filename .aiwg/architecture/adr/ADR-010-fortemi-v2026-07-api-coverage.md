@@ -273,7 +273,7 @@ request, response, auth/context, UI, agent, and live dimension is conformant.
 Missing evidence is reported as `partial` or `gap`, never inferred from a path
 prefix or source-file match.
 
-The current generated result is 1 integrated, 238 partial, and 12 gap operations
+The current generated result is 1 integrated, 249 partial, and 1 gap operation
 with zero pin, boundary, evidence-path, or unclassified-operation diagnostics.
 Route inventory, OpenAPI, AsyncAPI, Knowledge Shard, compatibility, and auth
 remain independent release gates. The schema-derived AsyncAPI transport receipt
@@ -298,5 +298,26 @@ The product-disposition control is
 verified from the #290 operation matrix. Every pinned operation has an explicit
 privilege and one of UI workflow, agent workflow, operator diagnostic, or
 documented exclusion. This control never upgrades conformance. Historical
-explicit-link POST/DELETE claims are excluded under #294 because they are
-absent from the current router and OpenAPI.
+explicit-link POST/DELETE claims are removed. The #294 decision is to consume
+no replacement mutation: neither the pinned OpenAPI nor current Fortemi
+authority defines one. Read-only `get_note_links` remains distinct from
+server-owned semantic/wiki-link maintenance. A future user-authored link
+operation requires a new pinned Fortemi contract and a coordinated ADR
+amendment; historical route shape is not authority.
+
+### Decision Amendment: Verifiable Umbrella Workflows (2026-08-16)
+
+Accept #295's 60 core entries and #296's 76 operator entries as exact pinned
+workflow promotions. Their 18 overlaps produce 118 unique operations. Support
+is admitted only when the generated ledger matches method, path, and operation
+ID and the runtime compatibility gate accepts the server contract. Response
+handling must be bounded and typed or redacted; malformed and oversized
+payloads fail closed. Every mutation requires an explicit confirmation in its
+rendered workflow.
+
+The generated conformance result becomes 1 integrated, 249 partial, and 1 gap.
+This count records stronger executable request/response/UI evidence; it does
+not upgrade operation-specific auth, agent, or live dimensions. Restricted
+secret/key and binary/Knowledge Shard transfer operations remain unpromoted
+under #297. Route disposition, matching family names, and mocked browser
+receipts remain insufficient to claim full Fortemi conformance.

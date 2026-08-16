@@ -1,43 +1,54 @@
 metadata:
   schema_version: "1.0.0"
   created_at: "2026-08-15T00:00:00Z"
-  description: "Provenance for HotM #290 operation conformance evidence data"
+  updated_at: "2026-08-16T14:30:00Z"
+  description: "Provenance for HotM Fortemi integration remediation issues #294, #295, and #296"
 entity:
   id: "urn:aiwg:artifact:.aiwg/testing/data/fortemi-operation-conformance-v2026-07.json"
-  type: test_data
+  type: "dataset"
   created_at: "2026-08-15T00:00:00Z"
-  checksum: "sha256:0e1c0d44b95f31365dfb4c5c62fb371e98758f5dcb3511d135f9844d0d9555cb"
-  size_bytes: 28482
+  updated_at: "2026-08-16T14:30:00Z"
+  checksum: "sha256:28dde3723f5d9da27525a603543e4db188fadc7c8ce61d640afeb47d33bb8a15"
+  size_bytes: 288275
+  attributes:
+    change_scope: "hotm-294-296-fortemi-integration-remediation"
+    base_revision: "63e143de39c7a834c1b7c4144d24a42c3dc7bad2"
 activity:
-  id: "urn:aiwg:activity:generation:fortemi-operation-conformance-data:001"
-  type: generation
-  started_at: "2026-08-15T00:00:00Z"
-  ended_at: "2026-08-15T00:00:00Z"
-  description: "Classify #290 target operations across independent route/request/response/auth-context/UI/agent/live dimensions"
+  id: "urn:aiwg:activity:modification:aiwg-testing-data-fortemi-operation-conformance-v2026-07-json:hotm-294-296"
+  type: "modification"
+  started_at: "2026-08-16T14:30:00Z"
+  ended_at: "2026-08-16T14:30:00Z"
+  description: "Implement and verify exact pinned core/operator workflows and remove the stale note-link mutation claim"
 agent:
-  id: "urn:aiwg:agent:test-engineer"
-  type: ai_assistant
-  name: "Codex Test Engineer"
+  id: "urn:aiwg:agent:codex-gpt-5"
+  type: "ai_assistant"
+  name: "Codex"
   version: "gpt-5"
   tool: "codex"
 relationships:
   wasGeneratedBy:
     entity: "urn:aiwg:artifact:.aiwg/testing/data/fortemi-operation-conformance-v2026-07.json"
-    activity: "urn:aiwg:activity:generation:fortemi-operation-conformance-data:001"
-    time: "2026-08-15T00:00:00Z"
+    activity: "urn:aiwg:activity:modification:aiwg-testing-data-fortemi-operation-conformance-v2026-07-json:hotm-294-296"
+    time: "2026-08-16T14:30:00Z"
+  used:
+    - activity: "urn:aiwg:activity:modification:aiwg-testing-data-fortemi-operation-conformance-v2026-07-json:hotm-294-296"
+      entity: "urn:gitea:Fortemi/HotM:issue:294"
+      role: "requirement"
+    - activity: "urn:aiwg:activity:modification:aiwg-testing-data-fortemi-operation-conformance-v2026-07-json:hotm-294-296"
+      entity: "urn:gitea:Fortemi/HotM:issue:295"
+      role: "requirement"
+    - activity: "urn:aiwg:activity:modification:aiwg-testing-data-fortemi-operation-conformance-v2026-07-json:hotm-294-296"
+      entity: "urn:gitea:Fortemi/HotM:issue:296"
+      role: "requirement"
   wasDerivedFrom:
     - entity: "urn:aiwg:artifact:.aiwg/testing/data/fortemi-operation-conformance-v2026-07.json"
-      source: "urn:gitea:Fortemi/HotM#290"
-      derivation_type: "implements"
-      activity: "urn:aiwg:activity:generation:fortemi-operation-conformance-data:001"
-    - entity: "urn:aiwg:artifact:.aiwg/testing/data/fortemi-operation-conformance-v2026-07.json"
-      source: "urn:aiwg:artifact:ui/src/api/contracts/fortemi-openapi.yaml"
-      derivation_type: "depends"
-      activity: "urn:aiwg:activity:generation:fortemi-operation-conformance-data:001"
+      source: "urn:git:git@git.integrolabs.net:Fortemi/HotM.git:63e143de39c7a834c1b7c4144d24a42c3dc7bad2:.aiwg/testing/data/fortemi-operation-conformance-v2026-07.json"
+      derivation_type: "modifies"
+      activity: "urn:aiwg:activity:modification:aiwg-testing-data-fortemi-operation-conformance-v2026-07-json:hotm-294-296"
   wasAssociatedWith:
-    activity: "urn:aiwg:activity:generation:fortemi-operation-conformance-data:001"
-    agent: "urn:aiwg:agent:test-engineer"
+    activity: "urn:aiwg:activity:modification:aiwg-testing-data-fortemi-operation-conformance-v2026-07-json:hotm-294-296"
+    agent: "urn:aiwg:agent:codex-gpt-5"
     role: "primary_author"
   wasAttributedTo:
     entity: "urn:aiwg:artifact:.aiwg/testing/data/fortemi-operation-conformance-v2026-07.json"
-    agent: "urn:aiwg:agent:test-engineer"
+    agent: "urn:aiwg:agent:codex-gpt-5"

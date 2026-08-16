@@ -34,6 +34,17 @@ export class NetworkError extends Error {
   }
 }
 
+export class ContractDecodeError extends Error {
+  constructor(
+    public readonly operationId: string,
+    message: string,
+  ) {
+    super(`${operationId}: ${message}`);
+    this.name = 'ContractDecodeError';
+    Object.setPrototypeOf(this, ContractDecodeError.prototype);
+  }
+}
+
 /**
  * Validation errors (400 Bad Request with field errors)
  */

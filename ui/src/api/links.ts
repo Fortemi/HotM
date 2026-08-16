@@ -122,21 +122,6 @@ export interface GraphColdSpotsResponse {
   recommendations: string[];
 }
 
-export interface CreateLinkRequest {
-  to_note_id?: string;
-  to_url?: string;
-  kind?: LinkKind;
-  score?: number;
-}
-
-export interface CreateLinkResponse {
-  status: string;
-  link_id: string;
-  from_note_id: string;
-  to_note_id?: string;
-  rows_affected: number;
-}
-
 export function createLinksApi(client: ApiClient) {
   return {
     /**
@@ -149,38 +134,6 @@ export function createLinksApi(client: ApiClient) {
       }
 
       return client.get<NoteLinksResponse>(`/notes/${noteId}/links`);
-    },
-
-    /**
-     * Create a link from one note to another note or external URL
-     */
-    async createLink(
-      noteId: string,
-      request: CreateLinkRequest
-    ): Promise<CreateLinkResponse> {
-      if (!noteId || noteId.trim() === '') {
-        throw new Error('Note ID is required');
-      }
-
-      if (!request.to_note_id && !request.to_url) {
-        throw new Error('Either to_note_id or to_url is required');
-      }
-      throw new Error('Explicit note-link creation is unavailable in the pinned Fortemi contract (#294).');
-    },
-
-    /**
-     * Delete a link from a note
-     */
-    async deleteLink(noteId: string, linkId: string): Promise<void> {
-      if (!noteId || noteId.trim() === '') {
-        throw new Error('Note ID is required');
-      }
-
-      if (!linkId || linkId.trim() === '') {
-        throw new Error('Link ID is required');
-      }
-
-      throw new Error('Explicit note-link deletion is unavailable in the pinned Fortemi contract (#294).');
     },
 
     /**

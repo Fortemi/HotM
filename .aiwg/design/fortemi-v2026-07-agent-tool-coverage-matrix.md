@@ -47,7 +47,7 @@ Fortemi MCP comparison source:
 | `get_note` | exploratory, knowledge-action | notes, attachments | `GET /api/v1/notes/{id}`, `GET /api/v1/notes/{id}/attachments` | Covered | Preserve; ensure attachment summary remains non-secret. |
 | `revise_note` | knowledge-action | jobs, notes | `POST /api/v1/jobs` | Covered | Preserve; verify job type and queued-state contract. |
 | `update_tags` | knowledge-action | tags, notes | `GET /api/v1/notes/{id}/tags`, `PUT /api/v1/notes/{id}/tags` | Covered | Preserve; keep full-replacement behavior explicit. |
-| `link_notes` | knowledge-action | notes | Historical `POST /api/v1/notes/{id}/links` | Excluded | Removed from executable registries; current Fortemi router/OpenAPI expose only GET. #294 owns a replacement contract. |
+| `link_notes` | knowledge-action | notes | Historical `POST /api/v1/notes/{id}/links` | Removed | Direct link mutation is not a Fortemi operation. Keep it absent from executable registries; use read-only graph exploration or server-owned semantic/wiki-link maintenance instead. |
 | `list_collections` | exploratory, knowledge-action | collections | `GET /api/v1/collections` | Partial | Extend or document why create/update/delete/export/list-notes are UI-only. |
 | `search_concepts` | exploratory, knowledge-action | concepts | `GET /api/v1/concepts` | Partial | Preserve search; decide whether concept detail/governance/export remain UI-only. |
 | `get_related` | exploratory, knowledge-action | notes, search | `GET /api/v1/notes/{id}/similar` | Covered | Preserve; verify response normalization against route inventory. |

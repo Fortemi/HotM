@@ -5,6 +5,7 @@
 
 import type { ApiClient } from './client';
 import type { ProvenanceResponse } from './types-extended';
+import { asRecord, requiredString } from './contract-codecs';
 
 export interface CreateProvLocationRequest {
   latitude: number;
@@ -86,6 +87,11 @@ export interface ProvenanceCreatedResponse {
   [key: string]: unknown;
 }
 
+function decodeCreated(payload: unknown, operationId: string): ProvenanceCreatedResponse {
+  const raw = asRecord(payload, operationId);
+  return { ...raw, id: requiredString(raw, 'id', operationId) };
+}
+
 function requireId(value: string, message: string) {
   if (!value || value.trim() === '') {
     throw new Error(message);
@@ -119,7 +125,7 @@ export function createProvenanceApi(client: ApiClient) {
       requireId(request.source, 'Location source is required');
       requireId(request.confidence, 'Location confidence is required');
 
-      return client.post<ProvenanceCreatedResponse>('/provenance/locations', request);
+      return decodeCreated(await client.post<unknown>('/provenance/locations', request), 'create_prov_location');
     },
 
     async createNamedLocation(request: CreateNamedLocationRequest): Promise<ProvenanceCreatedResponse> {
@@ -128,26 +134,26 @@ export function createProvenanceApi(client: ApiClient) {
       requireFiniteCoordinate(request.latitude, 'Latitude is required');
       requireFiniteCoordinate(request.longitude, 'Longitude is required');
 
-      return client.post<ProvenanceCreatedResponse>('/provenance/named-locations', request);
+      return decodeCreated(await client.post<unknown>('/provenance/named-locations', request), 'create_named_location');
     },
 
     async createDevice(request: CreateProvDeviceRequest): Promise<ProvenanceCreatedResponse> {
       requireId(request.device_make, 'Device make is required');
       requireId(request.device_model, 'Device model is required');
 
-      return client.post<ProvenanceCreatedResponse>('/provenance/devices', request);
+      return decodeCreated(await client.post<unknown>('/provenance/devices', request), 'create_prov_device');
     },
 
     async createFileProvenance(request: CreateFileProvenanceRequest): Promise<ProvenanceCreatedResponse> {
       requireId(request.attachment_id, 'Attachment ID is required');
 
-      return client.post<ProvenanceCreatedResponse>('/provenance/files', request);
+      return decodeCreated(await client.post<unknown>('/provenance/files', request), 'create_file_provenance');
     },
 
     async createNoteProvenance(request: CreateNoteProvenanceRequest): Promise<ProvenanceCreatedResponse> {
       requireId(request.note_id, 'Note ID is required');
 
-      return client.post<ProvenanceCreatedResponse>('/provenance/notes', request);
+      return decodeCreated(await client.post<unknown>('/provenance/notes', request), 'create_note_provenance');
     },
   };
 }

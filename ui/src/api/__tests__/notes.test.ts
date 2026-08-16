@@ -384,7 +384,12 @@ describe('Notes API', () => {
 
       const result = await notesApi.reprocessAll();
 
-      expect(result).toEqual({ jobs_queued: 42, message: 'Reprocess queued' });
+      expect(result).toEqual({
+        jobs_queued: 42,
+        message: 'Reprocess queued',
+        notes_count: 0,
+        revision_mode: undefined,
+      });
     });
   });
 });

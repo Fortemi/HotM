@@ -3,7 +3,7 @@
  * Handles requests, retries, and error handling
  */
 
-import { ApiError, NetworkError } from './errors';
+import { ApiError, ContractDecodeError, NetworkError } from './errors';
 import { getAuthorizationHeader } from './auth-context';
 import { getActiveMemory, getMemoryRoutingHeaderName } from './memory-context';
 import { getTauriFetch } from '@/lib/tauri';
@@ -15,6 +15,76 @@ interface RequestOptions {
   params?: Record<string, string>;
   retryAttempts?: number;
   retryDelay?: number;
+  maxResponseBytes?: number;
+}
+
+interface TextResponseOptions {
+  params?: Record<string, string>;
+  headers?: Record<string, string>;
+  maxBytes?: number;
+}
+
+export const DEFAULT_MAX_TEXT_RESPONSE_BYTES = 4 * 1024 * 1024;
+export const DEFAULT_MAX_JSON_RESPONSE_BYTES = 16 * 1024 * 1024;
+
+async function readBoundedText(
+  response: Response,
+  path: string,
+  maxBytes: number,
+): Promise<string> {
+  if (!Number.isSafeInteger(maxBytes) || maxBytes < 1) {
+    throw new ContractDecodeError(path, 'text response limit must be a positive integer');
+  }
+  const contentLength = response.headers.get('content-length');
+  if (contentLength) {
+    const advertisedBytes = Number(contentLength);
+    if (Number.isFinite(advertisedBytes) && advertisedBytes > maxBytes) {
+      await response.body?.cancel().catch(() => undefined);
+      throw new ContractDecodeError(path, `text response exceeds the ${maxBytes}-byte limit`);
+    }
+  }
+
+  const reader = response.body?.getReader();
+  if (reader) {
+    const decoder = new TextDecoder();
+    let decoded = '';
+    let bytesRead = 0;
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      bytesRead += value.byteLength;
+      if (bytesRead > maxBytes) {
+        await reader.cancel().catch(() => undefined);
+        throw new ContractDecodeError(path, `text response exceeds the ${maxBytes}-byte limit`);
+      }
+      decoded += decoder.decode(value, { stream: true });
+    }
+    return decoded + decoder.decode();
+  }
+
+  const text = await response.text();
+  if (new TextEncoder().encode(text).byteLength > maxBytes) {
+    throw new ContractDecodeError(path, `text response exceeds the ${maxBytes}-byte limit`);
+  }
+  return text;
+}
+
+async function readBoundedJson<T>(response: Response, path: string, maxBytes: number): Promise<T> {
+  if (response.body) {
+    const text = await readBoundedText(response, path, maxBytes);
+    try {
+      return JSON.parse(text) as T;
+    } catch {
+      throw new ContractDecodeError(path, 'response is not valid JSON');
+    }
+  }
+
+  // Test adapters and older host shims may expose json() without a readable body.
+  try {
+    return await response.json() as T;
+  } catch {
+    throw new ContractDecodeError(path, 'response is not valid JSON');
+  }
 }
 
 export interface MutationRequestContext {
@@ -88,6 +158,7 @@ export function createApiClient(baseUrl: string) {
       params,
       retryAttempts = 3,
       retryDelay = 1000,
+      maxResponseBytes = DEFAULT_MAX_JSON_RESPONSE_BYTES,
     } = options;
 
     if (method !== 'GET') {
@@ -118,24 +189,10 @@ export function createApiClient(baseUrl: string) {
           return null as T;
         }
 
-        // Parse response
-        let responseData: unknown;
-        try {
-          responseData = await response.json();
-        } catch (jsonError) {
-          if (!response.ok) {
-            throw new ApiError(response.statusText, response.status);
-          }
-          throw jsonError;
-        }
-
         // Handle HTTP errors
         if (!response.ok) {
-          const error = new ApiError(
-            response.statusText,
-            response.status,
-            responseData
-          );
+          await response.body?.cancel().catch(() => undefined);
+          const error = new ApiError(response.statusText, response.status);
 
           // Don't retry client errors (4xx)
           if (response.status >= 400 && response.status < 500) {
@@ -153,11 +210,11 @@ export function createApiClient(baseUrl: string) {
           throw error;
         }
 
-        return responseData as T;
+        return readBoundedJson<T>(response, path, maxResponseBytes);
       } catch (error) {
         // Network errors or fetch failures
-        if (error instanceof ApiError) {
-          throw error; // Re-throw API errors
+        if (error instanceof ApiError || error instanceof ContractDecodeError) {
+          throw error;
         }
 
         // Network errors - retry
@@ -183,6 +240,31 @@ export function createApiClient(baseUrl: string) {
     if (mutationGate) await mutationGate({ method, path });
   }
 
+  async function requestText(path: string, options: TextResponseOptions = {}): Promise<string> {
+    const url = buildUrl(normalizedBaseUrl, path, options.params);
+    const requestHeaders: Record<string, string> = {
+      Accept: 'text/markdown,text/turtle,text/plain,*/*',
+      ...getAuthorizationHeader(),
+      ...options.headers,
+    };
+    const selectedMemory = getActiveMemory();
+    if (selectedMemory && !requestHeaders[getMemoryRoutingHeaderName()]) {
+      requestHeaders[getMemoryRoutingHeaderName()] = selectedMemory;
+    }
+
+    try {
+      const response = await getTauriFetch()(url, { method: 'GET', headers: requestHeaders });
+      if (!response.ok) {
+        await response.body?.cancel().catch(() => undefined);
+        throw new ApiError(response.statusText || `HTTP ${response.status}`, response.status);
+      }
+      return readBoundedText(response, path, options.maxBytes ?? DEFAULT_MAX_TEXT_RESPONSE_BYTES);
+    } catch (error) {
+      if (error instanceof ApiError || error instanceof ContractDecodeError) throw error;
+      throw new NetworkError(error as Error);
+    }
+  }
+
   return {
     baseUrl: normalizedBaseUrl,
     serverUrl: getServerRoot(normalizedBaseUrl),
@@ -199,6 +281,15 @@ export function createApiClient(baseUrl: string) {
       headers?: Record<string, string>
     ): Promise<T> {
       return request<T>(path, { method: 'GET', params, headers });
+    },
+
+    async getText(
+      path: string,
+      params?: Record<string, string>,
+      headers?: Record<string, string>,
+      maxBytes?: number,
+    ): Promise<string> {
+      return requestText(path, { params, headers, maxBytes });
     },
 
     async post<T>(
@@ -228,9 +319,10 @@ export function createApiClient(baseUrl: string) {
 
     async delete<T>(
       path: string,
-      headers?: Record<string, string>
+      headers?: Record<string, string>,
+      params?: Record<string, string>,
     ): Promise<T> {
-      return request<T>(path, { method: 'DELETE', headers });
+      return request<T>(path, { method: 'DELETE', headers, params });
     },
   };
 }

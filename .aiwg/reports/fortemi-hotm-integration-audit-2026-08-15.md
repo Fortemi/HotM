@@ -81,9 +81,27 @@ realtime, catalog, and native adapter checks pass locally.
 
 The pass also found a removed Fortemi contract that earlier inventories missed:
 HotM still advertised explicit note-link POST/DELETE operations while current
-Fortemi exposes only GET link queries. Those mutations now fail before network
-dispatch and are removed from agent registries; #294 owns replacement. #295,
+Fortemi exposes only GET link queries. The #294 authority review declares
+direct mutation removed: dormant client methods, static schemas, and all agent
+claims are absent, while read-only and server-generated linking stay distinct. #295,
 #296, and #297 split the remaining umbrella workflows, operator controls, and
 protocol/security exclusions. #231 remains bounded by auth release authority,
 #285 by Fortemi #953 scoped WebSocket support, #123 by complete executable agent
 surface, and #287 by typed/browser-verifiable family workflows.
+
+## Core And Operator Remediation Update (2026-08-16)
+
+Issues #295 and #296 now have local executable implementations for 118 unique
+pinned operations. The core lifecycle panel covers 60 entries; the operator
+console covers 76, including 18 shared job/graph entries. Exact tuple tests,
+bounded/redacted decoding, compatibility admission, mutation confirmation,
+focused component tests, and deterministic desktop/mobile browser scenarios
+pass locally.
+
+This improves request, response, and UI evidence but does not make HotM a fully
+verified umbrella interface. The generated operation result is 1 integrated,
+249 partial, and 1 gap because operation-specific auth, agent, and live-server
+receipts remain independent. Secret/key administration, secret-bearing
+webhook/inbound creation, binary transfers, and Knowledge Shard transfer stay
+outside promotion pending #297's explicit authorization and profile-specific
+verification.

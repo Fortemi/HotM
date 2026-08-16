@@ -391,7 +391,7 @@ The operation verifier consumes the exact OpenAPI receipt and fails on stale
 pins, missing evidence paths, unsupported boundaries, unclassified operations,
 or missing focused operations. Its generated JSON and Markdown reports come
 from one in-memory model. The current expected disposition counts are 1
-integrated, 238 partial, and 12 gap; route-disposition counts are checked
+integrated, 249 partial, and 1 gap; route-disposition counts are checked
 separately.
 
 The AsyncAPI payload verifier resolves all 48 event schemas and executes
@@ -446,6 +446,40 @@ Required negative cases include missing/expired/wrong-audience bearer,
 unsupported auth contract, cross-tenant and cross-memory context, privilege
 session rebinding, replayed/altered confirmation, credential-free realtime
 URLs, mismatched event ownership, stale operation ledger, incompatible-server
-catalog state, and no network dispatch for #294's removed link mutations.
+catalog state, and absence of #294's removed link mutation methods, tools,
+prompt claims, and static OpenAPI operations. The disposition verifier also
+fails if a non-GET `/api/v1/notes/{id}/links` operation enters the pinned
+ledger. Because no mutation contract exists, mutation success/error/auth/live
+tests are not simulated; a future producer operation must add those receipts.
 Scoped WebSocket success remains not applicable until Fortemi #953 provides a
 context-preserving producer contract; it must not be simulated as conformance.
+
+### Core And Operator Workflow Commands (2026-08-16)
+
+```bash
+cd ui
+npx vitest run \
+  src/api/__tests__/client.test.ts \
+  src/api/__tests__/contract-codecs.test.ts \
+  src/api/__tests__/core-content-operation-evidence.test.ts \
+  src/api/__tests__/core-content-second-increment.test.ts \
+  src/api/__tests__/operator.test.ts \
+  src/components/admin/__tests__/CoreContentLifecyclePanel.test.tsx \
+  src/components/admin/__tests__/CoreContentLifecyclePanelSecondIncrement.test.tsx \
+  src/components/admin/__tests__/OperatorConsole.test.tsx \
+  src/components/admin/__tests__/AdminPanel.test.tsx
+npx playwright test --project=e2e-mocked \
+  e2e/tests/core-content-lifecycle-responsive.spec.ts \
+  e2e/tests/operator-console-responsive.spec.ts
+cd ..
+python3 .aiwg/testing/scripts/fortemi-route-coverage.py --check
+node scripts/ci/verify-fortemi-operation-dispositions.mjs --check
+```
+
+The focused tests must cover all 60 #295 and 76 #296 manifest entries against
+the pinned ledger, bounded JSON/text/SSE handling, unknown SSE event counting,
+redaction, compatibility failure, independent unauthorized/unavailable/empty
+states, confirmation, and desktop/mobile rendering. These are deterministic
+mocked receipts. No test may convert them into operation-specific auth or live
+Fortemi evidence. #297 operations remain excluded unless separately authorized
+and verified against their named auth, binary, or Knowledge Shard profile.

@@ -179,9 +179,9 @@ describe('Links and graph API', () => {
     );
   });
 
-  it('fails stale explicit-link mutations before network dispatch', async () => {
-    await expect(linksApi.createLink('note-1', { to_note_id: 'note-2' })).rejects.toThrow('#294');
-    await expect(linksApi.deleteLink('note-1', 'link-1')).rejects.toThrow('#294');
+  it('does not expose removed explicit-link mutation methods', () => {
+    expect(linksApi).not.toHaveProperty('createLink');
+    expect(linksApi).not.toHaveProperty('deleteLink');
     expect(mockClient.post).not.toHaveBeenCalled();
     expect(mockClient.delete).not.toHaveBeenCalled();
   });

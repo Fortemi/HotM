@@ -33,6 +33,7 @@ import { createIngestApi } from './ingest';
 import { createMediaToolsApi } from './mediaTools';
 import { createCallsApi } from './calls';
 import { createCompatibilityAdmissionGate, createSystemCompatibilityApi } from './systemCompatibility';
+import { createOperatorApi } from './operator';
 
 // Export core types
 export type {
@@ -224,8 +225,6 @@ export type {
   CoarseCommunityRequest,
   ColdSpotBucket,
   ColdSpotNote,
-  CreateLinkRequest,
-  CreateLinkResponse,
   GraphColdSpotsResponse,
   GraphControlRequest,
   GraphControlResult,
@@ -250,6 +249,13 @@ export { createInferenceApi } from './inference';
 export { createIngestApi } from './ingest';
 export { createMediaToolsApi } from './mediaTools';
 export { createCallsApi } from './calls';
+export {
+  createOperatorApi,
+  OPERATOR_ACTION_OPERATIONS,
+  OPERATOR_EVIDENCE_BOUNDARY,
+  OPERATOR_READ_OPERATIONS,
+  isOperatorSnapshotStale,
+} from './operator';
 export type {
   IngestAckEvent,
   IngestApi,
@@ -331,6 +337,21 @@ export type { ProvenanceApi } from './provenance';
 export type { ArchivesApi } from './archives';
 export type { JobsApi, JobPauseState, JobPauseActionResponse, JobQueueStats, JobListItem } from './jobs';
 export type { ChatApi } from './chat';
+export type {
+  OperatorActionId,
+  OperatorActionRequest,
+  OperatorActionResult,
+  OperatorApi,
+  OperatorDiagnostic,
+  OperatorDiagnosticState,
+  OperatorDomain,
+  OperatorMetric,
+  OperatorMutationAdmission,
+  OperatorOperation,
+  OperatorInspectionId,
+  OperatorInspectionRequest,
+  OperatorSnapshot,
+} from './operator';
 
 // Export compatibility layer
 export { api as compatApi } from './compat';
@@ -379,6 +400,20 @@ export function createApi(baseUrl?: string) {
   const systemCompatibility = createSystemCompatibilityApi(client);
   const compatibilityGate = createCompatibilityAdmissionGate(systemCompatibility);
   client.setMutationGate(() => compatibilityGate.requireRemoteMutation());
+  const archives = createArchivesApi(client);
+  const backup = createBackupApi(client);
+  const chat = createChatApi(client);
+  const embeddings = createEmbeddingsApi(client);
+  const health = createHealthApi(client);
+  const inference = createInferenceApi(client);
+  const jobs = createJobsApi(client);
+  const links = createLinksApi(client);
+  const webhooks = createWebhooksApi(client);
+  const operator = createOperatorApi(
+    client,
+    { archives, backup, chat, embeddings, health, inference, jobs, links, systemCompatibility, webhooks },
+    compatibilityGate,
+  );
   const normalizedBase = url.endsWith('/') ? url.slice(0, -1) : url;
   const serverRoot = getServerRoot(normalizedBase);
 
@@ -420,23 +455,24 @@ export function createApi(baseUrl?: string) {
     collections: createCollectionsApi(client),
     templates: createTemplatesApi(client),
     documents: createDocumentsApi(client),
-    health: createHealthApi(client),
+    health,
     memory: createMemoryApi(client),
-    backup: createBackupApi(client),
-    embeddings: createEmbeddingsApi(client),
-    links: createLinksApi(client),
+    backup,
+    embeddings,
+    links,
     provenance: createProvenanceApi(client),
     events: createEventsClient(url),
-    webhooks: createWebhooksApi(client),
-    archives: createArchivesApi(client),
-    jobs: createJobsApi(client),
-    chat: createChatApi(client),
-    inference: createInferenceApi(client),
+    webhooks,
+    archives,
+    jobs,
+    chat,
+    inference,
     ingest: createIngestApi(client),
     mediaTools: createMediaToolsApi(client),
     calls: createCallsApi(client),
     systemCompatibility,
     compatibilityGate,
+    operator,
 
     /**
      * Quick health check endpoint (legacy)

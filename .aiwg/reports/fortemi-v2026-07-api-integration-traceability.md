@@ -154,7 +154,7 @@ boundary; 257 of 563 response entries contain schemas.
 
 | Requirement | Executable evidence | Result / remaining work |
 | --- | --- | --- |
-| REQ-020 operation conformance | `.aiwg/testing/scripts/fortemi-route-coverage.py`, `.aiwg/testing/data/fortemi-operation-conformance-v2026-07.json`, generated operation JSON/Markdown, focused verifier tests | 251 operations: 1 integrated, 238 partial, 12 gap; zero verifier diagnostics. #290 establishes the evidence model but does not convert partial/gap rows into support claims. |
+| REQ-020 operation conformance | `.aiwg/testing/scripts/fortemi-route-coverage.py`, `.aiwg/testing/data/fortemi-operation-conformance-v2026-07.json`, generated operation JSON/Markdown, focused verifier tests | 251 operations: 1 integrated, 249 partial, 1 gap; zero verifier diagnostics. #290 establishes the evidence model but does not convert partial/gap rows into support claims. |
 | REQ-014 AsyncAPI payloads | `.aiwg/testing/scripts/verify-fortemi-asyncapi-payloads.mjs`, schema-derived event fixtures/rules, event and realtime-bus tests, conformance receipt | 48 valid schemas pass both decoders; malformed known events remain unknown. Producer-owned examples are absent, so #288 remains open. |
 | REQ-023 mocked browser gate | `.gitea/workflows/ui-ci.yml`, `ui/scripts/playwright-mocked-ci.config.cjs`, receipt writer, deterministic browser scenarios | Required desktop/mobile gate with zero retries, exact revision/digest receipt, and failure artifacts. This is mocked UI evidence only. |
 
@@ -171,4 +171,16 @@ compatibility, Knowledge Shard, or authentication evidence.
 | REQ-018 realtime context | `ui/src/api/events.ts`, `ui/src/services/websocket.ts`, Tauri header adapter, event/WS tests | Scoped fetch SSE forwards bearer/memory/replay headers and rejects tenant/memory mismatch. Scoped WS is excluded pending Fortemi #953; #285 stays open. |
 | REQ-019 agent privileges | `agent-proxy/src/request-context.ts`, `privileges.ts`, `routes/chat.ts`, UI chat/privilege hooks | Sessions bind to admitted identity; tool execution forwards only admitted context. Existing contract-backed registry is enforced, but all-operation agent acceptance in #123 remains open. |
 | REQ-021 umbrella disposition | `scripts/ci/verify-fortemi-operation-dispositions.mjs`, generated 251-row ledger, `OperationCatalogPanel.tsx` | Zero implicit product dispositions: 16 UI, 11 agent, 183 diagnostic, 41 excluded. This does not upgrade the #290 conformance dimensions; #287 remains open for typed/browser workflows. |
-| Removed link mutation | `ui/src/api/links.ts`, agent registries, focused tests | POST/DELETE calls fail before dispatch and are not advertised. #294 owns producer-contract replacement and coordinated claim cleanup. |
+| Removed link mutation | pinned OpenAPI/current Fortemi router, `ui/src/api/links.ts`, both agent registries, static API specs, focused tests, disposition verifier | #294 resolves the replacement decision as removal: only authenticated GET reads are producer-owned. No create/delete client method or agent claim remains; a future mutation needs a new pinned contract and full evidence. |
+
+## 2026-08-16 Core And Operator Trace Update
+
+| Requirement | Executable evidence | Result / remaining work |
+| --- | --- | --- |
+| REQ-020 core workflows (#295) | `core-content-operations.ts`, typed API modules, bounded codecs, lifecycle component tests, desktop/mobile Playwright scenarios | 60 exact entries cover notes, provenance, collections, templates, document types, jobs, SKOS, and graph workflows. Request/response/UI dimensions are conformant; operation auth, agent, and live remain independent. |
+| REQ-021 operator workflows (#296) | `operator.ts`, `OperatorConsole.tsx`, focused API/component tests, desktop/mobile Playwright scenarios | 76 exact entries cover non-secret diagnostics and confirmed controls. Responses are bounded/redacted and unknown SSE events remain unknown. Restricted #297 operations are not promoted. |
+| Generated operation ledger | operation evidence source, generated coverage JSON/Markdown, product-disposition verifier | 118 unique promoted tuples after 18 overlaps; 251 total operations are 1 integrated, 249 partial, and 1 gap with zero diagnostics. Route matching does not supply any missing dimension. |
+
+Mocked browser receipts verify deterministic rendering and interaction only.
+They are not live Fortemi, operation-specific authorization, binary transfer,
+Knowledge Shard round-trip, or cross-language auth receipts.

@@ -1,7 +1,7 @@
 ---
 title: Fortemi v2026.7.1 Operation Coverage Inventory
 status: generated
-date: 2026-08-15
+date: 2026-08-16
 artifact_type: api-operation-coverage-inventory
 related_issue: Fortemi/HotM#290
 ---
@@ -21,19 +21,19 @@ This report is generated from the same data as the machine-readable operation co
 
 | Disposition | Count |
 | --- | ---: |
-| gap | 12 |
+| gap | 1 |
 | integrated | 1 |
-| partial | 238 |
+| partial | 249 |
 
 ## Dimension Counts
 
 | Dimension | Status counts |
 | --- | --- |
 | route | `{"conformant": 251}` |
-| request | `{"conformant": 18, "gap": 225, "not_applicable": 8}` |
-| response | `{"conformant": 19, "gap": 230, "partial": 2}` |
-| auth_context | `{"conformant": 1, "gap": 230, "partial": 20}` |
-| ui | `{"conformant": 13, "gap": 235, "partial": 3}` |
+| request | `{"conformant": 122, "gap": 126, "not_applicable": 3}` |
+| response | `{"conformant": 123, "gap": 126, "partial": 2}` |
+| auth_context | `{"conformant": 1, "gap": 126, "partial": 124}` |
+| ui | `{"conformant": 125, "gap": 126}` |
 | agent | `{"gap": 251}` |
 | live | `{"gap": 251}` |
 
@@ -52,39 +52,39 @@ This report is generated from the same data as the machine-readable operation co
 
 | Method | Path | operationId | Family | Disposition | Route | Request | Response | Auth/context | UI | Agent | Live | Tracker |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `GET` | `/api/v1/collections/{id}/export` | `export_collection` | collections | gap | conformant | gap | gap | gap | gap | gap | gap | #290 |
-| `POST` | `/api/v1/document-types/detect` | `detect_document_type` | document_types | partial | conformant | conformant | conformant | partial | partial | gap | gap | #290 |
-| `PATCH` | `/api/v1/document-types/{name}` | `update_document_type` | document_types | partial | conformant | conformant | conformant | partial | conformant | gap | gap | #290 |
-| `GET` | `/api/v1/extraction/stats` | `extraction_stats` | jobs | gap | conformant | not_applicable | gap | gap | gap | gap | gap | #290 |
-| `GET` | `/api/v1/graph/diagnostics` | `graph_diagnostics` | graph | gap | conformant | not_applicable | gap | gap | gap | gap | gap | #290 |
-| `GET` | `/api/v1/graph/diagnostics/compare` | `compare_diagnostics_snapshots` | graph | gap | conformant | gap | gap | gap | gap | gap | gap | #290 |
-| `GET` | `/api/v1/graph/diagnostics/history` | `list_diagnostics_snapshots` | graph | gap | conformant | not_applicable | gap | gap | gap | gap | gap | #290 |
-| `POST` | `/api/v1/graph/diagnostics/snapshot` | `capture_diagnostics_snapshot` | graph | gap | conformant | gap | gap | gap | gap | gap | gap | #290 |
-| `GET` | `/api/v1/health/access-frequency` | `get_access_frequency` | knowledge_health | gap | conformant | not_applicable | gap | gap | gap | gap | gap | #290 |
-| `POST` | `/api/v1/inference/complete` | `complete` | inference | gap | conformant | gap | gap | gap | gap | gap | gap | #290 |
-| `GET` | `/api/v1/inference/config` | `get_inference_config` | inference | partial | conformant | conformant | conformant | partial | conformant | gap | gap | #290 |
+| `GET` | `/api/v1/collections/{id}/export` | `export_collection` | collections | partial | conformant | conformant | conformant | partial | conformant | gap | gap | #295 |
+| `POST` | `/api/v1/document-types/detect` | `detect_document_type` | document_types | partial | conformant | conformant | conformant | partial | conformant | gap | gap | #295 |
+| `PATCH` | `/api/v1/document-types/{name}` | `update_document_type` | document_types | partial | conformant | conformant | conformant | partial | conformant | gap | gap | #295 |
+| `GET` | `/api/v1/extraction/stats` | `extraction_stats` | jobs | partial | conformant | conformant | conformant | partial | conformant | gap | gap | #295/#296 |
+| `GET` | `/api/v1/graph/diagnostics` | `graph_diagnostics` | graph | partial | conformant | conformant | conformant | partial | conformant | gap | gap | #295/#296 |
+| `GET` | `/api/v1/graph/diagnostics/compare` | `compare_diagnostics_snapshots` | graph | partial | conformant | conformant | conformant | partial | conformant | gap | gap | #295/#296 |
+| `GET` | `/api/v1/graph/diagnostics/history` | `list_diagnostics_snapshots` | graph | partial | conformant | conformant | conformant | partial | conformant | gap | gap | #295/#296 |
+| `POST` | `/api/v1/graph/diagnostics/snapshot` | `capture_diagnostics_snapshot` | graph | partial | conformant | conformant | conformant | partial | conformant | gap | gap | #295/#296 |
+| `GET` | `/api/v1/health/access-frequency` | `get_access_frequency` | knowledge_health | partial | conformant | conformant | conformant | partial | conformant | gap | gap | #296 |
+| `POST` | `/api/v1/inference/complete` | `complete` | inference | partial | conformant | conformant | conformant | partial | conformant | gap | gap | #296 |
+| `GET` | `/api/v1/inference/config` | `get_inference_config` | inference | partial | conformant | conformant | conformant | partial | conformant | gap | gap | #296 |
 | `POST` | `/api/v1/inference/config` | `update_inference_config` | inference | partial | conformant | conformant | conformant | partial | conformant | gap | gap | #290 |
 | `DELETE` | `/api/v1/inference/config` | `delete_inference_config` | inference | partial | conformant | not_applicable | partial | partial | conformant | gap | gap | #290 |
-| `GET` | `/api/v1/inference/config/audit` | `get_inference_config_audit` | inference | partial | conformant | conformant | conformant | partial | conformant | gap | gap | #290 |
-| `GET` | `/api/v1/inference/providers` | `list_providers` | inference | gap | conformant | not_applicable | gap | gap | gap | gap | gap | #290 |
-| `POST` | `/api/v1/inference/stream` | `stream` | inference | gap | conformant | gap | gap | gap | gap | gap | gap | #290 |
+| `GET` | `/api/v1/inference/config/audit` | `get_inference_config_audit` | inference | partial | conformant | conformant | conformant | partial | conformant | gap | gap | #296 |
+| `GET` | `/api/v1/inference/providers` | `list_providers` | inference | partial | conformant | conformant | conformant | partial | conformant | gap | gap | #296 |
+| `POST` | `/api/v1/inference/stream` | `stream` | inference | partial | conformant | conformant | conformant | partial | conformant | gap | gap | #296 |
 | `POST` | `/api/v1/inference/test-connection` | `test_connection` | inference | partial | conformant | conformant | conformant | partial | conformant | gap | gap | #290 |
-| `GET` | `/api/v1/jobs` | `list_jobs` | jobs | integrated | conformant | conformant | conformant | conformant | conformant | gap | gap | #290 |
+| `GET` | `/api/v1/jobs` | `list_jobs` | jobs | integrated | conformant | conformant | conformant | conformant | conformant | gap | gap | #296 |
 | `POST` | `/api/v1/jobs` | `create_job` | jobs | gap | conformant | gap | gap | gap | gap | gap | gap | #290 |
-| `GET` | `/api/v1/jobs/{id}` | `get_job` | jobs | gap | conformant | gap | gap | gap | gap | gap | gap | #290 |
-| `POST` | `/api/v1/provenance/devices` | `create_prov_device` | provenance | partial | conformant | conformant | conformant | partial | gap | gap | gap | #290 |
-| `POST` | `/api/v1/provenance/files` | `create_file_provenance` | provenance | partial | conformant | conformant | conformant | partial | gap | gap | gap | #290 |
-| `POST` | `/api/v1/provenance/locations` | `create_prov_location` | provenance | partial | conformant | conformant | conformant | partial | gap | gap | gap | #290 |
-| `POST` | `/api/v1/provenance/named-locations` | `create_named_location` | provenance | partial | conformant | conformant | conformant | partial | gap | gap | gap | #290 |
-| `POST` | `/api/v1/provenance/notes` | `create_note_provenance` | provenance | partial | conformant | conformant | conformant | partial | gap | gap | gap | #290 |
+| `GET` | `/api/v1/jobs/{id}` | `get_job` | jobs | partial | conformant | conformant | conformant | partial | conformant | gap | gap | #295/#296 |
+| `POST` | `/api/v1/provenance/devices` | `create_prov_device` | provenance | partial | conformant | conformant | conformant | partial | conformant | gap | gap | #295 |
+| `POST` | `/api/v1/provenance/files` | `create_file_provenance` | provenance | partial | conformant | conformant | conformant | partial | conformant | gap | gap | #295 |
+| `POST` | `/api/v1/provenance/locations` | `create_prov_location` | provenance | partial | conformant | conformant | conformant | partial | conformant | gap | gap | #295 |
+| `POST` | `/api/v1/provenance/named-locations` | `create_named_location` | provenance | partial | conformant | conformant | conformant | partial | conformant | gap | gap | #295 |
+| `POST` | `/api/v1/provenance/notes` | `create_note_provenance` | provenance | partial | conformant | conformant | conformant | partial | conformant | gap | gap | #295 |
 | `GET` | `/api/v1/templates` | `list_templates` | templates | partial | conformant | not_applicable | conformant | partial | conformant | gap | gap | #290 |
 | `POST` | `/api/v1/templates` | `create_template` | templates | partial | conformant | conformant | conformant | partial | conformant | gap | gap | #290 |
-| `GET` | `/api/v1/templates/{id}` | `get_template` | templates | partial | conformant | conformant | conformant | partial | partial | gap | gap | #290 |
+| `GET` | `/api/v1/templates/{id}` | `get_template` | templates | partial | conformant | conformant | conformant | partial | conformant | gap | gap | #295 |
 | `DELETE` | `/api/v1/templates/{id}` | `delete_template` | templates | partial | conformant | not_applicable | partial | partial | conformant | gap | gap | #290 |
 | `PATCH` | `/api/v1/templates/{id}` | `update_template` | templates | partial | conformant | conformant | conformant | partial | conformant | gap | gap | #290 |
-| `POST` | `/api/v1/templates/{id}/instantiate` | `instantiate_template` | templates | partial | conformant | conformant | conformant | partial | partial | gap | gap | #290 |
-| `PATCH` | `/api/v1/webhooks/{id}` | `update_webhook` | outbound_webhooks | partial | conformant | conformant | conformant | partial | conformant | gap | gap | #290 |
-| `GET` | `/api/v1/webhooks/{id}/deliveries` | `list_webhook_deliveries` | outbound_webhooks | partial | conformant | conformant | conformant | partial | conformant | gap | gap | #290 |
+| `POST` | `/api/v1/templates/{id}/instantiate` | `instantiate_template` | templates | partial | conformant | conformant | conformant | partial | conformant | gap | gap | #295 |
+| `PATCH` | `/api/v1/webhooks/{id}` | `update_webhook` | outbound_webhooks | partial | conformant | conformant | conformant | partial | conformant | gap | gap | #296 |
+| `GET` | `/api/v1/webhooks/{id}/deliveries` | `list_webhook_deliveries` | outbound_webhooks | partial | conformant | conformant | conformant | partial | conformant | gap | gap | #296 |
 
 ## Operation Matrix
 
@@ -141,7 +141,7 @@ This report is generated from the same data as the machine-readable operation co
 | `GET` | `/api/v1/collections/{id}` | `get_collection` | collections | partial | covered | false |
 | `DELETE` | `/api/v1/collections/{id}` | `delete_collection` | collections | partial | covered | false |
 | `PATCH` | `/api/v1/collections/{id}` | `update_collection` | collections | partial | covered | false |
-| `GET` | `/api/v1/collections/{id}/export` | `export_collection` | collections | gap | covered | true |
+| `GET` | `/api/v1/collections/{id}/export` | `export_collection` | collections | partial | covered | true |
 | `GET` | `/api/v1/collections/{id}/notes` | `get_collection_notes` | collections | partial | covered | false |
 | `GET` | `/api/v1/concepts` | `search_concepts` | concepts | partial | covered | false |
 | `POST` | `/api/v1/concepts` | `create_concept` | concepts | partial | covered | false |
@@ -199,19 +199,19 @@ This report is generated from the same data as the machine-readable operation co
 | `POST` | `/api/v1/embedding-sets/{slug}/members` | `add_embedding_set_members` | embeddings | partial | covered | false |
 | `DELETE` | `/api/v1/embedding-sets/{slug}/members/{note_id}` | `remove_embedding_set_member` | embeddings | partial | covered | false |
 | `POST` | `/api/v1/embedding-sets/{slug}/refresh` | `refresh_embedding_set` | embeddings | partial | covered | false |
-| `GET` | `/api/v1/extraction/stats` | `extraction_stats` | jobs | gap | covered | true |
+| `GET` | `/api/v1/extraction/stats` | `extraction_stats` | jobs | partial | covered | true |
 | `GET` | `/api/v1/graph/cold-spots` | `get_cold_spots` | graph | partial | covered | false |
 | `POST` | `/api/v1/graph/community/coarse` | `coarse_community_detection` | graph | partial | covered | false |
-| `GET` | `/api/v1/graph/diagnostics` | `graph_diagnostics` | graph | gap | covered | true |
-| `GET` | `/api/v1/graph/diagnostics/compare` | `compare_diagnostics_snapshots` | graph | gap | covered | true |
-| `GET` | `/api/v1/graph/diagnostics/history` | `list_diagnostics_snapshots` | graph | gap | covered | true |
-| `POST` | `/api/v1/graph/diagnostics/snapshot` | `capture_diagnostics_snapshot` | graph | gap | covered | true |
+| `GET` | `/api/v1/graph/diagnostics` | `graph_diagnostics` | graph | partial | covered | true |
+| `GET` | `/api/v1/graph/diagnostics/compare` | `compare_diagnostics_snapshots` | graph | partial | covered | true |
+| `GET` | `/api/v1/graph/diagnostics/history` | `list_diagnostics_snapshots` | graph | partial | covered | true |
+| `POST` | `/api/v1/graph/diagnostics/snapshot` | `capture_diagnostics_snapshot` | graph | partial | covered | true |
 | `POST` | `/api/v1/graph/maintenance` | `trigger_graph_maintenance` | graph | partial | covered | false |
 | `POST` | `/api/v1/graph/pfnet/sparsify` | `pfnet_sparsify` | graph | partial | covered | false |
 | `POST` | `/api/v1/graph/snn/recompute` | `recompute_snn_scores` | graph | partial | covered | false |
 | `GET` | `/api/v1/graph/topology/stats` | `graph_topology_stats` | graph | partial | covered | false |
 | `GET` | `/api/v1/graph/{id}` | `explore_graph` | graph | partial | covered | false |
-| `GET` | `/api/v1/health/access-frequency` | `get_access_frequency` | knowledge_health | gap | covered | true |
+| `GET` | `/api/v1/health/access-frequency` | `get_access_frequency` | knowledge_health | partial | covered | true |
 | `GET` | `/api/v1/health/knowledge` | `get_knowledge_health` | knowledge_health | partial | covered | false |
 | `GET` | `/api/v1/health/orphan-tags` | `get_orphan_tags` | knowledge_health | partial | covered | false |
 | `GET` | `/api/v1/health/stale-notes` | `get_stale_notes` | knowledge_health | partial | covered | false |
@@ -221,13 +221,13 @@ This report is generated from the same data as the machine-readable operation co
 | `GET` | `/api/v1/inbound-sources` | `list_inbound_sources` | inbound_sources | partial | covered | false |
 | `POST` | `/api/v1/inbound-sources` | `create_inbound_source` | inbound_sources | partial | covered | false |
 | `DELETE` | `/api/v1/inbound-sources/{name}` | `delete_inbound_source` | inbound_sources | partial | covered | false |
-| `POST` | `/api/v1/inference/complete` | `complete` | inference | gap | covered | true |
+| `POST` | `/api/v1/inference/complete` | `complete` | inference | partial | covered | true |
 | `GET` | `/api/v1/inference/config` | `get_inference_config` | inference | partial | covered | true |
 | `POST` | `/api/v1/inference/config` | `update_inference_config` | inference | partial | covered | true |
 | `DELETE` | `/api/v1/inference/config` | `delete_inference_config` | inference | partial | covered | true |
 | `GET` | `/api/v1/inference/config/audit` | `get_inference_config_audit` | inference | partial | covered | true |
-| `GET` | `/api/v1/inference/providers` | `list_providers` | inference | gap | covered | true |
-| `POST` | `/api/v1/inference/stream` | `stream` | inference | gap | covered | true |
+| `GET` | `/api/v1/inference/providers` | `list_providers` | inference | partial | covered | true |
+| `POST` | `/api/v1/inference/stream` | `stream` | inference | partial | covered | true |
 | `POST` | `/api/v1/inference/test-connection` | `test_connection` | inference | partial | covered | true |
 | `POST` | `/api/v1/ingest/tokens` | `mint_ingest_token` | streaming_ingest | partial | covered | false |
 | `DELETE` | `/api/v1/ingest/tokens/{token_id}` | `revoke_ingest_token` | streaming_ingest | partial | covered | false |
@@ -240,7 +240,7 @@ This report is generated from the same data as the machine-readable operation co
 | `POST` | `/api/v1/jobs/resume/{archive}` | `resume_jobs_archive` | jobs | partial | covered | false |
 | `GET` | `/api/v1/jobs/stats` | `queue_stats` | jobs | partial | covered | false |
 | `GET` | `/api/v1/jobs/status` | `get_job_pause_status` | jobs | partial | covered | false |
-| `GET` | `/api/v1/jobs/{id}` | `get_job` | jobs | gap | covered | true |
+| `GET` | `/api/v1/jobs/{id}` | `get_job` | jobs | partial | covered | true |
 | `GET` | `/api/v1/memories` | `list_archives_memory_alias` | archives | partial | covered | false |
 | `POST` | `/api/v1/memories` | `create_archive_memory_alias` | archives | partial | covered | false |
 | `GET` | `/api/v1/memories/overview` | `memories_overview` | archives | partial | covered | false |

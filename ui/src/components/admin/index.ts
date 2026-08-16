@@ -5,3 +5,4 @@
 
 export { AdminPanel } from './AdminPanel';
 export type { AdminPanelProps } from './AdminPanel';
+export { OperatorConsole } from './OperatorConsole';

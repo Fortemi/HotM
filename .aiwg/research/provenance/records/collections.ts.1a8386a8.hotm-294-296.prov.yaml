@@ -1,0 +1,54 @@
+metadata:
+  schema_version: "1.0.0"
+  created_at: "2026-08-16T14:30:00Z"
+  updated_at: "2026-08-16T14:30:00Z"
+  description: "Provenance for HotM Fortemi integration remediation issues #294, #295, and #296"
+entity:
+  id: "urn:aiwg:artifact:ui/src/api/collections.ts"
+  type: "software"
+  created_at: "2026-08-16T14:30:00Z"
+  updated_at: "2026-08-16T14:30:00Z"
+  checksum: "sha256:7d65757ec0cc4701d21a75bc7905408d065022f2b8318797f180c4aa5a17c27f"
+  size_bytes: 7154
+  attributes:
+    change_scope: "hotm-294-296-fortemi-integration-remediation"
+    base_revision: "63e143de39c7a834c1b7c4144d24a42c3dc7bad2"
+activity:
+  id: "urn:aiwg:activity:modification:ui-src-api-collections-ts:hotm-294-296"
+  type: "modification"
+  started_at: "2026-08-16T14:30:00Z"
+  ended_at: "2026-08-16T14:30:00Z"
+  description: "Implement and verify exact pinned core/operator workflows and remove the stale note-link mutation claim"
+agent:
+  id: "urn:aiwg:agent:codex-gpt-5"
+  type: "ai_assistant"
+  name: "Codex"
+  version: "gpt-5"
+  tool: "codex"
+relationships:
+  wasGeneratedBy:
+    entity: "urn:aiwg:artifact:ui/src/api/collections.ts"
+    activity: "urn:aiwg:activity:modification:ui-src-api-collections-ts:hotm-294-296"
+    time: "2026-08-16T14:30:00Z"
+  used:
+    - activity: "urn:aiwg:activity:modification:ui-src-api-collections-ts:hotm-294-296"
+      entity: "urn:gitea:Fortemi/HotM:issue:294"
+      role: "requirement"
+    - activity: "urn:aiwg:activity:modification:ui-src-api-collections-ts:hotm-294-296"
+      entity: "urn:gitea:Fortemi/HotM:issue:295"
+      role: "requirement"
+    - activity: "urn:aiwg:activity:modification:ui-src-api-collections-ts:hotm-294-296"
+      entity: "urn:gitea:Fortemi/HotM:issue:296"
+      role: "requirement"
+  wasDerivedFrom:
+    - entity: "urn:aiwg:artifact:ui/src/api/collections.ts"
+      source: "urn:git:git@git.integrolabs.net:Fortemi/HotM.git:63e143de39c7a834c1b7c4144d24a42c3dc7bad2:ui/src/api/collections.ts"
+      derivation_type: "modifies"
+      activity: "urn:aiwg:activity:modification:ui-src-api-collections-ts:hotm-294-296"
+  wasAssociatedWith:
+    activity: "urn:aiwg:activity:modification:ui-src-api-collections-ts:hotm-294-296"
+    agent: "urn:aiwg:agent:codex-gpt-5"
+    role: "primary_author"
+  wasAttributedTo:
+    entity: "urn:aiwg:artifact:ui/src/api/collections.ts"
+    agent: "urn:aiwg:agent:codex-gpt-5"

@@ -10,7 +10,7 @@
  */
 
 import * as React from 'react';
-import { Settings, Shield, Database, Cpu, Lock, Info, Sparkles, ScrollText, Server, RefreshCw, ListTree } from 'lucide-react';
+import { Settings, Shield, Database, Cpu, Lock, Info, Sparkles, ScrollText, Server, RefreshCw, ListTree, Activity, FileStack } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -27,6 +27,8 @@ import { DocumentTypesPanel } from './DocumentTypesPanel';
 import { WebhooksPanel } from './WebhooksPanel';
 import { ApiCapabilitiesPanel } from './ApiCapabilitiesPanel';
 import { OperationCatalogPanel } from './OperationCatalogPanel';
+import { OperatorConsole } from './OperatorConsole';
+import { CoreContentLifecyclePanel } from './CoreContentLifecyclePanel';
 
 export interface AdminPanelProps {
   className?: string;
@@ -266,7 +268,7 @@ export function AdminPanel({ className }: AdminPanelProps) {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList>
+        <TabsList className="h-auto w-full justify-start overflow-x-auto">
           <TabsTrigger value="system">
             <Database className="size-4" />
             System Info
@@ -278,6 +280,14 @@ export function AdminPanel({ className }: AdminPanelProps) {
           <TabsTrigger value="operations">
             <ListTree className="size-4" />
             Operations
+          </TabsTrigger>
+          <TabsTrigger value="operator">
+            <Activity className="size-4" />
+            Operator
+          </TabsTrigger>
+          <TabsTrigger value="content-lifecycle">
+            <FileStack className="size-4" />
+            Content Lifecycle
           </TabsTrigger>
           <TabsTrigger value="inference">
             <Sparkles className="size-4" />
@@ -447,6 +457,14 @@ export function AdminPanel({ className }: AdminPanelProps) {
 
         <TabsContent value="operations">
           <OperationCatalogPanel />
+        </TabsContent>
+
+        <TabsContent value="operator">
+          <OperatorConsole />
+        </TabsContent>
+
+        <TabsContent value="content-lifecycle">
+          <CoreContentLifecyclePanel />
         </TabsContent>
 
         {/* Inference Tab */}

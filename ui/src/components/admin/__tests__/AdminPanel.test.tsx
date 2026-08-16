@@ -11,6 +11,7 @@ import type { EmbeddingConfig, KnowledgeHealth } from '@/api';
 
 // Mock the API
 vi.mock('@/api', () => ({
+  isOperatorSnapshotStale: vi.fn(() => false),
   api: {
     client: { baseUrl: 'http://localhost:3000', get: vi.fn() },
     healthCheck: vi.fn(),
@@ -38,6 +39,11 @@ vi.mock('@/api', () => ({
       create: vi.fn(),
       delete: vi.fn(),
       test: vi.fn(),
+    },
+    operator: {
+      loadSnapshot: vi.fn(),
+      inspect: vi.fn(),
+      runAction: vi.fn(),
     },
   },
 }));
@@ -150,6 +156,19 @@ describe('AdminPanel', () => {
     (api.client.get as any).mockResolvedValue(mockSystemHealth);
     (api.documents.list as any).mockResolvedValue([]);
     (api.webhooks.list as any).mockResolvedValue([]);
+    (api.operator.loadSnapshot as any).mockResolvedValue({
+      state: 'success',
+      fetchedAt: new Date().toISOString(),
+      mutation: { state: 'allowed', reason: 'compatible_local_operator' },
+      diagnostics: [{
+        id: 'compatibility',
+        domain: 'compatibility',
+        label: 'Compatibility',
+        state: 'available',
+        metrics: [{ label: 'contract admitted', value: true }],
+        operationIds: ['system_compatibility'],
+      }],
+    });
   });
 
   describe('Rendering', () => {
@@ -214,6 +233,14 @@ describe('AdminPanel', () => {
         expect(screen.getByText('Deferred import')).toBeInTheDocument();
         expect(screen.getAllByText('Webhooks').length).toBeGreaterThan(0);
       });
+    });
+
+    it('opens the operator console from the admin navigation', async () => {
+      const user = userEvent.setup();
+      render(<AdminPanel />);
+      await user.click(screen.getByRole('tab', { name: 'Operator' }));
+      expect(await screen.findByText('Operator Console')).toBeInTheDocument();
+      expect(screen.getByText('contract admitted')).toBeInTheDocument();
     });
 
     it('HUX-REQ-004 keeps local admin workflows reachable when enterprise compatibility discovery is absent', async () => {

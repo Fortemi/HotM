@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { createApiClient } from '../client';
-import { ApiError, NetworkError } from '../errors';
+import { ApiError, ContractDecodeError, NetworkError } from '../errors';
 import { clearActiveMemory, setActiveMemory } from '../memory-context';
 
 // Mock fetch globally
@@ -107,6 +107,44 @@ describe('API Client', () => {
           })
         })
       );
+    });
+  });
+
+  describe('bounded text responses', () => {
+    it('accepts a response exactly at the configured byte boundary', async () => {
+      mockFetch.mockResolvedValueOnce(new Response('four', {
+        status: 200,
+        headers: { 'Content-Length': '4', 'Content-Type': 'text/plain' },
+      }));
+
+      await expect(client.getText('/export', undefined, undefined, 4)).resolves.toBe('four');
+    });
+
+    it('fails closed when a streamed response exceeds the configured byte limit', async () => {
+      mockFetch.mockResolvedValueOnce(new Response('oversized', {
+        status: 200,
+        headers: { 'Content-Type': 'text/plain' },
+      }));
+
+      await expect(client.getText('/export', undefined, undefined, 4)).rejects.toBeInstanceOf(ContractDecodeError);
+    });
+
+    it('discards non-JSON error text instead of retaining it in ApiError', async () => {
+      const sensitiveBody = 'private upstream diagnostic';
+      mockFetch.mockResolvedValueOnce(new Response(sensitiveBody, {
+        status: 502,
+        statusText: 'Bad Gateway',
+        headers: { 'Content-Type': 'text/plain' },
+      }));
+
+      try {
+        await client.getText('/export', undefined, undefined, 64);
+        expect.fail('Should have thrown');
+      } catch (error) {
+        expect(error).toBeInstanceOf(ApiError);
+        expect((error as ApiError).response).toBeUndefined();
+        expect(String(error)).not.toContain(sensitiveBody);
+      }
     });
   });
 
@@ -256,7 +294,7 @@ describe('API Client', () => {
       await expect(client.get('/notes')).rejects.toThrow();
     }, 15000);
 
-    it('includes response body in ApiError when available', async () => {
+    it('discards JSON error bodies instead of retaining server details', async () => {
       const errorBody = { error: 'Validation failed', fields: { content: 'Required' } };
       mockFetch.mockResolvedValueOnce({
         ok: false,
@@ -271,9 +309,31 @@ describe('API Client', () => {
       } catch (error) {
         expect(error).toBeInstanceOf(ApiError);
         if (error instanceof ApiError) {
-          expect(error.response).toEqual(errorBody);
+          expect(error.response).toBeUndefined();
+          expect(JSON.stringify(error)).not.toContain('Validation failed');
         }
       }
+    });
+
+    it('parses a streamed JSON response within the transport bound', async () => {
+      mockFetch.mockResolvedValueOnce(new Response(JSON.stringify({ status: 'ok' }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      }));
+
+      await expect(client.get('/status')).resolves.toEqual({ status: 'ok' });
+    });
+
+    it('rejects JSON before buffering when Content-Length exceeds the transport bound', async () => {
+      mockFetch.mockResolvedValueOnce(new Response('{}', {
+        status: 200,
+        headers: {
+          'Content-Type': 'application/json',
+          'Content-Length': String(16 * 1024 * 1024 + 1),
+        },
+      }));
+
+      await expect(client.get('/status')).rejects.toBeInstanceOf(ContractDecodeError);
     });
   });
 

@@ -400,7 +400,7 @@ OpenAPI operation matrix in addition to the route-disposition inventory. The
 matrix keys evidence by HTTP method, path, and operation ID and evaluates route,
 request, response, auth/context, UI, agent, and live-receipt dimensions
 independently. At the pinned 251-operation baseline it reports 1 integrated,
-238 partial, and 12 gap operations. Those counts are the architecture baseline;
+249 partial, and 1 gap operation. Those counts are the architecture baseline;
 the 188 covered route dispositions remain discovery evidence only.
 
 The realtime boundary now validates all 48 pinned event schemas using
@@ -439,6 +439,34 @@ The generated disposition ledger classifies all 251 pinned operations: 16 UI
 workflows, 11 curated agent workflows, 183 read-only operator diagnostics, and
 41 documented protocol exclusions. Privilege classes are 65 admin, 21 delete,
 96 read, and 69 write. This is product-disposition evidence only and does not
-alter request, response, auth, or live conformance. Explicit note-link mutation
-was removed from both agent registries because current Fortemi exposes only the
-GET operation; #294 owns the replacement-contract decision.
+alter request, response, auth, or live conformance. The #294 authority review
+compared the pinned OpenAPI producer revision and current Fortemi
+`48bc0a0bd68fd9e4eeb742c5af8a54207cbcc425`: both expose only authenticated
+GET link/backlink reads. Direct user-authored link mutation is therefore a
+removed product contract, not a deferred HotM client operation. HotM keeps
+semantic and wiki-link creation server-owned and exposes no create/delete link
+method, agent tool, prompt claim, or static API specification.
+
+### Core And Operator Workflow Amendment (2026-08-16)
+
+Issues #295 and #296 add two compatibility-admitted Admin surfaces backed by
+exact pinned operations. The core lifecycle surface promotes 60 entries across
+notes, provenance, collections, templates, document types, jobs, SKOS, and
+graph workflows. The operator console promotes 76 entries across compatibility,
+inference, health, storage, jobs, webhooks/inbound sources, backup/archive,
+embeddings, and graph maintenance. After 18 overlaps, this is 118 unique
+method/path/operation-ID tuples.
+
+Both surfaces use bounded typed decoders, redacted receipts, independent
+partial/unauthorized/unavailable/incompatible states, and confirmation for
+every mutation exposed by the operator console or destructive core workflow.
+Compatibility admission fails closed for remote mutation while local-only
+workflows remain available. Mocked desktop/mobile receipts establish UI
+behavior only. Operation-specific authorization, agent workflows, and live
+Fortemi outcomes remain independent gaps, so these rows remain `partial` in the
+operation conformance ledger.
+
+Secret-bearing webhook/inbound creation, credential/key administration,
+binary backup/archive transfer, and Knowledge Shard transfer are not promoted
+by these amendments. They remain within #297's explicit authorization and
+profile-specific verification boundary.

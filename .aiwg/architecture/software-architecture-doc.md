@@ -403,7 +403,6 @@ Base URL: `http://127.0.0.1:53211/api/v1`
 | DELETE | `/notes/{id}` | Soft delete note |
 | PUT | `/notes/{id}/revised` | Update revision content |
 | GET | `/notes/{id}/provenance` | Get revision history |
-| POST | `/notes/{id}/links` | Create link to another note |
 | GET | `/notes/{id}/links` | Get note's links |
 
 **Search**:

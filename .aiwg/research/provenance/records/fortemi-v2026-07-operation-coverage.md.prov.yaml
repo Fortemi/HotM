@@ -1,39 +1,54 @@
 metadata:
   schema_version: "1.0.0"
   created_at: "2026-08-15T00:00:00Z"
-  description: "Provenance for generated HotM #290 operation coverage Markdown"
+  updated_at: "2026-08-16T14:30:00Z"
+  description: "Provenance for HotM Fortemi integration remediation issues #294, #295, and #296"
 entity:
   id: "urn:aiwg:artifact:.aiwg/api/compatibility/fortemi-v2026-07-operation-coverage.md"
-  type: report
+  type: "report"
   created_at: "2026-08-15T00:00:00Z"
-  checksum: "sha256:e5c2391657d61434e632d969ee16ab2fe50e0406415b83e4a6e73994312ab455"
-  size_bytes: 33493
+  updated_at: "2026-08-16T14:30:00Z"
+  checksum: "sha256:010813e9fe195c1eca54215ec816a5e069e74f16c3a98182682bd08709bef4f3"
+  size_bytes: 33864
+  attributes:
+    change_scope: "hotm-294-296-fortemi-integration-remediation"
+    base_revision: "63e143de39c7a834c1b7c4144d24a42c3dc7bad2"
 activity:
-  id: "urn:aiwg:activity:generation:fortemi-operation-coverage-md:001"
-  type: generation
-  started_at: "2026-08-15T00:00:00Z"
-  ended_at: "2026-08-15T00:00:00Z"
-  description: "Generate human-readable operation coverage report from the same data as the JSON report"
+  id: "urn:aiwg:activity:modification:aiwg-api-compatibility-fortemi-v2026-07-operation-coverage-md:hotm-294-296"
+  type: "modification"
+  started_at: "2026-08-16T14:30:00Z"
+  ended_at: "2026-08-16T14:30:00Z"
+  description: "Implement and verify exact pinned core/operator workflows and remove the stale note-link mutation claim"
 agent:
-  id: "urn:aiwg:agent:test-engineer"
-  type: ai_assistant
-  name: "Codex Test Engineer"
+  id: "urn:aiwg:agent:codex-gpt-5"
+  type: "ai_assistant"
+  name: "Codex"
   version: "gpt-5"
   tool: "codex"
 relationships:
   wasGeneratedBy:
     entity: "urn:aiwg:artifact:.aiwg/api/compatibility/fortemi-v2026-07-operation-coverage.md"
-    activity: "urn:aiwg:activity:generation:fortemi-operation-coverage-md:001"
-    time: "2026-08-15T00:00:00Z"
+    activity: "urn:aiwg:activity:modification:aiwg-api-compatibility-fortemi-v2026-07-operation-coverage-md:hotm-294-296"
+    time: "2026-08-16T14:30:00Z"
+  used:
+    - activity: "urn:aiwg:activity:modification:aiwg-api-compatibility-fortemi-v2026-07-operation-coverage-md:hotm-294-296"
+      entity: "urn:gitea:Fortemi/HotM:issue:294"
+      role: "requirement"
+    - activity: "urn:aiwg:activity:modification:aiwg-api-compatibility-fortemi-v2026-07-operation-coverage-md:hotm-294-296"
+      entity: "urn:gitea:Fortemi/HotM:issue:295"
+      role: "requirement"
+    - activity: "urn:aiwg:activity:modification:aiwg-api-compatibility-fortemi-v2026-07-operation-coverage-md:hotm-294-296"
+      entity: "urn:gitea:Fortemi/HotM:issue:296"
+      role: "requirement"
   wasDerivedFrom:
     - entity: "urn:aiwg:artifact:.aiwg/api/compatibility/fortemi-v2026-07-operation-coverage.md"
-      source: "urn:aiwg:artifact:.aiwg/api/compatibility/fortemi-v2026-07-operation-coverage.json"
-      derivation_type: "depends"
-      activity: "urn:aiwg:activity:generation:fortemi-operation-coverage-md:001"
+      source: "urn:git:git@git.integrolabs.net:Fortemi/HotM.git:63e143de39c7a834c1b7c4144d24a42c3dc7bad2:.aiwg/api/compatibility/fortemi-v2026-07-operation-coverage.md"
+      derivation_type: "modifies"
+      activity: "urn:aiwg:activity:modification:aiwg-api-compatibility-fortemi-v2026-07-operation-coverage-md:hotm-294-296"
   wasAssociatedWith:
-    activity: "urn:aiwg:activity:generation:fortemi-operation-coverage-md:001"
-    agent: "urn:aiwg:agent:test-engineer"
+    activity: "urn:aiwg:activity:modification:aiwg-api-compatibility-fortemi-v2026-07-operation-coverage-md:hotm-294-296"
+    agent: "urn:aiwg:agent:codex-gpt-5"
     role: "primary_author"
   wasAttributedTo:
     entity: "urn:aiwg:artifact:.aiwg/api/compatibility/fortemi-v2026-07-operation-coverage.md"
-    agent: "urn:aiwg:agent:test-engineer"
+    agent: "urn:aiwg:agent:codex-gpt-5"

@@ -160,9 +160,9 @@
       }
     },
     "/notes/{id}/links": {
-      "post": {
-        "operationId": "postLink",
-        "summary": "Create link from note to another note or external URL",
+      "get": {
+        "operationId": "get_note_links",
+        "summary": "Get server-generated links for a note",
         "parameters": [
           {
             "name": "id",
@@ -173,26 +173,9 @@
             }
           }
         ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/PostLinkRequest"
-              }
-            }
-          }
-        },
         "responses": {
           "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/PostLinkResponse"
-                }
-              }
-            }
+            "description": "Success"
           }
         }
       }
@@ -878,31 +861,6 @@
         "properties": {
           "graph": {
             "type": "object"
-          }
-        }
-      },
-      "PostLinkRequest": {
-        "type": "object",
-        "properties": {
-          "toNoteId": {
-            "type": "string"
-          },
-          "toUrl": {
-            "type": "string"
-          },
-          "kind": {
-            "type": "string"
-          },
-          "score": {
-            "type": "number"
-          }
-        }
-      },
-      "PostLinkResponse": {
-        "type": "object",
-        "properties": {
-          "linkId": {
-            "type": "string"
           }
         }
       },

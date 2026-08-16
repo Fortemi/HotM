@@ -1,0 +1,54 @@
+metadata:
+  schema_version: "1.0.0"
+  created_at: "2026-08-16T14:30:00Z"
+  updated_at: "2026-08-16T14:30:00Z"
+  description: "Provenance for HotM Fortemi integration remediation issues #294, #295, and #296"
+entity:
+  id: "urn:aiwg:artifact:ui/src/components/admin/__tests__/OperatorConsole.test.tsx"
+  type: "test"
+  created_at: "2026-08-16T14:30:00Z"
+  updated_at: "2026-08-16T14:30:00Z"
+  checksum: "sha256:67a7b427c51a70b0505c329776082eea97fc8a0c37ca1a23e7aa9fb13bc0c96f"
+  size_bytes: 10865
+  attributes:
+    change_scope: "hotm-294-296-fortemi-integration-remediation"
+    base_revision: "63e143de39c7a834c1b7c4144d24a42c3dc7bad2"
+activity:
+  id: "urn:aiwg:activity:generation:ui-src-components-admin-tests-operatorconsole-test-tsx:hotm-294-296"
+  type: "generation"
+  started_at: "2026-08-16T14:30:00Z"
+  ended_at: "2026-08-16T14:30:00Z"
+  description: "Implement and verify exact pinned core/operator workflows and remove the stale note-link mutation claim"
+agent:
+  id: "urn:aiwg:agent:codex-gpt-5"
+  type: "ai_assistant"
+  name: "Codex"
+  version: "gpt-5"
+  tool: "codex"
+relationships:
+  wasGeneratedBy:
+    entity: "urn:aiwg:artifact:ui/src/components/admin/__tests__/OperatorConsole.test.tsx"
+    activity: "urn:aiwg:activity:generation:ui-src-components-admin-tests-operatorconsole-test-tsx:hotm-294-296"
+    time: "2026-08-16T14:30:00Z"
+  used:
+    - activity: "urn:aiwg:activity:generation:ui-src-components-admin-tests-operatorconsole-test-tsx:hotm-294-296"
+      entity: "urn:gitea:Fortemi/HotM:issue:294"
+      role: "requirement"
+    - activity: "urn:aiwg:activity:generation:ui-src-components-admin-tests-operatorconsole-test-tsx:hotm-294-296"
+      entity: "urn:gitea:Fortemi/HotM:issue:295"
+      role: "requirement"
+    - activity: "urn:aiwg:activity:generation:ui-src-components-admin-tests-operatorconsole-test-tsx:hotm-294-296"
+      entity: "urn:gitea:Fortemi/HotM:issue:296"
+      role: "requirement"
+  wasDerivedFrom:
+    - entity: "urn:aiwg:artifact:ui/src/components/admin/__tests__/OperatorConsole.test.tsx"
+      source: "urn:git:git@git.integrolabs.net:Fortemi/fortemi.git:48bc0a0bd68fd9e4eeb742c5af8a54207cbcc425"
+      derivation_type: "implements"
+      activity: "urn:aiwg:activity:generation:ui-src-components-admin-tests-operatorconsole-test-tsx:hotm-294-296"
+  wasAssociatedWith:
+    activity: "urn:aiwg:activity:generation:ui-src-components-admin-tests-operatorconsole-test-tsx:hotm-294-296"
+    agent: "urn:aiwg:agent:codex-gpt-5"
+    role: "primary_author"
+  wasAttributedTo:
+    entity: "urn:aiwg:artifact:ui/src/components/admin/__tests__/OperatorConsole.test.tsx"
+    agent: "urn:aiwg:agent:codex-gpt-5"

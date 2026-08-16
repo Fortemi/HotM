@@ -267,9 +267,16 @@ export interface VersionDiff {
  */
 export interface ConceptScheme {
   id: string;
+  notation?: string;
   title: string;
   description?: string;
   namespace?: string;
+  uri?: string;
+  creator?: string;
+  publisher?: string;
+  rights?: string;
+  version?: string;
+  is_active?: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -278,9 +285,15 @@ export interface ConceptScheme {
  * Create concept scheme request
  */
 export interface CreateConceptSchemeRequest {
+  notation: string;
   title: string;
   description?: string;
   namespace?: string;
+  uri?: string | null;
+  creator?: string | null;
+  publisher?: string | null;
+  rights?: string | null;
+  version?: string | null;
 }
 
 /**
@@ -311,6 +324,15 @@ export interface CreateConceptRequest {
   alt_labels?: string[];
   definition?: string;
   notation?: string;
+  broader_ids?: string[];
+  related_ids?: string[];
+  language?: string;
+  status?: string;
+  facet_type?: string | null;
+  facet_domain?: string | null;
+  facet_scope?: string | null;
+  facet_source?: string | null;
+  scope_note?: string | null;
 }
 
 /**
@@ -336,6 +358,7 @@ export interface ConceptRelation {
  * Add relationship request
  */
 export interface AddConceptRelationRequest {
+  target_id?: string;
   broader_id?: string;
   narrower_id?: string;
   related_id?: string;
@@ -346,9 +369,12 @@ export interface AddConceptRelationRequest {
  */
 export interface SkosCollection {
   id: string;
-  scheme_id: string;
+  scheme_id?: string | null;
   label: string;
+  pref_label?: string;
   description?: string;
+  definition?: string;
+  is_ordered?: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -357,16 +383,25 @@ export interface SkosCollection {
  * Create SKOS collection request
  */
 export interface CreateSkosCollectionRequest {
-  scheme_id: string;
-  label: string;
-  description?: string;
+  scheme_id?: string | null;
+  pref_label: string;
+  is_ordered: boolean;
+  definition?: string | null;
+  concept_ids?: string[] | null;
 }
 
 /**
  * SKOS collection with members
  */
 export interface SkosCollectionWithMembers extends SkosCollection {
-  members: Concept[];
+  members: SkosCollectionMember[];
+}
+
+export interface SkosCollectionMember {
+  concept_id: string;
+  pref_label?: string | null;
+  position?: number | null;
+  added_at: string;
 }
 
 /**
@@ -459,6 +494,9 @@ export interface Template {
   content: string;
   default_tags?: string[];
   variables?: string[];
+  description?: string;
+  format?: string;
+  collection_id?: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -470,6 +508,9 @@ export interface CreateTemplateRequest {
   name: string;
   content: string;
   default_tags?: string[];
+  description?: string | null;
+  format?: string | null;
+  collection_id?: string | null;
 }
 
 /**
@@ -484,7 +525,10 @@ export interface TemplateVariable {
  * Instantiate template request
  */
 export interface InstantiateTemplateRequest {
-  variables: Record<string, string>;
+  variables?: Record<string, string>;
+  tags?: string[] | null;
+  collection_id?: string | null;
+  revision_mode?: string | null;
 }
 
 // ===========================
@@ -495,6 +539,7 @@ export interface InstantiateTemplateRequest {
  * Document type definition
  */
 export interface DocumentType {
+  id?: string;
   name: string;
   display_name: string;
   category: string;
@@ -502,9 +547,20 @@ export interface DocumentType {
   file_extensions?: string[];
   filename_patterns?: string[];
   content_magic?: string[];
+  magic_patterns?: string[];
+  mime_types?: string[];
+  content_types?: string[];
   chunking_strategy: string;
   syntax_language?: string | null;
   embedding_model_hint?: string | null;
+  extraction_strategy?: string;
+  chunk_size_default?: number;
+  chunk_overlap_default?: number;
+  preserve_boundaries?: boolean;
+  requires_attachment?: boolean;
+  attachment_generates_content?: boolean;
+  tree_sitter_language?: string | null;
+  is_active?: boolean;
   is_system: boolean;
   created_at: string;
 }
@@ -520,9 +576,23 @@ export interface CreateDocumentTypeRequest {
   file_extensions?: string[];
   filename_patterns?: string[];
   content_magic?: string[];
+  magic_patterns?: string[];
+  mime_types?: string[];
+  content_types?: string[];
   chunking_strategy: string;
   syntax_language?: string | null;
   embedding_model_hint?: string | null;
+  extraction_strategy?: string;
+  chunk_size_default?: number;
+  chunk_overlap_default?: number;
+  preserve_boundaries?: boolean;
+  requires_attachment?: boolean;
+  attachment_generates_content?: boolean;
+  tree_sitter_language?: string | null;
+  recommended_config_id?: string | null;
+  extraction_config?: Record<string, unknown> | null;
+  chunking_config?: Record<string, unknown> | null;
+  agentic_config?: Record<string, unknown> | null;
 }
 
 /**
@@ -531,22 +601,17 @@ export interface CreateDocumentTypeRequest {
 export interface DetectDocumentTypeRequest {
   filename?: string;
   content?: string;
+  mime_type?: string;
 }
 
 /**
  * Document type detection result
  */
 export interface DetectionResult {
-  document_type: string;
-  confidence: number;
-  detection_method: string;
-  category: string;
-  chunking_strategy: string;
-  alternatives?: Array<{
-    document_type: string;
-    confidence: number;
-    detection_method: string;
-  }>;
+  matched: boolean;
+  document_type: DocumentType | null;
+  confidence: number | null;
+  detection_method: string | null;
 }
 
 /**

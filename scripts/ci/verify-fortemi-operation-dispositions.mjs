@@ -13,7 +13,6 @@ const CURATED_AGENT_OPERATIONS = new Set([
   'get_note',
   'create_job',
   'set_note_tags',
-  'create_note_link',
   'list_collections',
   'search_concepts',
   'get_related_notes',
@@ -125,6 +124,11 @@ const serialized = `${JSON.stringify(ledger, null, 2)}\n`;
 
 if (ledger.operation_count !== 251 || new Set(ledger.operations.map(({ key }) => key)).size !== ledger.operation_count) {
   throw new Error('operation disposition ledger is incomplete or contains duplicate keys');
+}
+if (ledger.operations.some(({ method, path }) => (
+  path === '/api/v1/notes/{id}/links' && method !== 'GET'
+))) {
+  throw new Error('removed explicit note-link mutations must not appear in the pinned operation ledger');
 }
 if (process.argv.includes('--check')) {
   if (readFileSync(outputPath, 'utf8') !== serialized) {

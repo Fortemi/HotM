@@ -193,7 +193,7 @@ REQ-020 is now enforced by the generated method/path/operation-ID matrix at
 `.aiwg/api/compatibility/fortemi-v2026-07-operation-coverage.json`. Its seven
 dimensions are independent, and an operation cannot become integrated from
 route or file-presence evidence. The pinned baseline is 251 operations: 1
-integrated, 238 partial, and 12 gap. REQ-021 therefore remains open for the
+integrated, 249 partial, and 1 gap. REQ-021 therefore remains open for the
 partial/gap workflows even though all 202 routes have a disposition.
 
 REQ-014 has schema-derived coverage for all 48 pinned event schemas over SSE and
@@ -229,4 +229,30 @@ REQ-021 now has a complete product-disposition ledger and operator catalog for
 251 operations, with a CI stale-ledger check. The ledger records 16 UI, 11
 agent, 183 diagnostic, and 41 excluded rows, but does not convert partial/gap
 operation conformance into support. #287 remains open for family workflows and
-browser receipts. The removed note-link mutation is tracked by #294.
+browser receipts.
+
+The #294 contract decision removes direct link mutation from HotM. The pinned
+and current producer authorities contain only GET link/backlink operations, so
+the UI API exposes no create/delete methods and both agent registries omit the
+historical tool. Server-generated semantic/wiki links remain a separate
+Fortemi behavior. Any future mutation requires a new pinned operation with
+request, response, auth/context, privilege, altered-argument, and live evidence
+before it can satisfy these requirements.
+
+## Core And Operator Workflow Receipt (2026-08-16)
+
+REQ-020 and REQ-021 gain executable request, response, and responsive UI
+evidence for 118 unique pinned operations: 60 #295 core entries and 76 #296
+operator entries with 18 overlaps. Exact tuple checks reject contract drift;
+bounded decoders reject malformed or oversized responses; remote mutation is
+compatibility-admitted; destructive and operator mutations require explicit
+confirmation; rendered receipts exclude raw credentials, tenant identifiers,
+paths, webhook secrets, and server error bodies.
+
+These operations remain `partial`, not fully integrated, until their
+operation-specific authorization and live-server receipts exist. Agent
+coverage remains independent. Secret/key administration, secret-bearing
+webhook/inbound creation, binary backup/archive movement, and Knowledge Shard
+transfer remain outside promotion and under #297. The generated 251-operation
+result is therefore 1 integrated, 249 partial, and 1 gap with zero verifier
+diagnostics.
