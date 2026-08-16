@@ -1,15 +1,15 @@
 metadata:
   schema_version: "1.0.0"
   created_at: "2026-08-16T14:30:00Z"
-  updated_at: "2026-08-16T14:30:00Z"
+  updated_at: "2026-08-16T14:42:50Z"
   description: "Provenance for HotM Fortemi integration remediation issues #294, #295, and #296"
 entity:
   id: "urn:aiwg:artifact:ui/src/components/admin/__tests__/CoreContentLifecyclePanelSecondIncrement.test.tsx"
   type: "test"
   created_at: "2026-08-16T14:30:00Z"
-  updated_at: "2026-08-16T14:30:00Z"
-  checksum: "sha256:9f78b4151766986dd23e219068a2fc0d5510cb3f6c87d402c9959e185a4a89c6"
-  size_bytes: 17035
+  updated_at: "2026-08-16T14:42:50Z"
+  checksum: "sha256:ebdd94bca67b9ca60f06b823166dd38e75e2babd4792be76ce6973e27af47c14"
+  size_bytes: 17051
   attributes:
     change_scope: "hotm-294-296-fortemi-integration-remediation"
     base_revision: "63e143de39c7a834c1b7c4144d24a42c3dc7bad2"
@@ -17,8 +17,8 @@ activity:
   id: "urn:aiwg:activity:generation:ui-src-components-admin-tests-corecontentlifecyclepanelsecondincrement-test-tsx:hotm-294-296"
   type: "generation"
   started_at: "2026-08-16T14:30:00Z"
-  ended_at: "2026-08-16T14:30:00Z"
-  description: "Implement and verify exact pinned core/operator workflows and remove the stale note-link mutation claim"
+  ended_at: "2026-08-16T14:42:50Z"
+  description: "Stabilize exhaustive Fortemi admin workflow coverage under the instrumented CI test load"
 agent:
   id: "urn:aiwg:agent:codex-gpt-5"
   type: "ai_assistant"
@@ -29,7 +29,7 @@ relationships:
   wasGeneratedBy:
     entity: "urn:aiwg:artifact:ui/src/components/admin/__tests__/CoreContentLifecyclePanelSecondIncrement.test.tsx"
     activity: "urn:aiwg:activity:generation:ui-src-components-admin-tests-corecontentlifecyclepanelsecondincrement-test-tsx:hotm-294-296"
-    time: "2026-08-16T14:30:00Z"
+    time: "2026-08-16T14:42:50Z"
   used:
     - activity: "urn:aiwg:activity:generation:ui-src-components-admin-tests-corecontentlifecyclepanelsecondincrement-test-tsx:hotm-294-296"
       entity: "urn:gitea:Fortemi/HotM:issue:294"

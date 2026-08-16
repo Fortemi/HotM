@@ -138,10 +138,11 @@ describe('OperatorConsole', () => {
       'Delete webhook',
     ];
     for (const name of controls) {
-      await userEvent.click(screen.getByRole('button', { name }));
+      fireEvent.click(screen.getByRole('button', { name }));
       expect(screen.getByRole('alertdialog')).toBeInTheDocument();
       expect(screen.getByText('Confirm operator control')).toBeInTheDocument();
-      await userEvent.click(screen.getByRole('button', { name: 'Cancel' }));
+      fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
+      expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
     }
     expect(api.runAction).not.toHaveBeenCalled();
   }, 30_000);

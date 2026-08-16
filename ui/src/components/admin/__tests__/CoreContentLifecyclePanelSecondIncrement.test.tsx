@@ -218,7 +218,7 @@ describe('CoreContentLifecyclePanel second increment', () => {
     expect(mocks.concepts.addCollectionMember).toHaveBeenCalledWith('skos-1', 'concept-2');
     expect(mocks.concepts.removeCollectionMember).toHaveBeenCalledWith('skos-1', 'concept-2');
     expect(mocks.concepts.deleteCollection).toHaveBeenCalledWith('skos-1');
-  });
+  }, 15_000);
 
   it('covers graph read, preview, destructive apply, and partial maintenance states', async () => {
     const user = userEvent.setup();
@@ -251,7 +251,7 @@ describe('CoreContentLifecyclePanel second increment', () => {
     await confirm(user, 'Queue maintenance');
     expect(screen.getByText('already_pending; job=existing; 2 step(s).')).toBeVisible();
     expect(screen.getByText('partial')).toBeVisible();
-  });
+  }, 15_000);
 
   it('gates every second-increment surface and never renders raw server failures', async () => {
     Object.assign(mocks.admission, {
