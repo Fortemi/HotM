@@ -98,8 +98,13 @@ FORTEMI_COMMIT="$(node_value 'value.target_commitish')"
 FORTEMI_RELEASE="$(node_value 'value.release_tag')"
 FORTEMI_SHA256="$(node_value 'value.assets[process.argv[2]].sha256')"
 API_PORT="$(free_port)"
+UI_PORT="$(free_port)"
+while [[ "${UI_PORT}" == "${API_PORT}" ]]; do
+  UI_PORT="$(free_port)"
+done
 API_ROOT="http://127.0.0.1:${API_PORT}"
 API_URL="${API_ROOT}/api/v1"
+UI_ROOT="http://127.0.0.1:${UI_PORT}"
 DATABASE_PROVISIONING="external"
 DATABASE_URL="${HOTM_LIVE_DATABASE_URL:-}"
 DB_PASSWORD=""
@@ -193,7 +198,7 @@ env \
   REQUIRE_AUTH=true \
   FORTEMI_ALLOW_LOCAL_ISSUER=true \
   ISSUER_URL="${API_ROOT}" \
-  ALLOWED_ORIGINS=http://localhost:1420,http://127.0.0.1:1420 \
+  ALLOWED_ORIGINS="${UI_ROOT}" \
   RATE_LIMIT_ENABLED=false \
   REDIS_URL=redis://127.0.0.1:1 \
   MATRIC_ATTACHMENT_SCAN_MODE=disabled \
@@ -244,6 +249,7 @@ browser_status=0
   HOTM_LIVE_ASSET_E2E=1 \
   HOTM_LIVE_REQUIRE_AUTH=1 \
   HOTM_LIVE_MEMORY="hotm_live_browser_${SAFE_RUN_KEY}" \
+  HOTM_E2E_PORT="${UI_PORT}" \
   HOTM_API_URL="${API_URL}" \
   HOTM_API_TOKEN="${api_token}" \
   VITE_API_BEARER_TOKEN="${api_token}" \

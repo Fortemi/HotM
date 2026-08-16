@@ -1,0 +1,48 @@
+metadata:
+  schema_version: "1.0.0"
+  created_at: "2026-08-16T17:31:36Z"
+  updated_at: "2026-08-16T17:31:36Z"
+  description: "Provenance for HotM issue #297 live-receipt port isolation"
+entity:
+  id: "urn:aiwg:artifact:scripts/ci/run-live-asset-receipt.sh"
+  type: "source_code"
+  created_at: "2026-08-16T17:31:36Z"
+  updated_at: "2026-08-16T17:31:36Z"
+  checksum: "sha256:216ff69054bf4c30b1662096dd7287086aa20b407a56d68ab119e4bad34415c8"
+  size_bytes: 20342
+  attributes:
+    change_scope: "hotm-297-live-receipt-port-isolation"
+    base_revision: "afecec737c4057cd308ad3075f16f865a299eade"
+activity:
+  id: "urn:aiwg:activity:modification:scripts-ci-run-live-asset-receipt-sh:hotm-297"
+  type: "modification"
+  started_at: "2026-08-16T17:31:36Z"
+  ended_at: "2026-08-16T17:31:36Z"
+  description: "Allocate a distinct dynamic browser port and bind the live Fortemi CORS allowlist to it"
+agent:
+  id: "urn:aiwg:agent:codex-gpt-5"
+  type: "ai_assistant"
+  name: "Codex"
+  version: "gpt-5"
+  tool: "codex"
+relationships:
+  wasGeneratedBy:
+    entity: "urn:aiwg:artifact:scripts/ci/run-live-asset-receipt.sh"
+    activity: "urn:aiwg:activity:modification:scripts-ci-run-live-asset-receipt-sh:hotm-297"
+    time: "2026-08-16T17:31:36Z"
+  used:
+    - activity: "urn:aiwg:activity:modification:scripts-ci-run-live-asset-receipt-sh:hotm-297"
+      entity: "urn:gitea:Fortemi/HotM:issue:297"
+      role: "verification-requirement"
+  wasDerivedFrom:
+    - entity: "urn:aiwg:artifact:scripts/ci/run-live-asset-receipt.sh"
+      source: "urn:git:git@git.integrolabs.net:Fortemi/HotM.git:afecec737c4057cd308ad3075f16f865a299eade:scripts/ci/run-live-asset-receipt.sh"
+      derivation_type: "modifies"
+      activity: "urn:aiwg:activity:modification:scripts-ci-run-live-asset-receipt-sh:hotm-297"
+  wasAssociatedWith:
+    activity: "urn:aiwg:activity:modification:scripts-ci-run-live-asset-receipt-sh:hotm-297"
+    agent: "urn:aiwg:agent:codex-gpt-5"
+    role: "primary_author"
+  wasAttributedTo:
+    entity: "urn:aiwg:artifact:scripts/ci/run-live-asset-receipt.sh"
+    agent: "urn:aiwg:agent:codex-gpt-5"

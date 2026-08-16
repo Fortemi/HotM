@@ -1,0 +1,48 @@
+metadata:
+  schema_version: "1.0.0"
+  created_at: "2026-08-16T17:31:36Z"
+  updated_at: "2026-08-16T17:31:36Z"
+  description: "Provenance for HotM issue #297 live-receipt port isolation"
+entity:
+  id: "urn:aiwg:artifact:ui/playwright.config.ts"
+  type: "source_code"
+  created_at: "2026-08-16T17:31:36Z"
+  updated_at: "2026-08-16T17:31:36Z"
+  checksum: "sha256:bf46ce526168a219436fa49a0dfe53c4be329077a7ab89a578340ee49ec9e9e4"
+  size_bytes: 1654
+  attributes:
+    change_scope: "hotm-297-live-receipt-port-isolation"
+    base_revision: "afecec737c4057cd308ad3075f16f865a299eade"
+activity:
+  id: "urn:aiwg:activity:modification:ui-playwright-config-ts:hotm-297"
+  type: "modification"
+  started_at: "2026-08-16T17:31:36Z"
+  ended_at: "2026-08-16T17:31:36Z"
+  description: "Parameterize the Playwright and Vite loopback port for isolated authenticated receipts"
+agent:
+  id: "urn:aiwg:agent:codex-gpt-5"
+  type: "ai_assistant"
+  name: "Codex"
+  version: "gpt-5"
+  tool: "codex"
+relationships:
+  wasGeneratedBy:
+    entity: "urn:aiwg:artifact:ui/playwright.config.ts"
+    activity: "urn:aiwg:activity:modification:ui-playwright-config-ts:hotm-297"
+    time: "2026-08-16T17:31:36Z"
+  used:
+    - activity: "urn:aiwg:activity:modification:ui-playwright-config-ts:hotm-297"
+      entity: "urn:gitea:Fortemi/HotM:issue:297"
+      role: "verification-requirement"
+  wasDerivedFrom:
+    - entity: "urn:aiwg:artifact:ui/playwright.config.ts"
+      source: "urn:git:git@git.integrolabs.net:Fortemi/HotM.git:afecec737c4057cd308ad3075f16f865a299eade:ui/playwright.config.ts"
+      derivation_type: "modifies"
+      activity: "urn:aiwg:activity:modification:ui-playwright-config-ts:hotm-297"
+  wasAssociatedWith:
+    activity: "urn:aiwg:activity:modification:ui-playwright-config-ts:hotm-297"
+    agent: "urn:aiwg:agent:codex-gpt-5"
+    role: "primary_author"
+  wasAttributedTo:
+    entity: "urn:aiwg:artifact:ui/playwright.config.ts"
+    agent: "urn:aiwg:agent:codex-gpt-5"
