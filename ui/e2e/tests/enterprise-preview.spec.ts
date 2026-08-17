@@ -109,17 +109,25 @@ async function openEnterprisePreview(page: import('@playwright/test').Page) {
   await page.waitForLoadState('networkidle');
 
   const sidebarToggle = page.getByRole('button', { name: /toggle sidebar/i });
-  const adminButton = page.getByText('Admin').locator('xpath=ancestor::button');
-  if (!(await adminButton.isVisible({ timeout: 1500 }).catch(() => false))) {
+  const mobileSidebar = page.getByRole('dialog', { name: /sidebar/i });
+  const desktopSidebar = page.locator('[data-slot="sidebar"][data-state]');
+  const isMobile = (page.viewportSize()?.width ?? 0) < 768;
+
+  if (isMobile) {
+    if (!(await mobileSidebar.isVisible({ timeout: 500 }).catch(() => false))) {
+      await sidebarToggle.click();
+    }
+  } else if ((await desktopSidebar.getAttribute('data-state')) === 'collapsed') {
     await sidebarToggle.click();
   }
 
-  const navigateButton = page.getByRole('button', { name: /navigate/i });
-  if (await navigateButton.isVisible({ timeout: 1500 }).catch(() => false)) {
-    await navigateButton.click({ force: true });
+  const sidebar = isMobile ? mobileSidebar : page.locator('[data-slot="sidebar-container"]');
+  let adminButton = sidebar.getByRole('button', { name: 'Admin', exact: true });
+  if (!(await adminButton.isVisible({ timeout: 500 }).catch(() => false))) {
+    await sidebar.getByRole('button', { name: /navigate/i }).click();
+    adminButton = sidebar.getByRole('button', { name: 'Admin', exact: true });
   }
-
-  await adminButton.click({ force: true });
+  await adminButton.click();
 
   if (await page.getByRole('dialog', { name: /sidebar/i }).isVisible({ timeout: 500 }).catch(() => false)) {
     await page.keyboard.press('Escape');

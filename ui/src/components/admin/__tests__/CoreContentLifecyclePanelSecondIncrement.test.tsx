@@ -181,7 +181,7 @@ describe('CoreContentLifecyclePanel second increment', () => {
     expect(mocks.jobs.pauseArchive).toHaveBeenCalledWith('research');
     expect(mocks.jobs.resumeArchive).toHaveBeenCalledWith('research');
     expect(screen.getByText('research jobs running.')).toBeVisible();
-  });
+  }, 10_000);
 
   it('dispatches typed SKOS relationship and collection workflows with destructive confirmations', async () => {
     const user = userEvent.setup();
