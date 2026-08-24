@@ -1,0 +1,79 @@
+metadata:
+  schema_version: "1.0.0"
+  created_at: "2026-08-24T23:21:35Z"
+  description: "Final provenance bundle for HotM #231 Node JWT and TenantStore production gates"
+entity:
+  id: "urn:aiwg:bundle:hotm-231-tenant-store-production-gate"
+  type: software_test_and_documentation_bundle
+  created_at: "2026-08-24T23:21:35Z"
+  checksum: "sha256:ea2420c590d37dd1c92dc24b230c9873ceb6b8c4350c9d2267752bb4218c67eb"
+  attributes:
+    base_revision: "f138681003e67ef31a5686726beae3a08f7902dc"
+    authority_release: "v2026.8.0"
+    authority_commit: "36ba38efdd5ed57da2f2c2638529ee166255e198"
+    authority_contract: "1.1.0"
+    authority_profile: "rust-node-jwt-v1"
+    manifest_sha256: "ab846ba11f479b11638fb3f5bc7029f98ad498b028f6cf060171316b90552e94"
+    release_policy_sha256: "828c6ff24f63b10f114b78e6f83a8db6bd53d53f903e4c4f246eaccb6eeac949"
+    tracked_artifacts:
+      - ".aiwg/architecture/adr-auth-shared-crate.md"
+      - ".aiwg/architecture/sad-fortemi-integration-addendum-2026-07.md"
+      - ".aiwg/reports/fortemi-auth-node-conformance-receipt-2026-07-26.md"
+      - ".aiwg/reports/fortemi-auth-tenant-store-composition-receipt-2026-08-24.md"
+      - ".aiwg/reports/fortemi-hotm-integration-audit-2026-08-15.md"
+      - "agent-proxy/src/__tests__/app-auth.test.ts"
+      - "agent-proxy/src/__tests__/compatibility.test.ts"
+      - "agent-proxy/src/auth/fixtures/fortemi-auth-release-policy-v1.json"
+      - "agent-proxy/src/auth/fixtures/fortemi-auth-v1.json"
+      - "agent-proxy/src/auth/middleware.test.ts"
+      - "agent-proxy/src/auth/verify.test.ts"
+      - "agent-proxy/src/auth/verify.ts"
+      - "agent-proxy/src/contracts/fortemi-system-compatibility-receipt.json"
+      - "agent-proxy/src/index.ts"
+      - "agent-proxy/src/internal/fixtures/tenant-registry-v1.json"
+      - "agent-proxy/src/internal/postgres-tenant-store.test.ts"
+      - "agent-proxy/src/internal/postgres-tenant-store.ts"
+      - "ui/src/api/contracts/fortemi-system-compatibility-receipt.json"
+activity:
+  id: "urn:aiwg:activity:hotm-231-tenant-store-production-gate:2026-08-24"
+  type: modification
+  started_at: "2026-08-24T22:30:00Z"
+  ended_at: "2026-08-24T23:21:35Z"
+  description: "Compose and verify the concrete Node TenantStore against the exact signed auth authority"
+agent:
+  id: "urn:aiwg:agent:codex-gpt-5"
+  type: ai_assistant
+  name: "Codex"
+  version: "gpt-5"
+  tool: "codex"
+relationships:
+  wasGeneratedBy:
+    entity: "urn:aiwg:bundle:hotm-231-tenant-store-production-gate"
+    activity: "urn:aiwg:activity:hotm-231-tenant-store-production-gate:2026-08-24"
+    time: "2026-08-24T23:21:35Z"
+  used:
+    - activity: "urn:aiwg:activity:hotm-231-tenant-store-production-gate:2026-08-24"
+      entity: "urn:gitea:Fortemi/HotM:issue:231"
+      role: "requirement"
+    - activity: "urn:aiwg:activity:hotm-231-tenant-store-production-gate:2026-08-24"
+      entity: "urn:git:Fortemi/fortemi-auth:v2026.8.0"
+      role: "public_authority"
+    - activity: "urn:aiwg:activity:hotm-231-tenant-store-production-gate:2026-08-24"
+      entity: "urn:git:Fortemi/fortemi:0bcd537ba758177e89ddb9daf0810568197d38ea"
+      role: "tenant_store_producer_authority"
+  wasDerivedFrom:
+    - entity: "urn:aiwg:bundle:hotm-231-tenant-store-production-gate"
+      source: "urn:git:Fortemi/fortemi-auth:v2026.8.0:conformance/v1/manifest.json"
+      derivation_type: "implements"
+      activity: "urn:aiwg:activity:hotm-231-tenant-store-production-gate:2026-08-24"
+    - entity: "urn:aiwg:bundle:hotm-231-tenant-store-production-gate"
+      source: "urn:git:Fortemi/fortemi:0bcd537ba758177e89ddb9daf0810568197d38ea:crates/matric-api/src/hosted_auth.rs"
+      derivation_type: "implements"
+      activity: "urn:aiwg:activity:hotm-231-tenant-store-production-gate:2026-08-24"
+  wasAssociatedWith:
+    activity: "urn:aiwg:activity:hotm-231-tenant-store-production-gate:2026-08-24"
+    agent: "urn:aiwg:agent:codex-gpt-5"
+    role: "primary_author"
+  wasAttributedTo:
+    entity: "urn:aiwg:bundle:hotm-231-tenant-store-production-gate"
+    agent: "urn:aiwg:agent:codex-gpt-5"

@@ -23,13 +23,19 @@
  */
 
 import { createAgentProxyApp } from './app.js';
+import { composePostgresTenantStore } from './internal/postgres-tenant-store.js';
 
 const PORT = parseInt(process.env.PORT ?? '3001', 10);
 const BIND_ADDR = process.env.BIND_ADDR ?? '127.0.0.1';
 const CORS_ORIGIN = process.env.CORS_ORIGIN ?? 'http://localhost:5173';
 const RATE_LIMIT_RPM = parseInt(process.env.AGENT_PROXY_RATE_LIMIT_RPM ?? '60', 10);
 
-const app = createAgentProxyApp({ corsOrigin: CORS_ORIGIN, rateLimitRpm: RATE_LIMIT_RPM });
+const tenantStoreComposition = composePostgresTenantStore();
+const app = createAgentProxyApp({
+  corsOrigin: CORS_ORIGIN,
+  rateLimitRpm: RATE_LIMIT_RPM,
+  auth: { tenantStore: tenantStoreComposition.tenantStore },
+});
 
 const server = app.listen(PORT, BIND_ADDR, () => {
   console.log(`[agent-proxy] Listening on ${BIND_ADDR}:${PORT}${BIND_ADDR === '127.0.0.1' ? ' (localhost-only)' : ' (network-exposed — see SECURITY.md)'}`);
@@ -43,3 +49,20 @@ const server = app.listen(PORT, BIND_ADDR, () => {
 // Express defaults to 120s which is far too short — align with nginx proxy_read_timeout.
 server.timeout = 600_000;        // 10 minutes — upper bound for complex tool chains
 server.keepAliveTimeout = 65_000; // 65s — safely above common proxy keepalive (60s)
+
+let shuttingDown = false;
+async function shutdown(): Promise<void> {
+  if (shuttingDown) return;
+  shuttingDown = true;
+  server.close(async (error) => {
+    try {
+      await tenantStoreComposition.close();
+    } catch {
+      process.exitCode = 1;
+    }
+    if (error) process.exitCode = 1;
+  });
+}
+
+process.once('SIGINT', shutdown);
+process.once('SIGTERM', shutdown);

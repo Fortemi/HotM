@@ -8,9 +8,9 @@ const hostedCompatibility = async () => ({
   auth: {
     required: true as const,
     mode: 'hosted_oauth',
-    claimContractVersion: '1.0.0',
+    claimContractVersion: '1.1.0',
     claimContractProfile: 'rust-node-jwt-v1',
-    authorityRelease: 'v2026.7.0',
+    authorityRelease: 'v2026.8.0',
   },
 });
 
@@ -80,7 +80,7 @@ describe('createAgentProxyApp auth boundary', () => {
     const result = await request(app, '/api/agent/chat', {
       headers: { Authorization: `Bearer ${tokenFor('valid')}` },
     });
-    expect(result).toEqual({ status: 503, body: { error: 'tenant_store_failure' } });
+    expect(result).toEqual({ status: 503, body: { error: 'tenant_store_unavailable' } });
   });
 
   it('admits the protected route only after verification and active-tenant lookup', async () => {

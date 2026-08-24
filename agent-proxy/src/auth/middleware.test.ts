@@ -1,7 +1,11 @@
 import express from 'express';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import manifest from './fixtures/fortemi-auth-v1.json';
-import { createAgentAuthMiddleware, type AuthenticatedAgentRequest } from './middleware.js';
+import {
+  authConfigFromEnvironment,
+  createAgentAuthMiddleware,
+  type AuthenticatedAgentRequest,
+} from './middleware.js';
 import { FortemiAuthError, type TenantStatus, type TenantStore } from './verify.js';
 
 const localCompatibility = async () => ({
@@ -11,9 +15,9 @@ const hostedCompatibility = async () => ({
   auth: {
     required: true as const,
     mode: 'hosted_oauth',
-    claimContractVersion: '1.0.0',
+    claimContractVersion: '1.1.0',
     claimContractProfile: 'rust-node-jwt-v1',
-    authorityRelease: 'v2026.7.0',
+    authorityRelease: 'v2026.8.0',
   },
 });
 
@@ -74,9 +78,29 @@ async function request(
   }
 }
 
-afterEach(() => vi.restoreAllMocks());
+afterEach(() => {
+  vi.restoreAllMocks();
+  vi.unstubAllEnvs();
+});
 
 describe('agent auth middleware', () => {
+  it('admits only the exact released environment identity', () => {
+    vi.stubEnv('FORTEMI_AUTH_RELEASE', '2026.8.0');
+    vi.stubEnv('FORTEMI_AUTH_CONTRACT_VERSION', '1.1.0');
+    vi.stubEnv('FORTEMI_AUTH_PROFILE', 'rust-node-jwt-v1');
+    vi.stubEnv('FORTEMI_AUTH_ISSUER', 'https://issuer.example');
+    vi.stubEnv('FORTEMI_AUTH_AUDIENCE', 'fortemi');
+    vi.stubEnv('FORTEMI_AUTH_JWKS_URL', 'https://issuer.example/.well-known/jwks.json');
+
+    expect(authConfigFromEnvironment()).toMatchObject({
+      issuer: 'https://issuer.example',
+      audience: 'fortemi',
+      tenantClaimName: 'fortemi:tenant_id',
+    });
+    vi.stubEnv('FORTEMI_AUTH_RELEASE', '2026.7.0');
+    expect(() => authConfigFromEnvironment()).toThrowError(new FortemiAuthError('config_error'));
+  });
+
   it('admits unauthenticated requests only for the advertised local profile', async () => {
     const result = await request(createAgentAuthMiddleware({ compatibility: localCompatibility }), {
       headers: { 'X-Fortemi-Memory': 'research' },
@@ -160,7 +184,7 @@ describe('agent auth middleware', () => {
         },
       }),
     }), { headers: { Authorization: `Bearer ${tokenFor('valid')}` } });
-    expect(result).toEqual({ status: 503, body: { error: 'tenant_store_failure' } });
+    expect(result).toEqual({ status: 503, body: { error: 'tenant_store_unavailable' } });
     expect(JSON.stringify(result.body)).not.toContain('database');
   });
 

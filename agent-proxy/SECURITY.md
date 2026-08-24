@@ -37,7 +37,7 @@ plus an active-tenant lookup implementation.
 | `AGENT_PROXY_RATE_LIMIT_RPM`   | `60`                            | Per-IP requests per minute on `/api/agent/chat`. Set to `0` to disable. |
 | `ANTHROPIC_API_KEY`            | unset                           | Required only for the `anthropic` provider. |
 | `OPENAI_API_KEY`               | unset                           | Required only for the `openai` provider. |
-| `FORTEMI_AUTH_RELEASE`         | unset                           | Hosted mode requires the pinned released auth version. |
+| `FORTEMI_AUTH_RELEASE`         | unset                           | Hosted mode requires exact version `2026.8.0` from signed release `v2026.8.0`. |
 | `FORTEMI_AUTH_CONTRACT_VERSION` | pinned release value           | Must match the admitted public claim contract. |
 | `FORTEMI_AUTH_PROFILE`         | pinned release value           | Must match the admitted Node profile. |
 | `FORTEMI_AUTH_ISSUER`          | unset                           | Exact hosted token issuer. |
@@ -48,6 +48,11 @@ plus an active-tenant lookup implementation.
 | `FORTEMI_AUTH_JWKS_TIMEOUT_MS` | `5000`                          | Remote JWKS request timeout. |
 | `FORTEMI_AUTH_JWKS_COOLDOWN_MS` | `30000`                        | Minimum refetch interval for an unknown key ID. |
 | `FORTEMI_AUTH_JWKS_CACHE_MAX_AGE_MS` | `600000`                   | Maximum remote JWKS cache age. |
+| `FORTEMI_TENANT_DATABASE_URL`  | unset                           | Dedicated PostgreSQL URL for the least-privilege tenant-registry reader. Required for hosted admission. |
+| `FORTEMI_TENANT_DB_POOL_MAX`   | `4`                             | Tenant-registry pool size, bounded from 1 through 32. |
+| `FORTEMI_TENANT_DB_CONNECT_TIMEOUT_MS` | `5000`                   | Connection timeout, bounded from 100 through 30000 ms. |
+| `FORTEMI_TENANT_DB_IDLE_TIMEOUT_MS` | `30000`                     | Idle connection timeout, bounded from 1000 through 300000 ms. |
+| `FORTEMI_TENANT_DB_QUERY_TIMEOUT_MS` | `5000`                     | Query and statement timeout, bounded from 100 through 30000 ms. |
 
 ## Network Exposure
 
@@ -57,14 +62,23 @@ plus an active-tenant lookup implementation.
 Hosted mode requires RS256 issuer/audience/JWKS verification and an active
 tenant lookup for every admitted request. Missing credentials, unknown or
 suspended tenants, JWKS outages, tenant-store outages, and invalid auth
-configuration fail closed with redacted error codes.
+configuration fail closed with redacted error codes. Store outage, timeout, or
+malformed response is `tenant_store_unavailable`/503; absent and inactive
+tenants are indistinguishable as `unknown_tenant`/403.
 
-The public CE package defines the verifier and `TenantStore` composition seam,
-but intentionally ships no hosted tenant-database adapter. An internal
-enterprise distribution may inject that implementation into
-`createAgentProxyApp`; without it, hosted requests return 503. This separation
-does not establish hosted readiness. Promotion still requires producer-admitted
-auth metadata and live Fortemi evidence for transaction-scoped tenant isolation.
+The public verifier retains the `TenantStore` seam. The executable composition
+root now injects an internal PostgreSQL adapter when
+`FORTEMI_TENANT_DATABASE_URL` is set. The adapter performs only the
+producer-owned, parameterized `tenant_registry` ID/status lookup and validates
+the complete row before returning it. Its database role should have `CONNECT`
+plus `SELECT (id, status)` on `tenant_registry`, with no tenant-table ownership,
+write privilege, superuser privilege, or `BYPASSRLS`. Without the dedicated URL,
+hosted requests still return the redacted 503 while `anonymous_local` remains
+available only when explicitly advertised by Fortemi.
+
+This composition does not establish hosted readiness. Promotion still requires
+a live Fortemi receipt that follows a real JWT through `AuthContext`, the
+transaction-scoped tenant setting, and forced RLS without cross-tenant access.
 
 For any network-exposed deployment, keep the service behind a private ingress,
 retain an outer transport/authentication control such as mTLS or an SSO gateway,
@@ -83,9 +97,12 @@ Before starting agent-proxy in any environment:
       to a value appropriate for the workload (60 is comfortable for a single
       human user).
 - [ ] For hosted mode, confirm the released auth identity, issuer, audience,
-      HTTPS JWKS endpoint, and active-tenant adapter are configured.
+      HTTPS JWKS endpoint, and dedicated least-privilege tenant-registry URL are
+      configured.
 - [ ] Confirm JWKS and tenant-store outages return redacted 503 responses and
       never fall back to anonymous admission.
+- [ ] Confirm missing, suspended, and soft-deleted tenant fixtures produce the
+      same `unknown_tenant` response and no status-specific diagnostics.
 
 ## Related Issues
 

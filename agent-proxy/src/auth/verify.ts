@@ -22,6 +22,7 @@ export type SharedAuthErrorCode =
   | 'missing_tenant_claim'
   | 'invalid_tenant_claim'
   | 'unknown_tenant'
+  | 'tenant_store_unavailable'
   | 'insufficient_scope'
   | 'api_key_not_allowed'
   | 'invalid_api_key'
@@ -33,9 +34,7 @@ export type SharedAuthErrorCode =
   | 'config_error'
   | 'internal_error';
 
-// The upstream tenant-extraction specification names this dependency failure,
-// but fortemi-auth-core does not yet expose the corresponding enum variant.
-export type AuthErrorCode = SharedAuthErrorCode | 'tenant_store_failure';
+export type AuthErrorCode = SharedAuthErrorCode;
 export type AuthHttpStatus = 401 | 403 | 500 | 503;
 
 export const AUTH_ERROR_HTTP_STATUS: Readonly<Record<AuthErrorCode, AuthHttpStatus>> = Object.freeze({
@@ -50,6 +49,7 @@ export const AUTH_ERROR_HTTP_STATUS: Readonly<Record<AuthErrorCode, AuthHttpStat
   missing_tenant_claim: 403,
   invalid_tenant_claim: 403,
   unknown_tenant: 403,
+  tenant_store_unavailable: 503,
   insufficient_scope: 403,
   api_key_not_allowed: 403,
   invalid_api_key: 401,
@@ -60,7 +60,6 @@ export const AUTH_ERROR_HTTP_STATUS: Readonly<Record<AuthErrorCode, AuthHttpStat
   jwks_cache_failure: 503,
   config_error: 500,
   internal_error: 500,
-  tenant_store_failure: 503,
 });
 
 export class FortemiAuthError extends Error {
@@ -200,7 +199,7 @@ function tenantStoreFromConfig(config: FortemiAuthConfig): TenantStore {
   }
   return Object.freeze({
     async lookup(): Promise<never> {
-      throw authError('tenant_store_failure');
+      throw authError('tenant_store_unavailable');
     },
   });
 }
@@ -255,12 +254,25 @@ async function requireActiveTenant(tenantId: string, store: TenantStore): Promis
   try {
     tenant = await store.lookup(tenantId);
   } catch (error) {
-    if (error instanceof FortemiAuthError && error.code === 'unknown_tenant') throw error;
-    throw authError('tenant_store_failure');
+    if (
+      error instanceof FortemiAuthError
+      && (error.code === 'unknown_tenant' || error.code === 'tenant_store_unavailable')
+    ) {
+      throw error;
+    }
+    throw authError('tenant_store_unavailable');
   }
-  if (!tenant || tenant.tenantId !== tenantId || tenant.status !== 'active') {
+  if (!tenant) {
     throw authError('unknown_tenant');
   }
+  if (
+    typeof tenant !== 'object'
+    || tenant.tenantId !== tenantId
+    || !['active', 'suspended', 'soft_deleted'].includes(tenant.status)
+  ) {
+    throw authError('tenant_store_unavailable');
+  }
+  if (tenant.status !== 'active') throw authError('unknown_tenant');
 }
 
 async function verifyWithRuntime(

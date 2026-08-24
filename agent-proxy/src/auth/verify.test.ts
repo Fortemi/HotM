@@ -4,10 +4,16 @@ import { describe, expect, it } from 'vitest';
 
 import releasePolicy from './fixtures/fortemi-auth-release-policy-v1.json';
 import manifest from './fixtures/fortemi-auth-v1.json';
-import { FortemiAuthError, verifyFortemiBearer } from './verify.js';
+import {
+  FortemiAuthError,
+  verifyFortemiBearer,
+  type TenantRecord,
+  type TenantStore,
+} from './verify.js';
 
-const MANIFEST_SHA256 = 'dbd7fff6370d8a0c55d2c7e4ad311d3ddd1796815e2caff6dc05501cdf417a38';
-const RELEASE_POLICY_SHA256 = 'c8c6e2fd9237ddf238f74376aad841c53fce86885f95c982befdcbcd24880e5b';
+const MANIFEST_SHA256 = 'ab846ba11f479b11638fb3f5bc7029f98ad498b028f6cf060171316b90552e94';
+const RELEASE_POLICY_SHA256 = '828c6ff24f63b10f114b78e6f83a8db6bd53d53f903e4c4f246eaccb6eeac949';
+const FIXTURE_TENANT_ID = '00000000-0000-4000-8000-000000000001';
 
 interface ReleaseIdentity {
   version: string;
@@ -36,7 +42,7 @@ describe('fortemi-auth rust-node-jwt-v1 conformance', () => {
     const bytes = await readFile(fixtureUrl);
     expect(createHash('sha256').update(bytes).digest('hex')).toBe(MANIFEST_SHA256);
     expect(manifest.contract_id).toBe('fortemi-auth-conformance');
-    expect(manifest.contract_version).toBe('1.0.0');
+    expect(manifest.contract_version).toBe('1.1.0');
     expect(manifest.profile).toBe('rust-node-jwt-v1');
   });
 
@@ -47,10 +53,10 @@ describe('fortemi-auth rust-node-jwt-v1 conformance', () => {
     const bytes = await readFile(fixtureUrl);
     expect(createHash('sha256').update(bytes).digest('hex')).toBe(RELEASE_POLICY_SHA256);
     expect(releasePolicy.policy_id).toBe('fortemi-auth-release-compatibility');
-    expect(releasePolicy.policy_version).toBe('1.0.0');
+    expect(releasePolicy.policy_version).toBe('1.1.0');
     expect(releasePolicy.release_scheme).toBe('calver-yyyy-m-patch');
-    expect(releasePolicy.current_release.version).toBe('2026.7.0');
-    expect(releasePolicy.current_release.tag).toBe('v2026.7.0');
+    expect(releasePolicy.current_release.version).toBe('2026.8.0');
+    expect(releasePolicy.current_release.tag).toBe('v2026.8.0');
     expect(releasePolicy.current_release.version).toMatch(/^\d{4}\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/);
 
     for (const testCase of releasePolicy.compatibility_cases) {
@@ -71,7 +77,7 @@ describe('fortemi-auth rust-node-jwt-v1 conformance', () => {
           tenantClaimName: manifest.config.tenant_claim_name,
           clockSkewSeconds: manifest.config.clock_skew_seconds,
           jwks: manifest.jwks,
-          isTenantActive: (tenantId) => tenantId === '00000000-0000-4000-8000-000000000001',
+          isTenantActive: (tenantId) => tenantId === FIXTURE_TENANT_ID,
         },
         testCase.required_scope,
       );
@@ -88,6 +94,42 @@ describe('fortemi-auth rust-node-jwt-v1 conformance', () => {
       expect(context.principalId).toBe(testCase.expected.principal_id);
       expect(context.scopes).toEqual(testCase.expected.scopes);
       expect(context.credential.keyId).toBe(testCase.expected.key_id);
+    });
+  }
+
+  for (const testCase of manifest.tenant_store_cases) {
+    it(testCase.id, async () => {
+      const tenantStore: TenantStore = {
+        async lookup(tenantId): Promise<TenantRecord | null> {
+          switch (testCase.store_result) {
+            case 'unavailable':
+            case 'timeout':
+              throw new Error(testCase.store_result);
+            case 'malformed_response':
+              return { tenantId, status: 'invalid' } as unknown as TenantRecord;
+            case 'inactive':
+              return { tenantId, status: 'suspended' };
+            case 'not_found':
+              return null;
+            default:
+              throw new Error(`unsupported authority fixture: ${testCase.store_result}`);
+          }
+        },
+      };
+      const valid = manifest.cases.find((entry) => entry.id === 'valid')!;
+      const verification = verifyFortemiBearer(valid.token, {
+        issuer: manifest.config.issuer,
+        audience: manifest.config.audience,
+        tenantClaimName: manifest.config.tenant_claim_name,
+        clockSkewSeconds: manifest.config.clock_skew_seconds,
+        jwks: manifest.jwks,
+        tenantStore,
+      }, valid.required_scope);
+
+      await expect(verification).rejects.toMatchObject({
+        code: testCase.expected.error,
+        httpStatus: testCase.expected.http_status,
+      });
     });
   }
 });

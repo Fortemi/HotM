@@ -1,6 +1,6 @@
 {
   "contract_id": "fortemi-auth-conformance",
-  "contract_version": "1.0.0",
+  "contract_version": "1.1.0",
   "profile": "rust-node-jwt-v1",
   "generated_at": "2026-07-26T00:00:00Z",
   "test_only": true,
@@ -31,6 +31,33 @@
       }
     ]
   },
+  "tenant_store_cases": [
+    {
+      "id": "tenant-store-unavailable",
+      "store_result": "unavailable",
+      "expected": {"error": "tenant_store_unavailable", "http_status": 503}
+    },
+    {
+      "id": "tenant-store-timeout",
+      "store_result": "timeout",
+      "expected": {"error": "tenant_store_unavailable", "http_status": 503}
+    },
+    {
+      "id": "tenant-store-malformed-response",
+      "store_result": "malformed_response",
+      "expected": {"error": "tenant_store_unavailable", "http_status": 503}
+    },
+    {
+      "id": "tenant-inactive",
+      "store_result": "inactive",
+      "expected": {"error": "unknown_tenant", "http_status": 403}
+    },
+    {
+      "id": "tenant-not-found",
+      "store_result": "not_found",
+      "expected": {"error": "unknown_tenant", "http_status": 403}
+    }
+  ],
   "cases": [
     {
       "id": "valid",

@@ -19,10 +19,10 @@
     "acceptedContractRevisions": ["2026-07-06"],
     "minimumServerApiVersion": "2026.7.0",
     "maximumServerApiVersionExclusive": "2027.0.0",
-    "acceptedAuthClaimContractVersions": ["1.0.0"],
+    "acceptedAuthClaimContractVersions": ["1.1.0"],
     "acceptedAuthClaimContractProfiles": ["rust-node-jwt-v1"],
-    "acceptedAuthAuthorityReleases": ["v2026.7.0"],
+    "acceptedAuthAuthorityReleases": ["v2026.8.0"],
     "localAuthModes": ["anonymous_local"]
   },
-  "evidenceScope": "Pinned producer profile, response source, and exact hosted auth authority tuple; not a standalone live response-schema conformance claim."
+  "evidenceScope": "Pinned producer profile and response source plus the consumer's exact hosted auth authority tuple; the pinned producer advertises the previous tuple and is rejected until independently updated. Not a standalone live response-schema conformance claim."
 }

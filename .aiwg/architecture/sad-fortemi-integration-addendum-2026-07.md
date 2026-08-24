@@ -266,10 +266,11 @@ decision before dispatch. Typed malformed, unknown, too-old, too-new,
 minimum-client, unavailable, and auth-contract failures block with zero remote
 mutation while reads and local UI remain available.
 
-Authenticated mode also requires advertised claim-contract version `1`.
-Fortemi's pinned response source does not yet emit that field, so authenticated
-remote mutations fail closed. This does not establish `fortemi-auth` runtime
-parity; REQ-017 and #231 remain independent.
+Authenticated mode also requires the exact contract `1.1.0`, profile
+`rust-node-jwt-v1`, and signed release `v2026.8.0`. Fortemi's pinned response
+source emits the superseded `1.0.0`/`v2026.7.0` tuple, so authenticated remote
+mutations fail closed until producer metadata advances. This does not establish
+`fortemi-auth` runtime parity; REQ-017 and #231 remain independent.
 
 ## 5. Data and State Impact
 
@@ -421,7 +422,7 @@ Tauri receipts remain separate controls.
 
 The agent proxy now admits chat, privilege-sync, and confirmation requests
 through compatibility-aware authentication before body parsing. Hosted mode
-requires the pinned `2026.7.0` auth identity, an accepted claim-contract
+requires the pinned `2026.8.0` auth identity, an accepted claim-contract
 version, RS256 issuer/audience/JWKS verification, tenant consistency, and an
 identity-bound privilege session. Unknown auth metadata fails closed while the
 producer-advertised `anonymous_local` profile preserves local workflows.
@@ -432,20 +433,23 @@ runtime admission metadata and live tenant-isolation evidence.
 #### Auth packaging and admission update (2026-08-24)
 
 The public CE agent proxy owns the independently implemented Node verifier,
-shared error/status mapping, reusable remote JWKS resolver, and `TenantStore`
-interface. It ships with a fail-closed unavailable tenant store. Hosted mode
-performs active-tenant admission after cryptographic verification for every
-request; unknown, suspended, soft-deleted, and lookup-failure states cannot fall
-back to local anonymous access.
+shared error/status mapping, reusable remote JWKS resolver, `TenantStore`
+interface, and fail-closed unavailable default. Its executable composition root
+now supplies an internal PostgreSQL tenant-registry adapter when a dedicated
+least-privilege connection is configured. The adapter consumes Fortemi commit
+`0bcd537ba758177e89ddb9daf0810568197d38ea`'s system-scoped ID/status lookup,
+uses a parameterized UUID query, validates every returned field, and maps all
+dependency or shape faults to authoritative `tenant_store_unavailable`/503.
 
-The already-approved CE/EE distribution boundary places concrete proprietary
-identity-provider and tenant persistence implementations in the separate
-internal enterprise composition. That distribution may inject a `TenantStore`
-when creating the app, but may not redefine the public claim, error, or
-admission contract. No enterprise adapter is invented in HotM. This boundary
-remains non-promotable until Fortemi publishes admitted auth metadata and a
-tenant-status integration contract and supplies live transaction-scoped tenant
-isolation evidence.
+Hosted mode performs active-tenant admission after cryptographic verification
+for every request; missing, suspended, and soft-deleted tenants all produce
+`unknown_tenant`, so response status and body do not enumerate registry state.
+The consumer admits only contract `1.1.0`, profile `rust-node-jwt-v1`, signed
+release `v2026.8.0`. The pinned producer compatibility response still advertises
+the prior tuple, so hosted admission remains fail-closed until Fortemi updates
+that metadata. Promotion additionally requires a live Fortemi receipt proving
+JWT to `AuthContext` to transaction-scoped tenant setting to forced RLS,
+including cross-tenant denial.
 
 Fetch SSE is the scoped realtime transport. Authorization,
 `X-Fortemi-Memory`, tenant filtering, and `Last-Event-ID` are header/context

@@ -37,7 +37,7 @@ audits the HotM revision
 
 The authentication row above is retained as the revision-bound August 15
 snapshot and is superseded for current planning. The public authority now has
-workspace/CI evidence, signed release `v2026.7.0`, and exact Rust/Node corpus
+workspace/CI evidence, signed release `v2026.8.0`, and exact Rust/Node corpus
 receipts. HotM installs the verifier as mandatory `agent-proxy` middleware and
 forwards the derived request context. Issue #231 remains open for a narrower
 producer-owned boundary: admitted auth contract metadata and a live hosted
@@ -55,12 +55,20 @@ lookup on every verified request and fails closed for unknown, suspended, or
 soft-deleted tenants, lookup failures, and a missing adapter.
 
 The public CE boundary contains the verifier, `TenantStore` interface, and
-fail-closed default. A separate internal enterprise distribution may compose a
-backing implementation; this repository does not invent one. The historical
-finding and verification counts below remain bound to the August 15 audit
-revision. Current focused tests close the listed HotM code gaps, but #231 cannot
-claim hosted readiness without producer-admitted metadata, an approved
-tenant-status integration contract, and live Fortemi tenant-isolation evidence.
+fail-closed default. The executable composition root now injects a bounded
+PostgreSQL adapter for Fortemi's system-scoped `tenant_registry` authority when
+a dedicated reader URL exists. Non-live fixtures prove parameter binding,
+strict row validation, non-enumerating inactive states, redacted operational
+failure, bounded configuration, and pool cleanup. The historical finding and
+verification counts below remain bound to the August 15 audit revision.
+
+Contract `1.1.0` now standardizes tenant dependency faults as
+`tenant_store_unavailable`/503 while retaining the non-enumerating
+`unknown_tenant`/403 response for inactive or absent tenants. The pinned producer
+compatibility response still advertises the prior auth tuple and is rejected.
+#231 cannot claim hosted readiness until Fortemi advertises the current tuple
+and live evidence proves the full JWT to `AuthContext` to transaction-local
+tenant setting to forced-RLS path, including cross-tenant denial.
 
 ## Verification Snapshot
 

@@ -1,0 +1,50 @@
+{
+  "schema_version": "hotm.tenant-registry-fixture.v1",
+  "test_only": true,
+  "cases": [
+    {
+      "id": "active",
+      "tenant_id": "00000000-0000-4000-8000-000000000001",
+      "row": {
+        "tenantId": "00000000-0000-4000-8000-000000000001",
+        "status": "active"
+      },
+      "expected": {
+        "outcome": "accepted"
+      }
+    },
+    {
+      "id": "missing",
+      "tenant_id": "00000000-0000-4000-8000-000000000001",
+      "row": null,
+      "expected": {
+        "error": "unknown_tenant",
+        "http_status": 403
+      }
+    },
+    {
+      "id": "suspended",
+      "tenant_id": "00000000-0000-4000-8000-000000000001",
+      "row": {
+        "tenantId": "00000000-0000-4000-8000-000000000001",
+        "status": "suspended"
+      },
+      "expected": {
+        "error": "unknown_tenant",
+        "http_status": 403
+      }
+    },
+    {
+      "id": "soft-deleted",
+      "tenant_id": "00000000-0000-4000-8000-000000000001",
+      "row": {
+        "tenantId": "00000000-0000-4000-8000-000000000001",
+        "status": "soft_deleted"
+      },
+      "expected": {
+        "error": "unknown_tenant",
+        "http_status": 403
+      }
+    }
+  ]
+}
