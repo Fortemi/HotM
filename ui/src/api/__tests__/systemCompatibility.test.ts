@@ -177,6 +177,34 @@ describe('Fortemi compatibility boundary', () => {
       'unsupported_auth_contract',
     );
   });
+
+  it('accepts only the exact hosted auth authority tuple', () => {
+    const hostedAuth = {
+      ...compatibilityFixture().auth,
+      required: true,
+      mode: 'hosted_oauth',
+      oauth_issuer_configured: true,
+      tenant_context_available: true,
+      claim_contract_version: '1.0.0',
+      claim_contract_profile: 'rust-node-jwt-v1',
+      authority_release: 'v2026.7.0',
+    };
+
+    expect(normalizeSystemCompatibility(
+      compatibilityFixture({ auth: hostedAuth }),
+      '2026.7.1',
+    ).auth).toEqual(hostedAuth);
+
+    for (const auth of [
+      { ...hostedAuth, claim_contract_profile: 'unknown-profile' },
+      { ...hostedAuth, authority_release: 'v2026.8.0' },
+    ]) {
+      expectContractError(
+        () => normalizeSystemCompatibility(compatibilityFixture({ auth }), '2026.7.1'),
+        'unsupported_auth_contract',
+      );
+    }
+  });
 });
 
 describe('compatibility admission gate', () => {

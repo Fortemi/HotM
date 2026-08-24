@@ -1,0 +1,41 @@
+metadata:
+  schema_version: "1.0.0"
+  created_at: "2026-08-24T17:45:38Z"
+  updated_at: "2026-08-24T17:45:38Z"
+  description: "Provenance for exact hosted auth compatibility admission tests"
+entity:
+  id: "urn:aiwg:artifact:agent-proxy/src/__tests__/compatibility.test.ts"
+  type: test
+  checksum: "sha256:62ae546766b5bf2d6ea3f03a37c644370705b6b4466e406b25fee74ce7afa407"
+  size_bytes: 3182
+  attributes:
+    change_scope: "hotm-231-exact-auth-authority"
+activity:
+  id: "urn:aiwg:activity:testing:agent-proxy-compatibility:hotm-231"
+  type: testing
+  started_at: "2026-08-24T17:40:00Z"
+  ended_at: "2026-08-24T17:45:38Z"
+  description: "Accept the exact authority tuple and reject legacy or incomplete hosted auth metadata"
+agent: &agent
+  id: "urn:aiwg:agent:codex-gpt-5"
+  type: ai_assistant
+  name: "Codex"
+  version: "gpt-5"
+  tool: "codex"
+relationships:
+  wasGeneratedBy:
+    entity: "urn:aiwg:artifact:agent-proxy/src/__tests__/compatibility.test.ts"
+    activity: "urn:aiwg:activity:testing:agent-proxy-compatibility:hotm-231"
+    time: "2026-08-24T17:45:38Z"
+  wasDerivedFrom:
+    - entity: "urn:aiwg:artifact:agent-proxy/src/__tests__/compatibility.test.ts"
+      source: "urn:aiwg:artifact:agent-proxy/src/compatibility.ts"
+      derivation_type: tests
+      activity: "urn:aiwg:activity:testing:agent-proxy-compatibility:hotm-231"
+  wasAssociatedWith:
+    activity: "urn:aiwg:activity:testing:agent-proxy-compatibility:hotm-231"
+    agent: *agent
+    role: "primary_author"
+  wasAttributedTo:
+    entity: "urn:aiwg:artifact:agent-proxy/src/__tests__/compatibility.test.ts"
+    agent: *agent

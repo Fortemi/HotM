@@ -1,15 +1,15 @@
 metadata:
   schema_version: "1.0.0"
   created_at: "2026-08-16T14:30:00Z"
-  updated_at: "2026-08-16T14:30:00Z"
+  updated_at: "2026-08-24T17:45:38Z"
   description: "Provenance for HotM Fortemi integration remediation issues #294, #295, and #296"
 entity:
   id: "urn:aiwg:artifact:ui/src/api/__tests__/operator.test.ts"
   type: "test"
   created_at: "2026-08-16T14:30:00Z"
-  updated_at: "2026-08-16T14:30:00Z"
-  checksum: "sha256:8158c548b10edcf08ad0cb2cd74066c547480146bf6aa00751892c240d05cfcb"
-  size_bytes: 33300
+  updated_at: "2026-08-24T17:45:38Z"
+  checksum: "sha256:a71ae091cf08cd6cd737ad7054c52466126517aef58e8d4b0b1cad51565bbd16"
+  size_bytes: 33500
   attributes:
     change_scope: "hotm-294-296-fortemi-integration-remediation"
     base_revision: "63e143de39c7a834c1b7c4144d24a42c3dc7bad2"
@@ -17,8 +17,8 @@ activity:
   id: "urn:aiwg:activity:generation:ui-src-api-tests-operator-test-ts:hotm-294-296"
   type: "generation"
   started_at: "2026-08-16T14:30:00Z"
-  ended_at: "2026-08-16T14:30:00Z"
-  description: "Implement and verify exact pinned core/operator workflows and remove the stale note-link mutation claim"
+  ended_at: "2026-08-24T17:45:38Z"
+  description: "Verify exact pinned operator workflows and hosted auth authority fixture admission"
 agent:
   id: "urn:aiwg:agent:codex-gpt-5"
   type: "ai_assistant"

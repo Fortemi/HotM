@@ -1,24 +1,24 @@
 metadata:
   schema_version: "1.0.0"
   created_at: "2026-08-15T21:13:59Z"
-  updated_at: "2026-08-15T21:13:59Z"
+  updated_at: "2026-08-24T17:45:38Z"
   description: "Provenance for the agent-proxy compatibility consumer receipt"
 entity:
   id: "urn:aiwg:artifact:agent-proxy/src/contracts/fortemi-system-compatibility-receipt.json"
   type: data
   created_at: "2026-08-15T21:13:59Z"
-  updated_at: "2026-08-15T21:13:59Z"
-  checksum: "sha256:3c4b5eb90a456987da229204594d8d01dbf400fc3fa10b60116408a44639eae9"
-  size_bytes: 920
+  updated_at: "2026-08-24T17:45:38Z"
+  checksum: "sha256:f5b7e0b7b013205e9e959264bd1a1dec25c4fac6bb017c02df4d471f56e76ec5"
+  size_bytes: 1108
   attributes:
     change_scope: "hotm-286-runtime-compatibility"
-    producer_revision: "48bc0a0bd68fd9e4eeb742c5af8a54207cbcc425"
+    producer_revision: "d3112ceadd160d991f9e5051caf12d94f8bd59bb"
 activity:
   id: "urn:aiwg:activity:generation:fortemi-system-compatibility-receipt-agent-proxy:001"
   type: generation
   started_at: "2026-08-15T21:13:59Z"
-  ended_at: "2026-08-15T21:13:59Z"
-  description: "Pin the Fortemi compatibility profile, response source, and proxy admission policy"
+  ended_at: "2026-08-24T17:45:38Z"
+  description: "Pin the Fortemi compatibility profile, response source, exact auth authority, and proxy admission policy"
 agent: &agent
   id: "urn:aiwg:agent:codex-gpt-5"
   type: ai_assistant
@@ -32,7 +32,7 @@ relationships:
     time: "2026-08-15T21:13:59Z"
   wasDerivedFrom:
     - entity: "urn:aiwg:artifact:agent-proxy/src/contracts/fortemi-system-compatibility-receipt.json"
-      source: "urn:git:git@git.integrolabs.net:Fortemi/fortemi.git:48bc0a0bd68fd9e4eeb742c5af8a54207cbcc425:contracts/suite-conformance/platform-matrix.json"
+      source: "urn:git:git@git.integrolabs.net:Fortemi/fortemi.git:d3112ceadd160d991f9e5051caf12d94f8bd59bb:contracts/suite-conformance/platform-matrix.json"
       derivation_type: "derives_from"
       activity: "urn:aiwg:activity:generation:fortemi-system-compatibility-receipt-agent-proxy:001"
   wasAssociatedWith:

@@ -1,15 +1,15 @@
 metadata:
   schema_version: "1.0.0"
   created_at: "2026-08-15T21:13:59Z"
-  updated_at: "2026-08-15T21:13:59Z"
+  updated_at: "2026-08-24T17:45:38Z"
   description: "Provenance for agent-proxy runtime compatibility admission"
 entity:
   id: "urn:aiwg:artifact:agent-proxy/src/compatibility.ts"
   type: software
   created_at: "2026-08-15T21:13:59Z"
-  updated_at: "2026-08-15T21:13:59Z"
-  checksum: "sha256:3f3e97f23299aa6766f4204f619fbcd630e9cfac1ca81d6c230b8b5cc9f94a97"
-  size_bytes: 6722
+  updated_at: "2026-08-24T17:45:38Z"
+  checksum: "sha256:fae458874f0c5695388edb11a1f5b94952d917a27b6409f597e4e11342439adf"
+  size_bytes: 8660
   attributes:
     change_scope: "hotm-286-runtime-compatibility"
     base_revision: "bf00c6c5334707621e8c6fd96bfcff908ee1f770"
@@ -17,8 +17,8 @@ activity:
   id: "urn:aiwg:activity:generation:agent-proxy-compatibility:001"
   type: generation
   started_at: "2026-08-15T21:13:59Z"
-  ended_at: "2026-08-15T21:13:59Z"
-  description: "Fail closed before agent-proxy mutations on unknown or incompatible Fortemi metadata"
+  ended_at: "2026-08-24T17:45:38Z"
+  description: "Fail closed before agent-proxy mutations unless the exact hosted auth authority tuple is admitted"
 agent: &agent
   id: "urn:aiwg:agent:codex-gpt-5"
   type: ai_assistant

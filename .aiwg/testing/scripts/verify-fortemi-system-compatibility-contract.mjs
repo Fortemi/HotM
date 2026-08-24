@@ -54,6 +54,9 @@ const requiredSourceFragments = [
   `contract_revision: "${profile.authority.server_compatibility_revision}"`,
   'minimum_hotm_enterprise_client',
   'auth: CompatibilityAuth',
+  'claim_contract_version: inputs.multi_tenant.then_some("1.0.0")',
+  'claim_contract_profile: inputs.multi_tenant.then_some("rust-node-jwt-v1")',
+  'authority_release: inputs.multi_tenant.then_some("v2026.7.0")',
 ];
 for (const fragment of requiredSourceFragments) {
   if (!responseSource.includes(fragment)) {

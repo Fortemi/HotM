@@ -37,6 +37,8 @@ export interface SystemCompatibilityResponse {
     oauth_issuer_configured: boolean;
     tenant_context_available: boolean;
     claim_contract_version?: string;
+    claim_contract_profile?: string;
+    authority_release?: string;
   };
   capabilities: Record<string, SystemCapability>;
   links: {
@@ -196,10 +198,14 @@ function validateCompatibilityBoundary(
     if (
       typeof raw.auth.claim_contract_version !== 'string'
       || !compatibilityReceipt.consumer.acceptedAuthClaimContractVersions.includes(raw.auth.claim_contract_version)
+      || typeof raw.auth.claim_contract_profile !== 'string'
+      || !compatibilityReceipt.consumer.acceptedAuthClaimContractProfiles.includes(raw.auth.claim_contract_profile)
+      || typeof raw.auth.authority_release !== 'string'
+      || !compatibilityReceipt.consumer.acceptedAuthAuthorityReleases.includes(raw.auth.authority_release)
     ) {
       throw new SystemCompatibilityContractError(
         'unsupported_auth_contract',
-        `Fortemi auth claim contract ${String(raw.auth.claim_contract_version)} is unsupported.`,
+        'Fortemi auth claim authority is unsupported.',
       );
     }
   } else if (!compatibilityReceipt.consumer.localAuthModes.includes(raw.auth.mode)) {

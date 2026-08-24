@@ -8,7 +8,13 @@ const localCompatibility = async () => ({
   auth: { required: false as const, mode: 'anonymous_local' },
 });
 const hostedCompatibility = async () => ({
-  auth: { required: true as const, mode: 'oauth', claimContractVersion: '1' },
+  auth: {
+    required: true as const,
+    mode: 'hosted_oauth',
+    claimContractVersion: '1.0.0',
+    claimContractProfile: 'rust-node-jwt-v1',
+    authorityRelease: 'v2026.7.0',
+  },
 });
 
 const FIXTURE_TENANT_ID = '00000000-0000-4000-8000-000000000001';

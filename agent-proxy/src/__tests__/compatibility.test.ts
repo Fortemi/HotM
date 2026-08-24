@@ -42,12 +42,39 @@ describe('agent-proxy compatibility admission', () => {
     expect(String(mockFetch.mock.calls[0][0])).toContain('/system/compatibility');
   });
 
+  it('accepts the exact hosted auth authority tuple', () => {
+    expect(assertCompatibleFortemi(fixture({
+      auth: {
+        required: true,
+        mode: 'hosted_oauth',
+        claim_contract_version: '1.0.0',
+        claim_contract_profile: 'rust-node-jwt-v1',
+        authority_release: 'v2026.7.0',
+      },
+    }))).toEqual({
+      auth: {
+        required: true,
+        mode: 'hosted_oauth',
+        claimContractVersion: '1.0.0',
+        claimContractProfile: 'rust-node-jwt-v1',
+        authorityRelease: 'v2026.7.0',
+      },
+    });
+  });
+
   it.each([
     [{ contract_revision: '2026-07-07' }, 'unsupported_revision'],
     [{ api: { ...fixture().api, version: '2026.6.9' } }, 'server_api_too_old'],
     [{ api: { ...fixture().api, version: '2027.0.0' } }, 'server_api_too_new'],
     [{ api: { ...fixture().api, version: 'latest' } }, 'invalid_api_version'],
     [{ auth: { required: true, mode: 'oauth_bearer' } }, 'unsupported_auth_contract'],
+    [{ auth: {
+      required: true,
+      mode: 'hosted_oauth',
+      claim_contract_version: '1',
+      claim_contract_profile: 'rust-node-jwt-v1',
+      authority_release: 'v2026.7.0',
+    } }, 'unsupported_auth_contract'],
   ] as const)('rejects incompatible metadata with %s', (overrides, code) => {
     expect(() => assertCompatibleFortemi(fixture(overrides))).toThrowError(
       expect.objectContaining<Partial<CompatibilityAdmissionError>>({ code }),

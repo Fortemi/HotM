@@ -1,8 +1,10 @@
 metadata:
   schema_version: "1.0.0"
-  updated_at: "2026-08-24T16:12:18Z"
-  record_count: 192
+  updated_at: "2026-08-24T17:45:38Z"
+  record_count: 193
 records:
+  - entity: "urn:aiwg:artifact:agent-proxy/src/__tests__/compatibility.test.ts"
+    record: "records/agent-proxy-compatibility.test.ts.hotm-231.prov.yaml"
   - entity: "urn:aiwg:artifact:agent-proxy/src/app.ts"
     record: "records/app.ts.ad2df15e.hotm-231.prov.yaml"
   - entity: "urn:aiwg:artifact:agent-proxy/src/auth/index.ts"

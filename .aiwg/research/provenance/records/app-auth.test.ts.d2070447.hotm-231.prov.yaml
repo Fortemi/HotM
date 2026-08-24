@@ -1,21 +1,22 @@
 metadata:
   schema_version: "1.0.0"
   created_at: "2026-08-24T16:12:18Z"
+  updated_at: "2026-08-24T17:45:38Z"
   description: "Provenance for createAgentProxyApp authentication boundary tests"
 entity:
   id: "urn:aiwg:artifact:agent-proxy/src/__tests__/app-auth.test.ts"
   type: test
   created_at: "2026-08-24T16:12:18Z"
-  checksum: "sha256:d20704470628766c803a11ed9f53a0806601e7647e54ef6a78712eb37df2eaf6"
-  size_bytes: 3725
+  checksum: "sha256:cb1221ba9a0d4076eb377eb83a417745374ad8e0343a4e4577eefa498609e899"
+  size_bytes: 3832
   attributes:
     change_scope: "hotm-231-production-auth-boundary"
 activity:
   id: "urn:aiwg:activity:generation:agent-proxy-app-auth-test:hotm-231"
   type: generation
   started_at: "2026-08-24T15:00:00Z"
-  ended_at: "2026-08-24T16:12:18Z"
-  description: "Prove app-level chat protection and fail-closed tenant-store composition"
+  ended_at: "2026-08-24T17:45:38Z"
+  description: "Prove exact compatibility authority, app-level chat protection, and fail-closed tenant-store composition"
 agent: &agent
   id: "urn:aiwg:agent:codex-gpt-5"
   type: ai_assistant

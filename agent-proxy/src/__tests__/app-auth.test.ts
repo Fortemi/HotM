@@ -5,7 +5,13 @@ import { createAgentProxyApp } from '../app.js';
 import manifest from '../auth/fixtures/fortemi-auth-v1.json';
 
 const hostedCompatibility = async () => ({
-  auth: { required: true as const, mode: 'oauth', claimContractVersion: '1' },
+  auth: {
+    required: true as const,
+    mode: 'hosted_oauth',
+    claimContractVersion: '1.0.0',
+    claimContractProfile: 'rust-node-jwt-v1',
+    authorityRelease: 'v2026.7.0',
+  },
 });
 
 function tokenFor(id: string): string {

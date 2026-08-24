@@ -16,6 +16,8 @@ export interface CompatibleFortemiMetadata {
     required: boolean;
     mode: string;
     claimContractVersion?: string;
+    claimContractProfile?: string;
+    authorityRelease?: string;
   };
 }
 
@@ -115,14 +117,20 @@ export function assertCompatibleFortemi(raw: unknown): CompatibleFortemiMetadata
     if (
       typeof auth.claim_contract_version !== 'string'
       || !compatibilityReceipt.consumer.acceptedAuthClaimContractVersions.includes(auth.claim_contract_version)
+      || typeof auth.claim_contract_profile !== 'string'
+      || !compatibilityReceipt.consumer.acceptedAuthClaimContractProfiles.includes(auth.claim_contract_profile)
+      || typeof auth.authority_release !== 'string'
+      || !compatibilityReceipt.consumer.acceptedAuthAuthorityReleases.includes(auth.authority_release)
     ) {
-      throw new CompatibilityAdmissionError('unsupported_auth_contract', `Unsupported Fortemi auth claim contract ${String(auth.claim_contract_version)}.`);
+      throw new CompatibilityAdmissionError('unsupported_auth_contract', 'Unsupported Fortemi auth claim authority.');
     }
     return {
       auth: {
         required: true,
         mode: typeof auth.mode === 'string' ? auth.mode : 'oauth',
         claimContractVersion: auth.claim_contract_version,
+        claimContractProfile: auth.claim_contract_profile,
+        authorityRelease: auth.authority_release,
       },
     };
   } else if (

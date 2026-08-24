@@ -1,15 +1,15 @@
 metadata:
   schema_version: "1.0.0"
   created_at: "2026-07-24T08:10:00Z"
-  updated_at: "2026-08-15T21:13:59Z"
+  updated_at: "2026-08-24T17:45:38Z"
   description: "Provenance for HotM #286 compatibility admission tests"
 entity:
   id: "urn:aiwg:artifact:ui/src/api/__tests__/systemCompatibility.test.ts"
   type: test
   created_at: "2026-07-24T08:10:00Z"
-  updated_at: "2026-08-15T21:13:59Z"
-  checksum: "sha256:c4f62dbdf05c20d9c6ca8e9bc909d559fc188a024311a3e5eda84f2b35637211"
-  size_bytes: 6124
+  updated_at: "2026-08-24T17:45:38Z"
+  checksum: "sha256:a665d717cf373227542c0bb3bf97fe7b939700806739173909bd412755540ea8"
+  size_bytes: 6990
   attributes:
     change_scope: "hotm-route-202-operator-contracts"
     base_revision: "d9e1ce69340b7b9816149c75cfced2600d9b7a22"
@@ -17,8 +17,8 @@ activity:
   id: "urn:aiwg:activity:modification:system-compatibility-test:002"
   type: modification
   started_at: "2026-07-24T08:10:00Z"
-  ended_at: "2026-08-15T21:13:59Z"
-  description: "Test SemVer, API range, auth contract, cached admission, and typed fail-closed decisions"
+  ended_at: "2026-08-24T17:45:38Z"
+  description: "Test SemVer, API range, exact auth authority, cached admission, and typed fail-closed decisions"
 agent: &agent
   id: "urn:aiwg:agent:codex-gpt-5"
   type: ai_assistant
