@@ -1,0 +1,45 @@
+metadata:
+  schema_version: "1.0.0"
+  created_at: "2026-08-24T16:12:18Z"
+  description: "Provenance for the dated #231 audit revalidation"
+entity:
+  id: "urn:aiwg:artifact:.aiwg/reports/fortemi-hotm-integration-audit-2026-08-15.md"
+  type: document
+  created_at: "2026-08-24T16:12:18Z"
+  checksum: "sha256:b0fe5a7b52f267b565d0e761f766d5c0ff6a09556db1ecf4b735f98b9179e673"
+  size_bytes: 9092
+  attributes:
+    change_scope: "hotm-231-production-auth-boundary"
+activity:
+  id: "urn:aiwg:activity:modification:fortemi-hotm-audit:hotm-231"
+  type: modification
+  started_at: "2026-08-24T15:00:00Z"
+  ended_at: "2026-08-24T16:12:18Z"
+  description: "Add current authentication implementation status while retaining historical findings"
+agent: &agent
+  id: "urn:aiwg:agent:codex-gpt-5"
+  type: ai_assistant
+  name: "Codex"
+  version: "gpt-5"
+  tool: "codex"
+relationships:
+  wasGeneratedBy:
+    entity: "urn:aiwg:artifact:.aiwg/reports/fortemi-hotm-integration-audit-2026-08-15.md"
+    activity: "urn:aiwg:activity:modification:fortemi-hotm-audit:hotm-231"
+    time: "2026-08-24T16:12:18Z"
+  used:
+    - activity: "urn:aiwg:activity:modification:fortemi-hotm-audit:hotm-231"
+      entity: "urn:gitea:Fortemi/HotM:issue:231"
+      role: "requirement"
+  wasDerivedFrom:
+    - entity: "urn:aiwg:artifact:.aiwg/reports/fortemi-hotm-integration-audit-2026-08-15.md"
+      source: "urn:aiwg:artifact:agent-proxy/src/auth/middleware.test.ts"
+      derivation_type: "documents"
+      activity: "urn:aiwg:activity:modification:fortemi-hotm-audit:hotm-231"
+  wasAssociatedWith:
+    activity: "urn:aiwg:activity:modification:fortemi-hotm-audit:hotm-231"
+    agent: "urn:aiwg:agent:codex-gpt-5"
+    role: "primary_author"
+  wasAttributedTo:
+    entity: "urn:aiwg:artifact:.aiwg/reports/fortemi-hotm-integration-audit-2026-08-15.md"
+    agent: "urn:aiwg:agent:codex-gpt-5"

@@ -1,0 +1,45 @@
+metadata:
+  schema_version: "1.0.0"
+  created_at: "2026-08-24T16:12:18Z"
+  description: "Provenance for the dated current-state addendum to the Node conformance receipt"
+entity:
+  id: "urn:aiwg:artifact:.aiwg/reports/fortemi-auth-node-conformance-receipt-2026-07-26.md"
+  type: document
+  created_at: "2026-08-24T16:12:18Z"
+  checksum: "sha256:2980327768416feeaee6aede0e340b83844778416e69c0de43dde08b85b01be9"
+  size_bytes: 3156
+  attributes:
+    change_scope: "hotm-231-production-auth-boundary"
+activity:
+  id: "urn:aiwg:activity:modification:fortemi-auth-node-receipt:hotm-231"
+  type: modification
+  started_at: "2026-08-24T15:00:00Z"
+  ended_at: "2026-08-24T16:12:18Z"
+  description: "Append current implementation evidence without rewriting the historical corpus receipt"
+agent: &agent
+  id: "urn:aiwg:agent:codex-gpt-5"
+  type: ai_assistant
+  name: "Codex"
+  version: "gpt-5"
+  tool: "codex"
+relationships:
+  wasGeneratedBy:
+    entity: "urn:aiwg:artifact:.aiwg/reports/fortemi-auth-node-conformance-receipt-2026-07-26.md"
+    activity: "urn:aiwg:activity:modification:fortemi-auth-node-receipt:hotm-231"
+    time: "2026-08-24T16:12:18Z"
+  used:
+    - activity: "urn:aiwg:activity:modification:fortemi-auth-node-receipt:hotm-231"
+      entity: "urn:gitea:Fortemi/HotM:issue:231"
+      role: "requirement"
+  wasDerivedFrom:
+    - entity: "urn:aiwg:artifact:.aiwg/reports/fortemi-auth-node-conformance-receipt-2026-07-26.md"
+      source: "urn:aiwg:artifact:agent-proxy/src/auth/remote-jwks.test.ts"
+      derivation_type: "documents"
+      activity: "urn:aiwg:activity:modification:fortemi-auth-node-receipt:hotm-231"
+  wasAssociatedWith:
+    activity: "urn:aiwg:activity:modification:fortemi-auth-node-receipt:hotm-231"
+    agent: "urn:aiwg:agent:codex-gpt-5"
+    role: "primary_author"
+  wasAttributedTo:
+    entity: "urn:aiwg:artifact:.aiwg/reports/fortemi-auth-node-conformance-receipt-2026-07-26.md"
+    agent: "urn:aiwg:agent:codex-gpt-5"

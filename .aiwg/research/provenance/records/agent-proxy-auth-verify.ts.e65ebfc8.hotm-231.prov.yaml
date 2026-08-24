@@ -1,0 +1,48 @@
+metadata:
+  schema_version: "1.0.0"
+  created_at: "2026-08-24T16:12:18Z"
+  description: "Provenance for production JWKS and tenant admission hardening"
+entity:
+  id: "urn:aiwg:artifact:agent-proxy/src/auth/verify.ts"
+  type: code
+  created_at: "2026-08-24T16:12:18Z"
+  checksum: "sha256:e65ebfc8c99237dc26ec9fb9df2ef372ddd5779b6ebb62c047971860825cf258"
+  size_bytes: 10650
+  attributes:
+    change_scope: "hotm-231-production-auth-boundary"
+activity:
+  id: "urn:aiwg:activity:modification:agent-proxy-auth-verify:hotm-231"
+  type: modification
+  started_at: "2026-08-24T15:00:00Z"
+  ended_at: "2026-08-24T16:12:18Z"
+  description: "Implement reusable remote JWKS resolution, shared status mapping, and active-tenant admission"
+agent: &agent
+  id: "urn:aiwg:agent:codex-gpt-5"
+  type: ai_assistant
+  name: "Codex"
+  version: "gpt-5"
+  tool: "codex"
+relationships:
+  wasGeneratedBy:
+    entity: "urn:aiwg:artifact:agent-proxy/src/auth/verify.ts"
+    activity: "urn:aiwg:activity:modification:agent-proxy-auth-verify:hotm-231"
+    time: "2026-08-24T16:12:18Z"
+  used:
+    - activity: "urn:aiwg:activity:modification:agent-proxy-auth-verify:hotm-231"
+      entity: "urn:gitea:Fortemi/HotM:issue:231"
+      role: "requirement"
+    - activity: "urn:aiwg:activity:modification:agent-proxy-auth-verify:hotm-231"
+      entity: "urn:git:Fortemi/fortemi-auth:v2026.7.0"
+      role: "public_authority"
+  wasDerivedFrom:
+    - entity: "urn:aiwg:artifact:agent-proxy/src/auth/verify.ts"
+      source: "urn:git:Fortemi/fortemi-auth:v2026.7.0:crates/fortemi-auth-core/src/lib.rs"
+      derivation_type: "implements"
+      activity: "urn:aiwg:activity:modification:agent-proxy-auth-verify:hotm-231"
+  wasAssociatedWith:
+    activity: "urn:aiwg:activity:modification:agent-proxy-auth-verify:hotm-231"
+    agent: "urn:aiwg:agent:codex-gpt-5"
+    role: "primary_author"
+  wasAttributedTo:
+    entity: "urn:aiwg:artifact:agent-proxy/src/auth/verify.ts"
+    agent: "urn:aiwg:agent:codex-gpt-5"

@@ -1,0 +1,45 @@
+metadata:
+  schema_version: "1.0.0"
+  created_at: "2026-08-24T16:12:18Z"
+  description: "Provenance for fail-closed tenant and status-mapping middleware tests"
+entity:
+  id: "urn:aiwg:artifact:agent-proxy/src/auth/middleware.test.ts"
+  type: test
+  created_at: "2026-08-24T16:12:18Z"
+  checksum: "sha256:7a7791b44c61e1a0d4b6e1f80eb887e319593a1e355d46013eeb27ad99b0214e"
+  size_bytes: 7588
+  attributes:
+    change_scope: "hotm-231-production-auth-boundary"
+activity:
+  id: "urn:aiwg:activity:testing:agent-proxy-auth-middleware:hotm-231"
+  type: testing
+  started_at: "2026-08-24T15:00:00Z"
+  ended_at: "2026-08-24T16:12:18Z"
+  description: "Verify tenant status, lookup failure, shared 503 mapping, and one-time verifier configuration"
+agent: &agent
+  id: "urn:aiwg:agent:codex-gpt-5"
+  type: ai_assistant
+  name: "Codex"
+  version: "gpt-5"
+  tool: "codex"
+relationships:
+  wasGeneratedBy:
+    entity: "urn:aiwg:artifact:agent-proxy/src/auth/middleware.test.ts"
+    activity: "urn:aiwg:activity:testing:agent-proxy-auth-middleware:hotm-231"
+    time: "2026-08-24T16:12:18Z"
+  used:
+    - activity: "urn:aiwg:activity:testing:agent-proxy-auth-middleware:hotm-231"
+      entity: "urn:gitea:Fortemi/HotM:issue:231"
+      role: "requirement"
+  wasDerivedFrom:
+    - entity: "urn:aiwg:artifact:agent-proxy/src/auth/middleware.test.ts"
+      source: "urn:aiwg:artifact:agent-proxy/src/auth/middleware.ts"
+      derivation_type: "tests"
+      activity: "urn:aiwg:activity:testing:agent-proxy-auth-middleware:hotm-231"
+  wasAssociatedWith:
+    activity: "urn:aiwg:activity:testing:agent-proxy-auth-middleware:hotm-231"
+    agent: "urn:aiwg:agent:codex-gpt-5"
+    role: "primary_author"
+  wasAttributedTo:
+    entity: "urn:aiwg:artifact:agent-proxy/src/auth/middleware.test.ts"
+    agent: "urn:aiwg:agent:codex-gpt-5"

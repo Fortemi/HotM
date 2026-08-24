@@ -1,13 +1,16 @@
 import cors from 'cors';
 import express from 'express';
 import rateLimit from 'express-rate-limit';
-import { createAgentAuthMiddleware } from './auth/middleware.js';
+import {
+  createAgentAuthMiddleware,
+  type AuthMiddlewareOptions,
+} from './auth/middleware.js';
 import { chatRouter } from './routes/chat.js';
 
 export interface AgentProxyAppOptions {
   corsOrigin?: string;
   rateLimitRpm?: number;
-  authMiddleware?: express.RequestHandler;
+  auth?: AuthMiddlewareOptions;
 }
 
 export function createAgentProxyApp(options: AgentProxyAppOptions = {}): express.Express {
@@ -34,7 +37,7 @@ export function createAgentProxyApp(options: AgentProxyAppOptions = {}): express
   app.use(
     '/api/agent/chat',
     chatLimiter,
-    options.authMiddleware ?? createAgentAuthMiddleware(),
+    createAgentAuthMiddleware(options.auth),
     express.json({ limit: '1mb' }),
     chatRouter,
   );

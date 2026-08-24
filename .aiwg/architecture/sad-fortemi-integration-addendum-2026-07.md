@@ -425,8 +425,27 @@ requires the pinned `2026.7.0` auth identity, an accepted claim-contract
 version, RS256 issuer/audience/JWKS verification, tenant consistency, and an
 identity-bound privilege session. Unknown auth metadata fails closed while the
 producer-advertised `anonymous_local` profile preserves local workflows.
-`fortemi-auth` remains specification-only until the repository contract's
-release requirement is independently satisfied.
+The signed `fortemi-auth` release and exact Rust/Node corpus receipts satisfy
+the named contract profile only. Hosted promotion remains blocked on producer
+runtime admission metadata and live tenant-isolation evidence.
+
+#### Auth packaging and admission update (2026-08-24)
+
+The public CE agent proxy owns the independently implemented Node verifier,
+shared error/status mapping, reusable remote JWKS resolver, and `TenantStore`
+interface. It ships with a fail-closed unavailable tenant store. Hosted mode
+performs active-tenant admission after cryptographic verification for every
+request; unknown, suspended, soft-deleted, and lookup-failure states cannot fall
+back to local anonymous access.
+
+The already-approved CE/EE distribution boundary places concrete proprietary
+identity-provider and tenant persistence implementations in the separate
+internal enterprise composition. That distribution may inject a `TenantStore`
+when creating the app, but may not redefine the public claim, error, or
+admission contract. No enterprise adapter is invented in HotM. This boundary
+remains non-promotable until Fortemi publishes admitted auth metadata and a
+tenant-status integration contract and supplies live transaction-scoped tenant
+isolation evidence.
 
 Fetch SSE is the scoped realtime transport. Authorization,
 `X-Fortemi-Memory`, tenant filtering, and `Last-Event-ID` are header/context
@@ -493,10 +512,10 @@ the generic agent boundary.
 
 This amendment does not promote API-key, OAuth, PKE, or underspecified backup
 operations. Their pinned success responses or binary media declarations are
-incomplete. `fortemi-auth` remains specification-only because the required
-Rust workspace, CI, release, and shared Rust/Node fixture receipts are not all
-present. Local-only workflows remain available when compatibility or auth
-admission fails closed.
+incomplete. The required public Rust workspace, CI, signed release, and shared
+Rust/Node fixture receipts now exist, but they do not prove the producer OAuth
+payloads, runtime admission metadata, or hosted persistence isolation. Local-only
+workflows remain available when compatibility or auth admission fails closed.
 
 ### Agent Contract Reconciliation Amendment (2026-08-16)
 

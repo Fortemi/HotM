@@ -1,0 +1,48 @@
+metadata:
+  schema_version: "1.0.0"
+  created_at: "2026-08-24T16:12:18Z"
+  description: "Provenance for the current HotM auth and packaging decision"
+entity:
+  id: "urn:aiwg:artifact:.aiwg/architecture/adr-auth-shared-crate.md"
+  type: document
+  created_at: "2026-08-24T16:12:18Z"
+  checksum: "sha256:2ed4b32a869702ad9a409becae668ee11bdc2853d89e12245c6d8b96ffb76d51"
+  size_bytes: 4361
+  attributes:
+    change_scope: "hotm-231-production-auth-boundary"
+activity:
+  id: "urn:aiwg:activity:modification:adr-auth-shared-crate:hotm-231"
+  type: modification
+  started_at: "2026-08-24T15:00:00Z"
+  ended_at: "2026-08-24T16:12:18Z"
+  description: "Record reusable JWKS, tenant admission, and CE versus enterprise composition decisions"
+agent: &agent
+  id: "urn:aiwg:agent:codex-gpt-5"
+  type: ai_assistant
+  name: "Codex"
+  version: "gpt-5"
+  tool: "codex"
+relationships:
+  wasGeneratedBy:
+    entity: "urn:aiwg:artifact:.aiwg/architecture/adr-auth-shared-crate.md"
+    activity: "urn:aiwg:activity:modification:adr-auth-shared-crate:hotm-231"
+    time: "2026-08-24T16:12:18Z"
+  used:
+    - activity: "urn:aiwg:activity:modification:adr-auth-shared-crate:hotm-231"
+      entity: "urn:gitea:Fortemi/HotM:issue:231"
+      role: "requirement"
+    - activity: "urn:aiwg:activity:modification:adr-auth-shared-crate:hotm-231"
+      entity: "urn:git:Fortemi/fortemi:ADR-095"
+      role: "distribution_authority"
+  wasDerivedFrom:
+    - entity: "urn:aiwg:artifact:.aiwg/architecture/adr-auth-shared-crate.md"
+      source: "urn:git:Fortemi/fortemi-auth:v2026.7.0:docs/adr/adr-002-public-core-distribution.md"
+      derivation_type: "conforms_to"
+      activity: "urn:aiwg:activity:modification:adr-auth-shared-crate:hotm-231"
+  wasAssociatedWith:
+    activity: "urn:aiwg:activity:modification:adr-auth-shared-crate:hotm-231"
+    agent: "urn:aiwg:agent:codex-gpt-5"
+    role: "primary_author"
+  wasAttributedTo:
+    entity: "urn:aiwg:artifact:.aiwg/architecture/adr-auth-shared-crate.md"
+    agent: "urn:aiwg:agent:codex-gpt-5"

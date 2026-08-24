@@ -1,0 +1,45 @@
+metadata:
+  schema_version: "1.0.0"
+  created_at: "2026-08-24T16:12:18Z"
+  description: "Provenance for remote JWKS rotation, outage, cache, and concurrency tests"
+entity:
+  id: "urn:aiwg:artifact:agent-proxy/src/auth/remote-jwks.test.ts"
+  type: test
+  created_at: "2026-08-24T16:12:18Z"
+  checksum: "sha256:b7574d18a2d881a32a3bfce76c4c044416dc43e69175d501d8e62aa44a077482"
+  size_bytes: 5707
+  attributes:
+    change_scope: "hotm-231-production-auth-boundary"
+activity:
+  id: "urn:aiwg:activity:generation:agent-proxy-auth-remote-jwks-test:hotm-231"
+  type: generation
+  started_at: "2026-08-24T15:00:00Z"
+  ended_at: "2026-08-24T16:12:18Z"
+  description: "Test reusable jose JWKS resolver behavior against a real local HTTP endpoint"
+agent: &agent
+  id: "urn:aiwg:agent:codex-gpt-5"
+  type: ai_assistant
+  name: "Codex"
+  version: "gpt-5"
+  tool: "codex"
+relationships:
+  wasGeneratedBy:
+    entity: "urn:aiwg:artifact:agent-proxy/src/auth/remote-jwks.test.ts"
+    activity: "urn:aiwg:activity:generation:agent-proxy-auth-remote-jwks-test:hotm-231"
+    time: "2026-08-24T16:12:18Z"
+  used:
+    - activity: "urn:aiwg:activity:generation:agent-proxy-auth-remote-jwks-test:hotm-231"
+      entity: "urn:gitea:Fortemi/HotM:issue:231"
+      role: "requirement"
+  wasDerivedFrom:
+    - entity: "urn:aiwg:artifact:agent-proxy/src/auth/remote-jwks.test.ts"
+      source: "urn:aiwg:artifact:agent-proxy/src/auth/verify.ts"
+      derivation_type: "tests"
+      activity: "urn:aiwg:activity:generation:agent-proxy-auth-remote-jwks-test:hotm-231"
+  wasAssociatedWith:
+    activity: "urn:aiwg:activity:generation:agent-proxy-auth-remote-jwks-test:hotm-231"
+    agent: "urn:aiwg:agent:codex-gpt-5"
+    role: "primary_author"
+  wasAttributedTo:
+    entity: "urn:aiwg:artifact:agent-proxy/src/auth/remote-jwks.test.ts"
+    agent: "urn:aiwg:agent:codex-gpt-5"

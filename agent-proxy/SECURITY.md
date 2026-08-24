@@ -2,10 +2,12 @@
 
 ## Intended Deployment
 
-agent-proxy is designed as a **localhost-only sidecar** to the HotM UI (web SPA in
-development, Tauri webview in desktop builds). It is not a multi-tenant service.
-It holds raw API keys for cloud LLM providers (Anthropic, OpenAI) and proxies
-requests on behalf of the local user.
+agent-proxy defaults to a **localhost-only sidecar** for the HotM UI (web SPA in
+development, Tauri webview in desktop builds). It holds raw API keys for cloud
+LLM providers (Anthropic, OpenAI) and proxies requests on behalf of the local
+user. A hosted profile is admitted only when Fortemi compatibility metadata
+requires authentication and the deployment supplies released verifier settings
+plus an active-tenant lookup implementation.
 
 ## Threat Model
 
@@ -35,25 +37,39 @@ requests on behalf of the local user.
 | `AGENT_PROXY_RATE_LIMIT_RPM`   | `60`                            | Per-IP requests per minute on `/api/agent/chat`. Set to `0` to disable. |
 | `ANTHROPIC_API_KEY`            | unset                           | Required only for the `anthropic` provider. |
 | `OPENAI_API_KEY`               | unset                           | Required only for the `openai` provider. |
+| `FORTEMI_AUTH_RELEASE`         | unset                           | Hosted mode requires the pinned released auth version. |
+| `FORTEMI_AUTH_CONTRACT_VERSION` | pinned release value           | Must match the admitted public claim contract. |
+| `FORTEMI_AUTH_PROFILE`         | pinned release value           | Must match the admitted Node profile. |
+| `FORTEMI_AUTH_ISSUER`          | unset                           | Exact hosted token issuer. |
+| `FORTEMI_AUTH_AUDIENCE`        | unset                           | Exact hosted token audience. |
+| `FORTEMI_AUTH_JWKS_URL`        | unset                           | HTTPS required except loopback development. |
+| `FORTEMI_AUTH_TENANT_CLAIM`    | `fortemi:tenant_id`             | Tenant UUID claim name. |
+| `FORTEMI_AUTH_CLOCK_SKEW_SECONDS` | `60`                         | Integer from 0 through 300. |
+| `FORTEMI_AUTH_JWKS_TIMEOUT_MS` | `5000`                          | Remote JWKS request timeout. |
+| `FORTEMI_AUTH_JWKS_COOLDOWN_MS` | `30000`                        | Minimum refetch interval for an unknown key ID. |
+| `FORTEMI_AUTH_JWKS_CACHE_MAX_AGE_MS` | `600000`                   | Maximum remote JWKS cache age. |
 
 ## Network Exposure
 
-`agent-proxy` does **not** currently enforce client authentication on its routes.
-The default binding to `127.0.0.1` is the primary control preventing remote use
-of the embedded API keys. The reusable Node verifier in `src/auth/` passes the
-public `fortemi-auth` `rust-node-jwt-v1` fixture profile, but it is not installed
-as route middleware. Setting `BIND_ADDR=0.0.0.0` (or any non-loopback address)
-without additionally introducing an authentication layer is **not supported**
-and effectively publishes your LLM provider credentials to anyone who can reach
-the listening port.
+`createAgentProxyApp` installs authentication middleware on
+`/api/agent/chat` before parsing request content. The compatibility-advertised
+`anonymous_local` profile admits the local workflow without a bearer token.
+Hosted mode requires RS256 issuer/audience/JWKS verification and an active
+tenant lookup for every admitted request. Missing credentials, unknown or
+suspended tenants, JWKS outages, tenant-store outages, and invalid auth
+configuration fail closed with redacted error codes.
 
-If a network-exposed deployment is needed:
+The public CE package defines the verifier and `TenantStore` composition seam,
+but intentionally ships no hosted tenant-database adapter. An internal
+enterprise distribution may inject that implementation into
+`createAgentProxyApp`; without it, hosted requests return 503. This separation
+does not establish hosted readiness. Promotion still requires producer-admitted
+auth metadata and live Fortemi evidence for transaction-scoped tenant isolation.
 
-1. Front the proxy with a reverse proxy that performs authentication
-   (e.g., nginx + mTLS, or an SSO gateway).
-2. Keep `BIND_ADDR` set to a private interface only that reverse proxy can reach.
-3. Audit the CORS allowlist to match the public origin.
-4. File a follow-up issue to add native auth to agent-proxy itself.
+For any network-exposed deployment, keep the service behind a private ingress,
+retain an outer transport/authentication control such as mTLS or an SSO gateway,
+and restrict CORS to the exact UI origin. Do not expose the process merely by
+setting `BIND_ADDR=0.0.0.0`.
 
 ## Operator Checklist
 
@@ -66,6 +82,10 @@ Before starting agent-proxy in any environment:
 - [ ] If running outside Tauri, confirm `AGENT_PROXY_RATE_LIMIT_RPM` is set
       to a value appropriate for the workload (60 is comfortable for a single
       human user).
+- [ ] For hosted mode, confirm the released auth identity, issuer, audience,
+      HTTPS JWKS endpoint, and active-tenant adapter are configured.
+- [ ] Confirm JWKS and tenant-store outages return redacted 503 responses and
+      never fall back to anonymous admission.
 
 ## Related Issues
 
@@ -73,4 +93,5 @@ Before starting agent-proxy in any environment:
 - #218 — rate limiting on `/api/agent/chat`
 - #214 — path-to-regexp ReDoS (patched)
 - #121 — original design issue for the agent-proxy route
+- #231 — native auth corpus conformance and production admission boundary
 - Hardening plan: `.aiwg/security/npm-audit-plan-2026-05-14.md`

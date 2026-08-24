@@ -33,6 +33,35 @@ audits the HotM revision
 | Compatibility | Parser accepts schema `1` and revision `2026-07-06` | Producer artifact pinning, server API revision enforcement, runtime admission, and SemVer precedence are open in #286. |
 | Authentication | Node fixtures exist | `fortemi-auth` remains specification-only. Mandatory agent-proxy middleware, release identity, shared Rust/Node receipts, and context forwarding remain open in #231. |
 
+### Authentication Revalidation - 2026-08-24
+
+The authentication row above is retained as the revision-bound August 15
+snapshot and is superseded for current planning. The public authority now has
+workspace/CI evidence, signed release `v2026.7.0`, and exact Rust/Node corpus
+receipts. HotM installs the verifier as mandatory `agent-proxy` middleware and
+forwards the derived request context. Issue #231 remains open for a narrower
+producer-owned boundary: admitted auth contract metadata and a live hosted
+receipt proving transaction-scoped tenant isolation. No corpus receipt alone
+establishes that persistence property.
+
+### Authentication implementation update - 2026-08-24
+
+Authorized HotM #231 remediation now constructs one reusable remote `jose` JWKS
+resolver from an immutable configuration snapshot, uses the shared redacted
+`AuthError` status mapping, and maps `jwks_unreachable` and
+`jwks_cache_failure` to 503. `createAgentProxyApp` protects
+`/api/agent/chat` before body parsing. Hosted admission performs an active-tenant
+lookup on every verified request and fails closed for unknown, suspended, or
+soft-deleted tenants, lookup failures, and a missing adapter.
+
+The public CE boundary contains the verifier, `TenantStore` interface, and
+fail-closed default. A separate internal enterprise distribution may compose a
+backing implementation; this repository does not invent one. The historical
+finding and verification counts below remain bound to the August 15 audit
+revision. Current focused tests close the listed HotM code gaps, but #231 cannot
+claim hosted readiness without producer-admitted metadata, an approved
+tenant-status integration contract, and live Fortemi tenant-isolation evidence.
+
 ## Verification Snapshot
 
 | Check | Result | Meaning |

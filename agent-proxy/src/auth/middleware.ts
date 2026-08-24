@@ -1,6 +1,11 @@
 import type { NextFunction, Request, RequestHandler, Response } from 'express';
 import releasePolicy from './fixtures/fortemi-auth-release-policy-v1.json';
-import { FortemiAuthError, verifyFortemiBearer, type FortemiAuthConfig } from './verify.js';
+import {
+  createFortemiAuthVerifier,
+  FortemiAuthError,
+  type FortemiAuthConfig,
+  type TenantStore,
+} from './verify.js';
 import {
   CompatibilityAdmissionError,
   requireCompatibleFortemi,
@@ -18,18 +23,18 @@ export interface AuthenticatedAgentRequest extends Request {
   fortemiContext?: FortemiRequestContext;
 }
 
-interface AuthMiddlewareOptions {
+export interface AuthMiddlewareOptions {
   apiBaseUrl?: string;
   compatibility?: (apiBaseUrl: string) => Promise<CompatibleFortemiMetadata>;
-  verify?: typeof verifyFortemiBearer;
   authConfig?: () => FortemiAuthConfig;
+  tenantStore?: TenantStore;
 }
 
 class AuthConfigurationError extends Error {}
 
 function requiredEnvironment(name: string): string {
   const value = process.env[name]?.trim();
-  if (!value) throw new AuthConfigurationError(`${name} is required`);
+  if (!value) throw new FortemiAuthError('config_error');
   return value;
 }
 
@@ -43,7 +48,7 @@ function assertReleasedAuthIdentity(): void {
     || configuredContract !== AUTH_RELEASE.contract_version
     || configuredProfile !== AUTH_RELEASE.profile
   ) {
-    throw new AuthConfigurationError('unsupported Fortemi auth release identity');
+    throw new FortemiAuthError('config_error');
   }
 }
 
@@ -54,21 +59,45 @@ function isSecureJwksUrl(value: URL): boolean {
 
 export function authConfigFromEnvironment(): FortemiAuthConfig {
   assertReleasedAuthIdentity();
-  const jwksUrl = new URL(requiredEnvironment('FORTEMI_AUTH_JWKS_URL'));
+  let jwksUrl: URL;
+  try {
+    jwksUrl = new URL(requiredEnvironment('FORTEMI_AUTH_JWKS_URL'));
+  } catch {
+    throw new FortemiAuthError('config_error');
+  }
   if (!isSecureJwksUrl(jwksUrl)) {
-    throw new AuthConfigurationError('FORTEMI_AUTH_JWKS_URL must use HTTPS outside localhost');
+    throw new FortemiAuthError('config_error');
   }
   const clockSkewSeconds = Number(process.env.FORTEMI_AUTH_CLOCK_SKEW_SECONDS ?? '60');
   if (!Number.isSafeInteger(clockSkewSeconds) || clockSkewSeconds < 0 || clockSkewSeconds > 300) {
-    throw new AuthConfigurationError('FORTEMI_AUTH_CLOCK_SKEW_SECONDS is invalid');
+    throw new FortemiAuthError('config_error');
   }
+  const remoteJwks = {
+    timeoutDuration: boundedIntegerEnvironment('FORTEMI_AUTH_JWKS_TIMEOUT_MS', 5_000, 100, 30_000),
+    cooldownDuration: boundedIntegerEnvironment('FORTEMI_AUTH_JWKS_COOLDOWN_MS', 30_000, 0, 300_000),
+    cacheMaxAge: boundedIntegerEnvironment('FORTEMI_AUTH_JWKS_CACHE_MAX_AGE_MS', 600_000, 1_000, 3_600_000),
+  };
   return {
     issuer: requiredEnvironment('FORTEMI_AUTH_ISSUER'),
     audience: requiredEnvironment('FORTEMI_AUTH_AUDIENCE'),
     tenantClaimName: process.env.FORTEMI_AUTH_TENANT_CLAIM?.trim() || 'fortemi:tenant_id',
     clockSkewSeconds,
     jwksUrl,
+    remoteJwks,
   };
+}
+
+function boundedIntegerEnvironment(
+  name: string,
+  defaultValue: number,
+  minimum: number,
+  maximum: number,
+): number {
+  const value = Number(process.env[name] ?? String(defaultValue));
+  if (!Number.isSafeInteger(value) || value < minimum || value > maximum) {
+    throw new FortemiAuthError('config_error');
+  }
+  return value;
 }
 
 function requestMemory(req: Request): string | null {
@@ -103,8 +132,20 @@ export function createAgentAuthMiddleware(options: AuthMiddlewareOptions = {}): 
     ?? process.env.FORTEMI_API_URL
     ?? 'http://localhost:3000/api/v1';
   const compatibility = options.compatibility ?? requireCompatibleFortemi;
-  const verify = options.verify ?? verifyFortemiBearer;
   const readAuthConfig = options.authConfig ?? authConfigFromEnvironment;
+  let verify: ReturnType<typeof createFortemiAuthVerifier> | undefined;
+
+  const verifier = (): ReturnType<typeof createFortemiAuthVerifier> => {
+    if (!verify) {
+      const config = readAuthConfig();
+      if (config.isTenantActive) throw new FortemiAuthError('config_error');
+      verify = createFortemiAuthVerifier({
+        ...config,
+        tenantStore: options.tenantStore ?? config.tenantStore,
+      });
+    }
+    return verify;
+  };
 
   return async (rawReq: Request, res: Response, next: NextFunction) => {
     const req = rawReq as AuthenticatedAgentRequest;
@@ -116,7 +157,7 @@ export function createAgentAuthMiddleware(options: AuthMiddlewareOptions = {}): 
         context = { auth: null, authorization: null, memory, mode: 'anonymous_local' };
       } else {
         const { token, authorization } = bearerToken(req);
-        const auth = await verify(token, readAuthConfig(), process.env.FORTEMI_AGENT_REQUIRED_SCOPE);
+        const auth = await verifier()(token, process.env.FORTEMI_AGENT_REQUIRED_SCOPE);
         const requestedTenant = req.header('X-Fortemi-Tenant')?.trim();
         if (requestedTenant && requestedTenant !== auth.tenantId) {
           throw new FortemiAuthError('unknown_tenant');

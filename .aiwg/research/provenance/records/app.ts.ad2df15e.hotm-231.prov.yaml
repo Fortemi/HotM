@@ -1,0 +1,45 @@
+metadata:
+  schema_version: "1.0.0"
+  created_at: "2026-08-24T16:12:18Z"
+  description: "Provenance for mandatory agent-proxy app authentication composition"
+entity:
+  id: "urn:aiwg:artifact:agent-proxy/src/app.ts"
+  type: code
+  created_at: "2026-08-24T16:12:18Z"
+  checksum: "sha256:ad2df15e2d4e2f600e9164d7886d2f6d2223393694f22bcaa418bf8ebfd56fcc"
+  size_bytes: 1261
+  attributes:
+    change_scope: "hotm-231-production-auth-boundary"
+activity: &activity
+  id: "urn:aiwg:activity:modification:agent-proxy-app:hotm-231"
+  type: modification
+  started_at: "2026-08-24T15:00:00Z"
+  ended_at: "2026-08-24T16:12:18Z"
+  description: "Make authentication mandatory before chat request parsing and expose typed composition options"
+agent: &agent
+  id: "urn:aiwg:agent:codex-gpt-5"
+  type: ai_assistant
+  name: "Codex"
+  version: "gpt-5"
+  tool: "codex"
+relationships:
+  wasGeneratedBy:
+    entity: "urn:aiwg:artifact:agent-proxy/src/app.ts"
+    activity: "urn:aiwg:activity:modification:agent-proxy-app:hotm-231"
+    time: "2026-08-24T16:12:18Z"
+  used:
+    - activity: "urn:aiwg:activity:modification:agent-proxy-app:hotm-231"
+      entity: "urn:gitea:Fortemi/HotM:issue:231"
+      role: "requirement"
+  wasDerivedFrom:
+    - entity: "urn:aiwg:artifact:agent-proxy/src/app.ts"
+      source: "urn:aiwg:artifact:agent-proxy/src/auth/middleware.ts"
+      derivation_type: "depends"
+      activity: "urn:aiwg:activity:modification:agent-proxy-app:hotm-231"
+  wasAssociatedWith:
+    activity: "urn:aiwg:activity:modification:agent-proxy-app:hotm-231"
+    agent: "urn:aiwg:agent:codex-gpt-5"
+    role: "primary_author"
+  wasAttributedTo:
+    entity: "urn:aiwg:artifact:agent-proxy/src/app.ts"
+    agent: "urn:aiwg:agent:codex-gpt-5"

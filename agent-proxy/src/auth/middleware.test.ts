@@ -2,6 +2,7 @@ import express from 'express';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import manifest from './fixtures/fortemi-auth-v1.json';
 import { createAgentAuthMiddleware, type AuthenticatedAgentRequest } from './middleware.js';
+import { FortemiAuthError, type TenantStatus, type TenantStore } from './verify.js';
 
 const localCompatibility = async () => ({
   auth: { required: false as const, mode: 'anonymous_local' },
@@ -10,13 +11,24 @@ const hostedCompatibility = async () => ({
   auth: { required: true as const, mode: 'oauth', claimContractVersion: '1' },
 });
 
-function fixtureConfig() {
+const FIXTURE_TENANT_ID = '00000000-0000-4000-8000-000000000001';
+
+function tenantStore(status: TenantStatus | 'missing' = 'active'): TenantStore {
+  return {
+    async lookup(tenantId) {
+      return status === 'missing' ? null : { tenantId, status };
+    },
+  };
+}
+
+function fixtureConfig(store: TenantStore = tenantStore()) {
   return {
     issuer: manifest.config.issuer,
     audience: manifest.config.audience,
     tenantClaimName: manifest.config.tenant_claim_name,
     clockSkewSeconds: manifest.config.clock_skew_seconds,
     jwks: manifest.jwks,
+    tenantStore: store,
   };
 }
 
@@ -119,5 +131,68 @@ describe('agent auth middleware', () => {
       },
     });
     expect(result).toEqual({ status: 403, body: { error: 'unknown_tenant' } });
+  });
+
+  it.each([
+    ['missing', 'missing'],
+    ['suspended', 'suspended'],
+    ['soft-deleted', 'soft_deleted'],
+  ] as const)('fails closed for a %s tenant', async (_label, status) => {
+    const result = await request(createAgentAuthMiddleware({
+      compatibility: hostedCompatibility,
+      authConfig: () => fixtureConfig(tenantStore(status)),
+    }), { headers: { Authorization: `Bearer ${tokenFor('valid')}` } });
+    expect(result).toEqual({ status: 403, body: { error: 'unknown_tenant' } });
+  });
+
+  it('maps tenant-store failures to a redacted 503', async () => {
+    const result = await request(createAgentAuthMiddleware({
+      compatibility: hostedCompatibility,
+      authConfig: () => fixtureConfig({
+        async lookup() {
+          throw new Error('database host and credentials must stay private');
+        },
+      }),
+    }), { headers: { Authorization: `Bearer ${tokenFor('valid')}` } });
+    expect(result).toEqual({ status: 503, body: { error: 'tenant_store_failure' } });
+    expect(JSON.stringify(result.body)).not.toContain('database');
+  });
+
+  it.each(['jwks_unreachable', 'jwks_cache_failure'] as const)(
+    'maps %s through the shared AuthError status table',
+    async (code) => {
+      const result = await request(createAgentAuthMiddleware({
+        compatibility: hostedCompatibility,
+        authConfig: () => { throw new FortemiAuthError(code); },
+      }), { headers: { Authorization: `Bearer ${tokenFor('valid')}` } });
+      expect(result).toEqual({ status: 503, body: { error: code } });
+    },
+  );
+
+  it('rejects the conformance-only tenant callback on the production path', async () => {
+    const result = await request(createAgentAuthMiddleware({
+      compatibility: hostedCompatibility,
+      authConfig: () => ({
+        ...fixtureConfig(),
+        tenantStore: undefined,
+        isTenantActive: async () => true,
+      }),
+    }), { headers: { Authorization: `Bearer ${tokenFor('valid')}` } });
+    expect(result).toEqual({ status: 500, body: { error: 'config_error' } });
+  });
+
+  it('performs an active-tenant lookup for each admitted hosted request', async () => {
+    const lookup = vi.fn(async (tenantId: string) => ({ tenantId, status: 'active' as const }));
+    const authConfig = vi.fn(() => fixtureConfig({ lookup }));
+    const middleware = createAgentAuthMiddleware({
+      compatibility: hostedCompatibility,
+      authConfig,
+    });
+    const headers = { Authorization: `Bearer ${tokenFor('valid')}` };
+    expect((await request(middleware, { headers })).status).toBe(200);
+    expect((await request(middleware, { headers })).status).toBe(200);
+    expect(lookup).toHaveBeenCalledTimes(2);
+    expect(lookup).toHaveBeenCalledWith(FIXTURE_TENANT_ID);
+    expect(authConfig).toHaveBeenCalledTimes(1);
   });
 });

@@ -50,3 +50,20 @@ provider support, OAuth route integration, or suite-wide authentication parity.
 `PASS` for `rust-node-jwt-v1` at the pinned authority commit and manifest
 digest above. Route middleware remains intentionally uninstalled pending the
 hosted deployment configuration and integration gate.
+
+## Current-state addendum - 2026-08-24
+
+The result above is retained as the revision-bound July 26 receipt. Subsequent
+authorized work for HotM #231 installs authentication before request parsing on
+`/api/agent/chat`, reuses one immutable-config remote JWKS resolver per app
+middleware instance, applies the shared redacted status mapping, and performs
+an active-tenant lookup for every hosted admission.
+
+Focused current-state tests cover app-level route protection, missing and
+suspended tenants, tenant-store failure, JWKS rotation and outage, malformed
+cache material, and concurrent-fetch coalescing. These tests do not alter the
+pinned corpus result or establish hosted readiness. The public CE package ships
+the tenant-store interface and a fail-closed default, while an internal
+distribution must inject a concrete adapter. Producer-admitted auth metadata,
+an approved tenant-status integration contract, and a live Fortemi tenant
+isolation receipt remain required.

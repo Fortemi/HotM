@@ -1,7 +1,16 @@
 export {
+  AUTH_ERROR_HTTP_STATUS,
+  createFortemiAuthVerifier,
   FortemiAuthError,
   verifyFortemiBearer,
   type AuthErrorCode,
+  type AuthHttpStatus,
+  type FortemiBearerVerifier,
   type FortemiAuthConfig,
   type FortemiAuthContext,
+  type RemoteJwksConfig,
+  type SharedAuthErrorCode,
+  type TenantRecord,
+  type TenantStatus,
+  type TenantStore,
 } from './verify.js';
