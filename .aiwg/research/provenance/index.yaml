@@ -1,7 +1,7 @@
 metadata:
   schema_version: "1.0.0"
-  updated_at: "2026-08-25T01:33:30Z"
-  record_count: 211
+  updated_at: "2026-08-25T01:46:40Z"
+  record_count: 212
 records:
   - entity: "urn:aiwg:bundle:hotm-231-tenant-store-production-gate"
     record: "records/hotm-231-tenant-store-production-gate.prov.yaml"
@@ -425,3 +425,5 @@ records:
     record: "records/ui-src-api-__tests__-systemCompatibility.test.ts.13e96fd3619d.hotm-231-auth-v2026.8.1.prov.yaml"
   - entity: "urn:aiwg:artifact:ui/src/api/contracts/fortemi-system-compatibility-receipt.json"
     record: "records/ui-src-api-contracts-fortemi-system-compatibility-receipt.json.270df9904ad7.hotm-231-auth-v2026.8.1.prov.yaml"
+  - entity: "urn:aiwg:artifact:.aiwg/testing/scripts/verify-fortemi-system-compatibility-contract.mjs"
+    record: "records/verify-fortemi-system-compatibility-contract.mjs.3a2ba9ef5dd5.hotm-231-auth-v2026.8.1.prov.yaml"

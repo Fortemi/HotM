@@ -1,0 +1,43 @@
+metadata:
+  schema_version: "1.0.0"
+  created_at: "2026-08-25T01:46:40Z"
+  updated_at: "2026-08-25T01:46:40Z"
+  description: "Provenance for exact receipt-driven Fortemi auth tuple verification"
+entity:
+  id: "urn:aiwg:artifact:.aiwg/testing/scripts/verify-fortemi-system-compatibility-contract.mjs"
+  type: verification_code
+  checksum: "sha256:3a2ba9ef5dd59126250c7c532fb1e37fa9b41a7d93012b7809723f534c8a971f"
+  size_bytes: 3601
+  attributes:
+    change_scope: "hotm-231-auth-v2026.8.1"
+activity:
+  id: "urn:aiwg:activity:modification:hotm-231:receipt-driven-auth-tuple"
+  type: modification
+  started_at: "2026-08-25T01:45:00Z"
+  ended_at: "2026-08-25T01:46:40Z"
+  description: "Require the exact receipt-selected auth contract, profile, and release in producer source"
+agent: &agent
+  id: "urn:aiwg:agent:codex-gpt-5"
+  type: ai_assistant
+  name: "Codex"
+  version: "gpt-5"
+relationships:
+  wasGeneratedBy:
+    entity: "urn:aiwg:artifact:.aiwg/testing/scripts/verify-fortemi-system-compatibility-contract.mjs"
+    activity: "urn:aiwg:activity:modification:hotm-231:receipt-driven-auth-tuple"
+  wasDerivedFrom:
+    - entity: "urn:aiwg:artifact:.aiwg/testing/scripts/verify-fortemi-system-compatibility-contract.mjs"
+      source: "urn:gitea:Fortemi/HotM:actions:job:132852"
+      derivation_type: remediates
+      activity: "urn:aiwg:activity:modification:hotm-231:receipt-driven-auth-tuple"
+    - entity: "urn:aiwg:artifact:.aiwg/testing/scripts/verify-fortemi-system-compatibility-contract.mjs"
+      source: "urn:git:Fortemi/fortemi:65a77ccd380e19f4fb23ff14286d7f9880fb8308"
+      derivation_type: verifies
+      activity: "urn:aiwg:activity:modification:hotm-231:receipt-driven-auth-tuple"
+  wasAssociatedWith:
+    activity: "urn:aiwg:activity:modification:hotm-231:receipt-driven-auth-tuple"
+    agent: "urn:aiwg:agent:codex-gpt-5"
+    role: test_engineer
+  wasAttributedTo:
+    entity: "urn:aiwg:artifact:.aiwg/testing/scripts/verify-fortemi-system-compatibility-contract.mjs"
+    agent: "urn:aiwg:agent:codex-gpt-5"

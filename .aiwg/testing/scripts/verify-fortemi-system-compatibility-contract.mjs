@@ -48,15 +48,35 @@ if (!receipt.consumer.acceptedContractRevisions.includes(profile.authority?.serv
   throw new Error('compatibility revision differs from the pinned producer profile');
 }
 
+function exactAcceptedValue(values, label) {
+  if (!Array.isArray(values) || values.length !== 1 || typeof values[0] !== 'string') {
+    throw new Error(`${label} must contain exactly one accepted string`);
+  }
+  return values[0];
+}
+
+const claimContractVersion = exactAcceptedValue(
+  receipt.consumer.acceptedAuthClaimContractVersions,
+  'acceptedAuthClaimContractVersions',
+);
+const claimContractProfile = exactAcceptedValue(
+  receipt.consumer.acceptedAuthClaimContractProfiles,
+  'acceptedAuthClaimContractProfiles',
+);
+const authorityRelease = exactAcceptedValue(
+  receipt.consumer.acceptedAuthAuthorityReleases,
+  'acceptedAuthAuthorityReleases',
+);
+
 const requiredSourceFragments = [
   'struct CompatibilityResponse',
   `schema_version: ${receipt.consumer.compatibilitySchemaVersion}`,
   `contract_revision: "${profile.authority.server_compatibility_revision}"`,
   'minimum_hotm_enterprise_client',
   'auth: CompatibilityAuth',
-  'claim_contract_version: inputs.multi_tenant.then_some("1.0.0")',
-  'claim_contract_profile: inputs.multi_tenant.then_some("rust-node-jwt-v1")',
-  'authority_release: inputs.multi_tenant.then_some("v2026.7.0")',
+  `claim_contract_version: inputs.multi_tenant.then_some("${claimContractVersion}")`,
+  `claim_contract_profile: inputs.multi_tenant.then_some("${claimContractProfile}")`,
+  `authority_release: inputs.multi_tenant.then_some("${authorityRelease}")`,
 ];
 for (const fragment of requiredSourceFragments) {
   if (!responseSource.includes(fragment)) {
