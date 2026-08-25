@@ -5,9 +5,9 @@ date: 2026-08-24
 artifact_type: consumer-contract-receipt
 auth_contract_version: 1.1.0
 auth_profile: rust-node-jwt-v1
-auth_authority_release: v2026.8.0
-tenant_store_producer_commit: 0bcd537ba758177e89ddb9daf0810568197d38ea
-tenant_store_producer_file_sha256: cd8b2f10c3e8c352fb1507b3739a51bdc88716d79459000a62b3c2f44532eaf5
+auth_authority_release: v2026.8.1
+tenant_store_producer_commit: 65a77ccd380e19f4fb23ff14286d7f9880fb8308
+tenant_store_producer_file_sha256: a5979c414b28b0dafde6234ff34222e92af99c80b65206078b1b442f6c0c511e
 related_issues:
   - HotM/HotM#231
   - Fortemi/fortemi#707
@@ -23,18 +23,18 @@ database connection, hosted deployment, transaction-scoped RLS, or end-to-end
 tenant isolation.
 
 The JWT authority tuple is exactly contract `1.1.0`, profile
-`rust-node-jwt-v1`, signed release `v2026.8.0` at commit
-`36ba38efdd5ed57da2f2c2638529ee166255e198`, manifest SHA-256
-`ab846ba11f479b11638fb3f5bc7029f98ad498b028f6cf060171316b90552e94`,
+`rust-node-jwt-v1`, signed release `v2026.8.1` at commit
+`1b6ddb1b58a12efc5b631386ad783cb12edec518`, manifest SHA-256
+`2df0a35edad67cc3e8869286183a4d098b1eb8fc2161432ed0b54ba69b17e242`,
 and release-policy SHA-256
-`828c6ff24f63b10f114b78e6f83a8db6bd53d53f903e4c4f246eaccb6eeac949`.
+`d70491c336a62508ef3c7937af709dd121a6ec4f421ceab66486af3f371de8db`.
 
 ## Producer Boundary
 
-Fortemi commit `0bcd537ba758177e89ddb9daf0810568197d38ea` implements `PgTenantStore` in
+Fortemi commit `65a77ccd380e19f4fb23ff14286d7f9880fb8308` implements `PgTenantStore` in
 `crates/matric-api/src/hosted_auth.rs` with the system-scoped query
 `SELECT id, status FROM tenant_registry WHERE id = $1`. The source file hashes
-to `cd8b2f10c3e8c352fb1507b3739a51bdc88716d79459000a62b3c2f44532eaf5`.
+to `a5979c414b28b0dafde6234ff34222e92af99c80b65206078b1b442f6c0c511e`.
 
 HotM's internal adapter performs the same ID/status lookup with a parameterized
 UUID, accepts only `active`, `suspended`, or `soft_deleted`, and rejects row
@@ -65,7 +65,8 @@ response, fixture, or receipt.
 
 - Focused authority, store, middleware, app, and compatibility tests passed.
 - The production TypeScript build and no-emit typecheck passed.
-- The full `agent-proxy` suite passed 28 files and 426 tests.
+- The source-only `agent-proxy` suite passed 14 files and 222 tests; ignored
+  compiled output is excluded so stale build artifacts cannot re-enter Vitest.
 - `npm audit --omit=dev` reported zero vulnerabilities.
 - Vendored authority bytes hash exactly to the manifest and release-policy
   digests stated above.
@@ -87,6 +88,6 @@ runtime that proves:
 6. rollback and connection reuse never retain or disclose a prior tenant
    context.
 
-Before that live run, Fortemi's compatibility endpoint must advertise contract
-`1.1.0`, profile `rust-node-jwt-v1`, and release `v2026.8.0`; its currently
-pinned response advertises the previous tuple and is intentionally rejected.
+The signed producer source now advertises contract `1.1.0`, profile
+`rust-node-jwt-v1`, and release `v2026.8.1`. A deployed hosted response and the
+runtime chain above remain deliberately unclaimed until the live run.

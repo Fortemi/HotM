@@ -37,7 +37,7 @@ plus an active-tenant lookup implementation.
 | `AGENT_PROXY_RATE_LIMIT_RPM`   | `60`                            | Per-IP requests per minute on `/api/agent/chat`. Set to `0` to disable. |
 | `ANTHROPIC_API_KEY`            | unset                           | Required only for the `anthropic` provider. |
 | `OPENAI_API_KEY`               | unset                           | Required only for the `openai` provider. |
-| `FORTEMI_AUTH_RELEASE`         | unset                           | Hosted mode requires exact version `2026.8.0` from signed release `v2026.8.0`. |
+| `FORTEMI_AUTH_RELEASE`         | unset                           | Hosted mode requires exact version `2026.8.1` from signed release `v2026.8.1`. |
 | `FORTEMI_AUTH_CONTRACT_VERSION` | pinned release value           | Must match the admitted public claim contract. |
 | `FORTEMI_AUTH_PROFILE`         | pinned release value           | Must match the admitted Node profile. |
 | `FORTEMI_AUTH_ISSUER`          | unset                           | Exact hosted token issuer. |

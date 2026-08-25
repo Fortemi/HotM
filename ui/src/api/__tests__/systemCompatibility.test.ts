@@ -185,9 +185,9 @@ describe('Fortemi compatibility boundary', () => {
       mode: 'hosted_oauth',
       oauth_issuer_configured: true,
       tenant_context_available: true,
-      claim_contract_version: '1.0.0',
+      claim_contract_version: '1.1.0',
       claim_contract_profile: 'rust-node-jwt-v1',
-      authority_release: 'v2026.7.0',
+      authority_release: 'v2026.8.1',
     };
 
     expect(normalizeSystemCompatibility(
@@ -196,6 +196,7 @@ describe('Fortemi compatibility boundary', () => {
     ).auth).toEqual(hostedAuth);
 
     for (const auth of [
+      { ...hostedAuth, claim_contract_version: '1.0.0' },
       { ...hostedAuth, claim_contract_profile: 'unknown-profile' },
       { ...hostedAuth, authority_release: 'v2026.8.0' },
     ]) {

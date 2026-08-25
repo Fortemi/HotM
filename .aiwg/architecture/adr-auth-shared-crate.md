@@ -33,7 +33,7 @@ public core contract.
 ## Current disposition
 
 The Node verifier supports the named `rust-node-jwt-v1` profile from contract
-`1.1.0`, with RS256 only, from signed CalVer release `v2026.8.0`. Its corpus
+`1.1.0`, with RS256 only, from signed CalVer release `v2026.8.1`. Its corpus
 and release-policy fixtures are byte-identical to the authority. Tests cover
 accepted, rejected, and key-rotation cases plus fail-closed handling for older
 and newer release trains, contract/profile drift, and manifest drift.
@@ -59,11 +59,10 @@ Focused verification covers the authority corpus, route protection,
 configuration reuse, tenant admission, PostgreSQL composition, row-shape
 validation, non-enumerating tenant states, JWKS rotation, outage, cache failure,
 and concurrent fetch behavior. Fortemi's hosted implementation at commit
-`0bcd537ba758177e89ddb9daf0810568197d38ea` is the tenant-registry contract
+`65a77ccd380e19f4fb23ff14286d7f9880fb8308` is the tenant-registry contract
 source consumed here. This proves the named Node profile and fixture-backed HotM
-consumer boundary only. Its pinned compatibility response still advertises the
-previous authority tuple and therefore fails HotM admission. Hosted promotion
-remains blocked until Fortemi advertises the current tuple and a live receipt
+consumer boundary only. Its pinned compatibility response source advertises the
+accepted authority tuple. Hosted promotion remains blocked until a live receipt
 proves the JWT-to-transaction-to-forced-RLS chain and cross-tenant denial.
 
 ## Consequences
@@ -83,9 +82,9 @@ proves the JWT-to-transaction-to-forced-RLS chain and cross-tenant denial.
 - Repository: `https://git.integrolabs.net/Fortemi/fortemi-auth`
 - Public ADR: `docs/adr/adr-002-public-core-distribution.md`
 - Corpus: `conformance/v1/manifest.json`
-- Manifest SHA-256: `ab846ba11f479b11638fb3f5bc7029f98ad498b028f6cf060171316b90552e94`
-- Release: signed `v2026.8.0`, commit `36ba38efdd5ed57da2f2c2638529ee166255e198`
+- Manifest SHA-256: `2df0a35edad67cc3e8869286183a4d098b1eb8fc2161432ed0b54ba69b17e242`
+- Release: signed `v2026.8.1`, commit `1b6ddb1b58a12efc5b631386ad783cb12edec518`
 - Release policy: `conformance/v1/release-policy.json`
-- Release-policy SHA-256: `828c6ff24f63b10f114b78e6f83a8db6bd53d53f903e4c4f246eaccb6eeac949`
-- Tenant-store producer: `Fortemi/fortemi` commit `0bcd537ba758177e89ddb9daf0810568197d38ea`, `crates/matric-api/src/hosted_auth.rs`
-- Tenant-store producer-file SHA-256: `cd8b2f10c3e8c352fb1507b3739a51bdc88716d79459000a62b3c2f44532eaf5`
+- Release-policy SHA-256: `d70491c336a62508ef3c7937af709dd121a6ec4f421ceab66486af3f371de8db`
+- Tenant-store producer: `Fortemi/fortemi` commit `65a77ccd380e19f4fb23ff14286d7f9880fb8308`, `crates/matric-api/src/hosted_auth.rs`
+- Tenant-store producer-file SHA-256: `a5979c414b28b0dafde6234ff34222e92af99c80b65206078b1b442f6c0c511e`

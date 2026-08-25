@@ -49,7 +49,7 @@ describe('agent-proxy compatibility admission', () => {
         mode: 'hosted_oauth',
         claim_contract_version: '1.1.0',
         claim_contract_profile: 'rust-node-jwt-v1',
-        authority_release: 'v2026.8.0',
+        authority_release: 'v2026.8.1',
       },
     }))).toEqual({
       auth: {
@@ -57,7 +57,7 @@ describe('agent-proxy compatibility admission', () => {
         mode: 'hosted_oauth',
         claimContractVersion: '1.1.0',
         claimContractProfile: 'rust-node-jwt-v1',
-        authorityRelease: 'v2026.8.0',
+        authorityRelease: 'v2026.8.1',
       },
     });
   });
@@ -73,7 +73,7 @@ describe('agent-proxy compatibility admission', () => {
       mode: 'hosted_oauth',
       claim_contract_version: '1',
       claim_contract_profile: 'rust-node-jwt-v1',
-      authority_release: 'v2026.8.0',
+      authority_release: 'v2026.8.1',
     } }, 'unsupported_auth_contract'],
     [{ auth: {
       required: true,

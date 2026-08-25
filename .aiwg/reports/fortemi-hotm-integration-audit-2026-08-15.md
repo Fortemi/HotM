@@ -37,7 +37,7 @@ audits the HotM revision
 
 The authentication row above is retained as the revision-bound August 15
 snapshot and is superseded for current planning. The public authority now has
-workspace/CI evidence, signed release `v2026.8.0`, and exact Rust/Node corpus
+workspace/CI evidence, signed release `v2026.8.1`, and exact Rust/Node corpus
 receipts. HotM installs the verifier as mandatory `agent-proxy` middleware and
 forwards the derived request context. Issue #231 remains open for a narrower
 producer-owned boundary: admitted auth contract metadata and a live hosted
@@ -64,10 +64,9 @@ verification counts below remain bound to the August 15 audit revision.
 
 Contract `1.1.0` now standardizes tenant dependency faults as
 `tenant_store_unavailable`/503 while retaining the non-enumerating
-`unknown_tenant`/403 response for inactive or absent tenants. The pinned producer
-compatibility response still advertises the prior auth tuple and is rejected.
-#231 cannot claim hosted readiness until Fortemi advertises the current tuple
-and live evidence proves the full JWT to `AuthContext` to transaction-local
+`unknown_tenant`/403 response for inactive or absent tenants. The pinned signed
+producer source now advertises the accepted auth tuple. #231 cannot claim hosted
+readiness until live evidence proves the full JWT to `AuthContext` to transaction-local
 tenant setting to forced-RLS path, including cross-tenant denial.
 
 ## Verification Snapshot

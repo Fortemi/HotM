@@ -11,8 +11,8 @@ import {
   type TenantStore,
 } from './verify.js';
 
-const MANIFEST_SHA256 = 'ab846ba11f479b11638fb3f5bc7029f98ad498b028f6cf060171316b90552e94';
-const RELEASE_POLICY_SHA256 = '828c6ff24f63b10f114b78e6f83a8db6bd53d53f903e4c4f246eaccb6eeac949';
+const MANIFEST_SHA256 = '2df0a35edad67cc3e8869286183a4d098b1eb8fc2161432ed0b54ba69b17e242';
+const RELEASE_POLICY_SHA256 = 'd70491c336a62508ef3c7937af709dd121a6ec4f421ceab66486af3f371de8db';
 const FIXTURE_TENANT_ID = '00000000-0000-4000-8000-000000000001';
 
 interface ReleaseIdentity {
@@ -55,8 +55,8 @@ describe('fortemi-auth rust-node-jwt-v1 conformance', () => {
     expect(releasePolicy.policy_id).toBe('fortemi-auth-release-compatibility');
     expect(releasePolicy.policy_version).toBe('1.1.0');
     expect(releasePolicy.release_scheme).toBe('calver-yyyy-m-patch');
-    expect(releasePolicy.current_release.version).toBe('2026.8.0');
-    expect(releasePolicy.current_release.tag).toBe('v2026.8.0');
+    expect(releasePolicy.current_release.version).toBe('2026.8.1');
+    expect(releasePolicy.current_release.tag).toBe('v2026.8.1');
     expect(releasePolicy.current_release.version).toMatch(/^\d{4}\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/);
 
     for (const testCase of releasePolicy.compatibility_cases) {

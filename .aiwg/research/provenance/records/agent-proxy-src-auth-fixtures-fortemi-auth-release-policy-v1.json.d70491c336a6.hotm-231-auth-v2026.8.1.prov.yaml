@@ -1,0 +1,47 @@
+metadata:
+  schema_version: "1.0.0"
+  created_at: "2026-08-25T01:33:30Z"
+  updated_at: "2026-08-25T01:33:30Z"
+  description: "Final-state provenance for HotM #231 auth authority and tenant composition production gates"
+entity:
+  id: "urn:aiwg:artifact:agent-proxy/src/auth/fixtures/fortemi-auth-release-policy-v1.json"
+  type: conformance_fixture
+  checksum: "sha256:d70491c336a62508ef3c7937af709dd121a6ec4f421ceab66486af3f371de8db"
+  size_bytes: 3749
+  attributes:
+    change_scope: "hotm-231-auth-v2026.8.1"
+activity:
+  id: "urn:aiwg:activity:modification:hotm-231:auth-v2026.8.1-d70491c336a6"
+  type: modification
+  started_at: "2026-08-24T21:15:00Z"
+  ended_at: "2026-08-25T01:33:30Z"
+  description: "Pin the signed auth authority, harden the Node verifier, and compose tenant admission"
+agent: &agent
+  id: "urn:aiwg:agent:codex-gpt-5"
+  type: ai_assistant
+  name: "Codex"
+  version: "gpt-5"
+relationships:
+  wasGeneratedBy:
+    entity: "urn:aiwg:artifact:agent-proxy/src/auth/fixtures/fortemi-auth-release-policy-v1.json"
+    activity: "urn:aiwg:activity:modification:hotm-231:auth-v2026.8.1-d70491c336a6"
+  wasDerivedFrom:
+    - entity: "urn:aiwg:artifact:agent-proxy/src/auth/fixtures/fortemi-auth-release-policy-v1.json"
+      source: "urn:gitea:Fortemi/HotM:issue:231"
+      derivation_type: implements
+      activity: "urn:aiwg:activity:modification:hotm-231:auth-v2026.8.1-d70491c336a6"
+    - entity: "urn:aiwg:artifact:agent-proxy/src/auth/fixtures/fortemi-auth-release-policy-v1.json"
+      source: "urn:git:Fortemi/fortemi-auth:v2026.8.1"
+      derivation_type: depends
+      activity: "urn:aiwg:activity:modification:hotm-231:auth-v2026.8.1-d70491c336a6"
+    - entity: "urn:aiwg:artifact:agent-proxy/src/auth/fixtures/fortemi-auth-release-policy-v1.json"
+      source: "urn:git:Fortemi/fortemi:65a77ccd380e19f4fb23ff14286d7f9880fb8308"
+      derivation_type: depends
+      activity: "urn:aiwg:activity:modification:hotm-231:auth-v2026.8.1-d70491c336a6"
+  wasAssociatedWith:
+    activity: "urn:aiwg:activity:modification:hotm-231:auth-v2026.8.1-d70491c336a6"
+    agent: "urn:aiwg:agent:codex-gpt-5"
+    role: software_implementer
+  wasAttributedTo:
+    entity: "urn:aiwg:artifact:agent-proxy/src/auth/fixtures/fortemi-auth-release-policy-v1.json"
+    agent: "urn:aiwg:agent:codex-gpt-5"

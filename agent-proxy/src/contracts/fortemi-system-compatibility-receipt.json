@@ -2,14 +2,14 @@
   "schemaVersion": 1,
   "producer": {
     "repository": "Fortemi/fortemi",
-    "commit": "d3112ceadd160d991f9e5051caf12d94f8bd59bb",
+    "commit": "65a77ccd380e19f4fb23ff14286d7f9880fb8308",
     "profile": {
       "path": "contracts/suite-conformance/platform-matrix.json",
       "sha256": "27e4ccc8b29d825de669c75cb5b9f642f444f92fc1fc29022b7955a35ba923fe"
     },
     "responseSource": {
       "path": "crates/matric-api/src/main.rs",
-      "sha256": "5e2911f8854365c90a9fb8144aee0144dfecc2b009909b510b88f1b8c0fc0550"
+      "sha256": "99194ee9eed90b21896b2cf9904ae33243cd7932c240244d4b3b6c28a79c8703"
     }
   },
   "consumer": {
@@ -21,8 +21,8 @@
     "maximumServerApiVersionExclusive": "2027.0.0",
     "acceptedAuthClaimContractVersions": ["1.1.0"],
     "acceptedAuthClaimContractProfiles": ["rust-node-jwt-v1"],
-    "acceptedAuthAuthorityReleases": ["v2026.8.0"],
+    "acceptedAuthAuthorityReleases": ["v2026.8.1"],
     "localAuthModes": ["anonymous_local"]
   },
-  "evidenceScope": "Pinned producer profile and response source plus the consumer's exact hosted auth authority tuple; the pinned producer advertises the previous tuple and is rejected until independently updated. Not a standalone live response-schema conformance claim."
+  "evidenceScope": "Pinned producer profile and response source plus the consumer's exact hosted auth authority tuple; the pinned producer source advertises the accepted tuple. This is not a live hosted response or end-to-end tenant-isolation receipt."
 }

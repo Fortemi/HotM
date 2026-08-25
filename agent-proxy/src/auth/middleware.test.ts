@@ -17,7 +17,7 @@ const hostedCompatibility = async () => ({
     mode: 'hosted_oauth',
     claimContractVersion: '1.1.0',
     claimContractProfile: 'rust-node-jwt-v1',
-    authorityRelease: 'v2026.8.0',
+    authorityRelease: 'v2026.8.1',
   },
 });
 
@@ -85,7 +85,7 @@ afterEach(() => {
 
 describe('agent auth middleware', () => {
   it('admits only the exact released environment identity', () => {
-    vi.stubEnv('FORTEMI_AUTH_RELEASE', '2026.8.0');
+    vi.stubEnv('FORTEMI_AUTH_RELEASE', '2026.8.1');
     vi.stubEnv('FORTEMI_AUTH_CONTRACT_VERSION', '1.1.0');
     vi.stubEnv('FORTEMI_AUTH_PROFILE', 'rust-node-jwt-v1');
     vi.stubEnv('FORTEMI_AUTH_ISSUER', 'https://issuer.example');

@@ -10,7 +10,7 @@ const hostedCompatibility = async () => ({
     mode: 'hosted_oauth',
     claimContractVersion: '1.1.0',
     claimContractProfile: 'rust-node-jwt-v1',
-    authorityRelease: 'v2026.8.0',
+    authorityRelease: 'v2026.8.1',
   },
 });
 

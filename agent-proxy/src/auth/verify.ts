@@ -179,6 +179,72 @@ function mapJoseError(error: unknown): FortemiAuthError {
   return authError('malformed_token');
 }
 
+function assertUniqueProtectedHeaderKeys(token: string): void {
+  const parts = token.split('.');
+  if (parts.length !== 3 || !parts[0]) throw authError('malformed_token');
+
+  let source: string;
+  try {
+    source = Buffer.from(parts[0], 'base64url').toString('utf8');
+  } catch {
+    throw authError('malformed_token');
+  }
+
+  const first = source.search(/\S/);
+  if (first < 0 || source[first] !== '{') throw authError('malformed_token');
+
+  const containers: string[] = [];
+  const keys = new Set<string>();
+  let expectingKey = false;
+  for (let index = first; index < source.length; index += 1) {
+    const character = source[index];
+    if (character === '{' || character === '[') {
+      containers.push(character);
+      if (containers.length === 1) expectingKey = true;
+      continue;
+    }
+    if (character === '}' || character === ']') {
+      containers.pop();
+      continue;
+    }
+    if (character === ',' && containers.length === 1) {
+      expectingKey = true;
+      continue;
+    }
+    if (character !== '"') continue;
+
+    let end = index + 1;
+    let escaped = false;
+    for (; end < source.length; end += 1) {
+      const candidate = source[end];
+      if (escaped) {
+        escaped = false;
+      } else if (candidate === '\\') {
+        escaped = true;
+      } else if (candidate === '"') {
+        break;
+      }
+    }
+    if (end >= source.length) throw authError('malformed_token');
+
+    if (containers.length === 1 && expectingKey) {
+      let key: string;
+      try {
+        key = JSON.parse(source.slice(index, end + 1)) as string;
+      } catch {
+        throw authError('malformed_token');
+      }
+      if (keys.has(key)) throw authError('malformed_token');
+      keys.add(key);
+      let colon = end + 1;
+      while (/\s/.test(source[colon] ?? '')) colon += 1;
+      if (source[colon] !== ':') throw authError('malformed_token');
+      expectingKey = false;
+    }
+    index = end;
+  }
+}
+
 function numericClaim(payload: JWTPayload, name: 'iat' | 'exp'): number {
   const value = payload[name];
   if (typeof value !== 'number' || !Number.isSafeInteger(value)) {
@@ -280,6 +346,7 @@ async function verifyWithRuntime(
   runtime: VerifierRuntime,
   requiredScope?: string,
 ): Promise<FortemiAuthContext> {
+  assertUniqueProtectedHeaderKeys(token);
   let header: ReturnType<typeof decodeProtectedHeader>;
   try {
     header = decodeProtectedHeader(token);
@@ -287,6 +354,9 @@ async function verifyWithRuntime(
     throw authError('malformed_token');
   }
 
+  if (typeof header.alg !== 'string' || header.alg.length === 0) {
+    throw authError('malformed_token');
+  }
   if (header.alg !== 'RS256') throw authError('unsupported_algorithm');
   if (typeof header.kid !== 'string' || header.kid.length === 0) {
     throw authError('key_not_found');
