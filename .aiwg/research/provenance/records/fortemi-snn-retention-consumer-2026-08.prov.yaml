@@ -1,0 +1,79 @@
+metadata:
+  schema_version: "1.0.0"
+  created_at: "2026-08-28T19:58:17Z"
+  description: "Final-state provenance for the HotM consumer of Fortemi SNN retention safety"
+entity:
+  id: "urn:aiwg:artifact:ui/src/api/__tests__/concepts.test.ts:sha256:4d6154a5d49f35f708cc1b5ae53335212c94eb32cb5153ae4b7b8ef9b7fc28ed"
+  type: test_code
+  created_at: "2026-08-28T19:58:17Z"
+  checksum: "sha256:4d6154a5d49f35f708cc1b5ae53335212c94eb32cb5153ae4b7b8ef9b7fc28ed"
+  size_bytes: 4196
+  attributes:
+    issues: ["Fortemi/fortemi#1102", "Fortemi/HotM#287"]
+    producer_commit: "e09578e67732d2bd26cf7642ae9038a44a9b9e6c"
+    change_type: contract_consumer_implementation_and_verification
+    subjects:
+      - ".aiwg/api/compatibility/fortemi-v2026-07-operation-coverage.json sha256:b29e4f0d11fc82f8f1ba7cbb3bddb28dd949bfe9ce1f95bd587e5804a6f0f1ba"
+      - ".aiwg/api/compatibility/fortemi-v2026-07-operation-coverage.md sha256:04f8904ddf40bde580ed4eca193445b32122ebcd5730d7aa40cbcf6c47a8491f"
+      - ".aiwg/api/compatibility/fortemi-v2026-07-route-coverage.json sha256:452a00694a1d8abfcb8cb9d10021c93f3e535cec607f021f49227aceef75c87d"
+      - ".aiwg/api/compatibility/fortemi-v2026-07-route-coverage.md sha256:17d4d8e8ac0f89e9819f1823fa6089a778c92705824962c658f81556d839bba2"
+      - ".aiwg/architecture/impact/fortemi-snn-retention-contract-2026-08.md sha256:44da00bcd86ce447428153998dd306429a3b0697d7572c440a392d1884147cb1"
+      - ".aiwg/testing/scripts/fortemi-route-coverage.py sha256:07dff9024ca6272596ca4a9a5117f1b0ce00ef78ba986326c514aedada39f953"
+      - "scripts/ci/verify-fortemi-operation-dispositions.mjs sha256:b189f2443a7a3aec6ef15452de54b0672ce94316e85048f96529dc411b70e37c"
+      - "ui/src/api/__tests__/client.test.ts sha256:36882246c242cf23a7edb1926bff0862cc80c5cc3d1c22c4333a05410426f15f"
+      - "ui/src/api/__tests__/concepts.test.ts sha256:4d6154a5d49f35f708cc1b5ae53335212c94eb32cb5153ae4b7b8ef9b7fc28ed"
+      - "ui/src/api/__tests__/core-content-second-increment.test.ts sha256:92691fa451e07cd16f49d6161d0e9e0e9d239b78309c7fdbb8741f8cb2f216da"
+      - "ui/src/api/__tests__/links.test.ts sha256:d41e4ad4b15126bb7831ddfe9bbe4e8ec6199212d3a27d35620fa14e8a47161e"
+      - "ui/src/api/client.ts sha256:5d051f585baa371868deacd688b794e72947ed088b94972dbc7b8d3003069fe7"
+      - "ui/src/api/concepts.ts sha256:ec1c49fdbc46d636e4cd1ab9606a06bf4121e747f31805241bab8303557072a4"
+      - "ui/src/api/contracts/fortemi-openapi-receipt.json sha256:4d6dea6d38206ae7b125a07bd8a3385a606fbabcf4d86390765e351c6f294219"
+      - "ui/src/api/contracts/fortemi-openapi.yaml sha256:f585c0f07ac477159ae86d42ac318e059a42b51f02c8c8a70d767c9fd1c5c9a1"
+      - "ui/src/api/contracts/fortemi-operation-dispositions.json sha256:766b529bc6e2d966637bd7e21bf449f16462d468ee94ee0e5e325fc9eef82470"
+      - "ui/src/api/links.ts sha256:791efd189da1a2862f108f990cbe96bde96a631f74ea43ee2ecffe2a83a023f2"
+      - "ui/src/components/admin/__tests__/OperationCatalogPanel.test.tsx sha256:50ab1c52c7e8e6a5cb803374d41dd64b49cae560ab1da64c6008f9afa5175343"
+activity:
+  id: "urn:aiwg:activity:implementation:fortemi-snn-retention-consumer:001"
+  type: modification
+  started_at: "2026-08-28T19:31:34Z"
+  ended_at: "2026-08-28T19:58:17Z"
+  description: "Pin the Fortemi REST authority, preserve typed SNN safety-abort results, expose explicit override inputs, and refresh executable consumer projections"
+  attributes:
+    verification:
+      - "focused API client, concept, link, and core-content tests: passed"
+      - "TypeScript typecheck: passed"
+      - "exact byte and semantic OpenAPI producer verification: passed"
+      - "253-operation and 204-route clean projection checks: passed"
+      - "complete UI unit suite: 1,811 tests passed"
+agent:
+  id: "urn:aiwg:agent:codex-gpt-5"
+  type: ai_assistant
+  name: "Codex"
+  version: "gpt-5"
+  tool: "codex"
+relationships:
+  wasGeneratedBy:
+    entity: "urn:aiwg:artifact:ui/src/api/__tests__/concepts.test.ts:sha256:4d6154a5d49f35f708cc1b5ae53335212c94eb32cb5153ae4b7b8ef9b7fc28ed"
+    activity: "urn:aiwg:activity:implementation:fortemi-snn-retention-consumer:001"
+    time: "2026-08-28T19:58:17Z"
+  used:
+    - activity: "urn:aiwg:activity:implementation:fortemi-snn-retention-consumer:001"
+      entity: "urn:gitea:issue:Fortemi/fortemi:1102"
+      role: requirement
+    - activity: "urn:aiwg:activity:implementation:fortemi-snn-retention-consumer:001"
+      entity: "urn:gitea:issue:Fortemi/HotM:287"
+      role: consumer_tracker
+    - activity: "urn:aiwg:activity:implementation:fortemi-snn-retention-consumer:001"
+      entity: "urn:git:Fortemi/fortemi:e09578e67732d2bd26cf7642ae9038a44a9b9e6c:contracts/openapi/openapi.yaml"
+      role: producer_contract
+  wasDerivedFrom:
+    - entity: "urn:aiwg:artifact:ui/src/api/contracts/fortemi-openapi.yaml:sha256:f585c0f07ac477159ae86d42ac318e059a42b51f02c8c8a70d767c9fd1c5c9a1"
+      source: "urn:git:Fortemi/fortemi:e09578e67732d2bd26cf7642ae9038a44a9b9e6c:contracts/openapi/openapi.yaml"
+      derivation_type: exact_copy
+      activity: "urn:aiwg:activity:implementation:fortemi-snn-retention-consumer:001"
+  wasAssociatedWith:
+    activity: "urn:aiwg:activity:implementation:fortemi-snn-retention-consumer:001"
+    agent: "urn:aiwg:agent:codex-gpt-5"
+    role: software_implementer
+  wasAttributedTo:
+    entity: "urn:aiwg:artifact:ui/src/api/__tests__/concepts.test.ts:sha256:4d6154a5d49f35f708cc1b5ae53335212c94eb32cb5153ae4b7b8ef9b7fc28ed"
+    agent: "urn:aiwg:agent:codex-gpt-5"

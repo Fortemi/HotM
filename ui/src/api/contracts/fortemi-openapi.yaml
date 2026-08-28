@@ -2914,6 +2914,60 @@ paths:
           description: Global request rate limit exceeded
       security:
       - bearerAuth: []
+  /api/v1/events/tokens:
+    post:
+      tags:
+      - Events
+      summary: POST /api/v1/events/tokens — mint a short-lived EventSource query token.
+      description: |-
+        Requires normal authentication. The token is bound to the current archive
+        schema and captures the caller's scope so `/api/v1/events?token=...` can make
+        the same realtime/admin decision without accepting ordinary credentials in
+        the URL.
+      operationId: mint_event_stream_token
+      responses:
+        '201':
+          description: 'Minted: {token, token_id, expires_in}'
+        '401':
+          description: Authentication required
+        '503':
+          description: Token store unavailable (Redis required to mint stream tokens)
+        '429':
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+          description: Global request rate limit exceeded
+      security:
+      - bearerAuth: []
+  /api/v1/events/tokens/{token_id}:
+    delete:
+      tags:
+      - Events
+      summary: DELETE /api/v1/events/tokens/{token_id} — revoke an SSE query token.
+      operationId: revoke_event_stream_token
+      parameters:
+      - name: token_id
+        in: path
+        description: Non-secret token id returned by mint
+        required: true
+        schema:
+          type: string
+      responses:
+        '204':
+          description: Revoked
+        '401':
+          description: Authentication required
+        '404':
+          description: Token not found or already expired
+        '429':
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+          description: Global request rate limit exceeded
+      security:
+      - bearerAuth: []
   /api/v1/extraction/stats:
     get:
       tags:
@@ -3207,6 +3261,11 @@ paths:
             schema:
               type: object
               properties:
+                allow_aggressive_pruning:
+                  type:
+                  - boolean
+                  - 'null'
+                  description: Explicitly permit a plan that violates retention safety thresholds.
                 dry_run:
                   type:
                   - boolean
@@ -3228,6 +3287,16 @@ paths:
       responses:
         '200':
           description: SNN scores recomputed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SnnResult'
+        '409':
+          description: SNN plan rejected by retention safety policy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SnnResult'
         '500':
           description: Internal server error
         '429':
@@ -9849,6 +9918,11 @@ components:
     GraphMaintenanceBody:
       type: object
       properties:
+        allow_aggressive_pruning:
+          type:
+          - boolean
+          - 'null'
+          description: Explicitly permit an SNN plan that violates retention safety thresholds.
         steps:
           type:
           - array
@@ -12022,6 +12096,88 @@ components:
           - string
           - 'null'
           description: Human-readable title for the backup
+    SnnResult:
+      type: object
+      description: 'Result of SNN recomputation (#474, #1102).'
+      required:
+      - status
+      - total_edges
+      - retained
+      - updated
+      - pruned
+      - retention_ratio
+      - node_count
+      - retained_mean_degree
+      - k_used
+      - threshold_used
+      - dry_run
+      - snn_score_distribution
+      - minimum_retention_ratio
+      - minimum_retained_mean_degree
+      - aggressive_pruning_override
+      - safety_reasons
+      properties:
+        aggressive_pruning_override:
+          type: boolean
+        dry_run:
+          type: boolean
+        k_used:
+          type: integer
+          minimum: 0
+        minimum_retained_mean_degree:
+          type: number
+          format: double
+        minimum_retention_ratio:
+          type: number
+          format: double
+        node_count:
+          type: integer
+          minimum: 0
+        pruned:
+          type: integer
+          minimum: 0
+        remediation:
+          type:
+          - string
+          - 'null'
+        retained:
+          type: integer
+          minimum: 0
+        retained_mean_degree:
+          type: number
+          format: double
+        retention_ratio:
+          type: number
+          format: double
+        safety_reasons:
+          type: array
+          items:
+            type: string
+        snn_score_distribution:
+          type: array
+          items:
+            type: integer
+            format: int64
+          description: 10-bin histogram of SNN scores over [0.0, 1.0].
+        status:
+          $ref: '#/components/schemas/SnnStatus'
+        threshold_used:
+          type: number
+          format: float
+        total_edges:
+          type: integer
+          minimum: 0
+        updated:
+          type: integer
+          minimum: 0
+    SnnStatus:
+      type: string
+      description: Outcome of an SNN plan or execution.
+      enum:
+      - completed
+      - dry_run
+      - skipped_sparse
+      - safety_aborted
     StrictTagFilter:
       type: object
       description: |-

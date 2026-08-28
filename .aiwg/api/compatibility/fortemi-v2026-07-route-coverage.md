@@ -1,23 +1,23 @@
 ---
 title: Fortemi v2026.7.1 Route Coverage Inventory
 status: generated
-date: 2026-08-16
+date: 2026-08-28
 artifact_type: api-coverage-inventory
 ---
 
 # Fortemi v2026.7.1 Route Coverage Inventory
 
 - Fortemi source: `../fortemi`
-- Fortemi commit: `48bc0a0b`
-- Latest release tag: `v2026.7.19`
-- Extracted route declarations: `202`
+- Fortemi commit: `e09578e6`
+- Latest release tag: `v2026.8.0`
+- Extracted route declarations: `204`
 - Evidence boundary: route inventory is route-disposition evidence only.
 
 ## Status Counts
 
 | Status | Count |
 | --- | ---: |
-| covered | 188 |
+| covered | 190 |
 | documented_exclusion | 14 |
 
 ## Family Counts
@@ -52,7 +52,7 @@ artifact_type: api-coverage-inventory
 | provenance | 5 |
 | rate_limit | 1 |
 | realtime_calls | 2 |
-| realtime_events | 2 |
+| realtime_events | 4 |
 | search | 2 |
 | streaming_health | 1 |
 | streaming_ingest | 3 |
@@ -154,6 +154,8 @@ These entries are advisory planning metadata for mixed dispositions. They do not
 | `POST` | `/api/v1/audio/transcribe` | audio_tools | covered | ui/src/api/mediaTools.ts and AttachmentsPanel audio/video transcription action | #259 |
 | `POST` | `/api/v1/chat` | chat_sync | covered | ui/src/api/chat.ts and agent components | #242 |
 | `POST` | `/api/v1/chat/stream` | native_chat_stream | covered | ui/src/api/chat.ts native stream client and Agent Fortemi stream path | #242 |
+| `POST` | `/api/v1/events/tokens` | realtime_events | covered | ui/src/api/events.ts and realtimeEventBus/websocket service | #246 |
+| `DELETE` | `/api/v1/events/tokens/{token_id}` | realtime_events | covered | ui/src/api/events.ts and realtimeEventBus/websocket service | #246 |
 | `POST` | `/api/v1/ingest/stream` | streaming_ingest | covered | ui/src/api/ingest.ts and BackupManager NDJSON stream import | #255 |
 | `POST` | `/api/v1/ingest/tokens` | streaming_ingest | covered | ui/src/api/ingest.ts and BackupManager NDJSON stream import | #255 |
 | `DELETE` | `/api/v1/ingest/tokens/{token_id}` | streaming_ingest | covered | ui/src/api/ingest.ts and BackupManager NDJSON stream import | #255 |

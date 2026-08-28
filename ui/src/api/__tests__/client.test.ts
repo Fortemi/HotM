@@ -149,6 +149,19 @@ describe('API Client', () => {
   });
 
   describe('POST requests', () => {
+    it('returns a bounded typed body for an explicitly accepted conflict status', async () => {
+      const resultBody = { status: 'safety_aborted', retained: 132 };
+      mockFetch.mockResolvedValueOnce(new Response(JSON.stringify(resultBody), {
+        status: 409,
+        statusText: 'Conflict',
+        headers: { 'Content-Type': 'application/json' },
+      }));
+
+      await expect(
+        client.post('/graph/snn/recompute', {}, undefined, undefined, [409]),
+      ).resolves.toEqual(resultBody);
+    });
+
     it('runs the mutation gate before dispatch and preserves its typed error', async () => {
       const block = new Error('compatibility blocked');
       const gate = vi.fn().mockRejectedValue(block);

@@ -35,10 +35,10 @@ EVIDENCE_MAP = OUTPUT_DIR / "fortemi-v2026-07-family-evidence-map.json"
 OPERATION_EVIDENCE = HOTM_ROOT / ".aiwg/testing/data/fortemi-operation-conformance-v2026-07.json"
 OPENAPI_CONTRACT = HOTM_ROOT / "ui/src/api/contracts/fortemi-openapi.yaml"
 OPENAPI_RECEIPT = HOTM_ROOT / "ui/src/api/contracts/fortemi-openapi-receipt.json"
-EXPECTED_ROUTE_COUNT = 202
+EXPECTED_ROUTE_COUNT = 204
 EXPECTED_FAMILY_COUNT = 36
 EXPECTED_STATUS_COUNTS = {
-    "covered": 188,
+    "covered": 190,
     "documented_exclusion": 14,
 }
 HTTP_METHODS = ("get", "put", "post", "delete", "options", "head", "patch", "trace")

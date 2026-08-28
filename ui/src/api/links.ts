@@ -4,6 +4,7 @@
  */
 
 import type { ApiClient } from './client';
+import { decodeSnnResult, type SnnControlResult } from './concepts';
 import type {
   NoteLinksResponse,
   GraphExploreResponse,
@@ -57,6 +58,7 @@ export interface GraphControlRequest {
 export interface RecomputeSnnRequest extends GraphControlRequest {
   k?: number;
   threshold?: number;
+  allow_aggressive_pruning?: boolean;
 }
 
 export interface PfnetSparsifyRequest extends GraphControlRequest {
@@ -75,6 +77,7 @@ export interface GraphControlResult {
 
 export interface GraphMaintenanceRequest {
   steps?: Array<'normalize' | 'snn' | 'pfnet' | 'snapshot' | string>;
+  allow_aggressive_pruning?: boolean;
 }
 
 export interface GraphMaintenanceResponse {
@@ -265,8 +268,14 @@ export function createLinksApi(client: ApiClient) {
       });
     },
 
-    async recomputeSnnScores(request: RecomputeSnnRequest = {}): Promise<GraphControlResult> {
-      return client.post<GraphControlResult>('/graph/snn/recompute', request);
+    async recomputeSnnScores(request: RecomputeSnnRequest = {}): Promise<SnnControlResult> {
+      return decodeSnnResult(await client.post<unknown>(
+        '/graph/snn/recompute',
+        request,
+        undefined,
+        undefined,
+        [409],
+      ));
     },
 
     async sparsifyGraphWithPfnet(request: PfnetSparsifyRequest = {}): Promise<GraphControlResult> {

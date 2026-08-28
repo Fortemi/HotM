@@ -100,4 +100,39 @@ describe('Concepts API', () => {
     expect(concept.definition).toBe('A programming interface.');
     expect(concept.usage_count).toBe(7);
   });
+
+  it('decodes a retention safety abort returned as an accepted 409 result', async () => {
+    vi.mocked(mockClient.post).mockResolvedValueOnce({
+      status: 'safety_aborted',
+      total_edges: 11449,
+      retained: 132,
+      updated: 0,
+      pruned: 11317,
+      retention_ratio: 132 / 11449,
+      node_count: 1583,
+      retained_mean_degree: (2 * 132) / 1583,
+      k_used: 10,
+      threshold_used: 0.1,
+      dry_run: false,
+      snn_score_distribution: [100, 200, 300, 400, 500, 600, 700, 800, 900, 6949],
+      minimum_retention_ratio: 0.05,
+      minimum_retained_mean_degree: 1,
+      aggressive_pruning_override: false,
+      safety_reasons: ['retention ratio is below policy'],
+      remediation: 'Inspect a dry run or explicitly allow aggressive pruning.',
+    });
+
+    const result = await conceptsApi.recomputeKnowledgeGraphSnn({ dry_run: false });
+
+    expect(mockClient.post).toHaveBeenCalledWith(
+      '/graph/snn/recompute',
+      { dry_run: false },
+      undefined,
+      undefined,
+      [409],
+    );
+    expect(result.status).toBe('safety_aborted');
+    expect(result.retained).toBe(132);
+    expect(result.safety_reasons).toEqual(['retention ratio is below policy']);
+  });
 });

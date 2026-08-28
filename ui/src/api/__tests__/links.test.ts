@@ -101,25 +101,52 @@ describe('Links and graph API', () => {
 
   it('posts graph control operations to SNN, PFNET, coarse community, and maintenance routes', async () => {
     vi.mocked(mockClient.post)
-      .mockResolvedValueOnce({ updated_edges: 7 })
+      .mockResolvedValueOnce({
+        status: 'dry_run',
+        total_edges: 10,
+        retained: 7,
+        updated: 7,
+        pruned: 3,
+        retention_ratio: 0.7,
+        node_count: 5,
+        retained_mean_degree: 2.8,
+        k_used: 12,
+        threshold_used: 0.2,
+        dry_run: true,
+        snn_score_distribution: [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+        minimum_retention_ratio: 0.05,
+        minimum_retained_mean_degree: 1,
+        aggressive_pruning_override: false,
+        safety_reasons: [],
+        remediation: null,
+      })
       .mockResolvedValueOnce({ pruned_edges: 4 })
       .mockResolvedValueOnce({ communities: 2 })
       .mockResolvedValueOnce({ id: 'job-1', status: 'queued', steps: ['snn', 'snapshot'] });
 
-    await linksApi.recomputeSnnScores({ k: 12, threshold: 0.2, dry_run: true });
+    await linksApi.recomputeSnnScores({
+      k: 12,
+      threshold: 0.2,
+      dry_run: true,
+      allow_aggressive_pruning: false,
+    });
     await linksApi.sparsifyGraphWithPfnet({ q: 3, dry_run: false });
     await linksApi.detectCoarseGraphCommunities({
       coarse_dim: 64,
       similarity_threshold: 0.3,
       resolution: 1.2,
     });
-    const maintenance = await linksApi.triggerGraphMaintenance({ steps: ['snn', 'snapshot'] });
+    const maintenance = await linksApi.triggerGraphMaintenance({
+      steps: ['snn', 'snapshot'],
+      allow_aggressive_pruning: false,
+    });
 
     expect(mockClient.post).toHaveBeenNthCalledWith(1, '/graph/snn/recompute', {
       k: 12,
       threshold: 0.2,
       dry_run: true,
-    });
+      allow_aggressive_pruning: false,
+    }, undefined, undefined, [409]);
     expect(mockClient.post).toHaveBeenNthCalledWith(2, '/graph/pfnet/sparsify', {
       q: 3,
       dry_run: false,
@@ -131,6 +158,7 @@ describe('Links and graph API', () => {
     });
     expect(mockClient.post).toHaveBeenNthCalledWith(4, '/graph/maintenance', {
       steps: ['snn', 'snapshot'],
+      allow_aggressive_pruning: false,
     });
     expect(maintenance.status).toBe('queued');
   });

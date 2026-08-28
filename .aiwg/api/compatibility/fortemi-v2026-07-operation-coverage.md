@@ -1,7 +1,7 @@
 ---
 title: Fortemi v2026.7.1 Operation Coverage Inventory
 status: generated
-date: 2026-08-16
+date: 2026-08-28
 artifact_type: api-operation-coverage-inventory
 related_issue: Fortemi/HotM#290
 ---
@@ -11,10 +11,10 @@ related_issue: Fortemi/HotM#290
 This report is generated from the same data as the machine-readable operation coverage JSON. It keeps route inventory, OpenAPI, AsyncAPI, Knowledge Shard, compatibility, and auth boundaries independent.
 
 - OpenAPI receipt: `ui/src/api/contracts/fortemi-openapi-receipt.json`
-- OpenAPI producer commit: `5ea08229c9f1565122df5f8e6906e89d98dc7e75`
+- OpenAPI producer commit: `e09578e67732d2bd26cf7642ae9038a44a9b9e6c`
 - Contract revision: `1`
 - Contract version: `2026.2.9`
-- Operations: `251`
+- Operations: `253`
 - Focused #290 operations: `85`
 
 ## Disposition Counts
@@ -23,19 +23,19 @@ This report is generated from the same data as the machine-readable operation co
 | --- | ---: |
 | documented_exclusion | 31 |
 | integrated | 1 |
-| partial | 219 |
+| partial | 221 |
 
 ## Dimension Counts
 
 | Dimension | Status counts |
 | --- | --- |
-| route | `{"conformant": 251}` |
-| request | `{"conformant": 133, "documented_exclusion": 31, "gap": 84, "not_applicable": 3}` |
-| response | `{"conformant": 128, "documented_exclusion": 31, "gap": 84, "partial": 8}` |
-| auth_context | `{"conformant": 1, "documented_exclusion": 31, "gap": 84, "partial": 135}` |
-| ui | `{"conformant": 135, "documented_exclusion": 31, "gap": 85}` |
-| agent | `{"conformant": 12, "documented_exclusion": 41, "gap": 198}` |
-| live | `{"gap": 251}` |
+| route | `{"conformant": 253}` |
+| request | `{"conformant": 133, "documented_exclusion": 31, "gap": 86, "not_applicable": 3}` |
+| response | `{"conformant": 128, "documented_exclusion": 31, "gap": 86, "partial": 8}` |
+| auth_context | `{"conformant": 1, "documented_exclusion": 31, "gap": 86, "partial": 135}` |
+| ui | `{"conformant": 135, "documented_exclusion": 31, "gap": 87}` |
+| agent | `{"conformant": 12, "documented_exclusion": 41, "gap": 200}` |
+| live | `{"gap": 253}` |
 
 ## Verifier Diagnostics
 
@@ -251,6 +251,8 @@ This report is generated from the same data as the machine-readable operation co
 | `POST` | `/api/v1/embedding-sets/{slug}/members` | `add_embedding_set_members` | embeddings | partial | covered | false |
 | `DELETE` | `/api/v1/embedding-sets/{slug}/members/{note_id}` | `remove_embedding_set_member` | embeddings | partial | covered | false |
 | `POST` | `/api/v1/embedding-sets/{slug}/refresh` | `refresh_embedding_set` | embeddings | partial | covered | false |
+| `POST` | `/api/v1/events/tokens` | `mint_event_stream_token` | realtime_events | partial | covered | false |
+| `DELETE` | `/api/v1/events/tokens/{token_id}` | `revoke_event_stream_token` | realtime_events | partial | covered | false |
 | `GET` | `/api/v1/extraction/stats` | `extraction_stats` | jobs | partial | covered | true |
 | `GET` | `/api/v1/graph/cold-spots` | `get_cold_spots` | graph | partial | covered | false |
 | `POST` | `/api/v1/graph/community/coarse` | `coarse_community_detection` | graph | partial | covered | false |

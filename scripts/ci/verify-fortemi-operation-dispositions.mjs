@@ -254,7 +254,7 @@ for (const [operationId, endpoint] of CURATED_AGENT_OPERATIONS) {
 const ledger = buildLedger(source);
 const serialized = `${JSON.stringify(ledger, null, 2)}\n`;
 
-if (ledger.operation_count !== 251 || new Set(ledger.operations.map(({ key }) => key)).size !== ledger.operation_count) {
+if (ledger.operation_count !== 253 || new Set(ledger.operations.map(({ key }) => key)).size !== ledger.operation_count) {
   throw new Error('operation disposition ledger is incomplete or contains duplicate keys');
 }
 if (ledger.operations.some(({ method, path }) => (

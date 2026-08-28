@@ -7,22 +7,22 @@
     "specification_version": "3.1.0",
     "contract_revision": "1",
     "contract_version": "2026.2.9",
-    "producer_commit": "5ea08229c9f1565122df5f8e6906e89d98dc7e75",
-    "sha256": "9d2d5ea05f21a71d416d713a5cadd2c4f76086a3494105280d50ec328c4056fd"
+    "producer_commit": "e09578e67732d2bd26cf7642ae9038a44a9b9e6c",
+    "sha256": "f585c0f07ac477159ae86d42ac318e059a42b51f02c8c8a70d767c9fd1c5c9a1"
   },
-  "operation_count": 251,
+  "operation_count": 253,
   "summary": {
     "privileges": {
       "admin": 65,
-      "delete": 21,
+      "delete": 22,
       "read": 96,
-      "write": 69
+      "write": 70
     },
     "surfaces": {
       "agent_workflow": 10,
       "documented_exclusion": 31,
       "external_protocol_handoff": 5,
-      "operator_diagnostic": 75,
+      "operator_diagnostic": 77,
       "ui_workflow": 130
     },
     "security_decisions": {
@@ -1895,6 +1895,36 @@
         "ui/src/components/admin/OperatorConsole.tsx",
         "ui/src/components/admin/__tests__/OperatorConsole.test.tsx",
         "ui/e2e/tests/operator-console-responsive.spec.ts"
+      ],
+      "conformance_disposition": "partial",
+      "tracker": "#287"
+    },
+    {
+      "key": "POST /api/v1/events/tokens#mint_event_stream_token",
+      "method": "POST",
+      "path": "/api/v1/events/tokens",
+      "operation_id": "mint_event_stream_token",
+      "family": "realtime_events",
+      "privilege": "write",
+      "surface": "operator_diagnostic",
+      "rationale": "The pinned operation is visible in the read-only operator catalog; no request, response, auth, or live conformance is inferred.",
+      "evidence_paths": [
+        "ui/src/components/admin/OperationCatalogPanel.tsx"
+      ],
+      "conformance_disposition": "partial",
+      "tracker": "#287"
+    },
+    {
+      "key": "DELETE /api/v1/events/tokens/{token_id}#revoke_event_stream_token",
+      "method": "DELETE",
+      "path": "/api/v1/events/tokens/{token_id}",
+      "operation_id": "revoke_event_stream_token",
+      "family": "realtime_events",
+      "privilege": "delete",
+      "surface": "operator_diagnostic",
+      "rationale": "The pinned operation is visible in the read-only operator catalog; no request, response, auth, or live conformance is inferred.",
+      "evidence_paths": [
+        "ui/src/components/admin/OperationCatalogPanel.tsx"
       ],
       "conformance_disposition": "partial",
       "tracker": "#287"

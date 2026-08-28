@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-16",
+  "generated_at": "2026-08-28",
   "schema_version": 1,
   "source_issue": "Fortemi/HotM#290",
   "openapi": {
@@ -8,50 +8,50 @@
     "specification_version": "3.1.0",
     "contract_revision": "1",
     "contract_version": "2026.2.9",
-    "producer_commit": "5ea08229c9f1565122df5f8e6906e89d98dc7e75",
-    "sha256": "9d2d5ea05f21a71d416d713a5cadd2c4f76086a3494105280d50ec328c4056fd"
+    "producer_commit": "e09578e67732d2bd26cf7642ae9038a44a9b9e6c",
+    "sha256": "f585c0f07ac477159ae86d42ac318e059a42b51f02c8c8a70d767c9fd1c5c9a1"
   },
-  "operation_count": 251,
+  "operation_count": 253,
   "targeted_operation_count": 85,
   "disposition_counts": {
-    "partial": 219,
+    "partial": 221,
     "documented_exclusion": 31,
     "integrated": 1
   },
   "dimension_counts": {
     "route": {
-      "conformant": 251
+      "conformant": 253
     },
     "request": {
-      "gap": 84,
+      "gap": 86,
       "documented_exclusion": 31,
       "conformant": 133,
       "not_applicable": 3
     },
     "response": {
-      "gap": 84,
+      "gap": 86,
       "documented_exclusion": 31,
       "conformant": 128,
       "partial": 8
     },
     "auth_context": {
-      "gap": 84,
+      "gap": 86,
       "documented_exclusion": 31,
       "partial": 135,
       "conformant": 1
     },
     "ui": {
-      "gap": 85,
+      "gap": 87,
       "documented_exclusion": 31,
       "conformant": 135
     },
     "agent": {
-      "gap": 198,
+      "gap": 200,
       "documented_exclusion": 41,
       "conformant": 12
     },
     "live": {
-      "gap": 251
+      "gap": 253
     }
   },
   "family_counts": {
@@ -68,6 +68,7 @@
     "concepts": 35,
     "document_types": 6,
     "embeddings": 15,
+    "realtime_events": 2,
     "jobs": 11,
     "graph": 11,
     "knowledge_health": 6,
@@ -7747,6 +7748,132 @@
       }
     },
     {
+      "key": "POST /api/v1/events/tokens#mint_event_stream_token",
+      "method": "POST",
+      "path": "/api/v1/events/tokens",
+      "operation_id": "mint_event_stream_token",
+      "family": "realtime_events",
+      "route_disposition": "covered",
+      "has_request_body": false,
+      "success_statuses": [
+        "201"
+      ],
+      "error_statuses": [
+        "401",
+        "429",
+        "503"
+      ],
+      "security": [
+        {
+          "bearerAuth": []
+        }
+      ],
+      "targeted_by_290": false,
+      "disposition": "partial",
+      "tracker": "#290",
+      "rationale": "Operation-level conformance has not been explicitly claimed.",
+      "dimensions": {
+        "route": {
+          "status": "conformant",
+          "evidence_paths": [],
+          "notes": "Route disposition only; does not imply request, response, auth, UI, agent, or live conformance."
+        },
+        "request": {
+          "status": "gap",
+          "evidence_paths": [],
+          "notes": "No explicit request serializer evidence recorded."
+        },
+        "response": {
+          "status": "gap",
+          "evidence_paths": [],
+          "notes": "No explicit success/error decoder evidence recorded."
+        },
+        "auth_context": {
+          "status": "gap",
+          "evidence_paths": [],
+          "notes": "No explicit auth/context gate evidence recorded."
+        },
+        "ui": {
+          "status": "gap",
+          "evidence_paths": [],
+          "notes": "No explicit UI workflow evidence recorded."
+        },
+        "agent": {
+          "status": "gap",
+          "evidence_paths": [],
+          "notes": "No explicit agent workflow evidence recorded."
+        },
+        "live": {
+          "status": "gap",
+          "evidence_paths": [],
+          "notes": "No live receipt recorded."
+        }
+      }
+    },
+    {
+      "key": "DELETE /api/v1/events/tokens/{token_id}#revoke_event_stream_token",
+      "method": "DELETE",
+      "path": "/api/v1/events/tokens/{token_id}",
+      "operation_id": "revoke_event_stream_token",
+      "family": "realtime_events",
+      "route_disposition": "covered",
+      "has_request_body": false,
+      "success_statuses": [
+        "204"
+      ],
+      "error_statuses": [
+        "401",
+        "404",
+        "429"
+      ],
+      "security": [
+        {
+          "bearerAuth": []
+        }
+      ],
+      "targeted_by_290": false,
+      "disposition": "partial",
+      "tracker": "#290",
+      "rationale": "Operation-level conformance has not been explicitly claimed.",
+      "dimensions": {
+        "route": {
+          "status": "conformant",
+          "evidence_paths": [],
+          "notes": "Route disposition only; does not imply request, response, auth, UI, agent, or live conformance."
+        },
+        "request": {
+          "status": "gap",
+          "evidence_paths": [],
+          "notes": "No explicit request serializer evidence recorded."
+        },
+        "response": {
+          "status": "gap",
+          "evidence_paths": [],
+          "notes": "No explicit success/error decoder evidence recorded."
+        },
+        "auth_context": {
+          "status": "gap",
+          "evidence_paths": [],
+          "notes": "No explicit auth/context gate evidence recorded."
+        },
+        "ui": {
+          "status": "gap",
+          "evidence_paths": [],
+          "notes": "No explicit UI workflow evidence recorded."
+        },
+        "agent": {
+          "status": "gap",
+          "evidence_paths": [],
+          "notes": "No explicit agent workflow evidence recorded."
+        },
+        "live": {
+          "status": "gap",
+          "evidence_paths": [],
+          "notes": "No live receipt recorded."
+        }
+      }
+    },
+    {
       "key": "GET /api/v1/extraction/stats#extraction_stats",
       "method": "GET",
       "path": "/api/v1/extraction/stats",
@@ -8551,6 +8678,7 @@
         "200"
       ],
       "error_statuses": [
+        "409",
         "429",
         "500"
       ],

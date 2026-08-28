@@ -100,12 +100,23 @@ export interface GraphComparisonSummary {
 }
 
 export interface SnnControlResult {
+  status: 'completed' | 'dry_run' | 'skipped_sparse' | 'safety_aborted';
   total_edges: number;
+  retained: number;
   updated: number;
   pruned: number;
+  retention_ratio: number;
+  node_count: number;
+  retained_mean_degree: number;
   k_used: number;
   threshold_used: number;
   dry_run: boolean;
+  snn_score_distribution: number[];
+  minimum_retention_ratio: number;
+  minimum_retained_mean_degree: number;
+  aggressive_pruning_override: boolean;
+  safety_reasons: string[];
+  remediation: string | null;
 }
 
 export interface PfnetControlResult {
@@ -449,15 +460,51 @@ function decodeGraphComparison(payload: unknown): GraphComparisonSummary {
   };
 }
 
-function decodeSnnResult(payload: unknown): SnnControlResult {
+export function decodeSnnResult(payload: unknown): SnnControlResult {
   const raw = asRecord(payload, 'recompute_snn_scores');
+  const status = requiredString(raw, 'status', 'recompute_snn_scores');
+  if (!['completed', 'dry_run', 'skipped_sparse', 'safety_aborted'].includes(status)) {
+    throw new ContractDecodeError('recompute_snn_scores', 'unexpected SNN status');
+  }
+  const scoreDistribution = boundedArray(
+    raw.snn_score_distribution,
+    'recompute_snn_scores',
+    'snn_score_distribution',
+    10,
+  ).map((entry) => {
+    if (!Number.isSafeInteger(entry) || (entry as number) < 0) {
+      throw new ContractDecodeError('recompute_snn_scores', 'SNN score distribution must contain non-negative integers');
+    }
+    return entry as number;
+  });
+  const safetyReasons = boundedArray(
+    raw.safety_reasons,
+    'recompute_snn_scores',
+    'safety_reasons',
+    MAX_SUMMARY_STRINGS,
+  ).map((entry) => boundedString(entry, 'recompute_snn_scores', 'safety reason'));
+  const remediation = raw.remediation;
+  if (remediation != null && (typeof remediation !== 'string' || remediation.length > MAX_LABEL_CHARS)) {
+    throw new ContractDecodeError('recompute_snn_scores', 'remediation must be null or a bounded string');
+  }
   return {
+    status: status as SnnControlResult['status'],
     total_edges: finiteNumber(raw, 'total_edges', 'recompute_snn_scores'),
+    retained: finiteNumber(raw, 'retained', 'recompute_snn_scores'),
     updated: finiteNumber(raw, 'updated', 'recompute_snn_scores'),
     pruned: finiteNumber(raw, 'pruned', 'recompute_snn_scores'),
+    retention_ratio: finiteNumber(raw, 'retention_ratio', 'recompute_snn_scores'),
+    node_count: finiteNumber(raw, 'node_count', 'recompute_snn_scores'),
+    retained_mean_degree: finiteNumber(raw, 'retained_mean_degree', 'recompute_snn_scores'),
     k_used: finiteNumber(raw, 'k_used', 'recompute_snn_scores'),
     threshold_used: finiteNumber(raw, 'threshold_used', 'recompute_snn_scores'),
     dry_run: booleanField(raw, 'dry_run', 'recompute_snn_scores'),
+    snn_score_distribution: scoreDistribution,
+    minimum_retention_ratio: finiteNumber(raw, 'minimum_retention_ratio', 'recompute_snn_scores'),
+    minimum_retained_mean_degree: finiteNumber(raw, 'minimum_retained_mean_degree', 'recompute_snn_scores'),
+    aggressive_pruning_override: booleanField(raw, 'aggressive_pruning_override', 'recompute_snn_scores'),
+    safety_reasons: safetyReasons,
+    remediation: remediation ?? null,
   };
 }
 
@@ -1222,11 +1269,22 @@ export function createConceptsApi(client: ApiClient) {
     },
 
     async recomputeKnowledgeGraphSnn(
-      request: { k?: number; threshold?: number; dry_run?: boolean } = {},
+      request: {
+        k?: number;
+        threshold?: number;
+        dry_run?: boolean;
+        allow_aggressive_pruning?: boolean;
+      } = {},
     ): Promise<SnnControlResult> {
       if (request.k !== undefined && (!Number.isInteger(request.k) || request.k < 1 || request.k > 1000)) throw new Error('SNN k must be between 1 and 1000');
       if (request.threshold !== undefined && (!Number.isFinite(request.threshold) || request.threshold < 0 || request.threshold > 1)) throw new Error('SNN threshold must be between 0 and 1');
-      return decodeSnnResult(await client.post<unknown>('/graph/snn/recompute', request));
+      return decodeSnnResult(await client.post<unknown>(
+        '/graph/snn/recompute',
+        request,
+        undefined,
+        undefined,
+        [409],
+      ));
     },
 
     async sparsifyKnowledgeGraphPfnet(
@@ -1246,11 +1304,17 @@ export function createConceptsApi(client: ApiClient) {
 
     async triggerKnowledgeGraphMaintenance(
       steps: Array<'normalize' | 'snn' | 'pfnet' | 'snapshot'> = ['normalize', 'snn', 'pfnet', 'snapshot'],
+      allowAggressivePruning?: boolean,
     ): Promise<GraphMaintenanceResult> {
       if (steps.length < 1 || steps.length > 4 || new Set(steps).size !== steps.length) {
         throw new Error('Graph maintenance steps must contain one to four unique steps');
       }
-      return decodeGraphMaintenance(await client.post<unknown>('/graph/maintenance', { steps }));
+      return decodeGraphMaintenance(await client.post<unknown>('/graph/maintenance', {
+        steps,
+        ...(allowAggressivePruning === undefined
+          ? {}
+          : { allow_aggressive_pruning: allowAggressivePruning }),
+      }));
     },
 
     async getKnowledgeGraphColdSpots(

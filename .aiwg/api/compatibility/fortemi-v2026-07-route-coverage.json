@@ -1,11 +1,11 @@
 {
-  "generated_at": "2026-08-16",
+  "generated_at": "2026-08-28",
   "fortemi_root": "../fortemi",
-  "fortemi_commit": "48bc0a0b",
-  "fortemi_latest_tag": "v2026.7.19",
-  "route_count": 202,
+  "fortemi_commit": "e09578e6",
+  "fortemi_latest_tag": "v2026.8.0",
+  "route_count": 204,
   "status_counts": {
-    "covered": 188,
+    "covered": 190,
     "documented_exclusion": 14
   },
   "family_counts": {
@@ -26,6 +26,7 @@
     "audio_tools": 1,
     "chat_sync": 2,
     "native_chat_stream": 1,
+    "realtime_events": 4,
     "streaming_ingest": 3,
     "document_types": 3,
     "pke": 12,
@@ -40,7 +41,6 @@
     "oauth": 7,
     "auth_api_keys": 2,
     "backup_archive": 20,
-    "realtime_events": 2,
     "outbound_webhooks": 4,
     "incoming_webhook_receivers": 3,
     "inbound_sources": 2,
@@ -841,6 +841,28 @@
       "status": "covered",
       "hotm_evidence": "ui/src/api/chat.ts native stream client and Agent Fortemi stream path",
       "tracker": "#242"
+    },
+    {
+      "methods": [
+        "POST"
+      ],
+      "path": "/api/v1/events/tokens",
+      "handler_expr": "post(handlers::event_tokens::mint_event_stream_token),",
+      "family": "realtime_events",
+      "status": "covered",
+      "hotm_evidence": "ui/src/api/events.ts and realtimeEventBus/websocket service",
+      "tracker": "#246"
+    },
+    {
+      "methods": [
+        "DELETE"
+      ],
+      "path": "/api/v1/events/tokens/{token_id}",
+      "handler_expr": "delete(handlers::event_tokens::revoke_event_stream_token),",
+      "family": "realtime_events",
+      "status": "covered",
+      "hotm_evidence": "ui/src/api/events.ts and realtimeEventBus/websocket service",
+      "tracker": "#246"
     },
     {
       "methods": [

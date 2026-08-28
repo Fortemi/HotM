@@ -16,6 +16,7 @@ interface RequestOptions {
   retryAttempts?: number;
   retryDelay?: number;
   maxResponseBytes?: number;
+  acceptedResponseStatuses?: readonly number[];
 }
 
 interface TextResponseOptions {
@@ -159,6 +160,7 @@ export function createApiClient(baseUrl: string) {
       retryAttempts = 3,
       retryDelay = 1000,
       maxResponseBytes = DEFAULT_MAX_JSON_RESPONSE_BYTES,
+      acceptedResponseStatuses = [],
     } = options;
 
     if (method !== 'GET') {
@@ -190,7 +192,7 @@ export function createApiClient(baseUrl: string) {
         }
 
         // Handle HTTP errors
-        if (!response.ok) {
+        if (!response.ok && !acceptedResponseStatuses.includes(response.status)) {
           await response.body?.cancel().catch(() => undefined);
           const error = new ApiError(response.statusText, response.status);
 
@@ -296,9 +298,16 @@ export function createApiClient(baseUrl: string) {
       path: string,
       body?: unknown,
       headers?: Record<string, string>,
-      params?: Record<string, string>
+      params?: Record<string, string>,
+      acceptedResponseStatuses?: readonly number[],
     ): Promise<T> {
-      return request<T>(path, { method: 'POST', body, headers, params });
+      return request<T>(path, {
+        method: 'POST',
+        body,
+        headers,
+        params,
+        acceptedResponseStatuses,
+      });
     },
 
     async patch<T>(
