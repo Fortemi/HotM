@@ -1,0 +1,46 @@
+metadata:
+  schema_version: "1.0.0"
+  created_at: "2026-08-28T20:05:16Z"
+  description: "Provenance for the HotM SDLC REST-authority checkout correction"
+entity:
+  id: "urn:aiwg:artifact:.gitea/workflows/sdlc-gates.yml:sha256:ed7be65223b93f2c2bb8076ef20ff9b6aaffc5be03fd361ef4cc99f0db7a05fe"
+  type: ci_configuration
+  created_at: "2026-08-28T20:05:16Z"
+  checksum: "sha256:ed7be65223b93f2c2bb8076ef20ff9b6aaffc5be03fd361ef4cc99f0db7a05fe"
+  size_bytes: 6615
+  attributes:
+    producer_issue: "Fortemi/fortemi#1102"
+    consumer_issue: "Fortemi/HotM#287"
+    producer_commit: "e09578e67732d2bd26cf7642ae9038a44a9b9e6c"
+    separation: "The job switches between the exact REST and packaged contract authorities without changing either receipt"
+activity:
+  id: "urn:aiwg:activity:correction:sdlc-rest-authority-checkout:001"
+  type: modification
+  started_at: "2026-08-28T20:04:30Z"
+  ended_at: "2026-08-28T20:05:16Z"
+  description: "Switch the SDLC verifier checkout between the exact OpenAPI producer and the independent packaged-contract producer for their respective gates"
+agent:
+  id: "urn:aiwg:agent:codex-gpt-5"
+  type: ai_assistant
+  name: "Codex"
+  version: "gpt-5"
+  tool: "codex"
+relationships:
+  wasGeneratedBy:
+    entity: "urn:aiwg:artifact:.gitea/workflows/sdlc-gates.yml:sha256:ed7be65223b93f2c2bb8076ef20ff9b6aaffc5be03fd361ef4cc99f0db7a05fe"
+    activity: "urn:aiwg:activity:correction:sdlc-rest-authority-checkout:001"
+    time: "2026-08-28T20:05:16Z"
+  used:
+    - activity: "urn:aiwg:activity:correction:sdlc-rest-authority-checkout:001"
+      entity: "urn:aiwg:artifact:ui/src/api/contracts/fortemi-openapi-receipt.json"
+      role: checkout_authority
+    - activity: "urn:aiwg:activity:correction:sdlc-rest-authority-checkout:001"
+      entity: "urn:aiwg:artifact:release/sidecar-provenance.json"
+      role: independent_boundary
+  wasAssociatedWith:
+    activity: "urn:aiwg:activity:correction:sdlc-rest-authority-checkout:001"
+    agent: "urn:aiwg:agent:codex-gpt-5"
+    role: software_implementer
+  wasAttributedTo:
+    entity: "urn:aiwg:artifact:.gitea/workflows/sdlc-gates.yml:sha256:ed7be65223b93f2c2bb8076ef20ff9b6aaffc5be03fd361ef4cc99f0db7a05fe"
+    agent: "urn:aiwg:agent:codex-gpt-5"

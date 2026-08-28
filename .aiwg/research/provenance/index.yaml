@@ -1,8 +1,12 @@
 metadata:
   schema_version: "1.0.0"
-  updated_at: "2026-08-28T19:58:17Z"
-  record_count: 230
+  updated_at: "2026-08-28T20:08:40Z"
+  record_count: 232
 records:
+  - entity: ".aiwg/testing/scripts/verify-fortemi-closeout-package.py"
+    record: "records/closeout-current-rest-pin-2026-08.prov.yaml"
+  - entity: ".gitea/workflows/sdlc-gates.yml"
+    record: "records/sdlc-rest-authority-checkout-2026-08.prov.yaml"
   - entity: ".aiwg/api/compatibility/fortemi-v2026-07-operation-coverage.json"
     record: "records/fortemi-snn-retention-consumer-2026-08.prov.yaml"
   - entity: ".aiwg/api/compatibility/fortemi-v2026-07-operation-coverage.md"

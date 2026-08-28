@@ -13,14 +13,14 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[3]
 
 ROUTE_JSON = ROOT / ".aiwg/api/compatibility/fortemi-v2026-07-route-coverage.json"
-EVIDENCE_MAP = ROOT / ".aiwg/api/compatibility/fortemi-v2026-07-family-evidence-map.json"
+OPENAPI_RECEIPT = ROOT / "ui/src/api/contracts/fortemi-openapi-receipt.json"
 WORKFLOW = ROOT / ".gitea/workflows/sdlc-gates.yml"
 PUBLISHER = ROOT / ".aiwg/scripts/publish-fortemi-tracker-comments.py"
 
 EXPECTED_COUNTS = {
-    "route_count": 202,
+    "route_count": 204,
     "family_count": 36,
-    "covered": 188,
+    "covered": 190,
     "documented_exclusion": 14,
     "gap": 0,
     "partial": 0,
@@ -95,7 +95,7 @@ def assert_exists() -> None:
 
 def assert_route_inventory() -> None:
     data = json.loads(ROUTE_JSON.read_text())
-    baseline = json.loads(EVIDENCE_MAP.read_text())
+    receipt = json.loads(OPENAPI_RECEIPT.read_text())
     status_counts = data.get("status_counts", {})
     diagnostics = data.get("verifier_diagnostics", {})
     checks = {
@@ -110,13 +110,14 @@ def assert_route_inventory() -> None:
     for key, expected in EXPECTED_COUNTS.items():
         if checks.get(key) != expected:
             fail(f"route inventory {key} expected {expected}, got {checks.get(key)}")
-    for field in ("fortemi_commit", "fortemi_latest_tag"):
-        expected = baseline.get(field)
-        actual = data.get(field)
-        if not expected:
-            fail(f"evidence map is missing pinned {field}")
-        if actual != expected:
-            fail(f"unexpected {field}: expected {expected}, got {actual}")
+    producer_commit = receipt.get("producer", {}).get("commit")
+    if not producer_commit:
+        fail("OpenAPI receipt is missing its exact producer commit")
+    if data.get("fortemi_commit") != producer_commit[:8]:
+        fail(
+            "route inventory producer differs from OpenAPI receipt: "
+            f"expected {producer_commit[:8]}, got {data.get('fortemi_commit')}"
+        )
     for key, value in diagnostics.items():
         if value:
             fail(f"route verifier diagnostics not clean: {key}={value}")
@@ -259,7 +260,8 @@ def main() -> None:
     assert_tracker_dry_run()
     print(
         "verified Fortemi closeout package: "
-        "artifacts=present links=coherent routes=202 covered=188 "
+        f"artifacts=present links=coherent routes={EXPECTED_COUNTS['route_count']} "
+        f"covered={EXPECTED_COUNTS['covered']} "
         "documented_exclusions=14 tracker_comments=10"
     )
 

@@ -52,9 +52,29 @@ jobs:
           git clone "https://git.integrolabs.net/${FORTEMI_REPOSITORY}" ../fortemi
           git -C ../fortemi checkout --detach "${FORTEMI_COMMIT}"
 
+      - name: Checkout Fortemi REST authority
+        shell: bash
+        run: |
+          set -euo pipefail
+          FORTEMI_COMMIT="$(
+            python3 -c \
+              'import json; print(json.load(open("ui/src/api/contracts/fortemi-openapi-receipt.json"))["producer"]["commit"])'
+          )"
+          git -C ../fortemi checkout --detach "${FORTEMI_COMMIT}"
+
       - name: Verify Fortemi route inventory
         shell: bash
         run: .aiwg/testing/scripts/verify-fortemi-route-inventory.sh
+
+      - name: Restore Fortemi packaged contract authority
+        shell: bash
+        run: |
+          set -euo pipefail
+          FORTEMI_COMMIT="$(
+            python3 -c \
+              'import json; print(json.load(open("release/sidecar-provenance.json"))["target_commitish"])'
+          )"
+          git -C ../fortemi checkout --detach "${FORTEMI_COMMIT}"
 
       - name: Install Node.js and npm
         shell: bash
@@ -92,6 +112,12 @@ jobs:
       - name: Verify Fortemi OpenAPI consumer contract
         shell: bash
         run: |
+          set -euo pipefail
+          FORTEMI_COMMIT="$(
+            python3 -c \
+              'import json; print(json.load(open("ui/src/api/contracts/fortemi-openapi-receipt.json"))["producer"]["commit"])'
+          )"
+          git -C ../fortemi checkout --detach "${FORTEMI_COMMIT}"
           GITHUB_SHA="$(git rev-parse HEAD)" \
             node .aiwg/testing/scripts/verify-fortemi-openapi-contract.mjs \
               ../fortemi \

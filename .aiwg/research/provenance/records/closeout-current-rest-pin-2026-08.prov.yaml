@@ -1,0 +1,45 @@
+metadata:
+  schema_version: "1.0.0"
+  created_at: "2026-08-28T20:08:40Z"
+  description: "Provenance for separating the historical closeout baseline from the current REST inventory pin"
+entity:
+  id: "urn:aiwg:artifact:.aiwg/testing/scripts/verify-fortemi-closeout-package.py:sha256:f344c0cfed0b2211fc3e09a11f38cc2fb1f1bb6f44c372d5467e297ebea1642b"
+  type: verification_code
+  created_at: "2026-08-28T20:08:40Z"
+  checksum: "sha256:f344c0cfed0b2211fc3e09a11f38cc2fb1f1bb6f44c372d5467e297ebea1642b"
+  size_bytes: 10139
+  attributes:
+    producer_issue: "Fortemi/fortemi#1102"
+    current_route_count: 204
+    historical_closeout_route_count: 202
+activity:
+  id: "urn:aiwg:activity:correction:closeout-current-rest-pin:001"
+  type: modification
+  started_at: "2026-08-28T20:07:48Z"
+  ended_at: "2026-08-28T20:08:40Z"
+  description: "Bind current route verification to the exact OpenAPI producer while retaining the historical v2026.7 closeout text"
+agent:
+  id: "urn:aiwg:agent:codex-gpt-5"
+  type: ai_assistant
+  name: "Codex"
+  version: "gpt-5"
+  tool: "codex"
+relationships:
+  wasGeneratedBy:
+    entity: "urn:aiwg:artifact:.aiwg/testing/scripts/verify-fortemi-closeout-package.py:sha256:f344c0cfed0b2211fc3e09a11f38cc2fb1f1bb6f44c372d5467e297ebea1642b"
+    activity: "urn:aiwg:activity:correction:closeout-current-rest-pin:001"
+    time: "2026-08-28T20:08:40Z"
+  used:
+    - activity: "urn:aiwg:activity:correction:closeout-current-rest-pin:001"
+      entity: "urn:aiwg:artifact:ui/src/api/contracts/fortemi-openapi-receipt.json"
+      role: current_authority
+    - activity: "urn:aiwg:activity:correction:closeout-current-rest-pin:001"
+      entity: "urn:aiwg:artifact:.aiwg/handoffs/fortemi-v2026-07-pr-closeout-package.md"
+      role: historical_evidence
+  wasAssociatedWith:
+    activity: "urn:aiwg:activity:correction:closeout-current-rest-pin:001"
+    agent: "urn:aiwg:agent:codex-gpt-5"
+    role: software_implementer
+  wasAttributedTo:
+    entity: "urn:aiwg:artifact:.aiwg/testing/scripts/verify-fortemi-closeout-package.py:sha256:f344c0cfed0b2211fc3e09a11f38cc2fb1f1bb6f44c372d5467e297ebea1642b"
+    agent: "urn:aiwg:agent:codex-gpt-5"
