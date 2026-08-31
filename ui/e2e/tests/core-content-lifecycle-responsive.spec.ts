@@ -80,7 +80,23 @@ async function mockFortemi(page: Page) {
     }
     if (path === '/api/v1/graph/snn/recompute' && request.method() === 'POST') {
       return fulfillJson(route, {
-        total_edges: 8, updated: 4, pruned: 1, k_used: 8, threshold_used: 0.2, dry_run: true,
+        status: 'dry_run',
+        total_edges: 8,
+        retained: 7,
+        updated: 4,
+        pruned: 1,
+        retention_ratio: 0.875,
+        node_count: 5,
+        retained_mean_degree: 2.8,
+        k_used: 8,
+        threshold_used: 0.2,
+        dry_run: true,
+        snn_score_distribution: [0, 1, 2, 3, 2, 0, 0, 0, 0, 0],
+        minimum_retention_ratio: 0.05,
+        minimum_retained_mean_degree: 1,
+        aggressive_pruning_override: false,
+        safety_reasons: [],
+        remediation: null,
       });
     }
     if (path === '/api/v1/health') {

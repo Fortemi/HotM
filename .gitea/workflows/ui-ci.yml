@@ -22,8 +22,8 @@ on:
       - 'scripts/ci/mutsu-build-lock.sh'
       - 'scripts/ci/test-mutsu-build-lock.sh'
       - 'scripts/ci/verify-mutsu-workflows.sh'
-      - 'scripts/ci/verify-container-release-policy.py'
-      - 'scripts/ci/test_verify_container_release_policy.py'
+      - 'scripts/ci/verify-container-release-policy.mjs'
+      - 'scripts/ci/test-verify-container-release-policy.mjs'
       - 'scripts/verify-hux-traceability.sh'
       - '.gitea/workflows/ui-ci.yml'
       - '.gitea/workflows/publish-hotm-ui-image.yml'
@@ -37,8 +37,8 @@ on:
       - 'scripts/ci/mutsu-build-lock.sh'
       - 'scripts/ci/test-mutsu-build-lock.sh'
       - 'scripts/ci/verify-mutsu-workflows.sh'
-      - 'scripts/ci/verify-container-release-policy.py'
-      - 'scripts/ci/test_verify_container_release_policy.py'
+      - 'scripts/ci/verify-container-release-policy.mjs'
+      - 'scripts/ci/test-verify-container-release-policy.mjs'
       - 'scripts/verify-hux-traceability.sh'
       - '.gitea/workflows/ui-ci.yml'
       - '.gitea/workflows/publish-hotm-ui-image.yml'
@@ -97,8 +97,8 @@ jobs:
 
       - name: Verify release-only container publication
         run: |
-          python3 scripts/ci/verify-container-release-policy.py
-          python3 scripts/ci/test_verify_container_release_policy.py
+          node scripts/ci/verify-container-release-policy.mjs
+          node --test scripts/ci/test-verify-container-release-policy.mjs
 
       - name: Type check
         working-directory: ui
