@@ -8,8 +8,9 @@
 #   - git.integrolabs.net/fortemi/hotm-bundle
 #
 # Tags:
-#   main push → :latest + :sha-<7char>
-#   v* tag    → :latest + :<version>  (e.g. :2026.2.0)
+#   vYYYY.M.P tag → :latest + :YYYY.M.P for both images
+#
+# Ordinary branch validation never builds or publishes registry images.
 #
 # Gitea secrets required:
 #   VAULT_CI_ROLE_ID    — vault AppRole role_id for this repo
@@ -24,7 +25,6 @@ name: Publish HotM Container Images
 
 on:
   push:
-    branches: [main]
     tags: ['v*']
   workflow_dispatch:
 
@@ -33,6 +33,7 @@ jobs:
     name: Build & Push container images
     runs-on: ubuntu-22.04
     timeout-minutes: 30
+    if: startsWith(github.ref, 'refs/tags/v')
 
     steps:
       - name: Checkout
@@ -51,28 +52,29 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          SHORT_SHA="${GITHUB_SHA:0:7}"
           GHCR_UI="ghcr.io/fortemi/hotm-ui"
           GITEA_UI="git.integrolabs.net/fortemi/hotm-ui"
           GHCR_BUNDLE="ghcr.io/fortemi/hotm-bundle"
           GITEA_BUNDLE="git.integrolabs.net/fortemi/hotm-bundle"
 
-          if [[ "${GITHUB_REF}" == refs/tags/v* ]]; then
-            VERSION="${GITHUB_REF_NAME#v}"
-            UI_TAGS="${GHCR_UI}:latest,${GHCR_UI}:${VERSION},${GITEA_UI}:latest,${GITEA_UI}:${VERSION}"
-            BUNDLE_TAGS="${GHCR_BUNDLE}:latest,${GHCR_BUNDLE}:${VERSION},${GITEA_BUNDLE}:latest,${GITEA_BUNDLE}:${VERSION}"
-            echo "mode=release  version=${VERSION}"
-          else
-            UI_TAGS="${GHCR_UI}:latest,${GHCR_UI}:sha-${SHORT_SHA},${GITEA_UI}:latest,${GITEA_UI}:sha-${SHORT_SHA}"
-            BUNDLE_TAGS="${GHCR_BUNDLE}:latest,${GHCR_BUNDLE}:sha-${SHORT_SHA},${GITEA_BUNDLE}:latest,${GITEA_BUNDLE}:sha-${SHORT_SHA}"
-            VERSION="${SHORT_SHA}"
-            echo "mode=rolling  sha=${SHORT_SHA}"
+          if [[ ! "${GITHUB_REF_NAME}" =~ ^v[0-9]{4}\.([1-9]|1[0-2])\.[0-9]+$ ]]; then
+            echo "Release tag must use vYYYY.M.P with month 1-12" >&2
+            exit 1
           fi
+          VERSION="${GITHUB_REF_NAME#v}"
+          DECLARED_VERSION=$(jq -er '.version' ui/package.json)
+          if [ "${VERSION}" != "${DECLARED_VERSION}" ]; then
+            echo "Release tag version does not match ui/package.json" >&2
+            exit 1
+          fi
+
+          UI_TAGS="${GHCR_UI}:latest,${GHCR_UI}:${VERSION},${GITEA_UI}:latest,${GITEA_UI}:${VERSION}"
+          BUNDLE_TAGS="${GHCR_BUNDLE}:latest,${GHCR_BUNDLE}:${VERSION},${GITEA_BUNDLE}:latest,${GITEA_BUNDLE}:${VERSION}"
+          echo "mode=release  version=${VERSION}"
 
           echo "ui_tags=${UI_TAGS}" >> "$GITHUB_OUTPUT"
           echo "bundle_tags=${BUNDLE_TAGS}" >> "$GITHUB_OUTPUT"
           echo "version=${VERSION}" >> $GITHUB_OUTPUT
-          echo "short_sha=${SHORT_SHA}" >> $GITHUB_OUTPUT
           echo "build_date=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> $GITHUB_OUTPUT
 
       - name: Set up Docker buildx

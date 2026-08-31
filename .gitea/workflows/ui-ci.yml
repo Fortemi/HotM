@@ -2,7 +2,6 @@
 #
 # Responsibilities:
 #   - Always: quality gates for ui/ and agent-proxy/ (parallel)
-#   - On push to main / manual dispatch: publish agent-proxy dev image to Gitea + GHCR
 #   - On tag v*: publish agent-proxy release image to Gitea + GHCR
 #
 # Out of scope (handled by dedicated workflows):
@@ -23,8 +22,11 @@ on:
       - 'scripts/ci/mutsu-build-lock.sh'
       - 'scripts/ci/test-mutsu-build-lock.sh'
       - 'scripts/ci/verify-mutsu-workflows.sh'
+      - 'scripts/ci/verify-container-release-policy.py'
+      - 'scripts/ci/test_verify_container_release_policy.py'
       - 'scripts/verify-hux-traceability.sh'
       - '.gitea/workflows/ui-ci.yml'
+      - '.gitea/workflows/publish-hotm-ui-image.yml'
   create:
     tags: ['v*']
   pull_request:
@@ -35,8 +37,11 @@ on:
       - 'scripts/ci/mutsu-build-lock.sh'
       - 'scripts/ci/test-mutsu-build-lock.sh'
       - 'scripts/ci/verify-mutsu-workflows.sh'
+      - 'scripts/ci/verify-container-release-policy.py'
+      - 'scripts/ci/test_verify_container_release_policy.py'
       - 'scripts/verify-hux-traceability.sh'
       - '.gitea/workflows/ui-ci.yml'
+      - '.gitea/workflows/publish-hotm-ui-image.yml'
   workflow_dispatch:
     inputs:
       live_asset_receipt:
@@ -89,6 +94,11 @@ jobs:
         run: |
           scripts/ci/test-mutsu-build-lock.sh
           scripts/ci/verify-mutsu-workflows.sh
+
+      - name: Verify release-only container publication
+        run: |
+          python3 scripts/ci/verify-container-release-policy.py
+          python3 scripts/ci/test_verify_container_release_policy.py
 
       - name: Type check
         working-directory: ui
@@ -340,87 +350,6 @@ jobs:
           if-no-files-found: warn
           retention-days: 30
 
-  # ─── On push / manual dispatch: Publish dev image ─────────────────
-  publish-dev:
-    name: Publish Dev Image (Gitea + GHCR)
-    runs-on: ubuntu-22.04
-    needs: [quality-gate, agent-proxy-quality-gate, mocked-playwright-ci]
-    if: (github.ref == 'refs/heads/main' && github.event_name == 'push') || github.event_name == 'workflow_dispatch'
-    steps:
-      - name: Checkout
-        shell: bash
-        run: |
-          set -euo pipefail
-          git init .
-          git remote add origin \
-            "https://token:${{ github.token }}@git.integrolabs.net/${GITHUB_REPOSITORY}.git"
-          git fetch --depth 1 origin "${GITHUB_REF:-${GITHUB_SHA:-main}}" ||
-            git fetch --depth 1 origin "${GITHUB_SHA:-main}"
-          git checkout --detach FETCH_HEAD
-
-      - name: Verify vault fetch dependencies
-        run: |
-          command -v curl
-          command -v jq
-
-      - name: Fetch registry tokens from vault
-        env:
-          VAULT_ADDR: ${{ vars.VAULT_ADDR }}
-          VAULT_CI_ROLE_ID: ${{ secrets.VAULT_CI_ROLE_ID }}
-          VAULT_CI_SECRET_ID: ${{ secrets.VAULT_CI_SECRET_ID }}
-          GH_PUBLISH_TOKEN_VAULT_PATH: ${{ vars.GH_PUBLISH_TOKEN_VAULT_PATH }}
-          GH_PUBLISH_TOKEN_VAULT_FIELD: ${{ vars.GH_PUBLISH_TOKEN_VAULT_FIELD }}
-          BUILD_REPO_TOKEN_VAULT_PATH: ${{ vars.BUILD_REPO_TOKEN_VAULT_PATH }}
-          BUILD_REPO_TOKEN_VAULT_FIELD: ${{ vars.BUILD_REPO_TOKEN_VAULT_FIELD }}
-        run: ci/vault-fetch.sh --spec ci/vault-fetch.registry.spec
-
-      - name: Log in to registries
-        run: |
-          printf '%s\n' "${BUILD_REPO_TOKEN:?BUILD_REPO_TOKEN is required}" | docker login ${GITEA_REGISTRY} -u ${{ gitea.actor }} --password-stdin
-          printf '%s\n' "${GH_PUBLISH_TOKEN:?GH_PUBLISH_TOKEN is required}" | docker login ${GHCR_REGISTRY} -u fortemi --password-stdin
-
-      - name: Build and push agent-proxy dev image
-        run: |
-          set -euo pipefail
-          GITEA_PROXY="${GITEA_REGISTRY}/${AGENT_PROXY_IMAGE_NAME}"
-          GHCR_PROXY="${GHCR_REGISTRY}/${AGENT_PROXY_IMAGE_NAME}"
-          SHORT_SHA="${GITHUB_SHA:0:7}"
-
-          push_with_retry() {
-            local image=$1
-            local max_attempts=3
-            local attempt=1
-            while [ $attempt -le $max_attempts ]; do
-              echo "Pushing ${image} (attempt ${attempt}/${max_attempts})"
-              if docker push "${image}"; then
-                return 0
-              fi
-              sleep $((attempt * 5))
-              attempt=$((attempt + 1))
-            done
-            echo "Failed to push ${image} after ${max_attempts} attempts"
-            return 1
-          }
-
-          docker build \
-            -f agent-proxy/Dockerfile \
-            -t "hotm-agent-proxy:build" \
-            agent-proxy
-
-          for image in "${GITEA_PROXY}" "${GHCR_PROXY}"; do
-            docker tag "hotm-agent-proxy:build" "${image}:main"
-            docker tag "hotm-agent-proxy:build" "${image}:latest"
-            docker tag "hotm-agent-proxy:build" "${image}:sha-${SHORT_SHA}"
-
-            push_with_retry "${image}:main"
-            push_with_retry "${image}:latest"
-            push_with_retry "${image}:sha-${SHORT_SHA}"
-          done
-
-          echo "Published agent-proxy dev images:"
-          echo "  Gitea:  ${GITEA_PROXY}:main, :latest, :sha-${SHORT_SHA}"
-          echo "  GitHub: ${GHCR_PROXY}:main, :latest, :sha-${SHORT_SHA}"
-
   # =============================================================================
   # Release Jobs (tag push only)
   # =============================================================================
@@ -449,6 +378,21 @@ jobs:
             git fetch --depth 1 origin "${GITHUB_SHA:-main}"
           git checkout --detach FETCH_HEAD
 
+      - name: Validate CalVer release
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ ! "${GITHUB_REF_NAME}" =~ ^v[0-9]{4}\.([1-9]|1[0-2])\.[0-9]+$ ]]; then
+            echo "Release tag must use vYYYY.M.P with month 1-12" >&2
+            exit 1
+          fi
+          VERSION="${GITHUB_REF_NAME#v}"
+          DECLARED_VERSION=$(jq -er '.version' ui/package.json)
+          if [ "${VERSION}" != "${DECLARED_VERSION}" ]; then
+            echo "Release tag version does not match ui/package.json" >&2
+            exit 1
+          fi
+
       - name: Verify vault fetch dependencies
         run: |
           command -v curl
@@ -473,7 +417,6 @@ jobs:
       - name: Build and push agent-proxy release images
         run: |
           VERSION="${GITHUB_REF_NAME#v}"
-          SHORT_SHA="${GITHUB_SHA:0:7}"
 
           push_with_retry() {
             local image=$1
@@ -502,22 +445,18 @@ jobs:
           GITEA_PROXY="${GITEA_REGISTRY}/${AGENT_PROXY_IMAGE_NAME}"
           docker tag "hotm-agent-proxy:build" "${GITEA_PROXY}:${VERSION}"
           docker tag "hotm-agent-proxy:build" "${GITEA_PROXY}:latest"
-          docker tag "hotm-agent-proxy:build" "${GITEA_PROXY}:sha-${SHORT_SHA}"
 
           push_with_retry "${GITEA_PROXY}:${VERSION}"
           push_with_retry "${GITEA_PROXY}:latest"
-          push_with_retry "${GITEA_PROXY}:sha-${SHORT_SHA}"
 
           # Tag and push to GHCR
           GHCR_PROXY="${GHCR_REGISTRY}/${AGENT_PROXY_IMAGE_NAME}"
           docker tag "hotm-agent-proxy:build" "${GHCR_PROXY}:${VERSION}"
           docker tag "hotm-agent-proxy:build" "${GHCR_PROXY}:latest"
-          docker tag "hotm-agent-proxy:build" "${GHCR_PROXY}:sha-${SHORT_SHA}"
 
           push_with_retry "${GHCR_PROXY}:${VERSION}"
           push_with_retry "${GHCR_PROXY}:latest"
-          push_with_retry "${GHCR_PROXY}:sha-${SHORT_SHA}"
 
           echo "Published agent-proxy release images:"
-          echo "  Gitea:  ${GITEA_PROXY}:${VERSION}, :latest, :sha-${SHORT_SHA}"
-          echo "  GitHub: ${GHCR_PROXY}:${VERSION}, :latest, :sha-${SHORT_SHA}"
+          echo "  Gitea:  ${GITEA_PROXY}:${VERSION}, :latest"
+          echo "  GitHub: ${GHCR_PROXY}:${VERSION}, :latest"
