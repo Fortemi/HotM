@@ -39,9 +39,10 @@ Persisted database, attachment, and backup data use the `hotm-postgres`,
 | Supported bundle | `ghcr.io/fortemi/hotm-bundle` | `git.integrolabs.net/fortemi/hotm-bundle` |
 | Legacy UI only | `ghcr.io/fortemi/hotm-ui` | `git.integrolabs.net/fortemi/hotm-ui` |
 
-Main publishes `:latest` and `:sha-<7char>`. Numbered release tags publish
-`:latest` and `:<version>`. CI also emits a publication receipt containing both
-image digests and the immutable Fortemi base identity.
+Only `vYYYY.M.P` release tags publish these images. Both image shapes receive
+`:latest` and the same `:<YYYY.M.P>` tag, which must match `ui/package.json`.
+CI also emits a publication receipt containing both image digests and the
+immutable Fortemi base identity.
 
 The current bundle pins Fortemi image
 `ghcr.io/fortemi/fortemi@sha256:7d014c5580e62526069a0fc0d7ad994ed70fa73a8810d2b07476b1dfe5a99ae4`
@@ -122,9 +123,9 @@ The expected pinned Fortemi revision is
 ## Release Backfill Policy
 
 `publish-hotm-ui-image.yml` now uses `push.tags: [v*]`, which is supported by
-the same Gitea event used by the desktop release. A current main build restores
-`:latest`; the next numbered tag establishes the first supported
-`hotm-bundle:<version>` release. Historical versions before the bundle contract
+the same Gitea event used by the desktop release. The job rejects tags outside
+`vYYYY.M.P` and tags that do not match `ui/package.json`; ordinary main builds
+never publish container images. Historical versions before the bundle contract
 are not relabeled as bundled images. Missing legacy `hotm-ui` tags may be
-rebuilt only from their matching immutable Git tags, then verified by digest
-before publication.
+rebuilt only as an explicit release from their matching immutable Git tags,
+then verified by digest before publication.

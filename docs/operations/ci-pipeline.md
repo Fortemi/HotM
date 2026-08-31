@@ -6,13 +6,13 @@ All workflows live in `.gitea/workflows/`. The pipeline is split into distinct, 
 
 | Workflow | Trigger | Runner | What it does | Artifacts / Side-effects |
 |---|---|---|---|---|
-| `ui-ci.yml` | push to `main`/`develop`, PR to `main`, `v*` tag, manual | `node-20`, `titan` | Quality gates (UI + agent-proxy), publish agent-proxy Docker image | agent-proxy images on Gitea + GHCR |
+| `ui-ci.yml` | push to `main`/`develop`, PR to `main`, `v*` tag, manual | `node-20`, `titan` | Quality gates (UI + agent-proxy); publish agent-proxy only from a version tag | release agent-proxy images on Gitea + GHCR |
 | `tauri-build.yml` | push/PR to `main` touching `ui/src-tauri/**` or `ui/src/**`, manual | `ubuntu-latest` (container) | Linux-only Tauri compile check | `.deb` + `.AppImage` as CI artifacts |
 | `tauri-build-cross.yml` | manual only | `windows-latest`, `macos-latest` (GitHub Actions) | Windows + macOS Tauri builds on demand | `.exe`/`.msi` + `.dmg` as CI artifacts |
 | `desktop-build-matrix.yml` | push to `main` touching `ui/**`, manual | `ubuntu-22.04` + mutsu (SSH) | Rolling dev desktop builds for Linux and macOS | Assets attached to `dev-latest` prerelease on Gitea |
 | `desktop-release.yml` | `v*` tag, manual | `ubuntu-22.04` + mutsu (SSH) | Versioned desktop release | `.AppImage`, `.deb`, `.dmg`, `SHA256SUMS*` on Gitea release + mirrored to GitHub |
 | `publish-dist.yml` | push to `main` touching `ui/**`, `v*` tag, manual | `node-20` | Build React SPA, package as tarball | `hotm-ui-dist.tar.gz` on `hotm-latest` rolling release (main) or versioned release (tag) |
-| `publish-hotm-ui-image.yml` | push to `main` touching `ui/**`/`docker/ui/**`, `v*` tag, manual | `ubuntu-22.04` | Build and push multi-stage nginx Docker image | Images on `ghcr.io/fortemi/hotm-ui` + `git.integrolabs.net/fortemi/hotm-ui` |
+| `publish-hotm-ui-image.yml` | `vYYYY.M.P` tag; manual dispatch against such a tag | `ubuntu-22.04` | Build and push the UI and bundle release images | CalVer + `latest` images on Gitea and GHCR |
 | `sdlc-gates.yml` | PR opened/edited/synchronized | `ubuntu-latest` | Validate PR template sections and reviewer assignment | Fails PR if template is incomplete |
 | `post-deploy-validation.yml` | manual only | `ubuntu-latest` | Playwright smoke and UAT tests against a live URL | Test reports as artifacts |
 | `mutsu-verify.yml` | manual only | `ubuntu-22.04` (SSH to mutsu) | Verify mutsu Mac build environment | Health script installed at `/Volumes/build/hotm/health.sh` on mutsu |
@@ -35,7 +35,8 @@ The `quality-gate` job runs on every push to `main`/`develop` and every PR to `m
 
 A parallel `agent-proxy-quality-gate` job runs the same typecheck + test + audit cycle against `agent-proxy/`.
 
-Both jobs must pass before any publish job (dev image, release image) runs.
+Both jobs must pass before the tag-only agent-proxy release publisher runs.
+Branch validation never publishes a container image.
 
 ### Running locally
 
@@ -105,17 +106,18 @@ Triggers on every push to `main` touching `ui/**`. Provides the built React SPA 
 
 ### Container images — `publish-hotm-ui-image.yml`
 
-Every main push and `v*` tag builds and publishes two images to GHCR and the
-Gitea registry:
+A `vYYYY.M.P` release tag builds and publishes two images to GHCR and the Gitea
+registry:
 
 - `hotm-ui`: the backwards-compatible nginx static UI for external Fortemi
   deployments.
 - `hotm-bundle`: the supported all-in-one HotM UI plus digest-pinned Fortemi
   PostgreSQL/API/MCP runtime.
 
-Main publishes `latest` and `sha-<7char>`; release tags publish `latest` and the
-numbered version. Registry credentials are fetched through the existing Vault
-AppRole boundary. The job uploads
+The tag must exactly match `ui/package.json`. Both images receive the same
+`YYYY.M.P` tag plus `latest`; branch and commit tags are not published.
+Registry credentials are fetched through the existing Vault AppRole boundary.
+The job uploads
 `hotm-container-publication-receipt.json`, recording both pushed digests, the
 HotM commit/version, and the Fortemi image/revision embedded in the bundle.
 
@@ -176,8 +178,7 @@ Builds and publishes two image shapes to both registries:
 
 | Event | Tags applied |
 |---|---|
-| Push to `main` | `:latest`, `:sha-<7char>` |
-| `v*` tag push | `:latest`, `:<version>` (e.g. `:2026.2.1`) |
+| `vYYYY.M.P` tag push | `:latest`, `:<YYYY.M.P>` (e.g. `:2026.7.1`) |
 
 Both registries receive identical tags on each event. The workflow also
 uploads `hotm-container-publication-receipt`, which records the source commit,
@@ -206,13 +207,15 @@ docker run --env-file .env \
 - `GH_PUBLISH_TOKEN` — GitHub PAT with `write:packages` scope
 - `BUILD_REPO_TOKEN` — Gitea PAT with `write:package` scope
 
-The trigger is `push` for `main` and `v*` tags. A main push restores
-`:latest`; a numbered tag creates the matching immutable version tag.
-Historical versions predating the bundle contract are not relabeled as
-bundled releases. A legacy UI-only backfill must build from the corresponding
-immutable Git tag and be verified by digest before publication.
+The publisher accepts release tags only. Manual dispatch is also guarded and
+must target a matching tag. Historical versions predating the bundle contract
+are not relabeled as bundled releases. A legacy UI-only backfill must be a
+deliberate release build from the corresponding immutable Git tag and be
+verified by digest before publication.
 
-**Agent-proxy image** (`fortemi/hotm-agent-proxy`): Published by `ui-ci.yml` (not this workflow). Dev images (`:main`, `:latest`, `:sha-<7char>`) go to Gitea only on main branch push. Release images additionally push to GHCR on tag.
+**Agent-proxy image** (`fortemi/hotm-agent-proxy`): Published by `ui-ci.yml`
+(not this workflow) only for a matching `vYYYY.M.P` tag. Gitea and GHCR both
+receive `:<YYYY.M.P>` and `:latest`; branch and commit tags are not published.
 
 ---
 
