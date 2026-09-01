@@ -2,10 +2,10 @@
   "schema_version": 1,
   "source_issue": "Fortemi/HotM#290",
   "supported_contract_revisions": [
-    "1"
+    "2"
   ],
   "supported_contract_versions": [
-    "2026.2.9"
+    "2026.9.0"
   ],
   "independent_boundaries": {
     "route_inventory": ".aiwg/api/compatibility/fortemi-v2026-07-route-coverage.json",
@@ -8717,6 +8717,68 @@
           "status": "gap",
           "evidence_paths": [],
           "notes": "No live receipt; exclusion does not simulate one."
+        }
+      }
+    },
+    "POST /api/v1/notes/{id}/links#create_note_link": {
+      "targeted_by_290": true,
+      "tracker": "Fortemi/HotM#10",
+      "rationale": "The shared client consumes the exact manual-note-link-v1 producer contract. Primary UI and agent invocation remain explicit exclusions until a separately approved product workflow exists.",
+      "dimensions": {
+        "route": {
+          "status": "conformant",
+          "evidence_paths": [],
+          "notes": "The operation is present in the pinned producer route and OpenAPI authorities."
+        },
+        "request": {
+          "status": "conformant",
+          "evidence_paths": [
+            "ui/src/api/links.ts",
+            "ui/src/api/__tests__/links.test.ts",
+            "ui/src/api/__tests__/delivered-openapi-contract.test.ts"
+          ],
+          "notes": "The client serializes only source UUID, target UUID, explicit kind, and optional bounded score; extra fields fail before dispatch."
+        },
+        "response": {
+          "status": "conformant",
+          "evidence_paths": [
+            "ui/src/api/links.ts",
+            "ui/src/api/__tests__/links.test.ts",
+            "ui/src/api/__tests__/delivered-openapi-contract.test.ts",
+            "ui/src/api/__tests__/client.test.ts"
+          ],
+          "notes": "Create and replay bodies are decoded at runtime, malformed success payloads fail closed, and every declared ProblemDetails status remains an ApiError boundary."
+        },
+        "auth_context": {
+          "status": "partial",
+          "evidence_paths": [
+            "ui/src/api/client.ts",
+            "ui/src/api/__tests__/links.test.ts",
+            "ui/src/api/__tests__/delivered-openapi-contract.test.ts",
+            "ui/src/api/contracts/fortemi-manual-note-link-receipt.json"
+          ],
+          "notes": "Compatibility denial proves zero dispatch and the shared client preserves bearer plus selected-memory context. Wrong-scope and tenant isolation are producer-enforced; supported-platform live evidence remains pending."
+        },
+        "ui": {
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/architecture/adr/ADR-010-fortemi-v2026-07-api-coverage.md"
+          ],
+          "notes": "No primary UI control is exposed by this change."
+        },
+        "agent": {
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/architecture/adr/ADR-010-fortemi-v2026-07-api-coverage.md"
+          ],
+          "notes": "No agent tool is exposed by this change."
+        },
+        "live": {
+          "status": "gap",
+          "evidence_paths": [
+            "ui/src/api/contracts/fortemi-manual-note-link-receipt.json"
+          ],
+          "notes": "Linux x86_64, Linux arm64, and macOS arm64 immutable consumer cells are explicitly deferred to release validation; no live or broad compatibility claim is made."
         }
       }
     },

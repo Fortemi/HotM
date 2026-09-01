@@ -1,8 +1,8 @@
 {
-  "generated_at": "2026-08-28",
+  "generated_at": "2026-09-01",
   "fortemi_root": "../fortemi",
-  "fortemi_commit": "e09578e6",
-  "fortemi_latest_tag": "v2026.8.0",
+  "fortemi_commit": "0dd28a92",
+  "fortemi_latest_tag": "v2026.8.3",
   "route_count": 204,
   "status_counts": {
     "covered": 190,
@@ -279,10 +279,11 @@
     },
     {
       "methods": [
-        "GET"
+        "GET",
+        "POST"
       ],
       "path": "/api/v1/notes/{id}/links",
-      "handler_expr": "get(get_note_links)",
+      "handler_expr": "get(get_note_links).post(create_note_link),",
       "family": "notes",
       "status": "covered",
       "hotm_evidence": "ui/src/api/notes.ts, extended.ts, versions.ts, links.ts",

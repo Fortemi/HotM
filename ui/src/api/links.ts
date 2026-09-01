@@ -5,12 +5,77 @@
 
 import type { ApiClient } from './client';
 import { decodeSnnResult, type SnnControlResult } from './concepts';
+import { ContractDecodeError } from './errors';
 import type {
   NoteLinksResponse,
   GraphExploreResponse,
 } from './types-extended';
 
-export type LinkKind = 'related' | 'mention' | 'reference' | 'task' | 'semantic' | 'keyword';
+export type LinkKind = 'related' | 'mention' | 'reference' | 'task' | 'semantic' | 'keyword' | 'explicit';
+export type ManualNoteLinkKind = 'explicit';
+
+export interface CreateNoteLinkRequest {
+  to_note_id: string;
+  kind: ManualNoteLinkKind;
+  score?: number | null;
+}
+
+export interface CreateNoteLinkResponse {
+  id: string;
+  from_note_id: string;
+  to_note_id: string;
+  kind: ManualNoteLinkKind;
+  score: number;
+  created_at_utc: string;
+  created: boolean;
+}
+
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const MANUAL_LINK_FIELDS = new Set(['to_note_id', 'kind', 'score']);
+
+function validateManualLinkRequest(sourceNoteId: string, request: CreateNoteLinkRequest): void {
+  if (!UUID_PATTERN.test(sourceNoteId) || !UUID_PATTERN.test(request.to_note_id)) {
+    throw new Error('Manual note-link identifiers must be UUIDs.');
+  }
+  if (sourceNoteId.toLowerCase() === request.to_note_id.toLowerCase()) {
+    throw new Error('A note cannot link to itself.');
+  }
+  if (request.kind !== 'explicit') {
+    throw new Error('Unsupported manual note-link kind.');
+  }
+  if (
+    request.score != null
+    && (!Number.isFinite(request.score) || request.score < 0 || request.score > 1)
+  ) {
+    throw new Error('Manual note-link score must be between 0.0 and 1.0.');
+  }
+  if (Object.keys(request).some((field) => !MANUAL_LINK_FIELDS.has(field))) {
+    throw new Error('Unsupported manual note-link request field.');
+  }
+}
+
+function decodeManualLinkResponse(value: unknown): CreateNoteLinkResponse {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    throw new ContractDecodeError('create_note_link', 'response must be an object');
+  }
+  const response = value as Record<string, unknown>;
+  if (
+    !UUID_PATTERN.test(String(response.id ?? ''))
+    || !UUID_PATTERN.test(String(response.from_note_id ?? ''))
+    || !UUID_PATTERN.test(String(response.to_note_id ?? ''))
+    || response.kind !== 'explicit'
+    || typeof response.score !== 'number'
+    || !Number.isFinite(response.score)
+    || response.score < 0
+    || response.score > 1
+    || typeof response.created_at_utc !== 'string'
+    || !Number.isFinite(Date.parse(response.created_at_utc))
+    || typeof response.created !== 'boolean'
+  ) {
+    throw new ContractDecodeError('create_note_link', 'response does not match manual-note-link-v1');
+  }
+  return response as unknown as CreateNoteLinkResponse;
+}
 
 export interface GraphTopologyStats {
   total_notes: number;
@@ -127,6 +192,28 @@ export interface GraphColdSpotsResponse {
 
 export function createLinksApi(client: ApiClient) {
   return {
+    /**
+     * Create or replay a producer-authorized explicit note-to-note link.
+     * Compatibility admission, bearer context, and memory routing are applied
+     * by the shared ApiClient before this mutation is dispatched.
+     */
+    async createManualLink(
+      sourceNoteId: string,
+      request: CreateNoteLinkRequest,
+    ): Promise<CreateNoteLinkResponse> {
+      validateManualLinkRequest(sourceNoteId, request);
+      const body: CreateNoteLinkRequest = {
+        to_note_id: request.to_note_id,
+        kind: 'explicit',
+        ...(request.score === undefined ? {} : { score: request.score }),
+      };
+      const response = await client.post<unknown>(
+        `/notes/${encodeURIComponent(sourceNoteId)}/links`,
+        body,
+      );
+      return decodeManualLinkResponse(response);
+    },
+
     /**
      * Get all bidirectional links for a note
      * Returns both outgoing and incoming links

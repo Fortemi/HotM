@@ -172,30 +172,32 @@ The accepted product/UX disposition for vision, audio, and realtime call routes 
 ## OpenAPI Requirement Receipt
 
 `FORTEMI-2026-07-REQ-013` is implemented against Fortemi commit
-`5ea08229c9f1565122df5f8e6906e89d98dc7e75`. HotM vendors the exact generated
+`0dd28a9255e2b53363f93e2e288777631709eb05`. HotM vendors the exact generated
 OpenAPI artifact at SHA-256
-`9d2d5ea05f21a71d416d713a5cadd2c4f76086a3494105280d50ec328c4056fd`
+`652bcce252719e5c0ced015beae02e41380c56dccaa5dc071d369b3ac6fdd858`
 and pins semantic fingerprint
-`6e84af14c4f0aebb885123b19dfa639ddfda5e73ef08d0ebbb9ca7ca8db9e633`.
+`1b22c57274341f5693ff1f3a5511cb441d6f78f7e010e39fc1c05cc15b94cfe4`.
 The verifier covers parameters, bodies, response/status declarations, component
-schemas, errors, nullability, enums, and security; skew fixtures accept
-`2026.2.8` and `2026.2.9` and reject breaking `2027.0.0`.
+schemas, errors, nullability, enums, and security; skew fixtures accept exact
+`2026.9.0` revision `2` and reject breaking `2027.0.0`.
 
 The typed call boundary now matches the delivered `CallDetailResponse` and
-`TranscriptSegment` schemas and rejects malformed producer examples. All 251
+`TranscriptSegment` schemas and rejects malformed producer examples. All 254
 operations carry a schema-bearing shared RFC 9457 rate-limit boundary; the
 verifier rejects its removal or media/schema drift. CI emits exact producer and
 consumer commits. Undeclared success payloads remain undeclared rather than
-being inferred from descriptions.
+being inferred from descriptions. Contract revision `2`, version `2026.9.0`,
+contains 254 schema-bearing operations.
 
 ## 2026-08-15 Verification Baseline
 
 REQ-020 is now enforced by the generated method/path/operation-ID matrix at
 `.aiwg/api/compatibility/fortemi-v2026-07-operation-coverage.json`. Its seven
 dimensions are independent, and an operation cannot become integrated from
-route or file-presence evidence. The pinned baseline is 251 operations: 1
-integrated, 249 partial, and 1 gap. REQ-021 therefore remains open for the
-partial/gap workflows even though all 202 routes have a disposition.
+route or file-presence evidence. The pinned baseline is 254 operations: 1
+integrated, 222 partial, and 31 documented exclusions. REQ-021 therefore
+remains open for the partial workflows even though all 204 routes have a
+disposition.
 
 REQ-014 has schema-derived coverage for all 48 pinned event schemas over SSE and
 WebSocket, including required-field, enum, nullability, and identifier-format
@@ -227,18 +229,19 @@ canonical envelope on that transport; Fortemi #953 blocks full two-transport
 closure of #285.
 
 REQ-021 now has a complete product-disposition ledger and operator catalog for
-251 operations, with a CI stale-ledger check. The ledger records 130 UI, 10
-agent, 5 external handoff, 75 diagnostic, and 31 excluded rows, but does not convert partial/gap
+254 operations, with a CI stale-ledger check. The ledger records 130 UI, 10
+agent, 5 external handoff, 1 typed shared-client, 77 diagnostic, and 31 excluded rows, but does not convert partial/gap
 operation conformance into support. #287 remains open for family workflows and
 browser receipts.
 
-The #294 contract decision removes direct link mutation from HotM. The pinned
-and current producer authorities contain only GET link/backlink operations, so
-the UI API exposes no create/delete methods and both agent registries omit the
-historical tool. Server-generated semantic/wiki links remain a separate
-Fortemi behavior. Any future mutation requires a new pinned operation with
-request, response, auth/context, privilege, altered-argument, and live evidence
-before it can satisfy these requirements.
+Fortemi/fortemi#61 supersedes the #294 removal decision with the pinned
+`POST /api/v1/notes/{id}/links#create_note_link` operation and the
+`manual-note-link-v1` contract. The UI API exposes a typed, compatibility-gated
+shared-client method for explicit links only. Primary UI and agent invocation
+remain documented exclusions; server-generated semantic/wiki links remain a
+separate Fortemi behavior. Request and response dimensions are conformant,
+auth/context is partial, and supported-platform live cells remain gaps or
+explicit deferrals without a broad compatibility claim.
 
 ## Core And Operator Workflow Receipt (2026-08-16)
 
@@ -275,15 +278,15 @@ and local paths. No decision upgrades request, response, auth, live, or
 Knowledge Shard conformance. `fortemi-auth` remains specification-only until
 its full release condition is independently evidenced.
 
-The current generated operation result after #298 is 1 integrated, 219
-partial, 0 gaps, and 31 documented exclusions with zero verifier diagnostics.
+The current generated operation result is 1 integrated, 222 partial, and 31
+documented exclusions with zero verifier diagnostics.
 
 ## Agent Operation Evidence Receipt (2026-08-16)
 
 REQ-019 and REQ-020 now record conformant local agent evidence for 12 exact
 pinned operations. The verifier checks every curated primary operation against
 its method/path tuple, and the agent test suite checks every declared endpoint
-against the pinned 251-operation ledger. This caught and corrected
+against the pinned 254-operation ledger. This caught and corrected
 `get_related` from `/notes/{id}/similar` to the canonical
 `/notes/{id}/related` operation.
 
@@ -292,4 +295,4 @@ privilege-gated `revise_note` workflow have exact request and bounded response
 tests. Its response remains partial because the pinned `201` response has no
 schema. UI, operation-specific authorization, and live evidence remain
 unclaimed. The existing authenticated asset run is workflow-level evidence
-only, so REQ-020 still reports all 251 live dimensions as gaps.
+only, so REQ-020 still reports all 254 live dimensions as gaps.

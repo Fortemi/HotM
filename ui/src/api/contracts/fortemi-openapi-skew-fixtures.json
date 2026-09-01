@@ -2,14 +2,8 @@
   "schemaVersion": 1,
   "fixtures": [
     {
-      "name": "current-minus-one",
-      "contractVersion": "2026.2.8",
-      "mutation": "version-only",
-      "expected": "compatible"
-    },
-    {
       "name": "current",
-      "contractVersion": "2026.2.9",
+      "contractVersion": "2026.9.0",
       "mutation": "none",
       "expected": "compatible"
     },

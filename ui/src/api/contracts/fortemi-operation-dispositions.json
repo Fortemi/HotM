@@ -5,24 +5,25 @@
     "path": "ui/src/api/contracts/fortemi-openapi.yaml",
     "receipt": "ui/src/api/contracts/fortemi-openapi-receipt.json",
     "specification_version": "3.1.0",
-    "contract_revision": "1",
-    "contract_version": "2026.2.9",
-    "producer_commit": "e09578e67732d2bd26cf7642ae9038a44a9b9e6c",
-    "sha256": "f585c0f07ac477159ae86d42ac318e059a42b51f02c8c8a70d767c9fd1c5c9a1"
+    "contract_revision": "2",
+    "contract_version": "2026.9.0",
+    "producer_commit": "0dd28a9255e2b53363f93e2e288777631709eb05",
+    "sha256": "652bcce252719e5c0ced015beae02e41380c56dccaa5dc071d369b3ac6fdd858"
   },
-  "operation_count": 253,
+  "operation_count": 254,
   "summary": {
     "privileges": {
       "admin": 65,
       "delete": 22,
       "read": 96,
-      "write": 70
+      "write": 71
     },
     "surfaces": {
       "agent_workflow": 10,
       "documented_exclusion": 31,
       "external_protocol_handoff": 5,
       "operator_diagnostic": 77,
+      "typed_shared_client": 1,
       "ui_workflow": 130
     },
     "security_decisions": {
@@ -3320,6 +3321,25 @@
       "rationale": "The pinned operation is visible in the read-only operator catalog; no request, response, auth, or live conformance is inferred.",
       "evidence_paths": [
         "ui/src/components/admin/OperationCatalogPanel.tsx"
+      ],
+      "conformance_disposition": "partial",
+      "tracker": "#287"
+    },
+    {
+      "key": "POST /api/v1/notes/{id}/links#create_note_link",
+      "method": "POST",
+      "path": "/api/v1/notes/{id}/links",
+      "operation_id": "create_note_link",
+      "family": "notes",
+      "privilege": "write",
+      "surface": "typed_shared_client",
+      "rationale": "The exact manual-note-link-v1 contract is available through the compatibility-gated shared client; primary UI and agent exposure remain documented exclusions.",
+      "evidence_paths": [
+        "ui/src/api/links.ts",
+        "ui/src/api/__tests__/links.test.ts",
+        "ui/src/api/__tests__/delivered-openapi-contract.test.ts",
+        "ui/src/api/contracts/fortemi-manual-note-link-receipt.json",
+        ".aiwg/architecture/adr/ADR-010-fortemi-v2026-07-api-coverage.md"
       ],
       "conformance_disposition": "partial",
       "tracker": "#287"

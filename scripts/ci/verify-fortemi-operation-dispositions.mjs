@@ -144,6 +144,23 @@ function sensitiveDecisionFor(operation) {
 function dispositionFor(operation) {
   const sensitiveDecision = sensitiveDecisionFor(operation);
   if (sensitiveDecision) return sensitiveDecision;
+  if (
+    operation.operation_id === 'create_note_link'
+    && operation.method === 'POST'
+    && operation.path === '/api/v1/notes/{id}/links'
+  ) {
+    return {
+      surface: 'typed_shared_client',
+      rationale: 'The exact manual-note-link-v1 contract is available through the compatibility-gated shared client; primary UI and agent exposure remain documented exclusions.',
+      evidence_paths: [
+        'ui/src/api/links.ts',
+        'ui/src/api/__tests__/links.test.ts',
+        'ui/src/api/__tests__/delivered-openapi-contract.test.ts',
+        'ui/src/api/contracts/fortemi-manual-note-link-receipt.json',
+        '.aiwg/architecture/adr/ADR-010-fortemi-v2026-07-api-coverage.md',
+      ],
+    };
+  }
   const ui = operation.dimensions.ui;
   if (ui.status !== 'gap' && ui.evidence_paths.length > 0) {
     return {
@@ -254,13 +271,19 @@ for (const [operationId, endpoint] of CURATED_AGENT_OPERATIONS) {
 const ledger = buildLedger(source);
 const serialized = `${JSON.stringify(ledger, null, 2)}\n`;
 
-if (ledger.operation_count !== 253 || new Set(ledger.operations.map(({ key }) => key)).size !== ledger.operation_count) {
+if (ledger.operation_count !== 254 || new Set(ledger.operations.map(({ key }) => key)).size !== ledger.operation_count) {
   throw new Error('operation disposition ledger is incomplete or contains duplicate keys');
 }
-if (ledger.operations.some(({ method, path }) => (
-  path === '/api/v1/notes/{id}/links' && method !== 'GET'
-))) {
-  throw new Error('removed explicit note-link mutations must not appear in the pinned operation ledger');
+const manualNoteLink = ledger.operations.filter(({ method, path }) => (
+  path === '/api/v1/notes/{id}/links' && method === 'POST'
+));
+if (
+  manualNoteLink.length !== 1
+  || manualNoteLink[0].operation_id !== 'create_note_link'
+  || manualNoteLink[0].privilege !== 'write'
+  || manualNoteLink[0].surface !== 'typed_shared_client'
+) {
+  throw new Error('manual-note-link-v1 must have one exact write-scoped shared-client disposition');
 }
 const sensitiveRows = ledger.operations.filter(({ security_decision }) => security_decision);
 if (sensitiveRows.length !== 41 || sensitiveRows.filter(({ enabled }) => !enabled).some(({ surface }) => surface !== 'documented_exclusion')) {

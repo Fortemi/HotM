@@ -240,24 +240,25 @@ closed. This receipt is not OpenAPI, AsyncAPI, Knowledge Shard, or
 ### OpenAPI Consumer Receipt (HotM #270)
 
 HotM consumes the Fortemi-generated OpenAPI 3.1 artifact at producer commit
-`5ea08229c9f1565122df5f8e6906e89d98dc7e75`, stable path
+`0dd28a9255e2b53363f93e2e288777631709eb05`, stable path
 `contracts/openapi/openapi.yaml`, and SHA-256
-`9d2d5ea05f21a71d416d713a5cadd2c4f76086a3494105280d50ec328c4056fd`.
+`652bcce252719e5c0ced015beae02e41380c56dccaa5dc071d369b3ac6fdd858`.
 The `hotm-openapi-v1` semantic projection has SHA-256
-`6e84af14c4f0aebb885123b19dfa639ddfda5e73ef08d0ebbb9ca7ca8db9e633`
+`1b22c57274341f5693ff1f3a5511cb441d6f78f7e010e39fc1c05cc15b94cfe4`
 and compares parameters, request bodies, responses/statuses, component schemas,
 nullability, enums, error metadata, and security requirements.
 
-The gate accepts contract revision `1`, exercises current-minus-one `2026.2.8`,
-current `2026.2.9`, and a rejected breaking `2027.0.0` fixture, and emits a CI
+The gate accepts contract revision `2`, exercises current `2026.9.0` and a
+rejected breaking `2027.0.0` fixture, and emits a CI
 receipt containing exact producer and consumer commits. The delivered call
 response schema exposed and corrected a real consumer mismatch: call transcript
 segments now use producer fields `id`, `call_id`, `text`, `sequence`,
 `created_at`, `speaker_label`, `start_ts`, `end_ts`, and `confidence`.
 
-The producer artifact has 193 paths and 251 operations. All 251 operations now
+The producer artifact has 195 paths and 254 operations. All 254 operations now
 carry the global middleware's schema-bearing `429 application/problem+json`
-boundary, producing 255 schema-bearing responses across 559 response entries.
+boundary. The artifact contains 271 schema-bearing responses across 581
+response entries.
 The gate requires that shared boundary on every operation and preserves the six
 producer-declared typed success schemas. This does not claim typed success
 payloads where Fortemi has not declared them.
@@ -298,12 +299,24 @@ The product-disposition control is
 verified from the #290 operation matrix. Every pinned operation has an explicit
 privilege and one of UI workflow, agent workflow, operator diagnostic, or
 documented exclusion. This control never upgrades conformance. Historical
-explicit-link POST/DELETE claims are removed. The #294 decision is to consume
-no replacement mutation: neither the pinned OpenAPI nor current Fortemi
-authority defines one. Read-only `get_note_links` remains distinct from
-server-owned semantic/wiki-link maintenance. A future user-authored link
-operation requires a new pinned Fortemi contract and a coordinated ADR
-amendment; historical route shape is not authority.
+explicit-link POST/DELETE claims remain removed. Fortemi #61/#62 now provide
+the replacement `POST /api/v1/notes/{id}/links` operation as
+`manual-note-link-v1` at the exact producer pin above. HotM consumes it through
+the typed shared client only: `{id}` is the source, `to_note_id` is the target,
+`explicit` is the sole writable kind, score is optional and bounded, and create
+versus replay is represented by the typed `created` response field. Extra
+fields and malformed success bodies fail closed. The shared mutation gate must
+admit the server contract before dispatch and continues to attach bearer and
+selected-memory context.
+
+This amendment does not add a primary UI control or an agent tool. Both are
+documented exclusions pending a separate product/workflow decision; read-only
+link exploration and server-owned semantic/wiki maintenance remain distinct.
+Wrong-scope, wrong-audience, expired, cross-tenant, archived, and missing-note
+outcomes remain producer authorization/visibility responsibilities. Linux
+x86_64, Linux arm64, and macOS arm64 live consumer cells must bind this same
+producer revision before the operation can receive an unqualified live or
+supported-platform claim.
 
 ### Decision Amendment: Verifiable Umbrella Workflows (2026-08-16)
 

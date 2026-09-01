@@ -1,4 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { createApiClient } from '../client';
+import { ContractDecodeError } from '../errors';
 import { createLinksApi } from '../links';
 import type { ApiClient } from '../client';
 
@@ -17,6 +19,114 @@ describe('Links and graph API', () => {
     } as unknown as ApiClient;
 
     linksApi = createLinksApi(mockClient);
+  });
+
+  it('serializes manual-note-link-v1 and accepts create and replay responses', async () => {
+    const source = '018fd1a0-0000-7000-8000-000000000001';
+    const target = '018fd1a0-0000-7000-8000-000000000002';
+    const persisted = {
+      id: '018fd1a0-0000-7000-8000-000000000003',
+      from_note_id: source,
+      to_note_id: target,
+      kind: 'explicit' as const,
+      score: 0.75,
+      created_at_utc: '2026-09-01T20:00:00Z',
+      created: true,
+    };
+    vi.mocked(mockClient.post)
+      .mockResolvedValueOnce(persisted)
+      .mockResolvedValueOnce({ ...persisted, created: false })
+      .mockResolvedValueOnce({ ...persisted, score: 1, created: false });
+
+    await expect(linksApi.createManualLink(source, {
+      to_note_id: target,
+      kind: 'explicit',
+      score: 0.75,
+    })).resolves.toEqual(persisted);
+    await expect(linksApi.createManualLink(source, {
+      to_note_id: target,
+      kind: 'explicit',
+      score: 0.75,
+    })).resolves.toEqual({ ...persisted, created: false });
+    await expect(linksApi.createManualLink(source, {
+      to_note_id: target,
+      kind: 'explicit',
+      score: null,
+    })).resolves.toEqual({ ...persisted, score: 1, created: false });
+
+    expect(mockClient.post).toHaveBeenNthCalledWith(1, `/notes/${source}/links`, {
+      to_note_id: target,
+      kind: 'explicit',
+      score: 0.75,
+    });
+    expect(mockClient.post).toHaveBeenNthCalledWith(3, `/notes/${source}/links`, {
+      to_note_id: target,
+      kind: 'explicit',
+      score: null,
+    });
+  });
+
+  it('rejects malformed, self, unsupported, and extra-field requests without dispatch or echo', async () => {
+    const source = '018fd1a0-0000-7000-8000-000000000001';
+    const target = '018fd1a0-0000-7000-8000-000000000002';
+    const secret = 'sk-live-manual-link-client-secret';
+    const invalid = [
+      linksApi.createManualLink(secret, { to_note_id: target, kind: 'explicit' }),
+      linksApi.createManualLink(source, { to_note_id: source, kind: 'explicit' }),
+      linksApi.createManualLink(source, { to_note_id: target, kind: secret as 'explicit' }),
+      linksApi.createManualLink(source, { to_note_id: target, kind: 'explicit', score: 1.01 }),
+      linksApi.createManualLink(source, {
+        to_note_id: target,
+        kind: 'explicit',
+        metadata: { api_key: secret },
+      } as never),
+    ];
+
+    const messages = (await Promise.all(invalid.map((promise) => promise.catch((error) => error))))
+      .map(String)
+      .join('\n');
+    expect(mockClient.post).not.toHaveBeenCalled();
+    expect(messages).not.toContain(secret);
+    expect(messages).not.toContain(source);
+    expect(messages).not.toContain(target);
+  });
+
+  it('fails closed on a malformed producer success body', async () => {
+    vi.mocked(mockClient.post).mockResolvedValueOnce({
+      id: 'not-a-uuid',
+      from_note_id: 'private-source',
+      to_note_id: 'private-target',
+      kind: 'semantic',
+      score: null,
+      created_at_utc: 'never',
+      created: 'yes',
+    });
+
+    await expect(linksApi.createManualLink(
+      '018fd1a0-0000-7000-8000-000000000001',
+      { to_note_id: '018fd1a0-0000-7000-8000-000000000002', kind: 'explicit' },
+    )).rejects.toBeInstanceOf(ContractDecodeError);
+  });
+
+  it('proves compatibility denial causes zero manual-link mutation dispatch', async () => {
+    const network = vi.fn();
+    vi.stubGlobal('fetch', network);
+    const client = createApiClient('https://fortemi.example/api/v1');
+    const compatibilityBlock = new Error('incompatible Fortemi contract');
+    const gate = vi.fn().mockRejectedValue(compatibilityBlock);
+    client.setMutationGate(gate);
+
+    await expect(createLinksApi(client).createManualLink(
+      '018fd1a0-0000-7000-8000-000000000001',
+      { to_note_id: '018fd1a0-0000-7000-8000-000000000002', kind: 'explicit' },
+    )).rejects.toBe(compatibilityBlock);
+
+    expect(gate).toHaveBeenCalledWith({
+      method: 'POST',
+      path: '/notes/018fd1a0-0000-7000-8000-000000000001/links',
+    });
+    expect(network).not.toHaveBeenCalled();
+    vi.unstubAllGlobals();
   });
 
   it('explores graph by note ID with Fortemi query guardrails', async () => {
@@ -207,7 +317,8 @@ describe('Links and graph API', () => {
     );
   });
 
-  it('does not expose removed explicit-link mutation methods', () => {
+  it('exposes only the approved manual mutation and no delete operation', () => {
+    expect(linksApi).toHaveProperty('createManualLink');
     expect(linksApi).not.toHaveProperty('createLink');
     expect(linksApi).not.toHaveProperty('deleteLink');
     expect(mockClient.post).not.toHaveBeenCalled();

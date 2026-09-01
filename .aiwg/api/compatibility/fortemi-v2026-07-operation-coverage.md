@@ -1,7 +1,7 @@
 ---
 title: Fortemi v2026.7.1 Operation Coverage Inventory
 status: generated
-date: 2026-08-28
+date: 2026-09-01
 artifact_type: api-operation-coverage-inventory
 related_issue: Fortemi/HotM#290
 ---
@@ -11,11 +11,11 @@ related_issue: Fortemi/HotM#290
 This report is generated from the same data as the machine-readable operation coverage JSON. It keeps route inventory, OpenAPI, AsyncAPI, Knowledge Shard, compatibility, and auth boundaries independent.
 
 - OpenAPI receipt: `ui/src/api/contracts/fortemi-openapi-receipt.json`
-- OpenAPI producer commit: `e09578e67732d2bd26cf7642ae9038a44a9b9e6c`
-- Contract revision: `1`
-- Contract version: `2026.2.9`
-- Operations: `253`
-- Focused #290 operations: `85`
+- OpenAPI producer commit: `0dd28a9255e2b53363f93e2e288777631709eb05`
+- Contract revision: `2`
+- Contract version: `2026.9.0`
+- Operations: `254`
+- Focused #290 operations: `86`
 
 ## Disposition Counts
 
@@ -23,19 +23,19 @@ This report is generated from the same data as the machine-readable operation co
 | --- | ---: |
 | documented_exclusion | 31 |
 | integrated | 1 |
-| partial | 221 |
+| partial | 222 |
 
 ## Dimension Counts
 
 | Dimension | Status counts |
 | --- | --- |
-| route | `{"conformant": 253}` |
-| request | `{"conformant": 133, "documented_exclusion": 31, "gap": 86, "not_applicable": 3}` |
-| response | `{"conformant": 128, "documented_exclusion": 31, "gap": 86, "partial": 8}` |
-| auth_context | `{"conformant": 1, "documented_exclusion": 31, "gap": 86, "partial": 135}` |
-| ui | `{"conformant": 135, "documented_exclusion": 31, "gap": 87}` |
-| agent | `{"conformant": 12, "documented_exclusion": 41, "gap": 200}` |
-| live | `{"gap": 253}` |
+| route | `{"conformant": 254}` |
+| request | `{"conformant": 134, "documented_exclusion": 31, "gap": 86, "not_applicable": 3}` |
+| response | `{"conformant": 129, "documented_exclusion": 31, "gap": 86, "partial": 8}` |
+| auth_context | `{"conformant": 1, "documented_exclusion": 31, "gap": 86, "partial": 136}` |
+| ui | `{"conformant": 135, "documented_exclusion": 32, "gap": 87}` |
+| agent | `{"conformant": 12, "documented_exclusion": 42, "gap": 200}` |
+| live | `{"gap": 254}` |
 
 ## Verifier Diagnostics
 
@@ -101,6 +101,7 @@ This report is generated from the same data as the machine-readable operation co
 | `HEAD` | `/api/v1/notes/{id}/attachments/tus/{upload_id}` | `tus_head_upload` | attachments_tus | partial | conformant | conformant | conformant | partial | conformant | documented_exclusion | gap | #297 |
 | `PATCH` | `/api/v1/notes/{id}/attachments/tus/{upload_id}` | `tus_patch_upload` | attachments_tus | partial | conformant | conformant | conformant | partial | conformant | documented_exclusion | gap | #297 |
 | `POST` | `/api/v1/notes/{id}/attachments/upload` | `upload_attachment_multipart` | attachments | documented_exclusion | conformant | documented_exclusion | documented_exclusion | documented_exclusion | documented_exclusion | documented_exclusion | gap | #297 |
+| `POST` | `/api/v1/notes/{id}/links` | `create_note_link` | notes | partial | conformant | conformant | conformant | partial | documented_exclusion | documented_exclusion | gap | Fortemi/HotM#10 |
 | `GET` | `/api/v1/notes/{id}/related` | `get_related_notes` | notes | partial | conformant | gap | gap | gap | gap | conformant | gap | #298 |
 | `GET` | `/api/v1/notes/{id}/tags` | `get_note_tags` | notes | partial | conformant | gap | gap | gap | gap | conformant | gap | #298 |
 | `PUT` | `/api/v1/notes/{id}/tags` | `set_note_tags` | notes | partial | conformant | gap | gap | gap | gap | conformant | gap | #298 |
@@ -331,6 +332,7 @@ This report is generated from the same data as the machine-readable operation co
 | `GET` | `/api/v1/notes/{id}/export` | `export_note` | notes | partial | covered | false |
 | `GET` | `/api/v1/notes/{id}/full` | `get_full_document` | notes | partial | covered | false |
 | `GET` | `/api/v1/notes/{id}/links` | `get_note_links` | notes | partial | covered | false |
+| `POST` | `/api/v1/notes/{id}/links` | `create_note_link` | notes | partial | covered | true |
 | `GET` | `/api/v1/notes/{id}/memory-provenance` | `get_memory_provenance_handler` | notes | partial | covered | false |
 | `POST` | `/api/v1/notes/{id}/move` | `move_note_to_collection` | notes | partial | covered | false |
 | `GET` | `/api/v1/notes/{id}/provenance` | `get_note_provenance` | notes | partial | covered | false |

@@ -88,7 +88,7 @@ All `Covered` entries below refer to route/surface disposition only unless a sep
 | FORTEMI-2026-07-REQ-010 | BackupManager and backup API tests cover backup/archive route parity, sidecar limitation copy, metadata, snapshots, downloads, uploads, restore, import, list/detail/swap, and route-group controls. | Preserve #257 backup/archive evidence. |
 | FORTEMI-2026-07-REQ-011 | Runtime compatibility admission denies unknown/incompatible UI and agent-proxy mutations before dispatch while local/read workflows remain available. | Preserve typed block-state and zero-dispatch tests. |
 | FORTEMI-2026-07-REQ-012 | Agent tools have route-family/capability metadata and explicit non-tool boundaries. | Enforce authority in #123/#231 and complete the umbrella workflow inventory in #287/#290. |
-| FORTEMI-2026-07-REQ-013 | Exact Fortemi OpenAPI artifact and semantic fingerprint are pinned; all 251 operations require the schema-bearing shared RFC 9457 error boundary. | Preserve the receipt and add operation-complete typed/workflow evidence in #290. |
+| FORTEMI-2026-07-REQ-013 | Exact Fortemi OpenAPI artifact and semantic fingerprint are pinned; all 254 operations require the schema-bearing shared RFC 9457 error boundary. | Preserve the receipt and add operation-complete typed/workflow evidence in #290. |
 | FORTEMI-2026-07-REQ-014 | SSE/WS clients preserve the canonical envelope and unknown events remain unknown. | Prove authenticated context in #285 and every payload schema in #288. |
 | FORTEMI-2026-07-REQ-015 | Fortemi `48bc0a0b` pins revision-19 `core-v1` and revision-21 advertised exact `2.0.0/full-v1` with runtime/interop receipt binding. | Keep `suiteWide=false`, `completeBackup=false`, and `record-v1` unsupported. |
 | FORTEMI-2026-07-REQ-016 | Fortemi `48bc0a0b` profile/source receipts, schema/revision, SemVer API range, minimum client, auth claim-contract policy, startup preflight, and UI/proxy mutation gates are executable and CI-verified. | #286 delivered; keep authenticated writes fail-closed until producer metadata advertises supported claim-contract `1`. |
@@ -139,22 +139,22 @@ This traceability report records local route/surface evidence for the Fortemi v2
 
 | Artifact | Trace role | Status |
 | --- | --- | --- |
-| `ui/src/api/contracts/fortemi-openapi.yaml` | Exact Fortemi OpenAPI 3.1 artifact from commit `5ea08229c9f1565122df5f8e6906e89d98dc7e75`. | Generated producer receipt; 251/251 schema-bearing operations |
+| `ui/src/api/contracts/fortemi-openapi.yaml` | Exact Fortemi OpenAPI 3.1 artifact from commit `0dd28a9255e2b53363f93e2e288777631709eb05`. | Generated producer receipt; 254/254 schema-bearing operations |
 | `.aiwg/testing/scripts/verify-fortemi-openapi-contract.mjs` | Byte, semantic, negative-mutation, version-skew, and exact CI receipt gate. | Implemented |
 | `ui/src/api/__tests__/delivered-openapi-contract.test.ts` | Typed calls serializer/response and `ProblemDetails` boundary against the delivered artifact. | Implemented |
 
 The exact artifact SHA-256 is
-`9d2d5ea05f21a71d416d713a5cadd2c4f76086a3494105280d50ec328c4056fd`;
+`652bcce252719e5c0ced015beae02e41380c56dccaa5dc071d369b3ac6fdd858`;
 the `hotm-openapi-v1` semantic SHA-256 is
-`6e84af14c4f0aebb885123b19dfa639ddfda5e73ef08d0ebbb9ca7ca8db9e633`.
-All 251 operations are schema-bearing through the shared RFC 9457 `429`
-boundary; 257 of 563 response entries contain schemas.
+`1b22c57274341f5693ff1f3a5511cb441d6f78f7e010e39fc1c05cc15b94cfe4`.
+All 254 operations are schema-bearing through the shared RFC 9457 `429`
+boundary; 271 of 581 response entries contain schemas.
 
 ## 2026-08-15 Executable Evidence Update
 
 | Requirement | Executable evidence | Result / remaining work |
 | --- | --- | --- |
-| REQ-020 operation conformance | `.aiwg/testing/scripts/fortemi-route-coverage.py`, `.aiwg/testing/data/fortemi-operation-conformance-v2026-07.json`, generated operation JSON/Markdown, focused verifier tests | 251 operations: 1 integrated, 249 partial, 1 gap; zero verifier diagnostics. #290 establishes the evidence model but does not convert partial/gap rows into support claims. |
+| REQ-020 operation conformance | `.aiwg/testing/scripts/fortemi-route-coverage.py`, `.aiwg/testing/data/fortemi-operation-conformance-v2026-07.json`, generated operation JSON/Markdown, focused verifier tests | 254 operations: 1 integrated, 222 partial, 31 documented exclusions; zero verifier diagnostics. #290 establishes the evidence model but does not convert partial/excluded rows into support claims. |
 | REQ-014 AsyncAPI payloads | `.aiwg/testing/scripts/verify-fortemi-asyncapi-payloads.mjs`, schema-derived event fixtures/rules, event and realtime-bus tests, conformance receipt | 48 valid schemas pass both decoders; malformed known events remain unknown. Producer-owned examples are absent, so #288 remains open. |
 | REQ-023 mocked browser gate | `.gitea/workflows/ui-ci.yml`, `ui/scripts/playwright-mocked-ci.config.cjs`, receipt writer, deterministic browser scenarios | Required desktop/mobile gate with zero retries, exact revision/digest receipt, and failure artifacts. This is mocked UI evidence only. |
 
@@ -170,8 +170,8 @@ compatibility, Knowledge Shard, or authentication evidence.
 | REQ-017 auth contract | `agent-proxy/src/auth/middleware.ts`, `auth/verify.ts`, compatibility receipt, middleware tests | Mandatory pre-parse consumer enforcement implemented. Required hosted mode denies missing/unknown claim contract; `fortemi-auth` release authority remains unresolved, so #231 stays open. |
 | REQ-018 realtime context | `ui/src/api/events.ts`, `ui/src/services/websocket.ts`, Tauri header adapter, event/WS tests | Scoped fetch SSE forwards bearer/memory/replay headers and rejects tenant/memory mismatch. Scoped WS is excluded pending Fortemi #953; #285 stays open. |
 | REQ-019 agent privileges | `agent-proxy/src/request-context.ts`, `privileges.ts`, `routes/chat.ts`, UI chat/privilege hooks | Sessions bind to admitted identity; tool execution forwards only admitted context. Existing contract-backed registry is enforced, but all-operation agent acceptance in #123 remains open. |
-| REQ-021 umbrella disposition | `scripts/ci/verify-fortemi-operation-dispositions.mjs`, generated 251-row ledger, `OperationCatalogPanel.tsx` | Zero implicit product dispositions: 130 UI, 10 agent, 5 external handoff, 75 diagnostic, 31 excluded. This does not upgrade the #290 conformance dimensions. |
-| Removed link mutation | pinned OpenAPI/current Fortemi router, `ui/src/api/links.ts`, both agent registries, static API specs, focused tests, disposition verifier | #294 resolves the replacement decision as removal: only authenticated GET reads are producer-owned. No create/delete client method or agent claim remains; a future mutation needs a new pinned contract and full evidence. |
+| REQ-021 umbrella disposition | `scripts/ci/verify-fortemi-operation-dispositions.mjs`, generated 254-row ledger, `OperationCatalogPanel.tsx` | Zero implicit product dispositions: 130 UI, 10 agent, 5 external handoff, 1 typed shared-client operation, 77 diagnostic, 31 excluded. This does not upgrade the #290 conformance dimensions. |
+| Manual note-link mutation | pinned OpenAPI/current Fortemi router, `ui/src/api/links.ts`, focused contract/client tests, disposition verifier | Fortemi/fortemi#61 supersedes the #294 removal decision with exact `manual-note-link-v1` authority. HotM exposes only a compatibility-gated typed shared-client method; primary UI and agent invocation remain documented exclusions, and semantic/wiki links remain server-owned. |
 
 ## 2026-08-16 Core And Operator Trace Update
 
@@ -179,7 +179,7 @@ compatibility, Knowledge Shard, or authentication evidence.
 | --- | --- | --- |
 | REQ-020 core workflows (#295) | `core-content-operations.ts`, typed API modules, bounded codecs, lifecycle component tests, desktop/mobile Playwright scenarios | 60 exact entries cover notes, provenance, collections, templates, document types, jobs, SKOS, and graph workflows. Request/response/UI dimensions are conformant; operation auth, agent, and live remain independent. |
 | REQ-021 operator workflows (#296) | `operator.ts`, `OperatorConsole.tsx`, focused API/component tests, desktop/mobile Playwright scenarios | 76 exact entries cover non-secret diagnostics and confirmed controls. Responses are bounded/redacted and unknown SSE events remain unknown. Restricted #297 operations are not promoted. |
-| Generated operation ledger | operation evidence source, generated coverage JSON/Markdown, product-disposition verifier | #295/#296 added 118 unique tuples after 18 overlaps. After #297, 251 operations were 1 integrated, 218 partial, 1 gap, and 31 documented exclusions with zero diagnostics. Route matching does not supply any missing dimension. |
+| Generated operation ledger | operation evidence source, generated coverage JSON/Markdown, product-disposition verifier | The refreshed producer projection contains 254 operations: 1 integrated, 222 partial, and 31 documented exclusions with zero diagnostics. Route matching does not supply any missing dimension. |
 
 Mocked browser receipts verify deterministic rendering and interaction only.
 They are not live Fortemi, operation-specific authorization, binary transfer,
@@ -205,11 +205,12 @@ inspection do not alter these boundaries.
 | --- | --- | --- |
 | REQ-019 agent dispatch | `agent-proxy/src/tools.ts`, privilege registry, focused tool/privilege tests, pinned disposition ledger | 12 exact operations have conformant local agent evidence. `get_related` now dispatches canonical `GET /api/v1/notes/{id}/related`; CI rejects unpinned tool endpoints and curated operation-ID/method/path drift. |
 | REQ-020 `create_job` | typed jobs client, core-content exact-operation test, constrained `revise_note` tool test | `create_job` is partial, not a gap. Request and local agent dispatch are conformant; response and auth/context are partial; UI and live remain gaps. |
-| Generated operation ledger | operation evidence source and generated JSON/Markdown | Current result: 1 integrated, 219 partial, 0 gaps, 31 documented exclusions; agent dimensions are 12 conformant, 198 gaps, and 41 exclusions. |
-| Live boundary | authenticated asset workflow run and operation matrix | The asset run does not identify immutable exact-operation outcomes. It does not promote TUS, attachment, Knowledge Shard, `create_job`, or any other live dimension; all 251 remain gaps. |
+| Generated operation ledger | operation evidence source and generated JSON/Markdown | Current result: 1 integrated, 222 partial, 31 documented exclusions; agent dimensions are 12 conformant, 200 gaps, and 42 exclusions. |
+| Live boundary | authenticated asset workflow run and operation matrix | The asset run does not identify immutable exact-operation outcomes. It does not promote TUS, attachment, Knowledge Shard, `create_job`, `create_note_link`, or any other live dimension; all 254 remain gaps. |
 
-The product-disposition ledger remains 130 UI workflows, 10 curated agent
-workflows, 5 external handoffs, 75 operator diagnostics, and 31 exclusions.
+The product-disposition ledger records 130 UI workflows, 10 curated agent
+workflows, 5 external handoffs, 1 typed shared-client operation, 77 operator
+diagnostics, and 31 exclusions.
 Product surface ownership and conformance dimensions are independent: the
 `list_archives` and `get_note_tags` operations have UI ownership while also
 carrying verified local agent evidence.

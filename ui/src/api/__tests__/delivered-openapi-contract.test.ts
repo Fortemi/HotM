@@ -3,6 +3,7 @@ import path from 'node:path';
 import { parse } from 'yaml';
 import { describe, expect, it, vi } from 'vitest';
 import { createCallsApi } from '../calls';
+import { createLinksApi } from '../links';
 import type { ApiClient } from '../client';
 
 type Schema = {
@@ -14,15 +15,21 @@ type Schema = {
   items?: Schema;
   oneOf?: Schema[];
   allOf?: Schema[];
+  additionalProperties?: boolean;
 };
 
 type OpenApiDocument = {
   paths: Record<string, Record<string, {
     parameters?: Array<{ name: string; in: string; required?: boolean }>;
+    requestBody?: {
+      content?: Record<string, { schema?: Schema }>;
+    };
     responses?: Record<string, {
       content?: Record<string, { schema?: Schema }>;
     }>;
     security?: Array<Record<string, string[]>>;
+    'x-fortemi-authorization'?: Record<string, unknown>;
+    'x-fortemi-operation-disposition'?: Record<string, unknown>;
   }>>;
   components: {
     schemas: Record<string, Schema>;
@@ -32,6 +39,17 @@ type OpenApiDocument = {
 const contract = parse(
   readFileSync(path.resolve(process.cwd(), 'src/api/contracts/fortemi-openapi.yaml'), 'utf8'),
 ) as OpenApiDocument;
+const manualLinkReceipt = JSON.parse(
+  readFileSync(
+    path.resolve(process.cwd(), 'src/api/contracts/fortemi-manual-note-link-receipt.json'),
+    'utf8',
+  ),
+) as {
+  contract: string;
+  producer: Record<string, string>;
+  platformCells: Array<{ platform: string; status: string; owner: string }>;
+  claimBoundary: Record<string, boolean | string>;
+};
 
 function resolveSchema(schema: Schema): Schema {
   if (!schema.$ref) return schema;
@@ -86,6 +104,9 @@ function validateSchema(input: unknown, unresolved: Schema, location = '$'): voi
     for (const [field, value] of Object.entries(object)) {
       const property = schema.properties?.[field];
       if (property) validateSchema(value, property, `${location}.${field}`);
+      else if (schema.additionalProperties === false) {
+        throw new Error(`${location}.${field} is not allowed`);
+      }
     }
   }
 }
@@ -170,5 +191,96 @@ describe('delivered Fortemi OpenAPI boundary', () => {
     expect(() => validateSchema({ ...problem, status: '429' }, rateLimitSchema as Schema)).toThrow(
       '$.status must be integer',
     );
+  });
+});
+
+describe('manual-note-link-v1 delivered boundary', () => {
+  const operation = contract.paths['/api/v1/notes/{id}/links'].post;
+  const requestSchema = operation.requestBody?.content?.['application/json'].schema as Schema;
+  const createdSchema = operation.responses?.['201'].content?.['application/json'].schema as Schema;
+  const replaySchema = operation.responses?.['200'].content?.['application/json'].schema as Schema;
+
+  it('binds the immutable producer and records every deferred platform cell', () => {
+    expect(manualLinkReceipt).toEqual(expect.objectContaining({
+      contract: 'manual-note-link-v1',
+      producer: expect.objectContaining({
+        commit: '0dd28a9255e2b53363f93e2e288777631709eb05',
+        openapiSha256: '652bcce252719e5c0ced015beae02e41380c56dccaa5dc071d369b3ac6fdd858',
+        contractRevision: '2',
+        contractVersion: '2026.9.0',
+      }),
+    }));
+    expect(manualLinkReceipt.platformCells.map(({ platform }) => platform)).toEqual([
+      'linux-x86_64', 'linux-arm64', 'macos-arm64',
+    ]);
+    expect(manualLinkReceipt.platformCells).toEqual(expect.arrayContaining([
+      expect.objectContaining({ status: 'deferred', owner: 'Fortemi/HotM#10' }),
+    ]));
+    expect(manualLinkReceipt.claimBoundary).toEqual(expect.objectContaining({
+      fullCompatibility: false,
+      suiteParity: false,
+      portableBackup: false,
+      liveMutationConformance: false,
+    }));
+  });
+
+  it('pins typed request, response, bearer, and hosted authorization metadata', async () => {
+    const source = '018fd1a0-0000-7000-8000-000000000001';
+    const target = '018fd1a0-0000-7000-8000-000000000002';
+    const request = { to_note_id: target, kind: 'explicit' as const, score: 0.75 };
+    const response = {
+      id: '018fd1a0-0000-7000-8000-000000000003',
+      from_note_id: source,
+      to_note_id: target,
+      kind: 'explicit',
+      score: 0.75,
+      created_at_utc: '2026-09-01T20:00:00Z',
+      created: true,
+    };
+    const post = vi.fn().mockResolvedValue(response);
+    const api = createLinksApi({ post } as unknown as ApiClient);
+
+    expect(operation.security).toEqual([{ bearerAuth: [] }]);
+    expect(operation['x-fortemi-authorization']).toEqual(expect.objectContaining({
+      policy_class: 'tenant_object',
+      required_scopes: ['write'],
+      target_visibility_check: true,
+      tenant_transaction_required: true,
+    }));
+    expect(operation['x-fortemi-operation-disposition']).toEqual(expect.objectContaining({
+      contract: 'manual-note-link-v1',
+      status: 'supported',
+    }));
+    expect(() => validateSchema(request, requestSchema)).not.toThrow();
+    expect(() => validateSchema({ ...request, metadata: { token: 'private' } }, requestSchema))
+      .toThrow('$.metadata is not allowed');
+    await expect(api.createManualLink(source, request)).resolves.toEqual(response);
+    expect(post).toHaveBeenCalledWith(`/notes/${source}/links`, request);
+    expect(() => validateSchema(response, createdSchema)).not.toThrow();
+    expect(() => validateSchema({ ...response, created: false }, replaySchema)).not.toThrow();
+  });
+
+  it('declares and consumes every success and ProblemDetails status without null drift', () => {
+    expect(Object.keys(operation.responses ?? {}).sort()).toEqual([
+      '200', '201', '400', '401', '403', '404', '409', '429', '500',
+    ]);
+    for (const status of ['400', '401', '403', '404', '409', '429', '500']) {
+      expect(operation.responses?.[status].content?.['application/problem+json'].schema?.$ref)
+        .toBe('#/components/schemas/ProblemDetails');
+    }
+    expect(() => validateSchema({
+      to_note_id: '018fd1a0-0000-7000-8000-000000000002',
+      kind: 'explicit',
+      score: null,
+    }, requestSchema)).not.toThrow();
+    expect(() => validateSchema({
+      id: '018fd1a0-0000-7000-8000-000000000003',
+      from_note_id: '018fd1a0-0000-7000-8000-000000000001',
+      to_note_id: '018fd1a0-0000-7000-8000-000000000002',
+      kind: 'explicit',
+      score: null,
+      created_at_utc: '2026-09-01T20:00:00Z',
+      created: true,
+    }, createdSchema)).toThrow('$.score cannot be null');
   });
 });

@@ -225,6 +225,8 @@ export type {
   CoarseCommunityRequest,
   ColdSpotBucket,
   ColdSpotNote,
+  CreateNoteLinkRequest,
+  CreateNoteLinkResponse,
   GraphColdSpotsResponse,
   GraphControlRequest,
   GraphControlResult,
@@ -235,6 +237,7 @@ export type {
   GraphMaintenanceResponse,
   GraphTopologyStats,
   LinkKind,
+  ManualNoteLinkKind,
   PfnetSparsifyRequest,
   RecomputeSnnRequest,
 } from './links';

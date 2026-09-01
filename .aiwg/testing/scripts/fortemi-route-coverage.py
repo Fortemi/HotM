@@ -934,7 +934,9 @@ def render_operation_markdown(summary: dict[str, Any]) -> str:
     return "\n".join(lines)
 
 
-def build_summaries() -> tuple[dict[str, Any], dict[str, Any], list[ServerRoute]]:
+def build_summaries(
+    refresh_openapi_projection: bool = False,
+) -> tuple[dict[str, Any], dict[str, Any], list[ServerRoute]]:
     source = MAIN_RS.read_text(encoding="utf-8")
     fortemi_commit, fortemi_latest_tag = fortemi_metadata()
     routes = build_routes(source)
@@ -953,7 +955,20 @@ def build_summaries() -> tuple[dict[str, Any], dict[str, Any], list[ServerRoute]
 
     receipt = load_json(OPENAPI_RECEIPT)
     evidence = load_json(OPERATION_EVIDENCE)
-    document, operations, projection = load_pinned_operation_projection(routes)
+    if refresh_openapi_projection:
+        try:
+            import yaml
+        except ImportError as error:
+            raise RuntimeError(
+                "refreshing the OpenAPI projection requires PyYAML"
+            ) from error
+        document = yaml.safe_load(OPENAPI_CONTRACT.read_text(encoding="utf-8"))
+        if not isinstance(document, dict):
+            raise ValueError("vendored OpenAPI document is not an object")
+        operations = extract_openapi_operations(document, routes)
+        projection = None
+    else:
+        document, operations, projection = load_pinned_operation_projection(routes)
     operation_summary = build_operation_summary(
         operations, routes, document, receipt, evidence, projection
     )
@@ -977,12 +992,17 @@ def parse_args() -> argparse.Namespace:
         action="store_true",
         help="Fail if generated route/operation metadata, pins, boundaries, or evidence paths are invalid.",
     )
+    parser.add_argument(
+        "--refresh-openapi-projection",
+        action="store_true",
+        help="Rebuild the tracked operation projection from the exact vendored OpenAPI YAML.",
+    )
     return parser.parse_args()
 
 
 def main() -> None:
     args = parse_args()
-    route_summary, operation_summary, routes = build_summaries()
+    route_summary, operation_summary, routes = build_summaries(args.refresh_openapi_projection)
     write_reports(route_summary, operation_summary, routes)
 
     print(f"wrote {JSON_OUT.relative_to(HOTM_ROOT)}")

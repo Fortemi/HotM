@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "contract": "manual-note-link-v1",
+  "producer": {
+    "repository": "Fortemi/fortemi",
+    "commit": "0dd28a9255e2b53363f93e2e288777631709eb05",
+    "openapiPath": "contracts/openapi/openapi.yaml",
+    "openapiSha256": "652bcce252719e5c0ced015beae02e41380c56dccaa5dc071d369b3ac6fdd858",
+    "contractRevision": "2",
+    "contractVersion": "2026.9.0",
+    "operation": "POST /api/v1/notes/{id}/links#create_note_link"
+  },
+  "consumer": {
+    "repository": "Fortemi/HotM",
+    "tracker": "Fortemi/HotM#10",
+    "surface": "typed_shared_client",
+    "uiDisposition": "documented_exclusion",
+    "agentDisposition": "documented_exclusion",
+    "evidencePaths": [
+      "ui/src/api/links.ts",
+      "ui/src/api/__tests__/links.test.ts",
+      "ui/src/api/__tests__/delivered-openapi-contract.test.ts",
+      ".aiwg/testing/data/fortemi-operation-conformance-v2026-07.json",
+      "ui/src/api/contracts/fortemi-operation-dispositions.json"
+    ]
+  },
+  "platformCells": [
+    {
+      "platform": "linux-x86_64",
+      "status": "deferred",
+      "owner": "Fortemi/HotM#10",
+      "reason": "Release-bound immutable consumer CI receipt has not run for this producer revision.",
+      "requiredEvidence": "A clean-checkout receipt binding this producer commit, OpenAPI checksum, and the delivered HotM consumer commit."
+    },
+    {
+      "platform": "linux-arm64",
+      "status": "deferred",
+      "owner": "Fortemi/HotM#10",
+      "reason": "The native suite platform workflow remains deferred to the release validation run.",
+      "requiredEvidence": "A native Linux arm64 receipt binding the same producer and consumer revisions."
+    },
+    {
+      "platform": "macos-arm64",
+      "status": "deferred",
+      "owner": "Fortemi/HotM#10",
+      "reason": "The native suite platform workflow remains deferred to the release validation run.",
+      "requiredEvidence": "A native macOS arm64 receipt binding the same producer and consumer revisions."
+    }
+  ],
+  "claimBoundary": {
+    "fullCompatibility": false,
+    "suiteParity": false,
+    "portableBackup": false,
+    "liveMutationConformance": false,
+    "note": "Local typed-client evidence does not replace immutable supported-platform or live authorization receipts."
+  }
+}

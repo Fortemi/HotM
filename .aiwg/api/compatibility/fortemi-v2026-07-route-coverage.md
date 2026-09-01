@@ -1,15 +1,15 @@
 ---
 title: Fortemi v2026.7.1 Route Coverage Inventory
 status: generated
-date: 2026-08-28
+date: 2026-09-01
 artifact_type: api-coverage-inventory
 ---
 
 # Fortemi v2026.7.1 Route Coverage Inventory
 
 - Fortemi source: `../fortemi`
-- Fortemi commit: `e09578e6`
-- Latest release tag: `v2026.8.0`
+- Fortemi commit: `0dd28a92`
+- Latest release tag: `v2026.8.3`
 - Extracted route declarations: `204`
 - Evidence boundary: route inventory is route-disposition evidence only.
 
@@ -103,7 +103,7 @@ These entries are advisory planning metadata for mixed dispositions. They do not
 | `POST` | `/api/v1/notes/{id}/reprocess` | notes | covered | ui/src/api/notes.ts, extended.ts, versions.ts, links.ts | #253 |
 | `POST` | `/api/v1/notes/reprocess` | notes | covered | ui/src/api/notes.ts, extended.ts, versions.ts, links.ts | #253 |
 | `GET, PUT` | `/api/v1/notes/{id}/tags` | notes | covered | ui/src/api/notes.ts, extended.ts, versions.ts, links.ts | #253 |
-| `GET` | `/api/v1/notes/{id}/links` | notes | covered | ui/src/api/notes.ts, extended.ts, versions.ts, links.ts | #253 |
+| `GET, POST` | `/api/v1/notes/{id}/links` | notes | covered | ui/src/api/notes.ts, extended.ts, versions.ts, links.ts | #253 |
 | `GET` | `/api/v1/notes/{id}/backlinks` | notes | covered | ui/src/api/notes.ts, extended.ts, versions.ts, links.ts | #253 |
 | `GET` | `/api/v1/notes/{id}/related` | notes | covered | ui/src/api/notes.ts, extended.ts, versions.ts, links.ts | #253 |
 | `GET` | `/api/v1/notes/{id}/export` | notes | covered | ui/src/api/notes.ts, extended.ts, versions.ts, links.ts | #253 |

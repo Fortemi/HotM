@@ -25,7 +25,7 @@ describe('OperationCatalogPanel', () => {
     vi.mocked(api.systemCompatibility.get).mockResolvedValue({} as never);
     render(<OperationCatalogPanel />);
 
-    expect(screen.getByText(/253 pinned operations/)).toBeInTheDocument();
+    expect(screen.getByText(new RegExp(`${ledger.operation_count} pinned operations`))).toBeInTheDocument();
     expect(screen.getByText(/does not establish request, response, auth/)).toBeInTheDocument();
     await userEvent.type(screen.getByPlaceholderText('Search operations'), 'oauth_discovery');
     expect(screen.getByText('oauth_discovery')).toBeInTheDocument();
