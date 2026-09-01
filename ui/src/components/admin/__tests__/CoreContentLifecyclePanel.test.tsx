@@ -118,38 +118,43 @@ describe('CoreContentLifecyclePanel', () => {
     expect(screen.getByText('partial')).toBeVisible();
   });
 
-  it('supports every promoted provenance mutation through typed form states', async () => {
-    const user = userEvent.setup();
-    render(<CoreContentLifecyclePanel />);
-    await user.click(screen.getByRole('tab', { name: 'Provenance' }));
+  it(
+    'supports every promoted provenance mutation through typed form states',
+    async () => {
+      const user = userEvent.setup();
+      render(<CoreContentLifecyclePanel />);
+      await user.click(screen.getByRole('tab', { name: 'Provenance' }));
 
-    await user.type(screen.getByLabelText('Provenance note ID'), 'note-1');
-    await user.click(screen.getByRole('button', { name: 'Create provenance' }));
-    await waitFor(() => expect(mocks.provenance.createNoteProvenance).toHaveBeenCalled());
+      await user.type(screen.getByLabelText('Provenance note ID'), 'note-1');
+      await user.click(screen.getByRole('button', { name: 'Create provenance' }));
+      await waitFor(() => expect(mocks.provenance.createNoteProvenance).toHaveBeenCalled());
 
-    await user.click(screen.getByRole('button', { name: 'file' }));
-    await user.type(screen.getByLabelText('Attachment ID'), 'attachment-1');
-    await user.click(screen.getByRole('button', { name: 'Create provenance' }));
-    await waitFor(() => expect(mocks.provenance.createFileProvenance).toHaveBeenCalled());
+      await user.click(screen.getByRole('button', { name: 'file' }));
+      await user.type(screen.getByLabelText('Attachment ID'), 'attachment-1');
+      await user.click(screen.getByRole('button', { name: 'Create provenance' }));
+      await waitFor(() => expect(mocks.provenance.createFileProvenance).toHaveBeenCalled());
 
-    await user.click(screen.getByRole('button', { name: 'device' }));
-    await user.type(screen.getByLabelText('Device make'), 'Acme');
-    await user.type(screen.getByLabelText('Device model'), 'One');
-    await user.click(screen.getByRole('button', { name: 'Create provenance' }));
-    await waitFor(() => expect(mocks.provenance.createDevice).toHaveBeenCalled());
+      await user.click(screen.getByRole('button', { name: 'device' }));
+      await user.type(screen.getByLabelText('Device make'), 'Acme');
+      await user.type(screen.getByLabelText('Device model'), 'One');
+      await user.click(screen.getByRole('button', { name: 'Create provenance' }));
+      await waitFor(() => expect(mocks.provenance.createDevice).toHaveBeenCalled());
 
-    await user.click(screen.getByRole('button', { name: 'location' }));
-    await user.type(screen.getByLabelText('Latitude'), '40');
-    await user.type(screen.getByLabelText('Longitude'), '-75');
-    await user.click(screen.getByRole('button', { name: 'Create provenance' }));
-    await waitFor(() => expect(mocks.provenance.createLocation).toHaveBeenCalled());
+      await user.click(screen.getByRole('button', { name: 'location' }));
+      await user.type(screen.getByLabelText('Latitude'), '40');
+      await user.type(screen.getByLabelText('Longitude'), '-75');
+      await user.click(screen.getByRole('button', { name: 'Create provenance' }));
+      await waitFor(() => expect(mocks.provenance.createLocation).toHaveBeenCalled());
 
-    await user.click(screen.getByRole('button', { name: 'named location' }));
-    await user.type(screen.getByLabelText('Location name'), 'Desk');
-    await user.click(screen.getByRole('button', { name: 'Create provenance' }));
-    await waitFor(() => expect(mocks.provenance.createNamedLocation).toHaveBeenCalled());
-    expect(screen.getByText('Created provenance record named-1.')).toBeVisible();
-  });
+      await user.click(screen.getByRole('button', { name: 'named location' }));
+      await user.type(screen.getByLabelText('Location name'), 'Desk');
+      await user.click(screen.getByRole('button', { name: 'Create provenance' }));
+      await waitFor(() => expect(mocks.provenance.createNamedLocation).toHaveBeenCalled());
+      expect(screen.getByText('Created provenance record named-1.')).toBeVisible();
+    },
+    // This integration-style case intentionally drives five sequential form flows.
+    15_000,
+  );
 
   it.each([375, 1280])('keeps lifecycle controls reachable at %ipx', (width) => {
     Object.defineProperty(window, 'innerWidth', { configurable: true, value: width });
