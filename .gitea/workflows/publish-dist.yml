@@ -27,6 +27,7 @@ jobs:
   publish-dist:
     name: Build & Publish UI Dist
     runs-on: node-20
+    if: github.event_name == 'workflow_dispatch' || github.event_name == 'push' || startsWith(github.ref, 'refs/tags/v')
     steps:
       - name: Checkout
         shell: bash

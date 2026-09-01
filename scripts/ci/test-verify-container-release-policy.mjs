@@ -14,6 +14,8 @@ const verifier = resolve(scriptDir, 'verify-container-release-policy.mjs');
 const copiedFiles = [
   '.gitea/workflows/publish-hotm-ui-image.yml',
   '.gitea/workflows/ui-ci.yml',
+  '.gitea/workflows/desktop-release.yml',
+  '.gitea/workflows/publish-dist.yml',
   'ui/package.json',
 ];
 
@@ -79,4 +81,40 @@ test('retired proxy development publisher fails closed', () => withFixture((targ
   const result = runVerifier(target);
   assert.notEqual(result.status, 0);
   assert.match(result.stderr, /retired branch container publication/);
+}));
+
+test('desktop release without a non-tag create guard fails closed', () => withFixture((target) => {
+  mutate(
+    target,
+    '.gitea/workflows/desktop-release.yml',
+    "    if: github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/tags/v')\n",
+    '',
+  );
+  const result = runVerifier(target);
+  assert.notEqual(result.status, 0);
+  assert.match(result.stderr, /desktop-release.yml must skip non-tag create events/);
+}));
+
+test('UI dist without a non-tag create guard fails closed', () => withFixture((target) => {
+  mutate(
+    target,
+    '.gitea/workflows/publish-dist.yml',
+    "    if: github.event_name == 'workflow_dispatch' || github.event_name == 'push' || startsWith(github.ref, 'refs/tags/v')\n",
+    '',
+  );
+  const result = runVerifier(target);
+  assert.notEqual(result.status, 0);
+  assert.match(result.stderr, /publish-dist.yml must skip non-tag create events/);
+}));
+
+test('quality CI without a non-tag create guard fails closed', () => withFixture((target) => {
+  mutate(
+    target,
+    '.gitea/workflows/ui-ci.yml',
+    "    if: github.event_name != 'create' || startsWith(github.ref, 'refs/tags/v')\n",
+    '',
+  );
+  const result = runVerifier(target);
+  assert.notEqual(result.status, 0);
+  assert.match(result.stderr, /quality-gate must skip non-tag create events/);
 }));

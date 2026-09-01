@@ -8,6 +8,8 @@ const scriptDir = dirname(fileURLToPath(import.meta.url));
 const root = process.argv[2] ? resolve(process.argv[2]) : resolve(scriptDir, '../..');
 const imageWorkflowPath = resolve(root, '.gitea/workflows/publish-hotm-ui-image.yml');
 const ciWorkflowPath = resolve(root, '.gitea/workflows/ui-ci.yml');
+const desktopReleaseWorkflowPath = resolve(root, '.gitea/workflows/desktop-release.yml');
+const publishDistWorkflowPath = resolve(root, '.gitea/workflows/publish-dist.yml');
 const packageJsonPath = resolve(root, 'ui/package.json');
 const calVer = /^[0-9]{4}\.(?:[1-9]|1[0-2])\.[0-9]+$/;
 
@@ -27,10 +29,14 @@ function jobBlock(text, name) {
 const failures = [];
 let imageWorkflow;
 let ciWorkflow;
+let desktopReleaseWorkflow;
+let publishDistWorkflow;
 let declaredVersion;
 try {
   imageWorkflow = readFileSync(imageWorkflowPath, 'utf8');
   ciWorkflow = readFileSync(ciWorkflowPath, 'utf8');
+  desktopReleaseWorkflow = readFileSync(desktopReleaseWorkflowPath, 'utf8');
+  publishDistWorkflow = readFileSync(publishDistWorkflowPath, 'utf8');
   declaredVersion = JSON.parse(readFileSync(packageJsonPath, 'utf8')).version;
 } catch (error) {
   console.error(`container release policy check failed: ${error.message}`);
@@ -75,6 +81,23 @@ for (const fragment of [
   if (!proxyRelease.includes(fragment)) failures.push(`agent-proxy release is missing release control: ${fragment}`);
 }
 if (proxyRelease.includes('sha-${') || proxyRelease.includes('SHORT_SHA')) failures.push('agent-proxy release must not emit commit tags');
+
+const createRefGuard = "github.event_name != 'create' || startsWith(github.ref, 'refs/tags/v')";
+for (const jobName of ['quality-gate', 'agent-proxy-quality-gate', 'mocked-playwright-ci']) {
+  if (!jobBlock(ciWorkflow, jobName).includes(createRefGuard)) {
+    failures.push(`ui-ci.yml ${jobName} must skip non-tag create events`);
+  }
+}
+
+const desktopReleaseGuard = "github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/tags/v')";
+if (!jobBlock(desktopReleaseWorkflow, 'verify-tag').includes(desktopReleaseGuard)) {
+  failures.push('desktop-release.yml must skip non-tag create events');
+}
+
+const publishDistGuard = "github.event_name == 'workflow_dispatch' || github.event_name == 'push' || startsWith(github.ref, 'refs/tags/v')";
+if (!jobBlock(publishDistWorkflow, 'publish-dist').includes(publishDistGuard)) {
+  failures.push('publish-dist.yml must skip non-tag create events');
+}
 
 if (failures.length > 0) {
   console.error('HotM container release policy check failed.');

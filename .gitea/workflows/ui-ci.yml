@@ -74,6 +74,7 @@ jobs:
   quality-gate:
     name: UI Quality Gate
     runs-on: node-20
+    if: github.event_name != 'create' || startsWith(github.ref, 'refs/tags/v')
     steps:
       - name: Checkout
         shell: bash
@@ -131,6 +132,7 @@ jobs:
   agent-proxy-quality-gate:
     name: Agent Proxy Quality Gate
     runs-on: node-20
+    if: github.event_name != 'create' || startsWith(github.ref, 'refs/tags/v')
     steps:
       - name: Checkout
         shell: bash
@@ -165,6 +167,7 @@ jobs:
   mocked-playwright-ci:
     name: Mocked Playwright CI
     runs-on: node-20
+    if: github.event_name != 'create' || startsWith(github.ref, 'refs/tags/v')
     steps:
       - name: Checkout
         shell: bash
