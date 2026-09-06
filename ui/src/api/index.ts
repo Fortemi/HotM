@@ -4,7 +4,7 @@
  */
 
 import { getCachedConfig, getTauriFetch } from '@/lib/tauri';
-import { getRuntimeConfig } from '@/lib/runtime-config';
+import { getRuntimeConfig, normalizeBrowserApiBaseUrl } from '@/lib/runtime-config';
 import { createApiClient, getServerRoot } from './client';
 import { createNotesApi } from './notes';
 import { createSearchApi } from './search';
@@ -358,6 +358,7 @@ export type {
 
 // Export compatibility layer
 export { api as compatApi } from './compat';
+export { normalizeBrowserApiBaseUrl } from '@/lib/runtime-config';
 
 /**
  * Get API base URL from environment or use default.
@@ -372,18 +373,18 @@ function getApiBaseUrl(): string {
   // Tauri desktop config (loaded at startup, cached synchronously)
   const tauriConfig = getCachedConfig();
   if (tauriConfig?.api_base_url) {
-    return tauriConfig.api_base_url;
+    return normalizeBrowserApiBaseUrl(tauriConfig.api_base_url);
   }
 
   // Docker runtime config (injected by docker-entrypoint.sh)
   const runtimeUrl = getRuntimeConfig('VITE_API_BASE_URL');
   if (runtimeUrl) {
-    return runtimeUrl;
+    return normalizeBrowserApiBaseUrl(runtimeUrl);
   }
 
   // Vite environment variables (dev server only — not set in production builds)
   if (import.meta.env.VITE_API_BASE_URL) {
-    return import.meta.env.VITE_API_BASE_URL as string;
+    return normalizeBrowserApiBaseUrl(import.meta.env.VITE_API_BASE_URL as string);
   }
 
   // Fallback: same origin with /api/v1 path (works in deployed environments
@@ -398,7 +399,7 @@ function getApiBaseUrl(): string {
  * Create a fully configured API client instance
  */
 export function createApi(baseUrl?: string) {
-  const url = baseUrl || getApiBaseUrl();
+  const url = normalizeBrowserApiBaseUrl(baseUrl || getApiBaseUrl());
   const client = createApiClient(url);
   const systemCompatibility = createSystemCompatibilityApi(client);
   const compatibilityGate = createCompatibilityAdmissionGate(systemCompatibility);

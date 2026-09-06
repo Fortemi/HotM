@@ -6,7 +6,7 @@
 
 import { createApiClient, getServerRoot } from './client';
 import { getCachedConfig, getTauriFetch } from '@/lib/tauri';
-import { getRuntimeConfig } from '@/lib/runtime-config';
+import { getRuntimeConfig, normalizeBrowserApiBaseUrl } from '@/lib/runtime-config';
 import { createNotesApi } from './notes';
 import { createSearchApi } from './search';
 import { createTagsApi } from './tags';
@@ -63,17 +63,17 @@ function getApiBaseUrl(): string {
   // Tauri desktop config (loaded at startup, cached synchronously)
   const tauriConfig = getCachedConfig();
   if (tauriConfig?.api_base_url) {
-    return tauriConfig.api_base_url;
+    return normalizeBrowserApiBaseUrl(tauriConfig.api_base_url);
   }
 
   // Docker runtime config (injected by docker-entrypoint.sh)
   const runtimeUrl = getRuntimeConfig('VITE_API_BASE_URL');
   if (runtimeUrl) {
-    return runtimeUrl;
+    return normalizeBrowserApiBaseUrl(runtimeUrl);
   }
 
   if (import.meta.env.VITE_API_BASE_URL) {
-    return import.meta.env.VITE_API_BASE_URL as string;
+    return normalizeBrowserApiBaseUrl(import.meta.env.VITE_API_BASE_URL as string);
   }
   // Fallback: same origin with /api/v1 path, or localhost for dev
   if (typeof window !== 'undefined' && window.location?.origin) {

@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { createApi } from '../index';
+import { createApi, normalizeBrowserApiBaseUrl } from '../index';
 
 const mockFetch = vi.fn();
 global.fetch = mockFetch;
@@ -24,6 +24,24 @@ function notFoundJson() {
     text: () => Promise.resolve(text),
   };
 }
+
+
+describe('normalizeBrowserApiBaseUrl', () => {
+  it('keeps installed loopback API calls same-origin when runtime config uses localhost but page uses 127.0.0.1', () => {
+    expect(normalizeBrowserApiBaseUrl('http://localhost:4180/api/v1', 'http://127.0.0.1:4180'))
+      .toBe('http://127.0.0.1:4180/api/v1');
+  });
+
+  it('does not rewrite loopback URLs when the configured API port differs from the page port', () => {
+    expect(normalizeBrowserApiBaseUrl('http://localhost:3000/api/v1', 'http://127.0.0.1:5173'))
+      .toBe('http://localhost:3000/api/v1');
+  });
+
+  it('preserves non-loopback API origins', () => {
+    expect(normalizeBrowserApiBaseUrl('https://api.example/api/v1', 'https://hotm.example'))
+      .toBe('https://api.example/api/v1');
+  });
+});
 
 describe('api.healthCheck', () => {
   beforeEach(() => {

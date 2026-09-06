@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { createEventsClient, type ServerEvent, DEFAULT_SSE_EVENT_TYPES } from '@/api/events';
 import { realtimeEventBus, type RealtimeEvent } from '@/services/realtimeEventBus';
 import { getCachedConfig } from '@/lib/tauri';
-import { getRuntimeConfig } from '@/lib/runtime-config';
+import { getRuntimeConfig, normalizeBrowserApiBaseUrl } from '@/lib/runtime-config';
 import {
   getActiveTenantId,
   getApiBearerToken,
@@ -161,18 +161,18 @@ class WebSocketService {
     // Tauri desktop config (loaded at startup, cached synchronously)
     const tauriConfig = getCachedConfig();
     if (tauriConfig?.api_base_url) {
-      return tauriConfig.api_base_url;
+      return normalizeBrowserApiBaseUrl(tauriConfig.api_base_url);
     }
 
     // Docker runtime config (injected by docker-entrypoint.sh)
     const runtimeUrl = getRuntimeConfig('VITE_API_BASE_URL');
     if (runtimeUrl) {
-      return runtimeUrl;
+      return normalizeBrowserApiBaseUrl(runtimeUrl);
     }
 
     const envUrl = (import.meta.env.VITE_API_BASE_URL as string | undefined)?.trim();
     if (envUrl) {
-      return envUrl;
+      return normalizeBrowserApiBaseUrl(envUrl);
     }
 
     const fallbackBase =

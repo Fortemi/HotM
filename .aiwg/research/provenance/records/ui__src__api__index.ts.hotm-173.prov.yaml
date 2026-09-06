@@ -1,0 +1,24 @@
+entity:
+  id: urn:aiwg:artifact:ui/src/api/index.ts
+  path: ui/src/api/index.ts
+  sha256: 181b8059cb90ea1c962f7f24191b92aff5e4aa4d8599a748c244dd897ead38b0
+activity:
+  id: urn:aiwg:activity:hotm-173-loopback-api-normalization:ui__src__api__index.ts
+  type: modification
+  startedAtTime: '2026-09-06T23:29:11.874101+00:00'
+  endedAtTime: '2026-09-06T23:29:11.874101+00:00'
+agent:
+  id: urn:aiwg:agent:software-implementer
+  type: SoftwareImplementer
+  version: gpt-6-codex
+wasAssociatedWith:
+  activity: urn:aiwg:activity:hotm-173-loopback-api-normalization:ui__src__api__index.ts
+  agent: urn:aiwg:agent:software-implementer
+wasGeneratedBy:
+  entity: urn:aiwg:artifact:ui/src/api/index.ts
+  activity: urn:aiwg:activity:hotm-173-loopback-api-normalization:ui__src__api__index.ts
+wasDerivedFrom:
+- Fortemi/HotM#173
+- installed /env-config.js VITE_API_BASE_URL localhost loopback observation
+- hotm-173-direct-api-reprocess.json
+- hotm-173-branch-ui-reprocess.json
