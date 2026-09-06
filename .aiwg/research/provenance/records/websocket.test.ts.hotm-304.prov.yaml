@@ -1,0 +1,46 @@
+metadata:
+  schema_version: "1.0.0"
+  created_at: "2026-09-06T22:10:00Z"
+  description: "Provenance for HotM #304 legacy WebSocket 410 regression test"
+entity:
+  id: "urn:aiwg:artifact:ui/src/services/__tests__/websocket.test.ts"
+  type: test
+  created_at: "2026-09-06T22:10:00Z"
+  checksum: "sha256:ff14cc5e47e1c86041dd1519c3e575ea7e035312b07fe34550b6428d1bbc8351"
+  size_bytes: 1195
+  attributes:
+    change_scope: "hotm-304-auth-realtime-status"
+    base_revision: "8213e2d21adac03358c2e7681a08eedae155835e"
+activity:
+  id: "urn:aiwg:activity:modification:hotm-304-websocket-test:001"
+  type: modification
+  started_at: "2026-09-06T22:00:00Z"
+  ended_at: "2026-09-06T22:10:00Z"
+  description: "Assert legacy WebSocket 410 Gone maps to incompatible"
+agent:
+  id: "urn:aiwg:agent:software-implementer"
+  type: ai_assistant
+  name: "Software Implementer"
+  version: "gpt-5-codex"
+  tool: "codex"
+relationships:
+  wasGeneratedBy:
+    entity: "urn:aiwg:artifact:ui/src/services/__tests__/websocket.test.ts"
+    activity: "urn:aiwg:activity:modification:hotm-304-websocket-test:001"
+    time: "2026-09-06T22:10:00Z"
+  used:
+    - activity: "urn:aiwg:activity:modification:hotm-304-websocket-test:001"
+      entity: "urn:gitea:Fortemi/HotM:issue:304"
+      role: "requirement"
+  wasDerivedFrom:
+    - entity: "urn:aiwg:artifact:ui/src/services/__tests__/websocket.test.ts"
+      source: "urn:aiwg:artifact:ui/src/services/websocket.ts"
+      derivation_type: "tests"
+      activity: "urn:aiwg:activity:modification:hotm-304-websocket-test:001"
+  wasAssociatedWith:
+    activity: "urn:aiwg:activity:modification:hotm-304-websocket-test:001"
+    agent: "urn:aiwg:agent:software-implementer"
+    role: "primary_author"
+  wasAttributedTo:
+    entity: "urn:aiwg:artifact:ui/src/services/__tests__/websocket.test.ts"
+    agent: "urn:aiwg:agent:software-implementer"

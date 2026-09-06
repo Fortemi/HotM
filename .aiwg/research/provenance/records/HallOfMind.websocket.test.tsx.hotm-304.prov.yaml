@@ -1,0 +1,46 @@
+metadata:
+  schema_version: "1.0.0"
+  created_at: "2026-09-06T22:10:00Z"
+  description: "Provenance for HotM #304 HallOfMind auth-required integration test"
+entity:
+  id: "urn:aiwg:artifact:ui/src/components/__tests__/HallOfMind.websocket.test.tsx"
+  type: test
+  created_at: "2026-09-06T22:10:00Z"
+  checksum: "sha256:a2f3d8ecbebf1251cf8126d2a9872433eae9e2c88b81ce4f30b64bfdc26a6a44"
+  size_bytes: 14014
+  attributes:
+    change_scope: "hotm-304-auth-realtime-status"
+    base_revision: "8213e2d21adac03358c2e7681a08eedae155835e"
+activity:
+  id: "urn:aiwg:activity:modification:hotm-304-hallofmind-test:001"
+  type: modification
+  started_at: "2026-09-06T22:00:00Z"
+  ended_at: "2026-09-06T22:10:00Z"
+  description: "Assert reachable unauthorized notes/events show Auth Required and not Offline Mode"
+agent:
+  id: "urn:aiwg:agent:software-implementer"
+  type: ai_assistant
+  name: "Software Implementer"
+  version: "gpt-5-codex"
+  tool: "codex"
+relationships:
+  wasGeneratedBy:
+    entity: "urn:aiwg:artifact:ui/src/components/__tests__/HallOfMind.websocket.test.tsx"
+    activity: "urn:aiwg:activity:modification:hotm-304-hallofmind-test:001"
+    time: "2026-09-06T22:10:00Z"
+  used:
+    - activity: "urn:aiwg:activity:modification:hotm-304-hallofmind-test:001"
+      entity: "urn:gitea:Fortemi/HotM:issue:304"
+      role: "requirement"
+  wasDerivedFrom:
+    - entity: "urn:aiwg:artifact:ui/src/components/__tests__/HallOfMind.websocket.test.tsx"
+      source: "urn:aiwg:artifact:ui/src/components/HallOfMind.tsx"
+      derivation_type: "tests"
+      activity: "urn:aiwg:activity:modification:hotm-304-hallofmind-test:001"
+  wasAssociatedWith:
+    activity: "urn:aiwg:activity:modification:hotm-304-hallofmind-test:001"
+    agent: "urn:aiwg:agent:software-implementer"
+    role: "primary_author"
+  wasAttributedTo:
+    entity: "urn:aiwg:artifact:ui/src/components/__tests__/HallOfMind.websocket.test.tsx"
+    agent: "urn:aiwg:agent:software-implementer"

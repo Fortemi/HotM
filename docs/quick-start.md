@@ -98,6 +98,7 @@ After launch, the sidebar shows the connection state:
 |-----------|---------|
 | **API Connected** (green) | Fully operational |
 | **Degraded** (yellow) | Fortemi reachable, inference unavailable (Ollama not running) |
+| **Auth Required** (yellow) | Fortemi is reachable, but this browser session is not authorized for notes or realtime events |
 | **Offline Mode** (red) | Cannot reach Fortemi — check PostgreSQL and sidecar logs |
 
 To recover from Degraded: start Ollama (`ollama serve` or `sudo systemctl start ollama`), then close and reopen HotM.

@@ -4,6 +4,7 @@ import {
   DEFAULT_SSE_TYPE_PREFIXES,
   eventMatchesRealtimeContext,
   FORTEMI_SSE_EVENT_TYPES,
+  type EventsClientStatus,
 } from '@/api/events';
 import eventCatalog from '@/api/contracts/fortemi-event-catalog.json';
 import asyncApiFixtures from '@/api/contracts/fortemi-asyncapi-event-fixtures.json';
@@ -105,6 +106,26 @@ describe('events client replay handling', () => {
     expect(firstHeaders.get('Authorization')).toBe('Bearer fixture-token');
     expect(firstHeaders.get('X-Fortemi-Memory')).toBe('research');
     expect(reconnectHeaders.get('Last-Event-ID')).toBe('evt-42');
+    client.close();
+  });
+
+  it('classifies authenticated SSE 401 as auth-required without retrying as a transport outage', async () => {
+    const fetchMock = vi.fn<typeof fetch>().mockResolvedValue(
+      new Response('', { status: 401, statusText: 'Unauthorized' }),
+    );
+    vi.stubGlobal('fetch', fetchMock);
+    const statuses: EventsClientStatus[] = [];
+    const client = createEventsClient('http://localhost:3000/api/v1', {
+      preferFetch: true,
+      onStatusChange: (status) => statuses.push(status),
+    });
+
+    client.subscribe(vi.fn());
+
+    await vi.waitFor(() => expect(statuses).toContain('auth-required'));
+    await vi.advanceTimersByTimeAsync(5000);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(statuses).not.toContain('reconnecting');
     client.close();
   });
 

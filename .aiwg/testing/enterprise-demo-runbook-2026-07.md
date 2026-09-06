@@ -49,6 +49,12 @@ Manifest launch local preflight, 2026-07-07: `node .aiwg/testing/scripts/validat
 
 Realtime Activity note, 2026-07-06: `RealtimeEventInspector` now presents a sanitized `Realtime Activity` view backed by `ui/src/services/realtimeActivity.ts`. Realtime events are classified as connection, job, sync, admin, MCP, or content activity, and rendered summaries avoid raw identifiers, prompt text, file paths, provider secrets, KMS identifiers, license material, and stack traces. `HallOfMind` exposes this view through a persistent header Activity button and drawer.
 
+Realtime auth distinction note, 2026-09-06: If Fortemi health and compatibility
+metadata are reachable but notes or SSE return `401`/`403`, the shell must show
+`Auth Required`, not `Offline Mode`. A legacy anonymous-local WebSocket `410 Gone`
+is an expected incompatibility for that receive path and should not be treated as
+an outage while SSE/health remain reachable.
+
 Binary attachment projection boundary note, 2026-07-08: attachment realtime regressions in `npm run test:realtime` prove sanitized HotM UI progress only. They do not prove Fortemi binary extraction, search/index, export, embedding, or React/browser parity. Keep `Fortemi/fortemi#1013`, `Fortemi/fortemi-react#227`, and `roctinam/aiwg#1719` visible as the required closure path before any attachment projection/export readiness claim appears in the demo receipt or tracker update.
 
 ## Fixture Set
@@ -141,7 +147,7 @@ Run with fixtures:
 Expected evidence:
 
 - Drawer opens from a persistent shell affordance.
-- Drawer shows connected, reconnecting, stale, failed, empty, and resync-required states.
+- Drawer shows connected, reconnecting, auth-required, incompatible, stale, failed, empty, and resync-required states.
 - Events are grouped or labeled by category: connection, job, sync, MCP/tool, admin.
 - Last event time and retry state are visible.
 - Event rows are sanitized and do not expose note bodies, prompt text, tokens, private file paths, tenant secrets, raw stack traces, KMS identifiers, or raw license material.

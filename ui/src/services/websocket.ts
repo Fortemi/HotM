@@ -37,7 +37,15 @@ export interface QueueStatus {
 }
 
 export type RealtimeTransportMode = 'none' | 'ws' | 'sse';
-export type RealtimeConnectionState = 'disconnected' | 'connecting' | 'connected' | 'degraded' | 'reconnecting' | 'stale';
+export type RealtimeConnectionState =
+  | 'disconnected'
+  | 'connecting'
+  | 'connected'
+  | 'degraded'
+  | 'reconnecting'
+  | 'stale'
+  | 'auth-required'
+  | 'incompatible';
 export interface UseWebSocketState {
   connected: boolean;
   connectionState?: RealtimeConnectionState;
@@ -69,6 +77,16 @@ export function canUseLegacyWebSocket(context: LegacyWebSocketContext): boolean 
     && !context.authorization
     && !context.memory
     && !context.tenantId;
+}
+
+export type LegacyWebSocketCloseClassification = 'normal' | 'incompatible' | 'transport-failure';
+
+export function classifyLegacyWebSocketClose(
+  event: Pick<CloseEvent, 'code' | 'reason'>,
+): LegacyWebSocketCloseClassification {
+  if (event.code === 1000) return 'normal';
+  if (event.code === 410 || /\b410\b|gone/i.test(event.reason)) return 'incompatible';
+  return 'transport-failure';
 }
 
 class WebSocketService {
@@ -226,6 +244,18 @@ class WebSocketService {
             this.transportMode = 'sse';
             this.notifyConnection(true);
             this.notifyConnectionState('connected');
+          } else if (status === 'auth-required') {
+            this.sseConnected = false;
+            this.isConnected = false;
+            this.transportMode = 'none';
+            this.notifyConnection(false);
+            this.notifyConnectionState('auth-required');
+          } else if (status === 'incompatible') {
+            this.sseConnected = false;
+            this.isConnected = false;
+            this.transportMode = 'none';
+            this.notifyConnection(false);
+            this.notifyConnectionState('incompatible');
           } else if (status === 'closed' && !this.isClosing && this.handlers.size > 0) {
             this.sseConnected = false;
             // Fall back to WS if available
@@ -386,6 +416,15 @@ class WebSocketService {
               this.connectWsChannel(false);
             }, 5000);
           }
+          return;
+        }
+
+        const closeClassification = classifyLegacyWebSocketClose(event);
+        if (closeClassification === 'incompatible') {
+          this.isConnected = false;
+          this.transportMode = 'none';
+          this.notifyConnection(false);
+          this.notifyConnectionState('incompatible');
           return;
         }
 

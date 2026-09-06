@@ -1,0 +1,41 @@
+metadata:
+  schema_version: "1.0.0"
+  created_at: "2026-09-06T22:10:00Z"
+  description: "Provenance for HotM #304 quick-start status terminology update"
+entity:
+  id: "urn:aiwg:artifact:docs/quick-start.md"
+  type: documentation
+  created_at: "2026-09-06T22:10:00Z"
+  checksum: "sha256:9b02754e03a27be788e9b51f97a59f8125fc7962294769eb01c40550e4553fa1"
+  size_bytes: 5099
+  attributes:
+    change_scope: "hotm-304-auth-realtime-status"
+    base_revision: "8213e2d21adac03358c2e7681a08eedae155835e"
+activity:
+  id: "urn:aiwg:activity:modification:hotm-304-quick-start:001"
+  type: modification
+  started_at: "2026-09-06T22:00:00Z"
+  ended_at: "2026-09-06T22:10:00Z"
+  description: "Add Auth Required as distinct from Offline Mode"
+agent:
+  id: "urn:aiwg:agent:software-implementer"
+  type: ai_assistant
+  name: "Software Implementer"
+  version: "gpt-5-codex"
+  tool: "codex"
+relationships:
+  wasGeneratedBy:
+    entity: "urn:aiwg:artifact:docs/quick-start.md"
+    activity: "urn:aiwg:activity:modification:hotm-304-quick-start:001"
+    time: "2026-09-06T22:10:00Z"
+  used:
+    - activity: "urn:aiwg:activity:modification:hotm-304-quick-start:001"
+      entity: "urn:gitea:Fortemi/HotM:issue:304"
+      role: "requirement"
+  wasAssociatedWith:
+    activity: "urn:aiwg:activity:modification:hotm-304-quick-start:001"
+    agent: "urn:aiwg:agent:software-implementer"
+    role: "primary_author"
+  wasAttributedTo:
+    entity: "urn:aiwg:artifact:docs/quick-start.md"
+    agent: "urn:aiwg:agent:software-implementer"

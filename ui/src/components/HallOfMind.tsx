@@ -217,6 +217,15 @@ const writeNotesNavigatorExpanded = (isDesktop: boolean, value: boolean): void =
   }
 };
 
+function isAuthorizationRequiredError(error: unknown): boolean {
+  if (!error || typeof error !== "object") {
+    return false;
+  }
+  const statusCode = (error as { statusCode?: unknown; status?: unknown }).statusCode
+    ?? (error as { statusCode?: unknown; status?: unknown }).status;
+  return statusCode === 401 || statusCode === 403;
+}
+
 export function HallOfMind() {
   // Use the global context menu prevention hook
   useGlobalContextMenuPrevention();
@@ -258,6 +267,7 @@ export function HallOfMind() {
     degraded?: boolean;
     message?: string;
   } | null>(null);
+  const [notesAuthRequired, setNotesAuthRequired] = useState(false);
   const [newNoteContent, setNewNoteContent] = useState("");
   const [processingNotes, setProcessingNotes] = useState<Set<string>>(new Set());
   const [extractionProgress, setExtractionProgress] = useState<Map<string, {
@@ -290,6 +300,8 @@ export function HallOfMind() {
     transportMode: realtimeTransportMode,
     replayCursor,
   } = useWebSocket();
+  const realtimeAuthRequired = realtimeConnectionState === "auth-required";
+  const sessionAuthRequired = Boolean(serverStatus?.ok && (notesAuthRequired || realtimeAuthRequired));
   
   // Refs for notification grouping and metadata caching
   const savedNotes = useRef<Map<string, NoteFull>>(new Map());
@@ -1070,6 +1082,7 @@ export function HallOfMind() {
       setNotes(simpleNotes);
       setNotesOffset(simpleNotes.length);
       setHasMoreNotes(simpleNotes.length < page.total);
+      setNotesAuthRequired(false);
 
       if (selectedNote) {
         const updatedSelected = simpleNotes.find((n) => n.id === selectedNote.id);
@@ -1086,6 +1099,9 @@ export function HallOfMind() {
       }
     } catch (error) {
       console.error("Failed to load notes:", error);
+      if (isAuthorizationRequiredError(error)) {
+        setNotesAuthRequired(true);
+      }
     } finally {
       setIsLoading(false);
     }
@@ -1134,6 +1150,11 @@ export function HallOfMind() {
     }
     
     // Only create notes on the server when connected
+    if (sessionAuthRequired) {
+      alert("Cannot create notes until this session is authorized.");
+      return;
+    }
+
     if (!serverStatus?.ok) {
       alert("Cannot create notes while offline. Please check your connection.");
       return;
@@ -1198,6 +1219,11 @@ export function HallOfMind() {
 
   const regenerateAI = async (requestOrMode?: string | RegenerateAIRequest) => {
     if (!selectedNote) return;
+
+    if (sessionAuthRequired) {
+      alert("Cannot regenerate until this session is authorized.");
+      return;
+    }
 
     if (!serverStatus?.ok) {
       alert("Cannot regenerate while offline. Please check your connection.");
@@ -1379,6 +1405,11 @@ export function HallOfMind() {
     if (!selectedNote) return;
     
     // Only save to server
+    if (sessionAuthRequired) {
+      alert("Cannot save until this session is authorized.");
+      return;
+    }
+
     if (!serverStatus?.ok) {
       alert("Cannot save while offline. Please check your connection.");
       return;
@@ -1873,7 +1904,12 @@ export function HallOfMind() {
             {/* Server Status */}
             <div className="mt-2 flex items-center justify-between">
               <div className="flex items-center gap-2 text-xs">
-                {serverStatus?.ok && !serverStatus.degraded ? (
+                {sessionAuthRequired ? (
+                  <>
+                    <Shield className="h-3 w-3 text-yellow-500" />
+                    <span className="text-yellow-600 dark:text-yellow-400">Auth Required</span>
+                  </>
+                ) : serverStatus?.ok && !serverStatus.degraded ? (
                   <>
                     <CheckCircle className="h-3 w-3 text-green-500" />
                     <span className="text-green-600 dark:text-green-400">API Connected</span>
@@ -2182,7 +2218,7 @@ export function HallOfMind() {
                       onClick={createNewNote}
                       className="w-full justify-start gap-2"
                       variant="default"
-                      disabled={isLoading || !serverStatus?.ok || !newNoteContent.trim()}
+                      disabled={isLoading || sessionAuthRequired || !serverStatus?.ok || !newNoteContent.trim()}
                     >
                       <Plus className="h-4 w-4" />
                       {isLoading ? 'Creating...' : 'Create Note'}
@@ -2286,7 +2322,7 @@ export function HallOfMind() {
                     size="sm"
                     onClick={saveNote}
                     className="gap-2"
-                    disabled={isLoading || (savedNotes.current.has(selectedNote.id) && !serverStatus?.ok)}
+                    disabled={isLoading || sessionAuthRequired || (savedNotes.current.has(selectedNote.id) && !serverStatus?.ok)}
                   >
                     <Save className="h-4 w-4" />
                     {isLoading ? 'Saving...' : 'Save'}
@@ -2315,6 +2351,17 @@ export function HallOfMind() {
           </header>
 
           <main className="flex-1 p-6 overflow-auto">
+            {sessionAuthRequired && (
+              <div className="mb-4 rounded-md border border-yellow-200 bg-yellow-50 px-4 py-3 text-sm text-yellow-900 dark:border-yellow-900/60 dark:bg-yellow-950/40 dark:text-yellow-100">
+                <div className="flex items-start gap-2">
+                  <Shield className="mt-0.5 h-4 w-4 flex-shrink-0" />
+                  <div>
+                    <div className="font-medium">Authentication required</div>
+                    <div>Fortemi is reachable, but this session is not authorized for notes or realtime events.</div>
+                  </div>
+                </div>
+              </div>
+            )}
             {currentView === "capture" ? (
               <QuickCapturePage />
             ) : currentView === "collections" ? (
@@ -2553,9 +2600,14 @@ export function HallOfMind() {
                         </CardTitle>
                       </CardHeader>
                       <CardContent className="space-y-1 text-sm">
-                        <Badge variant={realtimeConnected ? "secondary" : "destructive"}>
+                        <Badge variant={sessionAuthRequired ? "outline" : realtimeConnected ? "secondary" : "destructive"}>
                           {realtimeConnectionState ?? (realtimeConnected ? "connected" : "disconnected")}
                         </Badge>
+                        {sessionAuthRequired && (
+                          <div className="text-yellow-600 dark:text-yellow-400">
+                            authorization required for notes or events
+                          </div>
+                        )}
                         <div className="text-muted-foreground">
                           transport: {realtimeTransportMode ?? "none"}
                         </div>

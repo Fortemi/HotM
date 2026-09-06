@@ -368,6 +368,32 @@ describe('HallOfMind WebSocket Integration', () => {
   });
 
   describe('WebSocket Error Handling', () => {
+    it('shows auth-required state when health is reachable but notes and events are unauthorized', async () => {
+      const unauthorized = Object.assign(new Error('Unauthorized'), { statusCode: 401 });
+      mockApi.getNotes.mockRejectedValue(unauthorized);
+      mockUseWebSocket.mockReturnValue({
+        connected: false,
+        connectionState: 'auth-required',
+        transportMode: 'none',
+        queueStatus: {
+          total_jobs: 0,
+          running: 0,
+          pending: 0,
+        },
+        queueStatusAgeMs: 0,
+        isQueueStalled: false,
+        sendMessage: vi.fn(),
+      });
+
+      render(<HallOfMind />);
+
+      await waitFor(() => {
+        expect(screen.getByText('Auth Required')).toBeInTheDocument();
+      });
+      expect(screen.queryByText('Offline Mode')).not.toBeInTheDocument();
+      expect(screen.getByText(/Fortemi is reachable, but this session is not authorized for notes or realtime events/i)).toBeInTheDocument();
+    });
+
     it('handles WebSocket connection failures gracefully', async () => {
       // Test with WebSocket that fails to connect
       mockUseWebSocket.mockReturnValue({

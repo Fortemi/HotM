@@ -44,7 +44,13 @@ export interface ServerEvent {
 }
 
 type EventHandler = (event: ServerEvent) => void;
-type EventsClientStatus = 'connecting' | 'connected' | 'reconnecting' | 'closed';
+export type EventsClientStatus =
+  | 'connecting'
+  | 'connected'
+  | 'reconnecting'
+  | 'auth-required'
+  | 'incompatible'
+  | 'closed';
 
 export interface EventsClientOptions {
   onStatusChange?: (status: EventsClientStatus) => void;
@@ -232,6 +238,15 @@ export function createEventsClient(baseUrl: string, options: EventsClientOptions
       });
 
       if (!response.ok) {
+        await response.body?.cancel().catch(() => undefined);
+        if (response.status === 401 || response.status === 403) {
+          notifyStatus('auth-required');
+          return;
+        }
+        if (response.status === 410) {
+          notifyStatus('incompatible');
+          return;
+        }
         throw new Error(`SSE endpoint returned ${response.status}`);
       }
 
