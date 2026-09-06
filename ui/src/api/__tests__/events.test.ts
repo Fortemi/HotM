@@ -380,6 +380,56 @@ describe('events client replay handling', () => {
     }
   });
 
+  it('stops native retries when an established session expires', async () => {
+    const fetchMock = vi.fn<typeof fetch>()
+      .mockResolvedValueOnce(new Response('', { status: 200 }))
+      .mockResolvedValueOnce(new Response('', { status: 401 }));
+    vi.stubGlobal('fetch', fetchMock);
+    const statuses: EventsClientStatus[] = [];
+    const client = createEventsClient('http://localhost:3000/api/v1', {
+      onStatusChange: (status) => statuses.push(status),
+    });
+    client.subscribe(vi.fn());
+    await vi.advanceTimersByTimeAsync(0);
+    const source = MockEventSource.instances[0];
+    source.readyState = MockEventSource.OPEN;
+    source.onopen?.();
+    source.readyState = MockEventSource.CONNECTING;
+    source.onerror?.();
+    source.onerror?.();
+    await vi.advanceTimersByTimeAsync(10000);
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(statuses[statuses.length - 1]).toBe('auth-required');
+    expect(source.readyState).toBe(MockEventSource.CLOSED);
+    client.close();
+  });
+
+  it('ignores a delayed auth probe from a replaced native connection', async () => {
+    let resolveOldProbe!: (response: Response) => void;
+    const fetchMock = vi.fn<typeof fetch>()
+      .mockImplementationOnce(() => new Promise<Response>((resolve) => { resolveOldProbe = resolve; }))
+      .mockResolvedValueOnce(new Response('', { status: 200 }));
+    vi.stubGlobal('fetch', fetchMock);
+    const statuses: EventsClientStatus[] = [];
+    const client = createEventsClient('http://localhost:3000/api/v1', {
+      onStatusChange: (status) => statuses.push(status),
+    });
+    client.subscribe(vi.fn());
+    const first = MockEventSource.instances[0];
+    first.readyState = MockEventSource.CLOSED;
+    first.onerror?.();
+    await vi.advanceTimersByTimeAsync(2000);
+    const second = MockEventSource.instances[1];
+    second.readyState = MockEventSource.OPEN;
+    second.onopen?.();
+    resolveOldProbe(new Response('', { status: 401 }));
+    await vi.advanceTimersByTimeAsync(0);
+    expect(second.readyState).toBe(MockEventSource.OPEN);
+    expect(statuses[statuses.length - 1]).toBe('connected');
+    expect(fetchMock.mock.calls[0][1]?.signal?.aborted).toBe(true);
+    client.close();
+  });
+
   it('classifies visible native EventSource 401 preflight as auth-required without reconnecting', async () => {
     const fetchMock = vi.fn<typeof fetch>().mockResolvedValue(
       new Response('', { status: 401, statusText: 'Unauthorized' }),

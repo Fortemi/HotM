@@ -163,6 +163,8 @@ export function unwrapServerEventEnvelope(data: Record<string, unknown>): Server
 export function createEventsClient(baseUrl: string, options: EventsClientOptions = {}) {
   let eventSource: EventSource | null = null;
   let fetchAbort: AbortController | null = null;
+  let nativeProbeAbort: AbortController | null = null;
+  let nativeGeneration = 0;
   let reconnectTimeout: ReturnType<typeof setTimeout> | null = null;
   const handlers = new Set<EventHandler>();
   let isClosing = false;
@@ -326,12 +328,13 @@ export function createEventsClient(baseUrl: string, options: EventsClientOptions
     }
   }
 
-  async function probeNativeEventSourceStatus(url: string): Promise<EventsClientStatus | null> {
+  async function probeNativeEventSourceStatus(url: string, signal: AbortSignal): Promise<EventsClientStatus | null> {
     if (typeof fetch !== 'function') return null;
 
     try {
       const response = await fetch(url, {
         headers: getRequestHeaders(),
+        signal,
       });
       await response.body?.cancel().catch(() => undefined);
       if (response.status === 401 || response.status === 403) return 'auth-required';
@@ -346,6 +349,7 @@ export function createEventsClient(baseUrl: string, options: EventsClientOptions
 
   function applyTerminalNativeStatus(status: EventsClientStatus): void {
     if (status !== 'auth-required' && status !== 'incompatible') return;
+    nativeGeneration++;
     if (reconnectTimeout) {
       clearTimeout(reconnectTimeout);
       reconnectTimeout = null;
@@ -369,13 +373,29 @@ export function createEventsClient(baseUrl: string, options: EventsClientOptions
       const url = new URL(getEventsUrl());
       if (options.memory) url.searchParams.set('memory', options.memory);
       const eventSourceUrl = url.toString();
-      void probeNativeEventSourceStatus(eventSourceUrl).then((status) => {
-        if (!status || isClosing) return;
-        applyTerminalNativeStatus(status);
-      });
+      const generation = ++nativeGeneration;
+      nativeProbeAbort?.abort();
+      let probeInFlight = false;
+      const probeStatus = () => {
+        if (probeInFlight || generation !== nativeGeneration || isClosing) return;
+        probeInFlight = true;
+        const controller = new AbortController();
+        nativeProbeAbort = controller;
+        const timeout = setTimeout(() => controller.abort(), 5000);
+        void probeNativeEventSourceStatus(eventSourceUrl, controller.signal).then((status) => {
+          if (!status || isClosing || generation !== nativeGeneration) return;
+          applyTerminalNativeStatus(status);
+        }).finally(() => {
+          clearTimeout(timeout);
+          probeInFlight = false;
+          if (nativeProbeAbort === controller) nativeProbeAbort = null;
+        });
+      };
+      probeStatus();
       eventSource = new EventSource(eventSourceUrl);
 
       eventSource.onopen = () => {
+        if (generation !== nativeGeneration) return;
         isClosing = false;
         notifyStatus('connected');
       };
@@ -403,6 +423,10 @@ export function createEventsClient(baseUrl: string, options: EventsClientOptions
       }
 
       eventSource.onerror = () => {
+        if (generation !== nativeGeneration || isClosing) return;
+        // Recheck when an established stream starts retrying: its session may
+        // have expired since the initial connection probe.
+        probeStatus();
         // EventSource exposes HTTP failures only as generic errors. A same-origin
         // fetch probe above supplies terminal auth/incompatibility status when
         // the browser can reveal it; until then, avoid starting an eager loop.
@@ -535,6 +559,9 @@ export function createEventsClient(baseUrl: string, options: EventsClientOptions
 
   function closeConnection(): void {
     isClosing = true;
+    nativeGeneration++;
+    nativeProbeAbort?.abort();
+    nativeProbeAbort = null;
     if (reconnectTimeout) {
       clearTimeout(reconnectTimeout);
       reconnectTimeout = null;
