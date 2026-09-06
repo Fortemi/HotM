@@ -1,13 +1,13 @@
 metadata:
   schema_version: "1.0.0"
-  created_at: "2026-09-06T22:10:00Z"
+  created_at: "2026-09-06T22:29:24Z"
   description: "Provenance for HotM #304 realtime status guidance"
 entity:
   id: "urn:aiwg:artifact:docs/testing/realtime-convergence.md"
   type: documentation
-  created_at: "2026-09-06T22:10:00Z"
-  checksum: "sha256:912c9be2d5f51d8c6cf1a09ba49ea52778d4422e0cc6f46b39f75b7dd9270daf"
-  size_bytes: 1703
+  created_at: "2026-09-06T22:29:24Z"
+  checksum: "sha256:fd6c154729cf9eaefc93126672f3fe47bbd341b5356da6b3144cfcfccbf6377b"
+  size_bytes: 2474
   attributes:
     change_scope: "hotm-304-auth-realtime-status"
     base_revision: "8213e2d21adac03358c2e7681a08eedae155835e"
@@ -15,8 +15,8 @@ activity:
   id: "urn:aiwg:activity:modification:hotm-304-realtime-docs:001"
   type: modification
   started_at: "2026-09-06T22:00:00Z"
-  ended_at: "2026-09-06T22:10:00Z"
-  description: "Document Auth Required, legacy WebSocket 410, and Offline Mode distinction"
+  ended_at: "2026-09-06T22:29:24Z"
+  description: "Document Auth Required, native EventSource probe, opaque legacy WebSocket limits, and Offline Mode distinction"
 agent:
   id: "urn:aiwg:agent:software-implementer"
   type: ai_assistant
@@ -27,7 +27,7 @@ relationships:
   wasGeneratedBy:
     entity: "urn:aiwg:artifact:docs/testing/realtime-convergence.md"
     activity: "urn:aiwg:activity:modification:hotm-304-realtime-docs:001"
-    time: "2026-09-06T22:10:00Z"
+    time: "2026-09-06T22:29:24Z"
   used:
     - activity: "urn:aiwg:activity:modification:hotm-304-realtime-docs:001"
       entity: "urn:gitea:Fortemi/HotM:issue:304"

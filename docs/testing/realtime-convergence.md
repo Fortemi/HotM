@@ -18,17 +18,29 @@ npm run test:realtime
 - SSE replay cursor reconnect path (`last_event_id`)
 - Auth-required classification for reachable Fortemi sessions whose notes or
   SSE requests return `401` or `403`
-- Legacy WebSocket `410 Gone` classification as transport incompatibility,
-  not a Fortemi outage
+- Native EventSource visible-status probing so same-origin `401`/`403`/`410`
+  handshakes become terminal auth/incompatibility states instead of retry churn
+- Reauthentication recovery with a new bearer token and tenant-bound fetch SSE
+  subscription
+- Legacy WebSocket admission policy for anonymous-local, unscoped sessions only;
+  opaque browser WebSocket handshake failures remain transport failures unless a
+  close reason/status is actually visible
 
 ## Status Guidance
 
 `Offline Mode` is reserved for health-check or transport reachability failure.
 When health is reachable but notes or realtime events are unauthorized, HotM
 must show `Auth Required` and keep note mutations disabled until the session has
-valid Fortemi authorization. A legacy `/api/v1/ws` `410 Gone` response means the
-old anonymous-local WebSocket receive path is incompatible; it should not be
-reported as an outage when SSE or health proves Fortemi is reachable.
+valid Fortemi authorization. Fetch-based SSE can classify `401`/`403` and `410`
+directly. Native EventSource cannot expose HTTP status through `onerror`, so
+HotM performs a same-origin fetch status probe and cancels native reconnects
+when that probe reveals an auth or incompatibility terminal state.
+
+The legacy `/api/v1/ws` path is allowed only for the advertised anonymous-local,
+unscoped profile. Browser WebSocket upgrade failures usually surface as opaque
+`1006` closes without the HTTP status; those are treated as transport failures
+and may retry. Only an actually visible `410` status/reason is classified as
+legacy incompatibility.
 
 ## CI
 

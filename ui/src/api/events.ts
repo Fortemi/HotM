@@ -326,6 +326,35 @@ export function createEventsClient(baseUrl: string, options: EventsClientOptions
     }
   }
 
+  async function probeNativeEventSourceStatus(url: string): Promise<EventsClientStatus | null> {
+    if (typeof fetch !== 'function') return null;
+
+    try {
+      const response = await fetch(url, {
+        headers: getRequestHeaders(),
+      });
+      await response.body?.cancel().catch(() => undefined);
+      if (response.status === 401 || response.status === 403) return 'auth-required';
+      if (response.status === 410) return 'incompatible';
+    } catch {
+      // Native EventSource remains the transport authority when a same-origin
+      // status probe is unavailable, for example under browser CORS rules.
+    }
+
+    return null;
+  }
+
+  function applyTerminalNativeStatus(status: EventsClientStatus): void {
+    if (status !== 'auth-required' && status !== 'incompatible') return;
+    if (reconnectTimeout) {
+      clearTimeout(reconnectTimeout);
+      reconnectTimeout = null;
+    }
+    eventSource?.close();
+    eventSource = null;
+    notifyStatus(status);
+  }
+
   /**
    * Native EventSource for web/browser mode.
    */
@@ -339,7 +368,12 @@ export function createEventsClient(baseUrl: string, options: EventsClientOptions
       notifyStatus('connecting');
       const url = new URL(getEventsUrl());
       if (options.memory) url.searchParams.set('memory', options.memory);
-      eventSource = new EventSource(url.toString());
+      const eventSourceUrl = url.toString();
+      void probeNativeEventSourceStatus(eventSourceUrl).then((status) => {
+        if (!status || isClosing) return;
+        applyTerminalNativeStatus(status);
+      });
+      eventSource = new EventSource(eventSourceUrl);
 
       eventSource.onopen = () => {
         isClosing = false;
@@ -369,10 +403,10 @@ export function createEventsClient(baseUrl: string, options: EventsClientOptions
       }
 
       eventSource.onerror = () => {
-        // EventSource fires onerror during auto-reconnection attempts.
-        // Don't close — let the browser handle reconnection natively.
+        // EventSource exposes HTTP failures only as generic errors. A same-origin
+        // fetch probe above supplies terminal auth/incompatibility status when
+        // the browser can reveal it; until then, avoid starting an eager loop.
         if (eventSource?.readyState === EventSource.CLOSED) {
-          // Server permanently closed the connection; manual reconnect needed
           eventSource = null;
           if (!isClosing && handlers.size > 0) {
             notifyStatus('reconnecting');

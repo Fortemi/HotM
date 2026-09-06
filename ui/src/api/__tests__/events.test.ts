@@ -129,6 +129,47 @@ describe('events client replay handling', () => {
     client.close();
   });
 
+  it('allows a new authenticated subscription to resume realtime after auth-required', async () => {
+    const fetchMock = vi.fn<typeof fetch>()
+      .mockResolvedValueOnce(new Response('', { status: 401, statusText: 'Unauthorized' }))
+      .mockResolvedValueOnce(new Response(
+        'id: evt-reauth\nevent: queue.status\ndata: {"event_type":"queue.status","payload":{"type":"QueueStatus","total_jobs":1}}\n\n',
+        { status: 200, headers: { 'Content-Type': 'text/event-stream' } },
+      ));
+    vi.stubGlobal('fetch', fetchMock);
+
+    const unauthorizedStatuses: EventsClientStatus[] = [];
+    const unauthorizedClient = createEventsClient('http://localhost:3000/api/v1', {
+      preferFetch: true,
+      onStatusChange: (status) => unauthorizedStatuses.push(status),
+    });
+    unauthorizedClient.subscribe(vi.fn());
+    await vi.waitFor(() => expect(unauthorizedStatuses).toContain('auth-required'));
+    unauthorizedClient.close();
+
+    const authorizedStatuses: EventsClientStatus[] = [];
+    const handler = vi.fn();
+    const authorizedClient = createEventsClient('http://localhost:3000/api/v1', {
+      authorization: 'Bearer fresh-session-token',
+      tenantId: 'tenant-a',
+      preferFetch: true,
+      onStatusChange: (status) => authorizedStatuses.push(status),
+    });
+    authorizedClient.subscribe(handler);
+
+    await vi.waitFor(() => expect(handler).toHaveBeenCalledWith(expect.objectContaining({
+      type: 'queue.status',
+      event_id: 'evt-reauth',
+      total_jobs: 1,
+    })));
+
+    const authorizedHeaders = new Headers(fetchMock.mock.calls[1][1]?.headers);
+    expect(authorizedStatuses).toContain('connected');
+    expect(authorizedHeaders.get('Authorization')).toBe('Bearer fresh-session-token');
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    authorizedClient.close();
+  });
+
   it('normalizes base URLs that already include /api/v1', () => {
     const handler = vi.fn();
     const client = createEventsClient('http://localhost:3000/api/v1');
@@ -338,4 +379,26 @@ describe('events client replay handling', () => {
       expect(normalized.raw_event_type).toBe(mutation.eventType);
     }
   });
+
+  it('classifies visible native EventSource 401 preflight as auth-required without reconnecting', async () => {
+    const fetchMock = vi.fn<typeof fetch>().mockResolvedValue(
+      new Response('', { status: 401, statusText: 'Unauthorized' }),
+    );
+    vi.stubGlobal('fetch', fetchMock);
+    const statuses: EventsClientStatus[] = [];
+    const client = createEventsClient('http://localhost:3000/api/v1', {
+      onStatusChange: (status) => statuses.push(status),
+    });
+
+    client.subscribe(vi.fn());
+
+    await vi.waitFor(() => expect(statuses).toContain('auth-required'));
+    await vi.advanceTimersByTimeAsync(10_000);
+
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(MockEventSource.instances).toHaveLength(1);
+    expect(statuses).not.toContain('reconnecting');
+    client.close();
+  });
+
 });

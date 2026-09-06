@@ -1,13 +1,13 @@
 metadata:
   schema_version: "1.0.0"
-  created_at: "2026-09-06T22:10:00Z"
+  created_at: "2026-09-06T22:29:24Z"
   description: "Provenance for HotM #304 SSE auth-required and incompatibility status handling"
 entity:
   id: "urn:aiwg:artifact:ui/src/api/events.ts"
   type: source
-  created_at: "2026-09-06T22:10:00Z"
-  checksum: "sha256:db0a787b8a171d0bf08d593bd64a5635059a50224cfadd9abb2b44acd030b214"
-  size_bytes: 18344
+  created_at: "2026-09-06T22:29:24Z"
+  checksum: "sha256:d2c89a01db9a06a4c74f9480b6ff7d87709e6742995425a33a0d7844e6773a55"
+  size_bytes: 19558
   attributes:
     change_scope: "hotm-304-auth-realtime-status"
     base_revision: "8213e2d21adac03358c2e7681a08eedae155835e"
@@ -15,8 +15,8 @@ activity:
   id: "urn:aiwg:activity:modification:hotm-304-events-status:001"
   type: modification
   started_at: "2026-09-06T22:00:00Z"
-  ended_at: "2026-09-06T22:10:00Z"
-  description: "Classify SSE 401/403 as auth-required and 410 as incompatible without reconnect churn"
+  ended_at: "2026-09-06T22:29:24Z"
+  description: "Classify fetch/native SSE 401/403 as auth-required and 410 as incompatible without reconnect churn"
 agent:
   id: "urn:aiwg:agent:software-implementer"
   type: ai_assistant
@@ -27,7 +27,7 @@ relationships:
   wasGeneratedBy:
     entity: "urn:aiwg:artifact:ui/src/api/events.ts"
     activity: "urn:aiwg:activity:modification:hotm-304-events-status:001"
-    time: "2026-09-06T22:10:00Z"
+    time: "2026-09-06T22:29:24Z"
   used:
     - activity: "urn:aiwg:activity:modification:hotm-304-events-status:001"
       entity: "urn:gitea:Fortemi/HotM:issue:304"

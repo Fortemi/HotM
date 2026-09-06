@@ -1,13 +1,13 @@
 metadata:
   schema_version: "1.0.0"
-  created_at: "2026-09-06T22:10:00Z"
+  created_at: "2026-09-06T22:29:24Z"
   description: "Provenance for HotM #304 mocked Playwright auth/reachability browser spec"
 entity:
   id: "urn:aiwg:artifact:ui/e2e/tests/realtime-auth-status.spec.ts"
   type: test
-  created_at: "2026-09-06T22:10:00Z"
-  checksum: "sha256:9410084bf6333e7ddd9c55ffbc2f774da18ff2a3aa1a44ed3942ef102a7eecd4"
-  size_bytes: 6278
+  created_at: "2026-09-06T22:29:24Z"
+  checksum: "sha256:4b7800171de529da3b33bf9f44445309d3fd57f874ac388ab94d2eeef78f1caf"
+  size_bytes: 6811
   attributes:
     change_scope: "hotm-304-auth-realtime-status"
     base_revision: "8213e2d21adac03358c2e7681a08eedae155835e"
@@ -15,8 +15,8 @@ activity:
   id: "urn:aiwg:activity:generation:hotm-304-playwright-status:001"
   type: generation
   started_at: "2026-09-06T22:00:00Z"
-  ended_at: "2026-09-06T22:10:00Z"
-  description: "Cover reachable+401, reachable+legacyWS410, and unreachable browser-visible shell states"
+  ended_at: "2026-09-06T22:29:24Z"
+  description: "Cover reachable+401, opaque legacy WebSocket handshake failure, and unreachable browser-visible shell states"
 agent:
   id: "urn:aiwg:agent:software-implementer"
   type: ai_assistant
@@ -27,7 +27,7 @@ relationships:
   wasGeneratedBy:
     entity: "urn:aiwg:artifact:ui/e2e/tests/realtime-auth-status.spec.ts"
     activity: "urn:aiwg:activity:generation:hotm-304-playwright-status:001"
-    time: "2026-09-06T22:10:00Z"
+    time: "2026-09-06T22:29:24Z"
   used:
     - activity: "urn:aiwg:activity:generation:hotm-304-playwright-status:001"
       entity: "urn:gitea:Fortemi/HotM:issue:304"

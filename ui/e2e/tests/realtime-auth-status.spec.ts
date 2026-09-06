@@ -66,7 +66,7 @@ test.describe('Realtime auth and reachability status', () => {
       required: true,
       mode: 'hosted',
       oauth_issuer_configured: true,
-      tenant_context_available: false,
+      tenant_context_available: true,
     });
     await page.route('**/api/v1/notes?*', async (route) => {
       await route.fulfill({ status: 401, contentType: 'application/json', body: JSON.stringify({ error: 'Unauthorized' }) });
@@ -83,8 +83,9 @@ test.describe('Realtime auth and reachability status', () => {
     await expect(page.getByText(/Fortemi is reachable, but this session is not authorized for notes or realtime events/i)).toBeVisible();
   });
 
-  test('shows incompatible for legacy WebSocket 410 without calling it offline', async ({ page }) => {
+  test('treats opaque legacy WebSocket HTTP 410 handshake failure as transport failure', async ({ page }) => {
     await page.addInitScript(() => {
+      (window as unknown as { __HOTM_WS_ATTEMPTS__?: number }).__HOTM_WS_ATTEMPTS__ = 0;
       class MockWebSocket extends EventTarget {
         static CONNECTING = 0;
         static OPEN = 1;
@@ -98,9 +99,10 @@ test.describe('Realtime auth and reachability status', () => {
 
         constructor(public readonly url: string) {
           super();
+          (window as unknown as { __HOTM_WS_ATTEMPTS__: number }).__HOTM_WS_ATTEMPTS__ += 1;
           setTimeout(() => {
             this.readyState = MockWebSocket.CLOSED;
-            const close = new CloseEvent('close', { code: 410, reason: 'Gone' });
+            const close = new CloseEvent('close', { code: 1006, reason: '' });
             this.onclose?.(close);
             this.dispatchEvent(close);
           }, 0);
@@ -128,7 +130,10 @@ test.describe('Realtime auth and reachability status', () => {
     await openSidebar(page);
 
     await expect(page.getByText('Offline Mode')).not.toBeVisible();
-    await expect(page.getByRole('button', { name: /open realtime activity/i }).getByText('incompatible')).toBeVisible();
+    await expect.poll(() => page.evaluate(() => (window as unknown as { __HOTM_WS_ATTEMPTS__?: number }).__HOTM_WS_ATTEMPTS__ ?? 0)).toBeGreaterThan(0);
+    await page.waitForTimeout(3200);
+    await expect.poll(() => page.evaluate(() => (window as unknown as { __HOTM_WS_ATTEMPTS__?: number }).__HOTM_WS_ATTEMPTS__ ?? 0)).toBeGreaterThan(1);
+    await expect(page.getByRole('button', { name: /open realtime activity/i }).getByText('incompatible')).not.toBeVisible();
   });
 
   test('keeps Offline Mode reserved for health-check unreachability', async ({ page }) => {
