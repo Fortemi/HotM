@@ -1,0 +1,44 @@
+metadata:
+  schema_version: "1.0.0"
+  created_at: "2026-09-06T22:32:46Z"
+  description: "Provenance for HotM #306 Agent Proxy dependency audit fix"
+entity:
+  id: "urn:aiwg:artifact:agent-proxy/package.json"
+  type: configuration
+  created_at: "2026-09-06T22:32:46Z"
+  checksum: "sha256:8ee2480e5f929b41546da1a881f4922cad152be56460b76d5af1a0cbfffc2f8f"
+  size_bytes: 1075
+  attributes:
+    change_scope: "hotm-306-agent-proxy-audit"
+    base_revision: "8213e2d21adac03358c2e7681a08eedae155835e"
+activity:
+  id: "urn:aiwg:activity:modification:hotm-306-agent-proxy-package-json:001"
+  type: modification
+  started_at: "2026-09-06T22:32:46Z"
+  ended_at: "2026-09-06T22:32:46Z"
+  description: "Add qs override to clear Agent Proxy audit blocker"
+agent:
+  id: "urn:aiwg:agent:software-implementer"
+  type: ai_assistant
+  name: "Software Implementer"
+  version: "gpt-6-codex"
+  tool: "codex"
+relationships:
+  wasGeneratedBy:
+    entity: "urn:aiwg:artifact:agent-proxy/package.json"
+    activity: "urn:aiwg:activity:modification:hotm-306-agent-proxy-package-json:001"
+    time: "2026-09-06T22:32:46Z"
+  used:
+    - activity: "urn:aiwg:activity:modification:hotm-306-agent-proxy-package-json:001"
+      entity: "urn:gitea:Fortemi/HotM:issue:306"
+      role: "requirement"
+    - activity: "urn:aiwg:activity:modification:hotm-306-agent-proxy-package-json:001"
+      entity: "urn:gitea:Fortemi/HotM:pull:305"
+      role: "ci_blocker_evidence"
+  wasAssociatedWith:
+    activity: "urn:aiwg:activity:modification:hotm-306-agent-proxy-package-json:001"
+    agent: "urn:aiwg:agent:software-implementer"
+    role: "primary_author"
+  wasAttributedTo:
+    entity: "urn:aiwg:artifact:agent-proxy/package.json"
+    agent: "urn:aiwg:agent:software-implementer"
