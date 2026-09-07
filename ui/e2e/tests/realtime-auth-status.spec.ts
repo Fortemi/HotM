@@ -1,5 +1,12 @@
 import { expect, test, type Page, type Route } from '@playwright/test';
 
+// Keep unrelated API calls isolated when these checks target a published UI.
+test.beforeEach(async ({ page }) => {
+  await page.route('**/api/v1/**', (route) => route.fulfill({
+    status: 200, contentType: 'application/json', body: '{}',
+  }));
+});
+
 const compatibilityBase = {
   schema_version: 1,
   contract_revision: '2026-07-06',
@@ -37,11 +44,21 @@ async function installHealthyRoutes(page: Page, auth: Record<string, unknown>) {
     await route.fulfill({
       status: 200,
       contentType: 'application/json',
-      body: JSON.stringify({ ...compatibilityBase, auth }),
+      body: JSON.stringify({
+        ...compatibilityBase,
+        auth: {
+          ...auth,
+          ...(auth.required ? {
+            claim_contract_version: '1.1.0',
+            claim_contract_profile: 'rust-node-jwt-v1',
+            authority_release: 'v2026.8.1',
+          } : {}),
+        },
+      }),
     });
   });
   await page.route(
-    (url) => url.origin === 'http://localhost:3000' && (url.pathname === '/health' || url.pathname.startsWith('/health/')),
+    (url) => (url.pathname === '/healthz' || url.pathname === '/health' || url.pathname.startsWith('/health/')),
     healthy,
   );
   await page.route('**/api/v1/health', healthy);
@@ -71,7 +88,9 @@ test.describe('Realtime auth and reachability status', () => {
     await page.route('**/api/v1/notes?*', async (route) => {
       await route.fulfill({ status: 401, contentType: 'application/json', body: JSON.stringify({ error: 'Unauthorized' }) });
     });
+    let sseResponses = 0;
     await page.route('**/api/v1/events**', async (route) => {
+      sseResponses++;
       await route.fulfill({ status: 401, contentType: 'text/plain', body: 'Unauthorized' });
     });
 
@@ -79,6 +98,32 @@ test.describe('Realtime auth and reachability status', () => {
     await openSidebar(page);
 
     await expect(page.getByText('Auth Required')).toBeVisible();
+    await expect.poll(() => sseResponses).toBeGreaterThan(0);
+    await expect(page.getByText('Offline Mode')).not.toBeVisible();
+    await expect(page.getByText(/Fortemi is reachable, but this session is not authorized for notes or realtime events/i)).toBeVisible();
+  });
+
+  test('shows auth-required when Fortemi is reachable but notes and SSE return 403', async ({ page }) => {
+    await installHealthyRoutes(page, {
+      required: true,
+      mode: 'hosted',
+      oauth_issuer_configured: true,
+      tenant_context_available: true,
+    });
+    await page.route('**/api/v1/notes?*', async (route) => {
+      await route.fulfill({ status: 403, contentType: 'application/json', body: JSON.stringify({ error: 'Forbidden' }) });
+    });
+    let sseResponses = 0;
+    await page.route('**/api/v1/events**', async (route) => {
+      sseResponses++;
+      await route.fulfill({ status: 403, contentType: 'text/plain', body: 'Forbidden' });
+    });
+
+    await page.goto('/', { waitUntil: 'domcontentloaded' });
+    await openSidebar(page);
+
+    await expect(page.getByText('Auth Required')).toBeVisible();
+    await expect.poll(() => sseResponses).toBeGreaterThan(0);
     await expect(page.getByText('Offline Mode')).not.toBeVisible();
     await expect(page.getByText(/Fortemi is reachable, but this session is not authorized for notes or realtime events/i)).toBeVisible();
   });
@@ -153,7 +198,7 @@ test.describe('Realtime auth and reachability status', () => {
       });
     });
     await page.route(
-      (url) => url.origin === 'http://localhost:3000' && (url.pathname === '/health' || url.pathname.startsWith('/health/')),
+      (url) => (url.pathname === '/healthz' || url.pathname === '/health' || url.pathname.startsWith('/health/')),
       async (route) => route.abort('failed'),
     );
     await page.route('**/api/v1/health', async (route) => route.abort('failed'));
@@ -168,4 +213,26 @@ test.describe('Realtime auth and reachability status', () => {
     await expect(page.getByText('Offline Mode')).toBeVisible();
     await expect(page.getByText('Auth Required')).not.toBeVisible();
   });
+});
+
+test('reports observable SSE 410 as incompatible while health remains reachable', async ({ page }) => {
+  let eventResponses = 0;
+  page.on('response', (response) => {
+    if (response.url().includes('/events') && response.status() === 410) eventResponses++;
+  });
+  await installHealthyRoutes(page, {
+    required: true, mode: 'hosted', oauth_issuer_configured: true, tenant_context_available: true,
+  });
+  await page.route('**/api/v1/notes?*', (route) => route.fulfill({
+    status: 200, contentType: 'application/json', body: JSON.stringify({ notes: [], total: 0 }),
+  }));
+  await page.route('**/api/v1/events**', (route) => route.fulfill({
+    status: 410, contentType: 'text/plain', body: 'Gone',
+  }));
+  await page.goto('/', { waitUntil: 'domcontentloaded' });
+  await openSidebar(page);
+  await expect(page.getByRole('button', { name: /open realtime activity/i }).getByText('incompatible')).toBeVisible();
+  await expect.poll(() => eventResponses).toBeGreaterThan(0);
+  await expect(page.getByText('Offline Mode')).not.toBeVisible();
+  await expect(page.getByText('Auth Required')).not.toBeVisible();
 });
