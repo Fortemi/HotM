@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2026.9.3] - 2026-09-07
+
+### Fixed
+
+- Keep the UI compatibility test fixture within the standalone UI build context by deriving its authority tuple from the pinned UI receipt. The 2026.9.2 container publisher could not resolve the fixture's sibling agent-proxy import; its signed tag remains unchanged.
+- Preserve exact Fortemi Auth `v2026.9.0` admission and the verified server source pin for configurable CA deployments.
+
 ## [2026.9.2] - 2026-09-07
 
 ### Changed

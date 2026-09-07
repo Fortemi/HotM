@@ -1,4 +1,4 @@
-import releasePolicy from '../../../../agent-proxy/src/auth/fixtures/fortemi-auth-release-policy-v1.json';
+import compatibilityReceipt from '../contracts/fortemi-system-compatibility-receipt.json';
 import { describe, expect, it, vi } from 'vitest';
 import {
   createCompatibilityAdmissionGate,
@@ -188,7 +188,7 @@ describe('Fortemi compatibility boundary', () => {
       tenant_context_available: true,
       claim_contract_version: '1.1.0',
       claim_contract_profile: 'rust-node-jwt-v1',
-      authority_release: releasePolicy.current_release.tag,
+      authority_release: compatibilityReceipt.consumer.acceptedAuthAuthorityReleases[0],
     };
 
     expect(normalizeSystemCompatibility(
