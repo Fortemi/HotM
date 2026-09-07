@@ -114,7 +114,7 @@ describe('CoreContentLifecyclePanel second increment', () => {
     vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => undefined);
   });
 
-  it('dispatches collection, template, and document workflows with explicit states', async () => {
+  it('dispatches collection workflows with explicit states', async () => {
     const user = userEvent.setup();
     render(<CoreContentLifecyclePanel />);
     await openTab(user, 'Content tools');
@@ -129,6 +129,12 @@ describe('CoreContentLifecyclePanel second increment', () => {
     await waitFor(() => expect(mocks.collections.moveNote).toHaveBeenCalledWith('note-1', { collection_id: 'collection-1' }));
     await user.click(screen.getByRole('button', { name: 'Remove from collection' }));
     await waitFor(() => expect(mocks.collections.moveNote).toHaveBeenLastCalledWith('note-1', { collection_id: null }));
+  }, 10_000);
+
+  it('loads and instantiates a template after explicit confirmation', async () => {
+    const user = userEvent.setup();
+    render(<CoreContentLifecyclePanel />);
+    await openTab(user, 'Content tools');
 
     await user.type(screen.getByLabelText('Template ID'), 'template-1');
     await user.type(screen.getByLabelText('Template variables'), 'topic=contracts');
@@ -138,6 +144,12 @@ describe('CoreContentLifecyclePanel second increment', () => {
     await confirm(user, 'Create note');
     await waitFor(() => expect(mocks.templates.instantiate).toHaveBeenCalledWith('template-1', { variables: { topic: 'contracts' } }));
     expect(screen.getByText('Created note note-created from template; status=created.')).toBeVisible();
+  }, 10_000);
+
+  it('reports document detection states and updates a document type', async () => {
+    const user = userEvent.setup();
+    render(<CoreContentLifecyclePanel />);
+    await openTab(user, 'Content tools');
 
     await user.type(screen.getByLabelText('Detection filename'), 'unknown.bin');
     await user.click(screen.getByRole('button', { name: 'Detect type' }));
@@ -151,7 +163,7 @@ describe('CoreContentLifecyclePanel second increment', () => {
     await waitFor(() => expect(mocks.documents.update).toHaveBeenCalledWith('report', { display_name: 'Report' }));
   }, 10_000);
 
-  it('reports job partial states and confirms global and archive transitions', async () => {
+  it('reports job and queue partial states', async () => {
     const user = userEvent.setup();
     render(<CoreContentLifecyclePanel />);
     await openTab(user, 'Jobs');
@@ -166,18 +178,37 @@ describe('CoreContentLifecyclePanel second increment', () => {
     }
     expect(await screen.findByText('2/4 extraction jobs completed')).toBeVisible();
     expect(screen.getByText('partial')).toBeVisible();
+  }, 10_000);
+
+  it('confirms global job pause and resume transitions', async () => {
+    const user = userEvent.setup();
+    render(<CoreContentLifecyclePanel />);
+    await openTab(user, 'Jobs');
 
     for (const [button, action] of [
       ['Pause all jobs', 'Pause jobs'],
       ['Resume all jobs', 'Resume jobs'],
-      ['Pause archive jobs', 'Pause archive'],
-      ['Resume archive jobs', 'Resume archive'],
     ] as const) {
       await user.click(screen.getByRole('button', { name: button }));
       await confirm(user, action);
     }
     expect(mocks.jobs.pauseGlobal).toHaveBeenCalledOnce();
     expect(mocks.jobs.resumeGlobal).toHaveBeenCalledOnce();
+  }, 10_000);
+
+  it('confirms archive job pause and resume transitions', async () => {
+    const user = userEvent.setup();
+    render(<CoreContentLifecyclePanel />);
+    await openTab(user, 'Jobs');
+    await user.type(screen.getByLabelText('Job archive'), 'research');
+
+    for (const [button, action] of [
+      ['Pause archive jobs', 'Pause archive'],
+      ['Resume archive jobs', 'Resume archive'],
+    ] as const) {
+      await user.click(screen.getByRole('button', { name: button }));
+      await confirm(user, action);
+    }
     expect(mocks.jobs.pauseArchive).toHaveBeenCalledWith('research');
     expect(mocks.jobs.resumeArchive).toHaveBeenCalledWith('research');
     expect(screen.getByText('research jobs running.')).toBeVisible();
