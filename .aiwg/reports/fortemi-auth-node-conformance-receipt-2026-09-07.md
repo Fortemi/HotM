@@ -19,7 +19,7 @@ related_issues:
 This candidate advances HotM's exact hosted admission tuple for the server's
 configurable CA support. The producer manifest is unchanged. The exact release policy and published signed authority identity are pinned
 below. The server compatibility source is pinned to
-`942309ad4f8f79c860762bacb515183653cadd9f` and the canonical verifier passes.
+`088932c008af8e4f89ef6055ef85d700001c2dd5` and the canonical verifier passes.
 
 The historical July and August receipts remain unchanged. Node conformance
 covers the named fixture-backed JWT profile and release admission only. It does
@@ -43,7 +43,18 @@ Published signed authority `v2026.9.0` targets
 54930 and was fast-forwarded before publication. The release SBOM pipeline was
 dispatched separately; no SBOM publication result is claimed by this receipt.
 
-The server source commit `942309ad4f8f79c860762bacb515183653cadd9f` is pinned
+The server source commit `088932c008af8e4f89ef6055ef85d700001c2dd5` is pinned
 in both UI and agent-proxy compatibility receipts. The canonical compatibility
 source verifier passes against that exact commit. Server CI and release
 publication remain separate delivery gates. No live-hosted result is claimed.
+
+
+## CI browser fixture correction
+
+PR CI run 54949 passed 85 mocked browser cases and exposed an initial-render
+race in the compatibility-admission fixture. Network idle preceded React
+navigation rendering, so the desktop test attempted a mobile sidebar action.
+The fixture now waits for Quick Note or the sidebar toggle before branching.
+All mutation-blocking and local-draft preservation assertions remain intact.
+Twenty repeated cases (ten desktop, ten mobile) passed in one minute; receipt
+`/tmp/hotm-ca-1144-admission-repeat.json`.

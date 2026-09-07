@@ -99,7 +99,7 @@ Current disposition and Authority sections record the delivered August baseline;
 the September receipt pins signed authority `v2026.9.0` at
 `cff36d293d73080c186e2f35115dd92a594982d2` (tag object
 `fb4c74a0918c9d5206c48b511dff19f6e2072053`). Its verified server source pin is
-`942309ad4f8f79c860762bacb515183653cadd9f`. Server CI and release publication
+`088932c008af8e4f89ef6055ef85d700001c2dd5`. Server CI and release publication
 remain separate delivery gates. See
 `.aiwg/reports/fortemi-auth-node-conformance-receipt-2026-09-07.md`.
 

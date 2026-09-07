@@ -393,7 +393,7 @@ server's advertised tuple. Auth fixtures consume the vendored producer policy.
 The current source and consumer conformance receipt is
 `.aiwg/reports/fortemi-auth-node-conformance-receipt-2026-09-07.md`.
 It pins signed authority `v2026.9.0` and server source
-`942309ad4f8f79c860762bacb515183653cadd9f`; the canonical source verifier
+`088932c008af8e4f89ef6055ef85d700001c2dd5`; the canonical source verifier
 passes. Server CI/release publication remain separate delivery gates. Earlier
 dated receipts retain their original release identities and evidence scope.
 Custom certificate configuration belongs to the Fortemi server deployment;

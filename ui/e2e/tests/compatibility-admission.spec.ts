@@ -45,7 +45,12 @@ test.describe('Runtime compatibility admission', () => {
 
     const sidebarToggle = page.getByRole('button', { name: /toggle sidebar/i });
     const quickNote = page.getByRole('button', { name: 'Quick Note' });
-    if (!(await quickNote.isVisible().catch(() => false))) {
+    // Network idle can precede React rendering. Wait for either viewport's
+    // navigation before deciding whether the mobile sidebar needs opening.
+    await expect.poll(async () =>
+      await quickNote.isVisible() || await sidebarToggle.isVisible(),
+    ).toBe(true);
+    if (!(await quickNote.isVisible())) {
       await sidebarToggle.click();
     }
     await expect(quickNote).toBeVisible();

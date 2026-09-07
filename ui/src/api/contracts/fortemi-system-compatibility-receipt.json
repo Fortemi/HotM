@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "producer": {
     "repository": "Fortemi/fortemi",
-    "commit": "942309ad4f8f79c860762bacb515183653cadd9f",
+    "commit": "088932c008af8e4f89ef6055ef85d700001c2dd5",
     "profile": {
       "path": "contracts/suite-conformance/platform-matrix.json",
       "sha256": "27e4ccc8b29d825de669c75cb5b9f642f444f92fc1fc29022b7955a35ba923fe"
