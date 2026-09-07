@@ -1,6 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { OperationCatalogPanel } from '../OperationCatalogPanel';
 import ledger from '@/api/contracts/fortemi-operation-dispositions.json';
 
@@ -27,16 +26,16 @@ describe('OperationCatalogPanel', () => {
 
     expect(screen.getByText(new RegExp(`${ledger.operation_count} pinned operations`))).toBeInTheDocument();
     expect(screen.getByText(/does not establish request, response, auth/)).toBeInTheDocument();
-    await userEvent.type(screen.getByPlaceholderText('Search operations'), 'oauth_discovery');
+    await waitFor(() => expect(screen.getByText('Compatible')).toBeInTheDocument());
+    fireEvent.change(screen.getByPlaceholderText('Search operations'), { target: { value: 'oauth_discovery' } });
     expect(screen.getByText('oauth_discovery')).toBeInTheDocument();
     expect(screen.queryByText('create_note')).not.toBeInTheDocument();
-    await waitFor(() => expect(screen.getByText('Compatible')).toBeInTheDocument());
   });
 
   it('keeps excluded credential operations visible and disabled', async () => {
     vi.mocked(api.systemCompatibility.get).mockResolvedValue({} as never);
     render(<OperationCatalogPanel />);
-    await userEvent.type(screen.getByPlaceholderText('Search operations'), 'oauth_token');
+    fireEvent.change(screen.getByPlaceholderText('Search operations'), { target: { value: 'oauth_token' } });
     const operation = screen.getByText('oauth_token');
     expect(operation.closest('tr')).toHaveAttribute('aria-disabled', 'true');
     expect(screen.getByText('Disabled')).toBeInTheDocument();

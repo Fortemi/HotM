@@ -1,0 +1,20 @@
+schema_version: "prov-record.v1"
+entity:
+  id: "urn:aiwg:artifact:ui/src/components/admin/__tests__/OperationCatalogPanel.test.tsx"
+  path: "ui/src/components/admin/__tests__/OperationCatalogPanel.test.tsx"
+  sha256: "f98dac65bfc9d26f1cde96f4f6c36657bd1aad25caa6dad5a76778b00d71758f"
+activity:
+  id: "urn:aiwg:activity:hotm-release-2026-9-0-admin-test-stabilization"
+  type: "modification"
+  started_at: "2026-09-07T00:27:00Z"
+  ended_at: "2026-09-07T00:27:00Z"
+agent:
+  id: "urn:aiwg:agent:software-implementer"
+  type: "software-implementer"
+  name: "Codex"
+wasGeneratedBy:
+  entity: "urn:aiwg:artifact:ui/src/components/admin/__tests__/OperationCatalogPanel.test.tsx"
+  activity: "urn:aiwg:activity:hotm-release-2026-9-0-admin-test-stabilization"
+wasAssociatedWith:
+  activity: "urn:aiwg:activity:hotm-release-2026-9-0-admin-test-stabilization"
+  agent: "urn:aiwg:agent:software-implementer"
