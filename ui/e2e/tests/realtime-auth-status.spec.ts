@@ -72,8 +72,14 @@ async function installHealthyRoutes(page: Page, auth: Record<string, unknown>) {
 
 async function openSidebar(page: Page) {
   const sidebarHeading = page.getByText('Hall of the Mind', { exact: true });
-  if (await sidebarHeading.isVisible().catch(() => false)) return;
-  await page.getByRole('button', { name: 'Toggle Sidebar', exact: true }).first().click();
+  const sidebarToggle = page.getByRole('button', { name: 'Toggle Sidebar', exact: true }).first();
+  // DOMContentLoaded may precede React rendering. Wait for the desktop heading
+  // or mobile control before deciding whether the sidebar needs opening.
+  await expect.poll(async () =>
+    await sidebarHeading.isVisible() || await sidebarToggle.isVisible(),
+  ).toBe(true);
+  if (await sidebarHeading.isVisible()) return;
+  await sidebarToggle.click();
   await expect(sidebarHeading).toBeVisible();
 }
 
