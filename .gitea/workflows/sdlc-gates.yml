@@ -109,6 +109,12 @@ jobs:
             ui/src/api/contracts/fortemi-asyncapi-event-fixtures.json \
             ui/src/api/contracts/fortemi-asyncapi-event-validation-rules.json
 
+      - name: Verify independent live-server AsyncAPI authority
+        shell: bash
+        run: |
+          node --test .aiwg/testing/scripts/live-asyncapi-authority.test.mjs
+          node .aiwg/testing/scripts/verify-fortemi-live-asyncapi-authority.mjs ../fortemi
+
       - name: Verify Fortemi OpenAPI consumer contract
         shell: bash
         run: |

@@ -559,3 +559,17 @@ Custom certificate configuration belongs to the Fortemi server deployment;
 this change adds no browser certificate override. Live hosted authentication,
 tenant isolation, and reauthentication/realtime recovery still require the
 configured environment and a separate executed receipt.
+
+
+## Independent live-server AsyncAPI authority (2026-09-07)
+
+`fortemi-live-asyncapi-authority-receipt.json` independently pins the current
+server's canonical AsyncAPI document and producer sources. Its verifier reads
+exact Git objects, excluding only `info` metadata when comparing the complete
+wire document against the packaged baseline. Existing 48-event payload fixtures,
+validation rules, event catalog, and desktop sidecar provenance retain their
+original identities and run their existing conformance gates. The new CI gate
+rejects schema, channel, operation, server, protocol, source-hash, or fixture
+coverage drift. This separates live-server compatibility evidence from packaged
+sidecar delivery; neither source comparison nor fixtures prove live transport
+execution. The live receipt must contain an immutable producer SHA before release.

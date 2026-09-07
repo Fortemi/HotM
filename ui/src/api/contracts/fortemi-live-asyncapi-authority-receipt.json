@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "authority": {
+    "repository": "Fortemi/fortemi",
+    "commit": "c3bfd40b275decd5a24c4e9a656d830a383b3de2",
+    "artifact": {
+      "path": "contracts/asyncapi/asyncapi.yaml",
+      "sha256": "a6c845b023815a739630fe212c26d83746516052fd2fb131cf7063b01b915462",
+      "sizeBytes": 45159,
+      "generatorVersion": "2026.9.7"
+    },
+    "sources": [
+      {
+        "path": "crates/matric-core/src/asyncapi.rs",
+        "sha256": "4b88481ba0b3bb85211cb635acbfc97edbfbae44cf6bf469c7ccd573cbe7d433"
+      },
+      {
+        "path": "crates/matric-core/src/events.rs",
+        "sha256": "758ff7f7e1e5d17c364f818637d1154d074b53db8c44abc4167ec7257d51e57b"
+      }
+    ]
+  },
+  "packagedBaseline": {
+    "commit": "5ea08229c9f1565122df5f8e6906e89d98dc7e75",
+    "catalog": "ui/src/api/contracts/fortemi-event-catalog.json",
+    "fixtures": "ui/src/api/contracts/fortemi-asyncapi-event-fixtures.json",
+    "rules": "ui/src/api/contracts/fortemi-asyncapi-event-validation-rules.json"
+  },
+  "semanticComparison": "Entire parsed document except info metadata; all schemas, channels, operations, servers and protocol versions must be equal.",
+  "evidenceScope": "Independent live-server authority source pin and semantic comparison against separately validated packaged fixtures. Does not advance packaged sidecar provenance or establish live transport, auth, or tenant-isolation execution."
+}

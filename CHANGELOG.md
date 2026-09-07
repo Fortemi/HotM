@@ -10,6 +10,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 - Keep the UI compatibility test fixture within the standalone UI build context by deriving its authority tuple from the pinned UI receipt. The 2026.9.2 container publisher could not resolve the fixture's sibling agent-proxy import; its signed tag remains unchanged.
 - Preserve exact Fortemi Auth `v2026.9.0` admission and the verified server source pin for configurable CA deployments.
+- Verify the current live-server AsyncAPI source independently of packaged desktop sidecar provenance, retaining the existing 48-event fixtures.
 
 ## [2026.9.2] - 2026-09-07
 
