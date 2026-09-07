@@ -69,7 +69,10 @@ test('bundle commit tag fails closed', () => withFixture((target) => {
 }));
 
 test('non-CalVer package version fails closed', () => withFixture((target) => {
-  mutate(target, 'ui/package.json', '"version": "2026.7.1"', '"version": "dev"');
+  const path = resolve(target, 'ui/package.json');
+  const text = readFileSync(path, 'utf8');
+  assert.match(text, /"version": "[0-9]{4}\.(?:[1-9]|1[0-2])\.[0-9]+"/);
+  writeFileSync(path, text.replace(/"version": "[^"]+"/, '"version": "dev"'));
   const result = runVerifier(target);
   assert.notEqual(result.status, 0);
   assert.match(result.stderr, /not YYYY\.M\.P CalVer/);

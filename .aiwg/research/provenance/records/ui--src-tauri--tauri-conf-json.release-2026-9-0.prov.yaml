@@ -1,0 +1,23 @@
+schema_version: "prov-record.v1"
+entity:
+  id: "urn:aiwg:artifact:ui/src-tauri/tauri.conf.json"
+  path: "ui/src-tauri/tauri.conf.json"
+  sha256: "3f3bef85e9decc575edfd024538fd3b312bec283dba43ec96d7cad160dcd953f"
+activity:
+  id: "urn:aiwg:activity:hotm-release-2026-9-0-modification"
+  type: "modification"
+  started_at: "2026-09-07T00:05:40Z"
+  ended_at: "2026-09-07T00:05:40Z"
+agent:
+  id: "urn:aiwg:agent:software-implementer"
+  type: "software-implementer"
+  name: "Codex"
+wasGeneratedBy:
+  entity: "urn:aiwg:artifact:ui/src-tauri/tauri.conf.json"
+  activity: "urn:aiwg:activity:hotm-release-2026-9-0-modification"
+wasAssociatedWith:
+  activity: "urn:aiwg:activity:hotm-release-2026-9-0-modification"
+  agent: "urn:aiwg:agent:software-implementer"
+wasDerivedFrom:
+    - entity: "urn:aiwg:artifact:2x.png"
+      type: "derives_from"

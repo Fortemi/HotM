@@ -1,0 +1,20 @@
+schema_version: "prov-record.v1"
+entity:
+  id: "urn:aiwg:artifact:scripts/ci/test-verify-container-release-policy.mjs"
+  path: "scripts/ci/test-verify-container-release-policy.mjs"
+  sha256: "a08c1854e11e75d1efcce3be1464135df51ce1c38e89460a0bba21e562c8bebc"
+activity:
+  id: "urn:aiwg:activity:hotm-release-2026-9-0-test-modification"
+  type: "modification"
+  started_at: "2026-09-07T00:06:17Z"
+  ended_at: "2026-09-07T00:06:17Z"
+agent:
+  id: "urn:aiwg:agent:software-implementer"
+  type: "software-implementer"
+  name: "Codex"
+wasGeneratedBy:
+  entity: "urn:aiwg:artifact:scripts/ci/test-verify-container-release-policy.mjs"
+  activity: "urn:aiwg:activity:hotm-release-2026-9-0-test-modification"
+wasAssociatedWith:
+  activity: "urn:aiwg:activity:hotm-release-2026-9-0-test-modification"
+  agent: "urn:aiwg:agent:software-implementer"

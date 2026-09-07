@@ -4,6 +4,27 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2026.9.0] - 2026-09-06
+
+### Fixed
+
+- **Realtime auth status (#304):** classify Fortemi-reachable unauthenticated realtime sessions as auth-required instead of leaving the Activity widget in generic reconnecting/offline behavior. SSE `401`/`403` responses now become terminal auth-required state, legacy WebSocket `410` is treated as expected legacy incompatibility for non-anonymous-local mode, stale native auth probes are generation-guarded, and successful reauthentication resumes realtime delivery.
+- **Installed loopback API origin (#173):** normalize same-protocol, same-port loopback API base URLs to the browser page origin so an installed page opened at `127.0.0.1` does not send Backup → Reprocess requests to a separately spelled `localhost` origin. The fix applies to the main API client, compatibility client, and realtime base URL selection while preserving split-port development and non-loopback deployments.
+- **Release-blocking dependency audits:** retain the minimal agent-proxy `qs` override and UI `fflate` override needed for current moderate audit gates to pass before release qualification.
+
+### Verification
+
+- #304 was delivered at HotM commit `41f279c2a35c849031b7325028fec75e8bc2720f` with current-head CI green: docs-link-check `54377`, docsite-build `54378`, sdlc-gates `54379`, tauri-build `54380`, and ui-ci `54381`.
+- #173 was delivered at HotM commit `de1ff24dc69c4f44530d201c8ab6c977fe3369fa` with current-head CI green: sdlc-gates `54424`, tauri-build `54425`, and ui-ci `54426`.
+- Focused local validation covered realtime auth-required/offline distinctions, native-probe lifecycle safeguards, API base URL normalization, Backup Manager reprocess behavior, UI typecheck/build, and dependency audit checks.
+- Branch browser proof for #173 used only temporary synthetic media against the installed backend: normalized same-origin reprocess returned HTTP 200, queued `title_generation` and `ai_revision`, completed AI revision with revision changed `true`, and cleaned the synthetic note/archive with 204 responses.
+
+### Compatibility
+
+- This release does not change the Fortemi sidecar pin; bundled desktop runtime assets remain `sidecar-5ea08229c9f1` at Fortemi commit `5ea08229c9f1565122df5f8e6906e89d98dc7e75`.
+- The #173 branch-browser receipt is not an installed replacement receipt. Closing #173 still requires a published/installed UI artifact containing `de1ff24dc69c4f44530d201c8ab6c977fe3369fa`, followed by a fresh `127.0.0.1:4180` synthetic media retest that records reprocess response, title behavior, revision behavior, job durations, force/result fields, and cleanup IDs separately.
+- No unqualified full parity, complete backup, all-platform portability, launched GUI/native-dialog coverage, or shared persistence-plane schema claim is made. Knowledge Shard and suite portability claims remain profile- and receipt-scoped while the suite audit is `NO-GO`.
+
 ## [2026.7.1] - 2026-07-29
 
 ### Fixed
