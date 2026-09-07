@@ -1,3 +1,4 @@
+import releasePolicy from '../../../../agent-proxy/src/auth/fixtures/fortemi-auth-release-policy-v1.json';
 import { describe, expect, it, vi } from 'vitest';
 import {
   createCompatibilityAdmissionGate,
@@ -187,7 +188,7 @@ describe('Fortemi compatibility boundary', () => {
       tenant_context_available: true,
       claim_contract_version: '1.1.0',
       claim_contract_profile: 'rust-node-jwt-v1',
-      authority_release: 'v2026.8.1',
+      authority_release: releasePolicy.current_release.tag,
     };
 
     expect(normalizeSystemCompatibility(

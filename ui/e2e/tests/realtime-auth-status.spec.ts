@@ -1,4 +1,10 @@
+import { readFileSync } from 'node:fs';
 import { expect, test, type Page, type Route } from '@playwright/test';
+
+const releasePolicy = JSON.parse(readFileSync(
+  new URL('../../../agent-proxy/src/auth/fixtures/fortemi-auth-release-policy-v1.json', import.meta.url),
+  'utf8',
+));
 
 // Keep unrelated API calls isolated when these checks target a published UI.
 test.beforeEach(async ({ page }) => {
@@ -51,7 +57,7 @@ async function installHealthyRoutes(page: Page, auth: Record<string, unknown>) {
           ...(auth.required ? {
             claim_contract_version: '1.1.0',
             claim_contract_profile: 'rust-node-jwt-v1',
-            authority_release: 'v2026.8.1',
+            authority_release: releasePolicy.current_release.tag,
           } : {}),
         },
       }),

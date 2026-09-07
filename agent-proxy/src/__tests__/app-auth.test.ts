@@ -1,3 +1,4 @@
+import releasePolicy from '../auth/fixtures/fortemi-auth-release-policy-v1.json';
 import type { AddressInfo } from 'node:net';
 import { describe, expect, it, vi } from 'vitest';
 
@@ -10,7 +11,7 @@ const hostedCompatibility = async () => ({
     mode: 'hosted_oauth',
     claimContractVersion: '1.1.0',
     claimContractProfile: 'rust-node-jwt-v1',
-    authorityRelease: 'v2026.8.1',
+    authorityRelease: releasePolicy.current_release.tag,
   },
 });
 

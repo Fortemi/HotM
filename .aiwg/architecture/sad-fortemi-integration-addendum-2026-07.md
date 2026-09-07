@@ -538,3 +538,24 @@ introduced. The aggregate matrix is 1 integrated, 219 partial, 0 gaps, and 31
 documented exclusions, with 12 conformant agent dimensions. All 251 live
 dimensions remain gaps because the authenticated asset workflow receipt is not
 an immutable exact-operation receipt.
+
+
+## Custom CA authority release integration (2026-09-07)
+
+Fortemi/fortemi-auth#50 and Fortemi/fortemi#1144 introduce explicit custom PEM
+trust roots for the server's discovery and JWKS HTTPS client. HotM consumes the
+new exact authority release `v2026.9.0`, retaining contract `1.1.0`, profile
+`rust-node-jwt-v1`, RS256 verification, and the unchanged authority corpus.
+The UI and agent proxy must advance their admission receipts together with the
+server's advertised tuple. Auth fixtures consume the vendored producer policy.
+
+The current source and consumer conformance receipt is
+`.aiwg/reports/fortemi-auth-node-conformance-receipt-2026-09-07.md`.
+It pins signed authority `v2026.9.0` and server source
+`942309ad4f8f79c860762bacb515183653cadd9f`; the canonical source verifier
+passes. Server CI/release publication remain separate delivery gates. Earlier
+dated receipts retain their original release identities and evidence scope.
+Custom certificate configuration belongs to the Fortemi server deployment;
+this change adds no browser certificate override. Live hosted authentication,
+tenant isolation, and reauthentication/realtime recovery still require the
+configured environment and a separate executed receipt.

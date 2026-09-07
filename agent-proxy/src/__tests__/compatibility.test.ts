@@ -1,3 +1,4 @@
+import releasePolicy from '../auth/fixtures/fortemi-auth-release-policy-v1.json';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   assertCompatibleFortemi,
@@ -49,7 +50,7 @@ describe('agent-proxy compatibility admission', () => {
         mode: 'hosted_oauth',
         claim_contract_version: '1.1.0',
         claim_contract_profile: 'rust-node-jwt-v1',
-        authority_release: 'v2026.8.1',
+        authority_release: releasePolicy.current_release.tag,
       },
     }))).toEqual({
       auth: {
@@ -57,7 +58,7 @@ describe('agent-proxy compatibility admission', () => {
         mode: 'hosted_oauth',
         claimContractVersion: '1.1.0',
         claimContractProfile: 'rust-node-jwt-v1',
-        authorityRelease: 'v2026.8.1',
+        authorityRelease: releasePolicy.current_release.tag,
       },
     });
   });
@@ -73,7 +74,7 @@ describe('agent-proxy compatibility admission', () => {
       mode: 'hosted_oauth',
       claim_contract_version: '1',
       claim_contract_profile: 'rust-node-jwt-v1',
-      authority_release: 'v2026.8.1',
+      authority_release: releasePolicy.current_release.tag,
     } }, 'unsupported_auth_contract'],
     [{ auth: {
       required: true,

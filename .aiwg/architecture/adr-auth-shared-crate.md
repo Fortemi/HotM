@@ -88,3 +88,21 @@ proves the JWT-to-transaction-to-forced-RLS chain and cross-tenant denial.
 - Release-policy SHA-256: `d70491c336a62508ef3c7937af709dd121a6ec4f421ceab66486af3f371de8db`
 - Tenant-store producer: `Fortemi/fortemi` commit `65a77ccd380e19f4fb23ff14286d7f9880fb8308`, `crates/matric-api/src/hosted_auth.rs`
 - Tenant-store producer-file SHA-256: `a5979c414b28b0dafde6234ff34222e92af99c80b65206078b1b442f6c0c511e`
+
+
+## Custom CA release consumer update (2026-09-07)
+
+The candidate admission policy advances to `v2026.9.0` for
+Fortemi/fortemi-auth#50 and Fortemi/fortemi#1144. The JWT contract `1.1.0`,
+`rust-node-jwt-v1` profile and manifest digest are unchanged. The earlier
+Current disposition and Authority sections record the delivered August baseline;
+the September receipt pins signed authority `v2026.9.0` at
+`cff36d293d73080c186e2f35115dd92a594982d2` (tag object
+`fb4c74a0918c9d5206c48b511dff19f6e2072053`). Its verified server source pin is
+`942309ad4f8f79c860762bacb515183653cadd9f`. Server CI and release publication
+remain separate delivery gates. See
+`.aiwg/reports/fortemi-auth-node-conformance-receipt-2026-09-07.md`.
+
+The server owns custom PEM trust roots for discovery and JWKS. HotM does not
+disable TLS verification or add a browser certificate bypass. Hosted environment
+qualification remains separate from fixture-backed release admission.

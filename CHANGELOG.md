@@ -4,6 +4,18 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2026.9.2] - 2026-09-07
+
+### Changed
+
+- Advance hosted compatibility admission to Fortemi Auth `v2026.9.0`, contract `1.1.0`, profile `rust-node-jwt-v1`, for the server's configurable CA bundle release (Fortemi/fortemi-auth#50, Fortemi/fortemi#1144).
+- Consume the exact authority release policy in agent-proxy and realtime browser fixtures. Earlier authority releases and unknown release identities continue to fail closed.
+
+### Compatibility
+
+- Custom PEM CA configuration belongs to the Fortemi server. This release adds no browser certificate override and preserves TLS verification.
+- Live hosted authentication, tenant isolation, and realtime recovery require separate environment qualification. The desktop sidecar pin is unchanged.
+
 ## [2026.9.1] - 2026-09-06
 
 ### Fixed

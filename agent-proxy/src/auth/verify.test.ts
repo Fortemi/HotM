@@ -12,7 +12,7 @@ import {
 } from './verify.js';
 
 const MANIFEST_SHA256 = '2df0a35edad67cc3e8869286183a4d098b1eb8fc2161432ed0b54ba69b17e242';
-const RELEASE_POLICY_SHA256 = 'd70491c336a62508ef3c7937af709dd121a6ec4f421ceab66486af3f371de8db';
+const RELEASE_POLICY_SHA256 = 'bd77fbeba24991f969d07e5f45c5259504e52bb5ab9d7c4137abb22270c4abe8';
 const FIXTURE_TENANT_ID = '00000000-0000-4000-8000-000000000001';
 
 interface ReleaseIdentity {
@@ -55,8 +55,8 @@ describe('fortemi-auth rust-node-jwt-v1 conformance', () => {
     expect(releasePolicy.policy_id).toBe('fortemi-auth-release-compatibility');
     expect(releasePolicy.policy_version).toBe('1.1.0');
     expect(releasePolicy.release_scheme).toBe('calver-yyyy-m-patch');
-    expect(releasePolicy.current_release.version).toBe('2026.8.1');
-    expect(releasePolicy.current_release.tag).toBe('v2026.8.1');
+    expect(releasePolicy.current_release.version).toBe('2026.9.0');
+    expect(releasePolicy.current_release.tag).toBe('v2026.9.0');
     expect(releasePolicy.current_release.version).toMatch(/^\d{4}\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/);
 
     for (const testCase of releasePolicy.compatibility_cases) {

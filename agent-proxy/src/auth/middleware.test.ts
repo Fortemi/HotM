@@ -1,3 +1,4 @@
+import releasePolicy from './fixtures/fortemi-auth-release-policy-v1.json';
 import express from 'express';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import manifest from './fixtures/fortemi-auth-v1.json';
@@ -17,7 +18,7 @@ const hostedCompatibility = async () => ({
     mode: 'hosted_oauth',
     claimContractVersion: '1.1.0',
     claimContractProfile: 'rust-node-jwt-v1',
-    authorityRelease: 'v2026.8.1',
+    authorityRelease: releasePolicy.current_release.tag,
   },
 });
 
@@ -85,7 +86,7 @@ afterEach(() => {
 
 describe('agent auth middleware', () => {
   it('admits only the exact released environment identity', () => {
-    vi.stubEnv('FORTEMI_AUTH_RELEASE', '2026.8.1');
+    vi.stubEnv('FORTEMI_AUTH_RELEASE', releasePolicy.current_release.version);
     vi.stubEnv('FORTEMI_AUTH_CONTRACT_VERSION', '1.1.0');
     vi.stubEnv('FORTEMI_AUTH_PROFILE', 'rust-node-jwt-v1');
     vi.stubEnv('FORTEMI_AUTH_ISSUER', 'https://issuer.example');

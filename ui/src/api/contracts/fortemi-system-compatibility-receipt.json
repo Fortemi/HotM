@@ -2,27 +2,37 @@
   "schemaVersion": 1,
   "producer": {
     "repository": "Fortemi/fortemi",
-    "commit": "65a77ccd380e19f4fb23ff14286d7f9880fb8308",
+    "commit": "942309ad4f8f79c860762bacb515183653cadd9f",
     "profile": {
       "path": "contracts/suite-conformance/platform-matrix.json",
       "sha256": "27e4ccc8b29d825de669c75cb5b9f642f444f92fc1fc29022b7955a35ba923fe"
     },
     "responseSource": {
       "path": "crates/matric-api/src/main.rs",
-      "sha256": "99194ee9eed90b21896b2cf9904ae33243cd7932c240244d4b3b6c28a79c8703"
+      "sha256": "8eb82dbcbfef9f0b798d465db1a17809f0b6d4a3498462d3fcba630801d633da"
     }
   },
   "consumer": {
     "apiName": "fortemi",
     "hotmClientVersion": "2026.7.1",
     "compatibilitySchemaVersion": 1,
-    "acceptedContractRevisions": ["2026-07-06"],
+    "acceptedContractRevisions": [
+      "2026-07-06"
+    ],
     "minimumServerApiVersion": "2026.7.0",
     "maximumServerApiVersionExclusive": "2027.0.0",
-    "acceptedAuthClaimContractVersions": ["1.1.0"],
-    "acceptedAuthClaimContractProfiles": ["rust-node-jwt-v1"],
-    "acceptedAuthAuthorityReleases": ["v2026.8.1"],
-    "localAuthModes": ["anonymous_local"]
+    "acceptedAuthClaimContractVersions": [
+      "1.1.0"
+    ],
+    "acceptedAuthClaimContractProfiles": [
+      "rust-node-jwt-v1"
+    ],
+    "acceptedAuthAuthorityReleases": [
+      "v2026.9.0"
+    ],
+    "localAuthModes": [
+      "anonymous_local"
+    ]
   },
-  "evidenceScope": "Pinned producer profile and response source plus the consumer's exact hosted auth authority tuple; the pinned producer source advertises the accepted tuple. This is not a live hosted response or end-to-end tenant-isolation receipt."
+  "evidenceScope": "Pinned producer profile and response source plus the consumer exact hosted auth authority tuple v2026.9.0. The pinned source advertises the accepted tuple. Server CI and release publication are separate delivery gates. This is not a live hosted response or end-to-end tenant-isolation receipt."
 }
