@@ -2,19 +2,19 @@ schema_version: "prov-record.v1"
 entity:
   id: "urn:aiwg:artifact:docs/releases/v2026.9.0.md"
   path: "docs/releases/v2026.9.0.md"
-  sha256: "eb890ba2d3afe01d439b79a9ed083c904e0133bf677be9a6f2b6517a6a26a1b6"
+  sha256: "0941608708611257631693fee5850b19a6d35db90d3f0420d04abf685095e320"
 activity:
-  id: "urn:aiwg:activity:hotm-release-2026-9-0-generation"
-  type: "generation"
-  started_at: "2026-09-07T00:05:40Z"
-  ended_at: "2026-09-07T00:05:40Z"
+  id: "urn:aiwg:activity:hotm-release-2026-9-0-review-wording-update"
+  type: "modification"
+  started_at: "2026-09-07T00:15:00Z"
+  ended_at: "2026-09-07T00:15:00Z"
 agent:
   id: "urn:aiwg:agent:software-implementer"
   type: "software-implementer"
   name: "Codex"
 wasGeneratedBy:
   entity: "urn:aiwg:artifact:docs/releases/v2026.9.0.md"
-  activity: "urn:aiwg:activity:hotm-release-2026-9-0-generation"
+  activity: "urn:aiwg:activity:hotm-release-2026-9-0-review-wording-update"
 wasAssociatedWith:
-  activity: "urn:aiwg:activity:hotm-release-2026-9-0-generation"
+  activity: "urn:aiwg:activity:hotm-release-2026-9-0-review-wording-update"
   agent: "urn:aiwg:agent:software-implementer"
