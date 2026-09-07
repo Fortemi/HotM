@@ -4,6 +4,19 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2026.9.1] - 2026-09-06
+
+### Fixed
+
+- Preserve `auth-required` and `incompatible` realtime states when another view opens, including the Realtime Activity drawer. Additional subscribers no longer replace a terminal result with `connecting` while retaining the terminated stream (#304).
+- Align the desktop application's Cargo lockfile version with the release version.
+
+### Verification
+
+- Add service regressions for late subscribers and explicit close/reset with a new session.
+- Correct hosted-auth browser fixtures to pass compatibility admission and assert that SSE requests occur; cover 401, 403, observable SSE 410, opaque legacy WebSocket failure, and all health-check fallbacks.
+- Verify the visible connection state through the activity drawer on desktop and mobile.
+
 ## [2026.9.0] - 2026-09-06
 
 ### Fixed
