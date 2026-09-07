@@ -52,3 +52,16 @@ The realtime suite is executed in the `quality-gate` job (`.gitea/workflows/ui-c
 - Keep bounded windows deterministic (`advanceTimersByTime` with explicit durations).
 - Prefer fixture-driven event arrays over open-ended async streams.
 - Avoid assertions that depend on wall-clock ordering; assert on normalized event identity and final state.
+
+### Additional subscribers after terminal status
+
+Opening the Realtime Activity drawer subscribes another view to the shared
+transport. It must preserve an existing `auth-required` or `incompatible` state,
+without a fresh compatibility request or replacing the status with `connecting`.
+An explicit close/reset still permits a new transport with updated credentials.
+
+The realtime auth browser fixture supplies the accepted hosted claim-authority
+tuple and confirms that SSE requests actually occur. It covers 401, 403,
+observable SSE 410, opaque legacy WebSocket failure, and unreachable health
+(including `/healthz`). The 410 assertion uses the activity drawer on desktop and
+mobile because the compact header badge is hidden on narrow viewports.

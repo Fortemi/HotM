@@ -324,6 +324,14 @@ class WebSocketService {
       return this.connectionPromise;
     }
 
+    // New views must not overwrite a terminal SSE result without a new stream.
+    // Explicit close/reset still permits reconnecting with a changed session.
+    if (this.eventsClient && (
+      this.connectionState === 'auth-required' || this.connectionState === 'incompatible'
+    )) {
+      return Promise.resolve();
+    }
+
     // If already connected via SSE, just ensure WS command channel is up
     if (this.sseConnected && this.isConnected) {
       this.connectWsChannel(false);

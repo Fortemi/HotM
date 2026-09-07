@@ -230,9 +230,13 @@ test('reports observable SSE 410 as incompatible while health remains reachable'
     status: 410, contentType: 'text/plain', body: 'Gone',
   }));
   await page.goto('/', { waitUntil: 'domcontentloaded' });
-  await openSidebar(page);
-  await expect(page.getByRole('button', { name: /open realtime activity/i }).getByText('incompatible')).toBeVisible();
   await expect.poll(() => eventResponses).toBeGreaterThan(0);
+  // The compact header badge is intentionally hidden on mobile; the activity
+  // drawer exposes the connection state at every supported viewport.
+  await page.getByRole('button', { name: /open realtime activity/i }).click();
+  await expect(page.getByText('state: incompatible', { exact: true })).toBeVisible();
+  await page.keyboard.press('Escape');
+  await openSidebar(page);
   await expect(page.getByText('Offline Mode')).not.toBeVisible();
   await expect(page.getByText('Auth Required')).not.toBeVisible();
 });
