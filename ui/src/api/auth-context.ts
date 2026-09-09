@@ -23,6 +23,7 @@ export function getApiBearerToken(): string | null {
 export function setApiBearerToken(token: string | null): void {
   if (!isBrowser()) return;
 
+  activeTenantId = null;
   const normalized = token?.trim();
   if (!normalized) {
     window.localStorage.removeItem(STORAGE_KEY);
@@ -42,7 +43,21 @@ export function hasApiBearerToken(): boolean {
 }
 
 export function getActiveTenantId(): string | null {
-  return activeTenantId;
+  if (activeTenantId) return activeTenantId;
+  // A decoding hint only: the server still authenticates the bearer and tenant.
+  // Never use this claim to grant access; it narrows which SSE events render.
+  const token = getApiBearerToken();
+  if (!token) return null;
+  try {
+    const parts = token.split('.');
+    if (parts.length !== 3) return null;
+    const payload = JSON.parse(atob(parts[1].replace(/-/g, '+').replace(/_/g, '/')));
+    const tenant = payload['fortemi:tenant_id'];
+    return typeof tenant === 'string' && /^[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12}$/i.test(tenant)
+      ? tenant.toLowerCase() : null;
+  } catch {
+    return null;
+  }
 }
 
 export function setActiveTenantId(tenantId: string | null): void {
