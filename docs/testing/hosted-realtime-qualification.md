@@ -10,10 +10,20 @@ storage does not update a running SSE transport; reload recreates it.
 
 ## Prerequisites and invocation
 
-Use the locked UI dependencies and installed Playwright Chromium. Run on grissom,
-or on titan through an authorized loopback tunnel to the isolated UI. The
-installed `/usr/local/bin/fortemi-qualification-token` helper must work on that
-host through its existing TPM-backed reader. No new authority is required.
+Use the locked UI dependencies and installed Playwright Chromium. Run on either
+titan or an explicitly selected qualification host with its own isolated stack.
+The runner accepts an explicit loopback UI origin; it has no grissom dependency.
+Grissom is the operator’s main workstation and must not be selected as a general
+build or runtime resource. Running there requires an explicit operator choice.
+
+The installed `/usr/local/bin/fortemi-qualification-token` helper must work on
+the selected host through its existing TPM-backed reader. The server stack also
+needs its own host-local runtime materialization and KMS workload inputs; the
+client token helper alone does not provision a hosted server. Do not copy another
+host’s TPM-encrypted files or point these tests at a personal API. Use the ITops
+qualification deployment procedure to provision the isolated stack locally.
+An SSH tunnel is an optional way to reach an already selected remote stack, not
+a prerequisite for qualification.
 
 The UI must proxy the hosted API on the **same origin**, with its runtime
 `VITE_API_BASE_URL` ending in `/api/v1`. The released client and SSE transport
@@ -103,7 +113,9 @@ mocked checks remain useful regressions, but are not evidence of real backend
 acceptance. This runner does not inject 410 or claim backend-outage qualification.
 It must not be run against the installed personal/anonymous API.
 
-As of 2026-09-08, titan-to-grissom SSH rejected both the existing operator key and
-a newly issued scoped user certificate. Fresh remote browser acceptance remains
-pending a working access channel or direct execution on grissom. Local syntax,
-help, browser launch, or unreachable-target checks do not clear that gate.
+The September 8 infrastructure receipts were produced on grissom. That records
+where those checks ran; it does not establish a host requirement. Fresh acceptance
+can run on either host once that host has the isolated stack and scoped runtime
+inputs. Preserve separate database/storage volumes, loopback ports, provider
+boundaries, and deployment identity receipts. Local syntax, browser launch, and
+preflight refusal checks do not establish live backend acceptance.
