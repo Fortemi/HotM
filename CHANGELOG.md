@@ -4,6 +4,22 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2026.9.4] - 2026-09-09
+
+### Fixed
+
+- Bind authenticated realtime rendering to the tenant hint from the current bearer and clear stale tenant context when replacing credentials. The server remains the authentication authority; decoded browser claims only narrow event rendering (#304).
+- Let the server return its actual unauthorized status when a bearer lacks a tenant hint, while refusing to dispatch events from a successful stream without a tenant filter.
+- Update the agent-proxy Vitest lockfile to include the patched mocker dependency and restore reproducible CI installation.
+
+### Added
+
+- Provide a host-independent live hosted-browser qualification command with exact compatibility preflight, real token-expiry and replacement-session checks, tenant isolation, targeted cleanup, and incremental receipts. Routing and credential guards keep qualification away from unrelated services.
+
+### Compatibility
+
+- Preserve Fortemi Auth `v2026.9.0`, claim contract `1.1.0`, profile `rust-node-jwt-v1`, and the existing desktop sidecar pin. This release does not claim expanded hosted route coverage, interactive browser OIDC sign-in, or unqualified portability.
+
 ## [2026.9.3] - 2026-09-07
 
 ### Fixed
