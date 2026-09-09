@@ -170,6 +170,27 @@ describe('events client replay handling', () => {
     authorizedClient.close();
   });
 
+  it.each([401, 403, 200])('contacts the server but never dispatches unbound authenticated events (%s)', async (status) => {
+    const fetchMock = vi.fn<typeof fetch>().mockResolvedValue(new Response(
+      'event: note.created\ndata: {"type":"note.created","tenant_id":"tenant-b"}\n\n', { status },
+    ));
+    vi.stubGlobal('fetch', fetchMock);
+    const handler = vi.fn();
+    const statuses: EventsClientStatus[] = [];
+    const client = createEventsClient('http://localhost:3000/api/v1', {
+      authorization: 'Bearer unbound-test-token', preferFetch: true,
+      onStatusChange: status => statuses.push(status),
+    });
+    client.subscribe(handler);
+    await vi.waitFor(() => expect(statuses).toContain('auth-required'));
+    await vi.advanceTimersByTimeAsync(5000);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(handler).not.toHaveBeenCalled();
+    expect(statuses).not.toContain('connected');
+    expect(statuses).not.toContain('reconnecting');
+    client.close();
+  });
+
   it('normalizes base URLs that already include /api/v1', () => {
     const handler = vi.fn();
     const client = createEventsClient('http://localhost:3000/api/v1');

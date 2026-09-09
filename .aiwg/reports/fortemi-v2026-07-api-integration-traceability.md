@@ -249,3 +249,19 @@ rejects schema, channel, operation, server, protocol, source-hash, or fixture
 coverage drift. This separates live-server compatibility evidence from packaged
 sidecar delivery; neither source comparison nor fixtures prove live transport
 execution. The live receipt must contain an immutable producer SHA before release.
+
+
+## Hosted browser session binding (HotM304 / ITops727)
+
+The browser decodes the canonical `fortemi:tenant_id` UUID only as a local
+SSE filtering hint; the pinned server still verifies the bearer, issuer,
+audience, expiry and tenant. Reloaded and replacement sessions derive their
+filter from the current bearer. An unbound bearer reaches the server for its
+real 401/403 response, but no authenticated event is dispatched without a
+tenant filter, even if the endpoint responds 200. No client hint grants access.
+The consumed hosted claim contract remains 1.1.0, authority commit
+`cff36d293d73080c186e2f35115dd92a594982d2`; the API and event contracts are unchanged.
+
+Regression evidence: `ui/src/api/__tests__/auth-context-hosted.test.ts` and
+`ui/src/api/__tests__/events.test.ts`. Live acceptance remains the unchanged
+`ui/scripts/qualify-hosted-realtime.mjs` against the isolated titan deployment.

@@ -200,6 +200,7 @@ export function createEventsClient(baseUrl: string, options: EventsClientOptions
   }
 
   function matchesContext(event: ServerEvent): boolean {
+    if (options.authorization && !options.tenantId) return false;
     return eventMatchesRealtimeContext(event, options);
   }
 
@@ -250,6 +251,14 @@ export function createEventsClient(baseUrl: string, options: EventsClientOptions
           return;
         }
         throw new Error(`SSE endpoint returned ${response.status}`);
+      }
+
+      // Let the server return its real 401/403 for an unbound bearer. A
+      // successful stream still requires a tenant filter before dispatch.
+      if (options.authorization && !options.tenantId) {
+        await response.body?.cancel().catch(() => undefined);
+        notifyStatus('auth-required');
+        return;
       }
 
       if (!response.body) {
@@ -546,8 +555,8 @@ export function createEventsClient(baseUrl: string, options: EventsClientOptions
     // Prefer the direct host-adapter path when an embedding shell provides
     // one — avoids the synthetic-ReadableStream pitfall on Linux WebKit2GTK.
     if (options.authorization && !options.tenantId) {
-      console.error('SSE authenticated context is missing a tenant binding');
-      notifyStatus('closed');
+      // Obtain the authoritative rejection status without consuming events.
+      connectFetch();
     } else if (getHostAdapter()) {
       connectHostProxy();
     } else if (isTauri() || options.preferFetch) {
