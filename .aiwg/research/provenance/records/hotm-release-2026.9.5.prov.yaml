@@ -1,0 +1,85 @@
+{
+  "metadata": {
+    "schema_version": "1.0.0",
+    "created_at": "2026-09-11T12:50:06.193Z"
+  },
+  "entity": {
+    "id": "urn:aiwg:artifact:docs/releases/v2026.9.5.md",
+    "type": "document",
+    "created_at": "2026-09-11T12:50:06.193Z",
+    "attributes": {
+      "artifacts": [
+        {
+          "path": "CHANGELOG.md",
+          "sha256": "5ee63ea648ed43bc2119a97f2040f07e6f0b5e5855167d3128c8a436dc03f3a1"
+        },
+        {
+          "path": "docs/releases/v2026.9.5.md",
+          "sha256": "f12db662be426af4ee2ac76d03d32194148e3867bc92eace084ae21f765cc366"
+        },
+        {
+          "path": "ui/package.json",
+          "sha256": "f1d5cbc4ee275406c8a4c9a977436ee12ee909c6862ea0dbdf9760e3f69283c3"
+        },
+        {
+          "path": "ui/package-lock.json",
+          "sha256": "86b6daf29cb8b0506c749f1aeb8bf6927c348123a7c1108a37c776c30d981a35"
+        },
+        {
+          "path": "ui/src-tauri/Cargo.toml",
+          "sha256": "7970f8494477ac32c4e74ba7bef739eb1c9565a9b495dd53481026b819f35352"
+        },
+        {
+          "path": "ui/src-tauri/Cargo.lock",
+          "sha256": "e80edb74fc95af542eb508dc9a062515848d216c76b250da355fa1d26b671bc9"
+        },
+        {
+          "path": "ui/src-tauri/tauri.conf.json",
+          "sha256": "43d79fe12169404a5a248ee5571d17dee5e26f6530a140a07afa48dd1270b09d"
+        }
+      ],
+      "boundaries": [
+        "Release metadata and notes only; no runtime, dependency, sidecar, authority or profile change",
+        "Producer transport246 and full UI2036/134 files, drift24, typecheck/build and release policy checks pass",
+        "Exact-head CI, release-tag authority and publication/mirror verification remain required",
+        "Mocked decoder evidence is not live hosted authorization or all-platform qualification; suite NO-GO retained"
+      ]
+    }
+  },
+  "activity": {
+    "id": "urn:aiwg:activity:modification:hotm-release-2026.9.5:001",
+    "type": "modification",
+    "started_at": "2026-09-11T12:37:00Z",
+    "ended_at": "2026-09-11T12:50:06.193Z",
+    "description": "Prepare HotM 2026.9.5 for the delivered producer-owned realtime fixture verification."
+  },
+  "agent": {
+    "id": "urn:aiwg:agent:codex",
+    "name": "Codex",
+    "type": "ai_assistant"
+  },
+  "relationships": {
+    "wasGeneratedBy": {
+      "entity": "urn:aiwg:artifact:docs/releases/v2026.9.5.md",
+      "activity": "urn:aiwg:activity:modification:hotm-release-2026.9.5:001",
+      "time": "2026-09-11T12:50:06.193Z"
+    },
+    "wasAttributedTo": {
+      "entity": "urn:aiwg:artifact:docs/releases/v2026.9.5.md",
+      "agent": "urn:aiwg:agent:codex"
+    },
+    "wasAssociatedWith": {
+      "activity": "urn:aiwg:activity:modification:hotm-release-2026.9.5:001",
+      "agent": "urn:aiwg:agent:codex",
+      "role": "primary_implementer"
+    },
+    "wasDerivedFrom": [
+      {
+        "entity": "urn:aiwg:artifact:docs/releases/v2026.9.5.md",
+        "source": "urn:gitea:issue:Fortemi/HotM:288",
+        "derivation_type": "implements",
+        "activity": "urn:aiwg:activity:modification:hotm-release-2026.9.5:001"
+      }
+    ]
+  }
+}

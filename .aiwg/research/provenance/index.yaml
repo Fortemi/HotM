@@ -1,8 +1,10 @@
 metadata:
   schema_version: "1.0.0"
-  updated_at: "2026-09-11T11:47:48Z"
-  record_count: 216
+  updated_at: "2026-09-11T12:50:06.193Z"
+  record_count: 217
 records:
+  - entity: "urn:aiwg:artifact:docs/releases/v2026.9.5.md"
+    record: "records/hotm-release-2026.9.5.prov.yaml"
   - entity: "urn:aiwg:bundle:hotm-288-producer-event-adoption"
     record: "records/hotm-288-producer-event-adoption.prov.yaml"
   - entity: ".aiwg/testing/scripts/verify-fortemi-closeout-package.py"

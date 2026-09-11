@@ -4,6 +4,18 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2026.9.5] - 2026-09-11
+
+### Added
+
+- Verify all 48 realtime events against Fortemi-owned positive fixtures through EventSource, fetch-SSE and both WebSocket message shapes (#288; Fortemi/fortemi#1097).
+- Gate the exact producer receipt, fixture manifest, raw fixture hashes, corpus digest and envelope/schema revisions in CI, with per-transport test receipts.
+
+### Compatibility
+
+- Preserve existing malformed-event rejection, unknown-event handling, hosted admission and packaged sidecar pins. This release adds contract verification, not a new realtime protocol or expanded authentication/platform support.
+- Retain named Knowledge Shard profile boundaries and suite NO-GO. Decoder tests do not establish live hosted qualification or unqualified portability.
+
 ## [2026.9.4] - 2026-09-09
 
 ### Fixed
