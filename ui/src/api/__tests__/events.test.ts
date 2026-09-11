@@ -8,6 +8,7 @@ import {
 } from '@/api/events';
 import eventCatalog from '@/api/contracts/fortemi-event-catalog.json';
 import asyncApiFixtures from '@/api/contracts/fortemi-asyncapi-event-fixtures.json';
+import producerFixtures from '@/api/contracts/fortemi-producer-event-fixtures.json';
 import { normalizeTransportEvent } from '@/services/realtimeEventBus';
 
 type Listener = (event: MessageEvent) => void;
@@ -56,6 +57,46 @@ describe('events client replay handling', () => {
   afterEach(() => {
     vi.useRealTimers();
     vi.unstubAllGlobals();
+  });
+
+  it.each(producerFixtures.cases)('decodes producer $eventType through EventSource', ({ eventType, legacyType, envelope }) => {
+    const handler = vi.fn();
+    const client = createEventsClient('http://localhost:3000/api/v1');
+    client.subscribe(handler);
+    MockEventSource.instances[0].emitTyped(eventType, envelope, envelope.event_id);
+    expect(handler).toHaveBeenCalledOnce();
+    const event = normalizeTransportEvent(handler.mock.calls[0][0]);
+    expect(event.type).not.toBe('Unknown');
+    expect(event.raw_event_type).toBe(eventType);
+    expect(event.payload_type).toBe(legacyType);
+    const { payload, event_type: _eventType, ...metadata } = envelope;
+    expect(event.raw_event).toEqual({ ...payload, ...metadata, type: eventType, event_type: eventType, payload_type: legacyType });
+    expect(client.replayCursor).toBe(envelope.event_id);
+    client.close();
+  });
+
+  it.each(producerFixtures.cases)('decodes producer $eventType through fetch SSE framing', async ({ eventType, legacyType, envelope }) => {
+    const frame = `id: ${envelope.event_id}\nevent: ${eventType}\ndata: ${JSON.stringify(envelope)}\n\n`;
+    const encoder = new TextEncoder();
+    const bytes = encoder.encode(frame);
+    // Split inside the data field to exercise the production streaming parser.
+    const split = frame.indexOf('data: ') + 13;
+    const body = new ReadableStream<Uint8Array>({ start(controller) {
+      controller.enqueue(bytes.slice(0, split));
+      controller.enqueue(bytes.slice(split));
+      controller.close();
+    } });
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(body, { headers: { 'Content-Type': 'text/event-stream' } })));
+    const handler = vi.fn();
+    const client = createEventsClient('http://localhost:3000/api/v1', { preferFetch: true });
+    client.subscribe(handler);
+    await vi.waitFor(() => expect(handler).toHaveBeenCalledOnce());
+    const event = normalizeTransportEvent(handler.mock.calls[0][0]);
+    expect(event.type).not.toBe('Unknown');
+    const { payload, event_type: _eventType, ...metadata } = envelope;
+    expect(event.raw_event).toEqual({ ...payload, ...metadata, type: eventType, event_type: eventType, payload_type: legacyType });
+    expect(client.replayCursor).toBe(envelope.event_id);
+    client.close();
   });
 
   it('keeps credentials and replay state out of local EventSource URLs', () => {

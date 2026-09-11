@@ -1,8 +1,10 @@
 metadata:
   schema_version: "1.0.0"
-  updated_at: "2026-08-28T20:08:40Z"
-  record_count: 232
+  updated_at: "2026-09-11T11:47:48Z"
+  record_count: 216
 records:
+  - entity: "urn:aiwg:bundle:hotm-288-producer-event-adoption"
+    record: "records/hotm-288-producer-event-adoption.prov.yaml"
   - entity: ".aiwg/testing/scripts/verify-fortemi-closeout-package.py"
     record: "records/closeout-current-rest-pin-2026-08.prov.yaml"
   - entity: ".gitea/workflows/sdlc-gates.yml"

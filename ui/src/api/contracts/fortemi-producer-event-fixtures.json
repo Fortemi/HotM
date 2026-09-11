@@ -1,0 +1,1351 @@
+{
+  "schemaVersion": 1,
+  "fixtureSource": "producer-owned Rust EventEnvelope; JSON values imported without semantic changes",
+  "producer": {
+    "repository": "Fortemi/fortemi",
+    "commit": "c3bfd40b275decd5a24c4e9a656d830a383b3de2",
+    "receipt": {
+      "path": "contracts/asyncapi/producer-event-fixture-receipt.json",
+      "sha256": "2318bf0ff3ba2801929767c9417ed5cc0dd83ffb91ceae7276efcc8979b763aa"
+    },
+    "manifestPath": "contracts/asyncapi/fixtures/manifest.json",
+    "manifestSha256": "73ce991d31aba0bfaa7d126f9f8ca7cb42d9941fd65ecd67d4dba8d7a4faaada",
+    "asyncApiSha256": "a6c845b023815a739630fe212c26d83746516052fd2fb131cf7063b01b915462",
+    "corpusSha256": "ee09b909863b868b57c3bf95daa47d3e24f84eb7eb487c1d64c0ef40ef4dc6ad"
+  },
+  "eventCount": 48,
+  "schemaCount": 4,
+  "envelopeContractRevision": "1",
+  "payloadRevision": 1,
+  "scope": "Pinned producer examples through mocked SSE and WebSocket transport boundaries; no live execution, authentication, sidecar replacement, or suite-wide compatibility claim.",
+  "cases": [
+    {
+      "eventType": "archive.created",
+      "legacyType": "ArchiveCreated",
+      "path": "contracts/asyncapi/fixtures/events/archive_created.json",
+      "sha256": "d733f2f0a3818ca77d1ccf1bcf4e29499180c1367b09aed9ad82145188289279",
+      "envelope": {
+        "actor": {
+          "id": "fixture-user-001",
+          "kind": "user",
+          "name": "Fortemi event fixture operator"
+        },
+        "causation_id": "018f7d2d-0015-7000-0003-f147d6a2e70a",
+        "correlation_id": "018f7d2d-0015-7000-0002-f147d6a2e70a",
+        "entity_id": "018f7d2d-0068-7000-0001-f147d6a2e70a",
+        "entity_type": "archive",
+        "event_id": "018f7d2d-0015-7000-0001-f147d6a2e70a",
+        "event_type": "archive.created",
+        "memory": "fixture-memory-alpha",
+        "occurred_at": "2026-08-17T12:21:00Z",
+        "payload": {
+          "archive_id": "018f7d2d-0068-7000-0001-f147d6a2e70a",
+          "name": "fixture-memory-alpha",
+          "type": "ArchiveCreated"
+        },
+        "payload_version": 1,
+        "tenant_id": "tenant-fixture-001"
+      }
+    },
+    {
+      "eventType": "archive.default.changed",
+      "legacyType": "ArchiveDefaultChanged",
+      "path": "contracts/asyncapi/fixtures/events/archive_default_changed.json",
+      "sha256": "0b133d32b9ecb1282c0d8eb0a9a4167bd4a8880164169cdddc0cc7953d6903df",
+      "envelope": {
+        "actor": {
+          "id": "fixture-user-001",
+          "kind": "user",
+          "name": "Fortemi event fixture operator"
+        },
+        "causation_id": "018f7d2d-0018-7000-0003-f147d6a2e70a",
+        "correlation_id": "018f7d2d-0018-7000-0002-f147d6a2e70a",
+        "entity_type": "archive",
+        "event_id": "018f7d2d-0018-7000-0001-f147d6a2e70a",
+        "event_type": "archive.default.changed",
+        "memory": "fixture-memory-alpha",
+        "occurred_at": "2026-08-17T12:24:00Z",
+        "payload": {
+          "name": "fixture-memory-alpha",
+          "type": "ArchiveDefaultChanged"
+        },
+        "payload_version": 1,
+        "tenant_id": "tenant-fixture-001"
+      }
+    },
+    {
+      "eventType": "archive.deleted",
+      "legacyType": "ArchiveDeleted",
+      "path": "contracts/asyncapi/fixtures/events/archive_deleted.json",
+      "sha256": "8c2ca63122be4c0ae786a3f7b3ee83f7e5bbfd42034076fea32bc0b92660a5c0",
+      "envelope": {
+        "actor": {
+          "id": "fixture-user-001",
+          "kind": "user",
+          "name": "Fortemi event fixture operator"
+        },
+        "causation_id": "018f7d2d-0017-7000-0003-f147d6a2e70a",
+        "correlation_id": "018f7d2d-0017-7000-0002-f147d6a2e70a",
+        "entity_type": "archive",
+        "event_id": "018f7d2d-0017-7000-0001-f147d6a2e70a",
+        "event_type": "archive.deleted",
+        "memory": "fixture-memory-alpha",
+        "occurred_at": "2026-08-17T12:23:00Z",
+        "payload": {
+          "name": "fixture-memory-alpha",
+          "type": "ArchiveDeleted"
+        },
+        "payload_version": 1,
+        "tenant_id": "tenant-fixture-001"
+      }
+    },
+    {
+      "eventType": "archive.updated",
+      "legacyType": "ArchiveUpdated",
+      "path": "contracts/asyncapi/fixtures/events/archive_updated.json",
+      "sha256": "5db40e8c643cb1e677faba2b2ec321e53047775f0b2fe19bb5819ccb0e901cb8",
+      "envelope": {
+        "actor": {
+          "id": "fixture-user-001",
+          "kind": "user",
+          "name": "Fortemi event fixture operator"
+        },
+        "causation_id": "018f7d2d-0016-7000-0003-f147d6a2e70a",
+        "correlation_id": "018f7d2d-0016-7000-0002-f147d6a2e70a",
+        "entity_type": "archive",
+        "event_id": "018f7d2d-0016-7000-0001-f147d6a2e70a",
+        "event_type": "archive.updated",
+        "memory": "fixture-memory-alpha",
+        "occurred_at": "2026-08-17T12:22:00Z",
+        "payload": {
+          "name": "fixture-memory-alpha",
+          "type": "ArchiveUpdated"
+        },
+        "payload_version": 1,
+        "tenant_id": "tenant-fixture-001"
+      }
+    },
+    {
+      "eventType": "attachment.created",
+      "legacyType": "AttachmentCreated",
+      "path": "contracts/asyncapi/fixtures/events/attachment_created.json",
+      "sha256": "9f98c2c89c0f87e58e17be4801c6512189f99cf0c2fd2c9e7cdca912834c14d7",
+      "envelope": {
+        "actor": {
+          "id": "fixture-user-001",
+          "kind": "user",
+          "name": "Fortemi event fixture operator"
+        },
+        "causation_id": "018f7d2d-000e-7000-0003-f147d6a2e70a",
+        "correlation_id": "018f7d2d-000e-7000-0002-f147d6a2e70a",
+        "entity_id": "018f7d2d-0066-7000-0001-f147d6a2e70a",
+        "entity_type": "attachment",
+        "event_id": "018f7d2d-000e-7000-0001-f147d6a2e70a",
+        "event_type": "attachment.created",
+        "memory": "fixture-memory-alpha",
+        "occurred_at": "2026-08-17T12:14:00Z",
+        "payload": {
+          "attachment_id": "018f7d2d-0066-7000-0001-f147d6a2e70a",
+          "filename": "fixture.pdf",
+          "note_id": "018f7d2d-0065-7000-0001-f147d6a2e70a",
+          "type": "AttachmentCreated"
+        },
+        "payload_version": 1,
+        "tenant_id": "tenant-fixture-001"
+      }
+    },
+    {
+      "eventType": "attachment.deleted",
+      "legacyType": "AttachmentDeleted",
+      "path": "contracts/asyncapi/fixtures/events/attachment_deleted.json",
+      "sha256": "3cdb85b57a52ef75ea95750204ea693ae9d2f19e3dbcd080fb749ae2de2ad739",
+      "envelope": {
+        "actor": {
+          "id": "fixture-user-001",
+          "kind": "user",
+          "name": "Fortemi event fixture operator"
+        },
+        "causation_id": "018f7d2d-000f-7000-0003-f147d6a2e70a",
+        "correlation_id": "018f7d2d-000f-7000-0002-f147d6a2e70a",
+        "entity_id": "018f7d2d-0066-7000-0001-f147d6a2e70a",
+        "entity_type": "attachment",
+        "event_id": "018f7d2d-000f-7000-0001-f147d6a2e70a",
+        "event_type": "attachment.deleted",
+        "memory": "fixture-memory-alpha",
+        "occurred_at": "2026-08-17T12:15:00Z",
+        "payload": {
+          "attachment_id": "018f7d2d-0066-7000-0001-f147d6a2e70a",
+          "type": "AttachmentDeleted"
+        },
+        "payload_version": 1,
+        "tenant_id": "tenant-fixture-001"
+      }
+    },
+    {
+      "eventType": "attachment.extraction.updated",
+      "legacyType": "AttachmentExtractionUpdated",
+      "path": "contracts/asyncapi/fixtures/events/attachment_extraction_updated.json",
+      "sha256": "3b6c4705cb67a1ffcfbcdbaf7231865502ca7f6967dbda71eec90e4de57b1204",
+      "envelope": {
+        "actor": {
+          "id": "fixture-user-001",
+          "kind": "user",
+          "name": "Fortemi event fixture operator"
+        },
+        "causation_id": "018f7d2d-0010-7000-0003-f147d6a2e70a",
+        "correlation_id": "018f7d2d-0010-7000-0002-f147d6a2e70a",
+        "entity_id": "018f7d2d-0066-7000-0001-f147d6a2e70a",
+        "entity_type": "attachment",
+        "event_id": "018f7d2d-0010-7000-0001-f147d6a2e70a",
+        "event_type": "attachment.extraction.updated",
+        "memory": "fixture-memory-alpha",
+        "occurred_at": "2026-08-17T12:16:00Z",
+        "payload": {
+          "attachment_id": "018f7d2d-0066-7000-0001-f147d6a2e70a",
+          "note_id": "018f7d2d-0065-7000-0001-f147d6a2e70a",
+          "type": "AttachmentExtractionUpdated"
+        },
+        "payload_version": 1,
+        "tenant_id": "tenant-fixture-001"
+      }
+    },
+    {
+      "eventType": "collection.created",
+      "legacyType": "CollectionCreated",
+      "path": "contracts/asyncapi/fixtures/events/collection_created.json",
+      "sha256": "09815e16164cac012018990952de763d744f95da71e37ded9d8741bf68421ca3",
+      "envelope": {
+        "actor": {
+          "id": "fixture-user-001",
+          "kind": "user",
+          "name": "Fortemi event fixture operator"
+        },
+        "causation_id": "018f7d2d-0011-7000-0003-f147d6a2e70a",
+        "correlation_id": "018f7d2d-0011-7000-0002-f147d6a2e70a",
+        "entity_id": "018f7d2d-0067-7000-0001-f147d6a2e70a",
+        "entity_type": "collection",
+        "event_id": "018f7d2d-0011-7000-0001-f147d6a2e70a",
+        "event_type": "collection.created",
+        "memory": "fixture-memory-alpha",
+        "occurred_at": "2026-08-17T12:17:00Z",
+        "payload": {
+          "collection_id": "018f7d2d-0067-7000-0001-f147d6a2e70a",
+          "name": "Fixture collection",
+          "type": "CollectionCreated"
+        },
+        "payload_version": 1,
+        "tenant_id": "tenant-fixture-001"
+      }
+    },
+    {
+      "eventType": "collection.deleted",
+      "legacyType": "CollectionDeleted",
+      "path": "contracts/asyncapi/fixtures/events/collection_deleted.json",
+      "sha256": "8506b69078ae4db43fbee3bc89a3ee554891cbfc403ade6e721a4162cad62232",
+      "envelope": {
+        "actor": {
+          "id": "fixture-user-001",
+          "kind": "user",
+          "name": "Fortemi event fixture operator"
+        },
+        "causation_id": "018f7d2d-0013-7000-0003-f147d6a2e70a",
+        "correlation_id": "018f7d2d-0013-7000-0002-f147d6a2e70a",
+        "entity_id": "018f7d2d-0067-7000-0001-f147d6a2e70a",
+        "entity_type": "collection",
+        "event_id": "018f7d2d-0013-7000-0001-f147d6a2e70a",
+        "event_type": "collection.deleted",
+        "memory": "fixture-memory-alpha",
+        "occurred_at": "2026-08-17T12:19:00Z",
+        "payload": {
+          "collection_id": "018f7d2d-0067-7000-0001-f147d6a2e70a",
+          "type": "CollectionDeleted"
+        },
+        "payload_version": 1,
+        "tenant_id": "tenant-fixture-001"
+      }
+    },
+    {
+      "eventType": "collection.membership.changed",
+      "legacyType": "CollectionMembershipChanged",
+      "path": "contracts/asyncapi/fixtures/events/collection_membership_changed.json",
+      "sha256": "7801d85fe0863e1606f84f8416cbc3643267f8d48d7b3cf37a70fad306c23052",
+      "envelope": {
+        "actor": {
+          "id": "fixture-user-001",
+          "kind": "user",
+          "name": "Fortemi event fixture operator"
+        },
+        "causation_id": "018f7d2d-0014-7000-0003-f147d6a2e70a",
+        "correlation_id": "018f7d2d-0014-7000-0002-f147d6a2e70a",
+        "entity_id": "018f7d2d-0065-7000-0001-f147d6a2e70a",
+        "entity_type": "collection",
+        "event_id": "018f7d2d-0014-7000-0001-f147d6a2e70a",
+        "event_type": "collection.membership.changed",
+        "memory": "fixture-memory-alpha",
+        "occurred_at": "2026-08-17T12:20:00Z",
+        "payload": {
+          "collection_id": "018f7d2d-0067-7000-0001-f147d6a2e70a",
+          "note_id": "018f7d2d-0065-7000-0001-f147d6a2e70a",
+          "type": "CollectionMembershipChanged"
+        },
+        "payload_version": 1,
+        "tenant_id": "tenant-fixture-001"
+      }
+    },
+    {
+      "eventType": "collection.updated",
+      "legacyType": "CollectionUpdated",
+      "path": "contracts/asyncapi/fixtures/events/collection_updated.json",
+      "sha256": "482b304ed06ad2756be8968e162e1b0be9a999ae37b8b18195a39f676052f797",
+      "envelope": {
+        "actor": {
+          "id": "fixture-user-001",
+          "kind": "user",
+          "name": "Fortemi event fixture operator"
+        },
+        "causation_id": "018f7d2d-0012-7000-0003-f147d6a2e70a",
+        "correlation_id": "018f7d2d-0012-7000-0002-f147d6a2e70a",
+        "entity_id": "018f7d2d-0067-7000-0001-f147d6a2e70a",
+        "entity_type": "collection",
+        "event_id": "018f7d2d-0012-7000-0001-f147d6a2e70a",
+        "event_type": "collection.updated",
+        "memory": "fixture-memory-alpha",
+        "occurred_at": "2026-08-17T12:18:00Z",
+        "payload": {
+          "collection_id": "018f7d2d-0067-7000-0001-f147d6a2e70a",
+          "name": "Updated fixture collection",
+          "type": "CollectionUpdated"
+        },
+        "payload_version": 1,
+        "tenant_id": "tenant-fixture-001"
+      }
+    },
+    {
+      "eventType": "concept.collection.membership.changed",
+      "legacyType": "ConceptCollectionMembershipChanged",
+      "path": "contracts/asyncapi/fixtures/events/concept_collection_membership_changed.json",
+      "sha256": "d40cb94552062f652bfa886e05c8bd989119df6bec35003ff3c514a253659d9d",
+      "envelope": {
+        "actor": {
+          "id": "fixture-user-001",
+          "kind": "user",
+          "name": "Fortemi event fixture operator"
+        },
+        "causation_id": "018f7d2d-0021-7000-0003-f147d6a2e70a",
+        "correlation_id": "018f7d2d-0021-7000-0002-f147d6a2e70a",
+        "entity_id": "018f7d2d-006a-7000-0001-f147d6a2e70a",
+        "entity_type": "concept",
+        "event_id": "018f7d2d-0021-7000-0001-f147d6a2e70a",
+        "event_type": "concept.collection.membership.changed",
+        "memory": "fixture-memory-alpha",
+        "occurred_at": "2026-08-17T12:33:00Z",
+        "payload": {
+          "collection_id": "018f7d2d-0067-7000-0001-f147d6a2e70a",
+          "concept_id": "018f7d2d-006a-7000-0001-f147d6a2e70a",
+          "type": "ConceptCollectionMembershipChanged"
+        },
+        "payload_version": 1,
+        "tenant_id": "tenant-fixture-001"
+      }
+    },
+    {
+      "eventType": "concept.created",
+      "legacyType": "ConceptCreated",
+      "path": "contracts/asyncapi/fixtures/events/concept_created.json",
+      "sha256": "117aa8bad9ca1ce8cb2fe17f518bfbe1ee01d6f4d8fe7f15c44ac3521e4bbc05",
+      "envelope": {
+        "actor": {
+          "id": "fixture-user-001",
+          "kind": "user",
+          "name": "Fortemi event fixture operator"
+        },
+        "causation_id": "018f7d2d-001c-7000-0003-f147d6a2e70a",
+        "correlation_id": "018f7d2d-001c-7000-0002-f147d6a2e70a",
+        "entity_id": "018f7d2d-006a-7000-0001-f147d6a2e70a",
+        "entity_type": "concept",
+        "event_id": "018f7d2d-001c-7000-0001-f147d6a2e70a",
+        "event_type": "concept.created",
+        "memory": "fixture-memory-alpha",
+        "occurred_at": "2026-08-17T12:28:00Z",
+        "payload": {
+          "concept_id": "018f7d2d-006a-7000-0001-f147d6a2e70a",
+          "scheme_id": "018f7d2d-0069-7000-0001-f147d6a2e70a",
+          "type": "ConceptCreated"
+        },
+        "payload_version": 1,
+        "tenant_id": "tenant-fixture-001"
+      }
+    },
+    {
+      "eventType": "concept.deleted",
+      "legacyType": "ConceptDeleted",
+      "path": "contracts/asyncapi/fixtures/events/concept_deleted.json",
+      "sha256": "2eeab5d861261397dbfcd80e9b6ed62e845b5a9d476268bb06ae6d70c148bfd5",
+      "envelope": {
+        "actor": {
+          "id": "fixture-user-001",
+          "kind": "user",
+          "name": "Fortemi event fixture operator"
+        },
+        "causation_id": "018f7d2d-001e-7000-0003-f147d6a2e70a",
+        "correlation_id": "018f7d2d-001e-7000-0002-f147d6a2e70a",
+        "entity_id": "018f7d2d-006a-7000-0001-f147d6a2e70a",
+        "entity_type": "concept",
+        "event_id": "018f7d2d-001e-7000-0001-f147d6a2e70a",
+        "event_type": "concept.deleted",
+        "memory": "fixture-memory-alpha",
+        "occurred_at": "2026-08-17T12:30:00Z",
+        "payload": {
+          "concept_id": "018f7d2d-006a-7000-0001-f147d6a2e70a",
+          "type": "ConceptDeleted"
+        },
+        "payload_version": 1,
+        "tenant_id": "tenant-fixture-001"
+      }
+    },
+    {
+      "eventType": "concept.relations.updated",
+      "legacyType": "ConceptRelationsUpdated",
+      "path": "contracts/asyncapi/fixtures/events/concept_relations_updated.json",
+      "sha256": "04a3e9ba844e2c62432f7874e1453dc79167a4cdf2286d114ea7c311af56bc11",
+      "envelope": {
+        "actor": {
+          "id": "fixture-user-001",
+          "kind": "user",
+          "name": "Fortemi event fixture operator"
+        },
+        "causation_id": "018f7d2d-001f-7000-0003-f147d6a2e70a",
+        "correlation_id": "018f7d2d-001f-7000-0002-f147d6a2e70a",
+        "entity_id": "018f7d2d-006a-7000-0001-f147d6a2e70a",
+        "entity_type": "concept",
+        "event_id": "018f7d2d-001f-7000-0001-f147d6a2e70a",
+        "event_type": "concept.relations.updated",
+        "memory": "fixture-memory-alpha",
+        "occurred_at": "2026-08-17T12:31:00Z",
+        "payload": {
+          "concept_id": "018f7d2d-006a-7000-0001-f147d6a2e70a",
+          "relation_type": "broader",
+          "type": "ConceptRelationsUpdated"
+        },
+        "payload_version": 1,
+        "tenant_id": "tenant-fixture-001"
+      }
+    },
+    {
+      "eventType": "concept.scheme.changed",
+      "legacyType": "ConceptSchemeChanged",
+      "path": "contracts/asyncapi/fixtures/events/concept_scheme_changed.json",
+      "sha256": "6f4616091add1a0cf5b65b6354cde7500a43d562f9442c17926751634f7a2cb2",
+      "envelope": {
+        "actor": {
+          "id": "fixture-user-001",
+          "kind": "user",
+          "name": "Fortemi event fixture operator"
+        },
+        "causation_id": "018f7d2d-0020-7000-0003-f147d6a2e70a",
+        "correlation_id": "018f7d2d-0020-7000-0002-f147d6a2e70a",
+        "entity_id": "018f7d2d-006a-7000-0001-f147d6a2e70a",
+        "entity_type": "concept",
+        "event_id": "018f7d2d-0020-7000-0001-f147d6a2e70a",
+        "event_type": "concept.scheme.changed",
+        "memory": "fixture-memory-alpha",
+        "occurred_at": "2026-08-17T12:32:00Z",
+        "payload": {
+          "concept_id": "018f7d2d-006a-7000-0001-f147d6a2e70a",
+          "type": "ConceptSchemeChanged"
+        },
+        "payload_version": 1,
+        "tenant_id": "tenant-fixture-001"
+      }
+    },
+    {
+      "eventType": "concept_scheme.created",
+      "legacyType": "ConceptSchemeCreated",
+      "path": "contracts/asyncapi/fixtures/events/concept_scheme_created.json",
+      "sha256": "a85baa1389c5d6b407d199bdfd8c70d2fbded80aa16430ed006248f0d2a6b119",
+      "envelope": {
+        "actor": {
+          "id": "fixture-user-001",
+          "kind": "user",
+          "name": "Fortemi event fixture operator"
+        },
+        "causation_id": "018f7d2d-0019-7000-0003-f147d6a2e70a",
+        "correlation_id": "018f7d2d-0019-7000-0002-f147d6a2e70a",
+        "entity_id": "018f7d2d-0069-7000-0001-f147d6a2e70a",
+        "entity_type": "concept_scheme",
+        "event_id": "018f7d2d-0019-7000-0001-f147d6a2e70a",
+        "event_type": "concept_scheme.created",
+        "memory": "fixture-memory-alpha",
+        "occurred_at": "2026-08-17T12:25:00Z",
+        "payload": {
+          "scheme_id": "018f7d2d-0069-7000-0001-f147d6a2e70a",
+          "type": "ConceptSchemeCreated"
+        },
+        "payload_version": 1,
+        "tenant_id": "tenant-fixture-001"
+      }
+    },
+    {
+      "eventType": "concept_scheme.deleted",
+      "legacyType": "ConceptSchemeDeleted",
+      "path": "contracts/asyncapi/fixtures/events/concept_scheme_deleted.json",
+      "sha256": "5ff21a11e3a666697728d088ba02d1727bbeb431a8a4165e247e18b90567a25f",
+      "envelope": {
+        "actor": {
+          "id": "fixture-user-001",
+          "kind": "user",
+          "name": "Fortemi event fixture operator"
+        },
+        "causation_id": "018f7d2d-001b-7000-0003-f147d6a2e70a",
+        "correlation_id": "018f7d2d-001b-7000-0002-f147d6a2e70a",
+        "entity_id": "018f7d2d-0069-7000-0001-f147d6a2e70a",
+        "entity_type": "concept_scheme",
+        "event_id": "018f7d2d-001b-7000-0001-f147d6a2e70a",
+        "event_type": "concept_scheme.deleted",
+        "memory": "fixture-memory-alpha",
+        "occurred_at": "2026-08-17T12:27:00Z",
+        "payload": {
+          "scheme_id": "018f7d2d-0069-7000-0001-f147d6a2e70a",
+          "type": "ConceptSchemeDeleted"
+        },
+        "payload_version": 1,
+        "tenant_id": "tenant-fixture-001"
+      }
+    },
+    {
+      "eventType": "concept_scheme.updated",
+      "legacyType": "ConceptSchemeUpdated",
+      "path": "contracts/asyncapi/fixtures/events/concept_scheme_updated.json",
+      "sha256": "e830a411d6a3b95675f8bb5f33393c0aaf9ccf7ef9bf60da4c5e38a1d2ca6f1d",
+      "envelope": {
+        "actor": {
+          "id": "fixture-user-001",
+          "kind": "user",
+          "name": "Fortemi event fixture operator"
+        },
+        "causation_id": "018f7d2d-001a-7000-0003-f147d6a2e70a",
+        "correlation_id": "018f7d2d-001a-7000-0002-f147d6a2e70a",
+        "entity_id": "018f7d2d-0069-7000-0001-f147d6a2e70a",
+        "entity_type": "concept_scheme",
+        "event_id": "018f7d2d-001a-7000-0001-f147d6a2e70a",
+        "event_type": "concept_scheme.updated",
+        "memory": "fixture-memory-alpha",
+        "occurred_at": "2026-08-17T12:26:00Z",
+        "payload": {
+          "scheme_id": "018f7d2d-0069-7000-0001-f147d6a2e70a",
+          "type": "ConceptSchemeUpdated"
+        },
+        "payload_version": 1,
+        "tenant_id": "tenant-fixture-001"
+      }
+    },
+    {
+      "eventType": "concept.updated",
+      "legacyType": "ConceptUpdated",
+      "path": "contracts/asyncapi/fixtures/events/concept_updated.json",
+      "sha256": "02d0c0c2da10ed5315bc192866e811033027f5ce9d2a2971b56b367f4c85f9a6",
+      "envelope": {
+        "actor": {
+          "id": "fixture-user-001",
+          "kind": "user",
+          "name": "Fortemi event fixture operator"
+        },
+        "causation_id": "018f7d2d-001d-7000-0003-f147d6a2e70a",
+        "correlation_id": "018f7d2d-001d-7000-0002-f147d6a2e70a",
+        "entity_id": "018f7d2d-006a-7000-0001-f147d6a2e70a",
+        "entity_type": "concept",
+        "event_id": "018f7d2d-001d-7000-0001-f147d6a2e70a",
+        "event_type": "concept.updated",
+        "memory": "fixture-memory-alpha",
+        "occurred_at": "2026-08-17T12:29:00Z",
+        "payload": {
+          "concept_id": "018f7d2d-006a-7000-0001-f147d6a2e70a",
+          "type": "ConceptUpdated"
+        },
+        "payload_version": 1,
+        "tenant_id": "tenant-fixture-001"
+      }
+    },
+    {
+      "eventType": "index.embedding.updated",
+      "legacyType": "IndexEmbeddingUpdated",
+      "path": "contracts/asyncapi/fixtures/events/index_embedding_updated.json",
+      "sha256": "546db39ce766a62c0140d1ac8d8204fef659220cb0027b298f20332999d27ce5",
+      "envelope": {
+        "actor": {
+          "id": "fixture-user-001",
+          "kind": "user",
+          "name": "Fortemi event fixture operator"
+        },
+        "causation_id": "018f7d2d-0029-7000-0003-f147d6a2e70a",
+        "correlation_id": "018f7d2d-0029-7000-0002-f147d6a2e70a",
+        "entity_id": "018f7d2d-0065-7000-0001-f147d6a2e70a",
+        "entity_type": "index",
+        "event_id": "018f7d2d-0029-7000-0001-f147d6a2e70a",
+        "event_type": "index.embedding.updated",
+        "memory": "fixture-memory-alpha",
+        "occurred_at": "2026-08-17T12:41:00Z",
+        "payload": {
+          "job_id": "018f7d2d-0064-7000-0001-f147d6a2e70a",
+          "note_id": "018f7d2d-0065-7000-0001-f147d6a2e70a",
+          "type": "IndexEmbeddingUpdated"
+        },
+        "payload_version": 1,
+        "tenant_id": "tenant-fixture-001"
+      }
+    },
+    {
+      "eventType": "index.fts.updated",
+      "legacyType": "IndexFtsUpdated",
+      "path": "contracts/asyncapi/fixtures/events/index_fts_updated.json",
+      "sha256": "64d1e8b0b362108275cc4ff2b988c8cd680ff6b08b771f2edb17c62080da2bb4",
+      "envelope": {
+        "actor": {
+          "id": "fixture-user-001",
+          "kind": "user",
+          "name": "Fortemi event fixture operator"
+        },
+        "causation_id": "018f7d2d-002b-7000-0003-f147d6a2e70a",
+        "correlation_id": "018f7d2d-002b-7000-0002-f147d6a2e70a",
+        "entity_id": "018f7d2d-0065-7000-0001-f147d6a2e70a",
+        "entity_type": "index",
+        "event_id": "018f7d2d-002b-7000-0001-f147d6a2e70a",
+        "event_type": "index.fts.updated",
+        "memory": "fixture-memory-alpha",
+        "occurred_at": "2026-08-17T12:43:00Z",
+        "payload": {
+          "job_id": "018f7d2d-0064-7000-0001-f147d6a2e70a",
+          "note_id": "018f7d2d-0065-7000-0001-f147d6a2e70a",
+          "type": "IndexFtsUpdated"
+        },
+        "payload_version": 1,
+        "tenant_id": "tenant-fixture-001"
+      }
+    },
+    {
+      "eventType": "index.linking.updated",
+      "legacyType": "IndexLinkingUpdated",
+      "path": "contracts/asyncapi/fixtures/events/index_linking_updated.json",
+      "sha256": "719a62aca0e8221b3762af4cf65bc2d8cfe8c43f9fb9603b4caec1afa1d30ee6",
+      "envelope": {
+        "actor": {
+          "id": "fixture-user-001",
+          "kind": "user",
+          "name": "Fortemi event fixture operator"
+        },
+        "causation_id": "018f7d2d-002a-7000-0003-f147d6a2e70a",
+        "correlation_id": "018f7d2d-002a-7000-0002-f147d6a2e70a",
+        "entity_id": "018f7d2d-0065-7000-0001-f147d6a2e70a",
+        "entity_type": "index",
+        "event_id": "018f7d2d-002a-7000-0001-f147d6a2e70a",
+        "event_type": "index.linking.updated",
+        "memory": "fixture-memory-alpha",
+        "occurred_at": "2026-08-17T12:42:00Z",
+        "payload": {
+          "note_id": "018f7d2d-0065-7000-0001-f147d6a2e70a",
+          "type": "IndexLinkingUpdated"
+        },
+        "payload_version": 1,
+        "tenant_id": "tenant-fixture-001"
+      }
+    },
+    {
+      "eventType": "inference.availability.changed",
+      "legacyType": "InferenceAvailabilityChanged",
+      "path": "contracts/asyncapi/fixtures/events/inference_availability_changed.json",
+      "sha256": "dfaca697827db8d0d1d1f984b1ed65d665c4ab97edec1c35f7fc97b162fafbb8",
+      "envelope": {
+        "actor": {
+          "id": "fixture-user-001",
+          "kind": "user",
+          "name": "Fortemi event fixture operator"
+        },
+        "causation_id": "018f7d2d-002e-7000-0003-f147d6a2e70a",
+        "correlation_id": "018f7d2d-002e-7000-0002-f147d6a2e70a",
+        "entity_type": "inference",
+        "event_id": "018f7d2d-002e-7000-0001-f147d6a2e70a",
+        "event_type": "inference.availability.changed",
+        "memory": "fixture-memory-alpha",
+        "occurred_at": "2026-08-17T12:46:00Z",
+        "payload": {
+          "available": true,
+          "type": "InferenceAvailabilityChanged"
+        },
+        "payload_version": 1,
+        "tenant_id": "tenant-fixture-001"
+      }
+    },
+    {
+      "eventType": "inference.config.changed",
+      "legacyType": "InferenceConfigChanged",
+      "path": "contracts/asyncapi/fixtures/events/inference_config_changed.json",
+      "sha256": "a0de6029af426f2d5c1585a011f9cf33fa3c4da27fbdd0c96329f285e49b54c2",
+      "envelope": {
+        "actor": {
+          "id": "fixture-user-001",
+          "kind": "user",
+          "name": "Fortemi event fixture operator"
+        },
+        "causation_id": "018f7d2d-002f-7000-0003-f147d6a2e70a",
+        "correlation_id": "018f7d2d-002f-7000-0002-f147d6a2e70a",
+        "entity_type": "inference",
+        "event_id": "018f7d2d-002f-7000-0001-f147d6a2e70a",
+        "event_type": "inference.config.changed",
+        "memory": "fixture-memory-alpha",
+        "occurred_at": "2026-08-17T12:47:00Z",
+        "payload": {
+          "changed_fields": [
+            "default_backend",
+            "openrouter.generation_model"
+          ],
+          "default_backend": "ollama",
+          "embedding_backend": "openrouter",
+          "type": "InferenceConfigChanged"
+        },
+        "payload_version": 1,
+        "tenant_id": "tenant-fixture-001"
+      }
+    },
+    {
+      "eventType": "job.completed",
+      "legacyType": "JobCompleted",
+      "path": "contracts/asyncapi/fixtures/events/job_completed.json",
+      "sha256": "7bbb39af5f3a2d2fb7df72638005fc6d66bc3dc3dd5110cf941a0627f59247dd",
+      "envelope": {
+        "actor": {
+          "id": "fixture-user-001",
+          "kind": "user",
+          "name": "Fortemi event fixture operator"
+        },
+        "causation_id": "018f7d2d-0004-7000-0003-f147d6a2e70a",
+        "correlation_id": "018f7d2d-0004-7000-0002-f147d6a2e70a",
+        "entity_id": "018f7d2d-0064-7000-0001-f147d6a2e70a",
+        "entity_type": "job",
+        "event_id": "018f7d2d-0004-7000-0001-f147d6a2e70a",
+        "event_type": "job.completed",
+        "memory": "fixture-memory-alpha",
+        "occurred_at": "2026-08-17T12:04:00Z",
+        "payload": {
+          "duration_ms": 1234,
+          "job_id": "018f7d2d-0064-7000-0001-f147d6a2e70a",
+          "job_type": "Embedding",
+          "note_id": "018f7d2d-0065-7000-0001-f147d6a2e70a",
+          "type": "JobCompleted"
+        },
+        "payload_version": 1,
+        "tenant_id": "tenant-fixture-001"
+      }
+    },
+    {
+      "eventType": "job.failed",
+      "legacyType": "JobFailed",
+      "path": "contracts/asyncapi/fixtures/events/job_failed.json",
+      "sha256": "c7786b25525d481b0d41638fa559e38e990e1a880744d702ed78f97d5b6ccba7",
+      "envelope": {
+        "actor": {
+          "id": "fixture-user-001",
+          "kind": "user",
+          "name": "Fortemi event fixture operator"
+        },
+        "causation_id": "018f7d2d-0005-7000-0003-f147d6a2e70a",
+        "correlation_id": "018f7d2d-0005-7000-0002-f147d6a2e70a",
+        "entity_id": "018f7d2d-0064-7000-0001-f147d6a2e70a",
+        "entity_type": "job",
+        "event_id": "018f7d2d-0005-7000-0001-f147d6a2e70a",
+        "event_type": "job.failed",
+        "memory": "fixture-memory-alpha",
+        "occurred_at": "2026-08-17T12:05:00Z",
+        "payload": {
+          "error": "fixture validation failure",
+          "job_id": "018f7d2d-0064-7000-0001-f147d6a2e70a",
+          "job_type": "Extraction",
+          "type": "JobFailed"
+        },
+        "payload_version": 1,
+        "tenant_id": "tenant-fixture-001"
+      }
+    },
+    {
+      "eventType": "job.progress",
+      "legacyType": "JobProgress",
+      "path": "contracts/asyncapi/fixtures/events/job_progress.json",
+      "sha256": "90f8d50c84dfa423e76e1a311ab08f44214d7467325039905b8abc77c2a15354",
+      "envelope": {
+        "actor": {
+          "id": "fixture-user-001",
+          "kind": "user",
+          "name": "Fortemi event fixture operator"
+        },
+        "causation_id": "018f7d2d-0003-7000-0003-f147d6a2e70a",
+        "correlation_id": "018f7d2d-0003-7000-0002-f147d6a2e70a",
+        "entity_id": "018f7d2d-0064-7000-0001-f147d6a2e70a",
+        "entity_type": "job",
+        "event_id": "018f7d2d-0003-7000-0001-f147d6a2e70a",
+        "event_type": "job.progress",
+        "memory": "fixture-memory-alpha",
+        "occurred_at": "2026-08-17T12:03:00Z",
+        "payload": {
+          "job_id": "018f7d2d-0064-7000-0001-f147d6a2e70a",
+          "message": "fixture progress update",
+          "note_id": "018f7d2d-0065-7000-0001-f147d6a2e70a",
+          "progress": 65,
+          "type": "JobProgress"
+        },
+        "payload_version": 1,
+        "tenant_id": "tenant-fixture-001"
+      }
+    },
+    {
+      "eventType": "job.queued",
+      "legacyType": "JobQueued",
+      "path": "contracts/asyncapi/fixtures/events/job_queued.json",
+      "sha256": "84ef0dc6df2e92b22508c3fcb983cb4b8ce08492038207ad55f9853826d13bb2",
+      "envelope": {
+        "actor": {
+          "id": "fixture-user-001",
+          "kind": "user",
+          "name": "Fortemi event fixture operator"
+        },
+        "causation_id": "018f7d2d-0001-7000-0003-f147d6a2e70a",
+        "correlation_id": "018f7d2d-0001-7000-0002-f147d6a2e70a",
+        "entity_id": "018f7d2d-0064-7000-0001-f147d6a2e70a",
+        "entity_type": "job",
+        "event_id": "018f7d2d-0001-7000-0001-f147d6a2e70a",
+        "event_type": "job.queued",
+        "memory": "fixture-memory-alpha",
+        "occurred_at": "2026-08-17T12:01:00Z",
+        "payload": {
+          "job_id": "018f7d2d-0064-7000-0001-f147d6a2e70a",
+          "job_type": "Embedding",
+          "note_id": "018f7d2d-0065-7000-0001-f147d6a2e70a",
+          "type": "JobQueued"
+        },
+        "payload_version": 1,
+        "tenant_id": "tenant-fixture-001"
+      }
+    },
+    {
+      "eventType": "job.started",
+      "legacyType": "JobStarted",
+      "path": "contracts/asyncapi/fixtures/events/job_started.json",
+      "sha256": "2375fd555aec04f9b700e2f29b1ffbde3d3635964f3034d70376e5604e146e1e",
+      "envelope": {
+        "actor": {
+          "id": "fixture-user-001",
+          "kind": "user",
+          "name": "Fortemi event fixture operator"
+        },
+        "causation_id": "018f7d2d-0002-7000-0003-f147d6a2e70a",
+        "correlation_id": "018f7d2d-0002-7000-0002-f147d6a2e70a",
+        "entity_id": "018f7d2d-0064-7000-0001-f147d6a2e70a",
+        "entity_type": "job",
+        "event_id": "018f7d2d-0002-7000-0001-f147d6a2e70a",
+        "event_type": "job.started",
+        "memory": "fixture-memory-alpha",
+        "occurred_at": "2026-08-17T12:02:00Z",
+        "payload": {
+          "job_id": "018f7d2d-0064-7000-0001-f147d6a2e70a",
+          "job_type": "Linking",
+          "type": "JobStarted"
+        },
+        "payload_version": 1,
+        "tenant_id": "tenant-fixture-001"
+      }
+    },
+    {
+      "eventType": "jobs.paused",
+      "legacyType": "JobsPaused",
+      "path": "contracts/asyncapi/fixtures/events/jobs_paused.json",
+      "sha256": "9b0376a75e0ad2e5d2ad2418a7d7bc2ec0c0a89204ebd08fb30bc44cbd6c7206",
+      "envelope": {
+        "actor": {
+          "id": "fixture-user-001",
+          "kind": "user",
+          "name": "Fortemi event fixture operator"
+        },
+        "causation_id": "018f7d2d-0027-7000-0003-f147d6a2e70a",
+        "correlation_id": "018f7d2d-0027-7000-0002-f147d6a2e70a",
+        "entity_type": "job",
+        "event_id": "018f7d2d-0027-7000-0001-f147d6a2e70a",
+        "event_type": "jobs.paused",
+        "memory": "fixture-memory-alpha",
+        "occurred_at": "2026-08-17T12:39:00Z",
+        "payload": {
+          "scope": "global",
+          "type": "JobsPaused"
+        },
+        "payload_version": 1,
+        "tenant_id": "tenant-fixture-001"
+      }
+    },
+    {
+      "eventType": "jobs.resumed",
+      "legacyType": "JobsResumed",
+      "path": "contracts/asyncapi/fixtures/events/jobs_resumed.json",
+      "sha256": "57d618b513f8b096783affdb6e163dc6af1f192f08bee46a85112e032af435a6",
+      "envelope": {
+        "actor": {
+          "id": "fixture-user-001",
+          "kind": "user",
+          "name": "Fortemi event fixture operator"
+        },
+        "causation_id": "018f7d2d-0028-7000-0003-f147d6a2e70a",
+        "correlation_id": "018f7d2d-0028-7000-0002-f147d6a2e70a",
+        "entity_type": "job",
+        "event_id": "018f7d2d-0028-7000-0001-f147d6a2e70a",
+        "event_type": "jobs.resumed",
+        "memory": "fixture-memory-alpha",
+        "occurred_at": "2026-08-17T12:40:00Z",
+        "payload": {
+          "scope": "fixture-memory-alpha",
+          "type": "JobsResumed"
+        },
+        "payload_version": 1,
+        "tenant_id": "tenant-fixture-001"
+      }
+    },
+    {
+      "eventType": "note.archived",
+      "legacyType": "NoteArchived",
+      "path": "contracts/asyncapi/fixtures/events/note_archived.json",
+      "sha256": "5e433521d9565b37a74a32ac2112503fe0895828256033d5ed97a5b53846cce3",
+      "envelope": {
+        "actor": {
+          "id": "fixture-user-001",
+          "kind": "user",
+          "name": "Fortemi event fixture operator"
+        },
+        "causation_id": "018f7d2d-0009-7000-0003-f147d6a2e70a",
+        "correlation_id": "018f7d2d-0009-7000-0002-f147d6a2e70a",
+        "entity_id": "018f7d2d-0065-7000-0001-f147d6a2e70a",
+        "entity_type": "note",
+        "event_id": "018f7d2d-0009-7000-0001-f147d6a2e70a",
+        "event_type": "note.archived",
+        "memory": "fixture-memory-alpha",
+        "occurred_at": "2026-08-17T12:09:00Z",
+        "payload": {
+          "note_id": "018f7d2d-0065-7000-0001-f147d6a2e70a",
+          "type": "NoteArchived"
+        },
+        "payload_version": 1,
+        "tenant_id": "tenant-fixture-001"
+      }
+    },
+    {
+      "eventType": "note.created",
+      "legacyType": "NoteCreated",
+      "path": "contracts/asyncapi/fixtures/events/note_created.json",
+      "sha256": "c88caabc1e57b8ba8e6058202407a1e81ebae190c60e53b1c26ce1b72872e2c9",
+      "envelope": {
+        "actor": {
+          "id": "fixture-user-001",
+          "kind": "user",
+          "name": "Fortemi event fixture operator"
+        },
+        "causation_id": "018f7d2d-0007-7000-0003-f147d6a2e70a",
+        "correlation_id": "018f7d2d-0007-7000-0002-f147d6a2e70a",
+        "entity_id": "018f7d2d-0065-7000-0001-f147d6a2e70a",
+        "entity_type": "note",
+        "event_id": "018f7d2d-0007-7000-0001-f147d6a2e70a",
+        "event_type": "note.created",
+        "memory": "fixture-memory-alpha",
+        "occurred_at": "2026-08-17T12:07:00Z",
+        "payload": {
+          "note_id": "018f7d2d-0065-7000-0001-f147d6a2e70a",
+          "tags": [
+            "new"
+          ],
+          "type": "NoteCreated"
+        },
+        "payload_version": 1,
+        "tenant_id": "tenant-fixture-001"
+      }
+    },
+    {
+      "eventType": "note.deleted",
+      "legacyType": "NoteDeleted",
+      "path": "contracts/asyncapi/fixtures/events/note_deleted.json",
+      "sha256": "9cfad505abf7f77e3a6338b238186f19a7afe8f545f6016631549d151bc5fbd8",
+      "envelope": {
+        "actor": {
+          "id": "fixture-user-001",
+          "kind": "user",
+          "name": "Fortemi event fixture operator"
+        },
+        "causation_id": "018f7d2d-0008-7000-0003-f147d6a2e70a",
+        "correlation_id": "018f7d2d-0008-7000-0002-f147d6a2e70a",
+        "entity_id": "018f7d2d-0065-7000-0001-f147d6a2e70a",
+        "entity_type": "note",
+        "event_id": "018f7d2d-0008-7000-0001-f147d6a2e70a",
+        "event_type": "note.deleted",
+        "memory": "fixture-memory-alpha",
+        "occurred_at": "2026-08-17T12:08:00Z",
+        "payload": {
+          "note_id": "018f7d2d-0065-7000-0001-f147d6a2e70a",
+          "type": "NoteDeleted"
+        },
+        "payload_version": 1,
+        "tenant_id": "tenant-fixture-001"
+      }
+    },
+    {
+      "eventType": "note.links.updated",
+      "legacyType": "NoteLinksUpdated",
+      "path": "contracts/asyncapi/fixtures/events/note_links_updated.json",
+      "sha256": "148c12ef0b42194b6033b9274ec4264f7c4a6131b58d7e75c4edd53e11b1030e",
+      "envelope": {
+        "actor": {
+          "id": "fixture-user-001",
+          "kind": "user",
+          "name": "Fortemi event fixture operator"
+        },
+        "causation_id": "018f7d2d-000c-7000-0003-f147d6a2e70a",
+        "correlation_id": "018f7d2d-000c-7000-0002-f147d6a2e70a",
+        "entity_id": "018f7d2d-0065-7000-0001-f147d6a2e70a",
+        "entity_type": "note",
+        "event_id": "018f7d2d-000c-7000-0001-f147d6a2e70a",
+        "event_type": "note.links.updated",
+        "memory": "fixture-memory-alpha",
+        "occurred_at": "2026-08-17T12:12:00Z",
+        "payload": {
+          "note_id": "018f7d2d-0065-7000-0001-f147d6a2e70a",
+          "type": "NoteLinksUpdated"
+        },
+        "payload_version": 1,
+        "tenant_id": "tenant-fixture-001"
+      }
+    },
+    {
+      "eventType": "note.restored",
+      "legacyType": "NoteRestored",
+      "path": "contracts/asyncapi/fixtures/events/note_restored.json",
+      "sha256": "66a180e080b169af1b38153d5d48a9a71cb62060147bb311257c4e79ede16e0c",
+      "envelope": {
+        "actor": {
+          "id": "fixture-user-001",
+          "kind": "user",
+          "name": "Fortemi event fixture operator"
+        },
+        "causation_id": "018f7d2d-000a-7000-0003-f147d6a2e70a",
+        "correlation_id": "018f7d2d-000a-7000-0002-f147d6a2e70a",
+        "entity_id": "018f7d2d-0065-7000-0001-f147d6a2e70a",
+        "entity_type": "note",
+        "event_id": "018f7d2d-000a-7000-0001-f147d6a2e70a",
+        "event_type": "note.restored",
+        "memory": "fixture-memory-alpha",
+        "occurred_at": "2026-08-17T12:10:00Z",
+        "payload": {
+          "note_id": "018f7d2d-0065-7000-0001-f147d6a2e70a",
+          "type": "NoteRestored"
+        },
+        "payload_version": 1,
+        "tenant_id": "tenant-fixture-001"
+      }
+    },
+    {
+      "eventType": "note.revision.created",
+      "legacyType": "NoteRevisionCreated",
+      "path": "contracts/asyncapi/fixtures/events/note_revision_created.json",
+      "sha256": "fe0c7818c2c55dadb3a62df969872d294447c51be669f82fdbb7e614de665737",
+      "envelope": {
+        "actor": {
+          "id": "fixture-user-001",
+          "kind": "user",
+          "name": "Fortemi event fixture operator"
+        },
+        "causation_id": "018f7d2d-000d-7000-0003-f147d6a2e70a",
+        "correlation_id": "018f7d2d-000d-7000-0002-f147d6a2e70a",
+        "entity_id": "018f7d2d-0065-7000-0001-f147d6a2e70a",
+        "entity_type": "note",
+        "event_id": "018f7d2d-000d-7000-0001-f147d6a2e70a",
+        "event_type": "note.revision.created",
+        "memory": "fixture-memory-alpha",
+        "occurred_at": "2026-08-17T12:13:00Z",
+        "payload": {
+          "note_id": "018f7d2d-0065-7000-0001-f147d6a2e70a",
+          "type": "NoteRevisionCreated"
+        },
+        "payload_version": 1,
+        "tenant_id": "tenant-fixture-001"
+      }
+    },
+    {
+      "eventType": "note.tags.updated",
+      "legacyType": "NoteTagsUpdated",
+      "path": "contracts/asyncapi/fixtures/events/note_tags_updated.json",
+      "sha256": "c4a5cbb34894ca0de6538f6a499040c40ca9377a9a3d6002e70dcd5a7b6cc215",
+      "envelope": {
+        "actor": {
+          "id": "fixture-user-001",
+          "kind": "user",
+          "name": "Fortemi event fixture operator"
+        },
+        "causation_id": "018f7d2d-000b-7000-0003-f147d6a2e70a",
+        "correlation_id": "018f7d2d-000b-7000-0002-f147d6a2e70a",
+        "entity_id": "018f7d2d-0065-7000-0001-f147d6a2e70a",
+        "entity_type": "note",
+        "event_id": "018f7d2d-000b-7000-0001-f147d6a2e70a",
+        "event_type": "note.tags.updated",
+        "memory": "fixture-memory-alpha",
+        "occurred_at": "2026-08-17T12:11:00Z",
+        "payload": {
+          "note_id": "018f7d2d-0065-7000-0001-f147d6a2e70a",
+          "tags": [
+            "alpha",
+            "beta"
+          ],
+          "type": "NoteTagsUpdated"
+        },
+        "payload_version": 1,
+        "tenant_id": "tenant-fixture-001"
+      }
+    },
+    {
+      "eventType": "note.updated",
+      "legacyType": "NoteUpdated",
+      "path": "contracts/asyncapi/fixtures/events/note_updated.json",
+      "sha256": "cbb4a8ce6fbb02ad19ca157082875cbfa4385f156450d8ceebdcf5d030ff905e",
+      "envelope": {
+        "actor": {
+          "id": "fixture-user-001",
+          "kind": "user",
+          "name": "Fortemi event fixture operator"
+        },
+        "causation_id": "018f7d2d-0006-7000-0003-f147d6a2e70a",
+        "correlation_id": "018f7d2d-0006-7000-0002-f147d6a2e70a",
+        "entity_id": "018f7d2d-0065-7000-0001-f147d6a2e70a",
+        "entity_type": "note",
+        "event_id": "018f7d2d-0006-7000-0001-f147d6a2e70a",
+        "event_type": "note.updated",
+        "memory": "fixture-memory-alpha",
+        "occurred_at": "2026-08-17T12:06:00Z",
+        "payload": {
+          "has_ai_content": true,
+          "has_links": true,
+          "note_id": "018f7d2d-0065-7000-0001-f147d6a2e70a",
+          "tags": [
+            "fixture",
+            "contract"
+          ],
+          "title": "Fixture note",
+          "type": "NoteUpdated"
+        },
+        "payload_version": 1,
+        "tenant_id": "tenant-fixture-001"
+      }
+    },
+    {
+      "eventType": "queue.status",
+      "legacyType": "QueueStatus",
+      "path": "contracts/asyncapi/fixtures/events/queue_status.json",
+      "sha256": "0a53ce4ed7ed9e055700fbaff7428d2e2818133db2dccd5ce747c42df6d5fcdb",
+      "envelope": {
+        "actor": {
+          "id": "fixture-user-001",
+          "kind": "user",
+          "name": "Fortemi event fixture operator"
+        },
+        "causation_id": "018f7d2d-0000-7000-0003-f147d6a2e70a",
+        "correlation_id": "018f7d2d-0000-7000-0002-f147d6a2e70a",
+        "event_id": "018f7d2d-0000-7000-0001-f147d6a2e70a",
+        "event_type": "queue.status",
+        "memory": "fixture-memory-alpha",
+        "occurred_at": "2026-08-17T12:00:00Z",
+        "payload": {
+          "pending": 7,
+          "running": 2,
+          "total_jobs": 42,
+          "type": "QueueStatus"
+        },
+        "payload_version": 1,
+        "tenant_id": "tenant-fixture-001"
+      }
+    },
+    {
+      "eventType": "readmodel.graph.updated",
+      "legacyType": "ReadmodelGraphUpdated",
+      "path": "contracts/asyncapi/fixtures/events/readmodel_graph_updated.json",
+      "sha256": "ba086e67b2acb5de7202645ab3032a4ed3c8ed62472c6c1c307647e84e19af71",
+      "envelope": {
+        "actor": {
+          "id": "fixture-user-001",
+          "kind": "user",
+          "name": "Fortemi event fixture operator"
+        },
+        "causation_id": "018f7d2d-002c-7000-0003-f147d6a2e70a",
+        "correlation_id": "018f7d2d-002c-7000-0002-f147d6a2e70a",
+        "entity_id": "018f7d2d-0065-7000-0001-f147d6a2e70a",
+        "entity_type": "index",
+        "event_id": "018f7d2d-002c-7000-0001-f147d6a2e70a",
+        "event_type": "readmodel.graph.updated",
+        "memory": "fixture-memory-alpha",
+        "occurred_at": "2026-08-17T12:44:00Z",
+        "payload": {
+          "note_id": "018f7d2d-0065-7000-0001-f147d6a2e70a",
+          "type": "ReadmodelGraphUpdated"
+        },
+        "payload_version": 1,
+        "tenant_id": "tenant-fixture-001"
+      }
+    },
+    {
+      "eventType": "readmodel.search.ready",
+      "legacyType": "ReadmodelSearchReady",
+      "path": "contracts/asyncapi/fixtures/events/readmodel_search_ready.json",
+      "sha256": "a7d42acfade79ebc693fb3a3dc42d887162bf83164fd45d99915e10c09931fff",
+      "envelope": {
+        "actor": {
+          "id": "fixture-user-001",
+          "kind": "user",
+          "name": "Fortemi event fixture operator"
+        },
+        "causation_id": "018f7d2d-002d-7000-0003-f147d6a2e70a",
+        "correlation_id": "018f7d2d-002d-7000-0002-f147d6a2e70a",
+        "entity_id": "018f7d2d-0065-7000-0001-f147d6a2e70a",
+        "entity_type": "index",
+        "event_id": "018f7d2d-002d-7000-0001-f147d6a2e70a",
+        "event_type": "readmodel.search.ready",
+        "memory": "fixture-memory-alpha",
+        "occurred_at": "2026-08-17T12:45:00Z",
+        "payload": {
+          "note_id": "018f7d2d-0065-7000-0001-f147d6a2e70a",
+          "type": "ReadmodelSearchReady"
+        },
+        "payload_version": 1,
+        "tenant_id": "tenant-fixture-001"
+      }
+    },
+    {
+      "eventType": "tag.created",
+      "legacyType": "TagCreated",
+      "path": "contracts/asyncapi/fixtures/events/tag_created.json",
+      "sha256": "266c48a618f595c0504d4e3b839a2ecca1a657c890a0504a3fc9e85d87972887",
+      "envelope": {
+        "actor": {
+          "id": "fixture-user-001",
+          "kind": "user",
+          "name": "Fortemi event fixture operator"
+        },
+        "causation_id": "018f7d2d-0022-7000-0003-f147d6a2e70a",
+        "correlation_id": "018f7d2d-0022-7000-0002-f147d6a2e70a",
+        "entity_type": "tag",
+        "event_id": "018f7d2d-0022-7000-0001-f147d6a2e70a",
+        "event_type": "tag.created",
+        "memory": "fixture-memory-alpha",
+        "occurred_at": "2026-08-17T12:34:00Z",
+        "payload": {
+          "tag": "fixture",
+          "type": "TagCreated"
+        },
+        "payload_version": 1,
+        "tenant_id": "tenant-fixture-001"
+      }
+    },
+    {
+      "eventType": "tag.deleted",
+      "legacyType": "TagDeleted",
+      "path": "contracts/asyncapi/fixtures/events/tag_deleted.json",
+      "sha256": "28e4cf6decbffebc7954a5a1a98a1d4ff16bea669b501ecf8f6db573fde5edc1",
+      "envelope": {
+        "actor": {
+          "id": "fixture-user-001",
+          "kind": "user",
+          "name": "Fortemi event fixture operator"
+        },
+        "causation_id": "018f7d2d-0024-7000-0003-f147d6a2e70a",
+        "correlation_id": "018f7d2d-0024-7000-0002-f147d6a2e70a",
+        "entity_type": "tag",
+        "event_id": "018f7d2d-0024-7000-0001-f147d6a2e70a",
+        "event_type": "tag.deleted",
+        "memory": "fixture-memory-alpha",
+        "occurred_at": "2026-08-17T12:36:00Z",
+        "payload": {
+          "tag": "fixture-old",
+          "type": "TagDeleted"
+        },
+        "payload_version": 1,
+        "tenant_id": "tenant-fixture-001"
+      }
+    },
+    {
+      "eventType": "tag.merged",
+      "legacyType": "TagMerged",
+      "path": "contracts/asyncapi/fixtures/events/tag_merged.json",
+      "sha256": "b8a28f66c1b0b356518a09b9c46f86c896ddf88146b0118e648b99983349b769",
+      "envelope": {
+        "actor": {
+          "id": "fixture-user-001",
+          "kind": "user",
+          "name": "Fortemi event fixture operator"
+        },
+        "causation_id": "018f7d2d-0025-7000-0003-f147d6a2e70a",
+        "correlation_id": "018f7d2d-0025-7000-0002-f147d6a2e70a",
+        "entity_type": "tag",
+        "event_id": "018f7d2d-0025-7000-0001-f147d6a2e70a",
+        "event_type": "tag.merged",
+        "memory": "fixture-memory-alpha",
+        "occurred_at": "2026-08-17T12:37:00Z",
+        "payload": {
+          "affected_count": 3,
+          "source_tag": "source-fixture",
+          "target_tag": "target-fixture",
+          "type": "TagMerged"
+        },
+        "payload_version": 1,
+        "tenant_id": "tenant-fixture-001"
+      }
+    },
+    {
+      "eventType": "tag.renamed",
+      "legacyType": "TagRenamed",
+      "path": "contracts/asyncapi/fixtures/events/tag_renamed.json",
+      "sha256": "156cbb92678507f021957fe3e0433cc51b18da1b63afc5a8528b399dca050671",
+      "envelope": {
+        "actor": {
+          "id": "fixture-user-001",
+          "kind": "user",
+          "name": "Fortemi event fixture operator"
+        },
+        "causation_id": "018f7d2d-0023-7000-0003-f147d6a2e70a",
+        "correlation_id": "018f7d2d-0023-7000-0002-f147d6a2e70a",
+        "entity_type": "tag",
+        "event_id": "018f7d2d-0023-7000-0001-f147d6a2e70a",
+        "event_type": "tag.renamed",
+        "memory": "fixture-memory-alpha",
+        "occurred_at": "2026-08-17T12:35:00Z",
+        "payload": {
+          "new_name": "fixture-new",
+          "old_name": "fixture-old",
+          "type": "TagRenamed"
+        },
+        "payload_version": 1,
+        "tenant_id": "tenant-fixture-001"
+      }
+    },
+    {
+      "eventType": "tag.stats.updated",
+      "legacyType": "TagStatsUpdated",
+      "path": "contracts/asyncapi/fixtures/events/tag_stats_updated.json",
+      "sha256": "b3bf8c6422f94c9221300347f24a253f3a87c1c22ed3359d21f7fa835f2ebdb2",
+      "envelope": {
+        "actor": {
+          "id": "fixture-user-001",
+          "kind": "user",
+          "name": "Fortemi event fixture operator"
+        },
+        "causation_id": "018f7d2d-0026-7000-0003-f147d6a2e70a",
+        "correlation_id": "018f7d2d-0026-7000-0002-f147d6a2e70a",
+        "entity_type": "tag",
+        "event_id": "018f7d2d-0026-7000-0001-f147d6a2e70a",
+        "event_type": "tag.stats.updated",
+        "memory": "fixture-memory-alpha",
+        "occurred_at": "2026-08-17T12:38:00Z",
+        "payload": {
+          "type": "TagStatsUpdated"
+        },
+        "payload_version": 1,
+        "tenant_id": "tenant-fixture-001"
+      }
+    }
+  ]
+}

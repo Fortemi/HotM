@@ -278,8 +278,9 @@ The current generated result is 1 integrated, 249 partial, and 1 gap operation
 with zero pin, boundary, evidence-path, or unclassified-operation diagnostics.
 Route inventory, OpenAPI, AsyncAPI, Knowledge Shard, compatibility, and auth
 remain independent release gates. The schema-derived AsyncAPI transport receipt
-does not close #288 because no producer-owned event example corpus exists at the
-pinned Fortemi revision. The desktop/mobile mocked Playwright gate introduced by
+does not independently close #288: the packaged revision has no producer-owned
+event example corpus. The independent producer-corpus gate below supplies that
+separate evidence. The desktop/mobile mocked Playwright gate introduced by
 #291 is likewise UI evidence, not live or auth/context evidence.
 
 ### Decision Amendment: Authenticated Runtime and Product Disposition
@@ -430,3 +431,47 @@ The consumed hosted claim contract remains 1.1.0, authority commit
 Regression evidence: `ui/src/api/__tests__/auth-context-hosted.test.ts` and
 `ui/src/api/__tests__/events.test.ts`. Live acceptance remains the unchanged
 `ui/scripts/qualify-hosted-realtime.mjs` against the isolated titan deployment.
+
+## Producer-Owned Event Corpus (HotM #288, 2026-09-11)
+
+Consume [Fortemi #1097](https://git.integrolabs.net/Fortemi/fortemi/issues/1097)
+at the existing independent live AsyncAPI authority
+`c3bfd40b275decd5a24c4e9a656d830a383b3de2`. The exact receipt pin is
+`ui/src/api/contracts/fortemi-producer-event-fixture-pin.json`; its SHA-256 is
+`2318bf0ff3ba2801929767c9417ed5cc0dd83ffb91ceae7276efcc8979b763aa`.
+Producer manifest SHA-256:
+`73ce991d31aba0bfaa7d126f9f8ca7cb42d9941fd65ecd67d4dba8d7a4faaada`.
+Corpus SHA-256:
+`ee09b909863b868b57c3bf95daa47d3e24f84eb7eb487c1d64c0ef40ef4dc6ad`.
+
+The importer reads exact Git objects and verifies the receipt, manifest, all
+48 raw fixture hashes, lexicographically concatenated corpus digest, four-schema
+inventory, event/variant/schema mapping, envelope revision 1, and payload
+revision 1. It compares the full live wire document with the packaged baseline
+excluding only informational metadata. Imported JSON values preserve the Rust
+producer envelopes; the consolidated HotM file is not an independent authority.
+
+Required commands:
+
+```bash
+node --test .aiwg/testing/scripts/producer-event-fixtures.test.mjs
+node .aiwg/testing/scripts/verify-fortemi-producer-event-fixtures.mjs ../fortemi
+node .aiwg/testing/scripts/verify-fortemi-producer-event-transports.mjs ../fortemi .aiwg/working/producer-event-transports/receipt.json
+```
+
+The transport gate executes all 48 examples through EventSource, split-chunk
+fetch SSE, and the production WebSocket message handler with canonical envelopes
+and legacy payloads. It asserts exact payload and envelope metadata preservation,
+including structured actors, nulls, identifiers, tenant, memory and timestamps.
+Its receipt binds source/test/lockfile hashes, producer and catalog digests,
+event/schema counts, each passed event per transport, and the hashed Vitest report.
+The existing negative and unknown-event tests run in the same gate.
+
+SDLC CI rejects byte, pin, mapping, revision, schema and decoder drift and uploads
+the transport receipt. Legacy WebSocket fixtures do not grant scoped fallback:
+admission still requires unscoped `anonymous_local`. Network boundaries are
+mocked; this is not live authorization, tenant isolation, supported-platform,
+sidecar replacement, Knowledge Shard, or suite-wide compatibility evidence.
+The packaged sidecar and historical schema-derived receipts are unchanged.
+[HotM #288](https://git.integrolabs.net/Fortemi/HotM/issues/288) remains open
+until exact-source CI and delivery are verified. Suite NO-GO remains.

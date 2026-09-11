@@ -1,0 +1,115 @@
+{
+  "metadata": {
+    "schema_version": "1.0.0",
+    "created_at": "2026-09-11T11:47:48Z"
+  },
+  "entity": {
+    "id": "urn:aiwg:bundle:hotm-288-producer-event-adoption",
+    "type": "document",
+    "created_at": "2026-09-11T11:47:48Z",
+    "attributes": {
+      "artifacts": [
+        {
+          "path": ".aiwg/architecture/adr/ADR-010-fortemi-v2026-07-api-coverage.md",
+          "sha256": "11a46b8a9acc0e4491bef0e70380c2aa615ab189c4638288491884677eef0e23"
+        },
+        {
+          "path": ".aiwg/architecture/sad-fortemi-integration-addendum-2026-07.md",
+          "sha256": "c966717483968b23cad5b1c34a6508012c074b1855324d85ace6a56e63573044"
+        },
+        {
+          "path": ".aiwg/reports/fortemi-v2026-07-api-integration-traceability.md",
+          "sha256": "557977bd3ef4ee706a31b7a383c94426883ebbe79e92afef1372131fd04810cf"
+        },
+        {
+          "path": ".aiwg/requirements/fortemi-api-integration-requirements-2026-07.md",
+          "sha256": "bcff2c29cca94bf24962020337c5393363fb26e5484be6c882557da764daacd2"
+        },
+        {
+          "path": ".aiwg/testing/api-contract-test-plan-addendum-2026-07.md",
+          "sha256": "e8320f1319c8ff60e03e4da5ec843e0c61e9e7e5cd856b1d073e0ea905d3b111"
+        },
+        {
+          "path": ".aiwg/testing/scripts/producer-event-fixtures.mjs",
+          "sha256": "e592e6aef9442e21c057492994a33e26d0b98d2a8453956465a053b0e812873c"
+        },
+        {
+          "path": ".aiwg/testing/scripts/producer-event-fixtures.test.mjs",
+          "sha256": "ec4859b8fcaeaee61104033fb500bb999a4de8b9feedc475822dcae0dd898c3d"
+        },
+        {
+          "path": ".aiwg/testing/scripts/verify-fortemi-producer-event-fixtures.mjs",
+          "sha256": "ee1b228270948d25eede194fa7f466599f2b509e3347dde15f2db88bcb6f18d3"
+        },
+        {
+          "path": ".aiwg/testing/scripts/verify-fortemi-producer-event-transports.mjs",
+          "sha256": "ef345497eaca507f12c1a68540aa1b75592ee055602e53b73578a2903f228e07"
+        },
+        {
+          "path": ".gitea/workflows/sdlc-gates.yml",
+          "sha256": "417c59bb6891e69e1982ccb1c7e2c1042bf86d44357b11803d814b2f86081f7a"
+        },
+        {
+          "path": "ui/src/api/__tests__/events.test.ts",
+          "sha256": "3e7201fc3c00a1e111969c169bec34af0760e815fb822cf73a8094a8c4ceccca"
+        },
+        {
+          "path": "ui/src/api/contracts/fortemi-producer-event-fixture-pin.json",
+          "sha256": "230385b714754fa5bdbab130bca73d9fe34b7ce237522f848565079539d7b666"
+        },
+        {
+          "path": "ui/src/api/contracts/fortemi-producer-event-fixtures.json",
+          "sha256": "9b9edad21e87c404c82d0a859b39cb3a5f8ac5e6dded4f1126d92b678ec53cec"
+        },
+        {
+          "path": "ui/src/services/__tests__/websocket-producer-fixtures.test.ts",
+          "sha256": "fa540e35ff743996b16e88313bdaecbc4f4c250eb3cec8d2e0b840020940d177"
+        }
+      ],
+      "base_revision": "0573a211059e76f344fcb10944816bfec22071f7",
+      "scope": "Producer-owned event fixture and decoder evidence only; no runtime change, live authentication claim, sidecar repin or suite NO-GO change."
+    }
+  },
+  "activity": {
+    "id": "urn:aiwg:activity:modification:hotm-288-producer-event-adoption",
+    "type": "modification",
+    "started_at": "2026-09-11T11:47:48Z",
+    "ended_at": "2026-09-11T11:47:48Z",
+    "description": "Consume exact producer event fixtures and verify all 48 events over SSE and WebSocket decoder paths with fail-closed source and CI receipts."
+  },
+  "agent": {
+    "id": "urn:aiwg:agent:codex",
+    "name": "Codex",
+    "type": "ai_assistant"
+  },
+  "relationships": {
+    "wasGeneratedBy": {
+      "entity": "urn:aiwg:bundle:hotm-288-producer-event-adoption",
+      "activity": "urn:aiwg:activity:modification:hotm-288-producer-event-adoption",
+      "time": "2026-09-11T11:47:48Z"
+    },
+    "wasAttributedTo": {
+      "entity": "urn:aiwg:bundle:hotm-288-producer-event-adoption",
+      "agent": "urn:aiwg:agent:codex"
+    },
+    "wasAssociatedWith": {
+      "activity": "urn:aiwg:activity:modification:hotm-288-producer-event-adoption",
+      "agent": "urn:aiwg:agent:codex",
+      "role": "primary_implementer"
+    },
+    "wasDerivedFrom": [
+      {
+        "entity": "urn:aiwg:bundle:hotm-288-producer-event-adoption",
+        "source": "urn:gitea:issue:Fortemi/HotM:288",
+        "derivation_type": "implements",
+        "activity": "urn:aiwg:activity:modification:hotm-288-producer-event-adoption"
+      },
+      {
+        "entity": "urn:aiwg:bundle:hotm-288-producer-event-adoption",
+        "source": "urn:git:Fortemi/fortemi:c3bfd40b275decd5a24c4e9a656d830a383b3de2:contracts/asyncapi/producer-event-fixture-receipt.json",
+        "derivation_type": "derives_from",
+        "activity": "urn:aiwg:activity:modification:hotm-288-producer-event-adoption"
+      }
+    ]
+  }
+}

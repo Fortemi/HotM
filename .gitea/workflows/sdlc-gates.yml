@@ -115,6 +115,19 @@ jobs:
           node --test .aiwg/testing/scripts/live-asyncapi-authority.test.mjs
           node .aiwg/testing/scripts/verify-fortemi-live-asyncapi-authority.mjs ../fortemi
 
+      - name: Verify producer-owned event fixtures and transport decoders
+        shell: bash
+        run: |
+          node --test .aiwg/testing/scripts/producer-event-fixtures.test.mjs
+          node .aiwg/testing/scripts/verify-fortemi-producer-event-transports.mjs ../fortemi .aiwg/working/producer-event-transports/receipt.json
+
+      - name: Upload producer event transport receipt
+        uses: actions/upload-artifact@ff15f0306b3f739f7b6fd43fb5d26cd321bd4de5
+        with:
+          name: producer-event-transport-receipt
+          path: .aiwg/working/producer-event-transports/
+          if-no-files-found: error
+
       - name: Verify Fortemi OpenAPI consumer contract
         shell: bash
         run: |
