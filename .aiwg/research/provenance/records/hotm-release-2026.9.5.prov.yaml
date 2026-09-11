@@ -1,7 +1,7 @@
 {
   "metadata": {
     "schema_version": "1.0.0",
-    "created_at": "2026-09-11T12:50:06.193Z"
+    "created_at": "2026-09-11T12:56:40.836Z"
   },
   "entity": {
     "id": "urn:aiwg:artifact:docs/releases/v2026.9.5.md",
@@ -15,7 +15,7 @@
         },
         {
           "path": "docs/releases/v2026.9.5.md",
-          "sha256": "f12db662be426af4ee2ac76d03d32194148e3867bc92eace084ae21f765cc366"
+          "sha256": "59c621b8ee3fa6b3468a414896c26698a4eac8e5b933ff23e0b30ec804443079"
         },
         {
           "path": "ui/package.json",
@@ -42,7 +42,8 @@
         "Release metadata and notes only; no runtime, dependency, sidecar, authority or profile change",
         "Producer transport246 and full UI2036/134 files, drift24, typecheck/build and release policy checks pass",
         "Exact-head CI, release-tag authority and publication/mirror verification remain required",
-        "Mocked decoder evidence is not live hosted authorization or all-platform qualification; suite NO-GO retained"
+        "Mocked decoder evidence is not live hosted authorization or all-platform qualification; suite NO-GO retained",
+        "Actual strict Pagenary build reproduces the relative-link failure and passes with a commit-pinned repository link"
       ]
     }
   },
@@ -50,8 +51,8 @@
     "id": "urn:aiwg:activity:modification:hotm-release-2026.9.5:001",
     "type": "modification",
     "started_at": "2026-09-11T12:37:00Z",
-    "ended_at": "2026-09-11T12:50:06.193Z",
-    "description": "Prepare HotM 2026.9.5 for the delivered producer-owned realtime fixture verification."
+    "ended_at": "2026-09-11T12:56:40.836Z",
+    "description": "Prepare HotM 2026.9.5 for the delivered producer-owned realtime fixture verification. Correct the release-note ADR link for the docs-only publisher; retain strict link checking."
   },
   "agent": {
     "id": "urn:aiwg:agent:codex",
@@ -62,7 +63,7 @@
     "wasGeneratedBy": {
       "entity": "urn:aiwg:artifact:docs/releases/v2026.9.5.md",
       "activity": "urn:aiwg:activity:modification:hotm-release-2026.9.5:001",
-      "time": "2026-09-11T12:50:06.193Z"
+      "time": "2026-09-11T12:56:40.836Z"
     },
     "wasAttributedTo": {
       "entity": "urn:aiwg:artifact:docs/releases/v2026.9.5.md",
