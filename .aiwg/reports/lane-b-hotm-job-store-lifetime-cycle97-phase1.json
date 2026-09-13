@@ -1,0 +1,139 @@
+{
+  "at": "2026-09-13T07:05:25.070Z",
+  "cycle": 97,
+  "stage": "LIVE_STATE_LIFETIME_FIRST_STAGE",
+  "status": "PASS_TESTED_STAGE",
+  "overallAcceptance": "NOT_PASS",
+  "head": "2b0b4a7aa283a91aa1026521b3a41faa4e834ad4",
+  "changed": [
+    "ui/src/services/__tests__/jobEventStore-context.test.ts",
+    "ui/src/services/__tests__/jobEventStore.test.ts",
+    "ui/src/services/jobEventStore.ts"
+  ],
+  "sourceFiles": 518,
+  "tests": {
+    "regressionsBeforeFix": 11,
+    "focused": 30,
+    "broader": 426,
+    "full": 2145,
+    "typecheck": "PASS",
+    "build": "PASS",
+    "unhandledErrors": 0
+  },
+  "cleanup": {
+    "at": "2026-09-13T07:05:25.024Z",
+    "jobs": [
+      {
+        "label": "red",
+        "unit": "fortemi-local-test-1000-6ea5f935-2c9a-49a9-b72d-c5b51120dc31.service",
+        "state": {
+          "unit": "fortemi-local-test-1000-6ea5f935-2c9a-49a9-b72d-c5b51120dc31.service",
+          "observedAt": "2026-09-13T06:58:14.250Z",
+          "LoadState": "loaded",
+          "ActiveState": "failed",
+          "SubState": "failed",
+          "RuntimeMaxUSec": "4min",
+          "Result": "exit-code",
+          "ExecMainCode": "1",
+          "ExecMainStatus": "1",
+          "ControlGroup": "/system.slice/fortemi-local-test-1000-6ea5f935-2c9a-49a9-b72d-c5b51120dc31.service",
+          "MemoryPeak": "246923264",
+          "CPUUsageNSec": "1774868000",
+          "CPUQuotaPerSecUSec": "2s",
+          "MemoryHigh": "6442450944",
+          "MemoryMax": "8589934592",
+          "MemorySwapMax": "0",
+          "TasksMax": "256",
+          "exitCode": "exited",
+          "exitStatus": "1",
+          "finishedAt": "2026-09-13T06:58:14.250Z"
+        }
+      },
+      {
+        "label": "green",
+        "unit": "fortemi-local-test-1000-6c66c3a6-2dfb-48a6-b4cf-813f3918cae9.service",
+        "state": {
+          "unit": "fortemi-local-test-1000-6c66c3a6-2dfb-48a6-b4cf-813f3918cae9.service",
+          "observedAt": "2026-09-13T06:59:33.207Z",
+          "LoadState": "loaded",
+          "ActiveState": "inactive",
+          "SubState": "dead",
+          "RuntimeMaxUSec": "4min",
+          "Result": "success",
+          "ExecMainCode": "1",
+          "ExecMainStatus": "0",
+          "ControlGroup": "/system.slice/fortemi-local-test-1000-6c66c3a6-2dfb-48a6-b4cf-813f3918cae9.service",
+          "MemoryPeak": "989196288",
+          "CPUUsageNSec": "11329213000",
+          "CPUQuotaPerSecUSec": "2s",
+          "MemoryHigh": "6442450944",
+          "MemoryMax": "8589934592",
+          "MemorySwapMax": "0",
+          "TasksMax": "256",
+          "exitCode": "exited",
+          "exitStatus": "0",
+          "finishedAt": "2026-09-13T06:59:33.207Z"
+        }
+      },
+      {
+        "label": "full",
+        "unit": "fortemi-local-test-1000-8590b8a8-9e94-4ac0-85de-eecf459f381d.service",
+        "state": {
+          "unit": "fortemi-local-test-1000-8590b8a8-9e94-4ac0-85de-eecf459f381d.service",
+          "observedAt": "2026-09-13T07:02:57.604Z",
+          "LoadState": "loaded",
+          "ActiveState": "inactive",
+          "SubState": "dead",
+          "RuntimeMaxUSec": "15min",
+          "Result": "success",
+          "ExecMainCode": "1",
+          "ExecMainStatus": "0",
+          "ControlGroup": "/system.slice/fortemi-local-test-1000-8590b8a8-9e94-4ac0-85de-eecf459f381d.service",
+          "MemoryPeak": "2306723840",
+          "CPUUsageNSec": "148081448000",
+          "CPUQuotaPerSecUSec": "2s",
+          "MemoryHigh": "6442450944",
+          "MemoryMax": "8589934592",
+          "MemorySwapMax": "0",
+          "TasksMax": "256",
+          "exitCode": "exited",
+          "exitStatus": "0",
+          "finishedAt": "2026-09-13T07:02:57.604Z"
+        }
+      }
+    ],
+    "services": {
+      "vllm": {
+        "ActiveState": "active",
+        "UnitFileState": "enabled",
+        "MainPID": "223555",
+        "NRestarts": "0"
+      },
+      "ollama": {
+        "ActiveState": "active",
+        "UnitFileState": "enabled",
+        "MainPID": "10457",
+        "NRestarts": "2"
+      },
+      "hostRunner": {
+        "ActiveState": "inactive",
+        "UnitFileState": "disabled",
+        "MainPID": "0",
+        "NRestarts": "0"
+      }
+    },
+    "sharedServicesUnchanged": true,
+    "peakBytes": 2306723840,
+    "ownedFixtureProcesses": 0
+  },
+  "evidence": "/home/roctinam/dev/fortemi-suite/.aiwg/working/lane-b/evidence/lane-b-delivery-20260913-cycle97",
+  "implementation": "Live job/queue/step/pause state reset on effective context changes. Owned callbacks have revision checks; pause requests also use latest-request checks. Dispose removes only store-owned subscriptions/timer. Existing legacy persistence/hydration remains unscoped.",
+  "remaining": [
+    "persisted cache explicit ownership and same-context reload preservation; fail-closed foreign/legacy hydration",
+    "buffered event delivery to new listeners; actual browser job data acceptance",
+    "mobile clipping and original20 full-lane lifecycle/every-consumer/CI/delivery/release sweep"
+  ],
+  "publication": "Uncommitted/unreleased candidate. No wire or authority/pin change, no release action. Stage incomplete for job-cache acceptance. Cycle96 detailed drafts and Cycle82 hold remain unauthorized; specific authorization required.",
+  "safety": "Three serial bounded offline jobs terminal. No database/model/GPU/Docker/shared-service/signing actions. Original model release age policy unchanged.",
+  "scope": "Suite NO-GO/public readiness false/goal active. Independent delivered-axis evidence required by human92284. No full application/job-store isolation claim."
+}

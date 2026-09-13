@@ -1,0 +1,152 @@
+{
+  "metadata": {
+    "schema_version": "1.0.0",
+    "created_at": "2026-09-13T13:30:01.418Z"
+  },
+  "entity": {
+    "id": "urn:aiwg:artifact:.aiwg/reports/lane-b-hotm-owned-job-cache-cycle97-phase2.json",
+    "type": "artifact_bundle",
+    "created_at": "2026-09-13T13:30:01.418Z",
+    "checksum": "sha256:837813e2190e64a2861696b413633c06cd2569b4bdd039f2b6c441ca5b85143c",
+    "size_bytes": 20058,
+    "attributes": {
+      "artifacts": [
+        {
+          "path": "ui/src/api/__tests__/api-endpoint-context.test.ts",
+          "bytes": 1277,
+          "sha256": "0f82c7489ef0c7c83940d07c5918219340f5d052deacf488448c8d7f4ec85ab1"
+        },
+        {
+          "path": "ui/src/api/data-context.ts",
+          "bytes": 2887,
+          "sha256": "429e84cc36eb87b18bd6f0e9e9a878b0a7a11be760c1463c4ca99f18781fe473"
+        },
+        {
+          "path": "ui/src/api/index.ts",
+          "bytes": 15985,
+          "sha256": "c8eb5f06dc2212233af546ff6ca19abe9fd7e5bd841c79cd9a76400e845d7d04"
+        },
+        {
+          "path": "ui/src/components/attachments/__tests__/AttachmentsPanel.test.tsx",
+          "bytes": 41812,
+          "sha256": "8af8e455e712ccb33f36fe4688a2cfec606385de3e084f725452bc41637cc59b"
+        },
+        {
+          "path": "ui/src/services/__tests__/jobEventStore-cache.test.ts",
+          "bytes": 9712,
+          "sha256": "8eca96b6acc2f4112dbbc8c79be93345c58a962fa1875ac30543de9e35ea71e7"
+        },
+        {
+          "path": "ui/src/services/__tests__/jobEventStore.test.ts",
+          "bytes": 10553,
+          "sha256": "b61f045f749e904b8b2a5bd6312707b8d3c9a287993b2489df42a6b541537fdb"
+        },
+        {
+          "path": "ui/src/services/__tests__/realtimeEventBus-context.test.ts",
+          "bytes": 1562,
+          "sha256": "46e2a9093634f4ed933beb8302065b345a3dfdce7a6c4f74c4f57b5bff702840"
+        },
+        {
+          "path": "ui/src/services/__tests__/websocket-archive-context.test.ts",
+          "bytes": 10614,
+          "sha256": "017f7103e19a5bbb52f8c4149ad024f3ebbec5c164941d23dc266be80a9721d8"
+        },
+        {
+          "path": "ui/src/services/__tests__/websocket-archive-view.test.ts",
+          "bytes": 2649,
+          "sha256": "ba55e71767ab940810f1f809d1187447f17316ae6893d0393ddbf0b17ffdbda0"
+        },
+        {
+          "path": "ui/src/services/jobEventStore.ts",
+          "bytes": 15673,
+          "sha256": "31bdba2609927928efa635519c10b8bec3b45eb69cdfb61f5e0f7d08801e9c31"
+        },
+        {
+          "path": "ui/src/services/jobStorePersistence.ts",
+          "bytes": 4363,
+          "sha256": "25de6709c3a788abc5f1f216f074f1dfb05fb11ad191597d4cc8713f18163487"
+        },
+        {
+          "path": "ui/src/services/realtimeEventBus.ts",
+          "bytes": 20989,
+          "sha256": "777fd7bfd33ee3d9cbd8eea72e0a371dfaa36c5510d8421f3e74f8ea9dff7ff7"
+        },
+        {
+          "path": "ui/src/services/websocket.ts",
+          "bytes": 25411,
+          "sha256": "411989a7645f2b347af5f87cbf4847f24b7ba778ba763d0f814bab5b2ac9b6cb"
+        },
+        {
+          "path": ".aiwg/architecture/adr/ADR-010-fortemi-v2026-07-api-coverage.md",
+          "bytes": 40648,
+          "sha256": "8b48e86fa79bff65dee9b7c576c307829a9d0cec7ededb94441979a4ae48ff66"
+        },
+        {
+          "path": ".aiwg/architecture/sad-fortemi-integration-addendum-2026-07.md",
+          "bytes": 48367,
+          "sha256": "052e9b418c986422ba34bf53091739c539e5a2fe3566718e32c7015b73ef1273"
+        },
+        {
+          "path": ".aiwg/requirements/fortemi-api-integration-requirements-2026-07.md",
+          "bytes": 38183,
+          "sha256": "da491315b7b500e6e552364f89f49222c239b05efaba74d6dedb7982ead944e8"
+        },
+        {
+          "path": ".aiwg/testing/api-contract-test-plan-addendum-2026-07.md",
+          "bytes": 43876,
+          "sha256": "63e4f836a6436b6a61f5c7cb72d8bfbad9c9313d94abd7e72dbbcbb4d236dccc"
+        },
+        {
+          "path": ".aiwg/reports/fortemi-v2026-07-api-integration-traceability.md",
+          "bytes": 38466,
+          "sha256": "47ed5e6a1742885785b186062a8e8ad4636d077c8d032f986aa75d79de18cb0a"
+        },
+        {
+          "path": ".aiwg/reports/lane-b-hotm-owned-job-cache-cycle97-phase2.json",
+          "bytes": 20058,
+          "sha256": "837813e2190e64a2861696b413633c06cd2569b4bdd039f2b6c441ca5b85143c"
+        }
+      ]
+    }
+  },
+  "activity": {
+    "id": "urn:aiwg:activity:owned-job-cache:cycle97:phase2:hotm",
+    "type": "modification",
+    "started_at": "2026-09-13T07:13:19.923Z",
+    "ended_at": "2026-09-13T13:30:01.418Z",
+    "description": "Strict bounded owner-qualified v2 job cache, live admission before hydration, endpoint context invalidation, buffered event and reentrant subscriber fencing. Legacy/foreign bytes retained, never guessed as current. Duplicate runner options reject before cache/deadline replacement."
+  },
+  "agent": {
+    "id": "urn:aiwg:agent:codex",
+    "type": "ai_assistant",
+    "name": "Codex"
+  },
+  "relationships": {
+    "wasGeneratedBy": {
+      "entity": "urn:aiwg:artifact:.aiwg/reports/lane-b-hotm-owned-job-cache-cycle97-phase2.json",
+      "activity": "urn:aiwg:activity:owned-job-cache:cycle97:phase2:hotm"
+    },
+    "wasAssociatedWith": {
+      "activity": "urn:aiwg:activity:owned-job-cache:cycle97:phase2:hotm",
+      "agent": "urn:aiwg:agent:codex"
+    },
+    "wasAttributedTo": {
+      "entity": "urn:aiwg:artifact:.aiwg/reports/lane-b-hotm-owned-job-cache-cycle97-phase2.json",
+      "agent": "urn:aiwg:agent:codex"
+    },
+    "wasDerivedFrom": [
+      {
+        "entity": "urn:aiwg:artifact:.aiwg/reports/lane-b-hotm-owned-job-cache-cycle97-phase2.json",
+        "source": "urn:gitea:Fortemi:HotM:issue:1"
+      },
+      {
+        "entity": "urn:aiwg:artifact:.aiwg/reports/lane-b-hotm-owned-job-cache-cycle97-phase2.json",
+        "source": "urn:gitea:Fortemi:fortemi:issue:1091"
+      },
+      {
+        "entity": "urn:aiwg:artifact:.aiwg/reports/lane-b-hotm-owned-job-cache-cycle97-phase2.json",
+        "source": "urn:gitea:Fortemi:fortemi-react:issue:405"
+      }
+    ]
+  }
+}

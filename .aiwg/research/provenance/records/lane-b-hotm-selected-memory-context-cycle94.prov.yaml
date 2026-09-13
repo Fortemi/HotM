@@ -1,0 +1,107 @@
+{
+  "metadata": {
+    "schema_version": "1.0.0",
+    "created_at": "2026-09-13T05:36:54.087Z"
+  },
+  "entity": {
+    "id": "urn:aiwg:artifact:.aiwg/reports/lane-b-hotm-selected-memory-context-cycle94.json",
+    "type": "artifact_bundle",
+    "created_at": "2026-09-13T05:36:54.087Z",
+    "checksum": "sha256:973f7f6386ab8e04b50e62cb5fdce4ac3a937aa45eed952af31cc218139aeca9",
+    "size_bytes": 7923,
+    "attributes": {
+      "artifacts": [
+        {
+          "path": "ui/src/api/__tests__/realtime-context.test.ts",
+          "bytes": 6311,
+          "sha256": "dd94293852022a789a0816866c87d9f88333871691cc1af1f4a0b80fecce25f2"
+        },
+        {
+          "path": "ui/src/api/archives.ts",
+          "bytes": 2588,
+          "sha256": "e341057ddd82e00909bd0b315d03838b9d836d688d833949be397783ea6a703a"
+        },
+        {
+          "path": "ui/src/api/realtime-context.ts",
+          "bytes": 1563,
+          "sha256": "8b0702bd462bff9cf12b1138529b63f77a62b2aa3ea4ca89d1a6d0d9115b1b69"
+        },
+        {
+          "path": "ui/src/services/__tests__/websocket-archive-context.test.ts",
+          "bytes": 8414,
+          "sha256": "44b6358638e83449b8cb11bd45a770be31f38f5aae0153174015f64fb2f94255"
+        },
+        {
+          "path": ".aiwg/architecture/adr/ADR-010-fortemi-v2026-07-api-coverage.md",
+          "bytes": 32882,
+          "sha256": "e3ea03180aff6fbafda98192cbffe9ff58f09eb0469243fef7ef0548781f208f"
+        },
+        {
+          "path": ".aiwg/architecture/sad-fortemi-integration-addendum-2026-07.md",
+          "bytes": 42571,
+          "sha256": "77243758ae8d2948611913bc694cf44c9aefd54a4a190c3b99c0d2f7e1531597"
+        },
+        {
+          "path": ".aiwg/requirements/fortemi-api-integration-requirements-2026-07.md",
+          "bytes": 32392,
+          "sha256": "735656432a4ddeb7a2b048b85dda81b90d6543aaf970e597de00574df67b6b3e"
+        },
+        {
+          "path": ".aiwg/testing/api-contract-test-plan-addendum-2026-07.md",
+          "bytes": 36862,
+          "sha256": "377864a3e60104f69ab008f8fe7ba485d92c844e2cba0c4c86d1819c3048e424"
+        },
+        {
+          "path": ".aiwg/reports/fortemi-v2026-07-api-integration-traceability.md",
+          "bytes": 32901,
+          "sha256": "6b3608e2c1676ff83e1e4ce2f2f6d95c4363a7e0183179fef41acb12fbc7c52b"
+        },
+        {
+          "path": ".aiwg/reports/lane-b-hotm-selected-memory-context-cycle94.json",
+          "bytes": 7923,
+          "sha256": "973f7f6386ab8e04b50e62cb5fdce4ac3a937aa45eed952af31cc218139aeca9"
+        }
+      ]
+    }
+  },
+  "activity": {
+    "id": "urn:aiwg:activity:selected-memory-context:lane-b:094:hotm",
+    "type": "modification",
+    "started_at": "2026-09-13T05:21:27.817Z",
+    "ended_at": "2026-09-13T05:36:54.087Z",
+    "description": "HotM reads only selected-memory endpoint through bounded4096byte real HTTP client and exact JSON decoder. Preserves name/schema separation, server-returned public/default semantics and generation/session/selection fencing. No inventory, retry, guessed schema or failed-lookup fallback. Producer harness uses current real consumer without translation. HotM bounded consumer and actual server metadata/SSE tests PASS; full scope and delivery gates remain. Full scope retained."
+  },
+  "agent": {
+    "id": "urn:aiwg:agent:codex",
+    "type": "ai_assistant",
+    "name": "Codex"
+  },
+  "relationships": {
+    "wasGeneratedBy": {
+      "entity": "urn:aiwg:artifact:.aiwg/reports/lane-b-hotm-selected-memory-context-cycle94.json",
+      "activity": "urn:aiwg:activity:selected-memory-context:lane-b:094:hotm"
+    },
+    "wasAssociatedWith": {
+      "activity": "urn:aiwg:activity:selected-memory-context:lane-b:094:hotm",
+      "agent": "urn:aiwg:agent:codex"
+    },
+    "wasAttributedTo": {
+      "entity": "urn:aiwg:artifact:.aiwg/reports/lane-b-hotm-selected-memory-context-cycle94.json",
+      "agent": "urn:aiwg:agent:codex"
+    },
+    "wasDerivedFrom": [
+      {
+        "entity": "urn:aiwg:artifact:.aiwg/reports/lane-b-hotm-selected-memory-context-cycle94.json",
+        "source": "urn:gitea:Fortemi:HotM:issue:1"
+      },
+      {
+        "entity": "urn:aiwg:artifact:.aiwg/reports/lane-b-hotm-selected-memory-context-cycle94.json",
+        "source": "urn:gitea:Fortemi:fortemi:issue:1091"
+      },
+      {
+        "entity": "urn:aiwg:artifact:.aiwg/reports/lane-b-hotm-selected-memory-context-cycle94.json",
+        "source": "urn:gitea:Fortemi:fortemi-react:issue:405"
+      }
+    ]
+  }
+}

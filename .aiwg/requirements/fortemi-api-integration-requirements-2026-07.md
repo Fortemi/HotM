@@ -21,7 +21,140 @@ related_artifacts:
 
 # Fortemi API Integration Requirements - v2026.7.1
 
+## Current Delivery Checkpoint: Cycle99
+
+Selected-note controls satisfy the automated layout/menu assertions at 320,
+390, 768 and 1440 pixels in Cycle98; earlier clipping observations are historical.
+Cycle99 repeats 2178 UI tests, typecheck and build on unchanged runtime source.
+This does not satisfy physical-device usability or AI-output evaluation, full
+session isolation, released producer/consumer acceptance or suite portability.
+Those requirements remain open independently of source delivery and CI.
+
+## Cycle97 Context-Owned Job Cache: Phase2
+
+The job cache now uses a strict, bounded v2 envelope and an opaque owner derived
+from endpoint, effective session/tenant hint, selection, and server-resolved
+archive name/schema. Current read-authorized context resolution must succeed
+before hydration. Foreign, malformed, oversized and legacy unknown-owner data
+is never hydrated; existing bytes are preserved. The owner is a cache
+discriminator, not authentication or encryption. Live updates during admission
+win over the saved snapshot; stale admission/digest completions cannot hydrate.
+Effective API endpoint changes also invalidate requests, views and streams.
+Buffered event coalescers and dedup state reset on context changes; reentrant
+listeners cannot receive an in-flight event from the previous context.
+
+Final500focused/2177full UI tests, typecheck and build pass with zero unhandled
+errors. The production browser against the actual owned hosted daemon passes
+17controls, including three real model-free worker jobs, matching visible job
+content, same-context reload while the real jobs endpoint returns503, separate
+tenant/archive cache owners, foreign-context/logout clearing, and unchanged
+legacy/local-only bytes. Automatic reconnect sends a cursor from a nonempty
+live stream. This is not proof of a nonempty replay response.
+
+The producer runtime, OpenAPI and installed Core package are unchanged. The
+harness adds only three predefined job controls with bounded file handshakes.
+Core220groups/293requests and655durable audit rows pass. Ten serial Phase2 jobs
+are terminal:4PASS,5failures and1intentional stop; failed receipts are retained.
+The runner now rejects duplicate cache/deadline options instead of silently
+replacing an earlier value. Eight runner tests pass; containment is unchanged.
+
+This is a source-bound candidate, not delivered compatibility or full session
+isolation. Default/archive administration without a client context change,
+other persisted stores, nonempty replay, native and full lifecycle/every-consumer
+acceptance remain. The390px selected-note toolbar still clips and compresses its
+title; mobile usability is NOT_PASS. No authority/profile/pin promotion or
+destructive data migration. Source rollback is possible, but old code would
+restore its old unscoped-cache behavior; preserved legacy data is not safe to
+rehydrate merely because rollback was chosen. Full CI/delivery/release sweep,
+publication holds and suite NO-GO remain. Evidence: suite Cycle97
+phase2-summary.json and browser-third/browser-receipt.json.
+
+## Cycle97 Live Job Store Lifetime: First Stage
+
+The central job store now resets live job/queue/step/pause/staleness state on
+effective session, tenant-hint or archive changes, including cross-tab storage
+and logout. Subscriptions are replaced with revision-bound callbacks so old
+callbacks cannot repopulate the reset view. Pause refreshes reject obsolete
+context and out-of-order same-context completions. Idempotent disposal removes
+only this store's subscriptions and timer; shared transport is not stopped.
+HMR and test teardown call disposal. Connection/staleness-only notifications
+no longer rewrite the saved job data.
+
+The 11 regression failures reproduced before the fix. Final focused30 and
+broader426 tests, full2145 UI tests, typecheck and production build pass with
+zero unhandled errors, inside three serial bounded jobs. No browser/daemon
+acceptance was rerun for this stage. Source rollback is available.
+
+This is not complete job-store or application isolation: legacy unscoped
+hotm.jobStore hydration still exists, and persistence needs explicit ownership,
+same-context reload preservation and rejection of foreign/unknown ownership.
+Buffered event delivery to newly registered listeners also needs adversarial
+coverage. Do not infer those properties from tests of old callback closures.
+Mobile clipping, nonempty browser replay and the full lane/CI/delivery/release
+gates remain. No wire/schema/pin promotion; suite NO-GO is unchanged.
+
+## Cycle96 Session Requirement Evidence
+
+HotM#1 / Fortemi#1091 / Core#405: context-owned React views and in-flight HTTP work
+now invalidate together across effective token/tenant/archive changes. Stale
+admission must never submit an old intent under new credentials; stale replies
+and retry continuations must not restore prior-context data. Compatibility caches
+and pending preflights must invalidate without old completions changing new state.
+Tests include A-B-A and explicit gate reset, with owned subscription disposal.
+
+Actual browser note selections use correct A/public, A/archive and B/public IDs;
+foreign archive denial and logout clear previous content. Full requirement is not
+complete: external job persistence/unfenced pause state and other persisted stores
+remain, as do mobile clipped controls, nonempty browser replay/native/default-admin
+and independent immutable delivered-axis gates. No full session or release claim.
+
+## Cycle95 Session Isolation Requirement
+
+HotM#1, Fortemi#1091 and Core#405 retain separate delivered-axis gates.
+Effective token/tenant and selected-memory changes, including cross-tab storage,
+must close old streams, discard cursors/pending work and clear every context-owned
+view/cache. Pending asynchronous responses must not restore prior-context data.
+Legacy unscoped job persistence cannot establish cache ownership.
+
+Cycle95 passes stream notifications/replacement and useWebSocket queue reset tests,
+plus six actual browser stream controls. It does not satisfy the complete requirement:
+jobEventStore remains unscoped and the real note navigator retains the previous
+tenant's list after switching. Native lifecycle, nonempty reconnect replay, live
+independent-default administration and all delivery/release gates remain.
+
 ## Scope
+
+Cycle94 implements selected-memory reader adoption: only the producer context
+endpoint, bounded4096byte JSON, exact fields, canonical name/schema separation,
+current selection checks and no retry/inventory/guessed fallback. Preserve the
+producer's public/default alias semantics without generalizing them. Require
+generated-schema agreement, real request/auth/error/size controls, unchanged
+application context replacement and actual-server admission/SSE receipts before
+delivery. No local test or candidate pin qualifies a released hosted application.
+
+Cycle93 candidate dependency: consume producer-owned selected-memory read
+metadata under read authority, not admin inventory. Preserve exact header/name
+and event-schema binding, no local default guess, no failed-lookup fallback and
+fresh authorization on each stream. Consumer implementation/pin/live gates
+remain pending against `GET /api/v1/memory/context`; producer presence alone
+does not satisfy these requirements.
+
+Cycle92 realtime refinement (HotM#1 / Fortemi#1091 / Core#405): hosted streams
+must send the selected archive name while validating envelope memory against
+server-resolved schema metadata. Missing, conflicting or inaccessible metadata
+fails closed without fallback to another archive. Default resolution must follow
+the producer's tenant-visible default/public behavior. Archive switches must
+replace transport/cursor, ignore stale asynchronous admission/callbacks, discard
+pending old-context events and reset queue view state. Wrong tenant/memory or
+unattributed queue data must not dispatch or advance replay; transport controls
+must not override conflicting attribution. These are consumer integration
+requirements, not new wire or authorization semantics.
+
+The current inventory-backed default resolver does not yet satisfy the hosted
+reader requirement: actual lookup returns503 at the route migration gate, and
+the collection policy requires admin scope. Qualification requires a scoped
+producer read/default-resolution path under the reader's existing authority;
+increasing fixture privileges or inventing mappings is not acceptance.
 
 This requirements baseline covers HotM alignment with Fortemi. The 2026-08-15 audit uses HotM `bf00c6c5334707621e8c6fd96bfcff908ee1f770`, the Fortemi checkout at `48bc0a0b`, producer-owned contract artifacts pinned at `5ea08229c9f1565122df5f8e6906e89d98dc7e75`, server route declarations in `crates/matric-api/src/main.rs`, HotM clients under `ui/src/api`, and the agent tool boundary under `agent-proxy/src`.
 

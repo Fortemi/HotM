@@ -4,6 +4,7 @@
  */
 
 import { ApiError, ContractDecodeError, NetworkError } from './errors';
+import { captureDataContext, ContextChangedError } from './data-context';
 import { getAuthorizationHeader } from './auth-context';
 import { getActiveMemory, getMemoryRoutingHeaderName } from './memory-context';
 import { getTauriFetch } from '@/lib/tauri';
@@ -163,107 +164,134 @@ export function createApiClient(baseUrl: string) {
       acceptedResponseStatuses = [],
     } = options;
 
-    if (method !== 'GET') {
-      await requireMutation(method, path);
-    }
+    const context = captureDataContext();
+    try {
+      if (method !== 'GET') {
+        await requireMutation(method, path);
+      }
+      context.assertCurrent();
 
-    const url = buildUrl(normalizedBaseUrl, path, params);
-    const requestHeaders = { ...defaultHeaders, ...getAuthorizationHeader(), ...headers };
-    const selectedMemory = getActiveMemory();
-    if (selectedMemory && !requestHeaders[getMemoryRoutingHeaderName()]) {
-      requestHeaders[getMemoryRoutingHeaderName()] = selectedMemory;
-    }
+      const url = buildUrl(normalizedBaseUrl, path, params);
+      const requestHeaders = { ...defaultHeaders, ...getAuthorizationHeader(), ...headers };
+      const selectedMemory = getActiveMemory();
+      if (selectedMemory && !requestHeaders[getMemoryRoutingHeaderName()]) {
+        requestHeaders[getMemoryRoutingHeaderName()] = selectedMemory;
+      }
 
-    let lastError: Error | null = null;
+      let lastError: Error | null = null;
 
-    // Initial attempt + retries
-    for (let attempt = 0; attempt <= retryAttempts; attempt++) {
-      try {
-        const httpFetch = getTauriFetch();
-        const response = await httpFetch(url, {
-          method,
-          headers: requestHeaders,
-          body: body ? JSON.stringify(body) : undefined,
-        });
+      // Initial attempt + retries
+      for (let attempt = 0; attempt <= retryAttempts; attempt++) {
+        try {
+          context.assertCurrent();
+          const httpFetch = getTauriFetch();
+          const response = await httpFetch(url, {
+            method,
+            headers: requestHeaders,
+            body: body ? JSON.stringify(body) : undefined,
+            signal: context.signal,
+          });
+          context.assertCurrent();
 
-        // Handle 204 No Content
-        if (response.status === 204) {
-          return null as T;
-        }
+          // Handle 204 No Content
+          if (response.status === 204) {
+            return null as T;
+          }
 
-        // Handle HTTP errors
-        if (!response.ok && !acceptedResponseStatuses.includes(response.status)) {
-          await response.body?.cancel().catch(() => undefined);
-          const error = new ApiError(response.statusText, response.status);
+          // Handle HTTP errors
+          if (!response.ok && !acceptedResponseStatuses.includes(response.status)) {
+            await response.body?.cancel().catch(() => undefined);
+            const error = new ApiError(response.statusText, response.status);
 
-          // Don't retry client errors (4xx)
-          if (response.status >= 400 && response.status < 500) {
+            // Don't retry client errors (4xx)
+            if (response.status >= 400 && response.status < 500) {
+              throw error;
+            }
+
+            // Retry server errors (5xx)
+            if (attempt < retryAttempts) {
+              lastError = error;
+              const backoffMs = calculateBackoff(attempt, retryDelay);
+              await sleep(backoffMs);
+              continue;
+            }
+
             throw error;
           }
 
-          // Retry server errors (5xx)
+          const decoded = await readBoundedJson<T>(response, path, maxResponseBytes);
+          context.assertCurrent();
+          return decoded;
+        } catch (error) {
+          context.assertCurrent();
+          // Network errors or fetch failures
+          if (error instanceof ApiError || error instanceof ContractDecodeError || error instanceof ContextChangedError) {
+            throw error;
+          }
+
+          // Network errors - retry
           if (attempt < retryAttempts) {
-            lastError = error;
+            lastError = error as Error;
             const backoffMs = calculateBackoff(attempt, retryDelay);
             await sleep(backoffMs);
             continue;
           }
 
-          throw error;
+          throw new NetworkError(error as Error);
         }
-
-        return readBoundedJson<T>(response, path, maxResponseBytes);
-      } catch (error) {
-        // Network errors or fetch failures
-        if (error instanceof ApiError || error instanceof ContractDecodeError) {
-          throw error;
-        }
-
-        // Network errors - retry
-        if (attempt < retryAttempts) {
-          lastError = error as Error;
-          const backoffMs = calculateBackoff(attempt, retryDelay);
-          await sleep(backoffMs);
-          continue;
-        }
-
-        throw new NetworkError(error as Error);
       }
-    }
 
-    // Should never reach here, but TypeScript needs it
-    throw new NetworkError(lastError || new Error('Request failed'));
+      // Should never reach here, but TypeScript needs it
+      throw new NetworkError(lastError || new Error('Request failed'));
+    } finally {
+      context.close();
+    }
   }
 
   async function requireMutation(
     method: MutationRequestContext['method'],
     path: string,
   ): Promise<void> {
-    if (mutationGate) await mutationGate({ method, path });
+    const context = captureDataContext();
+    try {
+      if (mutationGate) await mutationGate({ method, path });
+      context.assertCurrent();
+    } finally {
+      context.close();
+    }
   }
 
   async function requestText(path: string, options: TextResponseOptions = {}): Promise<string> {
-    const url = buildUrl(normalizedBaseUrl, path, options.params);
-    const requestHeaders: Record<string, string> = {
-      Accept: 'text/markdown,text/turtle,text/plain,*/*',
-      ...getAuthorizationHeader(),
-      ...options.headers,
-    };
-    const selectedMemory = getActiveMemory();
-    if (selectedMemory && !requestHeaders[getMemoryRoutingHeaderName()]) {
-      requestHeaders[getMemoryRoutingHeaderName()] = selectedMemory;
-    }
-
+    const context = captureDataContext();
     try {
-      const response = await getTauriFetch()(url, { method: 'GET', headers: requestHeaders });
-      if (!response.ok) {
-        await response.body?.cancel().catch(() => undefined);
-        throw new ApiError(response.statusText || `HTTP ${response.status}`, response.status);
+      const url = buildUrl(normalizedBaseUrl, path, options.params);
+      const requestHeaders: Record<string, string> = {
+        Accept: 'text/markdown,text/turtle,text/plain,*/*',
+        ...getAuthorizationHeader(),
+        ...options.headers,
+      };
+      const selectedMemory = getActiveMemory();
+      if (selectedMemory && !requestHeaders[getMemoryRoutingHeaderName()]) {
+        requestHeaders[getMemoryRoutingHeaderName()] = selectedMemory;
       }
-      return readBoundedText(response, path, options.maxBytes ?? DEFAULT_MAX_TEXT_RESPONSE_BYTES);
-    } catch (error) {
-      if (error instanceof ApiError || error instanceof ContractDecodeError) throw error;
-      throw new NetworkError(error as Error);
+
+      try {
+        const response = await getTauriFetch()(url, { method: 'GET', headers: requestHeaders, signal: context.signal });
+        context.assertCurrent();
+        if (!response.ok) {
+          await response.body?.cancel().catch(() => undefined);
+          throw new ApiError(response.statusText || `HTTP ${response.status}`, response.status);
+        }
+        const decoded = await readBoundedText(response, path, options.maxBytes ?? DEFAULT_MAX_TEXT_RESPONSE_BYTES);
+        context.assertCurrent();
+        return decoded;
+      } catch (error) {
+        context.assertCurrent();
+        if (error instanceof ApiError || error instanceof ContractDecodeError || error instanceof ContextChangedError) throw error;
+        throw new NetworkError(error as Error);
+      }
+    } finally {
+      context.close();
     }
   }
 

@@ -23,7 +23,177 @@ related_artifacts:
 
 # API Contract Test Plan Addendum - Fortemi v2026.7.1
 
+## Cycle98 Mobile Note Controls
+
+Selected-note tabs now grow to contain wrapped rows. Preview/original/edit
+headers wrap instead of compressing titles beside fixed-width actions. Compact
+star/copy/regeneration controls retain accessible names, tooltips and44px heights;
+the regeneration popover is constrained to available viewport width/height.
+Long unbroken titles wrap; the edit title input has an explicit accessible name.
+This is a UI-only correction, not a producer or integration contract change.
+
+533focused/2178full UI tests, typecheck/build and the actual-daemon HTTP regression
+pass. The previous immutable UI build fails the new320px tab-containment check:
+the title is about82px wide and Regenerate extends past the viewport. The fixed
+production build passes24layout/menu groups at320/390/768/1440px and18browser
+controls overall, with long-title,44px action, overlap, menu reachability and
+focus-return checks. Screenshots are nonblank and visually inspected. Menu
+actions are opened/trial-clicked only; no regeneration or note write is dispatched.
+Core220groups/293requests/655durable audit rows and previous job/cache checks pass.
+
+Evidence: suite Cycle98 candidate, layout-red and layout-green receipts.
+Automated selected-note layout acceptance is PASS, not physical-device,
+human usability or AI-output quality acceptance. Per the operator, discuss
+needed human evaluations next; do not start inference/model acceptance or widen
+the lane autonomously. Full lane/CI/delivery/release gates and all prior holds,
+suite NO-GO and public-readiness boundaries remain; candidate is unreleased.
+
+## Cycle97 Context-Owned Job Cache: Phase2
+
+The job cache now uses a strict, bounded v2 envelope and an opaque owner derived
+from endpoint, effective session/tenant hint, selection, and server-resolved
+archive name/schema. Current read-authorized context resolution must succeed
+before hydration. Foreign, malformed, oversized and legacy unknown-owner data
+is never hydrated; existing bytes are preserved. The owner is a cache
+discriminator, not authentication or encryption. Live updates during admission
+win over the saved snapshot; stale admission/digest completions cannot hydrate.
+Effective API endpoint changes also invalidate requests, views and streams.
+Buffered event coalescers and dedup state reset on context changes; reentrant
+listeners cannot receive an in-flight event from the previous context.
+
+Final500focused/2177full UI tests, typecheck and build pass with zero unhandled
+errors. The production browser against the actual owned hosted daemon passes
+17controls, including three real model-free worker jobs, matching visible job
+content, same-context reload while the real jobs endpoint returns503, separate
+tenant/archive cache owners, foreign-context/logout clearing, and unchanged
+legacy/local-only bytes. Automatic reconnect sends a cursor from a nonempty
+live stream. This is not proof of a nonempty replay response.
+
+The producer runtime, OpenAPI and installed Core package are unchanged. The
+harness adds only three predefined job controls with bounded file handshakes.
+Core220groups/293requests and655durable audit rows pass. Ten serial Phase2 jobs
+are terminal:4PASS,5failures and1intentional stop; failed receipts are retained.
+The runner now rejects duplicate cache/deadline options instead of silently
+replacing an earlier value. Eight runner tests pass; containment is unchanged.
+
+This is a source-bound candidate, not delivered compatibility or full session
+isolation. Default/archive administration without a client context change,
+other persisted stores, nonempty replay, native and full lifecycle/every-consumer
+acceptance remain. The390px selected-note toolbar still clips and compresses its
+title; mobile usability is NOT_PASS. No authority/profile/pin promotion or
+destructive data migration. Source rollback is possible, but old code would
+restore its old unscoped-cache behavior; preserved legacy data is not safe to
+rehydrate merely because rollback was chosen. Full CI/delivery/release sweep,
+publication holds and suite NO-GO remain. Evidence: suite Cycle97
+phase2-summary.json and browser-third/browser-receipt.json.
+
+## Cycle97 Live Job Store Lifetime: First Stage
+
+The central job store now resets live job/queue/step/pause/staleness state on
+effective session, tenant-hint or archive changes, including cross-tab storage
+and logout. Subscriptions are replaced with revision-bound callbacks so old
+callbacks cannot repopulate the reset view. Pause refreshes reject obsolete
+context and out-of-order same-context completions. Idempotent disposal removes
+only this store's subscriptions and timer; shared transport is not stopped.
+HMR and test teardown call disposal. Connection/staleness-only notifications
+no longer rewrite the saved job data.
+
+The 11 regression failures reproduced before the fix. Final focused30 and
+broader426 tests, full2145 UI tests, typecheck and production build pass with
+zero unhandled errors, inside three serial bounded jobs. No browser/daemon
+acceptance was rerun for this stage. Source rollback is available.
+
+This is not complete job-store or application isolation: legacy unscoped
+hotm.jobStore hydration still exists, and persistence needs explicit ownership,
+same-context reload preservation and rejection of foreign/unknown ownership.
+Buffered event delivery to newly registered listeners also needs adversarial
+coverage. Do not infer those properties from tests of old callback closures.
+Mobile clipping, nonempty browser replay and the full lane/CI/delivery/release
+gates remain. No wire/schema/pin promotion; suite NO-GO is unchanged.
+
+## Cycle96 View And Request Acceptance
+
+RED:21new view/request assertions fail against Cycle95; four later gate-reset/
+context assertions fail before the gate fix. Final400focused/2133full UI assertions,
+typecheck/build PASS with explicit zero unhandled errors. One intermediate green
+focused run failed only TypeScript target compatibility in the new tests. Another
+full run had2129passing assertions but an uncaught Radix focus-cleanup timer in
+MemberManager.test.tsx after DOM teardown. That file now awaits unmount focus work;
+no exception filter, guard relaxation or claim about Cycle94's unknown cause.
+
+Actual production browser passes eleven controls through unchanged GET proxy to
+the real daemon. Correct note IDs selected in three tenant/archive contexts; old
+content clears on foreign404/logout401. The first enclosing HTTP run failed its
+old four-read assertion because the browser correctly added one detail access.
+The final fixture verifies browser counts1/1 before Core and exactly four more
+after enrichment, retaining the original failed receipt. Core220groups/293requests,
+635durable audit rows,12metadata requests/12schema vectors/six worker streams24events,
+five Rust functions and four fixture-profile tests PASS.
+
+Desktop/mobile pixels are nonblank. Mobile selected-note toolbar clipping is
+visually confirmed despite scrollWidth equaling viewport width: do not substitute
+that width metric for usability. External job store/other caches, nonempty browser
+replay, native/default-admin and all delivery gates remain independent.
+
+## Cycle95 Actual Browser Acceptance
+
+Final326 focused and2102 full UI assertions, typecheck/build pass with zero reported
+unhandled errors. Two earlier focused runs failed three parameterized fixture cases;
+unique event IDs and receiver reset fixed the fixtures without weakening deduplication.
+The exact production asset inventory is served to an isolated sandboxed installed
+Chrome with a fresh profile and two owned-origin tabs. Six stream lifecycle checks
+pass through a read-only proxy to the actual hosted daemon. No response/auth stub.
+The cached Chromium sandbox refusal and two pre-browser harness failures are retained;
+no --no-sandbox or host policy change was used.
+
+Desktop1440x900/mobile390x844 screenshots have nonblank pixels and matching page/
+viewport widths. They reveal stale tenant A notes after the B switch, not a full UI
+isolation pass. Browser streams have zero event bytes, so reconnect evidence covers
+admission and replacement, not nonempty replay. Add negative fixtures for note/job
+cache retention, async result races, logout, archive changes and disposed subscriptions.
+Core220 groups/293 requests,625 durable audit rows,12metadata requests, six separate
+worker live/replay streams with24events, five Rust functions and four profile tests
+pass. Native independent-default19request coverage remains distinct from browser
+default administration. See suite Cycle95 receipts for exact source/process identities.
+
 ## Objective
+
+Cycle94 replaces inventory mocks with the selected-context API and tests the real
+HTTP client: request path/auth/selection, no retries on401/403/404/500/503,
+invalid/extra-field JSON, Unicode name limits, canonical schema and advertised/
+streamed4096byte limits. Retain delayed-selection/close fencing and cursor/queue
+replacement tests. Compare the real decoder with generated producer JSON Schema;
+actual-daemon controls cover auth/read denial, foreign/unknown memories, default
+resolution and six real client/parser live/seeded-replay streams. Full UI and
+binary tests must exit successfully; passing JSON counts alone are insufficient.
+Launched browser/native lifecycle and immutable delivered pins remain separate.
+
+Cycle93 adds a producer-only selected-context contract candidate. Next consumer
+acceptance must cover two independent tenant defaults, explicit/public routing,
+foreign/unknown/invalid metadata, read versus admin policy and context changes,
+using the real `/api/v1/memory/context` client before actual-server SSE. Retain
+Cycle92's failing inventory-based receipt; no consumer success is asserted yet.
+
+Cycle92 adds `realtime-context.test.ts`, `websocket-archive-context.test.ts` and
+`websocket-archive-view.test.ts`: exact name/schema separation, default/public,
+malformed metadata and lookup denial, current-tenant filtering, Last-Event-ID on
+same-context reconnect, stream/cursor replacement, delayed lookup/close fencing,
+pending coalescence discard and rendered queue reset. Existing events, terminal
+states, real producer corpus and full UI tests remain regression gates.
+
+The suite Cycle92 private actual-server fixture must use the compiled real
+candidate archive resolver, HTTP client and SSE parser with no header-name
+rewrite or metadata stub. Record source/bundle hashes, metadata requests, live
+and seeded replay events, zero owned PG slot refusals, terminal process status
+and fixture cleanup. These client/resolver checks are not automatic reconnect
+or launched browser/native application qualification. Keep each evidence scope
+explicit, including every remaining lifecycle/consumer/CI/release gate.
+
+Executed Cycle92 result: 279 focused and2066 full UI tests pass without skips;
+typecheck, Vite build and pinned48-event/four-transport regression pass. The
+private actual-server test is NOT_PASS: metadata GET returns503 and no SSE
+connection opens. Preserve that failure independently of local passes. The
+archive-list admin policy is a further source-confirmed reader dependency.
 
 Extend the May 2026 API contract checks so HotM can track and verify the Fortemi v2026.7.1 server surface. The test strategy must cover route inventory drift, OpenAPI schemas, AsyncAPI event semantics, Knowledge Shard profiles and losslessness, compatibility negotiation, cross-language auth fixtures, streaming endpoints, operator/admin surfaces, future partial parity regressions, newly discovered decision-needed endpoints, and documented exclusions.
 

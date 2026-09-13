@@ -210,6 +210,44 @@ describe('Fortemi compatibility boundary', () => {
 });
 
 describe('compatibility admission gate', () => {
+  it.each(['old-success', 'old-failure', 'reset'])('fences %s while a new preflight is pending', async mode => {
+    setApiBearerToken('session-a');
+    let resolveOld!: (value: unknown) => void;
+    let rejectOld!: (reason: Error) => void;
+    let resolveNew!: (value: unknown) => void;
+    const old = new Promise((resolve, reject) => { resolveOld = resolve; rejectOld = reject; });
+    const fresh = new Promise(resolve => { resolveNew = resolve; });
+    const get = vi.fn().mockReturnValueOnce(old).mockReturnValueOnce(fresh);
+    const gate = createCompatibilityAdmissionGate({ get } as never);
+    const previous = gate.preflight().then(value => value, error => error);
+    if (mode === 'reset') gate.reset(); else setApiBearerToken('session-b');
+    const current = gate.preflight().then(value => value, error => error);
+    if (mode === 'old-failure') rejectOld(new Error('old session unavailable'));
+    else resolveOld(compatibilityFixture());
+    const oldResult = await previous;
+    const during = gate.getSnapshot().state;
+    const expected = compatibilityFixture();
+    resolveNew(expected);
+    const result = await current;
+    setApiBearerToken(null);
+    expect(oldResult).toMatchObject({ name: 'ContextChangedError' });
+    expect(during).toBe('checking');
+    expect(result).toBe(expected);
+    expect(get).toHaveBeenCalledTimes(2);
+  });
+
+  it('invalidates a cached compatible result on session replacement', async () => {
+    setApiBearerToken('session-a');
+    const get = vi.fn().mockResolvedValue(compatibilityFixture());
+    const gate = createCompatibilityAdmissionGate({ get } as never);
+    await gate.preflight();
+    setApiBearerToken('session-b');
+    expect(gate.getSnapshot().state).toBe('unresolved');
+    await gate.preflight();
+    expect(get).toHaveBeenCalledTimes(2);
+    setApiBearerToken(null);
+  });
+
   it('caches a compatible preflight', async () => {
     const get = vi.fn().mockResolvedValue(compatibilityFixture());
     const gate = createCompatibilityAdmissionGate({ get } as never);
@@ -233,3 +271,4 @@ describe('compatibility admission gate', () => {
     expect(gate.getSnapshot()).toMatchObject({ state: 'blocked', error });
   });
 });
+import { setApiBearerToken } from '../auth-context';

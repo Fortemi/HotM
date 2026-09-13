@@ -6,8 +6,8 @@
  * adding notes, loading states, and error handling.
  */
 
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { cleanup, render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { MemberManager } from '../MemberManager';
 import { api } from '@/api';
 
@@ -69,6 +69,12 @@ const mockSearchResults = [
 // ---------------------------------------------------------------------------
 
 describe('MemberManager', () => {
+  afterEach(async () => {
+    cleanup();
+    // Radix schedules focus restoration on unmount; finish in this DOM realm.
+    await new Promise<void>(resolve => setTimeout(resolve, 0));
+  });
+
   const defaultProps = {
     slug: 'my-set',
     isOpen: true,

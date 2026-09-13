@@ -2756,24 +2756,24 @@ export function HallOfMind() {
                                 });
                         return (
                       <Tabs value={activeTab} onValueChange={setActiveTab} className="h-full">
-                        <TabsList className="mb-4 flex w-full flex-wrap justify-start gap-1">
-                              <TabsTrigger value="preview" className="gap-2">
+                        <TabsList className="mb-4 flex h-auto w-full flex-wrap justify-start gap-1" aria-label="Note views">
+                              <TabsTrigger value="preview" className="h-11 flex-auto gap-2">
                                 <Sparkles className="h-4 w-4" />
                                 AI Enhanced
                               </TabsTrigger>
-                              <TabsTrigger value="original" className="gap-2">
+                              <TabsTrigger value="original" className="h-11 flex-auto gap-2">
                                 <BookOpen className="h-4 w-4" />
                                 Original
                               </TabsTrigger>
-                              <TabsTrigger value="edit" className="gap-2">
+                              <TabsTrigger value="edit" className="h-11 flex-auto gap-2">
                                 <Edit3 className="h-4 w-4" />
                                 Edit
                               </TabsTrigger>
-                              <TabsTrigger value="metadata" className="gap-2">
+                              <TabsTrigger value="metadata" className="h-11 flex-auto gap-2">
                                 <Hash className="h-4 w-4" />
                                 Metadata
                               </TabsTrigger>
-                              <TabsTrigger value="attachments" className="gap-2">
+                              <TabsTrigger value="attachments" className="h-11 flex-auto gap-2">
                                 <Paperclip className="h-4 w-4" />
                                 Attachments
                               </TabsTrigger>
@@ -2782,10 +2782,11 @@ export function HallOfMind() {
                         <TabsContent value="edit" className="h-full">
                           <Card className="border-0 shadow-none">
                             <CardHeader>
-                              <div className="flex items-center justify-between">
+                              <div className="flex flex-wrap items-start justify-between gap-3">
                                 <input
                                   type="text"
-                                  className="text-3xl font-bold bg-transparent outline-none placeholder:text-muted-foreground flex-1"
+                                  className="min-w-0 w-full basis-64 flex-1 text-xl font-bold bg-transparent outline-none placeholder:text-muted-foreground"
+                                  aria-label="Note title"
                                   placeholder="Note title..."
                                   value={selectedNote.title}
                                   onChange={(e) => {
@@ -2794,10 +2795,11 @@ export function HallOfMind() {
                                     setNotes(notes.map(n => n.id === updatedNote.id ? updatedNote : n));
                                   }}
                                 />
-                                <div className="flex gap-2">
+                                <div className="flex max-w-full flex-wrap gap-2">
                                   <Button
                                     variant={editingRevised ? "default" : "outline"}
                                     size="sm"
+                                    className="h-11"
                                     onClick={() => {
                                       setEditingRevised(true);
                                       if (!revisedContent && selectedNote.revised_content) {
@@ -2811,6 +2813,7 @@ export function HallOfMind() {
                                   <Button
                                     variant={!editingRevised ? "default" : "outline"}
                                     size="sm"
+                                    className="h-11"
                                     onClick={() => setEditingRevised(false)}
                                   >
                                     <Edit3 className="h-4 w-4 mr-1" />
@@ -2842,10 +2845,11 @@ export function HallOfMind() {
                         <TabsContent value="preview">
                           <Card className="overflow-hidden">
                             <CardHeader className="border-b bg-muted/30">
-                              <div className="flex items-center justify-between">
-                                <div>
-                                  <CardTitle className="flex items-center gap-2">
-                                    <Sparkles className="h-5 w-5 text-primary" />
+                              <div className="flex flex-wrap items-start justify-between gap-3">
+                                <div className="min-w-0 basis-64 flex-1">
+                                  <CardTitle className="flex items-start gap-2 leading-snug [overflow-wrap:anywhere]">
+                                    <Sparkles className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
+                                    <span className="min-w-0">
                                     {titleAnimations.has(selectedNote.id) && titleAnimations.get(selectedNote.id)?.isAnimating ? (
                                       <TypingAnimation
                                         oldText={titleAnimations.get(selectedNote.id)!.oldTitle}
@@ -2863,17 +2867,20 @@ export function HallOfMind() {
                                     ) : (
                                       selectedNote.title
                                     )}
+                                    </span>
                                   </CardTitle>
                                   <CardDescription className="mt-1">
                                     AI-enhanced version • Updated {new Date(selectedNote.updatedAt).toLocaleString()}
                                   </CardDescription>
                                 </div>
-                                <div className="flex gap-2">
+                                <div className="flex max-w-full flex-wrap items-center gap-2" role="group" aria-label="Note actions">
                                   <Button
                                     onClick={() => toggleStar(selectedNote.id)}
                                     size="sm"
                                     variant={selectedNote.starred ? "default" : "outline"}
                                     title={selectedNote.starred ? "Unstar note" : "Star note"}
+                                    aria-label={selectedNote.starred ? "Unstar note" : "Star note"}
+                                    className="h-11 w-11 shrink-0 p-0"
                                   >
                                     <Star className={`h-4 w-4 ${selectedNote.starred ? 'fill-yellow-500 text-yellow-500' : ''}`} />
                                   </Button>
@@ -2882,13 +2889,14 @@ export function HallOfMind() {
                                     size="sm"
                                     variant="outline"
                                     title="Copy markdown"
+                                    aria-label="Copy markdown"
+                                    className="h-11 w-11 shrink-0 p-0"
                                   >
                                     {copiedState['preview-markdown'] ? (
                                       <Check className="h-4 w-4" />
                                     ) : (
                                       <Copy className="h-4 w-4" />
                                     )}
-                                    <span className="ml-2">Copy MD</span>
                                   </Button>
                                   <RegeneratePanel
                                     noteId={selectedNote.id}
@@ -2928,7 +2936,7 @@ export function HallOfMind() {
                               </ScrollArea>
                             </CardContent>
                             <div className="border-t bg-muted/30 px-6 py-3">
-                              <div className="flex items-center justify-between text-xs text-muted-foreground">
+                              <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground [overflow-wrap:anywhere]">
                                 <span>Enhanced with AI • Powered by {selectedNote.revised_model || 'gpt-oss:20b'}</span>
                                 <span>{selectedNote.revised_content ? `${selectedNote.revised_content.length} characters` : 'Original content'}</span>
                               </div>
@@ -2939,9 +2947,9 @@ export function HallOfMind() {
                         <TabsContent value="original">
                           <Card>
                             <CardHeader>
-                              <div className="flex items-center justify-between">
-                                <div>
-                                  <CardTitle>
+                              <div className="flex flex-wrap items-start justify-between gap-3">
+                                <div className="min-w-0 basis-64 flex-1">
+                                  <CardTitle className="leading-snug [overflow-wrap:anywhere]">
                                     {titleAnimations.has(selectedNote.id) && titleAnimations.get(selectedNote.id)?.isAnimating ? (
                                       <TypingAnimation
                                         oldText={titleAnimations.get(selectedNote.id)!.oldTitle}
@@ -2969,13 +2977,14 @@ export function HallOfMind() {
                                   size="sm"
                                   variant="outline"
                                   title="Copy markdown"
+                                  aria-label="Copy markdown"
+                                  className="h-11 w-11 shrink-0 p-0"
                                 >
                                   {copiedState['original-markdown'] ? (
                                     <Check className="h-4 w-4" />
                                   ) : (
                                     <Copy className="h-4 w-4" />
                                   )}
-                                  <span className="ml-2">Copy MD</span>
                                 </Button>
                               </div>
                             </CardHeader>
@@ -2994,6 +3003,8 @@ export function HallOfMind() {
                               size="sm"
                               variant={selectedNote.starred ? "default" : "outline"}
                               title={selectedNote.starred ? "Unstar note" : "Star note"}
+                              aria-label={selectedNote.starred ? "Unstar note" : "Star note"}
+                              className="h-11 w-11 shrink-0 p-0"
                             >
                               <Star className={`h-4 w-4 ${selectedNote.starred ? 'fill-yellow-500 text-yellow-500' : ''}`} />
                             </Button>

@@ -6,6 +6,20 @@ const STORAGE_KEY = 'hotm_active_memory';
 const MEMORY_HEADER = 'X-Fortemi-Memory';
 export const MEMORY_CHANGED_EVENT = 'hotm-memory-changed';
 
+export function subscribeMemoryChanges(listener: () => void): () => void {
+  if (!isBrowser()) return () => undefined;
+  const storageChanged = (event: StorageEvent) => {
+    if (event.storageArea === window.localStorage
+      && (event.key === null || event.key === STORAGE_KEY)) listener();
+  };
+  window.addEventListener(MEMORY_CHANGED_EVENT, listener);
+  window.addEventListener('storage', storageChanged);
+  return () => {
+    window.removeEventListener(MEMORY_CHANGED_EVENT, listener);
+    window.removeEventListener('storage', storageChanged);
+  };
+}
+
 function isBrowser(): boolean {
   return typeof window !== 'undefined' && typeof window.localStorage !== 'undefined';
 }

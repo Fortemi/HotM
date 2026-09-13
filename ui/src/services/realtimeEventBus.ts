@@ -3,6 +3,7 @@ import {
   unwrapServerEventEnvelope,
 } from '@/api/events';
 import asyncApiValidationRules from '@/api/contracts/fortemi-asyncapi-event-validation-rules.json';
+import { getDataContextRevision, subscribeDataContextChanges } from '@/api/data-context';
 
 export type RealtimeEventType =
   | 'Unknown'
@@ -482,11 +483,29 @@ export class RealtimeEventBus {
   private dedupCache: Map<string, number> = new Map();
   private pendingCoalesced: Map<string, RealtimeEvent> = new Map();
   private coalesceTimers: Map<string, ReturnType<typeof setTimeout>> = new Map();
+  private contextRevision = getDataContextRevision();
+  private unsubscribeContext: (() => void) | null = null;
+
+  private syncContext = (): void => {
+    const next = getDataContextRevision();
+    if (next === this.contextRevision) return;
+    this.contextRevision = next;
+    this.clearPending();
+    this.dedupCache.clear();
+  };
 
   public subscribe(handler: RealtimeEventHandler): () => void {
+    this.syncContext();
+    if (!this.unsubscribeContext) this.unsubscribeContext = subscribeDataContextChanges(this.syncContext);
     this.handlers.add(handler);
     return () => {
       this.handlers.delete(handler);
+      if (this.handlers.size === 0) {
+        this.unsubscribeContext?.();
+        this.unsubscribeContext = null;
+        this.clearPending();
+        this.dedupCache.clear();
+      }
     };
   }
 
@@ -495,7 +514,15 @@ export class RealtimeEventBus {
     this.publish(event);
   }
 
+  public clearPending(): void {
+    this.coalesceTimers.forEach(timer => clearTimeout(timer));
+    this.coalesceTimers.clear();
+    this.pendingCoalesced.clear();
+  }
+
   public publish(event: RealtimeEvent): void {
+    this.syncContext();
+    if (this.handlers.size === 0) return;
     if (!this.shouldPublish(event)) {
       return;
     }
@@ -531,6 +558,7 @@ export class RealtimeEventBus {
   }
 
   private enqueueCoalesced(event: RealtimeEvent): void {
+    const context = this.contextRevision;
     const key = coalesceKey(event);
     this.pendingCoalesced.set(key, event);
 
@@ -542,7 +570,7 @@ export class RealtimeEventBus {
       const latest = this.pendingCoalesced.get(key);
       this.pendingCoalesced.delete(key);
       this.coalesceTimers.delete(key);
-      if (latest) {
+      if (latest && context === getDataContextRevision()) {
         this.emit(latest);
       }
     }, COALESCE_WINDOW_MS);
@@ -551,13 +579,16 @@ export class RealtimeEventBus {
   }
 
   private emit(event: RealtimeEvent): void {
-    this.handlers.forEach((handler) => {
+    const context = this.contextRevision;
+    for (const handler of [...this.handlers]) {
+      if (context !== getDataContextRevision()) break;
+      if (!this.handlers.has(handler)) continue;
       try {
         handler(event);
       } catch (error) {
         console.error('Realtime event handler error:', error);
       }
-    });
+    }
   }
 }
 

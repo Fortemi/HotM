@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { webcrypto } from 'node:crypto';
 import type { RealtimeEvent, RealtimeEventType } from '@/services/realtimeEventBus';
 
 // Capture the handler registered by the store
@@ -32,6 +33,8 @@ vi.mock('@/services/websocket', () => ({
 
 vi.mock('@/api', () => ({
   api: {
+    client: { baseUrl: 'https://fixture.example/api/v1' },
+    archives: { context: async () => ({ name: 'public', schema_name: 'public' }) },
     jobs: {
       getPauseStatus: vi.fn(() => Promise.resolve({ global: 'running', archives: {} })),
     },
@@ -52,15 +55,21 @@ describe('jobEventStore', () => {
     capturedEventHandler = null;
     capturedConnectionHandler = null;
     localStorage.clear();
+    localStorage.setItem('hotm_api_bearer_token', 'fixture-session-a');
+    vi.stubGlobal('crypto', webcrypto);
     vi.useFakeTimers();
 
     // Fresh import to get a new singleton each test
     vi.resetModules();
     mod = await import('@/services/jobEventStore');
+    await mod.jobEventStore.ready;
   });
 
   afterEach(() => {
+    mod.jobEventStore.dispose();
+    vi.clearAllTimers();
     vi.useRealTimers();
+    vi.unstubAllGlobals();
   });
 
   it('starts with default state', () => {
@@ -273,18 +282,25 @@ describe('jobEventStore', () => {
     }));
 
     // Verify localStorage was written
-    const stored = localStorage.getItem('hotm.jobStore');
+    const key = Object.keys(localStorage).find(k => k.startsWith('hotm.jobStore.v2.'))!;
+    const stored = localStorage.getItem(key);
     expect(stored).toBeTruthy();
 
     // Re-import to test hydration
+    mod.jobEventStore.dispose();
     vi.resetModules();
     const mod2 = await import('@/services/jobEventStore');
+    mod = mod2;
+    await mod2.jobEventStore.ready;
     const state = mod2.jobEventStore.getSnapshot();
     expect(state.completedJobs).toHaveLength(1);
     expect(state.completedJobs[0].job_type).toBe('AiRevision');
   });
 
   it('clears stale active jobs on hydration', async () => {
+    capturedEventHandler!(makeEvent({ type: 'JobStarted', job_id: 'old-j', job_type: 'Embedding' }));
+    const key = Object.keys(localStorage).find(k => k.startsWith('hotm.jobStore.v2.'))!;
+    const envelope = JSON.parse(localStorage.getItem(key)!);
     // Simulate an old active job in localStorage
     const staleData = {
       activeJobs: [['old-j', {
@@ -300,10 +316,13 @@ describe('jobEventStore', () => {
       pauseState: { global: 'running', archives: {} },
       lastUpdatedAt: Date.now() - 10 * 60 * 1000,
     };
-    localStorage.setItem('hotm.jobStore', JSON.stringify(staleData));
+    localStorage.setItem(key, JSON.stringify({ ...envelope, data: staleData }));
 
+    mod.jobEventStore.dispose();
     vi.resetModules();
     const mod2 = await import('@/services/jobEventStore');
+    mod = mod2;
+    await mod2.jobEventStore.ready;
     const state = mod2.jobEventStore.getSnapshot();
     expect(state.activeJobs.size).toBe(0); // stale job was pruned
   });

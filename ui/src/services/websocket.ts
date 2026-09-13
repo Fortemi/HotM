@@ -1,6 +1,6 @@
 // Shared realtime service — SSE primary transport, WS for commands
 import { useEffect, useState } from 'react';
-import { createEventsClient, type ServerEvent, DEFAULT_SSE_EVENT_TYPES } from '@/api/events';
+import { createEventsClient, type EventsClientOptions, type ServerEvent, DEFAULT_SSE_EVENT_TYPES } from '@/api/events';
 import { realtimeEventBus, type RealtimeEvent } from '@/services/realtimeEventBus';
 import { getCachedConfig } from '@/lib/tauri';
 import { getRuntimeConfig, normalizeBrowserApiBaseUrl } from '@/lib/runtime-config';
@@ -9,6 +9,9 @@ import {
   getApiBearerToken,
 } from '@/api/auth-context';
 import { getActiveMemory } from '@/api/memory-context';
+import { getDataApiEndpoint, subscribeDataContextChanges } from '@/api/data-context';
+import { resolveRealtimeArchive } from '@/api/realtime-context';
+import { ApiError, ContractDecodeError } from '@/api/errors';
 import { api } from '@/api';
 
 export interface WsActiveJob {
@@ -108,6 +111,20 @@ class WebSocketService {
   private resyncHandlers: Set<ResyncHandler> = new Set();
   private lastResyncAt: number | null = null;
   private anonymousLocalAdvertised = false;
+  private contextGeneration = 0;
+  private unsubscribeContext: (() => void) | null = null;
+  private readonly contextChanged = () => {
+    if (this.isClosing || this.handlers.size === 0) return;
+    this.close();
+    this.reset();
+    this.listenForContextChanges();
+    void this.connect().catch(() => console.error('Realtime context reconnect failed'));
+  };
+
+  private listenForContextChanges(): void {
+    if (this.unsubscribeContext || typeof window === 'undefined') return;
+    this.unsubscribeContext = subscribeDataContextChanges(this.contextChanged);
+  }
 
   constructor() {
     // Check if WebSocket is disabled via environment variable
@@ -158,6 +175,8 @@ class WebSocketService {
   }
 
   private getApiBaseUrl(): string {
+    const activeEndpoint = getDataApiEndpoint();
+    if (activeEndpoint) return activeEndpoint;
     // Tauri desktop config (loaded at startup, cached synchronously)
     const tauriConfig = getCachedConfig();
     if (tauriConfig?.api_base_url) {
@@ -215,7 +234,7 @@ class WebSocketService {
     });
   }
 
-  private startSseTransport(): void {
+  private startSseTransport(context: EventsClientOptions, current: () => boolean): void {
     if (this.isClosing || this.handlers.size === 0) {
       return;
     }
@@ -225,11 +244,10 @@ class WebSocketService {
 
     try {
       this.eventsClient = createEventsClient(this.getApiBaseUrl(), {
-        authorization: getApiBearerToken() ? `Bearer ${getApiBearerToken()}` : null,
-        memory: getActiveMemory(),
-        tenantId: getActiveTenantId(),
+        ...context,
         preferFetch: true,
         onStatusChange: (status) => {
+          if (!current()) return;
           if (status === 'reconnecting') {
             this.sseConnected = false;
             // Only mark disconnected if WS isn't providing fallback
@@ -268,6 +286,7 @@ class WebSocketService {
         },
       });
       this.unsubscribeEvents = this.eventsClient.subscribe((event) => {
+        if (!current()) return;
         if (!this.sseConnected) {
           this.sseConnected = true;
         }
@@ -338,12 +357,27 @@ class WebSocketService {
       return Promise.resolve();
     }
 
+    const generation = this.contextGeneration;
+    const token = getApiBearerToken();
+    const tenantId = getActiveTenantId();
+    const memory = getActiveMemory();
+    const current = () => generation === this.contextGeneration && !this.isClosing
+      && token === getApiBearerToken() && tenantId === getActiveTenantId()
+      && memory === getActiveMemory();
     this.connectionPromise = (async () => {
       this.notifyConnectionState('connecting');
 
       const compatibility = await api.compatibilityGate.preflight();
+      if (!current()) return;
       this.anonymousLocalAdvertised = !compatibility.auth.required
         && compatibility.auth.mode === 'anonymous_local';
+      const context: EventsClientOptions = {
+        authorization: token ? `Bearer ${token}` : null, memory, tenantId,
+      };
+      if (token && tenantId) {
+        Object.assign(context, await resolveRealtimeArchive(api.archives, memory));
+        if (!current()) return;
+      }
 
       // Clear any existing timeout
       if (this.reconnectTimeout) {
@@ -352,14 +386,22 @@ class WebSocketService {
       }
 
       // 1. Start SSE as primary event transport
-      this.startSseTransport();
+      this.startSseTransport(context, current);
 
       // 2. Start WS command channel in parallel (non-blocking)
       this.connectWsChannel(false);
 
       this.isClosing = false;
-    })().finally(() => {
-      this.connectionPromise = null;
+    })().catch((error: unknown) => {
+      if (!current()) return;
+      this.isConnected = false;
+      this.transportMode = 'none';
+      this.notifyConnection(false);
+      this.notifyConnectionState(error instanceof ApiError && [401, 403].includes(error.statusCode)
+        ? 'auth-required' : error instanceof ContractDecodeError ? 'incompatible' : 'disconnected');
+      console.error('Realtime context admission failed');
+    }).finally(() => {
+      if (generation === this.contextGeneration) this.connectionPromise = null;
     });
 
     return this.connectionPromise;
@@ -376,8 +418,13 @@ class WebSocketService {
       const wsUrl = this.buildWebSocketUrl();
       if (!wsUrl) return;
       this.ws = new WebSocket(wsUrl);
+      const socket = this.ws;
+      const generation = this.contextGeneration;
+      const current = () => !this.isClosing && generation === this.contextGeneration
+        && this.ws === socket;
 
       this.ws.onopen = () => {
+        if (!current()) return;
         console.log('WebSocket command channel connected');
         // If SSE is not connected, WS serves as receive fallback
         if (!this.sseConnected || fallbackReceive) {
@@ -391,6 +438,7 @@ class WebSocketService {
       };
 
       this.ws.onmessage = (event) => {
+        if (!current()) return;
         // Only publish WS messages if SSE is not the active event source
         // This avoids duplicate events when both transports are connected
         if (!this.sseConnected) {
@@ -404,6 +452,7 @@ class WebSocketService {
       };
 
       this.ws.onerror = () => {
+        if (!current()) return;
         // WS errors are non-fatal if SSE is healthy
         if (this.sseConnected) {
           console.log('WebSocket command channel error (SSE active, non-critical)');
@@ -413,6 +462,7 @@ class WebSocketService {
       };
 
       this.ws.onclose = (event) => {
+        if (!current()) return;
         console.log('WebSocket command channel disconnected:', event.code);
         this.ws = null;
 
@@ -469,6 +519,7 @@ class WebSocketService {
 
   public subscribe(handler: MessageHandler): () => void {
     this.handlers.add(handler);
+    this.listenForContextChanges();
     
     // Ensure connection is established only if we have handlers and not closing
     if (!this.isConnected && !this.isClosing && this.handlers.size > 0) {
@@ -499,6 +550,9 @@ class WebSocketService {
 
   public close(): void {
     this.isClosing = true;
+    this.contextGeneration++;
+    this.unsubscribeContext?.();
+    this.unsubscribeContext = null;
 
     if (this.reconnectTimeout) {
       clearTimeout(this.reconnectTimeout);
@@ -510,6 +564,7 @@ class WebSocketService {
     }
 
     this.stopSseTransport();
+    realtimeEventBus.clearPending();
 
     if (this.ws) {
       this.ws.close(1000, 'Service closing');
@@ -617,6 +672,12 @@ export function useWebSocket(): UseWebSocketState {
     webSocketService.reset();
 
     let isSubscribed = true;
+    const resetQueueContext = () => {
+      setQueueStatus({ total_jobs: 0, running: 0, pending: 0 });
+      setLastQueueUpdateAt(Date.now());
+      setLastResyncAt(undefined);
+    };
+    const unsubscribeContext = subscribeDataContextChanges(resetQueueContext);
     
     const unsubscribeConnection = webSocketService.subscribeConnection((status) => {
       if (!isSubscribed) return;
@@ -681,6 +742,7 @@ export function useWebSocket(): UseWebSocketState {
 
     return () => {
       isSubscribed = false;
+      unsubscribeContext();
       unsubscribeConnection();
       unsubscribeConnectionState();
       unsubscribeResync();

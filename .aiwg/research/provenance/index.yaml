@@ -1,473 +1,763 @@
 metadata:
-  schema_version: "1.0.0"
-  updated_at: "2026-09-11T12:56:40.836Z"
-  record_count: 217
+  schema_version: 1.0.0
+  updated_at: '2026-09-13T16:42:57.404Z'
+  record_count: 225
 records:
-  - entity: "urn:aiwg:artifact:docs/releases/v2026.9.5.md"
-    record: "records/hotm-release-2026.9.5.prov.yaml"
-  - entity: "urn:aiwg:bundle:hotm-288-producer-event-adoption"
-    record: "records/hotm-288-producer-event-adoption.prov.yaml"
-  - entity: ".aiwg/testing/scripts/verify-fortemi-closeout-package.py"
-    record: "records/closeout-current-rest-pin-2026-08.prov.yaml"
-  - entity: ".gitea/workflows/sdlc-gates.yml"
-    record: "records/sdlc-rest-authority-checkout-2026-08.prov.yaml"
-  - entity: ".aiwg/api/compatibility/fortemi-v2026-07-operation-coverage.json"
-    record: "records/fortemi-snn-retention-consumer-2026-08.prov.yaml"
-  - entity: ".aiwg/api/compatibility/fortemi-v2026-07-operation-coverage.md"
-    record: "records/fortemi-snn-retention-consumer-2026-08.prov.yaml"
-  - entity: ".aiwg/api/compatibility/fortemi-v2026-07-route-coverage.json"
-    record: "records/fortemi-snn-retention-consumer-2026-08.prov.yaml"
-  - entity: ".aiwg/api/compatibility/fortemi-v2026-07-route-coverage.md"
-    record: "records/fortemi-snn-retention-consumer-2026-08.prov.yaml"
-  - entity: ".aiwg/architecture/impact/fortemi-snn-retention-contract-2026-08.md"
-    record: "records/fortemi-snn-retention-consumer-2026-08.prov.yaml"
-  - entity: ".aiwg/testing/scripts/fortemi-route-coverage.py"
-    record: "records/fortemi-snn-retention-consumer-2026-08.prov.yaml"
-  - entity: "scripts/ci/verify-fortemi-operation-dispositions.mjs"
-    record: "records/fortemi-snn-retention-consumer-2026-08.prov.yaml"
-  - entity: "ui/src/api/__tests__/client.test.ts"
-    record: "records/fortemi-snn-retention-consumer-2026-08.prov.yaml"
-  - entity: "ui/src/api/__tests__/concepts.test.ts"
-    record: "records/fortemi-snn-retention-consumer-2026-08.prov.yaml"
-  - entity: "ui/src/api/__tests__/core-content-second-increment.test.ts"
-    record: "records/fortemi-snn-retention-consumer-2026-08.prov.yaml"
-  - entity: "ui/src/api/__tests__/links.test.ts"
-    record: "records/fortemi-snn-retention-consumer-2026-08.prov.yaml"
-  - entity: "ui/src/api/client.ts"
-    record: "records/fortemi-snn-retention-consumer-2026-08.prov.yaml"
-  - entity: "ui/src/api/concepts.ts"
-    record: "records/fortemi-snn-retention-consumer-2026-08.prov.yaml"
-  - entity: "ui/src/api/contracts/fortemi-openapi-receipt.json"
-    record: "records/fortemi-snn-retention-consumer-2026-08.prov.yaml"
-  - entity: "ui/src/api/contracts/fortemi-openapi.yaml"
-    record: "records/fortemi-snn-retention-consumer-2026-08.prov.yaml"
-  - entity: "ui/src/api/contracts/fortemi-operation-dispositions.json"
-    record: "records/fortemi-snn-retention-consumer-2026-08.prov.yaml"
-  - entity: "ui/src/api/links.ts"
-    record: "records/fortemi-snn-retention-consumer-2026-08.prov.yaml"
-  - entity: "ui/src/components/admin/__tests__/OperationCatalogPanel.test.tsx"
-    record: "records/fortemi-snn-retention-consumer-2026-08.prov.yaml"
-  - entity: "urn:aiwg:bundle:hotm-231-tenant-store-production-gate"
-    record: "records/hotm-231-tenant-store-production-gate.prov.yaml"
-  - entity: "urn:aiwg:artifact:agent-proxy/src/__tests__/compatibility.test.ts"
-    record: "records/agent-proxy-compatibility.test.ts.hotm-231.prov.yaml"
-  - entity: "urn:aiwg:artifact:agent-proxy/src/app.ts"
-    record: "records/app.ts.ad2df15e.hotm-231.prov.yaml"
-  - entity: "urn:aiwg:artifact:agent-proxy/src/auth/index.ts"
-    record: "records/agent-proxy-auth-index.ts.c6b7c40e.hotm-231.prov.yaml"
-  - entity: "urn:aiwg:artifact:agent-proxy/src/auth/middleware.ts"
-    record: "records/agent-proxy-auth-middleware.ts.79e2c498.hotm-231.prov.yaml"
-  - entity: "urn:aiwg:artifact:agent-proxy/src/auth/verify.ts"
-    record: "records/agent-proxy-auth-verify.ts.e65ebfc8.hotm-231.prov.yaml"
-  - entity: "urn:aiwg:artifact:agent-proxy/src/auth/middleware.test.ts"
-    record: "records/agent-proxy-auth-middleware.test.ts.7a7791b4.hotm-231.prov.yaml"
-  - entity: "urn:aiwg:artifact:agent-proxy/src/auth/remote-jwks.test.ts"
-    record: "records/agent-proxy-auth-remote-jwks.test.ts.b7574d18.hotm-231.prov.yaml"
-  - entity: "urn:aiwg:artifact:agent-proxy/src/__tests__/app-auth.test.ts"
-    record: "records/app-auth.test.ts.d2070447.hotm-231.prov.yaml"
-  - entity: "urn:aiwg:artifact:.aiwg/architecture/adr-auth-shared-crate.md"
-    record: "records/adr-auth-shared-crate.md.2ed4b32a.hotm-231.prov.yaml"
-  - entity: "urn:aiwg:artifact:.aiwg/reports/fortemi-auth-node-conformance-receipt-2026-07-26.md"
-    record: "records/fortemi-auth-node-conformance-receipt-2026-07-26.md.29803277.hotm-231.prov.yaml"
-  - entity: "urn:aiwg:artifact:.aiwg/reports/fortemi-hotm-integration-audit-2026-08-15.md"
-    record: "records/fortemi-hotm-integration-audit-2026-08-15.md.b0fe5a7b.hotm-231.prov.yaml"
-  - entity: "urn:aiwg:artifact:.aiwg/architecture/sad-fortemi-integration-addendum-2026-07.md"
-    record: "records/sad-fortemi-integration-addendum-2026-07.md.81a85700.hotm-231.prov.yaml"
-  - entity: "urn:aiwg:bundle:hotm-298-agent-operation-reconciliation"
-    record: "records/hotm-298-agent-operation-reconciliation.prov.yaml"
-  - entity: "urn:aiwg:bundle:fortemi-integration-remediation-2026-08-15"
-    record: "records/fortemi-integration-remediation-2026-08-15.prov.yaml"
-  - entity: "urn:aiwg:artifact:.aiwg/testing/scripts/knowledge-shard-authority-policy.mjs"
-    record: "records/knowledge-shard-authority-policy.mjs.prov.yaml"
-  - entity: "urn:aiwg:artifact:.aiwg/testing/scripts/knowledge-shard-authority-policy.test.mjs"
-    record: "records/knowledge-shard-authority-policy.test.mjs.prov.yaml"
-  - entity: "urn:aiwg:artifact:.aiwg/evidence/agent-proxy-npm-audit-remediation-2026-08-15.json"
-    record: "records/agent-proxy-npm-audit-remediation-2026-08-15.json.prov.yaml"
-  - entity: "urn:aiwg:artifact:.aiwg/reports/agent-proxy-dependency-advisory-remediation-2026-08-15.md"
-    record: "records/agent-proxy-dependency-advisory-remediation-2026-08-15.md.prov.yaml"
-  - entity: "urn:aiwg:artifact:.aiwg/testing/scripts/verify-fortemi-system-compatibility-contract.mjs"
-    record: "records/verify-fortemi-system-compatibility-contract.mjs.prov.yaml"
-  - entity: "urn:aiwg:artifact:ui/src/api/contracts/fortemi-system-compatibility-receipt.json"
-    record: "records/fortemi-system-compatibility-receipt-ui.prov.yaml"
-  - entity: "urn:aiwg:artifact:agent-proxy/src/contracts/fortemi-system-compatibility-receipt.json"
-    record: "records/fortemi-system-compatibility-receipt-agent-proxy.prov.yaml"
-  - entity: "urn:aiwg:artifact:agent-proxy/src/compatibility.ts"
-    record: "records/agent-proxy-compatibility.ts.prov.yaml"
-  - entity: "urn:aiwg:artifact:ui/src/api/client.ts"
-    record: "records/client-runtime-compatibility-gate.ts.prov.yaml"
-  - entity: "urn:aiwg:artifact:scripts/download-pinned-sidecar.sh"
-    record: "records/download-pinned-sidecar-hotm-284.prov.yaml"
-  - entity: "urn:aiwg:artifact:release/live-asset-receipt-sidecar-provenance.json"
-    record: "records/live-asset-receipt-sidecar-provenance-284.prov.yaml"
-  - entity: "urn:aiwg:artifact:release/sidecar-provenance.json"
-    record: "records/sidecar-provenance-284.prov.yaml"
-  - entity: "urn:aiwg:artifact:scripts/ci/refresh-fortemi-live-contracts.mjs"
-    record: "records/refresh-fortemi-live-contracts-hotm-284.prov.yaml"
-  - entity: "urn:aiwg:artifact:ui/scripts/verify-live-asset-ci-receipt.cjs"
-    record: "records/verify-live-asset-ci-receipt-hotm-284.prov.yaml"
-  - entity: "urn:aiwg:artifact:ui/scripts/verify-live-asset-ci-receipt.test.js"
-    record: "records/verify-live-asset-ci-receipt-test-hotm-284.prov.yaml"
-  - entity: "urn:aiwg:artifact:ui/scripts/verify-live-asset-ci-receipt-pair.cjs"
-    record: "records/verify-live-asset-ci-receipt-pair-hotm-284.prov.yaml"
-  - entity: "urn:aiwg:artifact:ui/scripts/verify-live-asset-ci-receipt-matrix.cjs"
-    record: "records/verify-live-asset-ci-receipt-matrix-hotm-284.prov.yaml"
-  - entity: "urn:aiwg:artifact:ui/scripts/verify-live-asset-ci-receipt-matrix.test.js"
-    record: "records/verify-live-asset-ci-receipt-matrix-test-hotm-284.prov.yaml"
-  - entity: "urn:aiwg:artifact:.aiwg/architecture/adr-mobile-cloud-architecture.md"
-    record: "records/adr-mobile-cloud-architecture.md.prov.yaml"
-  - entity: "urn:aiwg:artifact:.aiwg/testing/enterprise-demo-operator-signoff-2026-07-06.md"
-    record: "records/enterprise-demo-operator-signoff-2026-07-06.md.prov.yaml"
-  - entity: "urn:aiwg:artifact:.aiwg/evidence/hotm-enterprise-demo-dry-run-2026-07-09.md"
-    record: "records/hotm-enterprise-demo-dry-run-2026-07-09.md.prov.yaml"
-  - entity: "urn:aiwg:artifact:.aiwg/planning/mobile-expansion-INDEX.md"
-    record: "records/mobile-expansion-INDEX.md.prov.yaml"
-  - entity: "urn:aiwg:artifact:.aiwg/planning/mobile-expansion-phase-plan.md"
-    record: "records/mobile-expansion-phase-plan.md.prov.yaml"
-  - entity: "urn:aiwg:artifact:.aiwg/reports/sdlc-checkpoint-2026-07.md"
-    record: "records/sdlc-checkpoint-2026-07.md.prov.yaml"
-  - entity: "urn:aiwg:artifact:.gitea/workflows/ui-ci.yml"
-    record: "records/ui-ci-network-independent-vault-tools-272.prov.yaml"
-  - entity: "urn:aiwg:artifact:.aiwg/architecture/adr/ADR-010-fortemi-v2026-07-api-coverage.md"
-    record: "records/ADR-010-fortemi-v2026-07-api-coverage.md.prov.yaml"
-  - entity: "urn:aiwg:artifact:ui/src/components/admin/__tests__/ApiCapabilitiesPanel.test.tsx"
-    record: "records/ApiCapabilitiesPanel.test.tsx.prov.yaml"
-  - entity: "urn:aiwg:artifact:ui/src/components/admin/ApiCapabilitiesPanel.tsx"
-    record: "records/ApiCapabilitiesPanel.tsx.prov.yaml"
-  - entity: "urn:aiwg:artifact:ui/src/components/backup/__tests__/BackupManager.test.tsx"
-    record: "records/BackupManager.test.tsx.prov.yaml"
-  - entity: "urn:aiwg:artifact:ui/src/components/backup/BackupManager.tsx"
-    record: "records/BackupManager.tsx.prov.yaml"
-  - entity: "urn:aiwg:artifact:.aiwg/testing/api-contract-test-plan-addendum-2026-07.md"
-    record: "records/api-contract-test-plan-addendum-2026-07.md.prov.yaml"
-  - entity: "urn:aiwg:artifact:ui/src/api/__tests__/backup.test.ts"
-    record: "records/backup.test.ts.prov.yaml"
-  - entity: "urn:aiwg:artifact:ui/src/api/backup.ts"
-    record: "records/backup.ts.prov.yaml"
-  - entity: "urn:aiwg:artifact:ui/src/api/__tests__/calls.test.ts"
-    record: "records/calls.test.ts.prov.yaml"
-  - entity: "urn:aiwg:artifact:ui/src/api/calls.ts"
-    record: "records/calls.ts.prov.yaml"
-  - entity: "urn:aiwg:artifact:ui/src/api/__tests__/delivered-openapi-contract.test.ts"
-    record: "records/delivered-openapi-contract.test.ts.prov.yaml"
-  - entity: "urn:aiwg:artifact:.aiwg/requirements/fortemi-api-integration-requirements-2026-07.md"
-    record: "records/fortemi-api-integration-requirements-2026-07.md.prov.yaml"
-  - entity: "urn:aiwg:artifact:.aiwg/architecture/fortemi-compatibility-consumption-2026-07.md"
-    record: "records/fortemi-compatibility-consumption-2026-07.md.prov.yaml"
-  - entity: "urn:aiwg:artifact:ui/src/api/contracts/fortemi-core-v1-current"
-    record: "records/fortemi-core-v1-current-components.prov.yaml"
-  - entity: "urn:aiwg:artifact:ui/src/api/contracts/fortemi-core-v1-manifest.json"
-    record: "records/fortemi-core-v1-manifest.json.prov.yaml"
-  - entity: "urn:aiwg:artifact:ui/src/api/contracts/fortemi-core-v1-v1.0-manifest.json"
-    record: "records/fortemi-core-v1-v1.0-manifest.json.prov.yaml"
-  - entity: "urn:aiwg:artifact:ui/src/api/contracts/fortemi-core-v1-v1.1-manifest.json"
-    record: "records/fortemi-core-v1-v1.1-manifest.json.prov.yaml"
-  - entity: "urn:aiwg:artifact:ui/src/api/contracts/fortemi-event-catalog.json"
-    record: "records/fortemi-event-catalog.json.prov.yaml"
-  - entity: "urn:aiwg:artifact:ui/src/api/contracts/fortemi-knowledge-shard-receipt.json"
-    record: "records/fortemi-knowledge-shard-receipt.json.prov.yaml"
-  - entity: "urn:aiwg:artifact:ui/src/api/contracts/fortemi-openapi-receipt.json"
-    record: "records/fortemi-openapi-receipt.json.prov.yaml"
-  - entity: "urn:aiwg:artifact:ui/src/api/contracts/fortemi-openapi-skew-fixtures.json"
-    record: "records/fortemi-openapi-skew-fixtures.json.prov.yaml"
-  - entity: "urn:aiwg:artifact:ui/src/api/contracts/fortemi-openapi.yaml"
-    record: "records/fortemi-openapi.yaml.prov.yaml"
-  - entity: "urn:aiwg:artifact:.aiwg/reports/fortemi-v2026-07-api-integration-traceability.md"
-    record: "records/fortemi-v2026-07-api-integration-traceability.md.prov.yaml"
-  - entity: "urn:aiwg:artifact:.aiwg/reports/fortemi-hotm-integration-audit-2026-08-15.md"
-    record: "records/fortemi-hotm-integration-audit-2026-08-15.md.prov.yaml"
-  - entity: "urn:aiwg:artifact:.aiwg/testing/fortemi-v2026-07-fixture-catalog.md"
-    record: "records/fortemi-v2026-07-fixture-catalog.md.prov.yaml"
-  - entity: "urn:aiwg:artifact:.aiwg/evidence/hotm-full-v1-clean-recovery-preflight-2026-07-24.json"
-    record: "records/hotm-full-v1-clean-recovery-preflight-2026-07-24.json.prov.yaml"
-  - entity: "urn:aiwg:artifact:.aiwg/evidence/hotm-full-v1-clean-recovery-receipt-2026-07-24.json"
-    record: "records/hotm-full-v1-clean-recovery-receipt-2026-07-24.json.prov.yaml"
-  - entity: "urn:aiwg:artifact:.aiwg/evidence/hotm-v2026.7.0-github-mirror-repair-2026-07-24.json"
-    record: "records/hotm-v2026.7.0-github-mirror-repair-2026-07-24.json.prov.yaml"
-  - entity: "urn:aiwg:artifact:ui/src/api/index.ts"
-    record: "records/index.ts.prov.yaml"
-  - entity: "urn:aiwg:artifact:ui/src/api/__tests__/knowledgeShard.test.ts"
-    record: "records/knowledgeShard.test.ts.prov.yaml"
-  - entity: "urn:aiwg:artifact:ui/src/api/knowledgeShard.ts"
-    record: "records/knowledgeShard.ts.prov.yaml"
-  - entity: "urn:aiwg:artifact:ui/src/api/__tests__/knowledgeShardFixtures.ts"
-    record: "records/knowledgeShardFixtures.ts.prov.yaml"
-  - entity: "urn:aiwg:artifact:.aiwg/architecture/manifest-schema-v1.md"
-    record: "records/manifest-schema-v1.md.prov.yaml"
-  - entity: "urn:aiwg:artifact:.aiwg/research/findings/mobile-manifest-remote-config.md"
-    record: "records/mobile-manifest-remote-config.md.prov.yaml"
-  - entity: "urn:aiwg:artifact:.aiwg/architecture/sad-fortemi-integration-addendum-2026-07.md"
-    record: "records/sad-fortemi-integration-addendum-2026-07.md.prov.yaml"
-  - entity: "urn:aiwg:artifact:ui/src/api/__tests__/systemCompatibility.test.ts"
-    record: "records/systemCompatibility.test.ts.prov.yaml"
-  - entity: "urn:aiwg:artifact:ui/src/api/systemCompatibility.ts"
-    record: "records/systemCompatibility.ts.prov.yaml"
-  - entity: "urn:aiwg:artifact:ui/src/api/types-extended.ts"
-    record: "records/types-extended.ts.prov.yaml"
-  - entity: "urn:aiwg:artifact:.aiwg/testing/scripts/validate-manifest-schema.mjs"
-    record: "records/validate-manifest-schema.mjs.prov.yaml"
-  - entity: "urn:aiwg:artifact:.aiwg/testing/scripts/verify-fortemi-event-catalog.mjs"
-    record: "records/verify-fortemi-event-catalog.mjs.prov.yaml"
-  - entity: "urn:aiwg:artifact:.aiwg/testing/scripts/verify-fortemi-knowledge-shard-contract.mjs"
-    record: "records/verify-fortemi-knowledge-shard-contract.mjs.prov.yaml"
-  - entity: "urn:aiwg:artifact:.aiwg/testing/scripts/verify-fortemi-openapi-contract.mjs"
-    record: "records/verify-fortemi-openapi-contract.mjs.prov.yaml"
-  - entity: "urn:aiwg:artifact:ui/src/components/admin/__tests__/AdminPanel.test.tsx"
-    record: "records/AdminPanel.test.tsx.prov.yaml"
-  - entity: "urn:aiwg:artifact:.aiwg/testing/scripts/fortemi-route-coverage.py"
-    record: "records/fortemi-route-coverage.py.prov.yaml"
-  - entity: "urn:aiwg:artifact:.aiwg/api/compatibility/fortemi-v2026-07-family-evidence-map.json"
-    record: "records/fortemi-v2026-07-family-evidence-map.json.prov.yaml"
-  - entity: "urn:aiwg:artifact:.aiwg/handoffs/fortemi-v2026-07-pr-closeout-package.md"
-    record: "records/fortemi-v2026-07-pr-closeout-package.md.prov.yaml"
-  - entity: "urn:aiwg:artifact:.aiwg/api/compatibility/fortemi-v2026-07-route-coverage.json"
-    record: "records/fortemi-v2026-07-route-coverage.json.prov.yaml"
-  - entity: "urn:aiwg:artifact:.aiwg/api/compatibility/fortemi-v2026-07-route-coverage.md"
-    record: "records/fortemi-v2026-07-route-coverage.md.prov.yaml"
-  - entity: "urn:aiwg:artifact:ui/src/api/__tests__/index.test.ts"
-    record: "records/index.test.ts.prov.yaml"
-  - entity: "urn:aiwg:artifact:.aiwg/testing/scripts/verify-fortemi-closeout-package.py"
-    record: "records/verify-fortemi-closeout-package.py.prov.yaml"
-  - entity: "urn:aiwg:artifact:agent-proxy/src/auth/verify.ts"
-    record: "records/agent-proxy-auth-verify.ts.prov.yaml"
-  - entity: "urn:aiwg:artifact:agent-proxy/src/auth/index.ts"
-    record: "records/agent-proxy-auth-index.ts.prov.yaml"
-  - entity: "urn:aiwg:artifact:agent-proxy/src/auth/verify.test.ts"
-    record: "records/agent-proxy-auth-verify.test.ts.prov.yaml"
-  - entity: "urn:aiwg:artifact:agent-proxy/src/auth/fixtures/fortemi-auth-v1.json"
-    record: "records/fortemi-auth-v1.json.prov.yaml"
-  - entity: "urn:aiwg:artifact:agent-proxy/src/auth/fixtures/fortemi-auth-release-policy-v1.json"
-    record: "records/fortemi-auth-release-policy-v1.json.prov.yaml"
-  - entity: "urn:aiwg:artifact:.aiwg/architecture/adr-auth-shared-crate.md"
-    record: "records/adr-auth-shared-crate.md.prov.yaml"
-  - entity: "urn:aiwg:artifact:.aiwg/reports/fortemi-auth-node-conformance-receipt-2026-07-26.md"
-    record: "records/fortemi-auth-node-conformance-receipt-2026-07-26.md.prov.yaml"
-  - entity: "urn:aiwg:artifact:.aiwg/architecture/adr/ADR-011-native-desktop-file-dialogs.md"
-    record: "records/ADR-011-native-desktop-file-dialogs.md.prov.yaml"
-  - entity: "urn:aiwg:artifact:.aiwg/evidence/hotm-desktop-live-asset-receipt-2026-07-27.json"
-    record: "records/hotm-desktop-live-asset-receipt-2026-07-27.json.prov.yaml"
-  - entity: "urn:aiwg:artifact:.aiwg/reports/fortemi-v2026-07-coverage-evidence-audit.md"
-    record: "records/fortemi-v2026-07-coverage-evidence-audit.md.hotm-283.prov.yaml"
-  - entity: "urn:aiwg:artifact:.gitea/workflows/tauri-build.yml"
-    record: "records/tauri-build-hotm-283.prov.yaml"
-  - entity: "urn:aiwg:artifact:ui/src-tauri/src/lib.rs"
-    record: "records/tauri-lib-hotm-283.prov.yaml"
-  - entity: "urn:aiwg:artifact:ui/scripts/verify-desktop-live-asset-receipt.cjs"
-    record: "records/verify-desktop-live-asset-receipt.cjs.prov.yaml"
-  - entity: "urn:aiwg:artifact:ui/scripts/verify-desktop-live-asset-receipt.test.js"
-    record: "records/verify-desktop-live-asset-receipt.test.js.prov.yaml"
-  - entity: "urn:aiwg:artifact:.gitea/workflows/sdlc-gates.yml"
-    record: "records/sdlc-gates-node-bootstrap.prov.yaml"
-  - entity: "urn:aiwg:artifact:ui/scripts/verify-live-tauri-full-v1-receipt.cjs"
-    record: "records/verify-live-tauri-full-v1-receipt.cjs.prov.yaml"
-  - entity: "urn:aiwg:artifact:ui/scripts/verify-live-tauri-full-v1-receipt.test.js"
-    record: "records/verify-live-tauri-full-v1-receipt.test.js.prov.yaml"
-  - entity: "urn:aiwg:artifact:.aiwg/evidence/hotm-live-tauri-full-v1-recovery-receipt-2026-07-28.json"
-    record: "records/hotm-live-tauri-full-v1-recovery-receipt-2026-07-28.json.prov.yaml"
-  - entity: "urn:aiwg:artifact:ui/src/components/attachments/download-blob.ts"
-    record: "records/download-blob.ts.prov.yaml"
-  - entity: "urn:aiwg:artifact:ui/src/components/attachments/__tests__/download-blob.test.ts"
-    record: "records/download-blob.test.ts.prov.yaml"
-  - entity: "urn:aiwg:artifact:ui/e2e/live/asset-lifecycle-live.spec.ts"
-    record: "records/asset-lifecycle-live.spec.ts.prov.yaml"
-  - entity: "urn:aiwg:artifact:scripts/ci/run-live-asset-receipt.sh"
-    record: "records/run-live-asset-receipt-hotm-284.prov.yaml"
-  - entity: "urn:aiwg:artifact:ui/src-tauri/gen/schemas/macOS-schema.json"
-    record: "records/macOS-schema-hotm-284.prov.yaml"
-  - entity: "urn:aiwg:artifact:.aiwg/reports/doc-sync-last-run.json"
-    record: "records/doc-sync-last-run.json.prov.yaml"
-  - entity: "urn:aiwg:artifact:.aiwg/reports/doc-sync-20260729-code-to-docs.md"
-    record: "records/doc-sync-20260729-code-to-docs.md.prov.yaml"
-  - entity: "urn:aiwg:artifact:ui/src/api/__tests__/events.test.ts"
-    record: "records/events.test.ts.hotm-288.prov.yaml"
-  - entity: "urn:aiwg:artifact:ui/src/api/contracts/fortemi-asyncapi-event-fixtures.json"
-    record: "records/fortemi-asyncapi-event-fixtures.json.hotm-288.prov.yaml"
-  - entity: "urn:aiwg:artifact:ui/src/api/contracts/fortemi-asyncapi-event-validation-rules.json"
-    record: "records/fortemi-asyncapi-event-validation-rules.json.hotm-288.prov.yaml"
-  - entity: "urn:aiwg:artifact:.aiwg/evidence/fortemi-asyncapi-payload-conformance-receipt.json"
-    record: "records/fortemi-asyncapi-payload-conformance-receipt.json.hotm-288.prov.yaml"
-  - entity: "urn:aiwg:artifact:ui/src/services/__tests__/realtimeEventBus.test.ts"
-    record: "records/realtimeEventBus.test.ts.hotm-288.prov.yaml"
-  - entity: "urn:aiwg:artifact:ui/src/services/realtimeEventBus.ts"
-    record: "records/realtimeEventBus.ts.hotm-288.prov.yaml"
-  - entity: "urn:aiwg:artifact:.aiwg/testing/scripts/verify-fortemi-asyncapi-payloads.mjs"
-    record: "records/verify-fortemi-asyncapi-payloads.mjs.hotm-288.prov.yaml"
-  - entity: "urn:aiwg:artifact:.aiwg/testing/data/fortemi-operation-conformance-v2026-07.json"
-    record: "records/fortemi-operation-conformance-v2026-07.json.prov.yaml"
-  - entity: "urn:aiwg:artifact:.aiwg/evidence/fortemi-route-coverage-test-report-2026-08-15.md"
-    record: "records/fortemi-route-coverage-test-report-2026-08-15.md.prov.yaml"
-  - entity: "urn:aiwg:artifact:.aiwg/api/compatibility/fortemi-v2026-07-operation-coverage.json"
-    record: "records/fortemi-v2026-07-operation-coverage.json.prov.yaml"
-  - entity: "urn:aiwg:artifact:.aiwg/api/compatibility/fortemi-v2026-07-operation-coverage.md"
-    record: "records/fortemi-v2026-07-operation-coverage.md.prov.yaml"
-  - entity: "urn:aiwg:artifact:.aiwg/testing/scripts/test_fortemi_route_coverage.py"
-    record: "records/test_fortemi_route_coverage.py.prov.yaml"
-  - entity: "urn:aiwg:artifact:.aiwg/architecture/software-architecture-doc.md"
-    record: "records/software-architecture-doc.md.f8907edd.hotm-294-296.prov.yaml"
-  - entity: "urn:aiwg:artifact:.aiwg/design/fortemi-v2026-07-agent-tool-coverage-matrix.md"
-    record: "records/fortemi-v2026-07-agent-tool-coverage-matrix.md.24657d2d.hotm-294-296.prov.yaml"
-  - entity: "urn:aiwg:artifact:.aiwg/testing/migration-test-strategy-addendum.md"
-    record: "records/migration-test-strategy-addendum.md.473ae970.hotm-294-296.prov.yaml"
-  - entity: "urn:aiwg:artifact:ui/src/api/__tests__/client.test.ts"
-    record: "records/client.test.ts.35bcad42.hotm-294-296.prov.yaml"
-  - entity: "urn:aiwg:artifact:ui/src/api/__tests__/contract-codecs.test.ts"
-    record: "records/contract-codecs.test.ts.94272f01.hotm-294-296.prov.yaml"
-  - entity: "urn:aiwg:artifact:ui/src/api/__tests__/core-content-operation-evidence.test.ts"
-    record: "records/core-content-operation-evidence.test.ts.b898a2c9.hotm-294-296.prov.yaml"
-  - entity: "urn:aiwg:artifact:ui/src/api/__tests__/core-content-second-increment.test.ts"
-    record: "records/core-content-second-increment.test.ts.04bc8c36.hotm-294-296.prov.yaml"
-  - entity: "urn:aiwg:artifact:ui/src/api/__tests__/links.test.ts"
-    record: "records/links.test.ts.eb7372e0.hotm-294-296.prov.yaml"
-  - entity: "urn:aiwg:artifact:ui/src/api/__tests__/notes.test.ts"
-    record: "records/notes.test.ts.ac90753e.hotm-294-296.prov.yaml"
-  - entity: "urn:aiwg:artifact:ui/src/api/__tests__/operator.test.ts"
-    record: "records/operator.test.ts.205e7f7b.hotm-294-296.prov.yaml"
-  - entity: "urn:aiwg:artifact:ui/src/api/collections.ts"
-    record: "records/collections.ts.1a8386a8.hotm-294-296.prov.yaml"
-  - entity: "urn:aiwg:artifact:ui/src/api/concepts.ts"
-    record: "records/concepts.ts.5acf5fe3.hotm-294-296.prov.yaml"
-  - entity: "urn:aiwg:artifact:ui/src/api/contract-codecs.ts"
-    record: "records/contract-codecs.ts.c12bd9ef.hotm-294-296.prov.yaml"
-  - entity: "urn:aiwg:artifact:ui/src/api/contracts/fortemi-operation-dispositions.json"
-    record: "records/fortemi-operation-dispositions.json.41b5781c.hotm-294-296.prov.yaml"
-  - entity: "urn:aiwg:artifact:ui/src/api/core-content-operations.ts"
-    record: "records/core-content-operations.ts.e7198665.hotm-294-296.prov.yaml"
-  - entity: "urn:aiwg:artifact:ui/src/api/documents.ts"
-    record: "records/documents.ts.3bc8d9d2.hotm-294-296.prov.yaml"
-  - entity: "urn:aiwg:artifact:ui/src/api/errors.ts"
-    record: "records/errors.ts.4c9a4cba.hotm-294-296.prov.yaml"
-  - entity: "urn:aiwg:artifact:ui/src/api/jobs.ts"
-    record: "records/jobs.ts.63141dcd.hotm-294-296.prov.yaml"
-  - entity: "urn:aiwg:artifact:ui/src/api/links.ts"
-    record: "records/links.ts.4020087c.hotm-294-296.prov.yaml"
-  - entity: "urn:aiwg:artifact:ui/src/api/notes.ts"
-    record: "records/notes.ts.14976c53.hotm-294-296.prov.yaml"
-  - entity: "urn:aiwg:artifact:ui/src/api/operator.ts"
-    record: "records/operator.ts.a209a604.hotm-294-296.prov.yaml"
-  - entity: "urn:aiwg:artifact:ui/src/api/provenance.ts"
-    record: "records/provenance.ts.1e3f9e3c.hotm-294-296.prov.yaml"
-  - entity: "urn:aiwg:artifact:ui/src/api/templates.ts"
-    record: "records/templates.ts.b8b81335.hotm-294-296.prov.yaml"
-  - entity: "urn:aiwg:artifact:ui/src/components/admin/AdminPanel.tsx"
-    record: "records/AdminPanel.tsx.ea42d301.hotm-294-296.prov.yaml"
-  - entity: "urn:aiwg:artifact:ui/src/components/admin/CoreContentLifecyclePanel.tsx"
-    record: "records/CoreContentLifecyclePanel.tsx.1e348982.hotm-294-296.prov.yaml"
-  - entity: "urn:aiwg:artifact:ui/src/components/admin/OperatorConsole.tsx"
-    record: "records/OperatorConsole.tsx.f9767dac.hotm-294-296.prov.yaml"
-  - entity: "urn:aiwg:artifact:ui/src/components/admin/__tests__/CoreContentLifecyclePanel.test.tsx"
-    record: "records/CoreContentLifecyclePanel.test.tsx.5733a405.hotm-294-296.prov.yaml"
-  - entity: "urn:aiwg:artifact:ui/src/components/admin/__tests__/CoreContentLifecyclePanelSecondIncrement.test.tsx"
-    record: "records/CoreContentLifecyclePanelSecondIncrement.test.tsx.4e6953a9.hotm-294-296.prov.yaml"
-  - entity: "urn:aiwg:artifact:ui/src/components/admin/__tests__/OperatorConsole.test.tsx"
-    record: "records/OperatorConsole.test.tsx.c82b134e.hotm-294-296.prov.yaml"
-  - entity: "urn:aiwg:artifact:ui/src/components/admin/index.ts"
-    record: "records/index.ts.c972f57f.hotm-294-296.prov.yaml"
-  - entity: "urn:aiwg:artifact:ui/src/hooks/useCoreOperationAdmission.ts"
-    record: "records/useCoreOperationAdmission.ts.fee96d75.hotm-294-296.prov.yaml"
-  - entity: "urn:aiwg:artifact:ui/e2e/tests/core-content-lifecycle-responsive.spec.ts"
-    record: "records/core-content-lifecycle-responsive.spec.ts.22f56a30.hotm-294-296.prov.yaml"
-  - entity: "urn:aiwg:artifact:ui/e2e/tests/operator-console-responsive.spec.ts"
-    record: "records/operator-console-responsive.spec.ts.09b3394e.hotm-294-296.prov.yaml"
-  - entity: "urn:aiwg:artifact:.aiwg/api/compatibility/fortemi-v2026-07-operation-coverage.json"
-    record: "records/fortemi-v2026-07-operation-coverage.json.d364c051.hotm-297.prov.yaml"
-  - entity: "urn:aiwg:artifact:.aiwg/api/compatibility/fortemi-v2026-07-operation-coverage.md"
-    record: "records/fortemi-v2026-07-operation-coverage.md.c803b45d.hotm-297.prov.yaml"
-  - entity: "urn:aiwg:artifact:.aiwg/api/compatibility/fortemi-v2026-07-route-coverage.json"
-    record: "records/fortemi-v2026-07-route-coverage.json.c07c42d1.hotm-297.prov.yaml"
-  - entity: "urn:aiwg:artifact:.aiwg/api/compatibility/fortemi-v2026-07-route-coverage.md"
-    record: "records/fortemi-v2026-07-route-coverage.md.cc6d900c.hotm-297.prov.yaml"
-  - entity: "urn:aiwg:artifact:.aiwg/architecture/adr/ADR-010-fortemi-v2026-07-api-coverage.md"
-    record: "records/ADR-010-fortemi-v2026-07-api-coverage.md.f874fc84.hotm-297.prov.yaml"
-  - entity: "urn:aiwg:artifact:.aiwg/architecture/sad-fortemi-integration-addendum-2026-07.md"
-    record: "records/sad-fortemi-integration-addendum-2026-07.md.5f93c7bf.hotm-297.prov.yaml"
-  - entity: "urn:aiwg:artifact:.aiwg/reports/fortemi-v2026-07-api-integration-traceability.md"
-    record: "records/fortemi-v2026-07-api-integration-traceability.md.85367167.hotm-297.prov.yaml"
-  - entity: "urn:aiwg:artifact:.aiwg/requirements/fortemi-api-integration-requirements-2026-07.md"
-    record: "records/fortemi-api-integration-requirements-2026-07.md.824e609f.hotm-297.prov.yaml"
-  - entity: "urn:aiwg:artifact:.aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
-    record: "records/fortemi-sensitive-operation-decisions-2026-08.md.e97d2a06.hotm-297.prov.yaml"
-  - entity: "urn:aiwg:artifact:.aiwg/testing/api-contract-test-plan-addendum-2026-07.md"
-    record: "records/api-contract-test-plan-addendum-2026-07.md.401ef9d2.hotm-297.prov.yaml"
-  - entity: "urn:aiwg:artifact:.aiwg/testing/data/fortemi-operation-conformance-v2026-07.json"
-    record: "records/fortemi-operation-conformance-v2026-07.json.4a2d8c83.hotm-297.prov.yaml"
-  - entity: "urn:aiwg:artifact:.aiwg/testing/fortemi-v2026-07-scenario-test-matrix.md"
-    record: "records/fortemi-v2026-07-scenario-test-matrix.md.0b4f6f32.hotm-297.prov.yaml"
-  - entity: "urn:aiwg:artifact:scripts/ci/verify-fortemi-operation-dispositions.mjs"
-    record: "records/verify-fortemi-operation-dispositions.mjs.b15072b8.hotm-297.prov.yaml"
-  - entity: "urn:aiwg:artifact:ui/src/api/README.md"
-    record: "records/README.md.333a6ac8.hotm-297.prov.yaml"
-  - entity: "urn:aiwg:artifact:ui/src/api/__tests__/attachments.test.ts"
-    record: "records/attachments.test.ts.27bf3e4e.hotm-297.prov.yaml"
-  - entity: "urn:aiwg:artifact:ui/src/api/__tests__/backup.test.ts"
-    record: "records/backup.test.ts.d0256020.hotm-297.prov.yaml"
-  - entity: "urn:aiwg:artifact:ui/src/api/attachments.ts"
-    record: "records/attachments.ts.3c1eaf51.hotm-297.prov.yaml"
-  - entity: "urn:aiwg:artifact:ui/src/api/backup.ts"
-    record: "records/backup.ts.1b794e64.hotm-297.prov.yaml"
-  - entity: "urn:aiwg:artifact:ui/src/api/contracts/fortemi-operation-dispositions.json"
-    record: "records/fortemi-operation-dispositions.json.d1173de0.hotm-297.prov.yaml"
-  - entity: "urn:aiwg:artifact:ui/src/components/admin/AdminPanel.tsx"
-    record: "records/AdminPanel.tsx.f5a40da1.hotm-297.prov.yaml"
-  - entity: "urn:aiwg:artifact:ui/src/components/admin/OperationCatalogPanel.tsx"
-    record: "records/OperationCatalogPanel.tsx.7e941311.hotm-297.prov.yaml"
-  - entity: "urn:aiwg:artifact:ui/src/components/admin/__tests__/AdminPanel.test.tsx"
-    record: "records/AdminPanel.test.tsx.49c7852e.hotm-297.prov.yaml"
-  - entity: "urn:aiwg:artifact:ui/src/components/admin/__tests__/OperationCatalogPanel.test.tsx"
-    record: "records/OperationCatalogPanel.test.tsx.180a3217.hotm-297.prov.yaml"
-  - entity: "urn:aiwg:artifact:ui/src/components/agent/SaveAsNoteButton.tsx"
-    record: "records/SaveAsNoteButton.tsx.5f6c7c33.hotm-297.prov.yaml"
-  - entity: "urn:aiwg:artifact:ui/src/components/agent/__tests__/SaveAsNoteButton.test.tsx"
-    record: "records/SaveAsNoteButton.test.tsx.df7835dc.hotm-297.prov.yaml"
-  - entity: "urn:aiwg:artifact:ui/src/services/__tests__/tusUploader.test.ts"
-    record: "records/tusUploader.test.ts.63040986.hotm-297.prov.yaml"
-  - entity: "urn:aiwg:artifact:ui/src/services/__tests__/uploadStore.test.ts"
-    record: "records/uploadStore.test.ts.fe762490.hotm-297.prov.yaml"
-  - entity: "urn:aiwg:artifact:ui/src/services/tusUploader.ts"
-    record: "records/tusUploader.ts.2d81c40b.hotm-297.prov.yaml"
-  - entity: "urn:aiwg:artifact:ui/src/services/uploadStore.ts"
-    record: "records/uploadStore.ts.b7e7811a.hotm-297.prov.yaml"
-  - entity: "urn:aiwg:artifact:ui/playwright.config.ts"
-    record: "records/playwright.config.ts.bf46ce52.hotm-297.prov.yaml"
-  - entity: "urn:aiwg:artifact:scripts/ci/run-live-asset-receipt.sh"
-    record: "records/run-live-asset-receipt.sh.216ff690.hotm-297.prov.yaml"
-  - entity: "urn:aiwg:artifact:.gitea/workflows/ui-ci.yml"
-    record: "records/ui-ci.yml.e8820896.hotm-297.prov.yaml"
-  - entity: "urn:aiwg:artifact:.gitea/workflows/ui-ci.yml"
-    record: "records/ui-ci.yml.f9b6addf.hotm-297.prov.yaml"
-  - entity: "urn:aiwg:artifact:ui/scripts/playwright-mocked-ci.config.cjs"
-    record: "records/playwright-mocked-ci.config.cjs.01787bbe.hotm-297.prov.yaml"
-  - entity: "urn:aiwg:artifact:.aiwg/architecture/adr-auth-shared-crate.md"
-    record: "records/dotaiwg-architecture-adr-auth-shared-crate.md.9fc14e85441c.hotm-231-auth-v2026.8.1.prov.yaml"
-  - entity: "urn:aiwg:artifact:.aiwg/architecture/sad-fortemi-integration-addendum-2026-07.md"
-    record: "records/dotaiwg-architecture-sad-fortemi-integration-addendum-2026-07.md.ba1ae49cf11e.hotm-231-auth-v2026.8.1.prov.yaml"
-  - entity: "urn:aiwg:artifact:.aiwg/reports/fortemi-auth-node-conformance-receipt-2026-07-26.md"
-    record: "records/dotaiwg-reports-fortemi-auth-node-conformance-receipt-2026-07-26.md.83750b0a3dc2.hotm-231-auth-v2026.8.1.prov.yaml"
-  - entity: "urn:aiwg:artifact:.aiwg/reports/fortemi-auth-tenant-store-composition-receipt-2026-08-24.md"
-    record: "records/dotaiwg-reports-fortemi-auth-tenant-store-composition-receipt-2026-08-24.md.5e04d1fd01e8.hotm-231-auth-v2026.8.1.prov.yaml"
-  - entity: "urn:aiwg:artifact:.aiwg/reports/fortemi-hotm-integration-audit-2026-08-15.md"
-    record: "records/dotaiwg-reports-fortemi-hotm-integration-audit-2026-08-15.md.a6c7864a89c1.hotm-231-auth-v2026.8.1.prov.yaml"
-  - entity: "urn:aiwg:artifact:agent-proxy/SECURITY.md"
-    record: "records/agent-proxy-SECURITY.md.cb04d7f62a56.hotm-231-auth-v2026.8.1.prov.yaml"
-  - entity: "urn:aiwg:artifact:agent-proxy/package.json"
-    record: "records/agent-proxy-package.json.5eec3ac15b86.hotm-231-auth-v2026.8.1.prov.yaml"
-  - entity: "urn:aiwg:artifact:agent-proxy/src/__tests__/app-auth.test.ts"
-    record: "records/agent-proxy-src-__tests__-app-auth.test.ts.01c91c381fe3.hotm-231-auth-v2026.8.1.prov.yaml"
-  - entity: "urn:aiwg:artifact:agent-proxy/src/__tests__/compatibility.test.ts"
-    record: "records/agent-proxy-src-__tests__-compatibility.test.ts.88072b10900a.hotm-231-auth-v2026.8.1.prov.yaml"
-  - entity: "urn:aiwg:artifact:agent-proxy/src/auth/fixtures/fortemi-auth-release-policy-v1.json"
-    record: "records/agent-proxy-src-auth-fixtures-fortemi-auth-release-policy-v1.json.d70491c336a6.hotm-231-auth-v2026.8.1.prov.yaml"
-  - entity: "urn:aiwg:artifact:agent-proxy/src/auth/fixtures/fortemi-auth-v1.json"
-    record: "records/agent-proxy-src-auth-fixtures-fortemi-auth-v1.json.2df0a35edad6.hotm-231-auth-v2026.8.1.prov.yaml"
-  - entity: "urn:aiwg:artifact:agent-proxy/src/auth/middleware.test.ts"
-    record: "records/agent-proxy-src-auth-middleware.test.ts.08d77b957caf.hotm-231-auth-v2026.8.1.prov.yaml"
-  - entity: "urn:aiwg:artifact:agent-proxy/src/auth/verify.test.ts"
-    record: "records/agent-proxy-src-auth-verify.test.ts.534f4218ec6e.hotm-231-auth-v2026.8.1.prov.yaml"
-  - entity: "urn:aiwg:artifact:agent-proxy/src/auth/verify.ts"
-    record: "records/agent-proxy-src-auth-verify.ts.6a55fa505562.hotm-231-auth-v2026.8.1.prov.yaml"
-  - entity: "urn:aiwg:artifact:agent-proxy/src/contracts/fortemi-system-compatibility-receipt.json"
-    record: "records/agent-proxy-src-contracts-fortemi-system-compatibility-receipt.json.270df9904ad7.hotm-231-auth-v2026.8.1.prov.yaml"
-  - entity: "urn:aiwg:artifact:ui/src/api/__tests__/systemCompatibility.test.ts"
-    record: "records/ui-src-api-__tests__-systemCompatibility.test.ts.13e96fd3619d.hotm-231-auth-v2026.8.1.prov.yaml"
-  - entity: "urn:aiwg:artifact:ui/src/api/contracts/fortemi-system-compatibility-receipt.json"
-    record: "records/ui-src-api-contracts-fortemi-system-compatibility-receipt.json.270df9904ad7.hotm-231-auth-v2026.8.1.prov.yaml"
-  - entity: "urn:aiwg:artifact:.aiwg/testing/scripts/verify-fortemi-system-compatibility-contract.mjs"
-    record: "records/verify-fortemi-system-compatibility-contract.mjs.3a2ba9ef5dd5.hotm-231-auth-v2026.8.1.prov.yaml"
+  - entity: urn:aiwg:artifact:ui/src/components/HallOfMind.tsx
+    record: records/lane-b-hotm-mobile-note-controls-cycle98.prov.yaml
+  - entity: urn:aiwg:artifact:ui/src/components/RegeneratePanel.tsx
+    record: records/lane-b-hotm-mobile-note-controls-cycle98.prov.yaml
+  - entity: urn:aiwg:artifact:ui/src/components/__tests__/RegeneratePanel.test.tsx
+    record: records/lane-b-hotm-mobile-note-controls-cycle98.prov.yaml
+  - entity: urn:aiwg:artifact:.aiwg/testing/api-contract-test-plan-addendum-2026-07.md
+    record: records/lane-b-hotm-mobile-note-controls-cycle98.prov.yaml
+  - entity: urn:aiwg:artifact:.aiwg/reports/fortemi-v2026-07-api-integration-traceability.md
+    record: records/lane-b-hotm-mobile-note-controls-cycle98.prov.yaml
+  - entity: urn:aiwg:artifact:.aiwg/reports/lane-b-hotm-mobile-note-controls-cycle98.json
+    record: records/lane-b-hotm-mobile-note-controls-cycle98.prov.yaml
+  - entity: urn:aiwg:artifact:ui/src/api/__tests__/api-endpoint-context.test.ts
+    record: records/lane-b-hotm-owned-job-cache-cycle97-phase2.prov.yaml
+  - entity: urn:aiwg:artifact:ui/src/api/data-context.ts
+    record: records/lane-b-hotm-owned-job-cache-cycle97-phase2.prov.yaml
+  - entity: urn:aiwg:artifact:ui/src/api/index.ts
+    record: records/lane-b-hotm-owned-job-cache-cycle97-phase2.prov.yaml
+  - entity: urn:aiwg:artifact:ui/src/components/attachments/__tests__/AttachmentsPanel.test.tsx
+    record: records/lane-b-hotm-owned-job-cache-cycle97-phase2.prov.yaml
+  - entity: urn:aiwg:artifact:ui/src/services/__tests__/jobEventStore-cache.test.ts
+    record: records/lane-b-hotm-owned-job-cache-cycle97-phase2.prov.yaml
+  - entity: urn:aiwg:artifact:ui/src/services/__tests__/jobEventStore.test.ts
+    record: records/lane-b-hotm-owned-job-cache-cycle97-phase2.prov.yaml
+  - entity: urn:aiwg:artifact:ui/src/services/__tests__/realtimeEventBus-context.test.ts
+    record: records/lane-b-hotm-owned-job-cache-cycle97-phase2.prov.yaml
+  - entity: urn:aiwg:artifact:ui/src/services/__tests__/websocket-archive-context.test.ts
+    record: records/lane-b-hotm-owned-job-cache-cycle97-phase2.prov.yaml
+  - entity: urn:aiwg:artifact:ui/src/services/__tests__/websocket-archive-view.test.ts
+    record: records/lane-b-hotm-owned-job-cache-cycle97-phase2.prov.yaml
+  - entity: urn:aiwg:artifact:ui/src/services/jobEventStore.ts
+    record: records/lane-b-hotm-owned-job-cache-cycle97-phase2.prov.yaml
+  - entity: urn:aiwg:artifact:ui/src/services/jobStorePersistence.ts
+    record: records/lane-b-hotm-owned-job-cache-cycle97-phase2.prov.yaml
+  - entity: urn:aiwg:artifact:ui/src/services/realtimeEventBus.ts
+    record: records/lane-b-hotm-owned-job-cache-cycle97-phase2.prov.yaml
+  - entity: urn:aiwg:artifact:ui/src/services/websocket.ts
+    record: records/lane-b-hotm-owned-job-cache-cycle97-phase2.prov.yaml
+  - entity: urn:aiwg:artifact:.aiwg/architecture/adr/ADR-010-fortemi-v2026-07-api-coverage.md
+    record: records/lane-b-hotm-owned-job-cache-cycle97-phase2.prov.yaml
+  - entity: urn:aiwg:artifact:.aiwg/architecture/sad-fortemi-integration-addendum-2026-07.md
+    record: records/lane-b-hotm-owned-job-cache-cycle97-phase2.prov.yaml
+  - entity: urn:aiwg:artifact:.aiwg/requirements/fortemi-api-integration-requirements-2026-07.md
+    record: records/lane-b-hotm-owned-job-cache-cycle97-phase2.prov.yaml
+  - entity: urn:aiwg:artifact:.aiwg/testing/api-contract-test-plan-addendum-2026-07.md
+    record: records/lane-b-hotm-owned-job-cache-cycle97-phase2.prov.yaml
+  - entity: urn:aiwg:artifact:.aiwg/reports/fortemi-v2026-07-api-integration-traceability.md
+    record: records/lane-b-hotm-owned-job-cache-cycle97-phase2.prov.yaml
+  - entity: urn:aiwg:artifact:.aiwg/reports/lane-b-hotm-owned-job-cache-cycle97-phase2.json
+    record: records/lane-b-hotm-owned-job-cache-cycle97-phase2.prov.yaml
+  - entity: urn:aiwg:artifact:ui/src/services/__tests__/jobEventStore-context.test.ts
+    record: records/lane-b-hotm-job-store-lifetime-cycle97-phase1.prov.yaml
+  - entity: urn:aiwg:artifact:ui/src/services/__tests__/jobEventStore.test.ts
+    record: records/lane-b-hotm-job-store-lifetime-cycle97-phase1.prov.yaml
+  - entity: urn:aiwg:artifact:ui/src/services/jobEventStore.ts
+    record: records/lane-b-hotm-job-store-lifetime-cycle97-phase1.prov.yaml
+  - entity: urn:aiwg:artifact:.aiwg/architecture/adr/ADR-010-fortemi-v2026-07-api-coverage.md
+    record: records/lane-b-hotm-job-store-lifetime-cycle97-phase1.prov.yaml
+  - entity: urn:aiwg:artifact:.aiwg/architecture/sad-fortemi-integration-addendum-2026-07.md
+    record: records/lane-b-hotm-job-store-lifetime-cycle97-phase1.prov.yaml
+  - entity: urn:aiwg:artifact:.aiwg/requirements/fortemi-api-integration-requirements-2026-07.md
+    record: records/lane-b-hotm-job-store-lifetime-cycle97-phase1.prov.yaml
+  - entity: urn:aiwg:artifact:.aiwg/testing/api-contract-test-plan-addendum-2026-07.md
+    record: records/lane-b-hotm-job-store-lifetime-cycle97-phase1.prov.yaml
+  - entity: urn:aiwg:artifact:.aiwg/reports/fortemi-v2026-07-api-integration-traceability.md
+    record: records/lane-b-hotm-job-store-lifetime-cycle97-phase1.prov.yaml
+  - entity: urn:aiwg:artifact:.aiwg/reports/lane-b-hotm-job-store-lifetime-cycle97-phase1.json
+    record: records/lane-b-hotm-job-store-lifetime-cycle97-phase1.prov.yaml
+  - entity: urn:aiwg:artifact:ui/src/App.tsx
+    record: records/lane-b-hotm-context-owned-views-cycle96.prov.yaml
+  - entity: urn:aiwg:artifact:ui/src/__tests__/App.context.test.tsx
+    record: records/lane-b-hotm-context-owned-views-cycle96.prov.yaml
+  - entity: urn:aiwg:artifact:ui/src/api/__tests__/client-context.test.ts
+    record: records/lane-b-hotm-context-owned-views-cycle96.prov.yaml
+  - entity: urn:aiwg:artifact:ui/src/api/__tests__/data-context.test.ts
+    record: records/lane-b-hotm-context-owned-views-cycle96.prov.yaml
+  - entity: urn:aiwg:artifact:ui/src/api/__tests__/systemCompatibility.test.ts
+    record: records/lane-b-hotm-context-owned-views-cycle96.prov.yaml
+  - entity: urn:aiwg:artifact:ui/src/api/client.ts
+    record: records/lane-b-hotm-context-owned-views-cycle96.prov.yaml
+  - entity: urn:aiwg:artifact:ui/src/api/data-context.ts
+    record: records/lane-b-hotm-context-owned-views-cycle96.prov.yaml
+  - entity: urn:aiwg:artifact:ui/src/api/systemCompatibility.ts
+    record: records/lane-b-hotm-context-owned-views-cycle96.prov.yaml
+  - entity: urn:aiwg:artifact:ui/src/components/embeddings/__tests__/MemberManager.test.tsx
+    record: records/lane-b-hotm-context-owned-views-cycle96.prov.yaml
+  - entity: urn:aiwg:artifact:.aiwg/architecture/adr/ADR-010-fortemi-v2026-07-api-coverage.md
+    record: records/lane-b-hotm-context-owned-views-cycle96.prov.yaml
+  - entity: urn:aiwg:artifact:.aiwg/architecture/sad-fortemi-integration-addendum-2026-07.md
+    record: records/lane-b-hotm-context-owned-views-cycle96.prov.yaml
+  - entity: urn:aiwg:artifact:.aiwg/requirements/fortemi-api-integration-requirements-2026-07.md
+    record: records/lane-b-hotm-context-owned-views-cycle96.prov.yaml
+  - entity: urn:aiwg:artifact:.aiwg/testing/api-contract-test-plan-addendum-2026-07.md
+    record: records/lane-b-hotm-context-owned-views-cycle96.prov.yaml
+  - entity: urn:aiwg:artifact:.aiwg/reports/fortemi-v2026-07-api-integration-traceability.md
+    record: records/lane-b-hotm-context-owned-views-cycle96.prov.yaml
+  - entity: urn:aiwg:artifact:.aiwg/reports/lane-b-hotm-context-owned-views-cycle96.json
+    record: records/lane-b-hotm-context-owned-views-cycle96.prov.yaml
+  - entity: urn:aiwg:artifact:ui/src/api/__tests__/auth-context-hosted.test.ts
+    record: records/lane-b-hotm-session-browser-cycle95.prov.yaml
+  - entity: urn:aiwg:artifact:ui/src/api/auth-context.ts
+    record: records/lane-b-hotm-session-browser-cycle95.prov.yaml
+  - entity: urn:aiwg:artifact:ui/src/api/memory-context.ts
+    record: records/lane-b-hotm-session-browser-cycle95.prov.yaml
+  - entity: urn:aiwg:artifact:ui/src/services/__tests__/websocket-archive-context.test.ts
+    record: records/lane-b-hotm-session-browser-cycle95.prov.yaml
+  - entity: urn:aiwg:artifact:ui/src/services/__tests__/websocket-archive-view.test.ts
+    record: records/lane-b-hotm-session-browser-cycle95.prov.yaml
+  - entity: urn:aiwg:artifact:ui/src/services/websocket.ts
+    record: records/lane-b-hotm-session-browser-cycle95.prov.yaml
+  - entity: urn:aiwg:artifact:.aiwg/architecture/adr/ADR-010-fortemi-v2026-07-api-coverage.md
+    record: records/lane-b-hotm-session-browser-cycle95.prov.yaml
+  - entity: urn:aiwg:artifact:.aiwg/architecture/sad-fortemi-integration-addendum-2026-07.md
+    record: records/lane-b-hotm-session-browser-cycle95.prov.yaml
+  - entity: urn:aiwg:artifact:.aiwg/requirements/fortemi-api-integration-requirements-2026-07.md
+    record: records/lane-b-hotm-session-browser-cycle95.prov.yaml
+  - entity: urn:aiwg:artifact:.aiwg/testing/api-contract-test-plan-addendum-2026-07.md
+    record: records/lane-b-hotm-session-browser-cycle95.prov.yaml
+  - entity: urn:aiwg:artifact:.aiwg/reports/fortemi-v2026-07-api-integration-traceability.md
+    record: records/lane-b-hotm-session-browser-cycle95.prov.yaml
+  - entity: urn:aiwg:artifact:.aiwg/reports/lane-b-hotm-session-browser-cycle95.json
+    record: records/lane-b-hotm-session-browser-cycle95.prov.yaml
+  - entity: urn:aiwg:artifact:ui/src/api/__tests__/realtime-context.test.ts
+    record: records/lane-b-hotm-selected-memory-context-cycle94.prov.yaml
+  - entity: urn:aiwg:artifact:ui/src/api/archives.ts
+    record: records/lane-b-hotm-selected-memory-context-cycle94.prov.yaml
+  - entity: urn:aiwg:artifact:ui/src/api/realtime-context.ts
+    record: records/lane-b-hotm-selected-memory-context-cycle94.prov.yaml
+  - entity: urn:aiwg:artifact:ui/src/services/__tests__/websocket-archive-context.test.ts
+    record: records/lane-b-hotm-selected-memory-context-cycle94.prov.yaml
+  - entity: urn:aiwg:artifact:.aiwg/architecture/adr/ADR-010-fortemi-v2026-07-api-coverage.md
+    record: records/lane-b-hotm-selected-memory-context-cycle94.prov.yaml
+  - entity: urn:aiwg:artifact:.aiwg/architecture/sad-fortemi-integration-addendum-2026-07.md
+    record: records/lane-b-hotm-selected-memory-context-cycle94.prov.yaml
+  - entity: urn:aiwg:artifact:.aiwg/requirements/fortemi-api-integration-requirements-2026-07.md
+    record: records/lane-b-hotm-selected-memory-context-cycle94.prov.yaml
+  - entity: urn:aiwg:artifact:.aiwg/testing/api-contract-test-plan-addendum-2026-07.md
+    record: records/lane-b-hotm-selected-memory-context-cycle94.prov.yaml
+  - entity: urn:aiwg:artifact:.aiwg/reports/fortemi-v2026-07-api-integration-traceability.md
+    record: records/lane-b-hotm-selected-memory-context-cycle94.prov.yaml
+  - entity: urn:aiwg:artifact:.aiwg/reports/lane-b-hotm-selected-memory-context-cycle94.json
+    record: records/lane-b-hotm-selected-memory-context-cycle94.prov.yaml
+  - entity: urn:aiwg:artifact:.aiwg/architecture/adr/ADR-010-fortemi-v2026-07-api-coverage.md
+    record: records/lane-b-hotm-selected-memory-context-cycle93.prov.yaml
+  - entity: urn:aiwg:artifact:.aiwg/architecture/sad-fortemi-integration-addendum-2026-07.md
+    record: records/lane-b-hotm-selected-memory-context-cycle93.prov.yaml
+  - entity: urn:aiwg:artifact:.aiwg/requirements/fortemi-api-integration-requirements-2026-07.md
+    record: records/lane-b-hotm-selected-memory-context-cycle93.prov.yaml
+  - entity: urn:aiwg:artifact:.aiwg/testing/api-contract-test-plan-addendum-2026-07.md
+    record: records/lane-b-hotm-selected-memory-context-cycle93.prov.yaml
+  - entity: urn:aiwg:artifact:.aiwg/reports/fortemi-v2026-07-api-integration-traceability.md
+    record: records/lane-b-hotm-selected-memory-context-cycle93.prov.yaml
+  - entity: urn:aiwg:artifact:.aiwg/reports/lane-b-hotm-selected-memory-context-cycle93.json
+    record: records/lane-b-hotm-selected-memory-context-cycle93.prov.yaml
+  - entity: urn:aiwg:artifact:ui/src/api/__tests__/events.test.ts
+    record: records/lane-b-hotm-realtime-context-cycle92.prov.yaml
+  - entity: urn:aiwg:artifact:ui/src/api/events.ts
+    record: records/lane-b-hotm-realtime-context-cycle92.prov.yaml
+  - entity: urn:aiwg:artifact:ui/src/services/realtimeEventBus.ts
+    record: records/lane-b-hotm-realtime-context-cycle92.prov.yaml
+  - entity: urn:aiwg:artifact:ui/src/services/websocket.ts
+    record: records/lane-b-hotm-realtime-context-cycle92.prov.yaml
+  - entity: urn:aiwg:artifact:ui/src/api/__tests__/realtime-context.test.ts
+    record: records/lane-b-hotm-realtime-context-cycle92.prov.yaml
+  - entity: urn:aiwg:artifact:ui/src/api/realtime-context.ts
+    record: records/lane-b-hotm-realtime-context-cycle92.prov.yaml
+  - entity: urn:aiwg:artifact:ui/src/services/__tests__/websocket-archive-context.test.ts
+    record: records/lane-b-hotm-realtime-context-cycle92.prov.yaml
+  - entity: urn:aiwg:artifact:ui/src/services/__tests__/websocket-archive-view.test.ts
+    record: records/lane-b-hotm-realtime-context-cycle92.prov.yaml
+  - entity: urn:aiwg:artifact:.aiwg/architecture/adr/ADR-010-fortemi-v2026-07-api-coverage.md
+    record: records/lane-b-hotm-realtime-context-cycle92.prov.yaml
+  - entity: urn:aiwg:artifact:.aiwg/architecture/sad-fortemi-integration-addendum-2026-07.md
+    record: records/lane-b-hotm-realtime-context-cycle92.prov.yaml
+  - entity: urn:aiwg:artifact:.aiwg/requirements/fortemi-api-integration-requirements-2026-07.md
+    record: records/lane-b-hotm-realtime-context-cycle92.prov.yaml
+  - entity: urn:aiwg:artifact:.aiwg/testing/api-contract-test-plan-addendum-2026-07.md
+    record: records/lane-b-hotm-realtime-context-cycle92.prov.yaml
+  - entity: urn:aiwg:artifact:.aiwg/reports/fortemi-v2026-07-api-integration-traceability.md
+    record: records/lane-b-hotm-realtime-context-cycle92.prov.yaml
+  - entity: urn:aiwg:artifact:.aiwg/reports/lane-b-hotm-realtime-context-cycle92.json
+    record: records/lane-b-hotm-realtime-context-cycle92.prov.yaml
+  - entity: urn:aiwg:artifact:docs/releases/v2026.9.5.md
+    record: records/hotm-release-2026.9.5.prov.yaml
+  - entity: urn:aiwg:bundle:hotm-288-producer-event-adoption
+    record: records/hotm-288-producer-event-adoption.prov.yaml
+  - entity: .aiwg/testing/scripts/verify-fortemi-closeout-package.py
+    record: records/closeout-current-rest-pin-2026-08.prov.yaml
+  - entity: .gitea/workflows/sdlc-gates.yml
+    record: records/sdlc-rest-authority-checkout-2026-08.prov.yaml
+  - entity: .aiwg/api/compatibility/fortemi-v2026-07-operation-coverage.json
+    record: records/fortemi-snn-retention-consumer-2026-08.prov.yaml
+  - entity: .aiwg/api/compatibility/fortemi-v2026-07-operation-coverage.md
+    record: records/fortemi-snn-retention-consumer-2026-08.prov.yaml
+  - entity: .aiwg/api/compatibility/fortemi-v2026-07-route-coverage.json
+    record: records/fortemi-snn-retention-consumer-2026-08.prov.yaml
+  - entity: .aiwg/api/compatibility/fortemi-v2026-07-route-coverage.md
+    record: records/fortemi-snn-retention-consumer-2026-08.prov.yaml
+  - entity: .aiwg/architecture/impact/fortemi-snn-retention-contract-2026-08.md
+    record: records/fortemi-snn-retention-consumer-2026-08.prov.yaml
+  - entity: .aiwg/testing/scripts/fortemi-route-coverage.py
+    record: records/fortemi-snn-retention-consumer-2026-08.prov.yaml
+  - entity: scripts/ci/verify-fortemi-operation-dispositions.mjs
+    record: records/fortemi-snn-retention-consumer-2026-08.prov.yaml
+  - entity: ui/src/api/__tests__/client.test.ts
+    record: records/fortemi-snn-retention-consumer-2026-08.prov.yaml
+  - entity: ui/src/api/__tests__/concepts.test.ts
+    record: records/fortemi-snn-retention-consumer-2026-08.prov.yaml
+  - entity: ui/src/api/__tests__/core-content-second-increment.test.ts
+    record: records/fortemi-snn-retention-consumer-2026-08.prov.yaml
+  - entity: ui/src/api/__tests__/links.test.ts
+    record: records/fortemi-snn-retention-consumer-2026-08.prov.yaml
+  - entity: ui/src/api/client.ts
+    record: records/fortemi-snn-retention-consumer-2026-08.prov.yaml
+  - entity: ui/src/api/concepts.ts
+    record: records/fortemi-snn-retention-consumer-2026-08.prov.yaml
+  - entity: ui/src/api/contracts/fortemi-openapi-receipt.json
+    record: records/fortemi-snn-retention-consumer-2026-08.prov.yaml
+  - entity: ui/src/api/contracts/fortemi-openapi.yaml
+    record: records/fortemi-snn-retention-consumer-2026-08.prov.yaml
+  - entity: ui/src/api/contracts/fortemi-operation-dispositions.json
+    record: records/fortemi-snn-retention-consumer-2026-08.prov.yaml
+  - entity: ui/src/api/links.ts
+    record: records/fortemi-snn-retention-consumer-2026-08.prov.yaml
+  - entity: ui/src/components/admin/__tests__/OperationCatalogPanel.test.tsx
+    record: records/fortemi-snn-retention-consumer-2026-08.prov.yaml
+  - entity: urn:aiwg:bundle:hotm-231-tenant-store-production-gate
+    record: records/hotm-231-tenant-store-production-gate.prov.yaml
+  - entity: urn:aiwg:artifact:agent-proxy/src/__tests__/compatibility.test.ts
+    record: records/agent-proxy-compatibility.test.ts.hotm-231.prov.yaml
+  - entity: urn:aiwg:artifact:agent-proxy/src/app.ts
+    record: records/app.ts.ad2df15e.hotm-231.prov.yaml
+  - entity: urn:aiwg:artifact:agent-proxy/src/auth/index.ts
+    record: records/agent-proxy-auth-index.ts.c6b7c40e.hotm-231.prov.yaml
+  - entity: urn:aiwg:artifact:agent-proxy/src/auth/middleware.ts
+    record: records/agent-proxy-auth-middleware.ts.79e2c498.hotm-231.prov.yaml
+  - entity: urn:aiwg:artifact:agent-proxy/src/auth/verify.ts
+    record: records/agent-proxy-auth-verify.ts.e65ebfc8.hotm-231.prov.yaml
+  - entity: urn:aiwg:artifact:agent-proxy/src/auth/middleware.test.ts
+    record: records/agent-proxy-auth-middleware.test.ts.7a7791b4.hotm-231.prov.yaml
+  - entity: urn:aiwg:artifact:agent-proxy/src/auth/remote-jwks.test.ts
+    record: records/agent-proxy-auth-remote-jwks.test.ts.b7574d18.hotm-231.prov.yaml
+  - entity: urn:aiwg:artifact:agent-proxy/src/__tests__/app-auth.test.ts
+    record: records/app-auth.test.ts.d2070447.hotm-231.prov.yaml
+  - entity: urn:aiwg:artifact:.aiwg/architecture/adr-auth-shared-crate.md
+    record: records/adr-auth-shared-crate.md.2ed4b32a.hotm-231.prov.yaml
+  - entity: urn:aiwg:artifact:.aiwg/reports/fortemi-auth-node-conformance-receipt-2026-07-26.md
+    record: records/fortemi-auth-node-conformance-receipt-2026-07-26.md.29803277.hotm-231.prov.yaml
+  - entity: urn:aiwg:artifact:.aiwg/reports/fortemi-hotm-integration-audit-2026-08-15.md
+    record: records/fortemi-hotm-integration-audit-2026-08-15.md.b0fe5a7b.hotm-231.prov.yaml
+  - entity: urn:aiwg:artifact:.aiwg/architecture/sad-fortemi-integration-addendum-2026-07.md
+    record: records/sad-fortemi-integration-addendum-2026-07.md.81a85700.hotm-231.prov.yaml
+  - entity: urn:aiwg:bundle:hotm-298-agent-operation-reconciliation
+    record: records/hotm-298-agent-operation-reconciliation.prov.yaml
+  - entity: urn:aiwg:bundle:fortemi-integration-remediation-2026-08-15
+    record: records/fortemi-integration-remediation-2026-08-15.prov.yaml
+  - entity: urn:aiwg:artifact:.aiwg/testing/scripts/knowledge-shard-authority-policy.mjs
+    record: records/knowledge-shard-authority-policy.mjs.prov.yaml
+  - entity: urn:aiwg:artifact:.aiwg/testing/scripts/knowledge-shard-authority-policy.test.mjs
+    record: records/knowledge-shard-authority-policy.test.mjs.prov.yaml
+  - entity: urn:aiwg:artifact:.aiwg/evidence/agent-proxy-npm-audit-remediation-2026-08-15.json
+    record: records/agent-proxy-npm-audit-remediation-2026-08-15.json.prov.yaml
+  - entity: urn:aiwg:artifact:.aiwg/reports/agent-proxy-dependency-advisory-remediation-2026-08-15.md
+    record: records/agent-proxy-dependency-advisory-remediation-2026-08-15.md.prov.yaml
+  - entity: urn:aiwg:artifact:.aiwg/testing/scripts/verify-fortemi-system-compatibility-contract.mjs
+    record: records/verify-fortemi-system-compatibility-contract.mjs.prov.yaml
+  - entity: urn:aiwg:artifact:ui/src/api/contracts/fortemi-system-compatibility-receipt.json
+    record: records/fortemi-system-compatibility-receipt-ui.prov.yaml
+  - entity: urn:aiwg:artifact:agent-proxy/src/contracts/fortemi-system-compatibility-receipt.json
+    record: records/fortemi-system-compatibility-receipt-agent-proxy.prov.yaml
+  - entity: urn:aiwg:artifact:agent-proxy/src/compatibility.ts
+    record: records/agent-proxy-compatibility.ts.prov.yaml
+  - entity: urn:aiwg:artifact:ui/src/api/client.ts
+    record: records/client-runtime-compatibility-gate.ts.prov.yaml
+  - entity: urn:aiwg:artifact:scripts/download-pinned-sidecar.sh
+    record: records/download-pinned-sidecar-hotm-284.prov.yaml
+  - entity: urn:aiwg:artifact:release/live-asset-receipt-sidecar-provenance.json
+    record: records/live-asset-receipt-sidecar-provenance-284.prov.yaml
+  - entity: urn:aiwg:artifact:release/sidecar-provenance.json
+    record: records/sidecar-provenance-284.prov.yaml
+  - entity: urn:aiwg:artifact:scripts/ci/refresh-fortemi-live-contracts.mjs
+    record: records/refresh-fortemi-live-contracts-hotm-284.prov.yaml
+  - entity: urn:aiwg:artifact:ui/scripts/verify-live-asset-ci-receipt.cjs
+    record: records/verify-live-asset-ci-receipt-hotm-284.prov.yaml
+  - entity: urn:aiwg:artifact:ui/scripts/verify-live-asset-ci-receipt.test.js
+    record: records/verify-live-asset-ci-receipt-test-hotm-284.prov.yaml
+  - entity: urn:aiwg:artifact:ui/scripts/verify-live-asset-ci-receipt-pair.cjs
+    record: records/verify-live-asset-ci-receipt-pair-hotm-284.prov.yaml
+  - entity: urn:aiwg:artifact:ui/scripts/verify-live-asset-ci-receipt-matrix.cjs
+    record: records/verify-live-asset-ci-receipt-matrix-hotm-284.prov.yaml
+  - entity: urn:aiwg:artifact:ui/scripts/verify-live-asset-ci-receipt-matrix.test.js
+    record: records/verify-live-asset-ci-receipt-matrix-test-hotm-284.prov.yaml
+  - entity: urn:aiwg:artifact:.aiwg/architecture/adr-mobile-cloud-architecture.md
+    record: records/adr-mobile-cloud-architecture.md.prov.yaml
+  - entity: urn:aiwg:artifact:.aiwg/testing/enterprise-demo-operator-signoff-2026-07-06.md
+    record: records/enterprise-demo-operator-signoff-2026-07-06.md.prov.yaml
+  - entity: urn:aiwg:artifact:.aiwg/evidence/hotm-enterprise-demo-dry-run-2026-07-09.md
+    record: records/hotm-enterprise-demo-dry-run-2026-07-09.md.prov.yaml
+  - entity: urn:aiwg:artifact:.aiwg/planning/mobile-expansion-INDEX.md
+    record: records/mobile-expansion-INDEX.md.prov.yaml
+  - entity: urn:aiwg:artifact:.aiwg/planning/mobile-expansion-phase-plan.md
+    record: records/mobile-expansion-phase-plan.md.prov.yaml
+  - entity: urn:aiwg:artifact:.aiwg/reports/sdlc-checkpoint-2026-07.md
+    record: records/sdlc-checkpoint-2026-07.md.prov.yaml
+  - entity: urn:aiwg:artifact:.gitea/workflows/ui-ci.yml
+    record: records/ui-ci-network-independent-vault-tools-272.prov.yaml
+  - entity: urn:aiwg:artifact:.aiwg/architecture/adr/ADR-010-fortemi-v2026-07-api-coverage.md
+    record: records/ADR-010-fortemi-v2026-07-api-coverage.md.prov.yaml
+  - entity: urn:aiwg:artifact:ui/src/components/admin/__tests__/ApiCapabilitiesPanel.test.tsx
+    record: records/ApiCapabilitiesPanel.test.tsx.prov.yaml
+  - entity: urn:aiwg:artifact:ui/src/components/admin/ApiCapabilitiesPanel.tsx
+    record: records/ApiCapabilitiesPanel.tsx.prov.yaml
+  - entity: urn:aiwg:artifact:ui/src/components/backup/__tests__/BackupManager.test.tsx
+    record: records/BackupManager.test.tsx.prov.yaml
+  - entity: urn:aiwg:artifact:ui/src/components/backup/BackupManager.tsx
+    record: records/BackupManager.tsx.prov.yaml
+  - entity: urn:aiwg:artifact:.aiwg/testing/api-contract-test-plan-addendum-2026-07.md
+    record: records/api-contract-test-plan-addendum-2026-07.md.prov.yaml
+  - entity: urn:aiwg:artifact:ui/src/api/__tests__/backup.test.ts
+    record: records/backup.test.ts.prov.yaml
+  - entity: urn:aiwg:artifact:ui/src/api/backup.ts
+    record: records/backup.ts.prov.yaml
+  - entity: urn:aiwg:artifact:ui/src/api/__tests__/calls.test.ts
+    record: records/calls.test.ts.prov.yaml
+  - entity: urn:aiwg:artifact:ui/src/api/calls.ts
+    record: records/calls.ts.prov.yaml
+  - entity: urn:aiwg:artifact:ui/src/api/__tests__/delivered-openapi-contract.test.ts
+    record: records/delivered-openapi-contract.test.ts.prov.yaml
+  - entity: urn:aiwg:artifact:.aiwg/requirements/fortemi-api-integration-requirements-2026-07.md
+    record: records/fortemi-api-integration-requirements-2026-07.md.prov.yaml
+  - entity: urn:aiwg:artifact:.aiwg/architecture/fortemi-compatibility-consumption-2026-07.md
+    record: records/fortemi-compatibility-consumption-2026-07.md.prov.yaml
+  - entity: urn:aiwg:artifact:ui/src/api/contracts/fortemi-core-v1-current
+    record: records/fortemi-core-v1-current-components.prov.yaml
+  - entity: urn:aiwg:artifact:ui/src/api/contracts/fortemi-core-v1-manifest.json
+    record: records/fortemi-core-v1-manifest.json.prov.yaml
+  - entity: urn:aiwg:artifact:ui/src/api/contracts/fortemi-core-v1-v1.0-manifest.json
+    record: records/fortemi-core-v1-v1.0-manifest.json.prov.yaml
+  - entity: urn:aiwg:artifact:ui/src/api/contracts/fortemi-core-v1-v1.1-manifest.json
+    record: records/fortemi-core-v1-v1.1-manifest.json.prov.yaml
+  - entity: urn:aiwg:artifact:ui/src/api/contracts/fortemi-event-catalog.json
+    record: records/fortemi-event-catalog.json.prov.yaml
+  - entity: urn:aiwg:artifact:ui/src/api/contracts/fortemi-knowledge-shard-receipt.json
+    record: records/fortemi-knowledge-shard-receipt.json.prov.yaml
+  - entity: urn:aiwg:artifact:ui/src/api/contracts/fortemi-openapi-receipt.json
+    record: records/fortemi-openapi-receipt.json.prov.yaml
+  - entity: urn:aiwg:artifact:ui/src/api/contracts/fortemi-openapi-skew-fixtures.json
+    record: records/fortemi-openapi-skew-fixtures.json.prov.yaml
+  - entity: urn:aiwg:artifact:ui/src/api/contracts/fortemi-openapi.yaml
+    record: records/fortemi-openapi.yaml.prov.yaml
+  - entity: urn:aiwg:artifact:.aiwg/reports/fortemi-v2026-07-api-integration-traceability.md
+    record: records/fortemi-v2026-07-api-integration-traceability.md.prov.yaml
+  - entity: urn:aiwg:artifact:.aiwg/reports/fortemi-hotm-integration-audit-2026-08-15.md
+    record: records/fortemi-hotm-integration-audit-2026-08-15.md.prov.yaml
+  - entity: urn:aiwg:artifact:.aiwg/testing/fortemi-v2026-07-fixture-catalog.md
+    record: records/fortemi-v2026-07-fixture-catalog.md.prov.yaml
+  - entity: urn:aiwg:artifact:.aiwg/evidence/hotm-full-v1-clean-recovery-preflight-2026-07-24.json
+    record: records/hotm-full-v1-clean-recovery-preflight-2026-07-24.json.prov.yaml
+  - entity: urn:aiwg:artifact:.aiwg/evidence/hotm-full-v1-clean-recovery-receipt-2026-07-24.json
+    record: records/hotm-full-v1-clean-recovery-receipt-2026-07-24.json.prov.yaml
+  - entity: urn:aiwg:artifact:.aiwg/evidence/hotm-v2026.7.0-github-mirror-repair-2026-07-24.json
+    record: records/hotm-v2026.7.0-github-mirror-repair-2026-07-24.json.prov.yaml
+  - entity: urn:aiwg:artifact:ui/src/api/index.ts
+    record: records/index.ts.prov.yaml
+  - entity: urn:aiwg:artifact:ui/src/api/__tests__/knowledgeShard.test.ts
+    record: records/knowledgeShard.test.ts.prov.yaml
+  - entity: urn:aiwg:artifact:ui/src/api/knowledgeShard.ts
+    record: records/knowledgeShard.ts.prov.yaml
+  - entity: urn:aiwg:artifact:ui/src/api/__tests__/knowledgeShardFixtures.ts
+    record: records/knowledgeShardFixtures.ts.prov.yaml
+  - entity: urn:aiwg:artifact:.aiwg/architecture/manifest-schema-v1.md
+    record: records/manifest-schema-v1.md.prov.yaml
+  - entity: urn:aiwg:artifact:.aiwg/research/findings/mobile-manifest-remote-config.md
+    record: records/mobile-manifest-remote-config.md.prov.yaml
+  - entity: urn:aiwg:artifact:.aiwg/architecture/sad-fortemi-integration-addendum-2026-07.md
+    record: records/sad-fortemi-integration-addendum-2026-07.md.prov.yaml
+  - entity: urn:aiwg:artifact:ui/src/api/__tests__/systemCompatibility.test.ts
+    record: records/systemCompatibility.test.ts.prov.yaml
+  - entity: urn:aiwg:artifact:ui/src/api/systemCompatibility.ts
+    record: records/systemCompatibility.ts.prov.yaml
+  - entity: urn:aiwg:artifact:ui/src/api/types-extended.ts
+    record: records/types-extended.ts.prov.yaml
+  - entity: urn:aiwg:artifact:.aiwg/testing/scripts/validate-manifest-schema.mjs
+    record: records/validate-manifest-schema.mjs.prov.yaml
+  - entity: urn:aiwg:artifact:.aiwg/testing/scripts/verify-fortemi-event-catalog.mjs
+    record: records/verify-fortemi-event-catalog.mjs.prov.yaml
+  - entity: urn:aiwg:artifact:.aiwg/testing/scripts/verify-fortemi-knowledge-shard-contract.mjs
+    record: records/verify-fortemi-knowledge-shard-contract.mjs.prov.yaml
+  - entity: urn:aiwg:artifact:.aiwg/testing/scripts/verify-fortemi-openapi-contract.mjs
+    record: records/verify-fortemi-openapi-contract.mjs.prov.yaml
+  - entity: urn:aiwg:artifact:ui/src/components/admin/__tests__/AdminPanel.test.tsx
+    record: records/AdminPanel.test.tsx.prov.yaml
+  - entity: urn:aiwg:artifact:.aiwg/testing/scripts/fortemi-route-coverage.py
+    record: records/fortemi-route-coverage.py.prov.yaml
+  - entity: urn:aiwg:artifact:.aiwg/api/compatibility/fortemi-v2026-07-family-evidence-map.json
+    record: records/fortemi-v2026-07-family-evidence-map.json.prov.yaml
+  - entity: urn:aiwg:artifact:.aiwg/handoffs/fortemi-v2026-07-pr-closeout-package.md
+    record: records/fortemi-v2026-07-pr-closeout-package.md.prov.yaml
+  - entity: urn:aiwg:artifact:.aiwg/api/compatibility/fortemi-v2026-07-route-coverage.json
+    record: records/fortemi-v2026-07-route-coverage.json.prov.yaml
+  - entity: urn:aiwg:artifact:.aiwg/api/compatibility/fortemi-v2026-07-route-coverage.md
+    record: records/fortemi-v2026-07-route-coverage.md.prov.yaml
+  - entity: urn:aiwg:artifact:ui/src/api/__tests__/index.test.ts
+    record: records/index.test.ts.prov.yaml
+  - entity: urn:aiwg:artifact:.aiwg/testing/scripts/verify-fortemi-closeout-package.py
+    record: records/verify-fortemi-closeout-package.py.prov.yaml
+  - entity: urn:aiwg:artifact:agent-proxy/src/auth/verify.ts
+    record: records/agent-proxy-auth-verify.ts.prov.yaml
+  - entity: urn:aiwg:artifact:agent-proxy/src/auth/index.ts
+    record: records/agent-proxy-auth-index.ts.prov.yaml
+  - entity: urn:aiwg:artifact:agent-proxy/src/auth/verify.test.ts
+    record: records/agent-proxy-auth-verify.test.ts.prov.yaml
+  - entity: urn:aiwg:artifact:agent-proxy/src/auth/fixtures/fortemi-auth-v1.json
+    record: records/fortemi-auth-v1.json.prov.yaml
+  - entity: urn:aiwg:artifact:agent-proxy/src/auth/fixtures/fortemi-auth-release-policy-v1.json
+    record: records/fortemi-auth-release-policy-v1.json.prov.yaml
+  - entity: urn:aiwg:artifact:.aiwg/architecture/adr-auth-shared-crate.md
+    record: records/adr-auth-shared-crate.md.prov.yaml
+  - entity: urn:aiwg:artifact:.aiwg/reports/fortemi-auth-node-conformance-receipt-2026-07-26.md
+    record: records/fortemi-auth-node-conformance-receipt-2026-07-26.md.prov.yaml
+  - entity: urn:aiwg:artifact:.aiwg/architecture/adr/ADR-011-native-desktop-file-dialogs.md
+    record: records/ADR-011-native-desktop-file-dialogs.md.prov.yaml
+  - entity: urn:aiwg:artifact:.aiwg/evidence/hotm-desktop-live-asset-receipt-2026-07-27.json
+    record: records/hotm-desktop-live-asset-receipt-2026-07-27.json.prov.yaml
+  - entity: urn:aiwg:artifact:.aiwg/reports/fortemi-v2026-07-coverage-evidence-audit.md
+    record: records/fortemi-v2026-07-coverage-evidence-audit.md.hotm-283.prov.yaml
+  - entity: urn:aiwg:artifact:.gitea/workflows/tauri-build.yml
+    record: records/tauri-build-hotm-283.prov.yaml
+  - entity: urn:aiwg:artifact:ui/src-tauri/src/lib.rs
+    record: records/tauri-lib-hotm-283.prov.yaml
+  - entity: urn:aiwg:artifact:ui/scripts/verify-desktop-live-asset-receipt.cjs
+    record: records/verify-desktop-live-asset-receipt.cjs.prov.yaml
+  - entity: urn:aiwg:artifact:ui/scripts/verify-desktop-live-asset-receipt.test.js
+    record: records/verify-desktop-live-asset-receipt.test.js.prov.yaml
+  - entity: urn:aiwg:artifact:.gitea/workflows/sdlc-gates.yml
+    record: records/sdlc-gates-node-bootstrap.prov.yaml
+  - entity: urn:aiwg:artifact:ui/scripts/verify-live-tauri-full-v1-receipt.cjs
+    record: records/verify-live-tauri-full-v1-receipt.cjs.prov.yaml
+  - entity: urn:aiwg:artifact:ui/scripts/verify-live-tauri-full-v1-receipt.test.js
+    record: records/verify-live-tauri-full-v1-receipt.test.js.prov.yaml
+  - entity: urn:aiwg:artifact:.aiwg/evidence/hotm-live-tauri-full-v1-recovery-receipt-2026-07-28.json
+    record: records/hotm-live-tauri-full-v1-recovery-receipt-2026-07-28.json.prov.yaml
+  - entity: urn:aiwg:artifact:ui/src/components/attachments/download-blob.ts
+    record: records/download-blob.ts.prov.yaml
+  - entity: urn:aiwg:artifact:ui/src/components/attachments/__tests__/download-blob.test.ts
+    record: records/download-blob.test.ts.prov.yaml
+  - entity: urn:aiwg:artifact:ui/e2e/live/asset-lifecycle-live.spec.ts
+    record: records/asset-lifecycle-live.spec.ts.prov.yaml
+  - entity: urn:aiwg:artifact:scripts/ci/run-live-asset-receipt.sh
+    record: records/run-live-asset-receipt-hotm-284.prov.yaml
+  - entity: urn:aiwg:artifact:ui/src-tauri/gen/schemas/macOS-schema.json
+    record: records/macOS-schema-hotm-284.prov.yaml
+  - entity: urn:aiwg:artifact:.aiwg/reports/doc-sync-last-run.json
+    record: records/doc-sync-last-run.json.prov.yaml
+  - entity: urn:aiwg:artifact:.aiwg/reports/doc-sync-20260729-code-to-docs.md
+    record: records/doc-sync-20260729-code-to-docs.md.prov.yaml
+  - entity: urn:aiwg:artifact:ui/src/api/__tests__/events.test.ts
+    record: records/events.test.ts.hotm-288.prov.yaml
+  - entity: urn:aiwg:artifact:ui/src/api/contracts/fortemi-asyncapi-event-fixtures.json
+    record: records/fortemi-asyncapi-event-fixtures.json.hotm-288.prov.yaml
+  - entity: urn:aiwg:artifact:ui/src/api/contracts/fortemi-asyncapi-event-validation-rules.json
+    record: records/fortemi-asyncapi-event-validation-rules.json.hotm-288.prov.yaml
+  - entity: urn:aiwg:artifact:.aiwg/evidence/fortemi-asyncapi-payload-conformance-receipt.json
+    record: records/fortemi-asyncapi-payload-conformance-receipt.json.hotm-288.prov.yaml
+  - entity: urn:aiwg:artifact:ui/src/services/__tests__/realtimeEventBus.test.ts
+    record: records/realtimeEventBus.test.ts.hotm-288.prov.yaml
+  - entity: urn:aiwg:artifact:ui/src/services/realtimeEventBus.ts
+    record: records/realtimeEventBus.ts.hotm-288.prov.yaml
+  - entity: urn:aiwg:artifact:.aiwg/testing/scripts/verify-fortemi-asyncapi-payloads.mjs
+    record: records/verify-fortemi-asyncapi-payloads.mjs.hotm-288.prov.yaml
+  - entity: urn:aiwg:artifact:.aiwg/testing/data/fortemi-operation-conformance-v2026-07.json
+    record: records/fortemi-operation-conformance-v2026-07.json.prov.yaml
+  - entity: urn:aiwg:artifact:.aiwg/evidence/fortemi-route-coverage-test-report-2026-08-15.md
+    record: records/fortemi-route-coverage-test-report-2026-08-15.md.prov.yaml
+  - entity: urn:aiwg:artifact:.aiwg/api/compatibility/fortemi-v2026-07-operation-coverage.json
+    record: records/fortemi-v2026-07-operation-coverage.json.prov.yaml
+  - entity: urn:aiwg:artifact:.aiwg/api/compatibility/fortemi-v2026-07-operation-coverage.md
+    record: records/fortemi-v2026-07-operation-coverage.md.prov.yaml
+  - entity: urn:aiwg:artifact:.aiwg/testing/scripts/test_fortemi_route_coverage.py
+    record: records/test_fortemi_route_coverage.py.prov.yaml
+  - entity: urn:aiwg:artifact:.aiwg/architecture/software-architecture-doc.md
+    record: records/software-architecture-doc.md.f8907edd.hotm-294-296.prov.yaml
+  - entity: urn:aiwg:artifact:.aiwg/design/fortemi-v2026-07-agent-tool-coverage-matrix.md
+    record: records/fortemi-v2026-07-agent-tool-coverage-matrix.md.24657d2d.hotm-294-296.prov.yaml
+  - entity: urn:aiwg:artifact:.aiwg/testing/migration-test-strategy-addendum.md
+    record: records/migration-test-strategy-addendum.md.473ae970.hotm-294-296.prov.yaml
+  - entity: urn:aiwg:artifact:ui/src/api/__tests__/client.test.ts
+    record: records/client.test.ts.35bcad42.hotm-294-296.prov.yaml
+  - entity: urn:aiwg:artifact:ui/src/api/__tests__/contract-codecs.test.ts
+    record: records/contract-codecs.test.ts.94272f01.hotm-294-296.prov.yaml
+  - entity: urn:aiwg:artifact:ui/src/api/__tests__/core-content-operation-evidence.test.ts
+    record: records/core-content-operation-evidence.test.ts.b898a2c9.hotm-294-296.prov.yaml
+  - entity: urn:aiwg:artifact:ui/src/api/__tests__/core-content-second-increment.test.ts
+    record: records/core-content-second-increment.test.ts.04bc8c36.hotm-294-296.prov.yaml
+  - entity: urn:aiwg:artifact:ui/src/api/__tests__/links.test.ts
+    record: records/links.test.ts.eb7372e0.hotm-294-296.prov.yaml
+  - entity: urn:aiwg:artifact:ui/src/api/__tests__/notes.test.ts
+    record: records/notes.test.ts.ac90753e.hotm-294-296.prov.yaml
+  - entity: urn:aiwg:artifact:ui/src/api/__tests__/operator.test.ts
+    record: records/operator.test.ts.205e7f7b.hotm-294-296.prov.yaml
+  - entity: urn:aiwg:artifact:ui/src/api/collections.ts
+    record: records/collections.ts.1a8386a8.hotm-294-296.prov.yaml
+  - entity: urn:aiwg:artifact:ui/src/api/concepts.ts
+    record: records/concepts.ts.5acf5fe3.hotm-294-296.prov.yaml
+  - entity: urn:aiwg:artifact:ui/src/api/contract-codecs.ts
+    record: records/contract-codecs.ts.c12bd9ef.hotm-294-296.prov.yaml
+  - entity: urn:aiwg:artifact:ui/src/api/contracts/fortemi-operation-dispositions.json
+    record: records/fortemi-operation-dispositions.json.41b5781c.hotm-294-296.prov.yaml
+  - entity: urn:aiwg:artifact:ui/src/api/core-content-operations.ts
+    record: records/core-content-operations.ts.e7198665.hotm-294-296.prov.yaml
+  - entity: urn:aiwg:artifact:ui/src/api/documents.ts
+    record: records/documents.ts.3bc8d9d2.hotm-294-296.prov.yaml
+  - entity: urn:aiwg:artifact:ui/src/api/errors.ts
+    record: records/errors.ts.4c9a4cba.hotm-294-296.prov.yaml
+  - entity: urn:aiwg:artifact:ui/src/api/jobs.ts
+    record: records/jobs.ts.63141dcd.hotm-294-296.prov.yaml
+  - entity: urn:aiwg:artifact:ui/src/api/links.ts
+    record: records/links.ts.4020087c.hotm-294-296.prov.yaml
+  - entity: urn:aiwg:artifact:ui/src/api/notes.ts
+    record: records/notes.ts.14976c53.hotm-294-296.prov.yaml
+  - entity: urn:aiwg:artifact:ui/src/api/operator.ts
+    record: records/operator.ts.a209a604.hotm-294-296.prov.yaml
+  - entity: urn:aiwg:artifact:ui/src/api/provenance.ts
+    record: records/provenance.ts.1e3f9e3c.hotm-294-296.prov.yaml
+  - entity: urn:aiwg:artifact:ui/src/api/templates.ts
+    record: records/templates.ts.b8b81335.hotm-294-296.prov.yaml
+  - entity: urn:aiwg:artifact:ui/src/components/admin/AdminPanel.tsx
+    record: records/AdminPanel.tsx.ea42d301.hotm-294-296.prov.yaml
+  - entity: urn:aiwg:artifact:ui/src/components/admin/CoreContentLifecyclePanel.tsx
+    record: records/CoreContentLifecyclePanel.tsx.1e348982.hotm-294-296.prov.yaml
+  - entity: urn:aiwg:artifact:ui/src/components/admin/OperatorConsole.tsx
+    record: records/OperatorConsole.tsx.f9767dac.hotm-294-296.prov.yaml
+  - entity: urn:aiwg:artifact:ui/src/components/admin/__tests__/CoreContentLifecyclePanel.test.tsx
+    record: records/CoreContentLifecyclePanel.test.tsx.5733a405.hotm-294-296.prov.yaml
+  - entity: >-
+      urn:aiwg:artifact:ui/src/components/admin/__tests__/CoreContentLifecyclePanelSecondIncrement.test.tsx
+    record: records/CoreContentLifecyclePanelSecondIncrement.test.tsx.4e6953a9.hotm-294-296.prov.yaml
+  - entity: urn:aiwg:artifact:ui/src/components/admin/__tests__/OperatorConsole.test.tsx
+    record: records/OperatorConsole.test.tsx.c82b134e.hotm-294-296.prov.yaml
+  - entity: urn:aiwg:artifact:ui/src/components/admin/index.ts
+    record: records/index.ts.c972f57f.hotm-294-296.prov.yaml
+  - entity: urn:aiwg:artifact:ui/src/hooks/useCoreOperationAdmission.ts
+    record: records/useCoreOperationAdmission.ts.fee96d75.hotm-294-296.prov.yaml
+  - entity: urn:aiwg:artifact:ui/e2e/tests/core-content-lifecycle-responsive.spec.ts
+    record: records/core-content-lifecycle-responsive.spec.ts.22f56a30.hotm-294-296.prov.yaml
+  - entity: urn:aiwg:artifact:ui/e2e/tests/operator-console-responsive.spec.ts
+    record: records/operator-console-responsive.spec.ts.09b3394e.hotm-294-296.prov.yaml
+  - entity: urn:aiwg:artifact:.aiwg/api/compatibility/fortemi-v2026-07-operation-coverage.json
+    record: records/fortemi-v2026-07-operation-coverage.json.d364c051.hotm-297.prov.yaml
+  - entity: urn:aiwg:artifact:.aiwg/api/compatibility/fortemi-v2026-07-operation-coverage.md
+    record: records/fortemi-v2026-07-operation-coverage.md.c803b45d.hotm-297.prov.yaml
+  - entity: urn:aiwg:artifact:.aiwg/api/compatibility/fortemi-v2026-07-route-coverage.json
+    record: records/fortemi-v2026-07-route-coverage.json.c07c42d1.hotm-297.prov.yaml
+  - entity: urn:aiwg:artifact:.aiwg/api/compatibility/fortemi-v2026-07-route-coverage.md
+    record: records/fortemi-v2026-07-route-coverage.md.cc6d900c.hotm-297.prov.yaml
+  - entity: urn:aiwg:artifact:.aiwg/architecture/adr/ADR-010-fortemi-v2026-07-api-coverage.md
+    record: records/ADR-010-fortemi-v2026-07-api-coverage.md.f874fc84.hotm-297.prov.yaml
+  - entity: urn:aiwg:artifact:.aiwg/architecture/sad-fortemi-integration-addendum-2026-07.md
+    record: records/sad-fortemi-integration-addendum-2026-07.md.5f93c7bf.hotm-297.prov.yaml
+  - entity: urn:aiwg:artifact:.aiwg/reports/fortemi-v2026-07-api-integration-traceability.md
+    record: records/fortemi-v2026-07-api-integration-traceability.md.85367167.hotm-297.prov.yaml
+  - entity: urn:aiwg:artifact:.aiwg/requirements/fortemi-api-integration-requirements-2026-07.md
+    record: records/fortemi-api-integration-requirements-2026-07.md.824e609f.hotm-297.prov.yaml
+  - entity: urn:aiwg:artifact:.aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md
+    record: records/fortemi-sensitive-operation-decisions-2026-08.md.e97d2a06.hotm-297.prov.yaml
+  - entity: urn:aiwg:artifact:.aiwg/testing/api-contract-test-plan-addendum-2026-07.md
+    record: records/api-contract-test-plan-addendum-2026-07.md.401ef9d2.hotm-297.prov.yaml
+  - entity: urn:aiwg:artifact:.aiwg/testing/data/fortemi-operation-conformance-v2026-07.json
+    record: records/fortemi-operation-conformance-v2026-07.json.4a2d8c83.hotm-297.prov.yaml
+  - entity: urn:aiwg:artifact:.aiwg/testing/fortemi-v2026-07-scenario-test-matrix.md
+    record: records/fortemi-v2026-07-scenario-test-matrix.md.0b4f6f32.hotm-297.prov.yaml
+  - entity: urn:aiwg:artifact:scripts/ci/verify-fortemi-operation-dispositions.mjs
+    record: records/verify-fortemi-operation-dispositions.mjs.b15072b8.hotm-297.prov.yaml
+  - entity: urn:aiwg:artifact:ui/src/api/README.md
+    record: records/README.md.333a6ac8.hotm-297.prov.yaml
+  - entity: urn:aiwg:artifact:ui/src/api/__tests__/attachments.test.ts
+    record: records/attachments.test.ts.27bf3e4e.hotm-297.prov.yaml
+  - entity: urn:aiwg:artifact:ui/src/api/__tests__/backup.test.ts
+    record: records/backup.test.ts.d0256020.hotm-297.prov.yaml
+  - entity: urn:aiwg:artifact:ui/src/api/attachments.ts
+    record: records/attachments.ts.3c1eaf51.hotm-297.prov.yaml
+  - entity: urn:aiwg:artifact:ui/src/api/backup.ts
+    record: records/backup.ts.1b794e64.hotm-297.prov.yaml
+  - entity: urn:aiwg:artifact:ui/src/api/contracts/fortemi-operation-dispositions.json
+    record: records/fortemi-operation-dispositions.json.d1173de0.hotm-297.prov.yaml
+  - entity: urn:aiwg:artifact:ui/src/components/admin/AdminPanel.tsx
+    record: records/AdminPanel.tsx.f5a40da1.hotm-297.prov.yaml
+  - entity: urn:aiwg:artifact:ui/src/components/admin/OperationCatalogPanel.tsx
+    record: records/OperationCatalogPanel.tsx.7e941311.hotm-297.prov.yaml
+  - entity: urn:aiwg:artifact:ui/src/components/admin/__tests__/AdminPanel.test.tsx
+    record: records/AdminPanel.test.tsx.49c7852e.hotm-297.prov.yaml
+  - entity: urn:aiwg:artifact:ui/src/components/admin/__tests__/OperationCatalogPanel.test.tsx
+    record: records/OperationCatalogPanel.test.tsx.180a3217.hotm-297.prov.yaml
+  - entity: urn:aiwg:artifact:ui/src/components/agent/SaveAsNoteButton.tsx
+    record: records/SaveAsNoteButton.tsx.5f6c7c33.hotm-297.prov.yaml
+  - entity: urn:aiwg:artifact:ui/src/components/agent/__tests__/SaveAsNoteButton.test.tsx
+    record: records/SaveAsNoteButton.test.tsx.df7835dc.hotm-297.prov.yaml
+  - entity: urn:aiwg:artifact:ui/src/services/__tests__/tusUploader.test.ts
+    record: records/tusUploader.test.ts.63040986.hotm-297.prov.yaml
+  - entity: urn:aiwg:artifact:ui/src/services/__tests__/uploadStore.test.ts
+    record: records/uploadStore.test.ts.fe762490.hotm-297.prov.yaml
+  - entity: urn:aiwg:artifact:ui/src/services/tusUploader.ts
+    record: records/tusUploader.ts.2d81c40b.hotm-297.prov.yaml
+  - entity: urn:aiwg:artifact:ui/src/services/uploadStore.ts
+    record: records/uploadStore.ts.b7e7811a.hotm-297.prov.yaml
+  - entity: urn:aiwg:artifact:ui/playwright.config.ts
+    record: records/playwright.config.ts.bf46ce52.hotm-297.prov.yaml
+  - entity: urn:aiwg:artifact:scripts/ci/run-live-asset-receipt.sh
+    record: records/run-live-asset-receipt.sh.216ff690.hotm-297.prov.yaml
+  - entity: urn:aiwg:artifact:.gitea/workflows/ui-ci.yml
+    record: records/ui-ci.yml.e8820896.hotm-297.prov.yaml
+  - entity: urn:aiwg:artifact:.gitea/workflows/ui-ci.yml
+    record: records/ui-ci.yml.f9b6addf.hotm-297.prov.yaml
+  - entity: urn:aiwg:artifact:ui/scripts/playwright-mocked-ci.config.cjs
+    record: records/playwright-mocked-ci.config.cjs.01787bbe.hotm-297.prov.yaml
+  - entity: urn:aiwg:artifact:.aiwg/architecture/adr-auth-shared-crate.md
+    record: >-
+      records/dotaiwg-architecture-adr-auth-shared-crate.md.9fc14e85441c.hotm-231-auth-v2026.8.1.prov.yaml
+  - entity: urn:aiwg:artifact:.aiwg/architecture/sad-fortemi-integration-addendum-2026-07.md
+    record: >-
+      records/dotaiwg-architecture-sad-fortemi-integration-addendum-2026-07.md.ba1ae49cf11e.hotm-231-auth-v2026.8.1.prov.yaml
+  - entity: urn:aiwg:artifact:.aiwg/reports/fortemi-auth-node-conformance-receipt-2026-07-26.md
+    record: >-
+      records/dotaiwg-reports-fortemi-auth-node-conformance-receipt-2026-07-26.md.83750b0a3dc2.hotm-231-auth-v2026.8.1.prov.yaml
+  - entity: urn:aiwg:artifact:.aiwg/reports/fortemi-auth-tenant-store-composition-receipt-2026-08-24.md
+    record: >-
+      records/dotaiwg-reports-fortemi-auth-tenant-store-composition-receipt-2026-08-24.md.5e04d1fd01e8.hotm-231-auth-v2026.8.1.prov.yaml
+  - entity: urn:aiwg:artifact:.aiwg/reports/fortemi-hotm-integration-audit-2026-08-15.md
+    record: >-
+      records/dotaiwg-reports-fortemi-hotm-integration-audit-2026-08-15.md.a6c7864a89c1.hotm-231-auth-v2026.8.1.prov.yaml
+  - entity: urn:aiwg:artifact:agent-proxy/SECURITY.md
+    record: records/agent-proxy-SECURITY.md.cb04d7f62a56.hotm-231-auth-v2026.8.1.prov.yaml
+  - entity: urn:aiwg:artifact:agent-proxy/package.json
+    record: records/agent-proxy-package.json.5eec3ac15b86.hotm-231-auth-v2026.8.1.prov.yaml
+  - entity: urn:aiwg:artifact:agent-proxy/src/__tests__/app-auth.test.ts
+    record: >-
+      records/agent-proxy-src-__tests__-app-auth.test.ts.01c91c381fe3.hotm-231-auth-v2026.8.1.prov.yaml
+  - entity: urn:aiwg:artifact:agent-proxy/src/__tests__/compatibility.test.ts
+    record: >-
+      records/agent-proxy-src-__tests__-compatibility.test.ts.88072b10900a.hotm-231-auth-v2026.8.1.prov.yaml
+  - entity: urn:aiwg:artifact:agent-proxy/src/auth/fixtures/fortemi-auth-release-policy-v1.json
+    record: >-
+      records/agent-proxy-src-auth-fixtures-fortemi-auth-release-policy-v1.json.d70491c336a6.hotm-231-auth-v2026.8.1.prov.yaml
+  - entity: urn:aiwg:artifact:agent-proxy/src/auth/fixtures/fortemi-auth-v1.json
+    record: >-
+      records/agent-proxy-src-auth-fixtures-fortemi-auth-v1.json.2df0a35edad6.hotm-231-auth-v2026.8.1.prov.yaml
+  - entity: urn:aiwg:artifact:agent-proxy/src/auth/middleware.test.ts
+    record: records/agent-proxy-src-auth-middleware.test.ts.08d77b957caf.hotm-231-auth-v2026.8.1.prov.yaml
+  - entity: urn:aiwg:artifact:agent-proxy/src/auth/verify.test.ts
+    record: records/agent-proxy-src-auth-verify.test.ts.534f4218ec6e.hotm-231-auth-v2026.8.1.prov.yaml
+  - entity: urn:aiwg:artifact:agent-proxy/src/auth/verify.ts
+    record: records/agent-proxy-src-auth-verify.ts.6a55fa505562.hotm-231-auth-v2026.8.1.prov.yaml
+  - entity: urn:aiwg:artifact:agent-proxy/src/contracts/fortemi-system-compatibility-receipt.json
+    record: >-
+      records/agent-proxy-src-contracts-fortemi-system-compatibility-receipt.json.270df9904ad7.hotm-231-auth-v2026.8.1.prov.yaml
+  - entity: urn:aiwg:artifact:ui/src/api/__tests__/systemCompatibility.test.ts
+    record: >-
+      records/ui-src-api-__tests__-systemCompatibility.test.ts.13e96fd3619d.hotm-231-auth-v2026.8.1.prov.yaml
+  - entity: urn:aiwg:artifact:ui/src/api/contracts/fortemi-system-compatibility-receipt.json
+    record: >-
+      records/ui-src-api-contracts-fortemi-system-compatibility-receipt.json.270df9904ad7.hotm-231-auth-v2026.8.1.prov.yaml
+  - entity: urn:aiwg:artifact:.aiwg/testing/scripts/verify-fortemi-system-compatibility-contract.mjs
+    record: >-
+      records/verify-fortemi-system-compatibility-contract.mjs.3a2ba9ef5dd5.hotm-231-auth-v2026.8.1.prov.yaml
+  - entity: urn:aiwg:artifact:.aiwg/architecture/adr/ADR-010-fortemi-v2026-07-api-coverage.md
+    record: records/lane-b-source-delivery-cycle99.prov.yaml
+  - entity: urn:aiwg:artifact:.aiwg/architecture/sad-fortemi-integration-addendum-2026-07.md
+    record: records/lane-b-source-delivery-cycle99.prov.yaml
+  - entity: urn:aiwg:artifact:.aiwg/reports/fortemi-v2026-07-api-integration-traceability.md
+    record: records/lane-b-source-delivery-cycle99.prov.yaml
+  - entity: urn:aiwg:artifact:.aiwg/reports/lane-b-hotm-context-owned-views-cycle96.json
+    record: records/lane-b-source-delivery-cycle99.prov.yaml
+  - entity: urn:aiwg:artifact:.aiwg/reports/lane-b-hotm-job-store-lifetime-cycle97-phase1.json
+    record: records/lane-b-source-delivery-cycle99.prov.yaml
+  - entity: urn:aiwg:artifact:.aiwg/reports/lane-b-hotm-mobile-note-controls-cycle98.json
+    record: records/lane-b-source-delivery-cycle99.prov.yaml
+  - entity: urn:aiwg:artifact:.aiwg/reports/lane-b-hotm-owned-job-cache-cycle97-phase2.json
+    record: records/lane-b-source-delivery-cycle99.prov.yaml
+  - entity: urn:aiwg:artifact:.aiwg/reports/lane-b-hotm-realtime-context-cycle92.json
+    record: records/lane-b-source-delivery-cycle99.prov.yaml
+  - entity: urn:aiwg:artifact:.aiwg/reports/lane-b-hotm-selected-memory-context-cycle93.json
+    record: records/lane-b-source-delivery-cycle99.prov.yaml
+  - entity: urn:aiwg:artifact:.aiwg/reports/lane-b-hotm-selected-memory-context-cycle94.json
+    record: records/lane-b-source-delivery-cycle99.prov.yaml
+  - entity: urn:aiwg:artifact:.aiwg/reports/lane-b-hotm-session-browser-cycle95.json
+    record: records/lane-b-source-delivery-cycle99.prov.yaml
+  - entity: urn:aiwg:artifact:.aiwg/requirements/fortemi-api-integration-requirements-2026-07.md
+    record: records/lane-b-source-delivery-cycle99.prov.yaml
+  - entity: urn:aiwg:artifact:.aiwg/testing/api-contract-test-plan-addendum-2026-07.md
+    record: records/lane-b-source-delivery-cycle99.prov.yaml
+  - entity: urn:aiwg:artifact:ui/src/App.tsx
+    record: records/lane-b-source-delivery-cycle99.prov.yaml
+  - entity: urn:aiwg:artifact:ui/src/__tests__/App.context.test.tsx
+    record: records/lane-b-source-delivery-cycle99.prov.yaml
+  - entity: urn:aiwg:artifact:ui/src/api/__tests__/api-endpoint-context.test.ts
+    record: records/lane-b-source-delivery-cycle99.prov.yaml
+  - entity: urn:aiwg:artifact:ui/src/api/__tests__/auth-context-hosted.test.ts
+    record: records/lane-b-source-delivery-cycle99.prov.yaml
+  - entity: urn:aiwg:artifact:ui/src/api/__tests__/client-context.test.ts
+    record: records/lane-b-source-delivery-cycle99.prov.yaml
+  - entity: urn:aiwg:artifact:ui/src/api/__tests__/data-context.test.ts
+    record: records/lane-b-source-delivery-cycle99.prov.yaml
+  - entity: urn:aiwg:artifact:ui/src/api/__tests__/events.test.ts
+    record: records/lane-b-source-delivery-cycle99.prov.yaml
+  - entity: urn:aiwg:artifact:ui/src/api/__tests__/realtime-context.test.ts
+    record: records/lane-b-source-delivery-cycle99.prov.yaml
+  - entity: urn:aiwg:artifact:ui/src/api/__tests__/systemCompatibility.test.ts
+    record: records/lane-b-source-delivery-cycle99.prov.yaml
+  - entity: urn:aiwg:artifact:ui/src/api/archives.ts
+    record: records/lane-b-source-delivery-cycle99.prov.yaml
+  - entity: urn:aiwg:artifact:ui/src/api/auth-context.ts
+    record: records/lane-b-source-delivery-cycle99.prov.yaml
+  - entity: urn:aiwg:artifact:ui/src/api/client.ts
+    record: records/lane-b-source-delivery-cycle99.prov.yaml
+  - entity: urn:aiwg:artifact:ui/src/api/data-context.ts
+    record: records/lane-b-source-delivery-cycle99.prov.yaml
+  - entity: urn:aiwg:artifact:ui/src/api/events.ts
+    record: records/lane-b-source-delivery-cycle99.prov.yaml
+  - entity: urn:aiwg:artifact:ui/src/api/index.ts
+    record: records/lane-b-source-delivery-cycle99.prov.yaml
+  - entity: urn:aiwg:artifact:ui/src/api/memory-context.ts
+    record: records/lane-b-source-delivery-cycle99.prov.yaml
+  - entity: urn:aiwg:artifact:ui/src/api/realtime-context.ts
+    record: records/lane-b-source-delivery-cycle99.prov.yaml
+  - entity: urn:aiwg:artifact:ui/src/api/systemCompatibility.ts
+    record: records/lane-b-source-delivery-cycle99.prov.yaml
+  - entity: urn:aiwg:artifact:ui/src/components/HallOfMind.tsx
+    record: records/lane-b-source-delivery-cycle99.prov.yaml
+  - entity: urn:aiwg:artifact:ui/src/components/RegeneratePanel.tsx
+    record: records/lane-b-source-delivery-cycle99.prov.yaml
+  - entity: urn:aiwg:artifact:ui/src/components/__tests__/RegeneratePanel.test.tsx
+    record: records/lane-b-source-delivery-cycle99.prov.yaml
+  - entity: urn:aiwg:artifact:ui/src/components/attachments/__tests__/AttachmentsPanel.test.tsx
+    record: records/lane-b-source-delivery-cycle99.prov.yaml
+  - entity: urn:aiwg:artifact:ui/src/components/embeddings/__tests__/MemberManager.test.tsx
+    record: records/lane-b-source-delivery-cycle99.prov.yaml
+  - entity: urn:aiwg:artifact:ui/src/services/__tests__/jobEventStore-cache.test.ts
+    record: records/lane-b-source-delivery-cycle99.prov.yaml
+  - entity: urn:aiwg:artifact:ui/src/services/__tests__/jobEventStore-context.test.ts
+    record: records/lane-b-source-delivery-cycle99.prov.yaml
+  - entity: urn:aiwg:artifact:ui/src/services/__tests__/jobEventStore.test.ts
+    record: records/lane-b-source-delivery-cycle99.prov.yaml
+  - entity: urn:aiwg:artifact:ui/src/services/__tests__/realtimeEventBus-context.test.ts
+    record: records/lane-b-source-delivery-cycle99.prov.yaml
+  - entity: urn:aiwg:artifact:ui/src/services/__tests__/websocket-archive-context.test.ts
+    record: records/lane-b-source-delivery-cycle99.prov.yaml
+  - entity: urn:aiwg:artifact:ui/src/services/__tests__/websocket-archive-view.test.ts
+    record: records/lane-b-source-delivery-cycle99.prov.yaml
+  - entity: urn:aiwg:artifact:ui/src/services/jobEventStore.ts
+    record: records/lane-b-source-delivery-cycle99.prov.yaml
+  - entity: urn:aiwg:artifact:ui/src/services/jobStorePersistence.ts
+    record: records/lane-b-source-delivery-cycle99.prov.yaml
+  - entity: urn:aiwg:artifact:ui/src/services/realtimeEventBus.ts
+    record: records/lane-b-source-delivery-cycle99.prov.yaml
+  - entity: urn:aiwg:artifact:ui/src/services/websocket.ts
+    record: records/lane-b-source-delivery-cycle99.prov.yaml
+  - entity: urn:aiwg:artifact:.aiwg/reports/lane-b-source-delivery-cycle99.json
+    record: records/lane-b-source-delivery-cycle99.prov.yaml

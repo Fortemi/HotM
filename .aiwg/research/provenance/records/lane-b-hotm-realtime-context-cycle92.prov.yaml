@@ -1,0 +1,127 @@
+{
+  "metadata": {
+    "schema_version": "1.0.0",
+    "created_at": "2026-09-13T04:46:06.855Z"
+  },
+  "entity": {
+    "id": "urn:aiwg:artifact:.aiwg/reports/lane-b-hotm-realtime-context-cycle92.json",
+    "type": "artifact_bundle",
+    "created_at": "2026-09-13T04:46:06.855Z",
+    "checksum": "sha256:5beea98ee4ebc5c06ee3aa1cf572ca31d73d899a7453adef48d600929f55db3a",
+    "size_bytes": 8122,
+    "attributes": {
+      "artifacts": [
+        {
+          "path": "ui/src/api/__tests__/events.test.ts",
+          "bytes": 20977,
+          "sha256": "743f4356049578292905521175f6f7a156236e76a340848809e1e3c9f3252c0d"
+        },
+        {
+          "path": "ui/src/api/events.ts",
+          "bytes": 21679,
+          "sha256": "55b86a18cfa350c80d76b04e3f03bc9fb311368c9671c089c6f55e589a8db922"
+        },
+        {
+          "path": "ui/src/services/realtimeEventBus.ts",
+          "bytes": 19951,
+          "sha256": "e5d3ccb349e04567c8d2bd477e40e9dc2918ab36748d0833b25ea0a63035ee02"
+        },
+        {
+          "path": "ui/src/services/websocket.ts",
+          "bytes": 25379,
+          "sha256": "deb3f5c80b0107d29ea1aac6d3f5f0872b2ddded077d4e43e0cee09e9e5d4294"
+        },
+        {
+          "path": "ui/src/api/__tests__/realtime-context.test.ts",
+          "bytes": 2780,
+          "sha256": "5b712832d79d905236b00ac5b9f3e9cd71041b0cdc7e1ea1d59b16ec19f7861e"
+        },
+        {
+          "path": "ui/src/api/realtime-context.ts",
+          "bytes": 1834,
+          "sha256": "e4fb047f992bdc506d615c359241a247214cf5ef0a80a0ccaf9fa2a66974491c"
+        },
+        {
+          "path": "ui/src/services/__tests__/websocket-archive-context.test.ts",
+          "bytes": 8310,
+          "sha256": "ac0a2271a6c7b6a89c26e1224870f1405ff7f1341f28f65febdb3f3c202e185f"
+        },
+        {
+          "path": "ui/src/services/__tests__/websocket-archive-view.test.ts",
+          "bytes": 1725,
+          "sha256": "0ac8c1da9e90f7fdc8149b081e3236dd7829ca93a4c0505ab48985ede9b5c4b2"
+        },
+        {
+          "path": ".aiwg/architecture/adr/ADR-010-fortemi-v2026-07-api-coverage.md",
+          "bytes": 30489,
+          "sha256": "0b6cd6246b2c89af26f18356c0f0a4235fac0549e2321bd19b06df0c1d26e969"
+        },
+        {
+          "path": ".aiwg/architecture/sad-fortemi-integration-addendum-2026-07.md",
+          "bytes": 41633,
+          "sha256": "da1865fa97b97c07573768ddbf946925f8a91e4e7f5f08fb997217d703a2f463"
+        },
+        {
+          "path": ".aiwg/requirements/fortemi-api-integration-requirements-2026-07.md",
+          "bytes": 31415,
+          "sha256": "970d1d997257a7a723aac1abd0ae62d6e7ab6ed3c90ba38064df7fef840c4a45"
+        },
+        {
+          "path": ".aiwg/testing/api-contract-test-plan-addendum-2026-07.md",
+          "bytes": 35740,
+          "sha256": "44cf565a332c5eb46030dec7364356099948bd2f5df61e3a21a2469b54150b7b"
+        },
+        {
+          "path": ".aiwg/reports/fortemi-v2026-07-api-integration-traceability.md",
+          "bytes": 31887,
+          "sha256": "b746f5c18f3f881cd996c458720222dd37c198cd92b335535ba4298d97da1bfe"
+        },
+        {
+          "path": ".aiwg/reports/lane-b-hotm-realtime-context-cycle92.json",
+          "bytes": 8122,
+          "sha256": "5beea98ee4ebc5c06ee3aa1cf572ca31d73d899a7453adef48d600929f55db3a"
+        }
+      ]
+    }
+  },
+  "activity": {
+    "id": "urn:aiwg:activity:realtime-context:lane-b:092:hotm",
+    "type": "modification",
+    "started_at": "2026-09-13T04:09:41.223Z",
+    "ended_at": "2026-09-13T04:46:06.855Z",
+    "description": "HotM request-name/event-schema separation, real metadata resolver, generation-fenced archive selection replacement, cursor and pending-event reset, queue view reset, strict scoped queue/control filtering. Producer harness consumes real candidate resolver/client/parser without name rewrite. Producer runtime and Core package unchanged this cycle. Local tests PASS; actual hosted metadata admission NOT_PASS. Full scope retained."
+  },
+  "agent": {
+    "id": "urn:aiwg:agent:codex",
+    "type": "ai_assistant",
+    "name": "Codex"
+  },
+  "relationships": {
+    "wasGeneratedBy": {
+      "entity": "urn:aiwg:artifact:.aiwg/reports/lane-b-hotm-realtime-context-cycle92.json",
+      "activity": "urn:aiwg:activity:realtime-context:lane-b:092:hotm"
+    },
+    "wasAssociatedWith": {
+      "activity": "urn:aiwg:activity:realtime-context:lane-b:092:hotm",
+      "agent": "urn:aiwg:agent:codex"
+    },
+    "wasAttributedTo": {
+      "entity": "urn:aiwg:artifact:.aiwg/reports/lane-b-hotm-realtime-context-cycle92.json",
+      "agent": "urn:aiwg:agent:codex"
+    },
+    "wasDerivedFrom": [
+      {
+        "entity": "urn:aiwg:artifact:.aiwg/reports/lane-b-hotm-realtime-context-cycle92.json",
+        "source": "urn:gitea:Fortemi:HotM:issue:1"
+      },
+      {
+        "entity": "urn:aiwg:artifact:.aiwg/reports/lane-b-hotm-realtime-context-cycle92.json",
+        "source": "urn:gitea:Fortemi:fortemi:issue:1091"
+      },
+      {
+        "entity": "urn:aiwg:artifact:.aiwg/reports/lane-b-hotm-realtime-context-cycle92.json",
+        "source": "urn:gitea:Fortemi:fortemi-react:issue:405"
+      }
+    ]
+  }
+}

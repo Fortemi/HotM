@@ -1,0 +1,79 @@
+{
+  "metadata": {
+    "schema_version": "1.0.0",
+    "created_at": "2026-09-13T14:10:38.951Z"
+  },
+  "entity": {
+    "id": "urn:aiwg:artifact:.aiwg/reports/lane-b-hotm-mobile-note-controls-cycle98.json",
+    "type": "artifact_bundle",
+    "created_at": "2026-09-13T14:10:38.951Z",
+    "checksum": "sha256:7a98f228263e74bb7c32e08ca1e2123ce4adf95ab0fd37f0272d329ab2f11079",
+    "size_bytes": 8605,
+    "attributes": {
+      "artifacts": [
+        {
+          "path": "ui/src/components/HallOfMind.tsx",
+          "bytes": 139662,
+          "sha256": "3afe2d87dd9fd50442e27c7d4f404cb55ddbbb22ecd06711d0ae9778ee5b052a"
+        },
+        {
+          "path": "ui/src/components/RegeneratePanel.tsx",
+          "bytes": 10655,
+          "sha256": "059e2e9fe33b45e2fbba900b54c323fb12517a7947f0a8a14a13a1ce46e2c4c9"
+        },
+        {
+          "path": "ui/src/components/__tests__/RegeneratePanel.test.tsx",
+          "bytes": 7487,
+          "sha256": "9b089288600bf08d2f08e49e0fc2efff74a49631436a26aa835244fa5eb4a083"
+        },
+        {
+          "path": ".aiwg/testing/api-contract-test-plan-addendum-2026-07.md",
+          "bytes": 45483,
+          "sha256": "0d7fafc9850c1aa92c9d801defd8473c28d7d9764e109cee1535d6ecd97fc2e9"
+        },
+        {
+          "path": ".aiwg/reports/fortemi-v2026-07-api-integration-traceability.md",
+          "bytes": 40073,
+          "sha256": "a6428a6432e86b5f82102706822dd8752c88c54060725222ea8077d0dafc41df"
+        },
+        {
+          "path": ".aiwg/reports/lane-b-hotm-mobile-note-controls-cycle98.json",
+          "bytes": 8605,
+          "sha256": "7a98f228263e74bb7c32e08ca1e2123ce4adf95ab0fd37f0272d329ab2f11079"
+        }
+      ]
+    }
+  },
+  "activity": {
+    "id": "urn:aiwg:activity:mobile-note-controls:cycle98",
+    "type": "modification",
+    "started_at": "2026-09-13T14:05:44.992Z",
+    "ended_at": "2026-09-13T14:10:38.951Z",
+    "description": "Mobile selected-note controls and real-browser responsive regression; no inference or contract change."
+  },
+  "agent": {
+    "id": "urn:aiwg:agent:codex",
+    "type": "ai_assistant",
+    "name": "Codex"
+  },
+  "relationships": {
+    "wasGeneratedBy": {
+      "entity": "urn:aiwg:artifact:.aiwg/reports/lane-b-hotm-mobile-note-controls-cycle98.json",
+      "activity": "urn:aiwg:activity:mobile-note-controls:cycle98"
+    },
+    "wasAssociatedWith": {
+      "activity": "urn:aiwg:activity:mobile-note-controls:cycle98",
+      "agent": "urn:aiwg:agent:codex"
+    },
+    "wasAttributedTo": {
+      "entity": "urn:aiwg:artifact:.aiwg/reports/lane-b-hotm-mobile-note-controls-cycle98.json",
+      "agent": "urn:aiwg:agent:codex"
+    },
+    "wasDerivedFrom": [
+      {
+        "entity": "urn:aiwg:artifact:.aiwg/reports/lane-b-hotm-mobile-note-controls-cycle98.json",
+        "source": "urn:gitea:Fortemi:HotM:issue:1"
+      }
+    ]
+  }
+}

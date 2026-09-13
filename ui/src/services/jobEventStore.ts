@@ -13,6 +13,10 @@ import webSocketService, {
   type RealtimeConnectionState,
 } from '@/services/websocket';
 import { api } from '@/api';
+import { getDataContextCacheIdentity, getDataContextRevision, subscribeDataContextChanges } from '@/api/data-context';
+import { getActiveMemory } from '@/api/memory-context';
+import { resolveRealtimeArchive } from '@/api/realtime-context';
+import { readJobStoreCache, writeJobStoreCache } from './jobStorePersistence';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -70,24 +74,10 @@ export interface JobStoreState {
 // Constants
 // ---------------------------------------------------------------------------
 
-const STORAGE_KEY = 'hotm.jobStore';
 const MAX_COMPLETED = 50;
 const STALE_ACTIVE_JOB_MS = 5 * 60 * 1000;
 const QUEUE_STALE_THRESHOLD_MS = 5 * 60 * 1000;
 const STALE_CHECK_INTERVAL_MS = 15_000;
-
-// ---------------------------------------------------------------------------
-// Serializable subset for localStorage
-// ---------------------------------------------------------------------------
-
-interface PersistedState {
-  activeJobs: [string, ActiveJob][];
-  completedJobs: CompletedJob[];
-  queueStatus: QueueStatus;
-  activeStepLabel: string | null;
-  pauseState: PauseState;
-  lastUpdatedAt: number;
-}
 
 // ---------------------------------------------------------------------------
 // JobEventStore
@@ -99,33 +89,43 @@ class JobEventStore {
   private state: JobStoreState;
   private listeners = new Set<Listener>();
   private lastQueueUpdateAt: number;
+  private contextRevision = getDataContextRevision();
+  private pauseRevision = 0;
+  private disposed = false;
+  private subscriptions: (() => void)[] = [];
+  private unsubscribeContext: () => void;
+  private staleTimer: ReturnType<typeof setInterval>;
+  private cacheOwner: string | null = null;
+  private dataVersion = 0;
+  ready: Promise<void>;
 
   constructor() {
-    const hydrated = this.hydrate();
-
-    this.lastQueueUpdateAt = hydrated?.lastUpdatedAt ?? Date.now();
+    this.lastQueueUpdateAt = Date.now();
 
     this.state = {
-      activeJobs: hydrated?.activeJobs ?? new Map(),
-      completedJobs: hydrated?.completedJobs ?? [],
-      queueStatus: hydrated?.queueStatus ?? { total_jobs: 0, running: 0, pending: 0 },
-      activeStepLabel: hydrated?.activeStepLabel ?? null,
-      pauseState: hydrated?.pauseState ?? { global: 'running', archives: {} },
+      activeJobs: new Map(),
+      completedJobs: [],
+      queueStatus: { total_jobs: 0, running: 0, pending: 0 },
+      activeStepLabel: null,
+      pauseState: { global: 'running', archives: {} },
       connected: webSocketService.getConnectionStatus(),
       connectionState: webSocketService.getConnectionState(),
       isQueueStalled: false,
       queueStatusAgeMs: 0,
-      lastUpdatedAt: hydrated?.lastUpdatedAt ?? Date.now(),
+      lastUpdatedAt: Date.now(),
     };
 
+    this.unsubscribeContext = subscribeDataContextChanges(this.resetContext);
     this.subscribeToEvents();
     this.subscribeToConnection();
-    this.startStaleChecker();
+    this.staleTimer = this.startStaleChecker();
+    this.ready = this.initializePersistence();
   }
 
   // ---- useSyncExternalStore API ----
 
   subscribe = (listener: Listener): (() => void) => {
+    if (this.disposed) return () => undefined;
     this.listeners.add(listener);
     return () => {
       this.listeners.delete(listener);
@@ -143,8 +143,13 @@ class JobEventStore {
   // ---- Public actions ----
 
   refreshPauseState = async (): Promise<void> => {
+    if (this.disposed) return;
+    const context = this.contextRevision;
+    const request = ++this.pauseRevision;
+    const current = () => this.isCurrent(context) && request === this.pauseRevision;
     try {
       const status = await api.jobs.getPauseStatus();
+      if (!current()) return;
       this.mutate((s) => {
         s.pauseState = {
           global: status.global ?? 'running',
@@ -152,19 +157,58 @@ class JobEventStore {
         };
       });
     } catch (err) {
+      if (!current()) return;
       console.error('jobEventStore: failed to refresh pause state', err);
     }
   };
 
+  dispose = (): void => {
+    if (this.disposed) return;
+    this.disposed = true;
+    this.cacheOwner = null;
+    this.unsubscribeContext();
+    this.subscriptions.splice(0).forEach(close => close());
+    clearInterval(this.staleTimer);
+    this.listeners.clear();
+  };
+
   // ---- Internal ----
 
-  private mutate(updater: (state: JobStoreState) => void): void {
+  private isCurrent(context: number): boolean {
+    return !this.disposed && context === this.contextRevision && context === getDataContextRevision();
+  }
+
+  private resetContext = (): void => {
+    const next = getDataContextRevision();
+    if (this.disposed || next === this.contextRevision) return;
+    this.contextRevision = next;
+    this.cacheOwner = null;
+    this.dataVersion = 0;
+    this.subscriptions.splice(0).forEach(close => close());
+    this.lastQueueUpdateAt = Date.now();
+    this.state = {
+      activeJobs: new Map(), completedJobs: [],
+      queueStatus: { total_jobs: 0, running: 0, pending: 0 },
+      activeStepLabel: null, pauseState: { global: 'running', archives: {} },
+      connected: webSocketService.getConnectionStatus(),
+      connectionState: webSocketService.getConnectionState(),
+      isQueueStalled: false, queueStatusAgeMs: 0, lastUpdatedAt: Date.now(),
+    };
+    // Replace owned callbacks so queued callbacks from the old subscription fail closed.
+    this.subscribeToEvents();
+    this.subscribeToConnection();
+    this.ready = this.initializePersistence();
+    this.notify();
+  };
+
+  private mutate(updater: (state: JobStoreState) => void, persist = true): void {
+    if (!this.isCurrent(this.contextRevision)) return;
     // Shallow-clone so React detects referential change
     const next = { ...this.state };
     updater(next);
     next.lastUpdatedAt = Date.now();
     this.state = next;
-    this.persist();
+    if (persist) { this.dataVersion += 1; this.persist(); }
     this.notify();
   }
 
@@ -181,7 +225,9 @@ class JobEventStore {
   // ---- Event bus subscription ----
 
   private subscribeToEvents(): void {
-    realtimeEventBus.subscribe((event: RealtimeEvent) => {
+    const context = this.contextRevision;
+    this.subscriptions.push(realtimeEventBus.subscribe((event: RealtimeEvent) => {
+      if (!this.isCurrent(context)) return;
       switch (event.type) {
         case 'JobQueued':
           this.handleJobQueued(event);
@@ -206,7 +252,7 @@ class JobEventStore {
           void this.refreshPauseState();
           break;
       }
-    });
+    }));
   }
 
   private handleJobQueued(_event: RealtimeEvent): void {
@@ -353,22 +399,26 @@ class JobEventStore {
   // ---- Connection state ----
 
   private subscribeToConnection(): void {
-    webSocketService.subscribeConnection((connected) => {
+    const context = this.contextRevision;
+    this.subscriptions.push(webSocketService.subscribeConnection((connected) => {
+      if (!this.isCurrent(context)) return;
       this.mutate((s) => {
         s.connected = connected;
-      });
-    });
-    webSocketService.subscribeConnectionState((state) => {
+      }, false);
+    }));
+    this.subscriptions.push(webSocketService.subscribeConnectionState((state) => {
+      if (!this.isCurrent(context)) return;
       this.mutate((s) => {
         s.connectionState = state;
-      });
-    });
+      }, false);
+    }));
   }
 
   // ---- Stale queue checker ----
 
-  private startStaleChecker(): void {
-    setInterval(() => {
+  private startStaleChecker(): ReturnType<typeof setInterval> {
+    return setInterval(() => {
+      if (!this.isCurrent(this.contextRevision)) return;
       const now = Date.now();
       const ageMs = now - this.lastQueueUpdateAt;
       const isStalled =
@@ -383,7 +433,7 @@ class JobEventStore {
         this.mutate((s) => {
           s.isQueueStalled = isStalled;
           s.queueStatusAgeMs = ageMs;
-        });
+        }, false);
       }
     }, STALE_CHECK_INTERVAL_MS);
   }
@@ -391,52 +441,52 @@ class JobEventStore {
   // ---- localStorage persistence ----
 
   private persist(): void {
-    try {
-      const data: PersistedState = {
+    if (this.cacheOwner && this.isCurrent(this.contextRevision)) {
+      writeJobStoreCache(this.cacheOwner, {
         activeJobs: Array.from(this.state.activeJobs.entries()),
         completedJobs: this.state.completedJobs,
         queueStatus: this.state.queueStatus,
         activeStepLabel: this.state.activeStepLabel,
         pauseState: this.state.pauseState,
         lastUpdatedAt: this.state.lastUpdatedAt,
-      };
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-    } catch {
-      // localStorage may be full or unavailable
+      });
     }
   }
 
-  private hydrate(): Partial<Pick<JobStoreState, 'activeJobs' | 'completedJobs' | 'queueStatus' | 'activeStepLabel' | 'pauseState' | 'lastUpdatedAt'>> | null {
+  private async initializePersistence(): Promise<void> {
+    const context = this.contextRevision, version = this.dataVersion;
     try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if (!raw) return null;
-      const data: PersistedState = JSON.parse(raw);
-
+      const selected = getActiveMemory(), baseUrl = api.client.baseUrl;
+      const archive = await resolveRealtimeArchive(api.archives, selected);
+      if (!this.isCurrent(context)) return;
+      const owner = await getDataContextCacheIdentity(JSON.stringify([baseUrl, archive.memory, archive.memorySchema]));
+      if (!owner || !this.isCurrent(context)) return;
+      this.cacheOwner = owner;
+      // Live updates received during admission take precedence over the saved snapshot.
+      if (version !== this.dataVersion) { this.persist(); return; }
+      const data = readJobStoreCache(owner);
+      if (!data) return;
       const now = Date.now();
-      // Clear stale active jobs (>5 min old)
       const freshActiveJobs = new Map<string, ActiveJob>();
-      if (Array.isArray(data.activeJobs)) {
-        for (const [id, job] of data.activeJobs) {
-          const startedMs = Date.parse(job.started_at);
-          if (Number.isFinite(startedMs) && now - startedMs < STALE_ACTIVE_JOB_MS) {
-            freshActiveJobs.set(id, job);
-          }
+      for (const [id, job] of data.activeJobs) {
+        if (now - Date.parse(job.started_at) < STALE_ACTIVE_JOB_MS) {
+          freshActiveJobs.set(id, job);
         }
       }
-
-      return {
+      this.lastQueueUpdateAt = data.lastUpdatedAt;
+      this.state = {
+        ...this.state, ...data,
         activeJobs: freshActiveJobs,
-        completedJobs: Array.isArray(data.completedJobs) ? data.completedJobs.slice(0, MAX_COMPLETED) : [],
-        queueStatus: data.queueStatus ?? { total_jobs: 0, running: 0, pending: 0 },
-        activeStepLabel: data.activeStepLabel ?? null,
-        pauseState: data.pauseState ?? { global: 'running', archives: {} },
-        lastUpdatedAt: data.lastUpdatedAt ?? now,
+        queueStatusAgeMs: now - data.lastUpdatedAt,
       };
+      this.notify();
     } catch {
-      return null;
+      // No ownership proof means no hydration or persistence; retain original bytes.
     }
   }
 }
 
 // Singleton
 export const jobEventStore = new JobEventStore();
+
+if (import.meta.hot) import.meta.hot.dispose(() => jobEventStore.dispose());

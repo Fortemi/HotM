@@ -34,6 +34,7 @@ import { createMediaToolsApi } from './mediaTools';
 import { createCallsApi } from './calls';
 import { createCompatibilityAdmissionGate, createSystemCompatibilityApi } from './systemCompatibility';
 import { createOperatorApi } from './operator';
+import { setDataApiEndpoint } from './data-context';
 
 // Export core types
 export type {
@@ -533,12 +534,14 @@ export function createApi(baseUrl?: string) {
  * Mutable so it can be recreated after Tauri config loads at startup.
  */
 export let api = createApi();
+setDataApiEndpoint(api.client.baseUrl);
 
 /**
  * Recreate the default API instance (e.g. after loading Tauri runtime config).
  */
 export function reinitializeApi(baseUrl?: string) {
   api = createApi(baseUrl);
+  setDataApiEndpoint(api.client.baseUrl);
 }
 
 /**

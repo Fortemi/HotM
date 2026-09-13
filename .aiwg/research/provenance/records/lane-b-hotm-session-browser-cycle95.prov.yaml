@@ -1,0 +1,117 @@
+{
+  "metadata": {
+    "schema_version": "1.0.0",
+    "created_at": "2026-09-13T06:13:37.994Z"
+  },
+  "entity": {
+    "id": "urn:aiwg:artifact:.aiwg/reports/lane-b-hotm-session-browser-cycle95.json",
+    "type": "artifact_bundle",
+    "created_at": "2026-09-13T06:13:37.994Z",
+    "checksum": "sha256:f9cbbbf0687b2391590d651d2e9d68de1cee466553720ec2c406275ccbd3785c",
+    "size_bytes": 9820,
+    "attributes": {
+      "artifacts": [
+        {
+          "path": "ui/src/api/__tests__/auth-context-hosted.test.ts",
+          "bytes": 3379,
+          "sha256": "bd4dc240c11d74dd2e0dfc207478434ad78f7aebaa7031b4429b282a2838e1ea"
+        },
+        {
+          "path": "ui/src/api/auth-context.ts",
+          "bytes": 3147,
+          "sha256": "fc501711e60770bb7880039546dcbb573ca2d190f1b5959ea28a4d7e6e7e5078"
+        },
+        {
+          "path": "ui/src/api/memory-context.ts",
+          "bytes": 1966,
+          "sha256": "d7e9c28791ee80bd5539cb29e6f27a20bca46bb7e2e9f702d29659a09863b45f"
+        },
+        {
+          "path": "ui/src/services/__tests__/websocket-archive-context.test.ts",
+          "bytes": 10302,
+          "sha256": "210ff31ad0d01e4b51ebbcb0e30adafd1b43222a73da632010d1d22068b666cd"
+        },
+        {
+          "path": "ui/src/services/__tests__/websocket-archive-view.test.ts",
+          "bytes": 2386,
+          "sha256": "3bcfacf96f0cee59fb414f4339b642c4384cc9fb993c196b945b297d0a5d004f"
+        },
+        {
+          "path": "ui/src/services/websocket.ts",
+          "bytes": 25488,
+          "sha256": "e17b541b9a531d75291e2b81d557c97645db9c002b74cc93ffa0a8951d357a5d"
+        },
+        {
+          "path": ".aiwg/architecture/adr/ADR-010-fortemi-v2026-07-api-coverage.md",
+          "bytes": 34573,
+          "sha256": "c833d9c517ed587cf4c1ee7bcd09463d1714ddf4838adbb6dc1ca21c9042be12"
+        },
+        {
+          "path": ".aiwg/architecture/sad-fortemi-integration-addendum-2026-07.md",
+          "bytes": 43418,
+          "sha256": "ea68730006dfe88b3e83add440e4146ec03eed2927a91c112110cca8688fe60d"
+        },
+        {
+          "path": ".aiwg/requirements/fortemi-api-integration-requirements-2026-07.md",
+          "bytes": 33224,
+          "sha256": "bd372960170a48a09551b26a8ffd2c288c55fe2340aa5da19f495064366bbc6c"
+        },
+        {
+          "path": ".aiwg/testing/api-contract-test-plan-addendum-2026-07.md",
+          "bytes": 38303,
+          "sha256": "dff270a2ddbef68e8de6ba35948a2843f71b646ff522455da3d642abc8b277da"
+        },
+        {
+          "path": ".aiwg/reports/fortemi-v2026-07-api-integration-traceability.md",
+          "bytes": 33668,
+          "sha256": "d7d7ac672060b779c7746556248c7bbd03824f8973c6ff16db192adb391c4d7c"
+        },
+        {
+          "path": ".aiwg/reports/lane-b-hotm-session-browser-cycle95.json",
+          "bytes": 9820,
+          "sha256": "f9cbbbf0687b2391590d651d2e9d68de1cee466553720ec2c406275ccbd3785c"
+        }
+      ]
+    }
+  },
+  "activity": {
+    "id": "urn:aiwg:activity:session-browser:lane-b:095:hotm",
+    "type": "modification",
+    "started_at": "2026-09-13T05:42:43.361Z",
+    "ended_at": "2026-09-13T06:13:37.994Z",
+    "description": "HotM auth/tenant changes emit credential-free effective-change events. Owned auth/memory subscriptions cover same-tab and cross-tab storage, resetting stale tenant overrides. Realtime stream/cursor/pending events and hook queue view reset; subscriptions removed on close. No producer runtime/wire change. Browser stream checks pass; application session isolation remains incomplete. Full scope and delivery gates retained."
+  },
+  "agent": {
+    "id": "urn:aiwg:agent:codex",
+    "type": "ai_assistant",
+    "name": "Codex"
+  },
+  "relationships": {
+    "wasGeneratedBy": {
+      "entity": "urn:aiwg:artifact:.aiwg/reports/lane-b-hotm-session-browser-cycle95.json",
+      "activity": "urn:aiwg:activity:session-browser:lane-b:095:hotm"
+    },
+    "wasAssociatedWith": {
+      "activity": "urn:aiwg:activity:session-browser:lane-b:095:hotm",
+      "agent": "urn:aiwg:agent:codex"
+    },
+    "wasAttributedTo": {
+      "entity": "urn:aiwg:artifact:.aiwg/reports/lane-b-hotm-session-browser-cycle95.json",
+      "agent": "urn:aiwg:agent:codex"
+    },
+    "wasDerivedFrom": [
+      {
+        "entity": "urn:aiwg:artifact:.aiwg/reports/lane-b-hotm-session-browser-cycle95.json",
+        "source": "urn:gitea:Fortemi:HotM:issue:1"
+      },
+      {
+        "entity": "urn:aiwg:artifact:.aiwg/reports/lane-b-hotm-session-browser-cycle95.json",
+        "source": "urn:gitea:Fortemi:fortemi:issue:1091"
+      },
+      {
+        "entity": "urn:aiwg:artifact:.aiwg/reports/lane-b-hotm-session-browser-cycle95.json",
+        "source": "urn:gitea:Fortemi:fortemi-react:issue:405"
+      }
+    ]
+  }
+}

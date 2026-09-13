@@ -1,0 +1,279 @@
+{
+  "metadata": {
+    "schema_version": "1.0.0",
+    "created_at": "2026-09-13T16:42:57.404Z"
+  },
+  "entity": {
+    "id": "urn:aiwg:artifact:.aiwg/reports/lane-b-source-delivery-cycle99.json",
+    "type": "artifact_bundle",
+    "created_at": "2026-09-13T16:42:57.404Z",
+    "checksum": "sha256:ae65716a82e16dfa94222ae8c98c3ab2c25b4327d83352758d541a6fc2dbbfd6",
+    "size_bytes": 9415,
+    "attributes": {
+      "artifacts": [
+        {
+          "path": ".aiwg/architecture/adr/ADR-010-fortemi-v2026-07-api-coverage.md",
+          "bytes": 41227,
+          "sha256": "14cb68c9233ecfb88a2fc11026fb395092279f95919688569cc55e808fa13ba4"
+        },
+        {
+          "path": ".aiwg/architecture/sad-fortemi-integration-addendum-2026-07.md",
+          "bytes": 48879,
+          "sha256": "c148d213c55b2b6f47ac52299d3c5f24aa15950ca6112dac86b88327ac71cbb9"
+        },
+        {
+          "path": ".aiwg/reports/fortemi-v2026-07-api-integration-traceability.md",
+          "bytes": 40073,
+          "sha256": "a6428a6432e86b5f82102706822dd8752c88c54060725222ea8077d0dafc41df"
+        },
+        {
+          "path": ".aiwg/reports/lane-b-hotm-context-owned-views-cycle96.json",
+          "bytes": 10016,
+          "sha256": "772587f6b139f31e010482654c32037d3c0b0fbde7316e22781cd319cb492dd4"
+        },
+        {
+          "path": ".aiwg/reports/lane-b-hotm-job-store-lifetime-cycle97-phase1.json",
+          "bytes": 5573,
+          "sha256": "fc24b1f3d3ed3748b4477ed3e32248ac94ea67c89ed0177740cae0f7bf1009fd"
+        },
+        {
+          "path": ".aiwg/reports/lane-b-hotm-mobile-note-controls-cycle98.json",
+          "bytes": 8605,
+          "sha256": "7a98f228263e74bb7c32e08ca1e2123ce4adf95ab0fd37f0272d329ab2f11079"
+        },
+        {
+          "path": ".aiwg/reports/lane-b-hotm-owned-job-cache-cycle97-phase2.json",
+          "bytes": 20058,
+          "sha256": "837813e2190e64a2861696b413633c06cd2569b4bdd039f2b6c441ca5b85143c"
+        },
+        {
+          "path": ".aiwg/reports/lane-b-hotm-realtime-context-cycle92.json",
+          "bytes": 8122,
+          "sha256": "5beea98ee4ebc5c06ee3aa1cf572ca31d73d899a7453adef48d600929f55db3a"
+        },
+        {
+          "path": ".aiwg/reports/lane-b-hotm-selected-memory-context-cycle93.json",
+          "bytes": 6207,
+          "sha256": "1590de5136cdb1748644191ceb5b98f622fcd26cbda485e68cb8350346cc6ff5"
+        },
+        {
+          "path": ".aiwg/reports/lane-b-hotm-selected-memory-context-cycle94.json",
+          "bytes": 7923,
+          "sha256": "973f7f6386ab8e04b50e62cb5fdce4ac3a937aa45eed952af31cc218139aeca9"
+        },
+        {
+          "path": ".aiwg/reports/lane-b-hotm-session-browser-cycle95.json",
+          "bytes": 9820,
+          "sha256": "f9cbbbf0687b2391590d651d2e9d68de1cee466553720ec2c406275ccbd3785c"
+        },
+        {
+          "path": ".aiwg/requirements/fortemi-api-integration-requirements-2026-07.md",
+          "bytes": 38693,
+          "sha256": "bc15c8b5eb8e9ea47102f131f2c19a70664333f9706908fcf86234955cfc19ca"
+        },
+        {
+          "path": ".aiwg/testing/api-contract-test-plan-addendum-2026-07.md",
+          "bytes": 45483,
+          "sha256": "0d7fafc9850c1aa92c9d801defd8473c28d7d9764e109cee1535d6ecd97fc2e9"
+        },
+        {
+          "path": "ui/src/App.tsx",
+          "bytes": 1074,
+          "sha256": "2af5c57250298fcb5db51ee304b6bd2ed19e063df64759c763533563bdb5862b"
+        },
+        {
+          "path": "ui/src/__tests__/App.context.test.tsx",
+          "bytes": 2750,
+          "sha256": "ba5bfad39f793e5a3a904a4832434a8d38234a7b69900dd6d1c0eb0b3ab8bb4e"
+        },
+        {
+          "path": "ui/src/api/__tests__/api-endpoint-context.test.ts",
+          "bytes": 1277,
+          "sha256": "0f82c7489ef0c7c83940d07c5918219340f5d052deacf488448c8d7f4ec85ab1"
+        },
+        {
+          "path": "ui/src/api/__tests__/auth-context-hosted.test.ts",
+          "bytes": 3379,
+          "sha256": "bd4dc240c11d74dd2e0dfc207478434ad78f7aebaa7031b4429b282a2838e1ea"
+        },
+        {
+          "path": "ui/src/api/__tests__/client-context.test.ts",
+          "bytes": 3414,
+          "sha256": "58ea75467405d6e7ae8b1fef94fe8bbd451a9301044364c6ef76fd2121699369"
+        },
+        {
+          "path": "ui/src/api/__tests__/data-context.test.ts",
+          "bytes": 2220,
+          "sha256": "2fca994de155b31d4c6d266648f7a81e627bc6a30599d5e461b7ec2ae3f0301a"
+        },
+        {
+          "path": "ui/src/api/__tests__/events.test.ts",
+          "bytes": 20977,
+          "sha256": "743f4356049578292905521175f6f7a156236e76a340848809e1e3c9f3252c0d"
+        },
+        {
+          "path": "ui/src/api/__tests__/realtime-context.test.ts",
+          "bytes": 6311,
+          "sha256": "dd94293852022a789a0816866c87d9f88333871691cc1af1f4a0b80fecce25f2"
+        },
+        {
+          "path": "ui/src/api/__tests__/systemCompatibility.test.ts",
+          "bytes": 9088,
+          "sha256": "e5bb6e481ddb5ebaccd0a952c28976b6b1dff21b33648fe9bcd2bf96d770f123"
+        },
+        {
+          "path": "ui/src/api/archives.ts",
+          "bytes": 2588,
+          "sha256": "e341057ddd82e00909bd0b315d03838b9d836d688d833949be397783ea6a703a"
+        },
+        {
+          "path": "ui/src/api/auth-context.ts",
+          "bytes": 3147,
+          "sha256": "fc501711e60770bb7880039546dcbb573ca2d190f1b5959ea28a4d7e6e7e5078"
+        },
+        {
+          "path": "ui/src/api/client.ts",
+          "bytes": 11280,
+          "sha256": "3bdbf633bbdc2595c66aebf2ddf84a178e930064b557d3dc01da11a2c47662c0"
+        },
+        {
+          "path": "ui/src/api/data-context.ts",
+          "bytes": 2887,
+          "sha256": "429e84cc36eb87b18bd6f0e9e9a878b0a7a11be760c1463c4ca99f18781fe473"
+        },
+        {
+          "path": "ui/src/api/events.ts",
+          "bytes": 21679,
+          "sha256": "55b86a18cfa350c80d76b04e3f03bc9fb311368c9671c089c6f55e589a8db922"
+        },
+        {
+          "path": "ui/src/api/index.ts",
+          "bytes": 15985,
+          "sha256": "c8eb5f06dc2212233af546ff6ca19abe9fd7e5bd841c79cd9a76400e845d7d04"
+        },
+        {
+          "path": "ui/src/api/memory-context.ts",
+          "bytes": 1966,
+          "sha256": "d7e9c28791ee80bd5539cb29e6f27a20bca46bb7e2e9f702d29659a09863b45f"
+        },
+        {
+          "path": "ui/src/api/realtime-context.ts",
+          "bytes": 1563,
+          "sha256": "8b0702bd462bff9cf12b1138529b63f77a62b2aa3ea4ca89d1a6d0d9115b1b69"
+        },
+        {
+          "path": "ui/src/api/systemCompatibility.ts",
+          "bytes": 12968,
+          "sha256": "ff4f726d79018982891c5f3dd1ef597c15ccd849a57f3aa623184ade1d82014b"
+        },
+        {
+          "path": "ui/src/components/HallOfMind.tsx",
+          "bytes": 139662,
+          "sha256": "3afe2d87dd9fd50442e27c7d4f404cb55ddbbb22ecd06711d0ae9778ee5b052a"
+        },
+        {
+          "path": "ui/src/components/RegeneratePanel.tsx",
+          "bytes": 10655,
+          "sha256": "059e2e9fe33b45e2fbba900b54c323fb12517a7947f0a8a14a13a1ce46e2c4c9"
+        },
+        {
+          "path": "ui/src/components/__tests__/RegeneratePanel.test.tsx",
+          "bytes": 7487,
+          "sha256": "9b089288600bf08d2f08e49e0fc2efff74a49631436a26aa835244fa5eb4a083"
+        },
+        {
+          "path": "ui/src/components/attachments/__tests__/AttachmentsPanel.test.tsx",
+          "bytes": 41812,
+          "sha256": "8af8e455e712ccb33f36fe4688a2cfec606385de3e084f725452bc41637cc59b"
+        },
+        {
+          "path": "ui/src/components/embeddings/__tests__/MemberManager.test.tsx",
+          "bytes": 12414,
+          "sha256": "fe3a51c416658ea880996576770fd02fb4848777fd6f0c44be1acd78942cffda"
+        },
+        {
+          "path": "ui/src/services/__tests__/jobEventStore-cache.test.ts",
+          "bytes": 9712,
+          "sha256": "8eca96b6acc2f4112dbbc8c79be93345c58a962fa1875ac30543de9e35ea71e7"
+        },
+        {
+          "path": "ui/src/services/__tests__/jobEventStore-context.test.ts",
+          "bytes": 6908,
+          "sha256": "8dfe3466a7504baba7f73ec7a3b70bdb35f4a32079bd08270decc9315dde6909"
+        },
+        {
+          "path": "ui/src/services/__tests__/jobEventStore.test.ts",
+          "bytes": 10553,
+          "sha256": "b61f045f749e904b8b2a5bd6312707b8d3c9a287993b2489df42a6b541537fdb"
+        },
+        {
+          "path": "ui/src/services/__tests__/realtimeEventBus-context.test.ts",
+          "bytes": 1562,
+          "sha256": "46e2a9093634f4ed933beb8302065b345a3dfdce7a6c4f74c4f57b5bff702840"
+        },
+        {
+          "path": "ui/src/services/__tests__/websocket-archive-context.test.ts",
+          "bytes": 10614,
+          "sha256": "017f7103e19a5bbb52f8c4149ad024f3ebbec5c164941d23dc266be80a9721d8"
+        },
+        {
+          "path": "ui/src/services/__tests__/websocket-archive-view.test.ts",
+          "bytes": 2649,
+          "sha256": "ba55e71767ab940810f1f809d1187447f17316ae6893d0393ddbf0b17ffdbda0"
+        },
+        {
+          "path": "ui/src/services/jobEventStore.ts",
+          "bytes": 15673,
+          "sha256": "31bdba2609927928efa635519c10b8bec3b45eb69cdfb61f5e0f7d08801e9c31"
+        },
+        {
+          "path": "ui/src/services/jobStorePersistence.ts",
+          "bytes": 4363,
+          "sha256": "25de6709c3a788abc5f1f216f074f1dfb05fb11ad191597d4cc8713f18163487"
+        },
+        {
+          "path": "ui/src/services/realtimeEventBus.ts",
+          "bytes": 20989,
+          "sha256": "777fd7bfd33ee3d9cbd8eea72e0a371dfaa36c5510d8421f3e74f8ea9dff7ff7"
+        },
+        {
+          "path": "ui/src/services/websocket.ts",
+          "bytes": 25411,
+          "sha256": "411989a7645f2b347af5f87cbf4847f24b7ba778ba763d0f814bab5b2ac9b6cb"
+        }
+      ]
+    }
+  },
+  "activity": {
+    "id": "urn:aiwg:activity:lane-b-source-delivery:cycle99",
+    "type": "modification",
+    "started_at": "2026-09-13T16:42:57.404Z",
+    "ended_at": "2026-09-13T16:42:57.404Z",
+    "description": "Reconcile, verify and prepare outstanding Lane B source for signed delivery."
+  },
+  "agent": {
+    "id": "urn:aiwg:agent:codex",
+    "type": "ai_assistant",
+    "name": "Codex"
+  },
+  "relationships": {
+    "wasGeneratedBy": {
+      "entity": "urn:aiwg:artifact:.aiwg/reports/lane-b-source-delivery-cycle99.json",
+      "activity": "urn:aiwg:activity:lane-b-source-delivery:cycle99"
+    },
+    "wasAssociatedWith": {
+      "activity": "urn:aiwg:activity:lane-b-source-delivery:cycle99",
+      "agent": "urn:aiwg:agent:codex"
+    },
+    "wasAttributedTo": {
+      "entity": "urn:aiwg:artifact:.aiwg/reports/lane-b-source-delivery-cycle99.json",
+      "agent": "urn:aiwg:agent:codex"
+    },
+    "wasDerivedFrom": [
+      {
+        "entity": "urn:aiwg:artifact:.aiwg/reports/lane-b-source-delivery-cycle99.json",
+        "source": "urn:gitea:Fortemi:HotM:issue:1"
+      }
+    ]
+  }
+}

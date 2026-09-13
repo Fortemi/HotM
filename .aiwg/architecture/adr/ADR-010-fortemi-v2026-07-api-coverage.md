@@ -15,6 +15,135 @@ related_artifacts:
 
 # ADR-010: Fortemi v2026.7.1 API Coverage Strategy
 
+## Current Delivery Checkpoint: Cycle99
+
+Cycle98 corrected selected-note controls at 320, 390, 768 and 1440 pixels,
+including wrapped tabs/actions, long titles and bounded regeneration menus.
+Cycle99 reverified the unchanged UI source: 2178 tests, typecheck and build pass.
+The mobile clipping limitations in older cycle entries below are historical.
+Real-device usability, remaining context/lifecycle acceptance, exact-head CI,
+producer/consumer delivery pins and released-artifact qualification remain
+separate gates. The suite remains NO-GO. See the Cycle98 test-plan entry.
+
+## Cycle97 Context-Owned Job Cache: Phase2
+
+The job cache now uses a strict, bounded v2 envelope and an opaque owner derived
+from endpoint, effective session/tenant hint, selection, and server-resolved
+archive name/schema. Current read-authorized context resolution must succeed
+before hydration. Foreign, malformed, oversized and legacy unknown-owner data
+is never hydrated; existing bytes are preserved. The owner is a cache
+discriminator, not authentication or encryption. Live updates during admission
+win over the saved snapshot; stale admission/digest completions cannot hydrate.
+Effective API endpoint changes also invalidate requests, views and streams.
+Buffered event coalescers and dedup state reset on context changes; reentrant
+listeners cannot receive an in-flight event from the previous context.
+
+Final500focused/2177full UI tests, typecheck and build pass with zero unhandled
+errors. The production browser against the actual owned hosted daemon passes
+17controls, including three real model-free worker jobs, matching visible job
+content, same-context reload while the real jobs endpoint returns503, separate
+tenant/archive cache owners, foreign-context/logout clearing, and unchanged
+legacy/local-only bytes. Automatic reconnect sends a cursor from a nonempty
+live stream. This is not proof of a nonempty replay response.
+
+The producer runtime, OpenAPI and installed Core package are unchanged. The
+harness adds only three predefined job controls with bounded file handshakes.
+Core220groups/293requests and655durable audit rows pass. Ten serial Phase2 jobs
+are terminal:4PASS,5failures and1intentional stop; failed receipts are retained.
+The runner now rejects duplicate cache/deadline options instead of silently
+replacing an earlier value. Eight runner tests pass; containment is unchanged.
+
+This is a source-bound candidate, not delivered compatibility or full session
+isolation. Default/archive administration without a client context change,
+other persisted stores, nonempty replay, native and full lifecycle/every-consumer
+acceptance remain. The390px selected-note toolbar still clips and compresses its
+title; mobile usability is NOT_PASS. No authority/profile/pin promotion or
+destructive data migration. Source rollback is possible, but old code would
+restore its old unscoped-cache behavior; preserved legacy data is not safe to
+rehydrate merely because rollback was chosen. Full CI/delivery/release sweep,
+publication holds and suite NO-GO remain. Evidence: suite Cycle97
+phase2-summary.json and browser-third/browser-receipt.json.
+
+## Cycle97 Live Job Store Lifetime: First Stage
+
+The central job store now resets live job/queue/step/pause/staleness state on
+effective session, tenant-hint or archive changes, including cross-tab storage
+and logout. Subscriptions are replaced with revision-bound callbacks so old
+callbacks cannot repopulate the reset view. Pause refreshes reject obsolete
+context and out-of-order same-context completions. Idempotent disposal removes
+only this store's subscriptions and timer; shared transport is not stopped.
+HMR and test teardown call disposal. Connection/staleness-only notifications
+no longer rewrite the saved job data.
+
+The 11 regression failures reproduced before the fix. Final focused30 and
+broader426 tests, full2145 UI tests, typecheck and production build pass with
+zero unhandled errors, inside three serial bounded jobs. No browser/daemon
+acceptance was rerun for this stage. Source rollback is available.
+
+This is not complete job-store or application isolation: legacy unscoped
+hotm.jobStore hydration still exists, and persistence needs explicit ownership,
+same-context reload preservation and rejection of foreign/unknown ownership.
+Buffered event delivery to newly registered listeners also needs adversarial
+coverage. Do not infer those properties from tests of old callback closures.
+Mobile clipping, nonempty browser replay and the full lane/CI/delivery/release
+gates remain. No wire/schema/pin promotion; suite NO-GO is unchanged.
+
+## Cycle96 Context-Owned Views And Requests
+
+An opaque data-context revision identifies the effective bearer, tenant hint and
+selected archive in memory only. Owned subscriptions observe same-tab changes and
+relevant storage events; no credential is placed in React keys or event payloads.
+App keys its context-owned desktop/mobile subtree, including media provider, to
+this revision. A change discards the previous component state, selection, drafts
+and media session. Local persistent data is not erased or guessed to be current.
+
+HTTP requests capture a context before admission, own an AbortController and
+subscriptions, check before each attempt and after fetch/decode, and release
+subscriptions in finally. Stale work returns ContextChangedError without retry.
+This does not undo a mutation already dispatched to the server or qualify every
+delayed caller/transport. The compatibility gate separately fences old success,
+failure and finally handlers by generation, invalidates cached snapshots on context
+change, and protects explicit reset against late completion.
+
+Cycle96 proves400focused/2133full UI assertions, typecheck/build, and eleven actual
+browser controls with unchanged production asset bytes and the real daemon. Note
+selection resolves the correct producer-owned IDs for A/public, A/archive and
+B/public; foreign selection denial and logout clear old note-list/selection content.
+One browser access per fixture note and four subsequent Core enrichment reads
+are checked separately. No producer runtime/wire change or immutable pin promotion.
+
+Full session isolation remains incomplete: external jobEventStore persistence and
+pause state are still unscoped; other external/persisted stores need review. Selected
+note controls clip at390px and compress the title, so mobile usability is NOT_PASS
+despite correct note identity and nonblank pixels. Nonempty browser replay, native/
+default administration, all consumer/lifecycle/CI/delivery/release gates remain.
+Source rollback only, no persisted-schema migration. Suite NO-GO remains.
+
+## Cycle95 Session Notifications And Browser Boundary
+
+Token/tenant setters now emit credential-free change notifications only on effective
+changes. Owned subscriptions also observe relevant cross-tab localStorage changes,
+reset stale tenant overrides, and are removed on close. Memory subscriptions cover
+both native selection events and cross-tab storage. The realtime service replaces
+streams/cursors and fences old callbacks; useWebSocket resets its own queue view.
+
+This is not application-wide state isolation. The unchanged jobEventStore persists
+and hydrates unscoped hotm.jobStore data and accepts unfenced pause responses.
+The actual browser also retains tenant A's note list after switching to tenant B;
+only the SSE stream changes, with no replacement notes GET. HallOfMind and other
+data views need session/selection invalidation and stale async-result fencing.
+No prior-tenant cache may be treated as current merely because a stream reconnects.
+
+Cycle95 source-bound production UI passes six actual-browser stream lifecycle
+checks against an owned hosted daemon: initial admission, cross-tab archive change,
+foreign-memory denial after token/tenant change, new tenant default, automatic
+reconnect and logout. Desktop/mobile screenshots are nonblank without horizontal
+page overflow, but explicitly show the stale note-list defect. Browser streams
+receive no application events; nonempty replay and native/default-admin lifecycle
+are not qualified. Unit326/full2102, typecheck/build and real Core HTTP regression
+pass. No producer runtime/wire change or delivered pin promotion. Source rollback
+is the migration path; suite NO-GO and independent delivery/release gates remain.
+
 ## Context
 
 HotM previously integrated the Fortemi v2026.5.x surface. Fortemi now ships v2026.7.1, with major additions in streaming chat, streaming ingest, incoming webhook receivers, inbound event-source connectors, TUS uploads, upgrade safety, and Intel/vLLM deployment support. HotM also has an existing compatibility guard path and enterprise capability-gated UX plan.
@@ -47,6 +176,77 @@ consumption (#292), and a reliable browser gate (#291). Existing July receipts
 remain historical evidence only at their exact pins and named profiles.
 
 ## Decision
+
+### Cycle94: Selected-Memory Consumer Adoption
+
+The candidate resolver now uses only GET /api/v1/memory/context through the
+normal authenticated selected-memory HTTP client. Responses are capped at4096
+bytes and decoded as exactly name/schema_name. Empty, oversized, noncanonical
+or mismatched identities and extra fields fail closed. Name lengths count
+Unicode code points as the producer schema does. No inventory read, retry,
+schema derivation or client-invented public fallback is permitted. The producer's
+explicit legacy default alias may return public/public, with no other expansion.
+Default selection pins the canonical returned name for the stream.
+
+Generation/session/selection fencing, stream/cursor replacement and pending
+events/queue reset remain. Producer authority is the Cycle93 generated OpenAPI
+SHA256 0dd9b77e6d42c73197a489c575107c66d8f66755a2f8141a6788c7f4295c3cf1.
+Cycle94 compares its schema to the real consumer and records real-client
+metadata/SSE acceptance separately from mocked UI tests. This is candidate
+reconciliation, not a replacement of delivered authority pins. Those pins, CI,
+browser/native lifecycle and releases remain delivery gates. Retain Cycle92's
+failed inventory receipt and Cycle93's producer-only boundary. Consumer rollback
+is source rollback; absence of the endpoint must fail closed.
+
+### Cycle93: Selected-Memory Read Contract Candidate
+
+The producer candidate adds read-authorized `GET /api/v1/memory/context` with
+only `name`/`schema_name` and no-store, resolved through the current tenant's
+request transaction and archive routing. Its tenant-qualified default index
+allows independent tenant defaults without changing existing rows. Archive
+inventory remains admin-only; a read-context lookup must not become a listing
+or statistics privilege. The selected identity is a snapshot, never authority
+for a later request. Every stream remains independently authorized.
+
+HotM's Cycle92 resolver has NOT yet adopted this endpoint; its real hosted
+acceptance remains NOT_PASS. The next consumer change must bind the generated
+producer contract, reject malformed/failed lookup without a fallback, update
+application/transport fixtures, and obtain actual-server metadata/SSE receipts.
+Do not pin an uncommitted producer as delivered authority or promote a candidate
+from local producer tests. Core has no dependency on this new read operation.
+
+### Cycle92: Hosted Archive Identity at the Realtime Boundary
+
+The application must separate the archive request name (`X-Fortemi-Memory`)
+from the canonical hosted envelope memory (server-returned `schema_name`).
+Resolve a selected name through the existing archive API; resolve default
+selection through the tenant-visible inventory, with the producer's built-in
+public fallback only when no default exists. Reject missing/mismatched metadata
+or failed lookup; never derive a schema by prefixing a name. Pin a resolved
+default to its explicit name for the stream's lifetime. Personal-mode name
+filtering remains supported; this adds no producer wire field or new authority.
+
+Archive changes replace the stream and replay cursor, fence pending admission
+and old callbacks, clear coalesced events and reset queue counters. Rejected
+tenant/archive events do not advance replay. QueueStatus is scoped application
+data, not an attribution-free transport control; resync/lag controls may omit
+attribution but may not contradict it. Server authorization remains decisive.
+
+The source-bound Cycle92 checkpoint links HotM#1, Fortemi#1091 and Core#405.
+Existing producer-owned event pins/catalog/fixtures and sidecar identities are
+unchanged. Application-service tests, full UI regression and private actual-server
+client/resolver receipts have distinct scopes; none implies a launched hosted
+browser, full lifecycle, auth-parity, release or suite-wide compatibility receipt.
+Rollback is consumer source rollback, not a data migration. Suite NO-GO remains.
+
+Cycle92 acceptance is **local PASS / hosted NOT_PASS**. The real candidate
+resolver receives HTTP503 from `GET /api/v1/archives` before opening any SSE
+stream: the producer's archive handlers have not migrated to the request-owned
+tenant transaction. Inventory listing also requires `admin`, while this reader
+has `mcp read`; that policy dependency is source-confirmed, not an observed403
+after migration. Do not widen reader privileges, bypass the migration gate,
+guess schema names or stub metadata to qualify this candidate. A producer-owned
+tenant-scoped read/default-resolution contract is a delivery prerequisite.
 
 HotM will adopt a three-tier Fortemi API coverage model:
 

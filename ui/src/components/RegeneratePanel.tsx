@@ -189,17 +189,19 @@ export function RegeneratePanel({
             size="sm"
             variant="outline"
             aria-label="Regenerate AI options"
+            title="Regenerate AI options"
+            className="h-11 shrink-0"
           >
             {isProcessing || hasActiveJobs ? (
               <Loader2 className="h-4 w-4 animate-spin" />
             ) : (
               <RefreshCw className="h-4 w-4" />
             )}
-            <span className="ml-2">Regenerate AI</span>
+            <span className="ml-2 hidden sm:inline">Regenerate AI</span>
             <ChevronDown className="h-3 w-3 ml-1 opacity-50" />
           </Button>
         </PopoverTrigger>
-        <PopoverContent align="end" className="w-72 p-0">
+        <PopoverContent align="end" collisionPadding={16} className="w-72 max-w-[calc(100vw-2rem)] max-h-[var(--radix-popover-content-available-height)] overflow-y-auto p-0">
           {/* Section 1: Revision Modes */}
           <div className="p-1">
             <div className="px-2 py-1.5 text-xs font-medium text-muted-foreground">

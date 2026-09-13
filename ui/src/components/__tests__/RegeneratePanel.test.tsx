@@ -81,6 +81,20 @@ describe('RegeneratePanel', () => {
     expect(screen.getByText('Individual Jobs')).toBeInTheDocument();
   });
 
+  it('keeps a named compact trigger and returns focus when the menu closes', async () => {
+    render(<RegeneratePanel {...defaultProps} />);
+    const trigger = screen.getByRole('button', { name: 'Regenerate AI options' });
+    expect(trigger).toHaveAttribute('title', 'Regenerate AI options');
+    trigger.focus();
+    fireEvent.click(trigger);
+    expect(trigger).toHaveAttribute('aria-expanded', 'true');
+    fireEvent.keyDown(screen.getByRole('dialog'), { key: 'Escape' });
+    await waitFor(() => {
+      expect(trigger).toHaveAttribute('aria-expanded', 'false');
+      expect(trigger).toHaveFocus();
+    });
+  });
+
   it('calls onRegenerate with standard mode when Standard clicked', async () => {
     const onRegenerate = vi.fn().mockResolvedValue(undefined);
     render(<RegeneratePanel {...defaultProps} onRegenerate={onRegenerate} />);

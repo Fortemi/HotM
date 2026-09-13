@@ -12,6 +12,9 @@ import type {
   UpdateArchiveRequest,
 } from './types-extended';
 import { setActiveMemory } from './memory-context';
+import { ContractDecodeError } from './errors';
+
+export const MAX_MEMORY_CONTEXT_BYTES = 4096;
 
 type CreateArchiveResponse = {
   id?: string;
@@ -22,6 +25,17 @@ type CreateArchiveResponse = {
 
 export function createArchivesApi(client: ApiClient) {
   return {
+    /** Read the current request's selected identity, without inventory access. */
+    async context(): Promise<unknown> {
+      const text = await client.getText('/memory/context', undefined,
+        { Accept: 'application/json' }, MAX_MEMORY_CONTEXT_BYTES);
+      try {
+        return JSON.parse(text) as unknown;
+      } catch {
+        throw new ContractDecodeError('realtimeArchive', 'Invalid archive context');
+      }
+    },
+
     async list(): Promise<MemoryArchive[]> {
       return client.get<MemoryArchive[]>('/archives');
     },
@@ -68,4 +82,3 @@ export function createArchivesApi(client: ApiClient) {
 }
 
 export type ArchivesApi = ReturnType<typeof createArchivesApi>;
-

@@ -52,7 +52,8 @@ vi.mock('@/services/uploadStore', () => ({
   },
 }));
 
-vi.mock('@/api/memory-context', () => ({
+vi.mock('@/api/memory-context', async (importOriginal) => ({
+  ...await importOriginal<typeof import('@/api/memory-context')>(),
   getActiveMemory: vi.fn(() => null),
   getMemoryRoutingHeaderName: vi.fn(() => 'X-Fortemi-Memory'),
 }));

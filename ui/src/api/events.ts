@@ -57,25 +57,32 @@ export interface EventsClientOptions {
   /** Optional explicit server-side filter. Omit to consume all producer events. */
   typePrefixes?: string[];
   authorization?: string | null;
+  /** Archive request name; also the legacy personal-mode event filter. */
   memory?: string | null;
+  /** Canonical hosted event scope, resolved from server archive metadata. */
+  memorySchema?: string | null;
   tenantId?: string | null;
   preferFetch?: boolean;
 }
 
 export function eventMatchesRealtimeContext(
   event: ServerEvent,
-  context: Pick<EventsClientOptions, 'memory' | 'tenantId'>,
+  context: Pick<EventsClientOptions, 'memory' | 'memorySchema' | 'tenantId'>,
 ): boolean {
   const systemEvent = [
     'resync_required',
     'events.lagged',
-    'queue.status',
     'ResyncRequired',
     'EventsLagged',
-    'QueueStatus',
   ].includes(event.type);
-  if (systemEvent) return true;
-  if (context.memory && event.memory !== context.memory) return false;
+  const memory = context.memorySchema ?? context.memory;
+  // Transport controls may omit attribution, but never override a conflicting
+  // scope. QueueStatus contains application data and is not a transport control.
+  if (systemEvent) {
+    return (!context.tenantId || !event.tenant_id || event.tenant_id === context.tenantId)
+      && (!memory || !event.memory || event.memory === memory);
+  }
+  if (memory && event.memory !== memory) return false;
   if (context.tenantId && event.tenant_id !== context.tenantId) return false;
   return true;
 }
@@ -205,13 +212,14 @@ export function createEventsClient(baseUrl: string, options: EventsClientOptions
   }
 
   function dispatchEvent(data: ServerEvent, eventId?: string): void {
+    if (isClosing) return;
     const unwrapped = unwrapServerEventEnvelope(data as Record<string, unknown>);
+    if (!matchesContext(unwrapped)) return;
     const replayCursor = typeof unwrapped.event_id === 'string' ? unwrapped.event_id : eventId;
     if (replayCursor) {
       lastEventId = replayCursor;
       unwrapped.event_id = replayCursor;
     }
-    if (!matchesContext(unwrapped)) return;
     handlers.forEach(handler => {
       try {
         handler(unwrapped);
@@ -314,7 +322,7 @@ export function createEventsClient(baseUrl: string, options: EventsClientOptions
         }
       }
     } catch (err) {
-      if (fetchAbort?.signal.aborted) {
+      if (isClosing || fetchAbort?.signal.aborted) {
         // Intentional abort
         return;
       }

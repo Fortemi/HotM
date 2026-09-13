@@ -1,0 +1,94 @@
+{
+  "metadata": {
+    "schema_version": "1.0.0",
+    "created_at": "2026-09-13T07:05:25.070Z"
+  },
+  "entity": {
+    "id": "urn:aiwg:artifact:.aiwg/reports/lane-b-hotm-job-store-lifetime-cycle97-phase1.json",
+    "type": "artifact_bundle",
+    "created_at": "2026-09-13T07:05:25.070Z",
+    "checksum": "sha256:fc24b1f3d3ed3748b4477ed3e32248ac94ea67c89ed0177740cae0f7bf1009fd",
+    "size_bytes": 5573,
+    "attributes": {
+      "artifacts": [
+        {
+          "path": "ui/src/services/__tests__/jobEventStore-context.test.ts",
+          "sha256": "8dfe3466a7504baba7f73ec7a3b70bdb35f4a32079bd08270decc9315dde6909",
+          "bytes": 6908
+        },
+        {
+          "path": "ui/src/services/__tests__/jobEventStore.test.ts",
+          "sha256": "efa425058d4e7930118a5714099c9f2f788613c0b7c442ca9cddd8617ac5a129",
+          "bytes": 9783
+        },
+        {
+          "path": "ui/src/services/jobEventStore.ts",
+          "sha256": "c8bf3f6832e7971653efc8e3102ad352deda8d3f6b19f0c438e709a6b075e759",
+          "bytes": 15743
+        },
+        {
+          "path": ".aiwg/architecture/adr/ADR-010-fortemi-v2026-07-api-coverage.md",
+          "sha256": "d1375803d77d67d474c9dc8bf8cc9bb580947fe1bd32cab15af8ac4386a801f7",
+          "bytes": 38086
+        },
+        {
+          "path": ".aiwg/architecture/sad-fortemi-integration-addendum-2026-07.md",
+          "sha256": "9ac7c047281c6596c87d90f5e31c4254b5b8114a56d2b11ebc45a3658fa7bdb2",
+          "bytes": 45805
+        },
+        {
+          "path": ".aiwg/requirements/fortemi-api-integration-requirements-2026-07.md",
+          "sha256": "1f55dd20e398a3014d0b0a4074965742e63e46c996f0acfac42b8c3f823f312c",
+          "bytes": 35621
+        },
+        {
+          "path": ".aiwg/testing/api-contract-test-plan-addendum-2026-07.md",
+          "sha256": "1f4d5be87d26aec3044c820de82817f023036fde47c7e7cbae06e64525655cf1",
+          "bytes": 41314
+        },
+        {
+          "path": ".aiwg/reports/fortemi-v2026-07-api-integration-traceability.md",
+          "sha256": "4c63ab4b6384f734a9c8dce7281c4f30cf79e4889c559374767fe6a388f7bb38",
+          "bytes": 35904
+        },
+        {
+          "path": ".aiwg/reports/lane-b-hotm-job-store-lifetime-cycle97-phase1.json",
+          "sha256": "fc24b1f3d3ed3748b4477ed3e32248ac94ea67c89ed0177740cae0f7bf1009fd",
+          "bytes": 5573
+        }
+      ]
+    }
+  },
+  "activity": {
+    "id": "urn:aiwg:activity:job-store-lifetime:cycle97:phase1",
+    "type": "modification",
+    "started_at": "2026-09-13T06:58:14.159Z",
+    "ended_at": "2026-09-13T07:05:25.070Z",
+    "description": "Live job/queue/step/pause state reset on effective context changes. Owned callbacks have revision checks; pause requests also use latest-request checks. Dispose removes only store-owned subscriptions/timer. Existing legacy persistence/hydration remains unscoped."
+  },
+  "agent": {
+    "id": "urn:aiwg:agent:codex",
+    "type": "ai_assistant",
+    "name": "Codex"
+  },
+  "relationships": {
+    "wasGeneratedBy": {
+      "entity": "urn:aiwg:artifact:.aiwg/reports/lane-b-hotm-job-store-lifetime-cycle97-phase1.json",
+      "activity": "urn:aiwg:activity:job-store-lifetime:cycle97:phase1"
+    },
+    "wasAssociatedWith": {
+      "activity": "urn:aiwg:activity:job-store-lifetime:cycle97:phase1",
+      "agent": "urn:aiwg:agent:codex"
+    },
+    "wasAttributedTo": {
+      "entity": "urn:aiwg:artifact:.aiwg/reports/lane-b-hotm-job-store-lifetime-cycle97-phase1.json",
+      "agent": "urn:aiwg:agent:codex"
+    },
+    "wasDerivedFrom": [
+      {
+        "entity": "urn:aiwg:artifact:.aiwg/reports/lane-b-hotm-job-store-lifetime-cycle97-phase1.json",
+        "source": "urn:gitea:Fortemi:HotM:issue:1"
+      }
+    ]
+  }
+}

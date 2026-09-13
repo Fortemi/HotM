@@ -174,7 +174,7 @@ describe('events client replay handling', () => {
     const fetchMock = vi.fn<typeof fetch>()
       .mockResolvedValueOnce(new Response('', { status: 401, statusText: 'Unauthorized' }))
       .mockResolvedValueOnce(new Response(
-        'id: evt-reauth\nevent: queue.status\ndata: {"event_type":"queue.status","payload":{"type":"QueueStatus","total_jobs":1}}\n\n',
+        'id: evt-reauth\nevent: queue.status\ndata: {"event_type":"queue.status","tenant_id":"tenant-a","payload":{"type":"QueueStatus","total_jobs":1}}\n\n',
         { status: 200, headers: { 'Content-Type': 'text/event-stream' } },
       ));
     vi.stubGlobal('fetch', fetchMock);
@@ -361,6 +361,9 @@ describe('events client replay handling', () => {
       type: 'note.updated', memory: 'research', tenant_id: 'tenant-b',
     }, context)).toBe(false);
     expect(eventMatchesRealtimeContext({ type: 'resync_required' }, context)).toBe(true);
+    expect(eventMatchesRealtimeContext({ type: 'resync_required', tenant_id: 'foreign' }, context)).toBe(false);
+    expect(eventMatchesRealtimeContext({ type: 'events.lagged', memory: 'foreign' }, context)).toBe(false);
+    expect(eventMatchesRealtimeContext({ type: 'queue.status' }, context)).toBe(false);
   });
 
   it('extracts event_id from envelope payload for replay cursor', () => {

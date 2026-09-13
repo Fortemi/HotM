@@ -1,5 +1,6 @@
 import type { ApiClient } from './client';
 import { getServerRoot } from './client';
+import { captureDataContext, ContextChangedError, getDataContextRevision } from './data-context';
 import { getTauriFetch } from '@/lib/tauri';
 import packageMetadata from '../../package.json';
 import compatibilityReceipt from './contracts/fortemi-system-compatibility-receipt.json';
@@ -302,19 +303,40 @@ export function createCompatibilityAdmissionGate(
     error: null,
   };
   let pending: Promise<SystemCompatibilityResponse> | null = null;
+  let contextRevision = getDataContextRevision();
+  let generation = 0;
+
+  const reset = (): void => {
+    generation += 1;
+    contextRevision = getDataContextRevision();
+    pending = null;
+    snapshot = { state: 'unresolved', response: null, error: null };
+  };
+  const syncContext = (): void => {
+    if (contextRevision !== getDataContextRevision()) reset();
+  };
 
   const preflight = async (): Promise<SystemCompatibilityResponse> => {
+    syncContext();
     if (snapshot.state === 'compatible' && snapshot.response) return snapshot.response;
     if (snapshot.state === 'blocked' && snapshot.error) throw snapshot.error;
     if (pending) return pending;
 
     snapshot = { state: 'checking', response: null, error: null };
+    const context = captureDataContext();
+    const started = generation;
+    const assertCurrent = (): void => {
+      if (started !== generation) throw new ContextChangedError();
+      context.assertCurrent();
+    };
     pending = compatibilityApi.get()
       .then((response) => {
+        assertCurrent();
         snapshot = { state: 'compatible', response, error: null };
         return response;
       })
       .catch((cause: unknown) => {
+        assertCurrent();
         const error = cause instanceof SystemCompatibilityContractError
           ? cause
           : new SystemCompatibilityContractError(
@@ -325,7 +347,8 @@ export function createCompatibilityAdmissionGate(
         throw error;
       })
       .finally(() => {
-        pending = null;
+        context.close();
+        if (started === generation) pending = null;
       });
     return pending;
   };
@@ -336,11 +359,9 @@ export function createCompatibilityAdmissionGate(
       await preflight();
     },
     getSnapshot(): CompatibilityAdmissionSnapshot {
+      syncContext();
       return snapshot;
     },
-    reset(): void {
-      pending = null;
-      snapshot = { state: 'unresolved', response: null, error: null };
-    },
+    reset,
   };
 }

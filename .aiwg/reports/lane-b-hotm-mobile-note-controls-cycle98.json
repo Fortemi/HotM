@@ -1,0 +1,239 @@
+{
+  "at": "2026-09-13T14:10:38.951Z",
+  "cycle": 98,
+  "status": "PASS_MOBILE_NOTE_CONTROLS",
+  "fullLane": "NOT_PASS",
+  "changed": [
+    "ui/src/components/HallOfMind.tsx",
+    "ui/src/components/RegeneratePanel.tsx",
+    "ui/src/components/__tests__/RegeneratePanel.test.tsx"
+  ],
+  "sourceFiles": 522,
+  "producerSourceUnchanged": true,
+  "tests": {
+    "focused": 533,
+    "full": 2178,
+    "typecheck": "PASS",
+    "build": "PASS",
+    "browserControls": 18,
+    "layoutGroups": 24,
+    "widths": [
+      320,
+      390,
+      768,
+      1440
+    ],
+    "coreGroups": 220,
+    "coreHttpRequests": 293,
+    "auditRows": 655
+  },
+  "visualReview": "Inspected actual production browser screenshots at320,390 and1440px plus390px regeneration menu. Tabs contain all rows; titles readable; actions and menu fit. All four widths pass geometric and nonblank-pixel checks. Long unbroken titles, edit/original/enhanced headers, menu reachability and Escape focus return covered.",
+  "regression": {
+    "priorBuild": "../lane-b-delivery-20260913-cycle97/cache-final",
+    "failure": "every note tab stays inside its list",
+    "old320TitleWidth": 81.890625,
+    "oldRegenerateRight": 467.546875
+  },
+  "cleanup": {
+    "at": "2026-09-13T14:10:38.951Z",
+    "jobs": [
+      {
+        "label": "candidate",
+        "unit": "fortemi-local-test-1000-0ae53a67-9da2-41a6-b69c-1cde870848b3.service",
+        "result": "PASS",
+        "state": {
+          "unit": "fortemi-local-test-1000-0ae53a67-9da2-41a6-b69c-1cde870848b3.service",
+          "observedAt": "2026-09-13T14:05:45.083Z",
+          "LoadState": "loaded",
+          "ActiveState": "inactive",
+          "SubState": "dead",
+          "RuntimeMaxUSec": "15min",
+          "Result": "success",
+          "ExecMainCode": "1",
+          "ExecMainStatus": "0",
+          "ControlGroup": "/system.slice/fortemi-local-test-1000-0ae53a67-9da2-41a6-b69c-1cde870848b3.service",
+          "MemoryPeak": "2410188800",
+          "CPUUsageNSec": "165467156000",
+          "CPUQuotaPerSecUSec": "2s",
+          "MemoryHigh": "6442450944",
+          "MemoryMax": "8589934592",
+          "MemorySwapMax": "0",
+          "TasksMax": "256",
+          "exitCode": "exited",
+          "exitStatus": "0",
+          "finishedAt": "2026-09-13T14:05:45.083Z"
+        }
+      },
+      {
+        "label": "layout-red",
+        "unit": "fortemi-local-test-1000-b89a89f2-bfbd-42ba-a62b-2dcfee8b36eb.service",
+        "result": "NOT_PASS",
+        "state": {
+          "unit": "fortemi-local-test-1000-b89a89f2-bfbd-42ba-a62b-2dcfee8b36eb.service",
+          "observedAt": "2026-09-13T14:06:18.218Z",
+          "LoadState": "loaded",
+          "ActiveState": "failed",
+          "SubState": "failed",
+          "RuntimeMaxUSec": "15min",
+          "Result": "exit-code",
+          "ExecMainCode": "1",
+          "ExecMainStatus": "1",
+          "ControlGroup": "/system.slice/fortemi-local-test-1000-b89a89f2-bfbd-42ba-a62b-2dcfee8b36eb.service",
+          "MemoryPeak": "2404491264",
+          "CPUUsageNSec": "25917303000",
+          "CPUQuotaPerSecUSec": "2s",
+          "MemoryHigh": "6442450944",
+          "MemoryMax": "8589934592",
+          "MemorySwapMax": "0",
+          "TasksMax": "256",
+          "exitCode": "exited",
+          "exitStatus": "1",
+          "finishedAt": "2026-09-13T14:06:18.218Z"
+        }
+      },
+      {
+        "label": "layout-green",
+        "unit": "fortemi-local-test-1000-007fb6dc-c1ad-41ea-8576-90ddbd785ce7.service",
+        "result": "PASS",
+        "state": {
+          "unit": "fortemi-local-test-1000-007fb6dc-c1ad-41ea-8576-90ddbd785ce7.service",
+          "observedAt": "2026-09-13T14:07:30.652Z",
+          "LoadState": "loaded",
+          "ActiveState": "inactive",
+          "SubState": "dead",
+          "RuntimeMaxUSec": "15min",
+          "Result": "success",
+          "ExecMainCode": "1",
+          "ExecMainStatus": "0",
+          "ControlGroup": "/system.slice/fortemi-local-test-1000-007fb6dc-c1ad-41ea-8576-90ddbd785ce7.service",
+          "MemoryPeak": "2127519744",
+          "CPUUsageNSec": "38881963000",
+          "CPUQuotaPerSecUSec": "2s",
+          "MemoryHigh": "6442450944",
+          "MemoryMax": "8589934592",
+          "MemorySwapMax": "0",
+          "TasksMax": "256",
+          "exitCode": "exited",
+          "exitStatus": "0",
+          "finishedAt": "2026-09-13T14:07:30.652Z"
+        }
+      }
+    ],
+    "pidsAbsent": [
+      1365487,
+      1365450,
+      1365444,
+      1365438,
+      1365338,
+      1365645,
+      1365659,
+      1365698,
+      1365037,
+      1365709,
+      1367890,
+      1367858,
+      1367851,
+      1367845,
+      1367790,
+      1368048,
+      1368061,
+      1368169,
+      1367492,
+      1368182
+    ],
+    "postgres": [
+      {
+        "label": "layout-red",
+        "records": [
+          {
+            "ephemeralPostgres": "postgres (PostgreSQL) 18.6 (Ubuntu 18.6-0ubuntu0.26.04.1)",
+            "state": "READY",
+            "postmasterPid": 1365487,
+            "boundedUnit": "fortemi-local-test-1000-b89a89f2-bfbd-42ba-a62b-2dcfee8b36eb.service",
+            "tcpListening": false,
+            "profile": "hosted-http",
+            "capacity": {
+              "maxConnections": 20,
+              "superuserReserved": 3,
+              "reserved": 0
+            }
+          },
+          {
+            "ephemeralPostgres": "postgres (PostgreSQL) 18.6 (Ubuntu 18.6-0ubuntu0.26.04.1)",
+            "serverSlotRefusalsInLast64KiB": 0,
+            "serverLogAvailable": true,
+            "boundedUnit": "fortemi-local-test-1000-b89a89f2-bfbd-42ba-a62b-2dcfee8b36eb.service"
+          },
+          {
+            "ephemeralPostgres": "postgres (PostgreSQL) 18.6 (Ubuntu 18.6-0ubuntu0.26.04.1)",
+            "startAttempted": true,
+            "started": true,
+            "stopped": true,
+            "removed": true,
+            "tcpListening": false,
+            "boundedUnit": "fortemi-local-test-1000-b89a89f2-bfbd-42ba-a62b-2dcfee8b36eb.service"
+          }
+        ]
+      },
+      {
+        "label": "layout-green",
+        "records": [
+          {
+            "ephemeralPostgres": "postgres (PostgreSQL) 18.6 (Ubuntu 18.6-0ubuntu0.26.04.1)",
+            "state": "READY",
+            "postmasterPid": 1367890,
+            "boundedUnit": "fortemi-local-test-1000-007fb6dc-c1ad-41ea-8576-90ddbd785ce7.service",
+            "tcpListening": false,
+            "profile": "hosted-http",
+            "capacity": {
+              "maxConnections": 20,
+              "superuserReserved": 3,
+              "reserved": 0
+            }
+          },
+          {
+            "ephemeralPostgres": "postgres (PostgreSQL) 18.6 (Ubuntu 18.6-0ubuntu0.26.04.1)",
+            "serverSlotRefusalsInLast64KiB": 0,
+            "serverLogAvailable": true,
+            "boundedUnit": "fortemi-local-test-1000-007fb6dc-c1ad-41ea-8576-90ddbd785ce7.service"
+          },
+          {
+            "ephemeralPostgres": "postgres (PostgreSQL) 18.6 (Ubuntu 18.6-0ubuntu0.26.04.1)",
+            "startAttempted": true,
+            "started": true,
+            "stopped": true,
+            "removed": true,
+            "tcpListening": false,
+            "boundedUnit": "fortemi-local-test-1000-007fb6dc-c1ad-41ea-8576-90ddbd785ce7.service"
+          }
+        ]
+      }
+    ],
+    "services": {
+      "vllm": {
+        "ActiveState": "active",
+        "UnitFileState": "enabled",
+        "MainPID": "223555",
+        "NRestarts": "0"
+      },
+      "ollama": {
+        "ActiveState": "active",
+        "UnitFileState": "enabled",
+        "MainPID": "10457",
+        "NRestarts": "2"
+      },
+      "hostRunner": {
+        "ActiveState": "inactive",
+        "UnitFileState": "disabled",
+        "MainPID": "0",
+        "NRestarts": "0"
+      }
+    },
+    "sharedServicesUnchanged": true,
+    "peakBytes": 2410188800
+  },
+  "next": "Discuss needed human evaluations with the operator before further evaluation work. No physical-device/human usability or AI-output quality acceptance claimed. No model/shared inference action.",
+  "release": "UI-only uncommitted/unreleased candidate at existing HotM HEAD. No contract/profile/pin or producer change. Full lane CI/delivery/release sweep remains pending; last release-ref reconciliation is Cycle97. No release/signing/publication action.",
+  "boundaries": "Original20scope, exact Cycle96/Cycle82 held drafts and other prior holds unchanged. Suite NO-GO/public readiness false. Mobile selected-note automatic acceptance does not complete the lane.",
+  "evidence": "/home/roctinam/dev/fortemi-suite/.aiwg/working/lane-b/evidence/lane-b-delivery-20260913-cycle98"
+}
