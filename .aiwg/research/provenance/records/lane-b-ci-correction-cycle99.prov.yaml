@@ -1,0 +1,63 @@
+{
+  "metadata": {
+    "schema_version": "1.0.0",
+    "created_at": "2026-09-13T17:11:12.579Z"
+  },
+  "entity": {
+    "id": "urn:aiwg:artifact:.gitea/workflows/ui-ci.yml",
+    "type": "file",
+    "checksum": "sha256:3269940619132c0bb0ff9f4b435fad62888fc85426f769bdc9aa9f3ccbf6978b"
+  },
+  "activity": {
+    "id": "urn:aiwg:activity:lane-b-ci-correction:cycle99",
+    "type": "modification",
+    "description": "fix(ci): bound UI coverage worker concurrency",
+    "started_at": "2026-09-13T17:11:12.579Z",
+    "ended_at": "2026-09-13T17:11:12.579Z"
+  },
+  "agent": {
+    "id": "urn:aiwg:agent:codex",
+    "type": "ai_assistant",
+    "name": "Codex"
+  },
+  "relationships": {
+    "wasGeneratedBy": {
+      "entity": "urn:aiwg:artifact:.gitea/workflows/ui-ci.yml",
+      "activity": "urn:aiwg:activity:lane-b-ci-correction:cycle99"
+    },
+    "wasAssociatedWith": {
+      "activity": "urn:aiwg:activity:lane-b-ci-correction:cycle99",
+      "agent": "urn:aiwg:agent:codex"
+    },
+    "wasAttributedTo": {
+      "entity": "urn:aiwg:artifact:.gitea/workflows/ui-ci.yml",
+      "agent": "urn:aiwg:agent:codex"
+    }
+  },
+  "verification": {
+    "unit": "fortemi-local-test-1000-8eaddbbd-bbd2-4a5e-8b9a-b2713a0cfa08.service",
+    "result": {
+      "unit": "fortemi-local-test-1000-8eaddbbd-bbd2-4a5e-8b9a-b2713a0cfa08.service",
+      "observedAt": "2026-09-13T17:10:56.103Z",
+      "LoadState": "loaded",
+      "ActiveState": "inactive",
+      "SubState": "dead",
+      "RuntimeMaxUSec": "15min",
+      "Result": "success",
+      "ExecMainCode": "1",
+      "ExecMainStatus": "0",
+      "ControlGroup": "/system.slice/fortemi-local-test-1000-8eaddbbd-bbd2-4a5e-8b9a-b2713a0cfa08.service",
+      "MemoryPeak": "745267200",
+      "CPUUsageNSec": "149718384000",
+      "CPUQuotaPerSecUSec": "2s",
+      "MemoryHigh": "6442450944",
+      "MemoryMax": "8589934592",
+      "MemorySwapMax": "0",
+      "TasksMax": "256",
+      "exitCode": "exited",
+      "exitStatus": "0",
+      "finishedAt": "2026-09-13T17:10:56.103Z"
+    },
+    "limitation": "Exact-head remote CI still required."
+  }
+}

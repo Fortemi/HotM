@@ -110,7 +110,7 @@ jobs:
 
       - name: Run tests with coverage
         working-directory: ui
-        run: npm run test:coverage -- --run
+        run: npm run test:coverage -- --run --maxWorkers=1 --no-file-parallelism
 
       - name: Run realtime convergence suite
         working-directory: ui
