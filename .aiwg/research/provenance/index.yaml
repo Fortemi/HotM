@@ -1,7 +1,7 @@
 metadata:
   schema_version: 1.0.0
-  updated_at: '2026-09-13T17:11:12.579Z'
-  record_count: 225
+  updated_at: 2026-09-14T17:05:17.539Z
+  record_count: 374
 records:
   - entity: urn:aiwg:artifact:ui/src/components/HallOfMind.tsx
     record: records/lane-b-hotm-mobile-note-controls-cycle98.prov.yaml
@@ -537,8 +537,7 @@ records:
     record: records/OperatorConsole.tsx.f9767dac.hotm-294-296.prov.yaml
   - entity: urn:aiwg:artifact:ui/src/components/admin/__tests__/CoreContentLifecyclePanel.test.tsx
     record: records/CoreContentLifecyclePanel.test.tsx.5733a405.hotm-294-296.prov.yaml
-  - entity: >-
-      urn:aiwg:artifact:ui/src/components/admin/__tests__/CoreContentLifecyclePanelSecondIncrement.test.tsx
+  - entity: urn:aiwg:artifact:ui/src/components/admin/__tests__/CoreContentLifecyclePanelSecondIncrement.test.tsx
     record: records/CoreContentLifecyclePanelSecondIncrement.test.tsx.4e6953a9.hotm-294-296.prov.yaml
   - entity: urn:aiwg:artifact:ui/src/components/admin/__tests__/OperatorConsole.test.tsx
     record: records/OperatorConsole.test.tsx.c82b134e.hotm-294-296.prov.yaml
@@ -619,36 +618,27 @@ records:
   - entity: urn:aiwg:artifact:ui/scripts/playwright-mocked-ci.config.cjs
     record: records/playwright-mocked-ci.config.cjs.01787bbe.hotm-297.prov.yaml
   - entity: urn:aiwg:artifact:.aiwg/architecture/adr-auth-shared-crate.md
-    record: >-
-      records/dotaiwg-architecture-adr-auth-shared-crate.md.9fc14e85441c.hotm-231-auth-v2026.8.1.prov.yaml
+    record: records/dotaiwg-architecture-adr-auth-shared-crate.md.9fc14e85441c.hotm-231-auth-v2026.8.1.prov.yaml
   - entity: urn:aiwg:artifact:.aiwg/architecture/sad-fortemi-integration-addendum-2026-07.md
-    record: >-
-      records/dotaiwg-architecture-sad-fortemi-integration-addendum-2026-07.md.ba1ae49cf11e.hotm-231-auth-v2026.8.1.prov.yaml
+    record: records/dotaiwg-architecture-sad-fortemi-integration-addendum-2026-07.md.ba1ae49cf11e.hotm-231-auth-v2026.8.1.prov.yaml
   - entity: urn:aiwg:artifact:.aiwg/reports/fortemi-auth-node-conformance-receipt-2026-07-26.md
-    record: >-
-      records/dotaiwg-reports-fortemi-auth-node-conformance-receipt-2026-07-26.md.83750b0a3dc2.hotm-231-auth-v2026.8.1.prov.yaml
+    record: records/dotaiwg-reports-fortemi-auth-node-conformance-receipt-2026-07-26.md.83750b0a3dc2.hotm-231-auth-v2026.8.1.prov.yaml
   - entity: urn:aiwg:artifact:.aiwg/reports/fortemi-auth-tenant-store-composition-receipt-2026-08-24.md
-    record: >-
-      records/dotaiwg-reports-fortemi-auth-tenant-store-composition-receipt-2026-08-24.md.5e04d1fd01e8.hotm-231-auth-v2026.8.1.prov.yaml
+    record: records/dotaiwg-reports-fortemi-auth-tenant-store-composition-receipt-2026-08-24.md.5e04d1fd01e8.hotm-231-auth-v2026.8.1.prov.yaml
   - entity: urn:aiwg:artifact:.aiwg/reports/fortemi-hotm-integration-audit-2026-08-15.md
-    record: >-
-      records/dotaiwg-reports-fortemi-hotm-integration-audit-2026-08-15.md.a6c7864a89c1.hotm-231-auth-v2026.8.1.prov.yaml
+    record: records/dotaiwg-reports-fortemi-hotm-integration-audit-2026-08-15.md.a6c7864a89c1.hotm-231-auth-v2026.8.1.prov.yaml
   - entity: urn:aiwg:artifact:agent-proxy/SECURITY.md
     record: records/agent-proxy-SECURITY.md.cb04d7f62a56.hotm-231-auth-v2026.8.1.prov.yaml
   - entity: urn:aiwg:artifact:agent-proxy/package.json
     record: records/agent-proxy-package.json.5eec3ac15b86.hotm-231-auth-v2026.8.1.prov.yaml
   - entity: urn:aiwg:artifact:agent-proxy/src/__tests__/app-auth.test.ts
-    record: >-
-      records/agent-proxy-src-__tests__-app-auth.test.ts.01c91c381fe3.hotm-231-auth-v2026.8.1.prov.yaml
+    record: records/agent-proxy-src-__tests__-app-auth.test.ts.01c91c381fe3.hotm-231-auth-v2026.8.1.prov.yaml
   - entity: urn:aiwg:artifact:agent-proxy/src/__tests__/compatibility.test.ts
-    record: >-
-      records/agent-proxy-src-__tests__-compatibility.test.ts.88072b10900a.hotm-231-auth-v2026.8.1.prov.yaml
+    record: records/agent-proxy-src-__tests__-compatibility.test.ts.88072b10900a.hotm-231-auth-v2026.8.1.prov.yaml
   - entity: urn:aiwg:artifact:agent-proxy/src/auth/fixtures/fortemi-auth-release-policy-v1.json
-    record: >-
-      records/agent-proxy-src-auth-fixtures-fortemi-auth-release-policy-v1.json.d70491c336a6.hotm-231-auth-v2026.8.1.prov.yaml
+    record: records/agent-proxy-src-auth-fixtures-fortemi-auth-release-policy-v1.json.d70491c336a6.hotm-231-auth-v2026.8.1.prov.yaml
   - entity: urn:aiwg:artifact:agent-proxy/src/auth/fixtures/fortemi-auth-v1.json
-    record: >-
-      records/agent-proxy-src-auth-fixtures-fortemi-auth-v1.json.2df0a35edad6.hotm-231-auth-v2026.8.1.prov.yaml
+    record: records/agent-proxy-src-auth-fixtures-fortemi-auth-v1.json.2df0a35edad6.hotm-231-auth-v2026.8.1.prov.yaml
   - entity: urn:aiwg:artifact:agent-proxy/src/auth/middleware.test.ts
     record: records/agent-proxy-src-auth-middleware.test.ts.08d77b957caf.hotm-231-auth-v2026.8.1.prov.yaml
   - entity: urn:aiwg:artifact:agent-proxy/src/auth/verify.test.ts
@@ -656,17 +646,13 @@ records:
   - entity: urn:aiwg:artifact:agent-proxy/src/auth/verify.ts
     record: records/agent-proxy-src-auth-verify.ts.6a55fa505562.hotm-231-auth-v2026.8.1.prov.yaml
   - entity: urn:aiwg:artifact:agent-proxy/src/contracts/fortemi-system-compatibility-receipt.json
-    record: >-
-      records/agent-proxy-src-contracts-fortemi-system-compatibility-receipt.json.270df9904ad7.hotm-231-auth-v2026.8.1.prov.yaml
+    record: records/agent-proxy-src-contracts-fortemi-system-compatibility-receipt.json.270df9904ad7.hotm-231-auth-v2026.8.1.prov.yaml
   - entity: urn:aiwg:artifact:ui/src/api/__tests__/systemCompatibility.test.ts
-    record: >-
-      records/ui-src-api-__tests__-systemCompatibility.test.ts.13e96fd3619d.hotm-231-auth-v2026.8.1.prov.yaml
+    record: records/ui-src-api-__tests__-systemCompatibility.test.ts.13e96fd3619d.hotm-231-auth-v2026.8.1.prov.yaml
   - entity: urn:aiwg:artifact:ui/src/api/contracts/fortemi-system-compatibility-receipt.json
-    record: >-
-      records/ui-src-api-contracts-fortemi-system-compatibility-receipt.json.270df9904ad7.hotm-231-auth-v2026.8.1.prov.yaml
+    record: records/ui-src-api-contracts-fortemi-system-compatibility-receipt.json.270df9904ad7.hotm-231-auth-v2026.8.1.prov.yaml
   - entity: urn:aiwg:artifact:.aiwg/testing/scripts/verify-fortemi-system-compatibility-contract.mjs
-    record: >-
-      records/verify-fortemi-system-compatibility-contract.mjs.3a2ba9ef5dd5.hotm-231-auth-v2026.8.1.prov.yaml
+    record: records/verify-fortemi-system-compatibility-contract.mjs.3a2ba9ef5dd5.hotm-231-auth-v2026.8.1.prov.yaml
   - entity: urn:aiwg:artifact:.aiwg/architecture/adr/ADR-010-fortemi-v2026-07-api-coverage.md
     record: records/lane-b-source-delivery-cycle99.prov.yaml
   - entity: urn:aiwg:artifact:.aiwg/architecture/sad-fortemi-integration-addendum-2026-07.md
@@ -763,3 +749,5 @@ records:
     record: records/lane-b-source-delivery-cycle99.prov.yaml
   - entity: urn:aiwg:artifact:.gitea/workflows/ui-ci.yml
     record: records/lane-b-ci-correction-cycle99.prov.yaml
+  - entity: urn:aiwg:artifact:ui/src-tauri/Cargo.lock
+    record: records/lane-b-tls-security-cycle123.prov.yaml

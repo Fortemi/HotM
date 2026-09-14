@@ -1,0 +1,48 @@
+{
+  "metadata": {
+    "schema_version": "1.0.0",
+    "created_at": "2026-09-14T17:05:17.539Z"
+  },
+  "entity": {
+    "id": "urn:aiwg:artifact:ui/src-tauri/Cargo.lock",
+    "type": "code",
+    "created_at": "2026-09-14T17:05:17.539Z",
+    "checksum": "sha256:66c197759239e3580e0023f963bf4f482213d3a222c60f9e2239acb3058e9b79"
+  },
+  "activity": {
+    "id": "urn:aiwg:activity:lane-b-tls-security:hotm:123",
+    "type": "modification",
+    "started_at": "2026-09-14T17:05:17.539Z",
+    "ended_at": "2026-09-14T17:05:17.539Z",
+    "description": "Resolve RUSTSEC-2026-0285 with rustls0.23.45 and required verified transitive packages. Cargo-generated lock changes only; no advisory waiver, contract/pin change or new acceptance claim."
+  },
+  "agent": {
+    "id": "urn:aiwg:agent:codex",
+    "type": "ai_assistant",
+    "name": "Codex"
+  },
+  "relationships": {
+    "wasGeneratedBy": {
+      "entity": "urn:aiwg:artifact:ui/src-tauri/Cargo.lock",
+      "activity": "urn:aiwg:activity:lane-b-tls-security:hotm:123"
+    },
+    "wasAssociatedWith": {
+      "activity": "urn:aiwg:activity:lane-b-tls-security:hotm:123",
+      "agent": "urn:aiwg:agent:codex"
+    },
+    "wasAttributedTo": {
+      "entity": "urn:aiwg:artifact:ui/src-tauri/Cargo.lock",
+      "agent": "urn:aiwg:agent:codex"
+    }
+  },
+  "artifacts": {
+    "ui/src-tauri/Cargo.lock": "66c197759239e3580e0023f963bf4f482213d3a222c60f9e2239acb3058e9b79"
+  },
+  "verification": {
+    "unit": "fortemi-local-test-1000-38d8424a-ab03-4e5f-8b39-7556eeefea0f.service",
+    "nativeCases": 0,
+    "result": "NOT_PASS locally: Rust compilation reached native link; GTK/WebKit libraries unavailable. Exact-source desktop CI required; no GUI/platform/sidecar acceptance asserted.",
+    "sourceProvenance": "Four archives match sparse-index checksums and embedded upstream commit manifests; six old archives independently checksum-verified. Suite Cycle123 retains inventories, source diffs and failures.",
+    "limitation": "CI and release gates still required. Suite NO-GO, named profiles and human holds unchanged."
+  }
+}
