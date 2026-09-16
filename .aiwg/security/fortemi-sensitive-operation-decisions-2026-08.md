@@ -47,17 +47,17 @@ This table classifies exactly 41 credential, PKE, binary-transfer, media, and TU
 | `export_keyset` | `GET /api/v1/pke/keysets/{name_or_id}/export` | `continued_exclusion` | no | Fortemi PKE and HotM security | Pinned PKE success responses are not schema-bearing; private-key custody and redaction conformance is unverified. |
 | `pke_recipients` | `POST /api/v1/pke/recipients` | `continued_exclusion` | no | Fortemi PKE and HotM security | Pinned PKE success responses are not schema-bearing; private-key custody and redaction conformance is unverified. |
 | `pke_verify` | `GET /api/v1/pke/verify/{address}` | `continued_exclusion` | no | Fortemi PKE and HotM security | Pinned PKE success responses are not schema-bearing; private-key custody and redaction conformance is unverified. |
-| `oauth_authorize_get` | `GET /oauth/authorize` | `continued_exclusion` | no | fortemi-auth and HotM security | fortemi-auth is specification-only and has no qualifying release or shared Rust/Node fixture receipt. |
-| `oauth_authorize_post` | `POST /oauth/authorize` | `continued_exclusion` | no | fortemi-auth and HotM security | fortemi-auth is specification-only and has no qualifying release or shared Rust/Node fixture receipt. |
-| `oauth_introspect` | `POST /oauth/introspect` | `continued_exclusion` | no | fortemi-auth and HotM security | fortemi-auth is specification-only and has no qualifying release or shared Rust/Node fixture receipt. |
-| `oauth_register` | `POST /oauth/register` | `continued_exclusion` | no | fortemi-auth and HotM security | fortemi-auth is specification-only and has no qualifying release or shared Rust/Node fixture receipt. |
-| `oauth_revoke` | `POST /oauth/revoke` | `continued_exclusion` | no | fortemi-auth and HotM security | fortemi-auth is specification-only and has no qualifying release or shared Rust/Node fixture receipt. |
-| `oauth_token` | `POST /oauth/token` | `continued_exclusion` | no | fortemi-auth and HotM security | fortemi-auth is specification-only and has no qualifying release or shared Rust/Node fixture receipt. |
+| `oauth_authorize_get` | `GET /oauth/authorize` | `continued_exclusion` | no | fortemi-auth and HotM security | Shared auth release and Rust/Node fixture receipts exist; producer OAuth payload schemas, runtime admission metadata, and hosted tenant-isolation evidence remain incomplete. |
+| `oauth_authorize_post` | `POST /oauth/authorize` | `continued_exclusion` | no | fortemi-auth and HotM security | Shared auth release and Rust/Node fixture receipts exist; producer OAuth payload schemas, runtime admission metadata, and hosted tenant-isolation evidence remain incomplete. |
+| `oauth_introspect` | `POST /oauth/introspect` | `continued_exclusion` | no | fortemi-auth and HotM security | Shared auth release and Rust/Node fixture receipts exist; producer OAuth payload schemas, runtime admission metadata, and hosted tenant-isolation evidence remain incomplete. |
+| `oauth_register` | `POST /oauth/register` | `continued_exclusion` | no | fortemi-auth and HotM security | Shared auth release and Rust/Node fixture receipts exist; producer OAuth payload schemas, runtime admission metadata, and hosted tenant-isolation evidence remain incomplete. |
+| `oauth_revoke` | `POST /oauth/revoke` | `continued_exclusion` | no | fortemi-auth and HotM security | Shared auth release and Rust/Node fixture receipts exist; producer OAuth payload schemas, runtime admission metadata, and hosted tenant-isolation evidence remain incomplete. |
+| `oauth_token` | `POST /oauth/token` | `continued_exclusion` | no | fortemi-auth and HotM security | Shared auth release and Rust/Node fixture receipts exist; producer OAuth payload schemas, runtime admission metadata, and hosted tenant-isolation evidence remain incomplete. |
 
 ## Promotion Rules
 
 - Promotion requires producer-owned request, response, and auth artifacts at the pinned revision plus focused consumer verification.
-- `fortemi-auth` remains specification-only until its Rust workspace, CI, release, and shared Rust/Node fixture receipts all exist.
+- The signed `fortemi-auth` release and shared Rust/Node fixture receipts establish only the named contract profile; OAuth operations remain excluded until producer payload, runtime admission, and hosted tenant-isolation evidence exist.
 - Generic agent tools never receive credential material, private keys, upload URLs, tenant identifiers, local paths, or binary payloads.
 - Browser/Tauri primitives carry bytes directly. Large payloads are not base64-encoded through the agent or React client.
 - Unknown compatibility or auth claim-contract revisions fail closed while local-only workflows remain available.

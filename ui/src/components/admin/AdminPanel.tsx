@@ -185,9 +185,10 @@ function AuthDiagnosticsPanel() {
           <div className="flex items-start gap-3 rounded-md border bg-muted/40 p-3">
             <Lock className="mt-0.5 size-4 text-muted-foreground" />
             <p className="text-sm text-muted-foreground">
-              <code>fortemi-auth</code> remains specification-only. Token exchange, authorization, introspection,
-              revocation, and client registration are disabled until the release and shared-fixture
-              conditions are met. This panel never renders credential artifacts.
+              <code>fortemi-auth</code> has a signed shared-contract release and Rust/Node fixture receipts.
+              Token exchange, authorization, introspection, revocation, and client registration remain disabled
+              until producer runtime admission and hosted tenant-isolation evidence exist. This panel never renders
+              credential artifacts.
             </p>
           </div>
         </CardContent>

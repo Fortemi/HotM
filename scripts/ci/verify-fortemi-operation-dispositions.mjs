@@ -109,7 +109,7 @@ function sensitiveDecisionFor(operation) {
   let blocker = 'Pinned request, response, and auth evidence is incomplete for promotion.';
   if (operation.path.startsWith('/oauth/')) {
     owner = 'fortemi-auth and HotM security';
-    blocker = 'fortemi-auth is specification-only and has no qualifying release or shared Rust/Node fixture receipt.';
+    blocker = 'Shared auth release and Rust/Node fixture receipts exist; producer OAuth payload schemas, runtime admission metadata, and hosted tenant-isolation evidence remain incomplete.';
   } else if (operation.path.startsWith('/api/v1/pke')) {
     owner = 'Fortemi PKE and HotM security';
     blocker = 'Pinned PKE success responses are not schema-bearing; private-key custody and redaction conformance is unverified.';
@@ -249,7 +249,7 @@ function buildSensitiveDecisionMarkdown(ledger) {
     '## Promotion Rules',
     '',
     '- Promotion requires producer-owned request, response, and auth artifacts at the pinned revision plus focused consumer verification.',
-    '- `fortemi-auth` remains specification-only until its Rust workspace, CI, release, and shared Rust/Node fixture receipts all exist.',
+    '- The signed `fortemi-auth` release and shared Rust/Node fixture receipts establish only the named contract profile; OAuth operations remain excluded until producer payload, runtime admission, and hosted tenant-isolation evidence exist.',
     '- Generic agent tools never receive credential material, private keys, upload URLs, tenant identifiers, local paths, or binary payloads.',
     '- Browser/Tauri primitives carry bytes directly. Large payloads are not base64-encoded through the agent or React client.',
     '- Unknown compatibility or auth claim-contract revisions fail closed while local-only workflows remain available.',

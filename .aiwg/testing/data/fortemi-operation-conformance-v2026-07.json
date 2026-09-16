@@ -8473,7 +8473,7 @@
     "GET /oauth/authorize#oauth_authorize_get": {
       "targeted_by_290": true,
       "tracker": "#297",
-      "rationale": "fortemi-auth is specification-only and has no qualifying release or shared Rust/Node fixture receipt.",
+      "rationale": "Shared auth release and Rust/Node fixture receipts exist; producer OAuth payload schemas, runtime admission metadata, and hosted tenant-isolation evidence remain incomplete.",
       "disposition": "documented_exclusion",
       "dimensions": {
         "route": {
@@ -8523,7 +8523,7 @@
     "POST /oauth/authorize#oauth_authorize_post": {
       "targeted_by_290": true,
       "tracker": "#297",
-      "rationale": "fortemi-auth is specification-only and has no qualifying release or shared Rust/Node fixture receipt.",
+      "rationale": "Shared auth release and Rust/Node fixture receipts exist; producer OAuth payload schemas, runtime admission metadata, and hosted tenant-isolation evidence remain incomplete.",
       "disposition": "documented_exclusion",
       "dimensions": {
         "route": {
@@ -8573,7 +8573,7 @@
     "POST /oauth/introspect#oauth_introspect": {
       "targeted_by_290": true,
       "tracker": "#297",
-      "rationale": "fortemi-auth is specification-only and has no qualifying release or shared Rust/Node fixture receipt.",
+      "rationale": "Shared auth release and Rust/Node fixture receipts exist; producer OAuth payload schemas, runtime admission metadata, and hosted tenant-isolation evidence remain incomplete.",
       "disposition": "documented_exclusion",
       "dimensions": {
         "route": {
@@ -8623,7 +8623,7 @@
     "POST /oauth/register#oauth_register": {
       "targeted_by_290": true,
       "tracker": "#297",
-      "rationale": "fortemi-auth is specification-only and has no qualifying release or shared Rust/Node fixture receipt.",
+      "rationale": "Shared auth release and Rust/Node fixture receipts exist; producer OAuth payload schemas, runtime admission metadata, and hosted tenant-isolation evidence remain incomplete.",
       "disposition": "documented_exclusion",
       "dimensions": {
         "route": {
@@ -8673,7 +8673,7 @@
     "POST /oauth/revoke#oauth_revoke": {
       "targeted_by_290": true,
       "tracker": "#297",
-      "rationale": "fortemi-auth is specification-only and has no qualifying release or shared Rust/Node fixture receipt.",
+      "rationale": "Shared auth release and Rust/Node fixture receipts exist; producer OAuth payload schemas, runtime admission metadata, and hosted tenant-isolation evidence remain incomplete.",
       "disposition": "documented_exclusion",
       "dimensions": {
         "route": {
@@ -8785,7 +8785,7 @@
     "POST /oauth/token#oauth_token": {
       "targeted_by_290": true,
       "tracker": "#297",
-      "rationale": "fortemi-auth is specification-only and has no qualifying release or shared Rust/Node fixture receipt.",
+      "rationale": "Shared auth release and Rust/Node fixture receipts exist; producer OAuth payload schemas, runtime admission metadata, and hosted tenant-isolation evidence remain incomplete.",
       "disposition": "documented_exclusion",
       "dimensions": {
         "route": {

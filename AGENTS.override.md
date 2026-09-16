@@ -15,5 +15,5 @@ When changing Fortemi integration code or claims:
   call a shard portable or lossless until the corresponding cross-repository
   golden round trips, including bytes where required, pass.
 - Fail closed on unknown compatibility contract revisions, unmet minimum-client requirements, and unsupported auth claim-contract versions while preserving local-only workflows.
-- Treat `fortemi-auth` as specification-only until its Rust workspace, CI, release, and shared Rust/Node fixture receipts exist.
+- Treat the pinned signed `fortemi-auth` release and shared Rust/Node fixtures as evidence only for their named contract profile. Do not infer OAuth payload, runtime admission, or hosted tenant-isolation support from those receipts.
 - Update the SAD addendum, ADR-010, requirements, test plan, and traceability together when any integration contract changes.

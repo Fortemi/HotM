@@ -352,8 +352,9 @@ claim-contract enforcement, tenant consistency, identity-bound privilege
 sessions, context forwarding, one-shot confirmations, and redacted errors.
 Hosted operation still fails closed because the current required-auth
 compatibility payload does not advertise an accepted claim-contract version;
-`fortemi-auth` remains specification-only pending the repository contract's
-release condition. These bounds keep #231 open.
+the signed `fortemi-auth` release and exact Rust/Node corpus receipts do not
+establish producer runtime admission or database isolation. These bounds keep
+#231 open.
 
 REQ-018 now has header-only fetch SSE context, replay, all-events subscription,
 tenant/memory rejection, and redaction tests. Scoped WebSocket is deliberately
@@ -408,8 +409,9 @@ Focused tests cover cancellation, resume offsets, TUS range/content headers,
 advertised maximum size, malformed metadata, expired authorization, and
 redaction of producer bodies, bearer values, upload URLs, tenant identifiers,
 and local paths. No decision upgrades request, response, auth, live, or
-Knowledge Shard conformance. `fortemi-auth` remains specification-only until
-its full release condition is independently evidenced.
+Knowledge Shard conformance. The signed auth release and shared fixture receipts
+cover only the named contract profile; OAuth operations remain excluded pending
+producer payload, runtime admission, and hosted tenant-isolation evidence.
 
 The current generated operation result is 1 integrated, 222 partial, and 31
 documented exclusions with zero verifier diagnostics.

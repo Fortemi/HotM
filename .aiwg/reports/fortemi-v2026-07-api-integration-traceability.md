@@ -342,7 +342,7 @@ Knowledge Shard round-trip, or cross-language auth receipts.
 | REQ-024 exact decision set | `.aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md`, schema-v2 generated operation ledger, stale-ledger CI verifier | Exactly 41 rows: 5 typed TUS, 5 browser/native media handoffs, 31 disabled exclusions. Each row names its owner and blocker. |
 | REQ-007 TUS transport | `tusUploader.ts`, `uploadStore.ts`, `SaveAsNoteButton.tsx`, focused tests | All remote file sizes use TUS; tests cover create/options/head/patch/delete, finalization, cancellation, offset, expiry, max size, malformed metadata, auth expiry, and redaction. |
 | REQ-011 sensitive errors | `attachments.ts`, `backup.ts`, Admin auth/catalog panels and focused tests | Producer bodies, bearer artifacts, upload URLs, tenant IDs, local paths, and binary data do not reach generic errors or rendered diagnostics. |
-| Continued exclusions | pinned OpenAPI receipt plus exact #297 table | API keys, OAuth, PKE, legacy attachment upload, and underspecified backup routes remain disabled. `fortemi-auth` has no qualifying release; missing producer schemas are not inferred. |
+| Continued exclusions | pinned OpenAPI receipt plus exact #297 table | API keys, OAuth, PKE, legacy attachment upload, and underspecified backup routes remain disabled. The signed auth release and exact Rust/Node corpus receipts do not supply missing producer payload, runtime admission, or hosted isolation evidence. |
 
 The 5 media handoffs and 5 TUS workflows are product-disposition evidence, not
 operation-specific auth or live receipts. The 31 exclusions stay visible and

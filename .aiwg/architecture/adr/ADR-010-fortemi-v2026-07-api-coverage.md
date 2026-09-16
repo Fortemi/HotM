@@ -550,8 +550,10 @@ The 31 exclusions cannot be enabled by route inventory, implementation
 presence, response prose, or a mocked browser receipt. Promotion requires
 producer-owned request, response, and auth artifacts at the pinned revision
 and focused consumer verification. OAuth remains excluded while
-`fortemi-auth` is specification-only. PKE remains excluded while success
-schemas and private-key custody/redaction receipts are absent. Backup and
+producer OAuth payloads, runtime admission metadata, and hosted tenant-isolation
+evidence are incomplete; the signed auth release and corpus receipts alone do
+not promote these routes. PKE remains excluded while success schemas and
+private-key custody/redaction receipts are absent. Backup and
 legacy attachment upload remain excluded where binary media types, headers, or
 request/success schemas are absent.
 

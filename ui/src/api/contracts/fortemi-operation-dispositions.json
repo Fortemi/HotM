@@ -4364,7 +4364,7 @@
       "family": "oauth",
       "privilege": "admin",
       "surface": "documented_exclusion",
-      "rationale": "fortemi-auth is specification-only and has no qualifying release or shared Rust/Node fixture receipt.",
+      "rationale": "Shared auth release and Rust/Node fixture receipts exist; producer OAuth payload schemas, runtime admission metadata, and hosted tenant-isolation evidence remain incomplete.",
       "evidence_paths": [
         "ui/src/api/contracts/fortemi-openapi-receipt.json",
         ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
@@ -4373,7 +4373,7 @@
       "decision_owner": "fortemi-auth and HotM security",
       "enabled": false,
       "promotion_blockers": [
-        "fortemi-auth is specification-only and has no qualifying release or shared Rust/Node fixture receipt."
+        "Shared auth release and Rust/Node fixture receipts exist; producer OAuth payload schemas, runtime admission metadata, and hosted tenant-isolation evidence remain incomplete."
       ],
       "conformance_disposition": "documented_exclusion",
       "tracker": "#287"
@@ -4386,7 +4386,7 @@
       "family": "oauth",
       "privilege": "admin",
       "surface": "documented_exclusion",
-      "rationale": "fortemi-auth is specification-only and has no qualifying release or shared Rust/Node fixture receipt.",
+      "rationale": "Shared auth release and Rust/Node fixture receipts exist; producer OAuth payload schemas, runtime admission metadata, and hosted tenant-isolation evidence remain incomplete.",
       "evidence_paths": [
         "ui/src/api/contracts/fortemi-openapi-receipt.json",
         ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
@@ -4395,7 +4395,7 @@
       "decision_owner": "fortemi-auth and HotM security",
       "enabled": false,
       "promotion_blockers": [
-        "fortemi-auth is specification-only and has no qualifying release or shared Rust/Node fixture receipt."
+        "Shared auth release and Rust/Node fixture receipts exist; producer OAuth payload schemas, runtime admission metadata, and hosted tenant-isolation evidence remain incomplete."
       ],
       "conformance_disposition": "documented_exclusion",
       "tracker": "#287"
@@ -4408,7 +4408,7 @@
       "family": "oauth",
       "privilege": "admin",
       "surface": "documented_exclusion",
-      "rationale": "fortemi-auth is specification-only and has no qualifying release or shared Rust/Node fixture receipt.",
+      "rationale": "Shared auth release and Rust/Node fixture receipts exist; producer OAuth payload schemas, runtime admission metadata, and hosted tenant-isolation evidence remain incomplete.",
       "evidence_paths": [
         "ui/src/api/contracts/fortemi-openapi-receipt.json",
         ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
@@ -4417,7 +4417,7 @@
       "decision_owner": "fortemi-auth and HotM security",
       "enabled": false,
       "promotion_blockers": [
-        "fortemi-auth is specification-only and has no qualifying release or shared Rust/Node fixture receipt."
+        "Shared auth release and Rust/Node fixture receipts exist; producer OAuth payload schemas, runtime admission metadata, and hosted tenant-isolation evidence remain incomplete."
       ],
       "conformance_disposition": "documented_exclusion",
       "tracker": "#287"
@@ -4430,7 +4430,7 @@
       "family": "oauth",
       "privilege": "admin",
       "surface": "documented_exclusion",
-      "rationale": "fortemi-auth is specification-only and has no qualifying release or shared Rust/Node fixture receipt.",
+      "rationale": "Shared auth release and Rust/Node fixture receipts exist; producer OAuth payload schemas, runtime admission metadata, and hosted tenant-isolation evidence remain incomplete.",
       "evidence_paths": [
         "ui/src/api/contracts/fortemi-openapi-receipt.json",
         ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
@@ -4439,7 +4439,7 @@
       "decision_owner": "fortemi-auth and HotM security",
       "enabled": false,
       "promotion_blockers": [
-        "fortemi-auth is specification-only and has no qualifying release or shared Rust/Node fixture receipt."
+        "Shared auth release and Rust/Node fixture receipts exist; producer OAuth payload schemas, runtime admission metadata, and hosted tenant-isolation evidence remain incomplete."
       ],
       "conformance_disposition": "documented_exclusion",
       "tracker": "#287"
@@ -4452,7 +4452,7 @@
       "family": "oauth",
       "privilege": "admin",
       "surface": "documented_exclusion",
-      "rationale": "fortemi-auth is specification-only and has no qualifying release or shared Rust/Node fixture receipt.",
+      "rationale": "Shared auth release and Rust/Node fixture receipts exist; producer OAuth payload schemas, runtime admission metadata, and hosted tenant-isolation evidence remain incomplete.",
       "evidence_paths": [
         "ui/src/api/contracts/fortemi-openapi-receipt.json",
         ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
@@ -4461,7 +4461,7 @@
       "decision_owner": "fortemi-auth and HotM security",
       "enabled": false,
       "promotion_blockers": [
-        "fortemi-auth is specification-only and has no qualifying release or shared Rust/Node fixture receipt."
+        "Shared auth release and Rust/Node fixture receipts exist; producer OAuth payload schemas, runtime admission metadata, and hosted tenant-isolation evidence remain incomplete."
       ],
       "conformance_disposition": "documented_exclusion",
       "tracker": "#287"
@@ -4474,7 +4474,7 @@
       "family": "oauth",
       "privilege": "admin",
       "surface": "documented_exclusion",
-      "rationale": "fortemi-auth is specification-only and has no qualifying release or shared Rust/Node fixture receipt.",
+      "rationale": "Shared auth release and Rust/Node fixture receipts exist; producer OAuth payload schemas, runtime admission metadata, and hosted tenant-isolation evidence remain incomplete.",
       "evidence_paths": [
         "ui/src/api/contracts/fortemi-openapi-receipt.json",
         ".aiwg/security/fortemi-sensitive-operation-decisions-2026-08.md"
@@ -4483,7 +4483,7 @@
       "decision_owner": "fortemi-auth and HotM security",
       "enabled": false,
       "promotion_blockers": [
-        "fortemi-auth is specification-only and has no qualifying release or shared Rust/Node fixture receipt."
+        "Shared auth release and Rust/Node fixture receipts exist; producer OAuth payload schemas, runtime admission metadata, and hosted tenant-isolation evidence remain incomplete."
       ],
       "conformance_disposition": "documented_exclusion",
       "tracker": "#287"
