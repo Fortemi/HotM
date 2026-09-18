@@ -2,18 +2,18 @@
   "schemaVersion": 1,
   "producer": {
     "repository": "Fortemi/fortemi",
-    "commit": "5ea08229c9f1565122df5f8e6906e89d98dc7e75",
+    "commit": "306bae55a41eff7e4f8b8349304765322865e6cc",
     "sourcePath": "crates/matric-core/src/events.rs",
-    "sourceSha256": "9828d2856f7aea057978b66bf113596dccbfcf9642303eeb9a4d1a1e228d84e7",
+    "sourceSha256": "758ff7f7e1e5d17c364f818637d1154d074b53db8c44abc4167ec7257d51e57b",
     "asyncApi": {
       "sourcePath": "crates/matric-core/src/asyncapi.rs",
-      "sourceSha256": "7be3732aa01cd40e7761b78ce56c7b3199494cd76c8d06f3ccfb78b6070f1da8",
+      "sourceSha256": "2d7e62122641fd4ff6523a58dc1579e8791ae4e6d277456614663340d10fef95",
       "artifactPath": "contracts/asyncapi/asyncapi.yaml",
       "format": "yaml",
       "asyncApiVersion": "3.0.0",
-      "generatorVersion": "2026.7.19",
+      "generatorVersion": "2026.9.10",
       "canonicalServerUrl": "http://localhost:3000",
-      "sha256": "1ec4a4477431caf60a62ace48f80186bf732408476a24c8d9cd32dba41957ea4",
+      "sha256": "75c18f19f41f4598c71b5aefa446d8c675a630be9fa9d1b39c7ac2f177522209",
       "sizeBytes": 45160
     }
   },

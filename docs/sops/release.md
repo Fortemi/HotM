@@ -19,8 +19,9 @@
    `ui/package-lock.json`, `ui/src-tauri/Cargo.toml`, and
    `ui/src-tauri/tauri.conf.json`.
 2. Update the pinned Fortemi sidecar manifest if this release refreshes the bundled backend:
-   - Select the immutable authority release `sidecar-<commit-prefix>`; do not
-     record the moving `sidecar-latest` alias as release provenance.
+   - Select an immutable authority release tag (`sidecar-<commit-prefix>` or a
+     signed stable `vYYYY.M.PATCH`); do not record the moving `sidecar-latest`
+     alias as release provenance.
    - Fetch metadata from
      `https://git.integrolabs.net/api/v1/repos/Fortemi/fortemi/releases/tags/<sidecar-release>`.
    - Fetch checksums from
