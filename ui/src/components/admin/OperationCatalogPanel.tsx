@@ -13,12 +13,13 @@ import {
 } from '@/components/ui/select';
 import ledger from '@/api/contracts/fortemi-operation-dispositions.json';
 
-type Surface = 'ui_workflow' | 'agent_workflow' | 'external_protocol_handoff' | 'operator_diagnostic' | 'documented_exclusion';
+type Surface = 'ui_workflow' | 'agent_workflow' | 'typed_shared_client' | 'external_protocol_handoff' | 'operator_diagnostic' | 'documented_exclusion';
 type CompatibilityState = 'checking' | 'compatible' | 'blocked';
 
 const surfaceLabels: Record<Surface, string> = {
   ui_workflow: 'UI workflow',
   agent_workflow: 'Agent workflow',
+  typed_shared_client: 'Typed shared client',
   external_protocol_handoff: 'Browser / native handoff',
   operator_diagnostic: 'Operator diagnostic',
   documented_exclusion: 'Excluded',

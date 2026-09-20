@@ -2,14 +2,14 @@
   "schemaVersion": 1,
   "producer": {
     "repository": "Fortemi/fortemi",
-    "commit": "088932c008af8e4f89ef6055ef85d700001c2dd5",
+    "commit": "306bae55a41eff7e4f8b8349304765322865e6cc",
     "profile": {
       "path": "contracts/suite-conformance/platform-matrix.json",
       "sha256": "27e4ccc8b29d825de669c75cb5b9f642f444f92fc1fc29022b7955a35ba923fe"
     },
     "responseSource": {
       "path": "crates/matric-api/src/main.rs",
-      "sha256": "8eb82dbcbfef9f0b798d465db1a17809f0b6d4a3498462d3fcba630801d633da"
+      "sha256": "19d39d28a32746a63caa0b7fc7bd0e659808e96e614b578d44d0f22c59a9ac5c"
     }
   },
   "consumer": {

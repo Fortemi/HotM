@@ -4,6 +4,40 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2026.9.6] - 2026-09-19
+
+### Fixed
+
+- Isolate API, authentication, memory-selection, realtime and job-cache state by
+  Fortemi endpoint and session context so switching views or servers cannot
+  expose stale state from another context.
+- Keep mobile note lifecycle controls independently operable and preserve the
+  selected memory while navigating context-owned views.
+- Correct OAuth operation-disposition evidence so compatibility and admin UI
+  claims match the supported consumer boundary.
+- Update the desktop TLS lock for the current Rustls and AWS-LC security fix.
+
+### Verification
+
+- Add context, session, archive WebSocket, realtime, cache-lifetime and 390px
+  mobile-control regressions while retaining the existing producer-owned
+  contract fixtures.
+- Bound UI coverage worker concurrency in CI without reducing test inventory or
+  coverage thresholds.
+- Reconcile the pinned Fortemi v2026.9.10 inventory at 211 routes and 261
+  OpenAPI operations. The selected-memory context route is covered; four bulk
+  lifecycle-purge orchestration routes remain documented exclusions.
+
+### Compatibility
+
+- Pair the packaged Fortemi sidecar with immutable Fortemi `v2026.9.10` source
+  `306bae55a41eff7e4f8b8349304765322865e6cc` on all four native targets.
+- Hosted Auth `v2026.9.0` admission, claim contract `1.1.0`, and
+  `rust-node-jwt-v1` profile are unchanged.
+- Knowledge Shard claims remain profile-specific. This release does not claim
+  Windows qualification, complete backup, hosted tenant isolation, or suite
+  parity; the suite audit remains `NO-GO`.
+
 ## [2026.9.5] - 2026-09-11
 
 ### Added

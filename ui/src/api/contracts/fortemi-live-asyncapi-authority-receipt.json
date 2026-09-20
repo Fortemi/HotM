@@ -2,17 +2,17 @@
   "schemaVersion": 1,
   "authority": {
     "repository": "Fortemi/fortemi",
-    "commit": "c3bfd40b275decd5a24c4e9a656d830a383b3de2",
+    "commit": "306bae55a41eff7e4f8b8349304765322865e6cc",
     "artifact": {
       "path": "contracts/asyncapi/asyncapi.yaml",
-      "sha256": "a6c845b023815a739630fe212c26d83746516052fd2fb131cf7063b01b915462",
-      "sizeBytes": 45159,
-      "generatorVersion": "2026.9.7"
+      "sha256": "75c18f19f41f4598c71b5aefa446d8c675a630be9fa9d1b39c7ac2f177522209",
+      "sizeBytes": 45160,
+      "generatorVersion": "2026.9.10"
     },
     "sources": [
       {
         "path": "crates/matric-core/src/asyncapi.rs",
-        "sha256": "4b88481ba0b3bb85211cb635acbfc97edbfbae44cf6bf469c7ccd573cbe7d433"
+        "sha256": "2d7e62122641fd4ff6523a58dc1579e8791ae4e6d277456614663340d10fef95"
       },
       {
         "path": "crates/matric-core/src/events.rs",
@@ -21,7 +21,7 @@
     ]
   },
   "packagedBaseline": {
-    "commit": "5ea08229c9f1565122df5f8e6906e89d98dc7e75",
+    "commit": "306bae55a41eff7e4f8b8349304765322865e6cc",
     "catalog": "ui/src/api/contracts/fortemi-event-catalog.json",
     "fixtures": "ui/src/api/contracts/fortemi-asyncapi-event-fixtures.json",
     "rules": "ui/src/api/contracts/fortemi-asyncapi-event-validation-rules.json"

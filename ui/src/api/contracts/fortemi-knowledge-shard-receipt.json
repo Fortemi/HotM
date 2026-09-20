@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "authority": {
     "repository": "Fortemi/fortemi",
-    "commit": "48bc0a0bd68fd9e4eeb742c5af8a54207cbcc425",
+    "commit": "306bae55a41eff7e4f8b8349304765322865e6cc",
     "contract": {
       "path": "contracts/knowledge-shard/contract.json",
       "sha256": "5debc14e0bc7eef403a75e8e063a10f53019e1d74857485d6eda3abaec9397e2",
@@ -92,7 +92,7 @@
     },
     "authority": {
       "repository": "Fortemi/fortemi",
-      "commit": "48bc0a0bd68fd9e4eeb742c5af8a54207cbcc425",
+      "commit": "306bae55a41eff7e4f8b8349304765322865e6cc",
       "contract": {
         "path": "contracts/knowledge-shard/2.0.0/contract.json",
         "sha256": "ac417e23181ec80741d776b6b29fa38236091dfa649b01255aaac30ebb53969f",
@@ -111,13 +111,13 @@
       }
     },
     "runtimeReceipt": {
-      "commit": "48bc0a0bd68fd9e4eeb742c5af8a54207cbcc425",
+      "commit": "306bae55a41eff7e4f8b8349304765322865e6cc",
       "path": "tests/fixtures/shards/external/schema-2-runtime.implementation-receipt.json",
       "sha256": "88a11341f6cd120a937974babc83539d7837548fbceaf4bb2dd23c9e9f19fbca",
       "implementationCommit": "336df3ed834be581d1a0f0a3d252fb48e723b987"
     },
     "pairedReceipt": {
-      "commit": "48bc0a0bd68fd9e4eeb742c5af8a54207cbcc425",
+      "commit": "306bae55a41eff7e4f8b8349304765322865e6cc",
       "path": "tests/fixtures/shards/external/schema-2-full-v1.interop-receipt.json",
       "sha256": "48f622afc02279b2360534af3aa542de96efea1e752f4a80a4cd6f3d6e2066cc"
     },

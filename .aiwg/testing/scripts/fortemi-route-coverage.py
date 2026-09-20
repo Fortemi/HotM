@@ -35,11 +35,11 @@ EVIDENCE_MAP = OUTPUT_DIR / "fortemi-v2026-07-family-evidence-map.json"
 OPERATION_EVIDENCE = HOTM_ROOT / ".aiwg/testing/data/fortemi-operation-conformance-v2026-07.json"
 OPENAPI_CONTRACT = HOTM_ROOT / "ui/src/api/contracts/fortemi-openapi.yaml"
 OPENAPI_RECEIPT = HOTM_ROOT / "ui/src/api/contracts/fortemi-openapi-receipt.json"
-EXPECTED_ROUTE_COUNT = 204
+EXPECTED_ROUTE_COUNT = 211
 EXPECTED_FAMILY_COUNT = 36
 EXPECTED_STATUS_COUNTS = {
-    "covered": 190,
-    "documented_exclusion": 14,
+    "covered": 193,
+    "documented_exclusion": 18,
 }
 HTTP_METHODS = ("get", "put", "post", "delete", "options", "head", "patch", "trace")
 CONFORMANCE_DIMENSIONS = (
@@ -52,6 +52,9 @@ CONFORMANCE_DIMENSIONS = (
     "live",
 )
 PASSING_DIMENSION_STATUSES = {"conformant", "not_applicable", "documented_exclusion"}
+ROUTE_METHOD_OVERRIDES = {
+    "/api/v1/search/evidence/resolve": ["POST"],
+}
 ROUTE_LEVEL_OVERRIDES = {
     ("POST", "/api/v1/vision/describe"): {
         "family": "vision_tools",
@@ -140,8 +143,10 @@ FAMILY_RULES: list[tuple[str, str, str, str, str]] = [
     ("/api/v1/extraction/", "jobs", "covered", "attachment/job status surfaces", "#253"),
     ("/api/v1/models", "models", "covered", "ui/src/api/chat.ts/inference settings model discovery", "#159"),
     ("/api/v1/document-types", "document_types", "covered", "ui/src/api/documents.ts and DocumentTypesPanel", "#253"),
+    ("/api/v1/lifecycle-purge", "notes", "documented_exclusion", "HotM exposes bounded single-note purge only; bulk lifecycle purge orchestration remains outside current UI and agent claims", "#295"),
     ("/api/v1/archives", "archives", "covered", "ui/src/api/archives.ts and ArchiveManager", "#253"),
     ("/api/v1/memories", "archives", "covered", "archive/memory routing APIs and ArchiveManager", "#253"),
+    ("/api/v1/memory/context", "archives", "covered", "ui/src/api/archives.ts, realtime-context.ts, and focused real-client tests", "#1"),
     ("/api/v1/memory/info", "archives", "covered", "memory/archive status surfaces", "#253"),
     ("/api/v1/pke", "pke", "documented_exclusion", "No current HotM PKE UX claim; keep excluded until product slice", "#253"),
     ("/api/v1/concepts", "concepts", "covered", "ui/src/api/concepts.ts and ConceptBrowser", "#253"),
@@ -275,7 +280,7 @@ def build_routes(source: str) -> list[ServerRoute]:
         family, status, evidence, tracker = classify(path)
         routes.append(
             ServerRoute(
-                methods=infer_methods(handler_expr),
+                methods=ROUTE_METHOD_OVERRIDES.get(path, infer_methods(handler_expr)),
                 path=path,
                 handler_expr=handler_expr,
                 family=family,

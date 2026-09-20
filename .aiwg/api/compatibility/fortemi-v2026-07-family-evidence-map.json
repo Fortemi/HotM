@@ -15,9 +15,9 @@
       "evidence_strength": "strong",
       "tracker": "#253",
       "source_files": ["ui/src/api/archives.ts", "ui/src/api/memory-context.ts"],
-      "test_files": ["ui/src/api/__tests__/archives.test.ts"],
+      "test_files": ["ui/src/api/__tests__/archives.test.ts", "ui/src/api/__tests__/realtime-context.test.ts"],
       "ui_surfaces": ["ui/src/components/archives/ArchiveManager.tsx"],
-      "verifier_action": "Assert archive and memory route parity, including stats, clone, set-default, and memory overview paths."
+      "verifier_action": "Assert archive and memory route parity, including request-owned context, stats, clone, set-default, and memory overview paths."
     },
     "attachments": {
       "status": "covered",

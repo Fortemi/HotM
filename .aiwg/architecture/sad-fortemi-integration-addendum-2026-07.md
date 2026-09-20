@@ -763,3 +763,18 @@ sidecar replacement, Knowledge Shard, or suite-wide compatibility evidence.
 The packaged sidecar and historical schema-derived receipts are unchanged.
 [HotM #288](https://git.integrolabs.net/Fortemi/HotM/issues/288) remains open
 until exact-source CI and delivery are verified. Suite NO-GO remains.
+
+## v2026.9.10 API Inventory Amendment (2026-09-19)
+
+The current consumer pin is Fortemi `v2026.9.10` source
+`306bae55a41eff7e4f8b8349304765322865e6cc`. Its 202 OpenAPI paths contain
+261 operations, while source extraction yields 211 routes across 36 families.
+The route disposition is 193 covered and 18 documented exclusions. The
+operation result is 1 integrated, 225 partial, 0 gaps, and 35 documented
+exclusions; every live dimension remains a gap.
+
+The selected-memory context resolver is a bounded typed shared-client surface.
+The four bulk lifecycle-purge orchestration routes remain explicit exclusions;
+they do not alter the separately contracted single-note purge control. This
+amendment supersedes prior current-count statements without changing the scope
+of dated historical receipts or the suite NO-GO.

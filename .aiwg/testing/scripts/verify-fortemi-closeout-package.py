@@ -18,10 +18,10 @@ WORKFLOW = ROOT / ".gitea/workflows/sdlc-gates.yml"
 PUBLISHER = ROOT / ".aiwg/scripts/publish-fortemi-tracker-comments.py"
 
 EXPECTED_COUNTS = {
-    "route_count": 204,
+    "route_count": 211,
     "family_count": 36,
-    "covered": 190,
-    "documented_exclusion": 14,
+    "covered": 193,
+    "documented_exclusion": 18,
     "gap": 0,
     "partial": 0,
     "decision_needed": 0,
@@ -160,9 +160,9 @@ def assert_pr_closeout() -> None:
         if f"#{issue}" not in text:
             fail(f"PR closeout package missing issue #{issue}")
     for phrase in [
-        "202 Fortemi routes",
-        "188 covered routes",
-        "14 documented exclusions",
+        "211 Fortemi routes",
+        "193 covered routes",
+        "18 documented exclusions",
         "0 gap routes",
         "0 partial routes",
         "0 decision-needed routes",
@@ -262,7 +262,8 @@ def main() -> None:
         "verified Fortemi closeout package: "
         f"artifacts=present links=coherent routes={EXPECTED_COUNTS['route_count']} "
         f"covered={EXPECTED_COUNTS['covered']} "
-        "documented_exclusions=14 tracker_comments=10"
+        f"documented_exclusions={EXPECTED_COUNTS['documented_exclusion']} "
+        "tracker_comments=10"
     )
 
 

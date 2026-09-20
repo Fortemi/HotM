@@ -1,21 +1,21 @@
 {
-  "generated_at": "2026-09-01",
+  "generated_at": "2026-09-19",
   "fortemi_root": "../fortemi",
-  "fortemi_commit": "0dd28a92",
-  "fortemi_latest_tag": "v2026.8.3",
-  "route_count": 204,
+  "fortemi_commit": "306bae55",
+  "fortemi_latest_tag": "v2026.9.10",
+  "route_count": 211,
   "status_counts": {
-    "covered": 190,
-    "documented_exclusion": 14
+    "covered": 193,
+    "documented_exclusion": 18
   },
   "family_counts": {
     "health": 4,
     "streaming_health": 1,
     "system_compatibility": 1,
     "contract_docs": 2,
-    "notes": 25,
-    "search": 2,
-    "archives": 13,
+    "notes": 30,
+    "search": 3,
+    "archives": 14,
     "provenance": 5,
     "knowledge_health": 6,
     "realtime_calls": 2,
@@ -201,6 +201,17 @@
       "methods": [
         "POST"
       ],
+      "path": "/api/v1/notes/source-upsert",
+      "handler_expr": "post(source_upsert_notes)",
+      "family": "notes",
+      "status": "covered",
+      "hotm_evidence": "ui/src/api/notes.ts, extended.ts, versions.ts, links.ts",
+      "tracker": "#253"
+    },
+    {
+      "methods": [
+        "POST"
+      ],
       "path": "/api/v1/notes/bulk",
       "handler_expr": "post(bulk_create_notes)",
       "family": "notes",
@@ -242,6 +253,50 @@
       "status": "covered",
       "hotm_evidence": "ui/src/api/notes.ts, extended.ts, versions.ts, links.ts",
       "tracker": "#253"
+    },
+    {
+      "methods": [
+        "POST"
+      ],
+      "path": "/api/v1/lifecycle-purge/preview",
+      "handler_expr": "post(lifecycle_purge_preview),",
+      "family": "notes",
+      "status": "documented_exclusion",
+      "hotm_evidence": "HotM exposes bounded single-note purge only; bulk lifecycle purge orchestration remains outside current UI and agent claims",
+      "tracker": "#295"
+    },
+    {
+      "methods": [
+        "POST"
+      ],
+      "path": "/api/v1/lifecycle-purge",
+      "handler_expr": "post(lifecycle_purge_begin)",
+      "family": "notes",
+      "status": "documented_exclusion",
+      "hotm_evidence": "HotM exposes bounded single-note purge only; bulk lifecycle purge orchestration remains outside current UI and agent claims",
+      "tracker": "#295"
+    },
+    {
+      "methods": [
+        "GET"
+      ],
+      "path": "/api/v1/lifecycle-purge/{operation_id}",
+      "handler_expr": "get(lifecycle_purge_status),",
+      "family": "notes",
+      "status": "documented_exclusion",
+      "hotm_evidence": "HotM exposes bounded single-note purge only; bulk lifecycle purge orchestration remains outside current UI and agent claims",
+      "tracker": "#295"
+    },
+    {
+      "methods": [
+        "POST"
+      ],
+      "path": "/api/v1/lifecycle-purge/{operation_id}/resume",
+      "handler_expr": "post(lifecycle_purge_resume),",
+      "family": "notes",
+      "status": "documented_exclusion",
+      "hotm_evidence": "HotM exposes bounded single-note purge only; bulk lifecycle purge orchestration remains outside current UI and agent claims",
+      "tracker": "#295"
     },
     {
       "methods": [
@@ -395,6 +450,17 @@
       ],
       "path": "/api/v1/search",
       "handler_expr": "get(search_notes)",
+      "family": "search",
+      "status": "covered",
+      "hotm_evidence": "ui/src/api/search.ts and SearchPage/agent tool",
+      "tracker": "#253"
+    },
+    {
+      "methods": [
+        "POST"
+      ],
+      "path": "/api/v1/search/evidence/resolve",
+      "handler_expr": "evidence_resolution::route(),",
       "family": "search",
       "status": "covered",
       "hotm_evidence": "ui/src/api/search.ts and SearchPage/agent tool",
@@ -944,6 +1010,17 @@
       "status": "covered",
       "hotm_evidence": "ui/src/api/documents.ts and DocumentTypesPanel",
       "tracker": "#253"
+    },
+    {
+      "methods": [
+        "GET"
+      ],
+      "path": "/api/v1/memory/context",
+      "handler_expr": "get(get_memory_context)",
+      "family": "archives",
+      "status": "covered",
+      "hotm_evidence": "ui/src/api/archives.ts, realtime-context.ts, and focused real-client tests",
+      "tracker": "#1"
     },
     {
       "methods": [

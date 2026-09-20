@@ -801,3 +801,18 @@ sidecar replacement, Knowledge Shard, or suite-wide compatibility evidence.
 The packaged sidecar and historical schema-derived receipts are unchanged.
 [HotM #288](https://git.integrolabs.net/Fortemi/HotM/issues/288) remains open
 until exact-source CI and delivery are verified. Suite NO-GO remains.
+
+## v2026.9.10 Verification Baseline (2026-09-19)
+
+Current checks must bind Fortemi source
+`306bae55a41eff7e4f8b8349304765322865e6cc`, OpenAPI SHA-256
+`0cc3f1260fed076cc559a00719e39302d657c24eacd2770e7da7ef9cef2c6869`,
+202 paths, 261 schema-bearing operations, and 606 response entries with 292
+schema-bearing responses. Route verification must report 211 routes, 36
+families, 193 covered rows, 18 documented exclusions, and zero diagnostics.
+
+Operation verification must report 1 integrated, 225 partial, 0 gaps, and 35
+documented exclusions. It must preserve all 261 live dimensions as gaps, verify
+the selected-memory context typed client, and reject promotion of the four bulk
+lifecycle-purge orchestration routes. These checks supersede prior current-count
+expectations while preserving dated historical receipts.

@@ -1,7 +1,7 @@
 ---
 title: Fortemi v2026.7.1 Operation Coverage Inventory
 status: generated
-date: 2026-09-01
+date: 2026-09-19
 artifact_type: api-operation-coverage-inventory
 related_issue: Fortemi/HotM#290
 ---
@@ -11,31 +11,31 @@ related_issue: Fortemi/HotM#290
 This report is generated from the same data as the machine-readable operation coverage JSON. It keeps route inventory, OpenAPI, AsyncAPI, Knowledge Shard, compatibility, and auth boundaries independent.
 
 - OpenAPI receipt: `ui/src/api/contracts/fortemi-openapi-receipt.json`
-- OpenAPI producer commit: `0dd28a9255e2b53363f93e2e288777631709eb05`
+- OpenAPI producer commit: `306bae55a41eff7e4f8b8349304765322865e6cc`
 - Contract revision: `2`
 - Contract version: `2026.9.0`
-- Operations: `254`
+- Operations: `261`
 - Focused #290 operations: `86`
 
 ## Disposition Counts
 
 | Disposition | Count |
 | --- | ---: |
-| documented_exclusion | 31 |
+| documented_exclusion | 35 |
 | integrated | 1 |
-| partial | 222 |
+| partial | 225 |
 
 ## Dimension Counts
 
 | Dimension | Status counts |
 | --- | --- |
-| route | `{"conformant": 254}` |
-| request | `{"conformant": 134, "documented_exclusion": 31, "gap": 86, "not_applicable": 3}` |
-| response | `{"conformant": 129, "documented_exclusion": 31, "gap": 86, "partial": 8}` |
-| auth_context | `{"conformant": 1, "documented_exclusion": 31, "gap": 86, "partial": 136}` |
-| ui | `{"conformant": 135, "documented_exclusion": 32, "gap": 87}` |
-| agent | `{"conformant": 12, "documented_exclusion": 42, "gap": 200}` |
-| live | `{"gap": 254}` |
+| route | `{"conformant": 261}` |
+| request | `{"conformant": 135, "documented_exclusion": 31, "gap": 92, "not_applicable": 3}` |
+| response | `{"conformant": 130, "documented_exclusion": 31, "gap": 92, "partial": 8}` |
+| auth_context | `{"conformant": 1, "documented_exclusion": 31, "gap": 92, "partial": 137}` |
+| ui | `{"conformant": 135, "documented_exclusion": 36, "gap": 90}` |
+| agent | `{"conformant": 12, "documented_exclusion": 46, "gap": 203}` |
+| live | `{"gap": 261}` |
 
 ## Verifier Diagnostics
 
@@ -296,6 +296,10 @@ This report is generated from the same data as the machine-readable operation co
 | `GET` | `/api/v1/jobs/stats` | `queue_stats` | jobs | partial | covered | false |
 | `GET` | `/api/v1/jobs/status` | `get_job_pause_status` | jobs | partial | covered | false |
 | `GET` | `/api/v1/jobs/{id}` | `get_job` | jobs | partial | covered | true |
+| `POST` | `/api/v1/lifecycle-purge` | `lifecycle_purge_begin` | notes | documented_exclusion | documented_exclusion | false |
+| `POST` | `/api/v1/lifecycle-purge/preview` | `lifecycle_purge_preview` | notes | documented_exclusion | documented_exclusion | false |
+| `GET` | `/api/v1/lifecycle-purge/{operation_id}` | `lifecycle_purge_status` | notes | documented_exclusion | documented_exclusion | false |
+| `POST` | `/api/v1/lifecycle-purge/{operation_id}/resume` | `lifecycle_purge_resume` | notes | documented_exclusion | documented_exclusion | false |
 | `GET` | `/api/v1/memories` | `list_archives_memory_alias` | archives | partial | covered | false |
 | `POST` | `/api/v1/memories` | `create_archive_memory_alias` | archives | partial | covered | false |
 | `GET` | `/api/v1/memories/overview` | `memories_overview` | archives | partial | covered | false |
@@ -306,6 +310,7 @@ This report is generated from the same data as the machine-readable operation co
 | `POST` | `/api/v1/memories/{name}/clone` | `clone_archive_memory_alias` | archives | partial | covered | false |
 | `POST` | `/api/v1/memories/{name}/set-default` | `set_default_archive_memory_alias` | archives | partial | covered | false |
 | `GET` | `/api/v1/memories/{name}/stats` | `get_archive_stats_memory_alias` | archives | partial | covered | false |
+| `GET` | `/api/v1/memory/context` | `get_memory_context` | archives | partial | covered | false |
 | `GET` | `/api/v1/memory/info` | `memory_info` | archives | partial | covered | false |
 | `GET` | `/api/v1/models` | `list_models` | models | partial | covered | false |
 | `GET` | `/api/v1/notes` | `list_notes` | notes | partial | covered | true |
@@ -313,6 +318,7 @@ This report is generated from the same data as the machine-readable operation co
 | `GET` | `/api/v1/notes/activity` | `get_notes_activity` | notes | partial | covered | false |
 | `POST` | `/api/v1/notes/bulk` | `bulk_create_notes` | notes | partial | covered | false |
 | `POST` | `/api/v1/notes/reprocess` | `bulk_reprocess_notes` | notes | partial | covered | false |
+| `POST` | `/api/v1/notes/source-upsert` | `source_upsert_notes` | notes | partial | covered | false |
 | `GET` | `/api/v1/notes/timeline` | `get_notes_timeline` | notes | partial | covered | false |
 | `GET` | `/api/v1/notes/{id}` | `get_note` | notes | partial | covered | true |
 | `DELETE` | `/api/v1/notes/{id}` | `delete_note` | notes | partial | covered | false |
@@ -368,6 +374,7 @@ This report is generated from the same data as the machine-readable operation co
 | `POST` | `/api/v1/provenance/notes` | `create_note_provenance` | provenance | partial | covered | true |
 | `GET` | `/api/v1/rate-limit/status` | `rate_limit_status` | rate_limit | partial | documented_exclusion | false |
 | `GET` | `/api/v1/search` | `search_notes` | search | partial | covered | true |
+| `POST` | `/api/v1/search/evidence/resolve` | `resolve_search_evidence` | search | partial | covered | false |
 | `POST` | `/api/v1/search/federated` | `federated_search` | search | partial | covered | false |
 | `GET` | `/api/v1/system/compatibility` | `system_compatibility` | system_compatibility | partial | covered | false |
 | `GET` | `/api/v1/tags` | `list_tags` | tags | partial | covered | false |

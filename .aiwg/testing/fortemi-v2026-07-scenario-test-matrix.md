@@ -45,7 +45,7 @@ Canonical fixture names and minimum data shapes are maintained in `.aiwg/testing
 
 | Control | Test/evidence owner | Required evidence |
 | --- | --- | --- |
-| Route extraction | #253 | `python3 .aiwg/testing/scripts/fortemi-route-coverage.py` writes JSON/Markdown for 200 routes and zero unclassified families. |
+| Route extraction | #253 | `python3 .aiwg/testing/scripts/fortemi-route-coverage.py` writes JSON/Markdown for 211 routes and zero unclassified families. |
 | Evidence map parity | #253 | Family set in route coverage JSON equals `.aiwg/api/compatibility/fortemi-v2026-07-family-evidence-map.json`; all non-empty paths exist. |
 | Weak covered families | #253 | Graph, provenance, models, and contract-doc rows have focused route evidence; verifier should report zero weak covered families. |
 | Mixed route-family disposition | #253/#259 | `realtime_calls` preserves route-level disposition: REST call diagnostics are covered and Twilio realtime remains a documented exclusion. |

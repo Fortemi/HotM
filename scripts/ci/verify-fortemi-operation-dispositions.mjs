@@ -37,6 +37,7 @@ const ADMIN_PATHS = [
 function privilegeFor(operation) {
   if (
     ADMIN_PATHS.some((prefix) => operation.path.startsWith(prefix))
+    || operation.path.startsWith('/api/v1/lifecycle-purge')
     || operation.operation_id === 'purge_note'
     || operation.operation_id.includes('jobs_global')
   ) return 'admin';
@@ -144,6 +145,13 @@ function sensitiveDecisionFor(operation) {
 function dispositionFor(operation) {
   const sensitiveDecision = sensitiveDecisionFor(operation);
   if (sensitiveDecision) return sensitiveDecision;
+  if (operation.disposition === 'documented_exclusion') {
+    return {
+      surface: 'documented_exclusion',
+      rationale: operation.rationale,
+      evidence_paths: operation.dimensions.ui.evidence_paths,
+    };
+  }
   if (
     operation.operation_id === 'create_note_link'
     && operation.method === 'POST'
@@ -158,6 +166,21 @@ function dispositionFor(operation) {
         'ui/src/api/__tests__/delivered-openapi-contract.test.ts',
         'ui/src/api/contracts/fortemi-manual-note-link-receipt.json',
         '.aiwg/architecture/adr/ADR-010-fortemi-v2026-07-api-coverage.md',
+      ],
+    };
+  }
+  if (
+    operation.operation_id === 'get_memory_context'
+    && operation.method === 'GET'
+    && operation.path === '/api/v1/memory/context'
+  ) {
+    return {
+      surface: 'typed_shared_client',
+      rationale: 'The archive context resolver is available through a bounded typed client; it is supporting infrastructure rather than a standalone UI control.',
+      evidence_paths: [
+        'ui/src/api/archives.ts',
+        'ui/src/api/realtime-context.ts',
+        'ui/src/api/__tests__/realtime-context.test.ts',
       ],
     };
   }
@@ -271,7 +294,7 @@ for (const [operationId, endpoint] of CURATED_AGENT_OPERATIONS) {
 const ledger = buildLedger(source);
 const serialized = `${JSON.stringify(ledger, null, 2)}\n`;
 
-if (ledger.operation_count !== 254 || new Set(ledger.operations.map(({ key }) => key)).size !== ledger.operation_count) {
+if (ledger.operation_count !== 261 || new Set(ledger.operations.map(({ key }) => key)).size !== ledger.operation_count) {
   throw new Error('operation disposition ledger is incomplete or contains duplicate keys');
 }
 const manualNoteLink = ledger.operations.filter(({ method, path }) => (
@@ -284,6 +307,17 @@ if (
   || manualNoteLink[0].surface !== 'typed_shared_client'
 ) {
   throw new Error('manual-note-link-v1 must have one exact write-scoped shared-client disposition');
+}
+const memoryContext = ledger.operations.filter(({ method, path }) => (
+  path === '/api/v1/memory/context' && method === 'GET'
+));
+if (
+  memoryContext.length !== 1
+  || memoryContext[0].operation_id !== 'get_memory_context'
+  || memoryContext[0].privilege !== 'read'
+  || memoryContext[0].surface !== 'typed_shared_client'
+) {
+  throw new Error('memory context must have one exact read-scoped shared-client disposition');
 }
 const sensitiveRows = ledger.operations.filter(({ security_decision }) => security_decision);
 if (sensitiveRows.length !== 41 || sensitiveRows.filter(({ enabled }) => !enabled).some(({ surface }) => surface !== 'documented_exclusion')) {

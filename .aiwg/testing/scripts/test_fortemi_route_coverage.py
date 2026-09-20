@@ -30,6 +30,19 @@ spec.loader.exec_module(coverage)
 
 
 class FortemiOperationCoverageTests(unittest.TestCase):
+    def test_explicit_method_override_covers_custom_route_factory(self) -> None:
+        source = '''// Build router
+Router::new().route(
+    "/api/v1/search/evidence/resolve",
+    evidence_resolution::route(),
+)
+// Middleware'''
+
+        routes = coverage.build_routes(source)
+
+        self.assertEqual(len(routes), 1)
+        self.assertEqual(routes[0].methods, ["POST"])
+
     def test_extracts_method_path_operation_id_without_route_conformance_inference(self) -> None:
         document = openapi_fixture({
             "/api/v1/inference/complete": real_openapi_subset("/api/v1/inference/complete", "post")["/api/v1/inference/complete"]
@@ -218,7 +231,7 @@ class FortemiOperationCoverageTests(unittest.TestCase):
         markdown = coverage.render_operation_markdown(operation_summary)
 
         self.assertEqual(operation_summary["source_issue"], "Fortemi/HotM#290")
-        self.assertEqual(operation_summary["operation_count"], 251)
+        self.assertEqual(operation_summary["operation_count"], 261)
         self.assertGreaterEqual(operation_summary["targeted_operation_count"], 30)
         self.assertEqual(operation_summary["dimension_counts"]["agent"]["conformant"], 12)
         create_job = next(
