@@ -2220,6 +2220,50 @@
       },
       "rationale": "Pinned exact operation dispatch, bounded/redacted response handling, compatibility admission, and mocked responsive UI receipts exist. Operation-specific authorization and live Fortemi outcomes remain unverified."
     },
+    "POST /api/v1/lifecycle-purge#lifecycle_purge_begin": {
+      "targeted_by_290": false,
+      "tracker": "#295",
+      "rationale": "Bulk lifecycle purge begin is outside current HotM UI and agent claims; the separately contracted single-note purge workflow remains available.",
+      "disposition": "documented_exclusion",
+      "dimensions": {
+        "ui": {"status": "documented_exclusion", "evidence_paths": [".aiwg/reports/fortemi-v2026-07-api-integration-traceability.md"]},
+        "agent": {"status": "documented_exclusion", "evidence_paths": [".aiwg/reports/fortemi-v2026-07-api-integration-traceability.md"]},
+        "live": {"status": "gap", "evidence_paths": [], "notes": "An exclusion does not simulate live lifecycle evidence."}
+      }
+    },
+    "POST /api/v1/lifecycle-purge/preview#lifecycle_purge_preview": {
+      "targeted_by_290": false,
+      "tracker": "#295",
+      "rationale": "Bulk lifecycle purge preview is outside current HotM UI and agent claims; the separately contracted single-note purge workflow remains available.",
+      "disposition": "documented_exclusion",
+      "dimensions": {
+        "ui": {"status": "documented_exclusion", "evidence_paths": [".aiwg/reports/fortemi-v2026-07-api-integration-traceability.md"]},
+        "agent": {"status": "documented_exclusion", "evidence_paths": [".aiwg/reports/fortemi-v2026-07-api-integration-traceability.md"]},
+        "live": {"status": "gap", "evidence_paths": [], "notes": "An exclusion does not simulate live lifecycle evidence."}
+      }
+    },
+    "GET /api/v1/lifecycle-purge/{operation_id}#lifecycle_purge_status": {
+      "targeted_by_290": false,
+      "tracker": "#295",
+      "rationale": "Bulk lifecycle purge status is outside current HotM UI and agent claims; the separately contracted single-note purge workflow remains available.",
+      "disposition": "documented_exclusion",
+      "dimensions": {
+        "ui": {"status": "documented_exclusion", "evidence_paths": [".aiwg/reports/fortemi-v2026-07-api-integration-traceability.md"]},
+        "agent": {"status": "documented_exclusion", "evidence_paths": [".aiwg/reports/fortemi-v2026-07-api-integration-traceability.md"]},
+        "live": {"status": "gap", "evidence_paths": [], "notes": "An exclusion does not simulate live lifecycle evidence."}
+      }
+    },
+    "POST /api/v1/lifecycle-purge/{operation_id}/resume#lifecycle_purge_resume": {
+      "targeted_by_290": false,
+      "tracker": "#295",
+      "rationale": "Bulk lifecycle purge resume is outside current HotM UI and agent claims; the separately contracted single-note purge workflow remains available.",
+      "disposition": "documented_exclusion",
+      "dimensions": {
+        "ui": {"status": "documented_exclusion", "evidence_paths": [".aiwg/reports/fortemi-v2026-07-api-integration-traceability.md"]},
+        "agent": {"status": "documented_exclusion", "evidence_paths": [".aiwg/reports/fortemi-v2026-07-api-integration-traceability.md"]},
+        "live": {"status": "gap", "evidence_paths": [], "notes": "An exclusion does not simulate live lifecycle evidence."}
+      }
+    },
     "POST /api/v1/notes/{id}/purge#purge_note": {
       "targeted_by_290": false,
       "tracker": "#295",
@@ -4695,6 +4739,31 @@
         }
       },
       "rationale": "Pinned exact operation dispatch, bounded/redacted response handling, compatibility admission, and mocked responsive UI receipts exist. Operation-specific authorization and live Fortemi outcomes remain unverified."
+    },
+    "GET /api/v1/memory/context#get_memory_context": {
+      "targeted_by_290": false,
+      "tracker": "#1",
+      "rationale": "The bounded archive-context client and focused real HTTP client tests cover exact request context, response decoding, failure propagation, and byte limits. Operation-specific live authorization remains independent.",
+      "dimensions": {
+        "request": {
+          "status": "conformant",
+          "evidence_paths": ["ui/src/api/archives.ts", "ui/src/api/__tests__/realtime-context.test.ts"],
+          "notes": "Exact GET path, bearer handling, Accept header, and selected-memory header are covered."
+        },
+        "response": {
+          "status": "conformant",
+          "evidence_paths": ["ui/src/api/archives.ts", "ui/src/api/realtime-context.ts", "ui/src/api/__tests__/realtime-context.test.ts"],
+          "notes": "Canonical name/schema decoding, malformed payload rejection, error propagation, and the 4096-byte ceiling are covered."
+        },
+        "auth_context": {
+          "status": "partial",
+          "evidence_paths": ["ui/src/api/client.ts", "ui/src/api/auth-context.ts", "ui/src/api/memory-context.ts", "ui/src/api/__tests__/realtime-context.test.ts"],
+          "notes": "The client preserves bearer and selected-memory context; producer-enforced authorization still requires separate live evidence."
+        },
+        "ui": {"status": "gap", "evidence_paths": [], "notes": "The route supports context resolution and is not itself a standalone operator control."},
+        "agent": {"status": "gap", "evidence_paths": []},
+        "live": {"status": "gap", "evidence_paths": [], "notes": "No operation-specific released live receipt is claimed here."}
+      }
     },
     "GET /api/v1/memory/info#memory_info": {
       "targeted_by_290": false,

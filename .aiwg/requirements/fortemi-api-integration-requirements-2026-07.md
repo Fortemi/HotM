@@ -526,3 +526,18 @@ sidecar replacement, Knowledge Shard, or suite-wide compatibility evidence.
 The packaged sidecar and historical schema-derived receipts are unchanged.
 [HotM #288](https://git.integrolabs.net/Fortemi/HotM/issues/288) remains open
 until exact-source CI and delivery are verified. Suite NO-GO remains.
+
+## v2026.9.10 Contract Reconciliation (2026-09-19)
+
+The current OpenAPI authority is Fortemi `v2026.9.10` source
+`306bae55a41eff7e4f8b8349304765322865e6cc`, with 202 paths and 261
+schema-bearing operations. The source-route inventory contains 211 routes in
+36 families: 193 covered and 18 documented exclusions, with no unclassified,
+gap, partial, or decision-needed rows.
+
+The operation matrix reports 1 integrated, 225 partial, 0 gaps, and 35
+documented exclusions. All 261 live dimensions remain gaps. The product ledger
+reports 130 UI workflows, 10 agent workflows, 5 external handoffs, 2 typed
+shared-client operations, 79 operator diagnostics, and 35 exclusions. These
+counts supersede prior current-baseline counts; dated historical receipts retain
+their original identities and evidence scope.

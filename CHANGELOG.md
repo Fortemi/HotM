@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
-## [2026.9.6] - 2026-09-18
+## [2026.9.6] - 2026-09-19
 
 ### Fixed
 
@@ -24,6 +24,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   contract fixtures.
 - Bound UI coverage worker concurrency in CI without reducing test inventory or
   coverage thresholds.
+- Reconcile the pinned Fortemi v2026.9.10 inventory at 211 routes and 261
+  OpenAPI operations. The selected-memory context route is covered; four bulk
+  lifecycle-purge orchestration routes remain documented exclusions.
 
 ### Compatibility
 

@@ -1,30 +1,30 @@
 ---
 title: Fortemi v2026.7.1 Route Coverage Inventory
 status: generated
-date: 2026-09-01
+date: 2026-09-19
 artifact_type: api-coverage-inventory
 ---
 
 # Fortemi v2026.7.1 Route Coverage Inventory
 
 - Fortemi source: `../fortemi`
-- Fortemi commit: `0dd28a92`
-- Latest release tag: `v2026.8.3`
-- Extracted route declarations: `204`
+- Fortemi commit: `306bae55`
+- Latest release tag: `v2026.9.10`
+- Extracted route declarations: `211`
 - Evidence boundary: route inventory is route-disposition evidence only.
 
 ## Status Counts
 
 | Status | Count |
 | --- | ---: |
-| covered | 190 |
-| documented_exclusion | 14 |
+| covered | 193 |
+| documented_exclusion | 18 |
 
 ## Family Counts
 
 | Family | Count |
 | --- | ---: |
-| archives | 13 |
+| archives | 14 |
 | attachments | 9 |
 | attachments_tus | 2 |
 | audio_tools | 1 |
@@ -45,7 +45,7 @@ artifact_type: api-coverage-inventory
 | knowledge_health | 6 |
 | models | 1 |
 | native_chat_stream | 1 |
-| notes | 25 |
+| notes | 30 |
 | oauth | 7 |
 | outbound_webhooks | 4 |
 | pke | 12 |
@@ -53,7 +53,7 @@ artifact_type: api-coverage-inventory
 | rate_limit | 1 |
 | realtime_calls | 2 |
 | realtime_events | 4 |
-| search | 2 |
+| search | 3 |
 | streaming_health | 1 |
 | streaming_ingest | 3 |
 | system_compatibility | 1 |
@@ -96,10 +96,15 @@ These entries are advisory planning metadata for mixed dispositions. They do not
 | `GET` | `/api/v1/operator/openapi.yaml` | contract_docs | covered | ui/src/api/systemCompatibility.ts fetches advertised OpenAPI and Admin API Surface links it | #253 |
 | `GET` | `/api/v1/operator/asyncapi.yaml` | contract_docs | covered | ui/src/api/systemCompatibility.ts fetches advertised AsyncAPI and Admin API Surface links it | #253 |
 | `GET, POST` | `/api/v1/notes` | notes | covered | ui/src/api/notes.ts, extended.ts, versions.ts, links.ts | #253 |
+| `POST` | `/api/v1/notes/source-upsert` | notes | covered | ui/src/api/notes.ts, extended.ts, versions.ts, links.ts | #253 |
 | `POST` | `/api/v1/notes/bulk` | notes | covered | ui/src/api/notes.ts, extended.ts, versions.ts, links.ts | #253 |
 | `GET, PATCH, DELETE` | `/api/v1/notes/{id}` | notes | covered | ui/src/api/notes.ts, extended.ts, versions.ts, links.ts | #253 |
 | `POST` | `/api/v1/notes/{id}/restore` | notes | covered | ui/src/api/notes.ts, extended.ts, versions.ts, links.ts | #253 |
 | `POST` | `/api/v1/notes/{id}/purge` | notes | covered | ui/src/api/notes.ts, extended.ts, versions.ts, links.ts | #253 |
+| `POST` | `/api/v1/lifecycle-purge/preview` | notes | documented_exclusion | HotM exposes bounded single-note purge only; bulk lifecycle purge orchestration remains outside current UI and agent claims | #295 |
+| `POST` | `/api/v1/lifecycle-purge` | notes | documented_exclusion | HotM exposes bounded single-note purge only; bulk lifecycle purge orchestration remains outside current UI and agent claims | #295 |
+| `GET` | `/api/v1/lifecycle-purge/{operation_id}` | notes | documented_exclusion | HotM exposes bounded single-note purge only; bulk lifecycle purge orchestration remains outside current UI and agent claims | #295 |
+| `POST` | `/api/v1/lifecycle-purge/{operation_id}/resume` | notes | documented_exclusion | HotM exposes bounded single-note purge only; bulk lifecycle purge orchestration remains outside current UI and agent claims | #295 |
 | `POST` | `/api/v1/notes/{id}/reprocess` | notes | covered | ui/src/api/notes.ts, extended.ts, versions.ts, links.ts | #253 |
 | `POST` | `/api/v1/notes/reprocess` | notes | covered | ui/src/api/notes.ts, extended.ts, versions.ts, links.ts | #253 |
 | `GET, PUT` | `/api/v1/notes/{id}/tags` | notes | covered | ui/src/api/notes.ts, extended.ts, versions.ts, links.ts | #253 |
@@ -114,6 +119,7 @@ These entries are advisory planning metadata for mixed dispositions. They do not
 | `POST` | `/api/v1/notes/{id}/versions/{version}/restore` | notes | covered | ui/src/api/notes.ts, extended.ts, versions.ts, links.ts | #253 |
 | `GET` | `/api/v1/notes/{id}/versions/diff` | notes | covered | ui/src/api/notes.ts, extended.ts, versions.ts, links.ts | #253 |
 | `GET` | `/api/v1/search` | search | covered | ui/src/api/search.ts and SearchPage/agent tool | #253 |
+| `POST` | `/api/v1/search/evidence/resolve` | search | covered | ui/src/api/search.ts and SearchPage/agent tool | #253 |
 | `POST` | `/api/v1/search/federated` | search | covered | ui/src/api/search.ts and SearchPage/agent tool | #253 |
 | `GET` | `/api/v1/memories/search` | archives | covered | archive/memory routing APIs and ArchiveManager | #253 |
 | `GET` | `/api/v1/notes/{id}/memory-provenance` | notes | covered | ui/src/api/notes.ts, extended.ts, versions.ts, links.ts | #253 |
@@ -163,6 +169,7 @@ These entries are advisory planning metadata for mixed dispositions. They do not
 | `GET, POST` | `/api/v1/document-types` | document_types | covered | ui/src/api/documents.ts and DocumentTypesPanel | #253 |
 | `GET, PATCH, DELETE` | `/api/v1/document-types/{name}` | document_types | covered | ui/src/api/documents.ts and DocumentTypesPanel | #253 |
 | `POST` | `/api/v1/document-types/detect` | document_types | covered | ui/src/api/documents.ts and DocumentTypesPanel | #253 |
+| `GET` | `/api/v1/memory/context` | archives | covered | ui/src/api/archives.ts, realtime-context.ts, and focused real-client tests | #1 |
 | `GET, POST` | `/api/v1/archives` | archives | covered | ui/src/api/archives.ts and ArchiveManager | #253 |
 | `GET, PATCH, DELETE` | `/api/v1/archives/{name}` | archives | covered | ui/src/api/archives.ts and ArchiveManager | #253 |
 | `POST` | `/api/v1/archives/{name}/set-default` | archives | covered | ui/src/api/archives.ts and ArchiveManager | #253 |

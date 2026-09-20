@@ -35,10 +35,23 @@ describe('OperationCatalogPanel', () => {
   it('keeps excluded credential operations visible and disabled', async () => {
     vi.mocked(api.systemCompatibility.get).mockResolvedValue({} as never);
     render(<OperationCatalogPanel />);
+    await waitFor(() => expect(screen.getByText('Compatible')).toBeInTheDocument());
     fireEvent.change(screen.getByPlaceholderText('Search operations'), { target: { value: 'oauth_token' } });
     const operation = screen.getByText('oauth_token');
     expect(operation.closest('tr')).toHaveAttribute('aria-disabled', 'true');
     expect(screen.getByText('Disabled')).toBeInTheDocument();
+  });
+
+  it('exposes typed shared-client operations as an explicit disposition', async () => {
+    vi.mocked(api.systemCompatibility.get).mockResolvedValue({} as never);
+    render(<OperationCatalogPanel />);
+    await waitFor(() => expect(screen.getByText('Compatible')).toBeInTheDocument());
+
+    fireEvent.click(screen.getByRole('combobox', { name: 'Filter operation disposition' }));
+    fireEvent.click(screen.getByRole('option', { name: 'Typed shared client' }));
+    expect(screen.getByText('get_memory_context')).toBeInTheDocument();
+    expect(screen.getByText('create_note_link')).toBeInTheDocument();
+    expect(screen.queryByText('oauth_discovery')).not.toBeInTheDocument();
   });
 
   it('fails closed with a retryable compatibility state', async () => {

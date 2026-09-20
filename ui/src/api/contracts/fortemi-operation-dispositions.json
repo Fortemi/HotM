@@ -7,23 +7,23 @@
     "specification_version": "3.1.0",
     "contract_revision": "2",
     "contract_version": "2026.9.0",
-    "producer_commit": "0dd28a9255e2b53363f93e2e288777631709eb05",
-    "sha256": "652bcce252719e5c0ced015beae02e41380c56dccaa5dc071d369b3ac6fdd858"
+    "producer_commit": "306bae55a41eff7e4f8b8349304765322865e6cc",
+    "sha256": "0cc3f1260fed076cc559a00719e39302d657c24eacd2770e7da7ef9cef2c6869"
   },
-  "operation_count": 254,
+  "operation_count": 261,
   "summary": {
     "privileges": {
-      "admin": 65,
+      "admin": 69,
       "delete": 22,
-      "read": 96,
-      "write": 71
+      "read": 97,
+      "write": 73
     },
     "surfaces": {
       "agent_workflow": 10,
-      "documented_exclusion": 31,
+      "documented_exclusion": 35,
       "external_protocol_handoff": 5,
-      "operator_diagnostic": 77,
-      "typed_shared_client": 1,
+      "operator_diagnostic": 79,
+      "typed_shared_client": 2,
       "ui_workflow": 130
     },
     "security_decisions": {
@@ -2711,6 +2711,66 @@
       "tracker": "#287"
     },
     {
+      "key": "POST /api/v1/lifecycle-purge#lifecycle_purge_begin",
+      "method": "POST",
+      "path": "/api/v1/lifecycle-purge",
+      "operation_id": "lifecycle_purge_begin",
+      "family": "notes",
+      "privilege": "admin",
+      "surface": "documented_exclusion",
+      "rationale": "Bulk lifecycle purge begin is outside current HotM UI and agent claims; the separately contracted single-note purge workflow remains available.",
+      "evidence_paths": [
+        ".aiwg/reports/fortemi-v2026-07-api-integration-traceability.md"
+      ],
+      "conformance_disposition": "documented_exclusion",
+      "tracker": "#287"
+    },
+    {
+      "key": "POST /api/v1/lifecycle-purge/preview#lifecycle_purge_preview",
+      "method": "POST",
+      "path": "/api/v1/lifecycle-purge/preview",
+      "operation_id": "lifecycle_purge_preview",
+      "family": "notes",
+      "privilege": "admin",
+      "surface": "documented_exclusion",
+      "rationale": "Bulk lifecycle purge preview is outside current HotM UI and agent claims; the separately contracted single-note purge workflow remains available.",
+      "evidence_paths": [
+        ".aiwg/reports/fortemi-v2026-07-api-integration-traceability.md"
+      ],
+      "conformance_disposition": "documented_exclusion",
+      "tracker": "#287"
+    },
+    {
+      "key": "GET /api/v1/lifecycle-purge/{operation_id}#lifecycle_purge_status",
+      "method": "GET",
+      "path": "/api/v1/lifecycle-purge/{operation_id}",
+      "operation_id": "lifecycle_purge_status",
+      "family": "notes",
+      "privilege": "admin",
+      "surface": "documented_exclusion",
+      "rationale": "Bulk lifecycle purge status is outside current HotM UI and agent claims; the separately contracted single-note purge workflow remains available.",
+      "evidence_paths": [
+        ".aiwg/reports/fortemi-v2026-07-api-integration-traceability.md"
+      ],
+      "conformance_disposition": "documented_exclusion",
+      "tracker": "#287"
+    },
+    {
+      "key": "POST /api/v1/lifecycle-purge/{operation_id}/resume#lifecycle_purge_resume",
+      "method": "POST",
+      "path": "/api/v1/lifecycle-purge/{operation_id}/resume",
+      "operation_id": "lifecycle_purge_resume",
+      "family": "notes",
+      "privilege": "admin",
+      "surface": "documented_exclusion",
+      "rationale": "Bulk lifecycle purge resume is outside current HotM UI and agent claims; the separately contracted single-note purge workflow remains available.",
+      "evidence_paths": [
+        ".aiwg/reports/fortemi-v2026-07-api-integration-traceability.md"
+      ],
+      "conformance_disposition": "documented_exclusion",
+      "tracker": "#287"
+    },
+    {
       "key": "GET /api/v1/memories#list_archives_memory_alias",
       "method": "GET",
       "path": "/api/v1/memories",
@@ -2861,6 +2921,23 @@
       "tracker": "#287"
     },
     {
+      "key": "GET /api/v1/memory/context#get_memory_context",
+      "method": "GET",
+      "path": "/api/v1/memory/context",
+      "operation_id": "get_memory_context",
+      "family": "archives",
+      "privilege": "read",
+      "surface": "typed_shared_client",
+      "rationale": "The archive context resolver is available through a bounded typed client; it is supporting infrastructure rather than a standalone UI control.",
+      "evidence_paths": [
+        "ui/src/api/archives.ts",
+        "ui/src/api/realtime-context.ts",
+        "ui/src/api/__tests__/realtime-context.test.ts"
+      ],
+      "conformance_disposition": "partial",
+      "tracker": "#287"
+    },
+    {
       "key": "GET /api/v1/memory/info#memory_info",
       "method": "GET",
       "path": "/api/v1/memory/info",
@@ -2976,6 +3053,21 @@
         "ui/src/components/admin/__tests__/CoreContentLifecyclePanel.test.tsx",
         "ui/src/components/admin/__tests__/CoreContentLifecyclePanelSecondIncrement.test.tsx",
         "ui/e2e/tests/core-content-lifecycle-responsive.spec.ts"
+      ],
+      "conformance_disposition": "partial",
+      "tracker": "#287"
+    },
+    {
+      "key": "POST /api/v1/notes/source-upsert#source_upsert_notes",
+      "method": "POST",
+      "path": "/api/v1/notes/source-upsert",
+      "operation_id": "source_upsert_notes",
+      "family": "notes",
+      "privilege": "write",
+      "surface": "operator_diagnostic",
+      "rationale": "The pinned operation is visible in the read-only operator catalog; no request, response, auth, or live conformance is inferred.",
+      "evidence_paths": [
+        "ui/src/components/admin/OperationCatalogPanel.tsx"
       ],
       "conformance_disposition": "partial",
       "tracker": "#287"
@@ -3994,6 +4086,21 @@
       "evidence_paths": [
         "agent-proxy/src/tools.ts",
         "agent-proxy/src/privileges.ts"
+      ],
+      "conformance_disposition": "partial",
+      "tracker": "#287"
+    },
+    {
+      "key": "POST /api/v1/search/evidence/resolve#resolve_search_evidence",
+      "method": "POST",
+      "path": "/api/v1/search/evidence/resolve",
+      "operation_id": "resolve_search_evidence",
+      "family": "search",
+      "privilege": "write",
+      "surface": "operator_diagnostic",
+      "rationale": "The pinned operation is visible in the read-only operator catalog; no request, response, auth, or live conformance is inferred.",
+      "evidence_paths": [
+        "ui/src/components/admin/OperationCatalogPanel.tsx"
       ],
       "conformance_disposition": "partial",
       "tracker": "#287"

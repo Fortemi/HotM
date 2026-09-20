@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-01",
+  "generated_at": "2026-09-19",
   "schema_version": 1,
   "source_issue": "Fortemi/HotM#290",
   "openapi": {
@@ -8,56 +8,56 @@
     "specification_version": "3.1.0",
     "contract_revision": "2",
     "contract_version": "2026.9.0",
-    "producer_commit": "0dd28a9255e2b53363f93e2e288777631709eb05",
-    "sha256": "652bcce252719e5c0ced015beae02e41380c56dccaa5dc071d369b3ac6fdd858"
+    "producer_commit": "306bae55a41eff7e4f8b8349304765322865e6cc",
+    "sha256": "0cc3f1260fed076cc559a00719e39302d657c24eacd2770e7da7ef9cef2c6869"
   },
-  "operation_count": 254,
+  "operation_count": 261,
   "targeted_operation_count": 86,
   "disposition_counts": {
-    "partial": 222,
-    "documented_exclusion": 31,
+    "partial": 225,
+    "documented_exclusion": 35,
     "integrated": 1
   },
   "dimension_counts": {
     "route": {
-      "conformant": 254
+      "conformant": 261
     },
     "request": {
-      "gap": 86,
+      "gap": 92,
       "documented_exclusion": 31,
-      "conformant": 134,
+      "conformant": 135,
       "not_applicable": 3
     },
     "response": {
-      "gap": 86,
+      "gap": 92,
       "documented_exclusion": 31,
-      "conformant": 129,
+      "conformant": 130,
       "partial": 8
     },
     "auth_context": {
-      "gap": 86,
+      "gap": 92,
       "documented_exclusion": 31,
-      "partial": 136,
+      "partial": 137,
       "conformant": 1
     },
     "ui": {
-      "gap": 87,
-      "documented_exclusion": 32,
+      "gap": 90,
+      "documented_exclusion": 36,
       "conformant": 135
     },
     "agent": {
-      "gap": 200,
-      "documented_exclusion": 42,
+      "gap": 203,
+      "documented_exclusion": 46,
       "conformant": 12
     },
     "live": {
-      "gap": 254
+      "gap": 261
     }
   },
   "family_counts": {
     "oauth": 8,
     "auth_api_keys": 3,
-    "archives": 19,
+    "archives": 20,
     "attachments": 11,
     "audio_tools": 1,
     "backup_archive": 20,
@@ -76,13 +76,13 @@
     "inbound_sources": 3,
     "inference": 8,
     "streaming_ingest": 2,
+    "notes": 37,
     "models": 1,
-    "notes": 32,
     "attachments_tus": 5,
     "pke": 13,
     "provenance": 5,
     "rate_limit": 1,
-    "search": 2,
+    "search": 3,
     "system_compatibility": 1,
     "tags": 1,
     "templates": 6,
@@ -11204,6 +11204,268 @@
       }
     },
     {
+      "key": "POST /api/v1/lifecycle-purge#lifecycle_purge_begin",
+      "method": "POST",
+      "path": "/api/v1/lifecycle-purge",
+      "operation_id": "lifecycle_purge_begin",
+      "family": "notes",
+      "route_disposition": "documented_exclusion",
+      "has_request_body": true,
+      "success_statuses": [
+        "202"
+      ],
+      "error_statuses": [
+        "429"
+      ],
+      "security": [
+        {
+          "bearerAuth": []
+        }
+      ],
+      "targeted_by_290": false,
+      "disposition": "documented_exclusion",
+      "tracker": "#295",
+      "rationale": "Bulk lifecycle purge begin is outside current HotM UI and agent claims; the separately contracted single-note purge workflow remains available.",
+      "dimensions": {
+        "route": {
+          "status": "conformant",
+          "evidence_paths": [],
+          "notes": "Route disposition only; does not imply request, response, auth, UI, agent, or live conformance."
+        },
+        "request": {
+          "status": "gap",
+          "evidence_paths": [],
+          "notes": "No explicit request serializer evidence recorded."
+        },
+        "response": {
+          "status": "gap",
+          "evidence_paths": [],
+          "notes": "No explicit success/error decoder evidence recorded."
+        },
+        "auth_context": {
+          "status": "gap",
+          "evidence_paths": [],
+          "notes": "No explicit auth/context gate evidence recorded."
+        },
+        "ui": {
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/reports/fortemi-v2026-07-api-integration-traceability.md"
+          ],
+          "notes": "No explicit UI workflow evidence recorded."
+        },
+        "agent": {
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/reports/fortemi-v2026-07-api-integration-traceability.md"
+          ],
+          "notes": "No explicit agent workflow evidence recorded."
+        },
+        "live": {
+          "status": "gap",
+          "evidence_paths": [],
+          "notes": "An exclusion does not simulate live lifecycle evidence."
+        }
+      }
+    },
+    {
+      "key": "POST /api/v1/lifecycle-purge/preview#lifecycle_purge_preview",
+      "method": "POST",
+      "path": "/api/v1/lifecycle-purge/preview",
+      "operation_id": "lifecycle_purge_preview",
+      "family": "notes",
+      "route_disposition": "documented_exclusion",
+      "has_request_body": true,
+      "success_statuses": [
+        "200"
+      ],
+      "error_statuses": [
+        "429"
+      ],
+      "security": [
+        {
+          "bearerAuth": []
+        }
+      ],
+      "targeted_by_290": false,
+      "disposition": "documented_exclusion",
+      "tracker": "#295",
+      "rationale": "Bulk lifecycle purge preview is outside current HotM UI and agent claims; the separately contracted single-note purge workflow remains available.",
+      "dimensions": {
+        "route": {
+          "status": "conformant",
+          "evidence_paths": [],
+          "notes": "Route disposition only; does not imply request, response, auth, UI, agent, or live conformance."
+        },
+        "request": {
+          "status": "gap",
+          "evidence_paths": [],
+          "notes": "No explicit request serializer evidence recorded."
+        },
+        "response": {
+          "status": "gap",
+          "evidence_paths": [],
+          "notes": "No explicit success/error decoder evidence recorded."
+        },
+        "auth_context": {
+          "status": "gap",
+          "evidence_paths": [],
+          "notes": "No explicit auth/context gate evidence recorded."
+        },
+        "ui": {
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/reports/fortemi-v2026-07-api-integration-traceability.md"
+          ],
+          "notes": "No explicit UI workflow evidence recorded."
+        },
+        "agent": {
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/reports/fortemi-v2026-07-api-integration-traceability.md"
+          ],
+          "notes": "No explicit agent workflow evidence recorded."
+        },
+        "live": {
+          "status": "gap",
+          "evidence_paths": [],
+          "notes": "An exclusion does not simulate live lifecycle evidence."
+        }
+      }
+    },
+    {
+      "key": "GET /api/v1/lifecycle-purge/{operation_id}#lifecycle_purge_status",
+      "method": "GET",
+      "path": "/api/v1/lifecycle-purge/{operation_id}",
+      "operation_id": "lifecycle_purge_status",
+      "family": "notes",
+      "route_disposition": "documented_exclusion",
+      "has_request_body": false,
+      "success_statuses": [
+        "200"
+      ],
+      "error_statuses": [
+        "404",
+        "429"
+      ],
+      "security": [
+        {
+          "bearerAuth": []
+        }
+      ],
+      "targeted_by_290": false,
+      "disposition": "documented_exclusion",
+      "tracker": "#295",
+      "rationale": "Bulk lifecycle purge status is outside current HotM UI and agent claims; the separately contracted single-note purge workflow remains available.",
+      "dimensions": {
+        "route": {
+          "status": "conformant",
+          "evidence_paths": [],
+          "notes": "Route disposition only; does not imply request, response, auth, UI, agent, or live conformance."
+        },
+        "request": {
+          "status": "gap",
+          "evidence_paths": [],
+          "notes": "No explicit request serializer evidence recorded."
+        },
+        "response": {
+          "status": "gap",
+          "evidence_paths": [],
+          "notes": "No explicit success/error decoder evidence recorded."
+        },
+        "auth_context": {
+          "status": "gap",
+          "evidence_paths": [],
+          "notes": "No explicit auth/context gate evidence recorded."
+        },
+        "ui": {
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/reports/fortemi-v2026-07-api-integration-traceability.md"
+          ],
+          "notes": "No explicit UI workflow evidence recorded."
+        },
+        "agent": {
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/reports/fortemi-v2026-07-api-integration-traceability.md"
+          ],
+          "notes": "No explicit agent workflow evidence recorded."
+        },
+        "live": {
+          "status": "gap",
+          "evidence_paths": [],
+          "notes": "An exclusion does not simulate live lifecycle evidence."
+        }
+      }
+    },
+    {
+      "key": "POST /api/v1/lifecycle-purge/{operation_id}/resume#lifecycle_purge_resume",
+      "method": "POST",
+      "path": "/api/v1/lifecycle-purge/{operation_id}/resume",
+      "operation_id": "lifecycle_purge_resume",
+      "family": "notes",
+      "route_disposition": "documented_exclusion",
+      "has_request_body": false,
+      "success_statuses": [
+        "200"
+      ],
+      "error_statuses": [
+        "404",
+        "429"
+      ],
+      "security": [
+        {
+          "bearerAuth": []
+        }
+      ],
+      "targeted_by_290": false,
+      "disposition": "documented_exclusion",
+      "tracker": "#295",
+      "rationale": "Bulk lifecycle purge resume is outside current HotM UI and agent claims; the separately contracted single-note purge workflow remains available.",
+      "dimensions": {
+        "route": {
+          "status": "conformant",
+          "evidence_paths": [],
+          "notes": "Route disposition only; does not imply request, response, auth, UI, agent, or live conformance."
+        },
+        "request": {
+          "status": "gap",
+          "evidence_paths": [],
+          "notes": "No explicit request serializer evidence recorded."
+        },
+        "response": {
+          "status": "gap",
+          "evidence_paths": [],
+          "notes": "No explicit success/error decoder evidence recorded."
+        },
+        "auth_context": {
+          "status": "gap",
+          "evidence_paths": [],
+          "notes": "No explicit auth/context gate evidence recorded."
+        },
+        "ui": {
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/reports/fortemi-v2026-07-api-integration-traceability.md"
+          ],
+          "notes": "No explicit UI workflow evidence recorded."
+        },
+        "agent": {
+          "status": "documented_exclusion",
+          "evidence_paths": [
+            ".aiwg/reports/fortemi-v2026-07-api-integration-traceability.md"
+          ],
+          "notes": "No explicit agent workflow evidence recorded."
+        },
+        "live": {
+          "status": "gap",
+          "evidence_paths": [],
+          "notes": "An exclusion does not simulate live lifecycle evidence."
+        }
+      }
+    },
+    {
       "key": "GET /api/v1/memories#list_archives_memory_alias",
       "method": "GET",
       "path": "/api/v1/memories",
@@ -11814,6 +12076,85 @@
       }
     },
     {
+      "key": "GET /api/v1/memory/context#get_memory_context",
+      "method": "GET",
+      "path": "/api/v1/memory/context",
+      "operation_id": "get_memory_context",
+      "family": "archives",
+      "route_disposition": "covered",
+      "has_request_body": false,
+      "success_statuses": [
+        "200"
+      ],
+      "error_statuses": [
+        "400",
+        "401",
+        "403",
+        "404",
+        "429",
+        "500",
+        "503"
+      ],
+      "security": [
+        {
+          "bearerAuth": []
+        }
+      ],
+      "targeted_by_290": false,
+      "disposition": "partial",
+      "tracker": "#1",
+      "rationale": "The bounded archive-context client and focused real HTTP client tests cover exact request context, response decoding, failure propagation, and byte limits. Operation-specific live authorization remains independent.",
+      "dimensions": {
+        "route": {
+          "status": "conformant",
+          "evidence_paths": [],
+          "notes": "Route disposition only; does not imply request, response, auth, UI, agent, or live conformance."
+        },
+        "request": {
+          "status": "conformant",
+          "evidence_paths": [
+            "ui/src/api/archives.ts",
+            "ui/src/api/__tests__/realtime-context.test.ts"
+          ],
+          "notes": "Exact GET path, bearer handling, Accept header, and selected-memory header are covered."
+        },
+        "response": {
+          "status": "conformant",
+          "evidence_paths": [
+            "ui/src/api/archives.ts",
+            "ui/src/api/realtime-context.ts",
+            "ui/src/api/__tests__/realtime-context.test.ts"
+          ],
+          "notes": "Canonical name/schema decoding, malformed payload rejection, error propagation, and the 4096-byte ceiling are covered."
+        },
+        "auth_context": {
+          "status": "partial",
+          "evidence_paths": [
+            "ui/src/api/client.ts",
+            "ui/src/api/auth-context.ts",
+            "ui/src/api/memory-context.ts",
+            "ui/src/api/__tests__/realtime-context.test.ts"
+          ],
+          "notes": "The client preserves bearer and selected-memory context; producer-enforced authorization still requires separate live evidence."
+        },
+        "ui": {
+          "status": "gap",
+          "evidence_paths": [],
+          "notes": "The route supports context resolution and is not itself a standalone operator control."
+        },
+        "agent": {
+          "status": "gap",
+          "evidence_paths": [],
+          "notes": "No explicit agent workflow evidence recorded."
+        },
+        "live": {
+          "status": "gap",
+          "evidence_paths": [],
+          "notes": "No operation-specific released live receipt is claimed here."
+        }
+      }
+    },
+    {
       "key": "GET /api/v1/memory/info#memory_info",
       "method": "GET",
       "path": "/api/v1/memory/info",
@@ -12318,6 +12659,68 @@
             "ui/e2e/tests/core-content-lifecycle-responsive.spec.ts"
           ],
           "notes": "Admin workflow, confirmations, bounded receipts, and deterministic desktop/mobile mocked browser coverage exist."
+        },
+        "agent": {
+          "status": "gap",
+          "evidence_paths": [],
+          "notes": "No explicit agent workflow evidence recorded."
+        },
+        "live": {
+          "status": "gap",
+          "evidence_paths": [],
+          "notes": "No live receipt recorded."
+        }
+      }
+    },
+    {
+      "key": "POST /api/v1/notes/source-upsert#source_upsert_notes",
+      "method": "POST",
+      "path": "/api/v1/notes/source-upsert",
+      "operation_id": "source_upsert_notes",
+      "family": "notes",
+      "route_disposition": "covered",
+      "has_request_body": true,
+      "success_statuses": [
+        "200"
+      ],
+      "error_statuses": [
+        "400",
+        "429"
+      ],
+      "security": [
+        {
+          "bearerAuth": []
+        }
+      ],
+      "targeted_by_290": false,
+      "disposition": "partial",
+      "tracker": "#290",
+      "rationale": "Operation-level conformance has not been explicitly claimed.",
+      "dimensions": {
+        "route": {
+          "status": "conformant",
+          "evidence_paths": [],
+          "notes": "Route disposition only; does not imply request, response, auth, UI, agent, or live conformance."
+        },
+        "request": {
+          "status": "gap",
+          "evidence_paths": [],
+          "notes": "No explicit request serializer evidence recorded."
+        },
+        "response": {
+          "status": "gap",
+          "evidence_paths": [],
+          "notes": "No explicit success/error decoder evidence recorded."
+        },
+        "auth_context": {
+          "status": "gap",
+          "evidence_paths": [],
+          "notes": "No explicit auth/context gate evidence recorded."
+        },
+        "ui": {
+          "status": "gap",
+          "evidence_paths": [],
+          "notes": "No explicit UI workflow evidence recorded."
         },
         "agent": {
           "status": "gap",
@@ -16253,6 +16656,69 @@
             "agent-proxy/src/__tests__/privileges.test.ts"
           ],
           "notes": "Exact pinned endpoint dispatch and bounded tool results are covered by focused tests; compatibility admission, operation-specific server authorization, and live Fortemi outcomes remain independent."
+        },
+        "live": {
+          "status": "gap",
+          "evidence_paths": [],
+          "notes": "No live receipt recorded."
+        }
+      }
+    },
+    {
+      "key": "POST /api/v1/search/evidence/resolve#resolve_search_evidence",
+      "method": "POST",
+      "path": "/api/v1/search/evidence/resolve",
+      "operation_id": "resolve_search_evidence",
+      "family": "search",
+      "route_disposition": "covered",
+      "has_request_body": true,
+      "success_statuses": [
+        "200"
+      ],
+      "error_statuses": [
+        "400",
+        "404",
+        "429"
+      ],
+      "security": [
+        {
+          "bearerAuth": []
+        }
+      ],
+      "targeted_by_290": false,
+      "disposition": "partial",
+      "tracker": "#290",
+      "rationale": "Operation-level conformance has not been explicitly claimed.",
+      "dimensions": {
+        "route": {
+          "status": "conformant",
+          "evidence_paths": [],
+          "notes": "Route disposition only; does not imply request, response, auth, UI, agent, or live conformance."
+        },
+        "request": {
+          "status": "gap",
+          "evidence_paths": [],
+          "notes": "No explicit request serializer evidence recorded."
+        },
+        "response": {
+          "status": "gap",
+          "evidence_paths": [],
+          "notes": "No explicit success/error decoder evidence recorded."
+        },
+        "auth_context": {
+          "status": "gap",
+          "evidence_paths": [],
+          "notes": "No explicit auth/context gate evidence recorded."
+        },
+        "ui": {
+          "status": "gap",
+          "evidence_paths": [],
+          "notes": "No explicit UI workflow evidence recorded."
+        },
+        "agent": {
+          "status": "gap",
+          "evidence_paths": [],
+          "notes": "No explicit agent workflow evidence recorded."
         },
         "live": {
           "status": "gap",

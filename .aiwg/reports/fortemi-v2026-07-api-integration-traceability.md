@@ -146,6 +146,26 @@ closure or full compatibility claim; previous failed receipts and NO-GO preserve
 
 ## Cycle93 Producer Dependency
 
+### v2026.9.10 route reconciliation
+
+The current exact producer pin is Fortemi `v2026.9.10` source
+`306bae55a41eff7e4f8b8349304765322865e6cc`: 202 OpenAPI paths, 261 operations,
+and 211 source routes across 36 families. The route result is 193 covered and
+18 documented exclusions. The operation result is 1 integrated, 225 partial,
+0 gaps, and 35 documented exclusions. All 261 live dimensions remain gaps.
+The product ledger records 130 UI workflows, 10 agent workflows, 5 external
+handoffs, 2 typed shared-client operations, 79 operator diagnostics, and 35
+documented exclusions.
+
+The delivered `GET /api/v1/memory/context` route is covered by the bounded
+`archives.context()` client and focused real-client context tests. The four
+`/api/v1/lifecycle-purge` orchestration routes are documented exclusions:
+HotM exposes the separately contracted single-note purge workflow, but does not
+claim bulk preview, begin, status, or resume controls in its UI or agent surface.
+This classification is inventory and operation-disposition evidence only; it
+does not promote operation-specific authorization, live lifecycle, or suite
+portability claims.
+
 HotM#1 / Fortemi#1091 / Core#405 Cycle94 update: candidate resolver and bounded
 HTTP context method adopt the producer read endpoint. Tests cover exact decoding,
 errors and byte limits while preserving selection/cursor/queue behavior. The
