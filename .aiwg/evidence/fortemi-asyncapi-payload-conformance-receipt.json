@@ -1,34 +1,34 @@
 {
   "schemaVersion": 1,
   "issue": "Fortemi/HotM#288",
-  "sourcePublishedAt": "2026-07-29T16:36:55-04:00",
+  "sourcePublishedAt": "2026-09-17T21:48:06Z",
   "producer": {
     "repository": "Fortemi/fortemi",
-    "commit": "5ea08229c9f1565122df5f8e6906e89d98dc7e75",
+    "commit": "306bae55a41eff7e4f8b8349304765322865e6cc",
     "sourcePath": "crates/matric-core/src/events.rs",
-    "sourceSha256": "9828d2856f7aea057978b66bf113596dccbfcf9642303eeb9a4d1a1e228d84e7",
+    "sourceSha256": "758ff7f7e1e5d17c364f818637d1154d074b53db8c44abc4167ec7257d51e57b",
     "asyncApi": {
       "sourcePath": "crates/matric-core/src/asyncapi.rs",
-      "sourceSha256": "7be3732aa01cd40e7761b78ce56c7b3199494cd76c8d06f3ccfb78b6070f1da8",
+      "sourceSha256": "2d7e62122641fd4ff6523a58dc1579e8791ae4e6d277456614663340d10fef95",
       "artifactPath": "contracts/asyncapi/asyncapi.yaml",
       "format": "yaml",
       "asyncApiVersion": "3.0.0",
-      "generatorVersion": "2026.7.19",
+      "generatorVersion": "2026.9.10",
       "canonicalServerUrl": "http://localhost:3000",
-      "sha256": "1ec4a4477431caf60a62ace48f80186bf732408476a24c8d9cd32dba41957ea4",
+      "sha256": "75c18f19f41f4598c71b5aefa446d8c675a630be9fa9d1b39c7ac2f177522209",
       "sizeBytes": 45160
     }
   },
   "verifier": ".aiwg/testing/scripts/verify-fortemi-asyncapi-payloads.mjs",
   "asyncApi": {
     "path": "contracts/asyncapi/asyncapi.yaml",
-    "sha256": "1ec4a4477431caf60a62ace48f80186bf732408476a24c8d9cd32dba41957ea4",
+    "sha256": "75c18f19f41f4598c71b5aefa446d8c675a630be9fa9d1b39c7ac2f177522209",
     "sizeBytes": 45160,
     "version": "3.0.0"
   },
   "corpus": {
     "fixturePath": "ui/src/api/contracts/fortemi-asyncapi-event-fixtures.json",
-    "sha256": "84340831f6585909b56b22485ac443b8df8b3003cbaa457294754d4ab570811d",
+    "sha256": "465782ac5b6d4641af4f67f15a2382e1b2fde66e5ed85a6750377579e6a1b859",
     "sourceKind": "schema-derived",
     "producerOwnedExamplesFound": false,
     "positiveCases": 48,
@@ -92,7 +92,7 @@
   },
   "validationRules": {
     "path": "ui/src/api/contracts/fortemi-asyncapi-event-validation-rules.json",
-    "sha256": "43bba568d37f259904f28f43be3f2249baffed3cbb2df3377392a4f55aa24b54",
+    "sha256": "1ab5eb95826c063e0c2006a7c7724e52a00801d40e91c5a523b8260a5aa0a176",
     "rules": 48
   },
   "producerExampleInspection": {
@@ -100,17 +100,17 @@
     "inspectedSources": [
       {
         "path": "crates/matric-core/src/events.rs",
-        "sha256": "9828d2856f7aea057978b66bf113596dccbfcf9642303eeb9a4d1a1e228d84e7",
+        "sha256": "758ff7f7e1e5d17c364f818637d1154d074b53db8c44abc4167ec7257d51e57b",
         "material": "Rust ServerEvent/EventEnvelope unit tests and metadata, not pinned JSON example corpus"
       },
       {
         "path": "crates/matric-api/src/main.rs",
-        "sha256": "0af67cf61385b44b01f8e83d5dd1e465208ddb48c49924302998f46b8075e590",
+        "sha256": "19d39d28a32746a63caa0b7fc7bd0e659808e96e614b578d44d0f22c59a9ac5c",
         "material": "Rust SSE flow tests collect runtime JSON values, not pinned reusable example corpus"
       },
       {
         "path": "contracts/asyncapi/asyncapi.yaml",
-        "sha256": "1ec4a4477431caf60a62ace48f80186bf732408476a24c8d9cd32dba41957ea4",
+        "sha256": "75c18f19f41f4598c71b5aefa446d8c675a630be9fa9d1b39c7ac2f177522209",
         "material": "Pinned AsyncAPI schema artifact used to derive fixtures"
       }
     ],
