@@ -6,7 +6,7 @@ const path = require('node:path');
 const { execFileSync } = require('node:child_process');
 
 const issue = 'Fortemi/HotM#291';
-const schemaVersion = 'hotm.mocked-playwright-ci-receipt.v1';
+const schemaVersion = 'hotm.mocked-playwright-ci-receipt.v2';
 const fixtureContractFiles = [
   'e2e/fixtures/test-data.ts',
   'e2e/tests/compatibility-admission.spec.ts',
@@ -28,6 +28,14 @@ function repoRoot() {
 
 function hotmSha() {
   return execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim();
+}
+
+function pullRequestHeadSha() {
+  const eventPath = process.env.GITHUB_EVENT_PATH;
+  if (!eventPath) return null;
+  const event = JSON.parse(fs.readFileSync(eventPath, 'utf8'));
+  const sha = event?.pull_request?.head?.sha;
+  return typeof sha === 'string' && /^[0-9a-f]{40}$/.test(sha) ? sha : null;
 }
 
 function fileDigest(root, relativePath) {
@@ -54,6 +62,8 @@ function baseReceipt() {
   const root = repoRoot();
   const exactHotmSha = hotmSha();
   const githubSha = process.env.GITHUB_SHA || null;
+  const prHeadSha = pullRequestHeadSha();
+  const sourceSha = prHeadSha || githubSha;
   return {
     schemaVersion,
     issue,
@@ -69,7 +79,9 @@ function baseReceipt() {
       run_id: process.env.GITHUB_RUN_ID || null,
       hotm_sha: exactHotmSha,
       github_sha: githubSha,
-      github_sha_matches_hotm_sha: githubSha === null || githubSha === exactHotmSha,
+      pull_request_head_sha: prHeadSha,
+      source_sha: sourceSha,
+      source_sha_matches_hotm_sha: sourceSha === null || sourceSha === exactHotmSha,
     },
     fixture_contract: fixtureContractDigest(root),
     matrix: {
@@ -105,8 +117,8 @@ function validate(receipt) {
   if (receipt.issue !== issue) failures.push('issue mismatch');
   if (!['started', 'passed', 'failed'].includes(receipt.status)) failures.push('invalid status');
   if (!/^[0-9a-f]{40}$/.test(receipt.git?.hotm_sha || '')) failures.push('git.hotm_sha must be a full SHA');
-  if (receipt.git?.github_sha_matches_hotm_sha !== true) {
-    failures.push('GITHUB_SHA does not match checked-out HotM HEAD');
+  if (receipt.git?.source_sha_matches_hotm_sha !== true) {
+    failures.push('event source SHA does not match checked-out HotM HEAD');
   }
   if (!/^[0-9a-f]{64}$/.test(receipt.fixture_contract?.digest || '')) {
     failures.push('fixture contract digest missing');

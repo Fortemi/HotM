@@ -201,6 +201,7 @@ jobs:
         working-directory: ui
         run: |
           set -euo pipefail
+          node --test scripts/write-mocked-playwright-ci-receipt.test.cjs
           export HOTM_E2E_PORT="$(
             node -e '
               const server = require("node:net").createServer();
