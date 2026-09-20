@@ -2,10 +2,10 @@
   "schemaVersion": 1,
   "authority": {
     "repository": "Fortemi/fortemi",
-    "commit": "c3bfd40b275decd5a24c4e9a656d830a383b3de2",
+    "commit": "306bae55a41eff7e4f8b8349304765322865e6cc",
     "receipt": {
       "path": "contracts/asyncapi/producer-event-fixture-receipt.json",
-      "sha256": "2318bf0ff3ba2801929767c9417ed5cc0dd83ffb91ceae7276efcc8979b763aa"
+      "sha256": "214d9168fcd1b18e7dc9da037765b8ce21dba9ffa194f7fa96c05daef9041291"
     }
   }
 }

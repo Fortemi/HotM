@@ -3,14 +3,14 @@
   "fixtureSource": "producer-owned Rust EventEnvelope; JSON values imported without semantic changes",
   "producer": {
     "repository": "Fortemi/fortemi",
-    "commit": "c3bfd40b275decd5a24c4e9a656d830a383b3de2",
+    "commit": "306bae55a41eff7e4f8b8349304765322865e6cc",
     "receipt": {
       "path": "contracts/asyncapi/producer-event-fixture-receipt.json",
-      "sha256": "2318bf0ff3ba2801929767c9417ed5cc0dd83ffb91ceae7276efcc8979b763aa"
+      "sha256": "214d9168fcd1b18e7dc9da037765b8ce21dba9ffa194f7fa96c05daef9041291"
     },
     "manifestPath": "contracts/asyncapi/fixtures/manifest.json",
-    "manifestSha256": "73ce991d31aba0bfaa7d126f9f8ca7cb42d9941fd65ecd67d4dba8d7a4faaada",
-    "asyncApiSha256": "a6c845b023815a739630fe212c26d83746516052fd2fb131cf7063b01b915462",
+    "manifestSha256": "283e533fb67cac7c488bcbf4febf07621ff523a681ebfb1d4b7e31e0cf140496",
+    "asyncApiSha256": "75c18f19f41f4598c71b5aefa446d8c675a630be9fa9d1b39c7ac2f177522209",
     "corpusSha256": "ee09b909863b868b57c3bf95daa47d3e24f84eb7eb487c1d64c0ef40ef4dc6ad"
   },
   "eventCount": 48,
