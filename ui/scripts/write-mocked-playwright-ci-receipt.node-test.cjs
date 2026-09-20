@@ -66,6 +66,24 @@ test('binds a pull request receipt to its head while retaining the synthetic eve
   assert.equal(receipt.git.source_sha_matches_hotm_sha, true);
 });
 
+test('uses an explicit Gitea pull request head when the event file is unavailable', (t) => {
+  const root = fixture();
+  t.after(() => fs.rmSync(root, { recursive: true, force: true }));
+  const head = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: root, encoding: 'utf8' }).trim();
+  const synthetic = '1'.repeat(40);
+  const { output, result } = prepare(root, {
+    GITHUB_SHA: synthetic,
+    GITHUB_EVENT_PATH: '',
+    HOTM_PR_HEAD_SHA: head,
+  });
+  assert.equal(result.status, 0, result.stderr);
+  const receipt = JSON.parse(fs.readFileSync(output, 'utf8'));
+  assert.equal(receipt.git.github_sha, synthetic);
+  assert.equal(receipt.git.pull_request_head_sha, head);
+  assert.equal(receipt.git.source_sha, head);
+  assert.equal(receipt.git.source_sha_matches_hotm_sha, true);
+});
+
 test('rejects a pull request head that differs from the checkout', (t) => {
   const root = fixture();
   t.after(() => fs.rmSync(root, { recursive: true, force: true }));
@@ -74,4 +92,14 @@ test('rejects a pull request head that differs from the checkout', (t) => {
   const { result } = prepare(root, { GITHUB_SHA: '1'.repeat(40), GITHUB_EVENT_PATH: event });
   assert.equal(result.status, 1);
   assert.match(result.stderr, /event source SHA does not match checked-out HotM HEAD/);
+});
+
+test('workflow binds mocked Playwright checkout and receipt to the pull request head', () => {
+  const workflow = fs.readFileSync(path.resolve(__dirname, '../../.gitea/workflows/ui-ci.yml'), 'utf8');
+  const bindings = workflow.match(/HOTM_PR_HEAD_SHA: \$\{\{ github\.event\.pull_request\.head\.sha \}\}/g) || [];
+  assert.equal(bindings.length, 2);
+  assert.match(
+    workflow,
+    /git fetch --depth 1 origin "\$\{HOTM_PR_HEAD_SHA:-\$\{GITHUB_REF:-\$\{GITHUB_SHA:-main\}\}\}"/,
+  );
 });

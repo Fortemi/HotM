@@ -177,12 +177,14 @@ jobs:
     steps:
       - name: Checkout
         shell: bash
+        env:
+          HOTM_PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         run: |
           set -euo pipefail
           git init .
           git remote add origin \
             "https://token:${{ github.token }}@git.integrolabs.net/${GITHUB_REPOSITORY}.git"
-          git fetch --depth 1 origin "${GITHUB_REF:-${GITHUB_SHA:-main}}" ||
+          git fetch --depth 1 origin "${HOTM_PR_HEAD_SHA:-${GITHUB_REF:-${GITHUB_SHA:-main}}}" ||
             git fetch --depth 1 origin "${GITHUB_SHA:-main}"
           git checkout --detach FETCH_HEAD
 
@@ -199,6 +201,8 @@ jobs:
       - name: Run mocked Playwright desktop and mobile gates
         shell: bash
         working-directory: ui
+        env:
+          HOTM_PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         run: |
           set -euo pipefail
           node --test scripts/write-mocked-playwright-ci-receipt.node-test.cjs

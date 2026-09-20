@@ -31,6 +31,10 @@ function hotmSha() {
 }
 
 function pullRequestHeadSha() {
+  const explicitSha = process.env.HOTM_PR_HEAD_SHA;
+  if (typeof explicitSha === 'string' && /^[0-9a-f]{40}$/.test(explicitSha)) {
+    return explicitSha;
+  }
   const eventPath = process.env.GITHUB_EVENT_PATH;
   if (!eventPath) return null;
   const event = JSON.parse(fs.readFileSync(eventPath, 'utf8'));
