@@ -269,9 +269,8 @@ test.describe('live asset lifecycle', () => {
         new TextDecoder().decode(cleanRecoveryManifestBytes),
       );
       const cleanRecoveryDefaults: Record<string, number> = {
-        embedding_configs: 8,
+        embedding_configs: 1,
         embedding_sets: 1,
-        skos_schemes: 1,
       };
       expect(
         Object.entries(cleanRecoveryManifest.counts).filter(
