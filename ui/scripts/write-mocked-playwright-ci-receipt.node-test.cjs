@@ -30,12 +30,14 @@ function fixture() {
   return root;
 }
 
-function prepare(root, environment = {}) {
+function prepare(root, environment = {}, inheritedEnvironment = process.env) {
   const output = path.join(root, 'receipt.json');
+  const childEnvironment = { ...inheritedEnvironment };
+  delete childEnvironment.HOTM_PR_HEAD_SHA;
   const result = spawnSync(process.execPath, [script, '--prepare', output], {
     cwd: root,
     encoding: 'utf8',
-    env: { ...process.env, GITHUB_REPOSITORY: 'Fortemi/HotM', ...environment },
+    env: { ...childEnvironment, GITHUB_REPOSITORY: 'Fortemi/HotM', ...environment },
   });
   return { output, result };
 }
@@ -80,6 +82,23 @@ test('uses an explicit Gitea pull request head when the event file is unavailabl
   const receipt = JSON.parse(fs.readFileSync(output, 'utf8'));
   assert.equal(receipt.git.github_sha, synthetic);
   assert.equal(receipt.git.pull_request_head_sha, head);
+  assert.equal(receipt.git.source_sha, head);
+  assert.equal(receipt.git.source_sha_matches_hotm_sha, true);
+});
+
+test('does not leak the workflow pull request head into synthetic fixtures', (t) => {
+  const root = fixture();
+  t.after(() => fs.rmSync(root, { recursive: true, force: true }));
+  const head = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: root, encoding: 'utf8' }).trim();
+  const inheritedEnvironment = { ...process.env, HOTM_PR_HEAD_SHA: 'f'.repeat(40) };
+  const { output, result } = prepare(
+    root,
+    { GITHUB_SHA: head, GITHUB_EVENT_PATH: '' },
+    inheritedEnvironment,
+  );
+  assert.equal(result.status, 0, result.stderr);
+  const receipt = JSON.parse(fs.readFileSync(output, 'utf8'));
+  assert.equal(receipt.git.pull_request_head_sha, null);
   assert.equal(receipt.git.source_sha, head);
   assert.equal(receipt.git.source_sha_matches_hotm_sha, true);
 });
